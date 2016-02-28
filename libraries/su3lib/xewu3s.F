@@ -1,0 +1,159 @@
+      SUBROUTINE XEWU3S(INC,LAM1,MU1,LAM2,MU2,NEC,NNC,KR0A,KR0B,DEWU3P,
+     1J1TA,IAB,ICD,INDMAX,DEWU3,KR0MAX)
+C     ------------------------------------------------------------------
+C     SUPPORT ROUTINE FOR XEWU3S (X PREFIX FOR 6-81 VERSION)
+C     ------------------------------------------------------------------
+C     UPDATE/MOD: (LSU,06-81)  J.P.DRAAYER        INDEXING DEWU3
+C                 (LSU,03-97)  J.P.DRAAYER        INTEGER OVERFLOW FIX
+C                              C.BAHRI
+C
+C     PARAMETERS--
+C       INC=0:<(LAM1,MU1)????;(LAM2,MU2)????::KR0(LAM3,MU3)HIGH>
+C             FROM <(LAM1,MU1)????;(LAM2,MU2)HIGH::KR0(LAM3,MU3)HIGH>
+C       INC=1:<(LAM1,MU1)????;(LAM2,MU2)????::KR0(LAM3,MU3)HIGH>
+C             FROM <(LAM1,MU1)HIGH;(LAM2,MU2)????::KR0(LAM3,MU3)HIGH>
+C     ------------------------------------------------------------------
+      IMPLICIT REAL*8(D)
+      DIMENSION DEWU3(1),J1TA(1),DEWU3P(1),IAB(1),ICD(1)
+      INDEX(J1TD,LAM1,J1T,J2TD,LAM2,J2T)=1+J2TD*(J2TD+1)*(3*J1TD+J2TD+5)
+     1/6+(J1TD+1)*(LAM2+J2TD-J2T)/2+(LAM1+J1TD-J1T)/2
+CW    write(6,*) INC,LAM1,MU1,LAM2,MU2,NEC,NNC,KR0A,KR0B,DEWU3P(1),
+CW   1J1TA(1),IAB(1),ICD(1),INDMAX,DEWU3(1),KR0MAX
+      INDQ=-KR0MAX
+      IF(INC.EQ.1)INDQ=INDQ+(INDMAX-NNC)*KR0MAX
+      INDPQ=-KR0MAX
+      DO 10 IIQ=1,NNC
+      INDQ=INDQ+KR0MAX
+      INDPQ=INDPQ+KR0MAX
+      DO 10 KR0=KR0A,KR0B
+      KI=KR0+INDQ
+      KIP=KR0+INDPQ
+   10 DEWU3(KI)=DEWU3P(KIP)
+      IF(NEC.EQ.0)RETURN
+      IF(INC.EQ.1)GO TO 15
+      L1=LAM1
+      M1=MU1
+      L2=LAM2
+      M2=MU2
+      GO TO 20
+   15 L1=LAM2
+      M1=MU2
+      L2=LAM1
+      M2=MU1
+   20 LL1=L1+1
+      MM1=M1+1
+      LL2=L2+1
+      MM2=M2+1
+      LM1=LL1+MM1
+      LM2=LL2+MM2
+      DO 70 J2TD=1,NEC
+      J1TD=NEC-J2TD
+      J2D=J2TD-1
+      J1D=J1TD+1
+      IIQ2A=J2TD-M2
+      IF(IIQ2A.LT.0)IIQ2A=0
+      IIQ2A=IIQ2A+1
+      IIQ2B=J2TD
+      IF(L2.LT.IIQ2B)IIQ2B=L2
+      IIQ2B=IIQ2B+1
+      IIQ1A=J1TD-M1
+      IF(IIQ1A.LT.0)IIQ1A=0
+      IIQ1A=IIQ1A+1
+      IIQ1B=J1TD
+      IF(L1.LT.IIQ1B)IIQ1B=L1
+      IIQ1B=IIQ1B+1
+      DO 70 IIQ2=IIQ2A,IIQ2B
+      IQ2=IIQ2-1
+      IP2=J2TD-IQ2
+      J2T=L2+IP2-IQ2
+      JJ2T=J2T+1
+      IQ=-1
+      IP=-1
+      IF(IP2.EQ.0)GO TO 25
+      IQ2P=IQ2
+      IP2P=IP2-1
+      IQ2D=0
+      IP2D=1
+      IF(INC.EQ.1)IP=1
+CB    NM=IP2*(M2-IP2P)*(LL2+IP2)                                        
+      DM=DFLOAT(IP2)*DFLOAT(M2-IP2P)*DFLOAT(LL2+IP2)
+      DN=DFLOAT(J2T)
+      GO TO 30
+   25 IQ2P=IQ2-1
+      IP2P=IP2
+      IQ2D=1
+      IP2D=0
+      IF(INC.EQ.0)IQ=1
+CB    NM=IQ2*(L2-IQ2P)*(LM2-IQ2)                                        
+      DM=DFLOAT(IQ2)*DFLOAT(L2-IQ2P)*DFLOAT(LM2-IQ2)
+      DN=DFLOAT(J2T+2)
+   30 J2TP=L2+IP2P-IQ2P
+      JTA=J2TD-IQ2P
+      JTB=NNC-JTA
+      NQD=NEC-IQ2P
+      DO 70 IIQ1=IIQ1A,IIQ1B
+      IQ1=IIQ1-1
+      IP1=J1TD-IQ1
+      J1T=L1+IP1-IQ1
+      IF(INC.EQ.0)IND=INDEX(J1TD,L1,J1T,J2TD,L2,J2T)
+      IF(INC.EQ.1)IND=INDEX(J2TD,L2,J2T,J1TD,L1,J1T)
+      IF(J1TA(IND).LT.0)GO TO 70
+      IF(IP1.EQ.M1)GO TO 50
+      IQ1P=IQ1
+      IP1P=IP1+1
+      J1TP=J1T+1
+      IF(INC.EQ.0)GO TO 35
+      INDP=INDEX(J2D,L2,J2TP,J1D,L1,J1TP)
+      IF(J1TA(INDP).LT.0)GO TO 50
+      J123=JTB-IQ1
+      GO TO 40
+   35 INDP=INDEX(J1D,L1,J1TP,J2D,L2,J2TP)
+      IF(J1TA(INDP).LT.0)GO TO 50
+      J123=JTA+IQ1
+   40 IF(IP2D.EQ.1)I=IAB(J123)
+      IF(IQ2D.EQ.1)I=ICD(NQD-IQ1)
+C     I=JJ2T*IP1P*(MM1-IP1P)*(LL1+IP1P)*I
+C     DC=DSQRT(DFLOAT(I)/(DFLOAT((J1T+2)*J1TP*NM)*DN))
+CB    DX=DFLOAT(JJ2T*IP1P*(MM1-IP1P))*DFLOAT((LL1+IP1P)*I)
+CB    DC=DSQRT(DX/(DFLOAT((J1T+2)*J1TP*NM)*DN))                  
+      DX=DFLOAT(JJ2T)*DFLOAT(IP1P)*DFLOAT(MM1-IP1P)*DFLOAT((LL1+IP1P)*I)
+      DC=DSQRT(DX/(DFLOAT((J1T+2)*J1TP)*DM*DN))                  
+CW    write(6,*) ' line', 40, dx, dc
+      IF(IQ.LT.0)DC=-DC
+      INDQ=(IND-1)*KR0MAX
+      INDPQ=(INDP-1)*KR0MAX
+      DO 45 KR0=KR0A,KR0B
+      KI=KR0+INDQ
+      KIP=KR0+INDPQ
+   45 DEWU3(KI)=DC*DEWU3(KIP)
+   50 IF(IQ1.EQ.L1)GO TO 70
+      IQ1P=IQ1+1
+      IP1P=IP1
+      J1TP=J1T-1
+      IF(INC.EQ.0)GO TO 55
+      INDP=INDEX(J2D,L2,J2TP,J1D,L1,J1TP)
+      IF(J1TA(INDP).LT.0)GO TO 70
+      J123=JTB-IQ1
+      GO TO 60
+   55 INDP=INDEX(J1D,L1,J1TP,J2D,L2,J2TP)
+      IF(J1TA(INDP).LT.0)GO TO 70
+      J123=JTA+IQ1
+   60 IF(IP2D.EQ.1)I=ICD(NQD-IQ1)
+      IF(IQ2D.EQ.1)I=IAB(J123)
+C     I=JJ2T*IQ1P*(LL1-IQ1P)*(LM1-IQ1P)*I
+C     DC=DSQRT(DFLOAT(I)/(DFLOAT((J1TP+2)*J1T*NM)*DN))
+CB    DX=DFLOAT(JJ2T*IQ1P*(LL1-IQ1P))*DFLOAT((LM1-IQ1P)*I)
+CB    DC=DSQRT(DX/(DFLOAT((J1TP+2)*J1T*NM)*DN))                  
+      DX=DFLOAT(JJ2T)*DFLOAT(IQ1P)*DFLOAT(LL1-IQ1P)*DFLOAT((LM1-IQ1P)*I)
+      DC=DSQRT(DX/(DFLOAT((J1TP+2)*J1T)*DM*DN))                  
+CW    write(6,*) ' line', 60, dx, dc
+      IF(IP.LT.0)DC=-DC
+      INDQ=(IND-1)*KR0MAX
+      INDPQ=(INDP-1)*KR0MAX
+      DO 65 KR0=KR0A,KR0B
+      KI=KR0+INDQ
+      KIP=KR0+INDPQ
+   65 DEWU3(KI)=DEWU3(KI)+DC*DEWU3(KIP)
+   70 CONTINUE
+      RETURN
+      END
