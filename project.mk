@@ -12,6 +12,10 @@ project_name := spncci
 # libraries
 # Caution: Order is important since used also in linking.
 modules := libraries/UNU3SU3 libraries/SU3NCSMUtils libraries/su3lib
+ 
+# additional libraries -- cloned as submodules
+modules += libraries/am
+
 
 #programs
 modules += \
@@ -32,3 +36,12 @@ extras :=
 LDLIBS += -lgsl 
 LDLIBS += -lgslcblas 
 CPPFLAGS += -DHAVE_INLINE
+
+# SU3LIB numerical precision
+#   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
+#   Note: quad precision requires ifort compiler
+
+FFLAGS += -DSU3DBL
+
+# BOOST
+LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
