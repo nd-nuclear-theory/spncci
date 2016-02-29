@@ -1,0 +1,3 @@
+[submodule "libraries/am"]
+	path = libraries/am
+	url = ssh://portal-auth.nersc.gov/project/projectdirs/m2032/www/git/am.git
