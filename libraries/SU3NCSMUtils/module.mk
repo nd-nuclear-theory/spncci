@@ -4,6 +4,10 @@ $(eval $(begin-module))
 # unit definitions
 ################################################################
 
+# Note: If we are only using the header files, no object files, must
+# disable makefile library flag, so makefile does not attempt to
+# create library archive.
+
 ## module_units_h := CTuple combination 
 module_units_h := CTuple
 ## module_units_cpp-h := CNullSpaceSolver clebschGordan factorial CRunParameters
@@ -14,7 +18,7 @@ module_units_h := CTuple
 # library creation flag
 ################################################################
 
-$(eval $(library))
+## $(eval $(library))
 
 ################################################################
 # special variable assignments, rules, and dependencies
