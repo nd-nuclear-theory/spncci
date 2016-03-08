@@ -115,19 +115,74 @@ namespace u3
     MultiplicityTagged<u3::SU3>::vector product;
     int max_entries = (lambda3_max - lambda3_min + 1) * (mu3_max - mu3_min + 1);
     product.reserve(max_entries);
-    
+
+    // generate product
     for (int lambda3 = lambda3_min; lambda3 <= lambda3_max; ++lambda3)
       for (int mu3 = mu3_min; mu3 <= mu3_max; ++mu3)
 	{
 	  u3::SU3 x3(lambda3,mu3);
-	  int rho = OuterMultiplicity(x1,x2,x3);
-	  if (rho>0)
-	    product.push_back(MultiplicityTagged<u3::SU3>(x3,rho));
+	  int multiplicity = OuterMultiplicity(x1,x2,x3);
+	  if (multiplicity>0)
+ 	    product.push_back(MultiplicityTagged<u3::SU3>(x3,multiplicity));
 	}
 
     return product;
-
   }
 
+  int BranchingMultiplicitySO3(const u3::SU3& x, int L)
+  {
+    int multiplicity 
+      = std::max(0,(x.lambda+x.mu+2-L)/2)
+      - std::max(0,(x.lambda+1-L)/2)
+      - std::max(0,(x.mu+1-L)/2);
+    return multiplicity;
+  }
+
+  MultiplicityTagged<int>::vector BranchingSO3(const u3::SU3& x)
+  {
+
+    // calculate bound on L
+    int L_min = std::min(x.lambda,x.mu)%2;
+    int L_max = x.lambda+x.mu;
+
+    // allocate container for product
+    MultiplicityTagged<int>::vector branching;
+    int max_entries = L_max-L_min+1;
+    branching.reserve(max_entries);
+
+    // generate branching
+    for (int L=L_min; L<=L_max; ++L)
+      {
+	int multiplicity = BranchingMultiplicitySO3(x,L);
+	if (multiplicity>0)
+	  branching.push_back(MultiplicityTagged<int>(L,multiplicity));
+      }
+
+    return branching;
+  }
+
+  MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x)
+  //TODO
+  {
+
+    // calculate bound on L
+    int L_min = std::min(x.lambda,x.mu)%2;
+    int L_max = x.lambda+x.mu;
+
+    // allocate container for product
+    MultiplicityTagged<int>::vector branching;
+    int max_entries = L_max-L_min+1;
+    branching.reserve(max_entries);
+
+    // generate branching
+    for (int L=L_min; L<=L_max; ++L)
+      {
+	int multiplicity = BranchingMultiplicitySO3(x,L);
+	if (multiplicity>0)
+	  branching.push_back(MultiplicityTagged<int>(L,multiplicity));
+      }
+
+    return branching;
+  }
 
 }  // namespace

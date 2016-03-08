@@ -499,7 +499,7 @@ namespace u3
   //   (int) : multiplicity 
 
   MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2);
-  // Calculate multiplicity-tagged vector of SU(3) irreps in SU(3) Kronecker product.
+  // Generate multiplicity-tagged vector of SU(3) irreps in SU(3) Kronecker product.
   //
   // Generates Kronecker product by iterating over possible
   // (lambda,mu) in product and checking multiplicity.
@@ -513,7 +513,51 @@ namespace u3
   // Returns:
   //   (MultiplicityTaggedVector<u3::SU3>) : vector with each irrep
   //   (of nonzero multiplicity) tagged by its multiplicity rho_max
-  
+
+  // branching multiplicity
+
+  int BranchingMultiplicity(const u3::SU3& x, int L);
+  // Calculate branching multiplicity of angular momentum in SU(3) irrep.
+  //
+  // Ref: e.g., Harvey, ANP 1, 67 (1968).
+  //
+  // Arguments:
+  //   x (u3::SU3): SU(3) irrep
+  //   L (int) : angular momentum
+  //
+  // Returns:
+  //   (int) : multiplicity 
+  //
+  // EX:
+  //   BranchingMultiplicity(u3::SU3(4,3),3)
+  //   returns 2
+
+  MultiplicityTagged<int>::vector BranchingSO3(const u3::SU3& x);
+  // Generate multiplicity-tagged vector of SO(3) irreps in SU(3) irrep.
+  //
+  // The general branching rule is:
+  //
+  //   mubar=min(lambda,mu)
+  //   lambdabar=max(lambda,mu)
+  //   K=mubar,mubar-2,...,1 or 0 
+  //   L =
+  //      K, K+1,...,lambdabar          if K!=0         
+  //      lambdabar, lambdabar-2,...,1 or 0      if K=0
+  //
+  // The list of L values with multiplicities is, however, generated
+  // by iterating over the allowed L values in this range and
+  // calculating their multiplicities by BranchingMultiplicity.
+  //
+  // Args:
+  //    x (u3::SU3) : SU(3) labels
+  //
+  // Returns:
+  //   (MultiplicityTaggedVector<int>) : vector with each L
+  //   (of nonzero multiplicity) tagged by its multiplicity 
+  //   kappa_max
+
+  MultiplicityTagged<int>::vector BranchingSO3Restricted(const u3::SU3& x, const HalfInt& S, const HalfInt& J);
+  // TODO: constrained L version
 
 }  // namespace
 
