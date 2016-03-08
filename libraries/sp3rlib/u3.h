@@ -479,7 +479,7 @@ namespace u3
     //
     // Note: Will fail if irrep type does not have Str() method, e.g.,
     // if the irrep is just and int.  This may be overcome via
-    // template specialization (see special cases below).
+    // template specialization (as done below).
     {
       std::ostringstream ss;
 	
@@ -490,6 +490,16 @@ namespace u3
   template <>
     std::string MultiplicityTagged<int>::Str() const
     // Template specialization for IRREP->int.
+    {
+      std::ostringstream ss;
+	
+      ss << "(" << irrep << "," << tag << ")";
+      return ss.str();
+    }
+
+  template <>
+    std::string MultiplicityTagged<HalfInt>::Str() const
+    // Template specialization for IRREP->HalfInt.
     {
       std::ostringstream ss;
 	
