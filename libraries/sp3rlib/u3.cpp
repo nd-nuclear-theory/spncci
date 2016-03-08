@@ -116,17 +116,16 @@ namespace u3
     int max_entries = (lambda3_max - lambda3_min + 1) * (mu3_max - mu3_min + 1);
     product.reserve(max_entries);
     
-    u3::SU3 x3;
-    for (x3.lambda = lambda3_min; x3.lambda <= lambda3_max; ++x3.lambda)
-      for (x3.mu = mu3_min; x3.mu <= mu3_max; ++x3.mu)
+    for (int lambda3 = lambda3_min; lambda3 <= lambda3_max; ++lambda3)
+      for (int mu3 = mu3_min; mu3 <= mu3_max; ++mu3)
 	{
+	  u3::SU3 x3(lambda3,mu3);
 	  int rho = OuterMultiplicity(x1,x2,x3);
 	  if (rho>0)
 	    product.push_back(MultiplicityTagged<u3::SU3>(x3,rho));
 	}
 
     return product;
-
 
   }
 
