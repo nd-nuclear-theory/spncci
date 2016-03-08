@@ -5,6 +5,7 @@
   University of Notre Dame
 
   3/7/16 (aem,mac): Created.
+  3/8/16 (aem,mac): Add tests for U3ST.
 
 ****************************************************************/
 
@@ -15,8 +16,10 @@
 
 int main(int argc, char **argv)
 {
-  
+
+  ////////////////////////////////////////////////////////////////
   // construction and string conversion
+  ////////////////////////////////////////////////////////////////
 
   std::cout << u3::SU3(1,2).Str() << std::endl;
   std::cout 
@@ -25,7 +28,11 @@ int main(int argc, char **argv)
     << u3::U3(HalfInt(5,2),u3::SU3(1,0)).Str()
     << std::endl;
 
+  ////////////////////////////////////////////////////////////////
   // comparison operators
+  ////////////////////////////////////////////////////////////////
+
+  // SU(3)
   std::vector<u3::SU3> lm_vector;
   lm_vector.push_back(u3::SU3(1,2));
   lm_vector.push_back(u3::SU3(4,3));
@@ -38,6 +45,7 @@ int main(int argc, char **argv)
     }
   std::cout << std::endl;
 
+  // U(3)
   std::vector<u3::U3> w_vector;
   w_vector.push_back(u3::U3(1,1,1));
   w_vector.push_back(u3::U3(3,1,0));
@@ -55,6 +63,7 @@ int main(int argc, char **argv)
     }
   std::cout << std::endl;
 
+  // U(3)xSU(2)
   std::vector<u3::U3S> wS_vector;
   wS_vector.push_back(u3::U3S(u3::U3(1,1,1),3));
   wS_vector.push_back(u3::U3S(u3::U3(1,1,1),1));
@@ -71,7 +80,8 @@ int main(int argc, char **argv)
       std::cout << wS_vector[i].Str();
     }
   std::cout << std::endl;
-  //U(3)xSU(2)xSU(2)
+
+  // U(3)xSU(2)xSU(2)
   std::vector<u3::U3ST> wST_vector;
   wST_vector.push_back(u3::U3ST(u3::U3(1,1,1),3,2));
   wST_vector.push_back(u3::U3ST(u3::U3(1,1,1),1,1));
@@ -93,7 +103,10 @@ int main(int argc, char **argv)
 
 
 
+  ////////////////////////////////////////////////////////////////
   // dimension, conjugation, and validation tests
+  ////////////////////////////////////////////////////////////////
+
   for (int i=0; i<lm_vector.size(); ++i)
     {
       std::cout 
@@ -129,10 +142,5 @@ int main(int argc, char **argv)
 	<< std::endl;
     }
   std::cout << std::endl;
-
-
-  // U3S test
-
-  
 
 }

@@ -6,7 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/7/16 (aem,mac) : Created based on prototype u3states.py, u3.py, and so3.py.
+  3/7/16 (aem,mac): Created based on prototype u3states.py, u3.py, and so3.py.
+  3/8/16 (aem,mac): Add U3ST structure and rename U3S structure.
 
 ****************************************************************/
 
@@ -293,7 +294,6 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
 
-    // Cartesian labels
     u3::U3 w;
     HalfInt S;
 
@@ -373,10 +373,8 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
 
-    // Cartesian labels
     u3::U3 w;
-    HalfInt S;
-    HalfInt T;
+    HalfInt S, T;
 
   };
 
@@ -406,14 +404,6 @@ namespace u3
   {
     return dim(wST.w)*(TwiceValue(wST.S)+1)*(TwiceValue(wST.T)+1);  // TODO: define dimension function for am?
   }
-
-
-
-
-
-
-
-
 
 }  // namespace
 

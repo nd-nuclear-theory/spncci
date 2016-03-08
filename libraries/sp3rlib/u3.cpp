@@ -46,7 +46,7 @@ namespace u3
   {
     std::ostringstream ss;
 
-    ss << w.Str() << "x" << S<< "x" << T;
+    ss << w.Str() << "x" << S << "x" << T;
 
     return ss.str();
   }
