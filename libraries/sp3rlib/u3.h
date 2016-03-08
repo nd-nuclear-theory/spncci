@@ -475,10 +475,25 @@ namespace u3
 
   template <typename IRREP>
     std::string MultiplicityTagged<IRREP>::Str() const
+    // Generate string output relying on Str() method of irrep.
+    //
+    // Note: Will fail if irrep type does not have Str() method, e.g.,
+    // if the irrep is just and int.  This may be overcome via
+    // template specialization (see special cases below).
     {
       std::ostringstream ss;
 	
       ss << "(" << irrep.Str() << "," << tag << ")";
+      return ss.str();
+    }
+
+  template <>
+    std::string MultiplicityTagged<int>::Str() const
+    // Template specialization for IRREP->int.
+    {
+      std::ostringstream ss;
+	
+      ss << "(" << irrep << "," << tag << ")";
       return ss.str();
     }
 
@@ -511,7 +526,7 @@ namespace u3
   //   x1, x2 (u3::SU3) : irreps
   //
   // Returns:
-  //   (MultiplicityTaggedVector<u3::SU3>) : vector with each irrep
+  //   (MultiplicityTagged<u3::SU3>::vector) : vector with each irrep
   //   (of nonzero multiplicity) tagged by its multiplicity rho_max
 
   // branching multiplicity
@@ -552,7 +567,7 @@ namespace u3
   //    x (u3::SU3) : SU(3) labels
   //
   // Returns:
-  //   (MultiplicityTaggedVector<int>) : vector with each L
+  //   (MultiplicityTagged<int>::vector) : vector with each L
   //   (of nonzero multiplicity) tagged by its multiplicity 
   //   kappa_max
 
