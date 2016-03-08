@@ -14,8 +14,10 @@
 #ifndef U3_H_
 #define U3_H_
 
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "am/halfint.h"
 
@@ -38,9 +40,10 @@ namespace u3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    // default constructor: syntesized default constructor (?),
-    // presumably leaves data uninitialized (?)
-
+    // default constructor
+    inline SU3() 
+      : lambda(0), mu(0) {}
+    
     // construction from (lambda,mu)
     inline SU3(int lambda_, int mu_) 
       : lambda(lambda_), mu(mu_) {}
@@ -123,8 +126,10 @@ namespace u3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    // default constructor: syntesized default constructor (?),
-    // presumably leaves data uninitialized (?)
+    // default constructor
+    inline U3() 
+      : f1(0), f2(0), f3(0) {}
+
 
     // construction from f1,f2,f3
     inline U3(const HalfInt& f1_, const HalfInt& f2_, const HalfInt& f3_) 
@@ -263,8 +268,9 @@ namespace u3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    // default constructor: syntesized default constructor (?),
-    // presumably leaves data uninitialized (?)
+    // default constructor
+    inline U3S() 
+      : S(0) {}
 
     // construction from (w,S)
     inline U3S(const u3::U3& w_, const HalfInt& S_) 
@@ -277,6 +283,11 @@ namespace u3
     inline u3::U3 U3() const
     {
       return w;
+    }
+
+    inline u3::SU3 SU3() const
+    {
+      return w.SU3();
     }
 
     inline std::pair<u3::U3,HalfInt> Key() const
@@ -342,8 +353,9 @@ namespace u3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    // default constructor: syntesized default constructor (?),
-    // presumably leaves data uninitialized (?)
+    // default constructor
+    inline U3ST() 
+      : S(0), T(0) {}
 
     // construction from (w,S,T)
     inline U3ST(const u3::U3& w_, const HalfInt& S_, const HalfInt& T_) 
@@ -356,6 +368,11 @@ namespace u3
     inline u3::U3 U3() const
     {
       return w;
+    }
+
+    inline u3::SU3 SU3() const
+    {
+      return w.SU3();
     }
 
     inline std::pair<u3::U3S,HalfInt> Key() const
@@ -404,6 +421,99 @@ namespace u3
   {
     return dim(wST.w)*(TwiceValue(wST.S)+1)*(TwiceValue(wST.T)+1);  // TODO: define dimension function for am?
   }
+
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // coupling
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+
+  // container classes for irreps with multiplicity
+
+  template <typename IRREP>
+    struct MultiplicityTagged
+    // EX:
+    //   MultiplicityTagged<u3::SU3> xrho;
+    //   xrho.irrep = u3::SU3(2,1);
+    //   xrho.multiplicity = 4;
+    {
+
+      ////////////////////////////////////////////////////////////////
+      // templated typedef for container class
+      ////////////////////////////////////////////////////////////////
+
+      typedef std::vector<MultiplicityTagged<IRREP> > vector;
+      
+      ////////////////////////////////////////////////////////////////
+      // constructors
+      ////////////////////////////////////////////////////////////////
+      
+      // copy constructor: synthesized copy constructor since only data
+      // member needs copying
+
+      // default constructor
+      inline MultiplicityTagged() 
+	: tag(0) {}
+
+      // construct by (irrep, tag)
+      inline MultiplicityTagged(const IRREP& irrep_, int tag_) 
+	: irrep(irrep_), tag(tag_) {}
+      
+      ////////////////////////////////////////////////////////////////
+      // string conversion
+      ////////////////////////////////////////////////////////////////
+    
+      std::string Str() const;
+
+      ////////////////////////////////////////////////////////////////
+      // labels
+      ////////////////////////////////////////////////////////////////
+      
+      IRREP irrep;
+      int tag;
+    };
+
+  template <typename IRREP>
+    std::string MultiplicityTagged<IRREP>::Str() const
+    {
+      std::ostringstream ss;
+	
+      ss << "(" << irrep.Str() << "," << tag << ")";
+      return ss.str();
+    }
+
+  // outer multiplicity
+
+  int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3);
+  // Calculate outer multiplicity of SU(3) irrep of SU(3) Kronecker product.
+  //
+  // Calculates multiplicity of x3 in product x1 x x2.
+  //
+  // Reference: C. K. Chew and R. T. Sharp, Can. J. Phys. 44, 2789 (1966).  To be verified.
+  // As in SU3LIB MULTU3 or UNU3SU3Basics SU3::mult.
+  //
+  // Arguments:
+  //   x1, x2, x3 (u3::SU3): irreps
+  //
+  // Returns:
+  //   (int) : multiplicity 
+
+  MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2);
+  // Calculate multiplicity-tagged vector of SU(3) irreps in SU(3) Kronecker product.
+  //
+  // Generates Kronecker product by iterating over possible
+  // (lambda,mu) in product and checking multiplicity.
+  //
+  // As in UNU3SU3Basics SU3::Couple but adopting more restrictive
+  // bounds on product (lambda3,mu3).
+  //
+  // Arguments:
+  //   x1, x2 (u3::SU3) : irreps
+  //
+  // Returns:
+  //   (MultiplicityTaggedVector<u3::SU3>) : vector with each irrep
+  //   (of nonzero multiplicity) tagged by its multiplicity rho_max
+  
 
 }  // namespace
 

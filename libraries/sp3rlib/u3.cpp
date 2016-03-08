@@ -51,6 +51,84 @@ namespace u3
     return ss.str();
   }
 
+  int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
+  {
+    int multiplicity = 0;
+    int Nx = (x1.lambda-x1.mu) + (x2.lambda-x2.mu) - (x3.lambda-x3.mu);
+
+    // short circuit
+    if ((Nx%3)!=0)
+      return 0;
+
+
+    // handle conjugation for "oblate" cases
+    int Mx;
+    u3::SU3 y1, y2, y3;
+    if (Nx>=0)
+      {
+	y1 = x1; 
+	y2 = x2; 
+	y3 = x3;
+	Mx = Nx/3;
+      }
+    else
+      {
+	y1 = Conjugate(x1);
+	y2 = Conjugate(x2);
+	y3 = Conjugate(x3);
+	Mx = -Nx/3;
+      }
+    
+    // main calculation
+    Nx = Mx+y1.mu+y2.mu-y3.mu;
+    int Mu = std::min(y1.lambda-Mx,y2.mu);
+    if (Mu>=0)
+      {
+	int Nu = std::min(y2.lambda-Mx,y1.mu);
+	if (Nu>=0)
+	  multiplicity = std::max(std::min(Nx,Nu)-std::max(Nx-Mu,0)+1,0);
+      }
+
+    return multiplicity;
+  }
+
+  MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2)
+  {
+    // calculate bounds on (lambda3,mu3)
+    int lambda3_min = 0;  // could be further constrained
+    int mu3_min = 0;  // could be further constrained
+    int lambda3_max = x1.lambda+x2.lambda+std::min(x2.mu,x1.lambda+x1.mu);  // asymmetric expression, may be further constrained
+    int mu3_max = x1.mu+x2.mu+std::min(x1.lambda,x2.lambda);
+
+    // allocate container for product
+
+    // Is this max_entries too big?
+    //
+    // SU3::Couple just reserves x1.lambda+x2.lambda+x1.mu+x2.mu.
+    //
+    // TESTING: compare final size() with final capacity()
+    //
+    // Note: could trim container for product with shrink_to_fit() at end if
+    // storage will be persistent enough to make this worthwhile
+    // (nonbinding request in C++11)
+
+    MultiplicityTagged<u3::SU3>::vector product;
+    int max_entries = (lambda3_max - lambda3_min + 1) * (mu3_max - mu3_min + 1);
+    product.reserve(max_entries);
+    
+    u3::SU3 x3;
+    for (x3.lambda = lambda3_min; x3.lambda <= lambda3_max; ++x3.lambda)
+      for (x3.mu = mu3_min; x3.mu <= mu3_max; ++x3.mu)
+	{
+	  int rho = OuterMultiplicity(x1,x2,x3);
+	  if (rho>0)
+	    product.push_back(MultiplicityTagged<u3::SU3>(x3,rho));
+	}
+
+    return product;
+
+
+  }
 
 
 }  // namespace
