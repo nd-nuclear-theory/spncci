@@ -3,6 +3,7 @@
 *.[oa]
 *~
 *.mod
+.DS_Store 
 
 # draconian ignore -- doesn't work?
 #   only track: .mk .h .cpp .F
@@ -15,3 +16,4 @@ bin/
 # specific executables
 libraries/su3lib/su3genbk
 
+*.exe

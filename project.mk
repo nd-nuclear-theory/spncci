@@ -12,6 +12,8 @@ project_name := spncci
 # libraries
 # Caution: Order is important since used also in linking.
 modules := libraries/UNU3SU3 libraries/SU3NCSMUtils libraries/su3lib
+
+modules += libraries/sp3rlib
  
 # additional libraries -- cloned as submodules
 modules += libraries/am
@@ -44,4 +46,5 @@ CPPFLAGS += -DHAVE_INLINE
 FFLAGS += -DSU3DBL
 
 # BOOST
-LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
+## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
+

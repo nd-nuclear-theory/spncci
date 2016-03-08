@@ -28,6 +28,9 @@ CXX := g++
 # (e.g., need to load same modules as at compile time)
 CXXFLAGS += -static
 
+# C++11 standard
+CXXFLAGS += -std=c++0x
+
 # parallel C++ compiler
 #   used in module.mk files as
 #   program program.o: CXX := $(MPICXX)
