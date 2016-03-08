@@ -55,11 +55,11 @@ int main(int argc, char **argv)
     }
   std::cout << std::endl;
 
-  std::vector<u3::U3SU2> wS_vector;
-  wS_vector.push_back(u3::U3SU2(u3::U3(1,1,1),3));
-  wS_vector.push_back(u3::U3SU2(u3::U3(1,1,1),1));
-  wS_vector.push_back(u3::U3SU2(u3::U3(3,1,0),HalfInt(3,2)));
-  wS_vector.push_back(u3::U3SU2(u3::U3(3,1,0),HalfInt(1,2)));
+  std::vector<u3::U3S> wS_vector;
+  wS_vector.push_back(u3::U3S(u3::U3(1,1,1),3));
+  wS_vector.push_back(u3::U3S(u3::U3(1,1,1),1));
+  wS_vector.push_back(u3::U3S(u3::U3(3,1,0),HalfInt(3,2)));
+  wS_vector.push_back(u3::U3S(u3::U3(3,1,0),HalfInt(1,2)));
   for (int i=0; i<wS_vector.size(); ++i)
     {
       std::cout << wS_vector[i].Str();
@@ -71,6 +71,27 @@ int main(int argc, char **argv)
       std::cout << wS_vector[i].Str();
     }
   std::cout << std::endl;
+  //U(3)xSU(2)xSU(2)
+  std::vector<u3::U3ST> wST_vector;
+  wST_vector.push_back(u3::U3ST(u3::U3(1,1,1),3,2));
+  wST_vector.push_back(u3::U3ST(u3::U3(1,1,1),1,1));
+  wST_vector.push_back(u3::U3ST(u3::U3(3,1,0),HalfInt(3,2),HalfInt(1,2)));
+  wST_vector.push_back(u3::U3ST(u3::U3(3,1,0),HalfInt(1,2),1));
+  for (int i=0; i<wST_vector.size(); ++i)
+    {
+      std::cout << wST_vector[i].Str()<<"  ";
+    }
+  std::cout << std::endl;
+  sort(wST_vector.begin(),wST_vector.end());
+  for (int i=0; i<wST_vector.size(); ++i)
+    {
+      std::cout << wST_vector[i].Str()<<"  ";
+    }
+  std::cout << std::endl;
+
+
+
+
 
   // dimension, conjugation, and validation tests
   for (int i=0; i<lm_vector.size(); ++i)
@@ -110,7 +131,7 @@ int main(int argc, char **argv)
   std::cout << std::endl;
 
 
-  // U3SU2 test
+  // U3S test
 
   
 

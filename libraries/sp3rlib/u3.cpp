@@ -33,11 +33,20 @@ namespace u3
     return ss.str();
   }
 
-  std::string U3SU2::Str() const
+  std::string U3S::Str() const
   {
     std::ostringstream ss;
 
     ss << w.Str() << "x" << S;
+
+    return ss.str();
+  }
+
+  std::string U3ST::Str() const
+  {
+    std::ostringstream ss;
+
+    ss << w.Str() << "x" << S<< "x" << T;
 
     return ss.str();
   }

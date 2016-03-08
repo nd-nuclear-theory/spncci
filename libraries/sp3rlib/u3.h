@@ -252,7 +252,7 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-  struct U3SU2
+  struct U3S
   {
 
     ////////////////////////////////////////////////////////////////
@@ -266,7 +266,7 @@ namespace u3
     // presumably leaves data uninitialized (?)
 
     // construction from (w,S)
-    inline U3SU2(const u3::U3& w_, const HalfInt& S_) 
+    inline U3S(const u3::U3& w_, const HalfInt& S_) 
       : w(w_), S(S_) {}
 
     ////////////////////////////////////////////////////////////////
@@ -304,12 +304,12 @@ namespace u3
   // relational operators
   ////////////////////////////////////////////////////////////////
 
-  inline bool operator == (const U3SU2& wS1, const U3SU2& wS2)
+  inline bool operator == (const U3S& wS1, const U3S& wS2)
   {
     return wS1.Key() == wS2.Key();
   }
 
-  inline bool operator < (const U3SU2& wS1, const U3SU2& wS2)
+  inline bool operator < (const U3S& wS1, const U3S& wS2)
   {
     return wS1.Key() < wS2.Key();
   }
@@ -318,13 +318,100 @@ namespace u3
   // group theory functions
   ////////////////////////////////////////////////////////////////
 
-  inline int dim(const u3::U3SU2& wS)
+  inline int dim(const u3::U3S& wS)
   // Calculate dimension of irrep.
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
     return dim(wS.w)*(TwiceValue(wS.S)+1);  // TODO: define dimension function for am?
   }
+
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // U(3) x SU(2)x SU(2) irrep
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+
+  struct U3ST
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    // copy constructor: synthesized copy constructor since only data
+    // member needs copying
+
+    // default constructor: syntesized default constructor (?),
+    // presumably leaves data uninitialized (?)
+
+    // construction from (w,S,T)
+    inline U3ST(const u3::U3& w_, const HalfInt& S_, const HalfInt& T_) 
+      : w(w_), S(S_), T(T_) {}
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    inline u3::U3 U3() const
+    {
+      return w;
+    }
+
+    inline std::pair<u3::U3S,HalfInt> Key() const
+    {
+      return std::pair<u3::U3S,HalfInt>(U3S(w,S),T);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    // Cartesian labels
+    u3::U3 w;
+    HalfInt S;
+    HalfInt T;
+
+  };
+
+
+  ////////////////////////////////////////////////////////////////
+  // relational operators
+  ////////////////////////////////////////////////////////////////
+
+  inline bool operator == (const U3ST& wST1, const U3ST& wST2)
+  {
+    return wST1.Key() == wST2.Key();
+  }
+
+  inline bool operator < (const U3ST& wST1, const U3ST& wST2)
+  {
+    return wST1.Key() < wST2.Key();
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // group theory functions
+  ////////////////////////////////////////////////////////////////
+
+  inline int dim(const u3::U3ST& wST)
+  // Calculate dimension of irrep.
+  //
+  // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
+  {
+    return dim(wST.w)*(TwiceValue(wST.S)+1)*(TwiceValue(wST.T)+1);  // TODO: define dimension function for am?
+  }
+
+
+
+
+
+
 
 
 

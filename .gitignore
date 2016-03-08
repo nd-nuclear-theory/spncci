@@ -15,5 +15,5 @@ bin/
 
 # specific executables
 libraries/su3lib/su3genbk
-
+*_test
 *.exe
