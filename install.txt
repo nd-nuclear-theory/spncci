@@ -1,0 +1,25 @@
+Installation notes for spncci
+
+  3/7/16 (aem,mac): Created.
+
+----------------------------------------------------------------
+
+If subpackage am has been updated upstream:
+
+   cd libraries/am
+   git fetch
+   git merge origin/master
+
+----------------------------------------------------------------
+
+Compiling under OSX
+
+Static linking to system libraries is problematic.  Cannot static link against libcrt0.
+So do not include -static compiler flag in config.mk.
+
+g++ may not automatically find boost under /usr/local/{include,lib}.
+If so, add /usr/local to search_prefix in config.mk.
+
+To install boost:
+
+   brew install boost
