@@ -161,13 +161,12 @@ namespace u3
     return branching;
   }
 
-  MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x)
-  //TODO
+  MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r)
   {
 
     // calculate bound on L
-    int L_min = std::min(x.lambda,x.mu)%2;
-    int L_max = x.lambda+x.mu;
+    int L_min = std::max(std::min(x.lambda,x.mu)%2,int(r.first));
+    int L_max = std::min(x.lambda+x.mu,int(r.second));
 
     // allocate container for product
     MultiplicityTagged<int>::vector branching;
