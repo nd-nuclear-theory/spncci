@@ -10,7 +10,7 @@
 ****************************************************************/
 
 #include "sp3rlib/u3.h"
-
+#include "am/am.h"
 #include <vector>
 #include <algorithm>
 
@@ -147,6 +147,11 @@
   //////////////////////////////////////////////////////////////////
     u3::MultiplicityTagged<u3::SU3>::vector product;
     u3::MultiplicityTagged<int>::vector branch;
+    u3::MultiplicityTagged<int>::vector branchR;
+    HalfInt S(1,2);
+    HalfInt J(1,2);
+    HalfInt::pair r = am::ProductAngularMomentumRange(S,J);
+    // Coupling (lambda1,mu1)x(lambda2,mu2) for range of lambda's and mu's 
     for(int l1=0; l1<2; l1++)
       for(int m1=1; m1<3; m1++)
       {
@@ -155,17 +160,30 @@
           for(int m2=4; m2<5; m2++)
           {
             u3::SU3 x2(l2,m2);
+            //List of product irreps from coupling
             product=KroneckerProduct(x1,x2);
+            // Print (lambda1,mu1) and (lambda2,mu2)
             std::cout<<x1.Str()<<"  "<<x2.Str()<<std::endl;
+            // for each product irrep, branch irrep and print product irrep 
+            // followed by possible kappa L values 
             for(int i=0; i<product.size(); i++)  
             {
               branch=BranchingSO3(product[i].irrep);
-              std::cout<<"  "<<product[i].Str()<<std::endl;
+              std::cout << "  " << product[i].Str() << std::endl;
+              std::cout << "Unconstrained branching" << std::endl;
               for(int j=0; j<branch.size();j++)
-                std::cout<<"    "<<branch[j].irrep<<","<<branch[j].tag<<std::endl;
+                std::cout << "    " << branch[j].irrep << "," << branch[j].tag << std::endl;
+              branchR=BranchingSO3Constrained(product[i].irrep,r);
+              std::cout << "Constrained branching" <<std::endl;
+              for(int k=0; k<branchR.size();k++)
+                std::cout << "    " << branchR[k].irrep << "," << branchR[k].tag << std::endl;
             }
           }
       }
+
+
+
+
 
 
 
