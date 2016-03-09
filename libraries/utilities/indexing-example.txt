@@ -1,0 +1,598 @@
+Example of realizing a symmetry space
+
+Mark A. Caprio
+University of Notre Dame
+
+extracted 3/9/16 from Moshinsky transformation project
+
+from indexing_base.h, indexing_jt.h, indexing_jt.cpp
+
+
+  ////////////////////////////////////////////////////////////////
+  // generic space
+  ////////////////////////////////////////////////////////////////
+
+  // BaseSpace -- container to hold subspaces of type S with reverse
+  // lookup by subspace labels
+  //
+  // Template arguments:
+  //   tSubspaceType (typename) : type for subspace
+
+  template <typename tSubspaceType>
+    class BaseSpace
+    {
+    public:
+
+      ////////////////////////////////////////////////////////////////
+      // common typedefs
+      ////////////////////////////////////////////////////////////////
+
+      typedef tSubspaceType SubspaceType;
+      
+      ////////////////////////////////////////////////////////////////
+      // subspace lookup and retrieval
+      ////////////////////////////////////////////////////////////////
+
+      int LookUpSubspaceIndex(const typename SubspaceType::SubspaceLabelsType& subspace_labels) const
+      {
+	
+	// diagnostic output for failed lookup
+	if (!lookup_.count(subspace_labels))
+	  {
+
+	    // std::cout << "Space lookup: label not found " << subspace_labels << std::endl;
+	    std::cout << "Map size: " << lookup_.size() << std::endl;
+	    // for (auto& elem : lookup_) // doesn't work
+	    //for (auto iter =lookup_.begin(); iter != lookup_.end(); ++iter)
+	    //  {
+	    //	const auto& ikey = (*iter).first;
+	    //	std::cout << std::get<0>(ikey) << "," << std::get<1>(ikey) << "," << std::get<2>(ikey) << "," << std::get<3>(ikey);
+	    //	std::cout << " : ";
+	    //	std::cout << (*iter).second;
+	    //	std::cout << " match ";
+	    //	std::cout << (subspace_labels == ikey);
+	    //	std::cout << std::endl;
+	    //  }
+	    std::cout << std::endl;
+	  }
+
+	return lookup_.at(subspace_labels);
+      };
+
+      const SubspaceType& LookUpSubspace(const typename SubspaceType::SubspaceLabelsType& labels) const
+      {
+	return subspaces_[LookUpSubspaceIndex(labels)];
+      };
+
+      const SubspaceType& GetSubspace(int i) const
+      {
+	return subspaces_[i];
+      };
+
+      ////////////////////////////////////////////////////////////////
+      // size retrieval
+      ////////////////////////////////////////////////////////////////
+
+      int size() const
+      {
+	return subspaces_.size();
+      };
+
+    protected:
+
+      ////////////////////////////////////////////////////////////////
+      // subspace push (for initial construction)
+      ////////////////////////////////////////////////////////////////
+
+      void PushSubspace(const SubspaceType& subspace)
+      {
+	lookup_[subspace.GetSubspaceLabels()] = subspaces_.size(); // index for lookup
+	subspaces_.push_back(subspace);  // save space
+      };
+
+    private:
+
+      ////////////////////////////////////////////////////////////////
+      // internal storage
+      ////////////////////////////////////////////////////////////////
+
+      // subspaces (accessible by index)
+      std::vector<SubspaceType> subspaces_;
+
+      // subspace index lookup by labels
+      std::map<typename SubspaceType::SubspaceLabelsType,int> lookup_;
+      
+    };
+
+
+
+
+  // space
+
+  class TwoBodySpaceJT
+    : public BaseSpace<TwoBodySubspaceJT>
+  {
+    
+  public:
+
+    // constructor
+
+    TwoBodySpaceJT(int Nmax);
+    // Enumerates all relative JT subspaces of given dimension up to a
+    // given Nmax cutoff.
+
+    // diagnostic output
+    void Print(std::ostream& os) const;
+
+    // accessors
+    int Nmax() const {return Nmax_;}
+
+  private:
+    // truncation
+    int Nmax_;
+
+  };
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // generic subspace
+  ////////////////////////////////////////////////////////////////
+
+  // BaseSubspace -- holds indexing of states sharing common subspace
+  // quantum numbers
+  //
+  // The derived class is expected to set up a constructor and
+  // friendlier accessors for the individual labels.
+  //
+  // Template arguments:
+  //   tSubspaceLabelsType : tuple for subspace labels, e.g., std::tuple<int,int,int,int,int>
+  //   tStateLabelsType : tuple for state labels, e.g., std::tuple<int> 
+  
+  template <typename tSubspaceLabelsType, typename tStateLabelsType> 
+    class BaseSubspace
+  {
+
+  public:
+
+    ////////////////////////////////////////////////////////////////
+    //  common type definitions
+    ////////////////////////////////////////////////////////////////
+
+    typedef tSubspaceLabelsType SubspaceLabelsType; 
+    typedef tStateLabelsType StateLabelsType; 
+
+    ////////////////////////////////////////////////////////////////
+    // general constructors
+    ////////////////////////////////////////////////////////////////
+
+    // default constructor
+    //   Implicitly invoked by derived class.
+  BaseSubspace() : dimension_(0) {}
+
+    // copy constructor -- synthesized
+
+
+    ////////////////////////////////////////////////////////////////
+    // retrieval
+    ////////////////////////////////////////////////////////////////
+
+    const SubspaceLabelsType& GetSubspaceLabels() const
+    // const SubspaceLabels& GetSubspaceLabels() const
+    {
+      return labels_;
+    }
+
+    const StateLabelsType& GetStateLabels(int index) const
+    // const StateLabels& GetStateLabels(int index) const
+    {
+      return state_table_[index];
+    }
+
+    int LookUpStateIndex(const StateLabelsType& state_labels) const
+      {
+	return lookup_.at(state_labels);
+      };
+
+    int Dimension() const
+    {
+      return dimension_;
+    }
+
+  protected:
+
+    ////////////////////////////////////////////////////////////////
+    // state label push (for initial construction)
+    ////////////////////////////////////////////////////////////////
+
+    void PushStateLabels(const StateLabelsType& state_labels)
+    {
+      lookup_[state_labels] = dimension_; // index for lookup
+      state_table_.push_back(state_labels);  // save state
+      dimension_++;
+    };
+    
+    ////////////////////////////////////////////////////////////////
+    // private storage
+    ////////////////////////////////////////////////////////////////
+
+    // subspace properties
+    SubspaceLabelsType labels_;
+    int dimension_;
+
+    // state labels (accessible by index)
+    std::vector<StateLabelsType> state_table_;
+
+    // state index lookup by labels
+    std::map<StateLabelsType,int> lookup_;
+
+  };
+
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // two-body states in jjJT scheme
+  ////////////////////////////////////////////////////////////////
+  
+  // subspace labels: (J,T,g)   P=(-)^g
+  // state labels within subspace: (N1,j1,N2,j2)
+  //
+  // Note that labels l1 and l2 are implicitly defined.
+  //
+  // Truncation of the space is by the two-body Nmax.
+  //
+  // Within a subspace, the states are ordered by:
+  //   -- increasing N
+  //   -- lexicographically increasing (N1,j1)
+  //   -- lexicographically increasing (N2,j2)
+  // and subject to:
+  //   -- triangularity constraint on (j1,j2,J)
+  //   -- parity constraint N~g
+  //   -- antisymmetry constraint J+T~1 if (N1,j1)==(N2,j2)
+  //
+  // Note that, although the antisymmetry constraint for identical
+  // orbitals (J+T~1) is applied to the quantum numbers when
+  // enumerating the basis, the states
+  //    
+  //   |(N1,j1)(N2,j2)...>  and  |(N2,j2)(N1,j1)...>
+  //
+  // are still counted separately in the basis.  That is, *no*
+  // lexicographical ordering constraint (N1,j1)<=(N2,j2) on the two
+  // single-particle states is imposed.  The basis is therefore
+  // redundant.  This simplifies implementation of double contractions
+  // over "particle 1" and "particle 2" indices as matrix
+  // multiplication, without the calling code having to worry about
+  // "swapping" single particle states within the two-body state and
+  // applying the relevant phase (~J-j1-j2+T).
+  //
+  // Within the full space, subspaces are ordered by:
+  //    -- increasing J (J=0,1,...,Nmax+1)
+  //    -- increasing T (T=0,1)
+  //    -- increasing g (g=0,1)
+  // subject to:
+  //    -- [implicit constraint J<=Nmax for T=1, enforced by nonzero dimension]
+  // 
+  // Subspaces are pruned to those of nonzero dimension.
+  //
+  // Note that ordering of subspaces is lexicographic by (J,T,g).
+  //
+  // All j labels are implemented as type HalfInt.
+
+  //subspace
+
+  class TwoBodySubspaceJT
+    : public BaseSubspace< std::tuple<int,int,int> , std::tuple<int,HalfInt,int,HalfInt> >
+  {
+    
+  public:
+
+    // constructor
+
+    TwoBodySubspaceJT (int J, int T, int g, int Nmax);
+    // Set up indexing in Nmax truncation.
+
+    // accessors
+
+    int J() const {return std::get<0>(labels_);}
+    int T() const {return std::get<1>(labels_);}
+    int g() const {return std::get<2>(labels_);}
+    int Nmax() const {return Nmax_;}
+
+  private:
+
+    //validation
+    bool ValidLabels() const;
+
+    // truncation
+    int Nmax_;
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // generic state realized within subspace
+  ////////////////////////////////////////////////////////////////
+
+  // BaseState -- realization of a state withinin a given subspace
+  //
+  // The derived class is expected to set up a constructor and
+  // friendlier accessors for the individual labels.
+  //
+  //
+  // The space (and the indexing it provides) is *not* copied into the
+  // state but rather stored by pointer reference.  It should
+  // therefore exist for the lifetime of the state object.
+  //
+  // Template arguments:
+  //   tSubspaceType : subspace type in which this state lives
+  
+  template <typename tSubspaceType> 
+    class BaseState
+  {
+
+  public:
+
+    ////////////////////////////////////////////////////////////////
+    // common typedefs constructors
+    ////////////////////////////////////////////////////////////////
+
+    typedef tSubspaceType SubspaceType; 
+
+    ////////////////////////////////////////////////////////////////
+    // general constructors
+    ////////////////////////////////////////////////////////////////
+
+    // default constructor -- disabled
+    BaseState();
+
+    // copy constructor -- synthesized
+
+    // constructors
+
+    BaseState(const SubspaceType& subspace, int index)
+      // Construct state by index.
+      : subspace_ptr_(&subspace), index_(index)
+      {
+	assert(ValidIndex());
+      }
+
+    BaseState(const SubspaceType& subspace, const typename SubspaceType::StateLabelsType& state_labels)
+    // Construct state by reverse lookup on labels.
+      {
+
+	// debugging: Delegation to BaseState(subspace,index)
+	// fails. Argument index is saved in index_ as far as the
+	// subordinate BaseState(...,index) call is concerned, but
+	// after return to present calling constructor, index_
+	// contains garbage.  (Why???)
+
+	// BaseState(subspace,index);
+
+	subspace_ptr_ = &subspace;
+	index_ = subspace.LookUpStateIndex(state_labels);
+
+      }
+
+    ////////////////////////////////////////////////////////////////
+    // retrieval
+    ////////////////////////////////////////////////////////////////
+
+    const SubspaceType& Subspace() const {return *subspace_ptr_;}  // subspace in which state lies
+    const typename SubspaceType::StateLabelsType& GetStateLabels() const 
+    {
+      return Subspace().GetStateLabels(index());
+    }
+
+    int index() const {return index_;}
+
+    ////////////////////////////////////////////////////////////////
+    // generic iteration support -- disabled
+    //
+    // currently DISABLED, pending decision about whether or not
+    // this is a good thing
+    //
+    // Example:
+    //
+    //   for (RelativeStateLSJT state(space); state.ValidIndex(); ++state)
+    //     {
+    //   	std::cout << state.index() << " " << state.N() << std::endl;
+    //     };
+    //
+    ////////////////////////////////////////////////////////////////
+
+    BaseState(const SubspaceType& subspace);
+    // Constructs state, defaulting to 0th state in space.
+    // Meant for use with iterator-style iteration over states.
+    //  {
+    //	space_ptr = subspace;
+    //	index_ = 0;
+    //  }
+
+    BaseState& operator ++();
+    // Provides prefix increment operator.
+    //
+    // Meant for use with iterator-style iteration over states.
+    // {
+    // 	++index_;
+    // 	return *this;
+    // }
+
+
+  private:
+
+    ////////////////////////////////////////////////////////////////
+    // validation
+    ////////////////////////////////////////////////////////////////
+
+    int ValidIndex() const
+    // Verifies whether or not state indexing lies within allowed
+    // dimension.
+    //
+    // For use on construction or possibly with iteration.
+    {
+      return index() < Subspace().Dimension();
+    }
+
+  private:
+
+    ////////////////////////////////////////////////////////////////
+    // private storage
+    ////////////////////////////////////////////////////////////////
+
+    // const SubspaceType& subspace_;  // subspace in which state lies
+    const SubspaceType* subspace_ptr_;  // subspace in which state lies
+    int index_;   // 0-based index within space
+
+  };
+
+
+
+
+
+  // state
+
+  class TwoBodyStateJT
+    : public BaseState<TwoBodySubspaceJT>
+  {
+    
+  public:
+
+    // pass-through constructors
+
+  TwoBodyStateJT(const SubspaceType& subspace, int index)
+    // Construct state by index.
+    : BaseState (subspace, index) {}
+
+  TwoBodyStateJT(const SubspaceType& subspace, const typename SubspaceType::StateLabelsType& state_labels)
+    // Construct state by reverse lookup on labels.
+    : BaseState (subspace, state_labels) {}
+
+    // pass-through accessors
+    int J() const {return Subspace().J();}
+    int T() const {return Subspace().T();}
+    int g() const {return Subspace().g();}
+
+    // state label accessors
+    int N1() const {return std::get<0>(GetStateLabels());}
+    HalfInt j1() const {return std::get<1>(GetStateLabels());}
+    int N2() const {return std::get<2>(GetStateLabels());}
+    HalfInt j2() const {return std::get<3>(GetStateLabels());}
+
+    int l1() const
+    {
+      int N = N1();
+      HalfInt j = j1();
+      return (TwiceValue(j)-1)/2 + (N+(TwiceValue(j)-1)/2)%2;
+    }
+    int l2() const
+    {
+      int N = N2();
+      HalfInt j = j2();
+      return (TwiceValue(j)-1)/2 + (N+(TwiceValue(j)-1)/2)%2;
+    }
+    int N() const {return  N1()+N2();}
+
+  };
+
+
+
+
+
+  TwoBodySubspaceJT::TwoBodySubspaceJT(int J, int T, int g, int Nmax)
+  {
+
+    // set values
+    labels_ = SubspaceLabelsType(J,T,g);
+    Nmax_ = Nmax;
+
+    // validate subspace labels
+    assert(ValidLabels()); 
+
+    // set up indexing
+    // iterate over total oscillator quanta
+    for (int N = g; N <= Nmax; N +=2)
+      // iterate over oscillator (Nj) orbitals for particle 1
+      for (int N1 = 0; N1 <= N; ++N1)
+	for (HalfInt j1 = HalfInt(1,2); j1 <= N1+HalfInt(1,2); j1 +=1) 
+	  {
+	    // iterate over oscillator (Nj) orbitals for particle 2
+	    // subject to given total N
+	    int N2 = N - N1;
+	    for (HalfInt j2 = HalfInt(1,2); j2 <= N2+HalfInt(1,2); j2 +=1) 
+	      {
+		// impose triangularity
+		if (!(AllowedTriangle(j1,j2,J)))
+		  continue;
+
+		// impose antisymmetry
+		if ((N1==N2)&&(j1==j2)&&(!((J+T)%2==1)))
+		  continue;
+
+		// keep surviving states
+		PushStateLabels(StateLabelsType(N1,j1,N2,j2)); 
+	      }
+	  }
+  }
+
+  bool TwoBodySubspaceJT::ValidLabels() const
+  {
+    bool valid = true;
+      
+    // truncation
+    valid &= ((Nmax()%2)==g());
+
+    return valid;
+  }
+
+
+  TwoBodySpaceJT::TwoBodySpaceJT(int Nmax)
+  {
+
+    // save Nmax
+    Nmax_ = Nmax;
+
+    // iterate over J
+    for (int J=0; J<=Nmax+1; ++J)
+      {
+	// iterate over T
+	for (int T=0; T<=1; ++T)
+	  {
+	    // iterate over g
+	    for (int g=0; g<=1; ++g)
+	      {
+		
+		// downshift Nmax to match parity of subspace
+		// required to pass label validity tests
+		int Nmax_subspace = Nmax - (Nmax-g)%2;
+		    
+		TwoBodySubspaceJT subspace(J,T,g,Nmax_subspace);
+
+		if (subspace.Dimension()!=0)
+		  PushSubspace(subspace);
+	      }
+	  }
+      }
+  }

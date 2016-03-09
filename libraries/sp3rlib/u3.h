@@ -8,19 +8,20 @@
 
   3/7/16 (aem,mac): Created based on prototype u3states.py, u3.py, and so3.py.
   3/8/16 (aem,mac): Add U3ST structure and rename U3S structure.
+  3/9/16 (aem,mac): Add KeyType typedefs.  Extract MultiplicityTagged.
 
 ****************************************************************/
 
 #ifndef U3_H_
 #define U3_H_
 
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "am/halfint.h"
 #include "utilities/utilities.h"
+#include "utilities/multiplicity_tagged.h"
 
 namespace u3 
 {
@@ -33,6 +34,12 @@ namespace u3
 
   struct SU3
   {
+
+    ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::pair<int,int> KeyType;
 
     ////////////////////////////////////////////////////////////////
     // constructors
@@ -53,9 +60,9 @@ namespace u3
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    inline std::pair<int,int> Key() const
+    inline KeyType Key() const
     {
-      return std::pair<int,int>(lambda,mu);
+      return KeyType(lambda,mu);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -133,6 +140,12 @@ namespace u3
   {
 
     ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::pair<HalfInt,u3::SU3> KeyType;
+
+    ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
@@ -187,9 +200,9 @@ namespace u3
       return u3::SU3(lambda,mu);
     }
 
-    inline std::pair<HalfInt,u3::SU3> Key() const
+    inline KeyType Key() const
     {
-      return std::pair<HalfInt,u3::SU3>(N(),SU3());
+      return KeyType(N(),SU3());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -275,6 +288,12 @@ namespace u3
   {
 
     ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::pair<u3::U3,HalfInt> KeyType;
+
+    ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
@@ -303,9 +322,9 @@ namespace u3
       return w.SU3();
     }
 
-    inline std::pair<u3::U3,HalfInt> Key() const
+    inline KeyType Key() const
     {
-      return std::pair<u3::U3,HalfInt>(w,S);
+      return KeyType(w,S);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -360,6 +379,12 @@ namespace u3
   {
 
     ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::pair<u3::U3S,HalfInt> KeyType;
+
+    ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
@@ -388,9 +413,9 @@ namespace u3
       return w.SU3();
     }
 
-    inline std::pair<u3::U3S,HalfInt> Key() const
+    inline KeyType Key() const
     {
-      return std::pair<u3::U3S,HalfInt>(U3S(w,S),T);
+      return KeyType(U3S(w,S),T);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -441,86 +466,6 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-  // container classes for irreps with multiplicity
-
-  template <typename IRREP>
-    struct MultiplicityTagged
-    // EX:
-    //   MultiplicityTagged<u3::SU3> xrho;
-    //   xrho.irrep = u3::SU3(2,1);
-    //   xrho.multiplicity = 4;
-    {
-
-      ////////////////////////////////////////////////////////////////
-      // templated typedef for container class
-      ////////////////////////////////////////////////////////////////
-
-      typedef std::vector<MultiplicityTagged<IRREP> > vector;
-      
-      ////////////////////////////////////////////////////////////////
-      // constructors
-      ////////////////////////////////////////////////////////////////
-      
-      // copy constructor: synthesized copy constructor since only data
-      // member needs copying
-
-      // default constructor
-      inline MultiplicityTagged() 
-	: tag(0) {}
-
-      // construct by (irrep, tag)
-      inline MultiplicityTagged(const IRREP& irrep_, int tag_) 
-	: irrep(irrep_), tag(tag_) {}
-      
-      ////////////////////////////////////////////////////////////////
-      // string conversion
-      ////////////////////////////////////////////////////////////////
-    
-      std::string Str() const;
-
-      ////////////////////////////////////////////////////////////////
-      // labels
-      ////////////////////////////////////////////////////////////////
-      
-      IRREP irrep;
-      int tag;
-    };
-
-  template <typename IRREP>
-    std::string MultiplicityTagged<IRREP>::Str() const
-    // Generate string output relying on Str() method of irrep.
-    //
-    // Note: Will fail if irrep type does not have Str() method, e.g.,
-    // if the irrep is just and int.  This problem may, in principle,
-    // be overcome via template specialization, but this leads to
-    // link-time errors (gcc 4.5).
-    {
-      std::ostringstream ss;
-	
-      ss << "(" << irrep.Str() << "," << tag << ")";
-      return ss.str();
-    }
-
-  // template <>
-  //   std::string MultiplicityTagged<int>::Str() const
-  //   // Template specialization for IRREP->int.
-  //   {
-  //     std::ostringstream ss;
-  // 	
-  //     ss << "(" << irrep << "," << tag << ")";
-  //     return ss.str();
-  //   }
-  // 
-  // template <>
-  //   std::string MultiplicityTagged<HalfInt>::Str() const
-  //   // Template specialization for IRREP->HalfInt.
-  //   {
-  //     std::ostringstream ss;
-  // 	
-  //     ss << "(" << irrep << "," << tag << ")";
-  //     return ss.str();
-  //   }
-
   // outer multiplicity
 
   int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3);
@@ -552,6 +497,12 @@ namespace u3
   // Returns:
   //   (MultiplicityTagged<u3::SU3>::vector) : vector with each irrep
   //   (of nonzero multiplicity) tagged by its multiplicity rho_max
+
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // branching
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
 
   // branching multiplicity
 
