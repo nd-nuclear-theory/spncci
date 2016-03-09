@@ -8,13 +8,14 @@
 
   Created by Anna E. McCoy on 3/9/16.   
  
-  3/9/16 (mac): Created based on prototype vcs.py.
+  3/9/16 (aem): Created based on prototype vcs.py.
 
 ****************************************************************/
 
 #ifndef VCS_H_
 #define VCS_H_
 #include "u3.h"
+#include <math.h>  
 
 
 namespace vcs
@@ -30,6 +31,13 @@ namespace vcs
 		return omega;
 
 	}
+
+	double BosonCreationRME(const u3::U3& np, const u3::U3& n)
+	// SU(3) Reduced matrix element of a^\dagger boson creation operator
+	// 
+	// Returns:
+	//    rme: double reduced matrix element of boson creation operator. 
+
 }  //  namespace
 
 #endif
