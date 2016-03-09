@@ -478,8 +478,9 @@ namespace u3
     // Generate string output relying on Str() method of irrep.
     //
     // Note: Will fail if irrep type does not have Str() method, e.g.,
-    // if the irrep is just and int.  This may be overcome via
-    // template specialization (as done below).
+    // if the irrep is just and int.  This problem may, in principle,
+    // be overcome via template specialization, but this leads to
+    // link-time errors (gcc 4.5).
     {
       std::ostringstream ss;
 	
@@ -487,25 +488,25 @@ namespace u3
       return ss.str();
     }
 
-  template <>
-    std::string MultiplicityTagged<int>::Str() const
-    // Template specialization for IRREP->int.
-    {
-      std::ostringstream ss;
-	
-      ss << "(" << irrep << "," << tag << ")";
-      return ss.str();
-    }
-
-  template <>
-    std::string MultiplicityTagged<HalfInt>::Str() const
-    // Template specialization for IRREP->HalfInt.
-    {
-      std::ostringstream ss;
-	
-      ss << "(" << irrep << "," << tag << ")";
-      return ss.str();
-    }
+  // template <>
+  //   std::string MultiplicityTagged<int>::Str() const
+  //   // Template specialization for IRREP->int.
+  //   {
+  //     std::ostringstream ss;
+  // 	
+  //     ss << "(" << irrep << "," << tag << ")";
+  //     return ss.str();
+  //   }
+  // 
+  // template <>
+  //   std::string MultiplicityTagged<HalfInt>::Str() const
+  //   // Template specialization for IRREP->HalfInt.
+  //   {
+  //     std::ostringstream ss;
+  // 	
+  //     ss << "(" << irrep << "," << tag << ")";
+  //     return ss.str();
+  //   }
 
   // outer multiplicity
 
@@ -574,15 +575,33 @@ namespace u3
   // calculating their multiplicities by BranchingMultiplicity.
   //
   // Args:
-  //    x (u3::SU3) : SU(3) labels
+  //   x (u3::SU3) : SU(3) irrep
   //
   // Returns:
   //   (MultiplicityTagged<int>::vector) : vector with each L
   //   (of nonzero multiplicity) tagged by its multiplicity 
   //   kappa_max
 
-  MultiplicityTagged<int>::vector BranchingSO3Restricted(const u3::SU3& x, const HalfInt& S, const HalfInt& J);
-  // TODO: constrained L version
+  MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r);
+  // Generate multiplicity-tagged vector of SO(3) irreps in SU(3)
+  // irrep, constrained to lie within a constrained angular momentum
+  // range.
+  //
+  // The intended purpose is to allow branching only to those L values
+  // which will couple with a given S to yield a given J.
+  //
+  // Args:
+  //   x (u3::SU3) : SU(3) irrep
+  //   r (HalfInt::pair) : allowed angular momentum range 
+  // 
+  // Although range is taken as HalfInt::pair, since it will come from
+  // result of coupling J and S, the actual values should be
+  // integral.
+  //
+  // Returns:
+  //   (MultiplicityTagged<int>::vector) : vector with each L
+  //   (of nonzero multiplicity) tagged by its multiplicity 
+  //   kappa_max
 
 }  // namespace
 
