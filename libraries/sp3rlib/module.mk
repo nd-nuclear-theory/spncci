@@ -5,7 +5,8 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h := 
-module_units_cpp-h := u3 vcs
+module_units_cpp-h := u3 vcs sp3r
+
 # module_units_f := 
 module_programs_cpp := u3_test
 # module_programs_f :=
