@@ -4,8 +4,8 @@ $(eval $(begin-module))
 # unit definitions
 ################################################################
 
-module_units_h := 
-module_units_cpp-h := u3 sp3r
+module_units_h := vcs sp3r
+module_units_cpp-h := u3
 # module_units_f := 
 module_programs_cpp := u3_test
 # module_programs_f :=
