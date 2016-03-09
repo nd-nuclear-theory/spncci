@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "am/halfint.h"
+#include "utilities/utilities.h"
 
 namespace u3 
 {
@@ -110,6 +111,18 @@ namespace u3
     return x.mu + x.lambda;
   }
 
+  inline double Casimir2( const u3::SU3& x)
+  //Second order Casimir 
+  {
+    return 2./3*(sqr(x.lambda)+x.lambda*x.mu+sqr(x.mu)+3*x.lambda+3*x.mu);
+  } 
+
+  inline double Casimir3(const u3::SU3& x)
+  //Third order Casimir
+  {
+    return 1./9*(x.lambda-x.mu)*(x.lambda+2*x.mu+3)*(2*x.lambda+x.mu+3);
+  }
+  
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
   // U(3) irrep
