@@ -4,16 +4,16 @@
 
 # search prefix
 #   additional path to search for required libraries
-#   (e.g., su3lib and eigen)
-search_prefix := $(HOME)/local
+search_prefix := $(HOME)/local/opt/eigen-3.2.7
 search_dirs_include := 
 search_dirs_lib :=
 
-# install prefix
-install_prefix := $(HOME)/local
+# install prefix (only if you want to install the binaries somewhere)
+#
 # Note: You should reset to /user/local to do a systemwide 
 # installation.  This is analagous to the --prefix= option of 
 # autoconf installations.
+install_prefix := 
 
 
 ################################################################
@@ -26,6 +26,8 @@ CXX := g++
 # static linking
 # to reduce dependence on run-time library configuration changes
 # (e.g., need to load same modules as at compile time)
+#
+# CAVEAT: may cause trouble with system library linkage on OS X
 CXXFLAGS += -static
 
 # C++11 standard
