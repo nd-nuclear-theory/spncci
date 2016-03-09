@@ -594,8 +594,8 @@ namespace u3
   //   x (u3::SU3) : SU(3) irrep
   //   r (HalfInt::pair) : allowed angular momentum range 
   // 
-  // Although range is taken as HalfInt::pair, since it will come from
-  // result of coupling J and S, the actual values should be
+  // Although range is taken as HalfInt::pair, since it could come from
+  // result of coupling J and S using am::ProductAngularMomentumRange, the actual values should be
   // integral.
   //
   // Returns:

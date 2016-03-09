@@ -23,3 +23,9 @@ If so, add /usr/local to search_prefix in config.mk.
 To install boost:
 
    brew install boost
+
+
+3/816 (aem): Updating g++
+
+brew install gcc --use-llvm
+
