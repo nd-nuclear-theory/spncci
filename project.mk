@@ -13,7 +13,7 @@ project_name := spncci
 # Caution: Order is important since used also in linking.
 modules := libraries/UNU3SU3 libraries/SU3NCSMUtils libraries/su3lib
 
-modules += libraries/sp3rlib
+modules += libraries/utilities libraries/sp3rlib
  
 # additional libraries -- cloned as submodules
 modules += libraries/am
