@@ -49,6 +49,7 @@ namespace sp3r
   // container for all state labels generated in Sp(3,R) branching
   //    for use as input parameter to U3Subspace constructor
   typedef std::multimap< u3::U3, MultiplicityTagged<u3::U3> > SpanakopitaType;
+  typedef std::pair< SpanakopitaType::iterator, SpanakopitaType::iterator > SpanakopitaRangeType;
 
   ////////////////////////////////////////////////////////////////
   // U(3) subspace

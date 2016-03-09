@@ -8,6 +8,59 @@ extracted 3/9/16 from Moshinsky transformation project
 from indexing_base.h, indexing_jt.h, indexing_jt.cpp
 
 
+
+  ////////////////////////////////////////////////////////////////
+  // two-body states in jjJT scheme
+  ////////////////////////////////////////////////////////////////
+  
+  // subspace labels: (J,T,g)   P=(-)^g
+  // state labels within subspace: (N1,j1,N2,j2)
+  //
+  // Note that labels l1 and l2 are implicitly defined.
+  //
+  // Truncation of the space is by the two-body Nmax.
+  //
+  // Within a subspace, the states are ordered by:
+  //   -- increasing N
+  //   -- lexicographically increasing (N1,j1)
+  //   -- lexicographically increasing (N2,j2)
+  // and subject to:
+  //   -- triangularity constraint on (j1,j2,J)
+  //   -- parity constraint N~g
+  //   -- antisymmetry constraint J+T~1 if (N1,j1)==(N2,j2)
+  //
+  // Note that, although the antisymmetry constraint for identical
+  // orbitals (J+T~1) is applied to the quantum numbers when
+  // enumerating the basis, the states
+  //    
+  //   |(N1,j1)(N2,j2)...>  and  |(N2,j2)(N1,j1)...>
+  //
+  // are still counted separately in the basis.  That is, *no*
+  // lexicographical ordering constraint (N1,j1)<=(N2,j2) on the two
+  // single-particle states is imposed.  The basis is therefore
+  // redundant.  This simplifies implementation of double contractions
+  // over "particle 1" and "particle 2" indices as matrix
+  // multiplication, without the calling code having to worry about
+  // "swapping" single particle states within the two-body state and
+  // applying the relevant phase (~J-j1-j2+T).
+  //
+  // Within the full space, subspaces are ordered by:
+  //    -- increasing J (J=0,1,...,Nmax+1)
+  //    -- increasing T (T=0,1)
+  //    -- increasing g (g=0,1)
+  // subject to:
+  //    -- [implicit constraint J<=Nmax for T=1, enforced by nonzero dimension]
+  // 
+  // Subspaces are pruned to those of nonzero dimension.
+  //
+  // Note that ordering of subspaces is lexicographic by (J,T,g).
+  //
+  // All j labels are implemented as type HalfInt.
+
+
+
+
+
   ////////////////////////////////////////////////////////////////
   // generic space
   ////////////////////////////////////////////////////////////////
@@ -235,54 +288,6 @@ from indexing_base.h, indexing_jt.h, indexing_jt.cpp
 
 
 
-  ////////////////////////////////////////////////////////////////
-  // two-body states in jjJT scheme
-  ////////////////////////////////////////////////////////////////
-  
-  // subspace labels: (J,T,g)   P=(-)^g
-  // state labels within subspace: (N1,j1,N2,j2)
-  //
-  // Note that labels l1 and l2 are implicitly defined.
-  //
-  // Truncation of the space is by the two-body Nmax.
-  //
-  // Within a subspace, the states are ordered by:
-  //   -- increasing N
-  //   -- lexicographically increasing (N1,j1)
-  //   -- lexicographically increasing (N2,j2)
-  // and subject to:
-  //   -- triangularity constraint on (j1,j2,J)
-  //   -- parity constraint N~g
-  //   -- antisymmetry constraint J+T~1 if (N1,j1)==(N2,j2)
-  //
-  // Note that, although the antisymmetry constraint for identical
-  // orbitals (J+T~1) is applied to the quantum numbers when
-  // enumerating the basis, the states
-  //    
-  //   |(N1,j1)(N2,j2)...>  and  |(N2,j2)(N1,j1)...>
-  //
-  // are still counted separately in the basis.  That is, *no*
-  // lexicographical ordering constraint (N1,j1)<=(N2,j2) on the two
-  // single-particle states is imposed.  The basis is therefore
-  // redundant.  This simplifies implementation of double contractions
-  // over "particle 1" and "particle 2" indices as matrix
-  // multiplication, without the calling code having to worry about
-  // "swapping" single particle states within the two-body state and
-  // applying the relevant phase (~J-j1-j2+T).
-  //
-  // Within the full space, subspaces are ordered by:
-  //    -- increasing J (J=0,1,...,Nmax+1)
-  //    -- increasing T (T=0,1)
-  //    -- increasing g (g=0,1)
-  // subject to:
-  //    -- [implicit constraint J<=Nmax for T=1, enforced by nonzero dimension]
-  // 
-  // Subspaces are pruned to those of nonzero dimension.
-  //
-  // Note that ordering of subspaces is lexicographic by (J,T,g).
-  //
-  // All j labels are implemented as type HalfInt.
-
   //subspace
 
   class TwoBodySubspaceJT
@@ -311,21 +316,6 @@ from indexing_base.h, indexing_jt.h, indexing_jt.cpp
     // truncation
     int Nmax_;
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
