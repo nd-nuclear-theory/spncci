@@ -56,7 +56,7 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   class U3Subspace
-    : public BaseSubspace< u3::U3 , MultiplicityTagged<u3::U3> >
+    : public shell::BaseSubspace< u3::U3 , MultiplicityTagged<u3::U3> >
     // subspace label type: u3::U3
     // state label type: MultiplicityTagged<u3::U3>
   {
@@ -64,7 +64,7 @@ namespace sp3r
   public:
 
     // constructor
-    U3Subspace(const u3::U3& w, const SpanakopitaType& states);
+    U3Subspace(const u3::U3& w, const SpanakopitaRangeType& state_range);
     // Construct U(3) subspace by collect states from multimap with proper U(3) label.
     //
     // Arguments:
@@ -79,7 +79,10 @@ namespace sp3r
     // this constructor.
 
     // accessors
-    const u3::U3& U3() const {return labels_;}
+    const u3::U3& U3() const
+    {
+      return labels_;
+    }
 
   };
 
@@ -88,7 +91,7 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   class Sp3RSpace
-    : public BaseSpace<U3Subspace>
+    : public shell::BaseSpace<U3Subspace>
     // subspace type: U3Subspace
   {
     
@@ -103,12 +106,12 @@ namespace sp3r
     // void Print(std::ostream& os) const;
 
     // accessors
-    int Nmax() const {return Nmax_;}
+    int Nn_max() const {return Nn_max_;}
 
   private:
     // space parameters
     u3::U3 sigma_;
-    int Nmax_;
+    int Nn_max_;
 
   };
 
