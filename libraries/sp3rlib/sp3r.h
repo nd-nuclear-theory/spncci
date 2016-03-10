@@ -14,10 +14,10 @@
 #ifndef SP3R_H_
 #define SP3R_H_
 
+#include <map>
 #include <sstream>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "am/halfint.h"
 #include "sp3rlib/u3.h"

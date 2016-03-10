@@ -17,6 +17,7 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max)
+  // Anna will put her comment back in here, won't she.
   {
     std::vector<u3::U3> poly_labels;
     for (int N=0; N<=Nn_max; N-=2)
@@ -45,15 +46,16 @@ namespace sp3r
 
   void U3Subspace::Init(const SpanakopitaRangeType& state_range)
   {
-    // set up indexing of states
+    // for each (n,rho_max) entry belonging to this w subspace
     for (auto it = state_range.first; it != state_range.second; ++it)
       {
 	// extract state labels
-	MultiplicityTagged<u3::U3> n_rho_max = it->second;
-	u3::U3 n = n_rho_max.irrep;
-	int rho_max = n_rho_max.tag;
+	//   from w -> (n,rho_max) entry
+	MultiplicityTagged<u3::U3> n_tagged = it->second;
+	u3::U3 n = n_tagged.irrep;
+	int rho_max = n_tagged.tag;
 
-	// push states
+	// push state (n,rho) labels into subspace indexing
 	//   enumerating all multiplicity indices
 	for (int rho=1; rho<=rho_max; ++rho)
 	  {
@@ -73,8 +75,7 @@ namespace sp3r
     SpanakopitaType states;
 
     // find all raising polynomials
-    std::vector<u3::U3> n_vec;
-    // std::vector<u3::U3> n_vec = RaisingPolynomialLabels(Nn_max);
+    std::vector<u3::U3> n_vec = RaisingPolynomialLabels(Nn_max);
 
     // enumerate states
     //
@@ -94,6 +95,7 @@ namespace sp3r
 	     ++w_tagged_iter
 	     )
 	  {
+	    // convert (w,rho_max) to w -> (n,rho_max)
 	    MultiplicityTagged<u3::U3> w_tagged = (*w_tagged_iter);
 	    u3::U3 w = w_tagged.irrep;
 	    int rho_max = w_tagged.tag;
