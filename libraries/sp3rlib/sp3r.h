@@ -74,7 +74,6 @@ namespace sp3r
     // Arguments:
     //   w (u3::U3) : labels for subspace
 
-
     void Init(const SpanakopitaRangeType& state_range);
     // Populate subspace
     //
