@@ -30,9 +30,13 @@ struct MultiplicityTagged
 {
 
   ////////////////////////////////////////////////////////////////
-  // templated typedef for container class
+  // typedefs
   ////////////////////////////////////////////////////////////////
 
+  // typedef for sort key
+  typedef std::pair<IRREP,int> KeyType;
+
+  // convenience typedef for container class
   typedef std::vector<MultiplicityTagged<IRREP> > vector;
       
   ////////////////////////////////////////////////////////////////
@@ -49,7 +53,16 @@ struct MultiplicityTagged
   // construct by (irrep, tag)
   inline MultiplicityTagged(const IRREP& irrep_, int tag_) 
     : irrep(irrep_), tag(tag_) {}
-      
+
+  ////////////////////////////////////////////////////////////////
+  // accessors
+  ////////////////////////////////////////////////////////////////
+
+  inline KeyType Key() const
+  {
+    return KeyType(irrep,tag);
+  }
+
   ////////////////////////////////////////////////////////////////
   // string conversion
   ////////////////////////////////////////////////////////////////
@@ -88,5 +101,22 @@ std::string MultiplicityTagged<IRREP>::Str() const
 //     ss << "(" << irrep << "," << tag << ")";
 //     return ss.str();
 //   }
+
+////////////////////////////////////////////////////////////////
+// relational operators
+////////////////////////////////////////////////////////////////
+
+template <typename IRREP>
+inline bool operator == (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
+{
+  return x1.Key() == x2.Key();
+}
+
+template <typename IRREP>
+inline bool operator < (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
+{
+  return x1.Key() < x2.Key();
+}
+
 
 #endif

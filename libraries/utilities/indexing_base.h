@@ -56,11 +56,13 @@
 
   11/21/15 (mac): Created, abstracted from code in indexing_lsjt.
   3/5/16 (mac): Update header comment.
+  3/9/16 (mac): Relax protection of BaseSpace indexing containers 
+    from private to protected to support sp3rlib.
 
 ****************************************************************/
 
-#ifndef indexing_base_h
-#define indexing_base_h
+#ifndef INDEXING_BASE_H_
+#define INDEXING_BASE_H_
 
 #include <cassert>
 #include <iostream>
@@ -384,8 +386,6 @@ namespace shell {
 	subspaces_.push_back(subspace);  // save space
       };
 
-    private:
-
       ////////////////////////////////////////////////////////////////
       // internal storage
       ////////////////////////////////////////////////////////////////
@@ -485,8 +485,6 @@ namespace shell {
       lookup_[sector] = sectors_.size(); // index for lookup
       sectors_.push_back(sector);  // save sector
     };
-
-  private:
 
     ////////////////////////////////////////////////////////////////
     // internal storage

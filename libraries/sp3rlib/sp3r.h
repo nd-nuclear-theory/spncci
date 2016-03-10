@@ -47,7 +47,7 @@ namespace sp3r
   //   -- numerically increasing rho
 
   // container for all state labels generated in Sp(3,R) branching
-  //    for use as input parameter to U3Subspace constructor
+  //    for use as input parameter to U3Subspace::Init()
   typedef std::multimap< u3::U3, MultiplicityTagged<u3::U3> > SpanakopitaType;
   typedef std::pair< SpanakopitaType::iterator, SpanakopitaType::iterator > SpanakopitaRangeType;
 
@@ -64,12 +64,23 @@ namespace sp3r
   public:
 
     // constructor
-    U3Subspace(const u3::U3& w, const SpanakopitaRangeType& state_range);
-    // Construct U(3) subspace by collect states from multimap with proper U(3) label.
+
+    U3Subspace(const u3::U3& w);
+    // Construct U(3) subspace.
+    //
+    // This is a lightweight constructor which only stores the labels,
+    // without populating the subspace with states.
     //
     // Arguments:
-    //   w (u3::U3) : U(3) labels for subspace
-    //   states (SpanakopitaType) : container for state labels generated in Sp(3,R) branching
+    //   w (u3::U3) : labels for subspace
+
+
+    void Init(const SpanakopitaRangeType& state_range);
+    // Populate subspace
+    //
+    // Arguments:
+    //   state_range (SpanakopitaRangeType) : begin and end
+    //     iterators for states in include in subspace
     //
     // The states container contains all generated states as a
     // multimap, with key-value pairs omega -> (n,rho_max).  The

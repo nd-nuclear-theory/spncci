@@ -498,6 +498,9 @@ namespace u3
   //   (MultiplicityTagged<u3::SU3>::vector) : vector with each irrep
   //   (of nonzero multiplicity) tagged by its multiplicity rho_max
 
+  MultiplicityTagged<u3::U3>::vector KroneckerProduct(const u3::U3& w1, const u3::U3& w2);
+  // Overloaded for U3.
+
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
   // branching

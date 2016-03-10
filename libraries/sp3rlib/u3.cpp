@@ -129,6 +129,27 @@ namespace u3
     return product;
   }
 
+  MultiplicityTagged<u3::U3>::vector KroneckerProduct(const u3::U3& w1, const u3::U3& w2)
+  {
+    // couple U(1)
+    HalfInt N = w1.N() + w2.N();
+    
+    // couple SU(3)
+    MultiplicityTagged<u3::SU3>::vector su3_product = KroneckerProduct(w1.SU3(),w2.SU3());
+
+    // augment SU(3) entries with U(1) number
+    MultiplicityTagged<u3::U3>::vector u3_product;
+    u3_product.reserve(su3_product.size());
+    for (auto x_tagged_iter = su3_product.begin(); x_tagged_iter !=su3_product.end(); ++x_tagged_iter)
+      {
+	MultiplicityTagged<u3::SU3> x_tagged = *x_tagged_iter;
+	MultiplicityTagged<u3::U3> w_tagged(u3::U3(N,x_tagged.irrep),x_tagged.tag);
+	u3_product.push_back(w_tagged);
+      }
+
+    return u3_product;
+  }
+
   int BranchingMultiplicitySO3(const u3::SU3& x, int L)
   {
     int multiplicity 
