@@ -14,8 +14,10 @@
 
 #ifndef VCS_H_
 #define VCS_H_
-#include "u3.h"
-#include <math.h>  
+
+#include <cmath>
+#include "sp3rlib/u3.h"
+  
 
 
 namespace vcs

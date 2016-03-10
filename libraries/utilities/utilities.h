@@ -15,6 +15,7 @@
 
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
+#include "gsl/gsl_sf.h"
 
 // ONLYIF(cond,x) evaluates and returns x only if cond is true
 #define ONLYIF(cond,x) ( (cond) ? (x) : 0)    
@@ -28,6 +29,20 @@ inline
 T sqr(const T& x) 
 {
   return x*x;
+}
+
+
+
+inline int Choose(int x, int y)
+{
+	int choose=0;
+  if ((x>=y)&&(y>=0))
+  {
+    gsl_sf_result result;
+  	gsl_sf_choose_e(x,y,&result);
+    choose=result.val;
+  }
+	return choose;
 }
 
 #endif

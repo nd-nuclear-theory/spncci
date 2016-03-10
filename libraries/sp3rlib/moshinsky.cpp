@@ -17,6 +17,8 @@
 
 #include "am/halfint.h"
 #include "u3.h"
+#include "utilities/utilities.h"
+
 namespace u3 
 {
 	double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x)
@@ -26,20 +28,20 @@ namespace u3
 		HalfInt J(x.lambda,2);
 		HalfInt Mp(x1.lambda-x2.lambda,2);
 		HalfInt M(xr.lambda-xc.lambda,2); 
-		gsl_sf_result result;
+	
 
 		double moshinsky_coef=0;
 		int Kmax=std::max(
 			std::max(int(J+M),int(J-M)),int(J-Mp));
 		
 		for(int K=0; K<=Kmax; K++)
-			moshinsky_coef=moshinsky_coef+ParitySign(K)*gsl_sf_choose_e(int(J+M),int(J-Mp-K),&result)*gsl_sf_choose_e(int(J-M),K,&result);
+			moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);
 		moshinsky_coef=moshinsky_coef*(
 			ParitySign(J-Mp)
-			*sqrt(
-				gsl_sf_fact(int(J+Mp))*gsl_sf_fact(int(J-Mp))
-				/(pow(2.,TwiceValue(J))*gsl_sf_fact(int(J+M))*gsl_sf_fact(int(J-M)))
-				)
+			// *sqrt(
+			// 	gsl_sf_fact(int(J+Mp))*gsl_sf_fact(int(J-Mp))
+			// 	/(pow(2.,TwiceValue(J))*gsl_sf_fact(int(J+M))*gsl_sf_fact(int(J-M)))
+			// 	)
 			);
 		return moshinsky_coef;
 	}
@@ -52,29 +54,32 @@ namespace u3
 	}
 
 	double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::SU3& x)
-	//Overloading Moshinsky to take integer arguements for two-body and relative-center of mass arguments
-	// and SU(3) total symmetry (lambda,mu)
-	{
+		//Overloading Moshinsky to take integer arguements for two-body and relative-center of mass arguments
+		// and SU(3) total symmetry (lambda,mu)
+		{
 
-		HalfInt J(x.lambda,2);
-		HalfInt Mp(r1-r2,2);
-		HalfInt M(r-R,2) ;
-		gsl_sf_result result;
+			HalfInt J(x.lambda,2);
+			HalfInt Mp(r1-r2,2);
+			HalfInt M(r-R,2) ;
+			
 
-		double moshinsky_coef=0;
-		int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
+			double moshinsky_coef=0;
+			int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
 
-		for(int K=0; K<=Kmax; K++)
-			moshinsky_coef=moshinsky_coef+ParitySign(K)*gsl_sf_choose_e(int(J+M),int(J-Mp-K),&result)*gsl_sf_choose_e(int(J-M),K,&result);
-		moshinsky_coef=moshinsky_coef*(
-			ParitySign(J-Mp)
-			*sqrt(
-				gsl_sf_fact(int(J+Mp))*gsl_sf_fact(int(J-Mp))
-				/(pow(2.,TwiceValue(J))*gsl_sf_fact(int(J+M))*gsl_sf_fact(int(J-M)))
-				)
-			);
-		return moshinsky_coef;	
-	}
+			for(int K=0; K<=Kmax; K++)
+				moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);
+			
+			
+			moshinsky_coef=moshinsky_coef*(
+				ParitySign(J-Mp)
+				*sqrt(
+					gsl_sf_fact(int(J+Mp))*gsl_sf_fact(int(J-Mp))
+					/(pow(2.,TwiceValue(J))*gsl_sf_fact(int(J+M))*gsl_sf_fact(int(J-M)))
+					)
+				);
+			
+			return moshinsky_coef;	
+		}
 
 	double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w)
 	// Overloading Moshinsky to take integers and U3 for total symmetry

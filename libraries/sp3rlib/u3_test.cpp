@@ -33,6 +33,7 @@ int main(int argc, char **argv)
     << u3::U3(HalfInt(5,2),u3::SU3(1,0)).Str()
     << std::endl;
 
+
   ////////////////////////////////////////////////////////////////
   // comparison operators
   ////////////////////////////////////////////////////////////////
@@ -108,16 +109,19 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // dimension, conjugation, and validation tests
   ////////////////////////////////////////////////////////////////
-
+  std::cout<<"  "<<std::endl;
+  std::cout <<"dim"<<" "<<"Conjugate"<<" "<<"ConjugationGrade"<<" "<<"Casimir2"<<" "<<"Casimir3"<<std::endl;
   for (int i=0; i<lm_vector.size(); ++i)
-    {
-      std::cout 
-	<< lm_vector[i].Str() 
-	<< " " << dim(lm_vector[i])
-	<< " " << Conjugate(lm_vector[i]).Str() 
-	<< " " << ConjugationGrade(lm_vector[i])
-	<< std::endl;
-    }
+  {
+    std::cout 
+    << lm_vector[i].Str() 
+    << " " << dim(lm_vector[i])
+    << " " << Conjugate(lm_vector[i]).Str() 
+    << " " << ConjugationGrade(lm_vector[i])
+    << " " << Casimir2(lm_vector[i])
+    << " " << Casimir3(lm_vector[i])
+    << std::endl;
+  }
   std::cout << std::endl;
 
   for (int i=0; i<w_vector.size(); ++i)
@@ -163,27 +167,27 @@ int main(int argc, char **argv)
         u3::SU3 x1(l1,m1);
         for(int l2=3; l2<5; l2++)
           for(int m2=4; m2<5; m2++)
-	    {
-	      u3::SU3 x2(l2,m2);
-	      //List of product irreps from coupling
-	      product=KroneckerProduct(x1,x2);
-	      // Print (lambda1,mu1) and (lambda2,mu2)
-	      std::cout<<x1.Str()<<"  "<<x2.Str()<<std::endl;
-	      // for each product irrep, branch irrep and print product irrep 
-	      // followed by possible kappa L values 
-	      for(int i=0; i<product.size(); i++)  
-		{
-		  branch=BranchingSO3(product[i].irrep);
-		  std::cout << "  " << product[i].Str() << std::endl;
-		  std::cout << "Unconstrained branching" << std::endl;
-		  for(int j=0; j<branch.size();j++)
-		    std::cout << "    " << branch[j].irrep << "," << branch[j].tag << std::endl;
-		  branchR=BranchingSO3Constrained(product[i].irrep,r);
-		  std::cout << "Constrained branching" <<std::endl;
-		  for(int k=0; k<branchR.size();k++)
-		    std::cout << "    " << branchR[k].irrep << "," << branchR[k].tag << std::endl;
-		}
-	    }
+            {
+             u3::SU3 x2(l2,m2);
+    	      //List of product irreps from coupling
+             product=KroneckerProduct(x1,x2);
+    	      // Print (lambda1,mu1) and (lambda2,mu2)
+             std::cout<<x1.Str()<<"  "<<x2.Str()<<std::endl;
+    	      // for each product irrep, branch irrep and print product irrep 
+    	      // followed by possible kappa L values 
+             for(int i=0; i<product.size(); i+=5)  
+                {
+                branch=BranchingSO3(product[i].irrep);
+                std::cout << "  " << product[i].Str() << std::endl;
+                std::cout << "Unconstrained branching" << std::endl;
+                for(int j=0; j<branch.size();j++)
+                  std::cout << "    " << branch[j].irrep << "," << branch[j].tag << std::endl;
+                branchR=BranchingSO3Constrained(product[i].irrep,r);
+                std::cout << "Constrained branching" <<std::endl;
+                for(int k=0; k<branchR.size();k++)
+                  std::cout << "    " << branchR[k].irrep << "," << branchR[k].tag << std::endl;
+                }
+            }
       }
 
-}
+} //main

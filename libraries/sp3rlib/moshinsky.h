@@ -22,25 +22,23 @@
 
 namespace u3 
 {
-	double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& xr);
+	double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x);
 	// SU(3) Moshinsky Coefficient which is equivalent to a Wigner little d function evaluated at pi/2
 
-	double MoshinskyCoefficient(const u3::U3& w1, const u3::U3& w2, const u3::U3& wr,const u3::U3& wc,const u3::U3& wr);
+	double MoshinskyCoefficient(const u3::U3& w1, const u3::U3& w2, const u3::U3& wr,const u3::U3& wc,const u3::U3& w);
 	//Overleading for U3 arguements 
 
-	double MoshinskyCoefficient(int r1, int r2, r, R, const u3::U3& wr);
+	double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::SU3& x);
 	//Overloading Moshinsky to take integer arguements for two-body and relative-center of mass arguments
 	// and SU(3) total symmetry (lambda,mu)
 
-	double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w)
+	double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w);
 	// Overloading Moshinsky to take integers and U3 for total symmetry
 
 
 } //namespace
 
-
-
-
+#endif 
 
 
 
