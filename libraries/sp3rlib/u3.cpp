@@ -184,4 +184,5 @@ namespace u3
     return branching;
   }
 
+
 }  // namespace
