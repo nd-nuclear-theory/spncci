@@ -8,6 +8,8 @@
 
 #include "parsing.h"
 
+#include <cstdlib>
+
 void OpenCheck(bool success, const std::string& filename)
 {
   if (!success)

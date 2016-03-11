@@ -4,8 +4,8 @@ $(eval $(begin-module))
 # unit definitions
 ################################################################
 
-module_units_h := utilities indexing_base multiplicity_tagged parsing
-module_units_cpp-h := 
+module_units_h := utilities indexing_base multiplicity_tagged
+module_units_cpp-h := parsing
 # module_units_f := 
 module_programs_cpp := 
 # module_programs_f :=
@@ -15,7 +15,7 @@ module_programs_cpp :=
 # library creation flag
 ################################################################
 
-## $(eval $(library))
+$(eval $(library))
 
 ################################################################
 # special variable assignments, rules, and dependencies

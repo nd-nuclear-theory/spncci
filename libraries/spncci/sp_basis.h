@@ -54,14 +54,33 @@ namespace spncci
 
   struct LGI
   {
-    LGI(const HalfInt& Nsigma_0, int Nex_, const HalfInt& Sp_, const HalfInt& Sn_, const HalfInt& S_, int lambda_, int mu_);
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
 
+    // copy constructor: synthesized copy constructor since only data
+    // member needs copying
+
+    LGI(int Nex_, const HalfInt& Sp_, const HalfInt& Sn_, const HalfInt& S_, const u3::U3& sigma_)
+    : Nex(Nex_), Sp(Sp_), Sn(Sn_), S(S_), sigma(sigma_) {}
+
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+    
     int Nex;
     HalfInt Sp, Sn, S;
     u3::U3 sigma;
   };
 
-  void GenerateLGIVector(std::vector<LGI>& basis, const std::string& filename, const HalfInt& Nsigma_0);
+  void GenerateLGIVector(std::vector<LGI>& basis, const std::string& lgi_filename, const HalfInt& Nsigma_0);
   // Generates vector of LGIs based on LGI input tabulation.
   //
   // Arguments:
@@ -69,6 +88,9 @@ namespace spncci
   //   filename (string) : filename for LGI table file
   //   Nsigma_0 (HalfInt) : Nsigma_0 for nucleus
 
+  void GenerateSp3RSpaces(std::map<u3::U3,sp3r::Sp3RSpace>& spaces, const std::string& lgi_filename, const HalfInt& Nsigma_0);
+  // Generates vector of LGIs based on LGI input tabulation.
+  //
 
 
 }  // namespace
