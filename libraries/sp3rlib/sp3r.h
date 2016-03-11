@@ -51,6 +51,10 @@ namespace sp3r
   typedef std::multimap< u3::U3, MultiplicityTagged<u3::U3> > SpanakopitaType;
   typedef std::pair< SpanakopitaType::iterator, SpanakopitaType::iterator > SpanakopitaRangeType;
 
+  // raising polynomial enumeration
+  std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
+  // TODO: Anna will put her comment back in here, won't she.
+
   ////////////////////////////////////////////////////////////////
   // U(3) subspace
   ////////////////////////////////////////////////////////////////

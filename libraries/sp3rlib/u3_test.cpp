@@ -157,8 +157,8 @@ int main(int argc, char **argv)
   MultiplicityTagged<u3::SU3>::vector product;
   MultiplicityTagged<int>::vector branch;
   MultiplicityTagged<int>::vector branchR;
-  HalfInt S(1,2);
-  HalfInt J(1,2);
+  HalfInt S(1,2);  // HalfInt S = HalfInt(1,2);
+  HalfInt J(1,2);  // HalfInt J = HalfInt(1,2);
   HalfInt::pair r = am::ProductAngularMomentumRange(S,J);
   // Coupling (lambda1,mu1)x(lambda2,mu2) for range of lambda's and mu's 
   for(int l1=0; l1<2; l1++)
