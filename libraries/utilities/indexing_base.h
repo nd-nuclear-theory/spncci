@@ -58,6 +58,7 @@
   3/5/16 (mac): Update header comment.
   3/9/16 (mac): Relax protection of BaseSpace indexing containers 
     from private to protected to support sp3rlib.
+  3/11/16 (mac): Add subspace size() method.
 
 ****************************************************************/
 
@@ -132,7 +133,14 @@ namespace shell {
 	return lookup_.at(state_labels);
       };
 
+    int size() const
+    // DEPRECATED in favor of size()
+    {
+      return dimension_;
+    }
+
     int Dimension() const
+    // DEPRECATED in favor of size()
     {
       return dimension_;
     }
@@ -287,7 +295,7 @@ namespace shell {
     //
     // For use on construction or possibly with iteration.
     {
-      return index() < Subspace().Dimension();
+      return index() < Subspace().size();
     }
 
   private:

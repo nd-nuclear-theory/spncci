@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   //    std::cout << "subspace " << omega.Str() << std::endl;
   //
   //    // enumerate state labels within subspace
-  //    for (int i_state=0; i_state<subspace.Dimension(); ++i_state)
+  //    for (int i_state=0; i_state<subspace.size(); ++i_state)
   //      {
   //        MultiplicityTagged<u3::U3> n_tagged = subspace.GetStateLabels(i_state);
   //        std::cout << "  " << i_state << " " << n_tagged.Str() << std::endl;
