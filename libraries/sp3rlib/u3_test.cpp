@@ -52,56 +52,56 @@ int main(int argc, char **argv)
   std::cout << std::endl;
 
   // U(3)
-  std::vector<u3::U3> w_vector;
-  w_vector.push_back(u3::U3(1,1,1));
-  w_vector.push_back(u3::U3(3,1,0));
-  w_vector.push_back(u3::U3(3,2,1));
-  w_vector.push_back(u3::U3(2,1,1));
-  for (int i=0; i<w_vector.size(); ++i)
+  std::vector<u3::U3> omega_vector;
+  omega_vector.push_back(u3::U3(1,1,1));
+  omega_vector.push_back(u3::U3(3,1,0));
+  omega_vector.push_back(u3::U3(3,2,1));
+  omega_vector.push_back(u3::U3(2,1,1));
+  for (int i=0; i<omega_vector.size(); ++i)
     {
-      std::cout << w_vector[i].Str();
+      std::cout << omega_vector[i].Str();
     }
   std::cout << std::endl;
-  sort(w_vector.begin(),w_vector.end());
-  for (int i=0; i<w_vector.size(); ++i)
+  sort(omega_vector.begin(),omega_vector.end());
+  for (int i=0; i<omega_vector.size(); ++i)
     {
-      std::cout << w_vector[i].Str();
+      std::cout << omega_vector[i].Str();
     }
   std::cout << std::endl;
 
   // U(3)xSU(2)
-  std::vector<u3::U3S> wS_vector;
-  wS_vector.push_back(u3::U3S(u3::U3(1,1,1),3));
-  wS_vector.push_back(u3::U3S(u3::U3(1,1,1),1));
-  wS_vector.push_back(u3::U3S(u3::U3(3,1,0),HalfInt(3,2)));
-  wS_vector.push_back(u3::U3S(u3::U3(3,1,0),HalfInt(1,2)));
-  for (int i=0; i<wS_vector.size(); ++i)
+  std::vector<u3::U3S> omegaS_vector;
+  omegaS_vector.push_back(u3::U3S(u3::U3(1,1,1),3));
+  omegaS_vector.push_back(u3::U3S(u3::U3(1,1,1),1));
+  omegaS_vector.push_back(u3::U3S(u3::U3(3,1,0),HalfInt(3,2)));
+  omegaS_vector.push_back(u3::U3S(u3::U3(3,1,0),HalfInt(1,2)));
+  for (int i=0; i<omegaS_vector.size(); ++i)
     {
-      std::cout << wS_vector[i].Str();
+      std::cout << omegaS_vector[i].Str();
     }
   std::cout << std::endl;
-  sort(wS_vector.begin(),wS_vector.end());
-  for (int i=0; i<wS_vector.size(); ++i)
+  sort(omegaS_vector.begin(),omegaS_vector.end());
+  for (int i=0; i<omegaS_vector.size(); ++i)
     {
-      std::cout << wS_vector[i].Str();
+      std::cout << omegaS_vector[i].Str();
     }
   std::cout << std::endl;
 
   // U(3)xSU(2)xSU(2)
-  std::vector<u3::U3ST> wST_vector;
-  wST_vector.push_back(u3::U3ST(u3::U3(1,1,1),3,2));
-  wST_vector.push_back(u3::U3ST(u3::U3(1,1,1),1,1));
-  wST_vector.push_back(u3::U3ST(u3::U3(3,1,0),HalfInt(3,2),HalfInt(1,2)));
-  wST_vector.push_back(u3::U3ST(u3::U3(3,1,0),HalfInt(1,2),1));
-  for (int i=0; i<wST_vector.size(); ++i)
+  std::vector<u3::U3ST> omegaST_vector;
+  omegaST_vector.push_back(u3::U3ST(u3::U3(1,1,1),3,2));
+  omegaST_vector.push_back(u3::U3ST(u3::U3(1,1,1),1,1));
+  omegaST_vector.push_back(u3::U3ST(u3::U3(3,1,0),HalfInt(3,2),HalfInt(1,2)));
+  omegaST_vector.push_back(u3::U3ST(u3::U3(3,1,0),HalfInt(1,2),1));
+  for (int i=0; i<omegaST_vector.size(); ++i)
     {
-      std::cout << wST_vector[i].Str()<<"  ";
+      std::cout << omegaST_vector[i].Str()<<"  ";
     }
   std::cout << std::endl;
-  sort(wST_vector.begin(),wST_vector.end());
-  for (int i=0; i<wST_vector.size(); ++i)
+  sort(omegaST_vector.begin(),omegaST_vector.end());
+  for (int i=0; i<omegaST_vector.size(); ++i)
     {
-      std::cout << wST_vector[i].Str()<<"  ";
+      std::cout << omegaST_vector[i].Str()<<"  ";
     }
   std::cout << std::endl;
 
@@ -124,14 +124,14 @@ int main(int argc, char **argv)
   }
   std::cout << std::endl;
 
-  for (int i=0; i<w_vector.size(); ++i)
+  for (int i=0; i<omega_vector.size(); ++i)
     {
       std::cout 
-	<< w_vector[i].Str() 
-	<< " " << dim(w_vector[i])
-	<< " " << Conjugate(w_vector[i]).Str() 
-	<< " " << ConjugationGrade(w_vector[i])
-	<< " " << w_vector[i].Valid()
+	<< omega_vector[i].Str() 
+	<< " " << dim(omega_vector[i])
+	<< " " << Conjugate(omega_vector[i]).Str() 
+	<< " " << ConjugationGrade(omega_vector[i])
+	<< " " << omega_vector[i].Valid()
 	<< std::endl;
     }
   std::cout << std::endl;
@@ -140,11 +140,11 @@ int main(int argc, char **argv)
     << " " << u3::U3(1,3,2).Valid() 
     << std::endl;
 
-  for (int i=0; i<wS_vector.size(); ++i)
+  for (int i=0; i<omegaS_vector.size(); ++i)
     {
       std::cout 
-	<< wS_vector[i].Str() 
-	<< " " << dim(wS_vector[i])
+	<< omegaS_vector[i].Str() 
+	<< " " << dim(omegaS_vector[i])
 	<< std::endl;
     }
   std::cout << std::endl;

@@ -13,9 +13,9 @@
 #
 # then the search prefix list should include
 #
-#   $(HOME)/local/opt/eigen-3.0.3/
+#   $(HOME)/local/opt/eigen-3.0.3
 
-search_prefix := $(HOME)/local/opt/eigen-3.0.3/
+search_prefix := $(HOME)/local/opt/eigen-3.0.3
 
 # directories to directly include in include path or lib path
 #

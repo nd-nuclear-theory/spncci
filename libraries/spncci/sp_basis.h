@@ -35,13 +35,17 @@ namespace spncci
   // Stored for each LGI:
   //   Nex sigma Sp Sn S
   //
-  // Note that Sp and Sn are spectators for most conceivable
-  // calculations but are retained for informational value.
+  // Note: It might be useful to store the running index (0-based) in
+  // the LGI as well, so that it can appear in, e.g., the debugging
+  // string output.
   //
-  // Although sigma x S could be encoded together as a single
+  // Note: Sp and Sn are spectators for most conceivable calculations
+  // but are retained for informational value.
+  //
+  // Note: Although sigma x S could be encoded together as a single
   // u3::U3S object, it is not clear that there is any benefit
   // (conceptual or practical) to adding an extra layer of packaging
-  // at this stage.
+  // at this stage in the code.
   
   struct LGI
   {
@@ -88,11 +92,16 @@ namespace spncci
   //
   //   Nsigma = Nsigma_0 + Nex
 
-  void GenerateLGIVector(std::vector<spncci::LGI>& lgi_vec, const std::string& lgi_filename, const HalfInt& Nsigma_0);
+  // LGI container convenience type
+  //
+  // STYLE: maybe LGI::vector would be more consistent
+  typedef std::vector<spncci::LGI> LGIVectorType;
+
+  void GenerateLGIVector(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0);
   // Generates vector of LGIs based on LGI input tabulation.
   //
   // Arguments:
-  //   lgi_vec (vector<LGI>) : container for LGI list (OUTPUT)
+  //   lgi_vector (LGIVectorType) : container for LGI list (OUTPUT)
   //   filename (string) : filename for LGI table file
   //   Nsigma_0 (HalfInt) : Nsigma_0 for nucleus
 
@@ -118,7 +127,7 @@ namespace spncci
   // Define generic interface for defining truncations by (sigma,S).
   {
   public:
-    virtual int Nn_max(const u3::U3S& sigmaS) const
+    virtual int Nn_max(const u3::U3& sigma) const
       = 0; //pure virtual
     // Calculate Nn_max to use for given LGI (sigma,S) labels.
     //
@@ -144,7 +153,7 @@ namespace spncci
     // truncator calculation
     ////////////////////////////////////////////////////////////////
 
-    int Nn_max(const u3::U3S& sigmaS) const;
+    virtual int Nn_max(const u3::U3& sigma) const;
 
     ////////////////////////////////////////////////////////////////
     // truncation information
@@ -160,20 +169,23 @@ namespace spncci
   // storage of S(3,R) -> U(3) branchings
   ////////////////////////////////////////////////////////////////
 
+  // Sp(3,R) container convenience type
+  typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaSpaceMapType;
+
   void GenerateSp3RSpaces(
-			  const std::vector<spncci::LGI>& lgi_vec,
-			  std::map<u3::U3S,sp3r::Sp3RSpace>& sigma_map,
+			  const LGIVectorType& lgi_vector,
+			  SigmaSpaceMapType& sigma_space_map,
 			  const TruncatorInterface& truncator
 			  );
   // Generate Sp(3,R) space branching information required for given set of LGIs.
   //
   // Arguments:
-  //   lgi_vec (vector<spncci::LGI>) : vector of LGIs for which we
+  //   lgi_vector (LGIVectorType) : vector of LGIs for which we
   //     must generate branchings
-  //   sigma_map (map<u3::U3S,sp3r::Sp3RSpace>) : dictionary of
-  //     mappings (sigma,S) -> Sp3RSpace key-value pairs (OUTPUT)
-  //   truncator (TruncatorInterface) : truncator instance providing
-  //     the means of determining the Nn_max needed for each LGI
+  //   sigma_space_map (SigmaSpaceMapType) : 
+  //     mappings from sigma to its space indexing (OUTPUT)
+  //   truncator (TruncatorInterface) : "truncator" object, which provides a 
+  //     function to map each given sigma to its desired Nn_max truncation
 
 }  // namespace
 

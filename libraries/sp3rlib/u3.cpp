@@ -37,7 +37,7 @@ namespace u3
   {
     std::ostringstream ss;
 
-    ss << w.Str() << "x" << S;
+    ss << omega.Str() << "x" << S;
 
     return ss.str();
   }
@@ -46,7 +46,7 @@ namespace u3
   {
     std::ostringstream ss;
 
-    ss << w.Str() << "x" << S << "x" << T;
+    ss << omega.Str() << "x" << S << "x" << T;
 
     return ss.str();
   }
@@ -129,13 +129,13 @@ namespace u3
     return product;
   }
 
-  MultiplicityTagged<u3::U3>::vector KroneckerProduct(const u3::U3& w1, const u3::U3& w2)
+  MultiplicityTagged<u3::U3>::vector KroneckerProduct(const u3::U3& omega1, const u3::U3& omega2)
   {
     // couple U(1)
-    HalfInt N = w1.N() + w2.N();
+    HalfInt N = omega1.N() + omega2.N();
     
     // couple SU(3)
-    MultiplicityTagged<u3::SU3>::vector su3_product = KroneckerProduct(w1.SU3(),w2.SU3());
+    MultiplicityTagged<u3::SU3>::vector su3_product = KroneckerProduct(omega1.SU3(),omega2.SU3());
 
     // augment SU(3) entries with U(1) number
     MultiplicityTagged<u3::U3>::vector u3_product;
@@ -143,8 +143,8 @@ namespace u3
     for (auto x_tagged_iter = su3_product.begin(); x_tagged_iter !=su3_product.end(); ++x_tagged_iter)
       {
 	MultiplicityTagged<u3::SU3> x_tagged = *x_tagged_iter;
-	MultiplicityTagged<u3::U3> w_tagged(u3::U3(N,x_tagged.irrep),x_tagged.tag);
-	u3_product.push_back(w_tagged);
+	MultiplicityTagged<u3::U3> omega_tagged(u3::U3(N,x_tagged.irrep),x_tagged.tag);
+	u3_product.push_back(omega_tagged);
       }
 
     return u3_product;

@@ -35,7 +35,7 @@ namespace sp3r
 
   // space labels: sigma (u3::U3)
   // space truncation: Nn,max (integer)
-  // subspace labels: w (u3::U3)
+  // subspace labels: omega (u3::U3)
   // state labels within subspace: n (u3::U3), rho (integer)
   //
   // Within a space, the subspaces are ordered by:
@@ -86,14 +86,14 @@ namespace sp3r
 
     // constructor
 
-    U3Subspace(const u3::U3& w);
+    U3Subspace(const u3::U3& omega);
     // Construct U(3) subspace.
     //
     // This is a lightweight constructor which only stores the labels,
     // without populating the subspace with states.
     //
     // Arguments:
-    //   w (u3::U3) : labels for subspace
+    //   omega (u3::U3) : labels for subspace
 
     void Init(const SpanakopitaRangeType& state_range);
     // Populate subspace
@@ -134,7 +134,7 @@ namespace sp3r
     // Constructs all U3 subspaces up to given Nn_max.
 
     // diagnostic output
-    // void Print(std::ostream& os) const;
+    std::string DebugString() const;
 
     // accessors
     int Nn_max() const {return Nn_max_;}

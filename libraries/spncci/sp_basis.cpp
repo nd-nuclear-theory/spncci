@@ -32,7 +32,7 @@ namespace spncci
     return ss.str();
   }
 
-  void GenerateLGIVector(std::vector<spncci::LGI>& lgi_vec, const std::string& lgi_filename, const HalfInt& Nsigma_0)
+  void GenerateLGIVector(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0)
   {
 
     // open input file
@@ -54,7 +54,7 @@ namespace spncci
         //   Nex lambda mu 2Sp 2Sn 2S count
         int Nex, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
         line_stream >> Nex >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S >> count;
-        ParsingCheck (line_stream, line_count, line);
+        ParsingCheck(line_stream, line_count, line);
 
         // conversions
         HalfInt Nsigma = Nsigma_0 + Nex;
@@ -65,44 +65,56 @@ namespace spncci
       
         // replicate LGI according to count
         for (int i=1; i<=count; ++i)
-          lgi_vec.emplace_back(Nex,sigma,Sp,Sn,S);
+          lgi_vector.emplace_back(Nex,sigma,Sp,Sn,S);
       }
 
     // close input file
     lgi_stream.close();
   }
 
-  int NmaxTruncator::Nn_max(const u3::U3S& sigmaS) const
+  int NmaxTruncator::Nn_max(const u3::U3& sigma) const
   {
-    HalfInt Nsigma = sigmaS.U3().N();
+    HalfInt Nsigma = sigma.N();
     int value = Nmax_ - int(Nsigma - Nsigma_0_);
     return value;
   }
 
   void GenerateSp3RSpaces(
-                          const std::vector<spncci::LGI>& lgi_vec,
-                          std::map<u3::U3S,sp3r::Sp3RSpace>& sigma_map,
+                          const LGIVectorType& lgi_vector,
+                          SigmaSpaceMapType& sigma_space_map,
                           const TruncatorInterface& truncator
                           )
   {
     // traverse LGI vector
-    for (auto it = lgi_vec.begin(); it != lgi_vec.end(); ++it)
+    for (auto it = lgi_vector.begin(); it != lgi_vector.end(); ++it)
       {
-        // find sigmaS of LGI
-        u3::U3S sigmaS(it->sigma,it->S);
+        // retrieve sigma of LGI
+        // u3::U3 sigma(it->sigma); // CRYPTIC
+        const spncci::LGI& lgi = *it;
+        const u3::U3& sigma = lgi.sigma;
         
-        // add sigmaS to map if needed
-        if (sigma_map.count(sigmaS) == 0)
+        // generate Sp3RSpace for given sigma if not yet in map
+        if (sigma_space_map.count(sigma) == 0)
           {
-            int Nn_max = truncator.Nn_max(sigmaS);
-            // sigma_map[sigmaS] = sp3r::Sp3RSpace(sigmaS,Nn_max);  // FAILS: since compiler requires default constructor in case key is not present 
-            // FAILS in g++ 4.5 -- map.emplace not yet defined?
-            // sigma_map.emplace(
-            //                sigmaS,  // key
-            //                sigmaS,Nn_max  // constructor arguments for value
+            int Nn_max = truncator.Nn_max(sigma);
+
+            // FAILS: since compiler anticipates the case where sigma
+            // is not found as a key and map would (hypothetically)
+            // need to insert an SP3RSpace using the (nonexistent)
+            // default constructor sp3r::Sp3RSpace()
+            //
+            // sigma_space_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);  
+
+            // FAILS in g++ 4.5: map.emplace not yet defined?
+            //
+            // sigma_space_map.emplace(
+            //                sigma,  // key
+            //                sigma,Nn_max  // constructor arguments for value
             //                );
-            sp3r::Sp3RSpace sp3r_space(sigmaS.U3(),Nn_max);
-            sigma_map.insert(std::make_pair(sigmaS,sp3r_space));
+            
+            sigma_space_map.insert(
+                             std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
+                             );
 
           }
       }

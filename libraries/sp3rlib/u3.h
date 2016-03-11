@@ -244,38 +244,38 @@ namespace u3
   // relational operators
   ////////////////////////////////////////////////////////////////
 
-  inline bool operator == (const U3& w1, const U3& w2)
+  inline bool operator == (const U3& omega1, const U3& omega2)
   {
-    return w1.Key() == w2.Key();
+    return omega1.Key() == omega2.Key();
   }
 
-  inline bool operator < (const U3& w1, const U3& w2)
+  inline bool operator < (const U3& omega1, const U3& omega2)
   {
-    return w1.Key() < w2.Key();
+    return omega1.Key() < omega2.Key();
   }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
   ////////////////////////////////////////////////////////////////
 
-  inline int dim(const u3::U3& w)
+  inline int dim(const u3::U3& omega)
   // Calculate dimension of irrep.
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
-    return dim(w.SU3());
+    return dim(omega.SU3());
   }
 
-  inline u3::U3 Conjugate(const u3::U3& w)
+  inline u3::U3 Conjugate(const u3::U3& omega)
   // Conjugate irrep.
   {
-    return u3::U3(-w.N(),Conjugate(w.SU3()));
+    return u3::U3(-omega.N(),Conjugate(omega.SU3()));
   }
 
-  inline int ConjugationGrade(const u3::U3& w)
+  inline int ConjugationGrade(const u3::U3& omega)
   // Integer contribution to phase on conjugation.
   {
-    return ConjugationGrade(w.SU3());
+    return ConjugationGrade(omega.SU3());
   }
 
   ////////////////////////////////////////////////////////////////
@@ -304,9 +304,9 @@ namespace u3
     inline U3S() 
       : S(0) {}
 
-    // construction from (w,S)
-    inline U3S(const u3::U3& w_, const HalfInt& S_) 
-      : w(w_), S(S_) {}
+    // construction from (omega,S)
+    inline U3S(const u3::U3& omega_, const HalfInt& S_) 
+      : omega(omega_), S(S_) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -314,17 +314,17 @@ namespace u3
 
     inline u3::U3 U3() const
     {
-      return w;
+      return omega;
     }
 
     inline u3::SU3 SU3() const
     {
-      return w.SU3();
+      return omega.SU3();
     }
 
     inline KeyType Key() const
     {
-      return KeyType(w,S);
+      return KeyType(omega,S);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -337,7 +337,7 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
 
-    u3::U3 w;
+    u3::U3 omega;
     HalfInt S;
 
   };
@@ -347,26 +347,26 @@ namespace u3
   // relational operators
   ////////////////////////////////////////////////////////////////
 
-  inline bool operator == (const U3S& wS1, const U3S& wS2)
+  inline bool operator == (const U3S& omegaS1, const U3S& omegaS2)
   {
-    return wS1.Key() == wS2.Key();
+    return omegaS1.Key() == omegaS2.Key();
   }
 
-  inline bool operator < (const U3S& wS1, const U3S& wS2)
+  inline bool operator < (const U3S& omegaS1, const U3S& omegaS2)
   {
-    return wS1.Key() < wS2.Key();
+    return omegaS1.Key() < omegaS2.Key();
   }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
   ////////////////////////////////////////////////////////////////
 
-  inline int dim(const u3::U3S& wS)
+  inline int dim(const u3::U3S& omegaS)
   // Calculate dimension of irrep.
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
-    return dim(wS.w)*(TwiceValue(wS.S)+1);  // TODO: define dimension function for am?
+    return dim(omegaS.omega)*(TwiceValue(omegaS.S)+1);  // TODO: define dimension function for am?
   }
 
   ////////////////////////////////////////////////////////////////
@@ -395,9 +395,9 @@ namespace u3
     inline U3ST() 
       : S(0), T(0) {}
 
-    // construction from (w,S,T)
-    inline U3ST(const u3::U3& w_, const HalfInt& S_, const HalfInt& T_) 
-      : w(w_), S(S_), T(T_) {}
+    // construction from (omega,S,T)
+    inline U3ST(const u3::U3& omega_, const HalfInt& S_, const HalfInt& T_) 
+      : omega(omega_), S(S_), T(T_) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -405,17 +405,17 @@ namespace u3
 
     inline u3::U3 U3() const
     {
-      return w;
+      return omega;
     }
 
     inline u3::SU3 SU3() const
     {
-      return w.SU3();
+      return omega.SU3();
     }
 
     inline KeyType Key() const
     {
-      return KeyType(U3S(w,S),T);
+      return KeyType(U3S(omega,S),T);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -428,7 +428,7 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
 
-    u3::U3 w;
+    u3::U3 omega;
     HalfInt S, T;
 
   };
@@ -438,26 +438,26 @@ namespace u3
   // relational operators
   ////////////////////////////////////////////////////////////////
 
-  inline bool operator == (const U3ST& wST1, const U3ST& wST2)
+  inline bool operator == (const U3ST& omegaST1, const U3ST& omegaST2)
   {
-    return wST1.Key() == wST2.Key();
+    return omegaST1.Key() == omegaST2.Key();
   }
 
-  inline bool operator < (const U3ST& wST1, const U3ST& wST2)
+  inline bool operator < (const U3ST& omegaST1, const U3ST& omegaST2)
   {
-    return wST1.Key() < wST2.Key();
+    return omegaST1.Key() < omegaST2.Key();
   }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
   ////////////////////////////////////////////////////////////////
 
-  inline int dim(const u3::U3ST& wST)
+  inline int dim(const u3::U3ST& omegaST)
   // Calculate dimension of irrep.
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
-    return dim(wST.w)*(TwiceValue(wST.S)+1)*(TwiceValue(wST.T)+1);  // TODO: define dimension function for am?
+    return dim(omegaST.omega)*(TwiceValue(omegaST.S)+1)*(TwiceValue(omegaST.T)+1);  // TODO: define dimension function for am?
   }
 
   ////////////////////////////////////////////////////////////////
@@ -498,7 +498,7 @@ namespace u3
   //   (MultiplicityTagged<u3::SU3>::vector) : vector with each irrep
   //   (of nonzero multiplicity) tagged by its multiplicity rho_max
 
-  MultiplicityTagged<u3::U3>::vector KroneckerProduct(const u3::U3& w1, const u3::U3& w2);
+  MultiplicityTagged<u3::U3>::vector KroneckerProduct(const u3::U3& omega1, const u3::U3& omega2);
   // Overloaded for U3.
 
   ////////////////////////////////////////////////////////////////

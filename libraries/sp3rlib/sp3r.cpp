@@ -7,6 +7,7 @@
 ****************************************************************/
 
 #include <cmath>
+#include <sstream>
 #include <vector>
 
 #include "gsl/gsl_sf.h"  
@@ -65,19 +66,19 @@ namespace sp3r
   // space and subspace indexing
   ////////////////////////////////////////////////////////////////
 
-  U3Subspace::U3Subspace(const u3::U3& w)
+  U3Subspace::U3Subspace(const u3::U3& omega)
   {
     // set subspace labels
-    labels_ = w;
+    labels_ = omega;
   }
 
   void U3Subspace::Init(const SpanakopitaRangeType& state_range)
   {
-    // for each (n,rho_max) entry belonging to this w subspace
+    // for each (n,rho_max) entry belonging to this omega subspace
     for (auto it = state_range.first; it != state_range.second; ++it)
       {
 	// extract state labels
-	//   from w -> (n,rho_max) entry
+	//   from omega -> (n,rho_max) entry
 	MultiplicityTagged<u3::U3> n_tagged = it->second;
 	u3::U3 n = n_tagged.irrep;
 	int rho_max = n_tagged.tag;
@@ -107,26 +108,26 @@ namespace sp3r
     // enumerate states
     //
     // for each raising polynomial n
-    //   obtain all allowed couplings w (sigma x n -> w) 
+    //   obtain all allowed couplings omega (sigma x n -> omega) 
     //     (with their multiplicities rho_max)
-    //   for each allowed coupling w
+    //   for each allowed coupling omega
     //      store to states multimap as key value pair
-    //        w -> (n,rho_max)
+    //        omega -> (n,rho_max)
     for (auto n_iter = n_vec.begin(); n_iter != n_vec.end(); ++n_iter)
       {
 	u3::U3 n = (*n_iter);
-	MultiplicityTagged<u3::U3>::vector w_tagged_vec = KroneckerProduct(sigma,n);
+	MultiplicityTagged<u3::U3>::vector omega_tagged_vec = KroneckerProduct(sigma,n);
 	for (
-	     auto w_tagged_iter = w_tagged_vec.begin();
-	     w_tagged_iter != w_tagged_vec.end();
-	     ++w_tagged_iter
+	     auto omega_tagged_iter = omega_tagged_vec.begin();
+	     omega_tagged_iter != omega_tagged_vec.end();
+	     ++omega_tagged_iter
 	     )
 	  {
-	    // convert (w,rho_max) to w -> (n,rho_max)
-	    MultiplicityTagged<u3::U3> w_tagged = (*w_tagged_iter);
-	    u3::U3 w = w_tagged.irrep;
-	    int rho_max = w_tagged.tag;
-	    states.insert(SpanakopitaType::value_type(w,MultiplicityTagged<u3::U3>(n,rho_max)));
+	    // convert (omega,rho_max) to omega -> (n,rho_max)
+	    MultiplicityTagged<u3::U3> omega_tagged = (*omega_tagged_iter);
+	    u3::U3 omega = omega_tagged.irrep;
+	    int rho_max = omega_tagged.tag;
+	    states.insert(SpanakopitaType::value_type(omega,MultiplicityTagged<u3::U3>(n,rho_max)));
 	  
 	  }
       }
@@ -136,11 +137,11 @@ namespace sp3r
     SpanakopitaType::iterator it = states.begin();
     while (it != states.end())
       {
-	// retrieve w key of this group of states
-	u3::U3 w = it->first;
+	// retrieve omega key of this group of states
+	u3::U3 omega = it->first;
 
 	// find range of this group of states
-	SpanakopitaRangeType state_range = states.equal_range(w);
+	SpanakopitaRangeType state_range = states.equal_range(omega);
 
 	// set up subspace
 	//
@@ -148,7 +149,7 @@ namespace sp3r
 	// *copied* into vector.  
 	//
 	// Option 1: Eefine a lightweight
-	// constructor for U3Subspace, which just saves w.  Push
+	// constructor for U3Subspace, which just saves omega.  Push
 	// the (empty) subspace into the Sp3RSpace.  Then use an Init
 	// method to actually populate the subspace.  This runs up
 	// against "private" protections in BaseSubspace (which could
@@ -157,7 +158,7 @@ namespace sp3r
 	// Option 2: Use C++11 emplace_back!  However, this requires
 	// also modifying BaseSubspace to provide an "EmplaceSubspace"
 	// with appropriate arguments, which would be difficult.
-	PushSubspace(U3Subspace(w));
+	PushSubspace(U3Subspace(omega));
 	subspaces_.back().Init(state_range);
 	// GetSubspace(size()).Init(state_range); //ILLEGAL since GetSubspace yields const reference
 
@@ -165,6 +166,34 @@ namespace sp3r
 	it = state_range.second;
       }
 
+  }
+
+  std::string Sp3RSpace::DebugString() const
+  // TODO break into DebugString for subspace and for space
+  {
+    std::ostringstream ss;
+    
+    for (int i_subspace=0; i_subspace<size(); ++i_subspace)
+      {
+        // set up reference to subspace of interest
+        //
+        // Using a reference avoids copying the U3Subspace object (and
+        // all its lookup tables).
+        const sp3r::U3Subspace& subspace = GetSubspace(i_subspace);
+
+        // print subspace labels
+        u3::U3 omega = subspace.GetSubspaceLabels();
+        ss << "subspace " << omega.Str() << std::endl;
+
+        // enumerate state labels within subspace
+        for (int i_state=0; i_state<subspace.Dimension(); ++i_state)
+          {
+            MultiplicityTagged<u3::U3> n_tagged = subspace.GetStateLabels(i_state);
+            ss << "  " << i_state << " " << n_tagged.Str() << std::endl;
+          }
+      }
+
+    return ss.str();
   }
 
 }  // namespace

@@ -9,7 +9,9 @@ Coding generally follows the Google C++ style guidelines:
 
   https://google.github.io/styleguide/cppguide.html
 
-Indenting follows emacs C++ mode "gnu" mode conventions, with no tabs.
+Indenting follows emacs C++ mode "gnu" mode conventions.  To disable
+tabs in emacs, the following code may be included in your emacs
+init.el file:
 
   (setq-default indent-tabs-mode nil)
 
@@ -17,28 +19,31 @@ For more information, see:
 
   https://www.emacswiki.org/emacs/IndentingC
 
-
 ----------------------------------------------------------------
 
 Namespaces
 
   Avoid using "using" declarations.
 
-  Consistently use namespace qualifiers to refer to identifiers, even
-  when you writing code within that same namespace (that is, for
-  readability, even though the namespace qualifier is not strictly
-  necessary).
+  Even though namespace qualifiers are not strictly needed when you
+  are accessing an identifier from the same namespace, go ahead and
+  consistently use namespace qualifiers anyway, for readability.
 
 Half-integer values
 
-  Use the HalfInt type (rather than explicitly storing twice the
-  value in an integer variable).  Convert back to int/double as
-  needed using the int() or double() conversions, or the TwiceValue()
-  function if you actually need the integer equal to twice the
-  HalfInt's value.  When a half-integer variable is stored to file,
-  do store it as an integer equal to twice the value.  If a variable
-  is used to temporarily store this integer value on input/output, a
-  name of the form "twice_x" is appropriate.
+  Use the HalfInt type, rather than explicitly storing twice the
+  value in an integer variable, as many physics codes do.
+
+  Convert HalfInt back to int/double as needed using the int() or
+  double() conversions, rather than the other more verbose accessors
+  (which were defined pre-C++11).  You might also use the
+  TwiceValue(h) function if you actually need the integer equal to
+  twice the HalfInt's value.
+
+  When a half-integer variable is stored to file, do go ahead and
+  store it as an integer equal to twice the value.  If this
+  input/output value must be temporarily stored in an integer
+  variable, use a name of the form "twice_x".
 
 Text input
 
@@ -52,3 +57,9 @@ Class declarations
   indentation, which causes incorrect indentation when a constructor
   initializer is present.
 
+  We use a Str() member function (a la Python) to generate a simple
+  text representation of an object (e.g., a group label), as might be
+  used in production output.
+
+  We use a DebugString() member function to generate a data dump of an
+  object, as might be used in debugging and testing.
