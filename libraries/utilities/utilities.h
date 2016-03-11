@@ -45,4 +45,9 @@ inline int Choose(int x, int y)
 	return choose;
 }
 
+inline int Factorial(int x)
+{
+  return gsl_sf_fact(x);
+}
+
 #endif

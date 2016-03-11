@@ -14,6 +14,7 @@
 int main(int argc, char **argv)
 {
 
-	std::cout<< u3::MoshinskyCoefficient(2,2,3,1,u3::SU3(4,0))<<std::endl;
+	std::cout<< u3::MoshinskyCoefficient(2,2,4,0,u3::SU3(4,0))<<std::endl;
+	std::cout<< u3::MoshinskyCoefficient(u3::SU3(2,0),u3::SU3(2,0),u3::SU3(4,0),u3::SU3(0,0),u3::SU3(4,0))<<std::endl;
 
 }

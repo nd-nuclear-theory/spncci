@@ -6,7 +6,10 @@
 
 ****************************************************************/
 
+#include <cmath>
 #include <vector>
+
+#include "gsl/gsl_sf.h"  
 #include "sp3rlib/sp3r.h"
 
 namespace sp3r
@@ -29,6 +32,34 @@ namespace sp3r
     return poly_labels;
 
   }
+
+  // CCoef(u3::U3& n, int q, u3:: U3& np)
+  // //Don't need at present.  Will come back and finish later (aem). 
+
+  // // Coefficient of fractional parentage for expanding the raising polynomial into a
+  // // polynomial of a single Jacobi coordinate and a polynomial of all other coordinates 
+  // {
+  //   double coef=0;
+  //   int N=int(n.N());
+  //   if (n.SU3()==u3::SU3(N,0))&&(np.SU3()==u3::SU3(N-q,0))
+  //     coef=sqrt(
+  //       gsl_sf_fact(N/2)*gsl_sf_fact(q)
+  //       /(pow(2.,q/2)*gsl_sf_fact(N/2-q/2)*gsl_sf_fact(q/2))
+  //       );
+  //   else
+  //   {
+  //     if ((n.f1-2)>=n.f2)
+  //       u3::U3 nb(n.f1-2,n.f2,n.f3);
+  //     else if ((n.f2-2)>=f.n3)
+  //       u3::U3 nb(n.f1,n.f2-2,n.f3);
+  //     else if ((n.f3-2)>=0)
+  //       u3::U3 nb(n.f1,n.f2,n.f3-2);
+  //     // if none of the above returns true, coef is zero. 
+  //     else
+  //       return coef;
+  //     // otherwise, calculate coef
+  //  }
+  //}
 
   ////////////////////////////////////////////////////////////////
   // space and subspace indexing

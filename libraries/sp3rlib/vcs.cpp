@@ -11,12 +11,13 @@
   3/9/16 (aem): Created based on prototype vcs.py.
 
 ****************************************************************/
-#include <math.h>  
+#include <Cmath>  
 #include "u3.h"
+#include <Eigen.h>
 
 
 namespace vcs{
-  	double BosonCreationRME(const u3::U3& np, const u3::U3& n)
+  double BosonCreationRME(const u3::U3& np, const u3::U3& n)
 	//  SU(3) Reduced matrix element of a^\dagger boson creation operator
   	{
   		double rme=0;
@@ -41,6 +42,13 @@ namespace vcs{
 
   	}
 
+  double SMatrix(u3::U3& s, u3::U3& s, MultiplicityTagged<u3::U3>& nr1, MultiplicityTagged<u3::U3>& nr2)
+  {
+    double smatrix=0;
+
+
+    return smatrix;
+  }
 
 
 

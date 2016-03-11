@@ -53,7 +53,11 @@ namespace sp3r
 
   // raising polynomial enumeration
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
-  // TODO: Anna will put her comment back in here, won't she.
+  // TODO: Anna will leave this uncommented and see how long it takes Mark to notice.
+
+  double CCoef(u3::U3& n, int q, u3::U3& np);
+  // Coefficient of fractional parentage for expanding the raising polynomial into a
+  // polynomial of a single Jacobi coordinate and a polynomial of all other coordinates 
 
   ////////////////////////////////////////////////////////////////
   // U(3) subspace

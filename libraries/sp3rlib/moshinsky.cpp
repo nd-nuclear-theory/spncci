@@ -13,7 +13,6 @@
 ****************************************************************/
 
 #include <cmath>
-#include "gsl/gsl_sf.h"
 
 #include "am/halfint.h"
 #include "u3.h"
@@ -38,10 +37,10 @@ namespace u3
 			moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);
 		moshinsky_coef=moshinsky_coef*(
 			ParitySign(J-Mp)
-			// *sqrt(
-			// 	gsl_sf_fact(int(J+Mp))*gsl_sf_fact(int(J-Mp))
-			// 	/(pow(2.,TwiceValue(J))*gsl_sf_fact(int(J+M))*gsl_sf_fact(int(J-M)))
-			// 	)
+			*sqrt(
+				Factorial(int(J+Mp))*Factorial(int(J-Mp))
+				/(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
+				)
 			);
 		return moshinsky_coef;
 	}
@@ -73,8 +72,8 @@ namespace u3
 			moshinsky_coef=moshinsky_coef*(
 				ParitySign(J-Mp)
 				*sqrt(
-					gsl_sf_fact(int(J+Mp))*gsl_sf_fact(int(J-Mp))
-					/(pow(2.,TwiceValue(J))*gsl_sf_fact(int(J+M))*gsl_sf_fact(int(J-M)))
+					Factorial(int(J+Mp))*Factorial(int(J-Mp))
+					/(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
 					)
 				);
 			
