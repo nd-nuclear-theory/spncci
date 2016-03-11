@@ -88,7 +88,11 @@ namespace vcs{
                         MultiplicityTagged<u3::U3> nr2(n2,r2);
                         smatrix+=(
                           (Omega(n1p, wp)-Omega(n1,w))
+                          *U(s.SU3(),n1p.SU3(),wp.SU3(),u3::SU3(2,0),w.SU3(),r1,1,n1p.SU3(),1,nr1p.tag)
                           *BosonCreationRME(n1p,n1)
+                          *U(s.SU3(),n2p.SU3(),wp.SU3(),u3::SU3(2,0),w.SU3(),r2,2,n2p.SU3(),2,nr2p.tag)
+                          *BosonCreationRME(n2p,n2)
+                          *SMatrix(s,w,nr1,nr2)
                           );
                       }
 
@@ -97,12 +101,7 @@ namespace vcs{
           }
 
       }
-
-
-
-
-
-    return smatrix;
+    return 2.*smatrix/int(n1p.N());
   }
 
 
