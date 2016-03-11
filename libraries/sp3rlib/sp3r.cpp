@@ -17,19 +17,15 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max)
-  // Anna will put her comment back in here, won't she.
   {
     std::vector<u3::U3> poly_labels;
-    for (int N=0; N<=Nn_max; N-=2)
-    {
-      for(int a=N-2; a>=0; a-=2)
-      {
-        for(int b=2*(a/4); b>=std::max((2*a-N),0);b-=2)
-        {
-          poly_labels.push_back(u3::U3(N-a,a-b,b));
-        }
-      }
-    }
+
+    poly_labels.push_back(u3::U3(0,0,0));
+    for (int N=0; N<=Nn_max; N+=2)
+      for (int a=N-2; a>=0; a-=2)
+        for (int b=2*(a/4); b>=std::max((2*a-N),0); b-=2)
+	  poly_labels.push_back(u3::U3(N-a,a-b,b));
+
     return poly_labels;
 
   }
