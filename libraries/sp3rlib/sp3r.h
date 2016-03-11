@@ -53,7 +53,20 @@ namespace sp3r
 
   // raising polynomial enumeration
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
-  // TODO: Anna will leave this uncommented and see how long it takes Mark to notice.
+  // Less than 24 hours.  That was the other thing I was writing in my
+  // head on my run.  (TODO remove this note)
+  //
+  // Generate full set of raising polynomial U3 labels up to given Nn_max.
+  //
+  // Labels are generated in "canonical" order, defined as
+  // lexicographic by N(lambda,mu).
+  //
+  // Arguments:
+  //   Nn_max (int) : maximum excitation quanta of raising polynomial 
+  //     labels
+  //
+  // Returns:
+  //   (vector<u3::U3) : vector of raising polynomial labels
 
   double CCoef(u3::U3& n, int q, u3::U3& np);
   // Coefficient of fractional parentage for expanding the raising polynomial into a

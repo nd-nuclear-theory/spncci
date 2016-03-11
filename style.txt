@@ -1,0 +1,54 @@
+Style notes for spncci project
+
+Anna E. McCoy and Mark A. Caprio
+University of Notre Dame
+
+----------------------------------------------------------------
+
+Coding generally follows the Google C++ style guidelines:
+
+  https://google.github.io/styleguide/cppguide.html
+
+Indenting follows emacs C++ mode "gnu" mode conventions, with no tabs.
+
+  (setq-default indent-tabs-mode nil)
+
+For more information, see:
+
+  https://www.emacswiki.org/emacs/IndentingC
+
+
+----------------------------------------------------------------
+
+Namespaces
+
+  Avoid using "using" declarations.
+
+  Consistently use namespace qualifiers to refer to identifiers, even
+  when you writing code within that same namespace (that is, for
+  readability, even though the namespace qualifier is not strictly
+  necessary).
+
+Half-integer values
+
+  Use the HalfInt type (rather than explicitly storing twice the
+  value in an integer variable).  Convert back to int/double as
+  needed using the int() or double() conversions, or the TwiceValue()
+  function if you actually need the integer equal to twice the
+  HalfInt's value.  When a half-integer variable is stored to file,
+  do store it as an integer equal to twice the value.  If a variable
+  is used to temporarily store this integer value on input/output, a
+  name of the form "twice_x" is appropriate.
+
+Text input
+
+  Use the utilities/parsing functions for uniform error messages.
+
+Class declarations
+
+  Note on use of "inline" keyword: Some member functions defined in
+  class declarations start with a superfluous "inline" keyword.  This
+  is purely as a workaround for a bug in the emacs C++ mode
+  indentation, which causes incorrect indentation when a constructor
+  initializer is present.
+
