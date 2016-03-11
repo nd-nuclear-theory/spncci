@@ -32,9 +32,10 @@ int main(int argc, char **argv)
   u3::SU3 x(6,0);
   u3::SU3 xx(7,0);
 
-  u3::su3lib::blocks_();
-  std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
 
+  u3::U3CoefInit();
+  std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
+  std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
   std::cout << Z(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
 
   std::cout << W(x1,1,2,x2,1,2,x12,1,4,1) << std::endl;
@@ -47,5 +48,11 @@ int main(int argc, char **argv)
     x13, x24, xx,  1,
     1,    1,   1
     )<<std::endl;
+
+
+
+
+
+
 
 }

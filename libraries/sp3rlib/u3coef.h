@@ -2,12 +2,18 @@
   u3coef.h
 
   SU(3) coupling coefficient wrappers for Akiyama and Draayer su3lib.
+
+  u3coef recquires initilization of the coeffcients by calling the function 
+  u3::U3CoefInit() at the start of main
+
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
   3/10/16 (aem,mac): Created based on prototype u3.py and 
   T. Dytrych CSU3Master.
+
+
 ****************************************************************/
 
 #ifndef U3COEF_H_
@@ -40,10 +46,8 @@ namespace u3
 
   } //namespace
 
-  inline void blocks()
-  {
-    su3lib::blocks_();
-  } 
+  void U3CoefInit();
+
 
   double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int r0);
   // SU(3) reduced coupling coefficient, as referred to as Wigner coefficient 
