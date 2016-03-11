@@ -54,7 +54,8 @@ namespace sp3r
   // raising polynomial enumeration
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
   // Less than 24 hours.  That was the other thing I was writing in my
-  // head on my run.  (TODO remove this note)
+  // head on my run.  (TODO remove this note) Let's see how long it
+  // takes Anna to find this.
   //
   // Generate full set of raising polynomial U3 labels up to given Nn_max.
   //
@@ -114,6 +115,9 @@ namespace sp3r
     {
       return labels_;
     }
+
+    // diagnostic output
+    std::string DebugString() const;
 
   };
 

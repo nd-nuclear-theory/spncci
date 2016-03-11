@@ -38,24 +38,5 @@ int main(int argc, char **argv)
   // examine Sp3RSpace object
   sp3r::Sp3RSpace irrep(sigma,Nn_max);
   std::cout << irrep.DebugString();
-  //for (int i_subspace=0; i_subspace<irrep.size(); ++i_subspace)
-  //  {
-  //    // set up reference to subspace of interest
-  //    //
-  //    // Using a reference avoids copying the U3Subspace object (and
-  //    // all its lookup tables).
-  //    const sp3r::U3Subspace& subspace = irrep.GetSubspace(i_subspace);
-  //
-  //    // print subspace labels
-  //    u3::U3 omega = subspace.GetSubspaceLabels();
-  //    std::cout << "subspace " << omega.Str() << std::endl;
-  //
-  //    // enumerate state labels within subspace
-  //    for (int i_state=0; i_state<subspace.size(); ++i_state)
-  //      {
-  //        MultiplicityTagged<u3::U3> n_tagged = subspace.GetStateLabels(i_state);
-  //        std::cout << "  " << i_state << " " << n_tagged.Str() << std::endl;
-  //      }
-  //  }
 
 } //main

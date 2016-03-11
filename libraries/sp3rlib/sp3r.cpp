@@ -79,9 +79,9 @@ namespace sp3r
       {
 	// extract state labels
 	//   from omega -> (n,rho_max) entry
-	MultiplicityTagged<u3::U3> n_tagged = it->second;
-	u3::U3 n = n_tagged.irrep;
-	int rho_max = n_tagged.tag;
+	MultiplicityTagged<u3::U3> n_rho_max = it->second;
+	u3::U3 n = n_rho_max.irrep;
+	int rho_max = n_rho_max.tag;
 
 	// push state (n,rho) labels into subspace indexing
 	//   enumerating all multiplicity indices
@@ -90,6 +90,24 @@ namespace sp3r
 	    PushStateLabels(MultiplicityTagged<u3::U3>(n,rho));
 	  }
       }
+  }
+
+  std::string U3Subspace::DebugString() const
+  {
+    std::ostringstream ss;
+    
+    // print subspace labels
+    u3::U3 omega = GetSubspaceLabels();
+    ss << "subspace " << omega.Str() << std::endl;
+
+    // enumerate state labels within subspace
+    for (int i_state=0; i_state<size(); ++i_state)
+      {
+        MultiplicityTagged<u3::U3> n_rho = GetStateLabels(i_state);
+        ss << "  " << i_state << " " << n_rho.Str() << std::endl;
+      }
+
+    return ss.str();
   }
 
   Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max)
@@ -169,10 +187,9 @@ namespace sp3r
   }
 
   std::string Sp3RSpace::DebugString() const
-  // TODO break into DebugString for subspace and for space
   {
     std::ostringstream ss;
-    
+
     for (int i_subspace=0; i_subspace<size(); ++i_subspace)
       {
         // set up reference to subspace of interest
@@ -181,16 +198,8 @@ namespace sp3r
         // all its lookup tables).
         const sp3r::U3Subspace& subspace = GetSubspace(i_subspace);
 
-        // print subspace labels
-        u3::U3 omega = subspace.GetSubspaceLabels();
-        ss << "subspace " << omega.Str() << std::endl;
-
-        // enumerate state labels within subspace
-        for (int i_state=0; i_state<subspace.size(); ++i_state)
-          {
-            MultiplicityTagged<u3::U3> n_tagged = subspace.GetStateLabels(i_state);
-            ss << "  " << i_state << " " << n_tagged.Str() << std::endl;
-          }
+        // generate debug information for subspace
+        ss << subspace.DebugString();
       }
 
     return ss.str();
