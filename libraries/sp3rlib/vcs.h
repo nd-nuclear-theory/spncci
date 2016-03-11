@@ -28,9 +28,9 @@ namespace vcs
 	// Omega returns the Omega factor used in Kmatrix calculations
 	{
 		double omega;
-		omega += (2*sqr(w.f1)-sqr(n.f1)+8*(w.f1-n.f1)-2*(2*w.f1-n.f1));
-		omega += (2*sqr(w.f2)-sqr(n.f2)+8*(w.f2-n.f2)-4*(2*w.f2-n.f2));
-		omega += (2*sqr(w.f3)-sqr(n.f3)+8*(w.f3-n.f3)-6*(2*w.f3-n.f3));
+		omega += (2*sqr(double(w.f1))-sqr(double(n.f1))+8*(double(w.f1)-double(n.f1))-2*(2*double(w.f1)-double(n.f1)));
+		omega += (2*sqr(double(w.f2))-sqr(double(n.f2))+8*(double(w.f2)-double(n.f2))-4*(2*double(w.f2)-double(n.f2)));
+		omega += (2*sqr(double(w.f3))-sqr(double(n.f3))+8*(double(w.f3)-double(n.f3))-6*(2*double(w.f3)-double(n.f3)));
 		return omega;
 
 	}
