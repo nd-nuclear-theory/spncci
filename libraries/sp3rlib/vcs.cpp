@@ -13,7 +13,7 @@
 ****************************************************************/
 #include <Cmath>  
 #include "u3.h"
-#include <Eigen.h>
+#include <eigen3/Eigen/Eigen>
 
 
 namespace vcs{
