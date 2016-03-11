@@ -71,6 +71,14 @@ namespace u3
     return u_array[index];
   }
 
+  double Phi(const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x3, int r, int rp)
+  // Phi phase factor that arrises in chainging the coupling order of SU(3) irreps 
+  {
+    return Z(x1,u3::SU3(0,0),x3,x2,x1,1,r,x2,1,rp);
+  }
+
+
+
   double Unitary9LambdaMu(
     const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x12, int r12,
     const u3::SU3& x3,  const u3::SU3& x4,  const u3::SU3& x34, int r34,

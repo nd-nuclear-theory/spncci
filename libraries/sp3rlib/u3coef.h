@@ -73,6 +73,8 @@ namespace u3
   //
   // Provides wrapper for su3lib function wu39lm_
 
+  double Phi(const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x3, int r, int rp);
+  // Phi phase factor that arrises in chainging the coupling order of SU(3) irreps 
 
 } //namespace 
 
