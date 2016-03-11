@@ -34,47 +34,49 @@ namespace u3
       extern void wu3r3w_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[MAX_K][MAX_K][MAX_K][MAX_K]);
       extern void wru3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
       extern void wzu3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
-      //extern void xewu3_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], int[], int[], int[], const int&, const int&, const int&);
-      //extern void xwu3_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&, const int&, double[], int[], int[], int[], int[], const int&, const int&, int[], const int&, const int&, const int&, const int&);
       extern void wu39lm_(const int&, const int& , const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, double[], const int&);
       extern void blocks_(void);
     }
 
   } //namespace
 
-
-
-
-
-
-  inline double U(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23)
+  inline void blocks()
   {
-    int r12_max=u3::OuterMultiplicity(x1,x2,x12);
-    int r12_3_max=u3::OuterMultiplicity(x12,x3,x);
-    int r23_max=u3::OuterMultiplicity(x2,x2,x23);
-    int r1_23_max=u3::OuterMultiplicity(x1,x23,x);
-    int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
-    int index=r12+r12_max*(r12_3-1)+r12_max*r12_3_max*(r23-1)+r12_max*r12_3_max*r23_max*(r1_23-1)-1;
-    double* u_array = static_cast<double*>(malloc(sizeof(double)*r_max));
-    su3lib::wru3optimized_(
-			   x1.lambda, x1.mu, x2.lambda, x2.mu, x.lambda, x.mu, x3.lambda, x3.mu, x12.lambda, x12.mu, x23.lambda, x23.mu,
-			   r12_max, r12_3_max, r23_max, r1_23_max, 
-			   u_array, r_max
-			   );
-    double ucoef=u_array[index];
-    free(u_array);
-    return ucoef;
-  }
+    su3lib::blocks_();
+  } 
+
+  double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int r0);
+  // SU(3) reduced coupling coefficient, as referred to as Wigner coefficient 
+  //
+  // Provides wrapper for su3lib function wu3r3w_
+
+
+
+  double U(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23);
+  // SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 1x(2x3). 
+  //
+  // Provides wrapper for su3lib function wru3optimized
+
+
+  double Z(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23);
+  // SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 2x(1x3). 
+  //
+  // Provides wrapper for su3lib function wzu3optimized
+
+  double Unitary9LambdaMu(
+    const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x12, int r12,
+    const u3::SU3& x3,  const u3::SU3& x4,  const u3::SU3& x34, int r34,
+    const u3::SU3& x13, const u3::SU3& x24, const u3::SU3& x,   int r13_24,
+    int r13,     int r24,     int r12_34
+    );
+  //SU(3) unitary 9-(lambda,mu) symbol.
+  //
+  // Provides wrapper for su3lib function wu39lm_
+
+
 } //namespace 
 
 
-// prototype:
-// coef=su3lib.wru3optimized(
-// w1.su3.lbda,w1.su3.mu,w2.su3.lbda,w2.su3.mu,w.su3.lbda,w.su3.mu,w3.su3.lbda,w3.su3.mu,w12.su3.lbda,w12.su3.mu,w23.su3.lbda,w23.su3.mu,r12max,r12_3max,r23max,r1_23max,rmax
-// )
-
-// Tomas: 
-// wru3optimized_(lm1, mu1, lm2, mu2, lm, mu, lm3, mu3, lm12, mu12, lm23, mu23, rho12max, rho12_3max, rho23max, rho1_23max, &dUZ6lm[0], ntotal);
 
 
 
