@@ -85,12 +85,11 @@ namespace vcs{
                     int r2_max=OuterMultiplicity(s.SU3(),n2.SU3(),w.SU3());
                     for (int r2=1; r2<=r2_max; r2++)
                       {
-                        MultiplicityTagged<u3::U3> nr2(n2,r12);
+                        MultiplicityTagged<u3::U3> nr2(n2,r2);
                         smatrix+=(
                           (Omega(n1p, wp)-Omega(n1,w))
-                          *
                           *BosonCreationRME(n1p,n1)
-                          )
+                          );
                       }
 
                   }
