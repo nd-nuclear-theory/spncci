@@ -3,16 +3,31 @@
 ################################################################
 
 # search prefix
-#   additional path to search for required libraries
-search_prefix := $(HOME)/local/opt/eigen-3.2.7
+#
+#   additional path to search for required include and lib 
+#   directories
+#
+# e.g., if the eigen include files are
+#
+#   $(HOME)/local/opt/eigen-3.0.3/include/eigen3/Eigen/{Array,Cholesky,...,Eigen,...}
+#
+# then the search prefix list should include
+#
+#   $(HOME)/local/opt/eigen-3.0.3/
+
+search_prefix := $(HOME)/local/opt/eigen-3.0.3/
+
+# directories to directly include in include path or lib path
+#
+#   only for use as a fallback if the traditional search prefix scheme
+#   above fails for a given installation
 search_dirs_include := 
 search_dirs_lib :=
 
 # install prefix (only if you want to install the binaries somewhere)
 #
-# Note: You should reset to /user/local to do a systemwide 
-# installation.  This is analagous to the --prefix= option of 
-# autoconf installations.
+# e.g., you would set to /usr/local to do a systemwide installation.
+# This is analagous to the --prefix= option of autoconf installations.
 install_prefix := 
 
 

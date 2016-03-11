@@ -12,7 +12,8 @@
 
 ****************************************************************/
 
-#include <Cmath>  
+#include <cmath>  
+#include <eigen3/Eigen/Eigen>
 
 #include "sp3rlib/u3.h"
 #include "sp3rlib/vcs.h"
