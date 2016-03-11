@@ -13,7 +13,7 @@
 ****************************************************************/
 
 #include <cmath>  
-#include <eigen3/Eigen/Eigen>
+//#include <eigen3/Eigen/Eigen>
 
 #include "sp3rlib/u3.h"
 #include "sp3rlib/vcs.h"
@@ -76,14 +76,14 @@ namespace vcs{
           {
             u3::U3 n1=n1set[j];
             int r1_max=OuterMultiplicity(s.SU3(),n1.SU3(),w.SU3());
-            for(r1=1; r1<=r1_max; r1++)
+            for(int r1=1; r1<=r1_max; r1++)
               {
                 MultiplicityTagged<u3::U3 nr1(n1,r1);
-                for(k=0; k<n2set.size(); k++)
+                for(int k=0; k<n2set.size(); k++)
                   {
                     u3::U3 n2=n2set[k];
                     int r2_max=OuterMultiplicity(s.SU3(),n2.SU3(),w.SU3());
-                    for (r2=1; r2<=r2_max; r2++)
+                    for (int r2=1; r2<=r2_max; r2++)
                       {
                         MultiplicityTagged<u3::U3 nr2 (n2,r12);
                         smatrix+=(
