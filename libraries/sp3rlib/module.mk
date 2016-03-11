@@ -8,7 +8,7 @@ module_units_h :=
 module_units_cpp-h := u3 vcs sp3r moshinsky u3coef
 
 # module_units_f := 
-module_programs_cpp := u3_test sp3r_test moshinsky_test u3coef_test 
+module_programs_cpp := u3_test sp3r_test moshinsky_test u3coef_test vcs_test 
 module_programs_cpp += su3_coupler  # to move to a utility program module
 # module_programs_f :=
 # module_generated :=
