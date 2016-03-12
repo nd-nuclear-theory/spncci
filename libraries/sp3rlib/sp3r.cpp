@@ -6,6 +6,7 @@
 
 ****************************************************************/
 
+#include <cassert>
 #include <cmath>
 #include <sstream>
 #include <vector>
@@ -24,7 +25,11 @@ namespace sp3r
   {
     std::vector<u3::U3> poly_labels;
 
-    poly_labels.push_back(u3::U3(0,0,0));
+    // prime with Nn=0 entry
+    if (Nn_max>=0)
+      poly_labels.push_back(u3::U3(0,0,0));
+
+    // append remaining entries
     for (int N=0; N<=Nn_max; N+=2)
       for (int a=N-2; a>=0; a-=2)
         for (int b=2*(a/4); b>=std::max((2*a-N),0); b-=2)
@@ -190,6 +195,10 @@ namespace sp3r
   {
     std::ostringstream ss;
 
+    // print space labels
+    ss << "space sigma " << sigma_.Str() << " Nn_max " << Nn_max_ << std::endl;
+
+    // iterate over subspaces
     for (int i_subspace=0; i_subspace<size(); ++i_subspace)
       {
         // set up reference to subspace of interest

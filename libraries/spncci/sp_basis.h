@@ -58,8 +58,34 @@ namespace spncci
 
     inline
     LGI(int Nex_, const u3::U3& sigma_, const HalfInt& Sp_, const HalfInt& Sn_, const HalfInt& S_)
-    : Nex(Nex_), sigma(sigma_), Sp(Sp_), Sn(Sn_), S(S_) {}
+      : Nex(Nex_), sigma(sigma_), Sp(Sp_), Sn(Sn_), S(S_), 
+        Nn_max(0), dimension(0), irrep_ptr(NULL) {}
 
+    ////////////////////////////////////////////////////////////////
+    // initialization
+    ////////////////////////////////////////////////////////////////
+
+    void SaveSubspaceInfo(int Nn_max_, int dimension_, const sp3r::Sp3RSpace& irrep_)
+    // Save information on Sp3RSpace associated with this LGI's sigma
+    // for quick reference, i.e., without requiring a map lookup.
+    //
+    // Caution: Since only a *reference* to the Sp3RSpace is
+    // mainatined here, it is important that the Sp3RSpace still be
+    // safely stored elsewhere, e.g., in a sigma_irrep_map, without
+    // going "out of scope" and being destroyed.
+    {
+      Nn_max = Nn_max_; dimension = dimension_; irrep_ptr = &irrep_;
+    }
+
+
+    ////////////////////////////////////////////////////////////////
+    // retrieval
+    ////////////////////////////////////////////////////////////////
+
+    const sp3r::Sp3RSpace& Sp3RSpace() const
+    {
+      return *irrep_ptr;
+    }
 
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -68,12 +94,18 @@ namespace spncci
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
-    // labels
+    // data
     ////////////////////////////////////////////////////////////////
     
+    // labels
     int Nex;
     u3::U3 sigma;
     HalfInt Sp, Sn, S;
+
+    // quick-reference information
+    int Nn_max;
+    int dimension;
+    const sp3r::Sp3RSpace* irrep_ptr;
   };
 
   ////////////////////////////////////////////////////////////////
@@ -147,7 +179,8 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     
     // construct by given Nmax
-    NmaxTruncator(const HalfInt& Nsigma_0, int Nmax) : Nmax_(Nmax) {}
+    inline NmaxTruncator(const HalfInt& Nsigma_0, int Nmax) 
+    : Nsigma_0_(Nsigma_0), Nmax_(Nmax) {}
 
     ////////////////////////////////////////////////////////////////
     // truncator calculation
@@ -166,26 +199,36 @@ namespace spncci
   };
 
   ////////////////////////////////////////////////////////////////
-  // storage of S(3,R) -> U(3) branchings
+  // storage of Sp(3,R) -> U(3) branchings
   ////////////////////////////////////////////////////////////////
 
   // Sp(3,R) container convenience type
-  typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaSpaceMapType;
+  typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMapType;
 
-  void GenerateSp3RSpaces(
-			  const LGIVectorType& lgi_vector,
-			  SigmaSpaceMapType& sigma_space_map,
+  void GenerateSp3RIrreps(
+			  LGIVectorType& lgi_vector,
+			  SigmaIrrepMapType& sigma_irrep_map,
 			  const TruncatorInterface& truncator
 			  );
-  // Generate Sp(3,R) space branching information required for given set of LGIs.
+  // Generate Sp(3,R) irrep branching information required for given set of LGIs.
+  //
+  // Persistent storage of the Sp3RSpace structures is in
+  // sigma_irrep_map, but all the relevant information for access is
+  // stored directly with the LGI.
   //
   // Arguments:
   //   lgi_vector (LGIVectorType) : vector of LGIs for which we
-  //     must generate branchings
-  //   sigma_space_map (SigmaSpaceMapType) : 
-  //     mappings from sigma to its space indexing (OUTPUT)
+  //     must generate branchings (INPUT/OUTPUT)
+  //   sigma_irrep_map (SigmaIrrepMapType) : 
+  //     mappings from sigma to its irrep indexing (OUTPUT)
   //   truncator (TruncatorInterface) : "truncator" object, which provides a 
   //     function to map each given sigma to its desired Nn_max truncation
+
+  ////////////////////////////////////////////////////////////////
+  // iteration over Sp(3,R) -> U(3) irreps & states
+  ////////////////////////////////////////////////////////////////
+
+  
 
 }  // namespace
 

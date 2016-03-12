@@ -79,9 +79,9 @@ namespace spncci
     return value;
   }
 
-  void GenerateSp3RSpaces(
-                          const LGIVectorType& lgi_vector,
-                          SigmaSpaceMapType& sigma_space_map,
+  void GenerateSp3RIrreps(
+                          LGIVectorType& lgi_vector,
+                          SigmaIrrepMapType& sigma_irrep_map,
                           const TruncatorInterface& truncator
                           )
   {
@@ -90,33 +90,45 @@ namespace spncci
       {
         // retrieve sigma of LGI
         // u3::U3 sigma(it->sigma); // CRYPTIC
-        const spncci::LGI& lgi = *it;
-        const u3::U3& sigma = lgi.sigma;
+        spncci::LGI& lgi = *it;
+        u3::U3 sigma = lgi.sigma;
+
+        // find truncation
+        //
+        // Note: Even if a subspace is truncated into oblivion (Nn_max<0), we
+        // still need to create an empty Sp3RSpace and store the
+        // relevant information with the LGI, e.g., that its dimension
+        // is zero.
+
+        int Nn_max = truncator.Nn_max(sigma);
+
+        // construct and add Sp3RSpace (if needed)
+
+        // FAILS: since compiler anticipates the case where sigma
+        // is not found as a key and map would (hypothetically)
+        // need to insert an SP3RSpace using the (nonexistent)
+        // default constructor sp3r::Sp3RSpace()
+        //
+        // sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);  
+
+        // FAILS in g++ 4.5: map.emplace not yet defined?
+        //
+        // sigma_irrep_map.emplace(
+        //                sigma,  // key
+        //                sigma,Nn_max  // constructor arguments for value
+        //                );
+
+        if (sigma_irrep_map.count(sigma) == 0)
+          sigma_irrep_map.insert(
+                                 //                                 std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
+                                 );
+
+        // save info back to LGI
         
-        // generate Sp3RSpace for given sigma if not yet in map
-        if (sigma_space_map.count(sigma) == 0)
-          {
-            int Nn_max = truncator.Nn_max(sigma);
+        int dimension = 0;
+        
+        //lgi.SaveSubspaceInfo(Nn_max,dimension,sigma_irrep_map[sigma]);
 
-            // FAILS: since compiler anticipates the case where sigma
-            // is not found as a key and map would (hypothetically)
-            // need to insert an SP3RSpace using the (nonexistent)
-            // default constructor sp3r::Sp3RSpace()
-            //
-            // sigma_space_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);  
-
-            // FAILS in g++ 4.5: map.emplace not yet defined?
-            //
-            // sigma_space_map.emplace(
-            //                sigma,  // key
-            //                sigma,Nn_max  // constructor arguments for value
-            //                );
-            
-            sigma_space_map.insert(
-                             std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
-                             );
-
-          }
       }
   }
 

@@ -132,8 +132,11 @@ namespace sp3r
     
   public:
 
-    // constructor
+    // default constructor
+    //
+    // Should never be needed.
 
+    // constructor
     Sp3RSpace(const u3::U3& sigma, int Nn_max);
     // Constructs all U3 subspaces up to given Nn_max.
 
@@ -141,6 +144,7 @@ namespace sp3r
     std::string DebugString() const;
 
     // accessors
+    u3::U3 sigma() const {return sigma_;}
     int Nn_max() const {return Nn_max_;}
 
   private:
