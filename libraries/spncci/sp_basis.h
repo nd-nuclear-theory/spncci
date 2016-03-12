@@ -7,7 +7,7 @@
   University of Notre Dame
 
   3/10/16 (aem,mac): Created.
-  3/11/16 (aem,mac): Implement basis iteration.
+  3/11/16 (aem,mac): Implement basis irrep construction and traversal.
 
 ****************************************************************/
 
@@ -181,7 +181,7 @@ namespace spncci
     
     // construct by given Nmax
     inline NmaxTruncator(const HalfInt& Nsigma_0, int Nmax) 
-    : Nsigma_0_(Nsigma_0), Nmax_(Nmax) {}
+      : Nsigma_0_(Nsigma_0), Nmax_(Nmax) {}
 
     ////////////////////////////////////////////////////////////////
     // truncator calculation
@@ -207,10 +207,10 @@ namespace spncci
   typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMapType;
 
   void GenerateSp3RIrreps(
-			  LGIVectorType& lgi_vector,
-			  SigmaIrrepMapType& sigma_irrep_map,
-			  const TruncatorInterface& truncator
-			  );
+                          LGIVectorType& lgi_vector,
+                          SigmaIrrepMapType& sigma_irrep_map,
+                          const TruncatorInterface& truncator
+                          );
   // Generate Sp(3,R) irrep branching information required for given set of LGIs.
   //
   // Persistent storage of the Sp3RSpace structures is in
@@ -226,8 +226,53 @@ namespace spncci
   //     function to map each given sigma to its desired Nn_max truncation
 
   ////////////////////////////////////////////////////////////////
-  // iteration over Sp(3,R) -> U(3) irreps & states
+  // iteration over Sp(3,R) -> U(3) subspaces & states
   ////////////////////////////////////////////////////////////////
+
+  // Traversal schemes
+  //
+  // To traverse Sp(3,R) -> U(3) subspaces:
+  //
+  //   for each LGI (in lgi_vector)
+  //     follow reference to Sp3RSpace
+  //     for each U3Subspace in Sp3RSpace
+  //
+  // To traverse Sp(3,R) -> U(3) states:
+  //
+  //   for each LGI (in lgi_vector)
+  //     follow reference to Sp3RSpace
+  //     for each U3Subspace in Sp3RSpace
+  //       for each state index
+  //
+  // To traverse Sp(3,R) -> U(3) -> (L,S) states:
+  //
+  //   A triangularity constraint may be placed on L to restrict only
+  //   to those L contributing to a desired final J.
+  //
+  //   for each LGI (in lgi_vector)
+  //     follow reference to Sp3RSpace
+  //     for each U3Subspace in Sp3RSpace
+  //       for each state index
+  //         for each L  (optionally subject to triangularity constraint for J)
+  //
+  // To traverse Sp(3,R) -> U(3) -> (L,S) -> J states:
+  //
+  //   A triangularity constraint may be placed on L to restrict only
+  //   to those L contributing to a desired final J.
+  //
+  //   for each LGI (in lgi_vector)
+  //     follow reference to Sp3RSpace
+  //     for each U3Subspace in Sp3RSpace
+  //       for each state index
+  //         for each L
+  //           for each J
+
+  // basic counting functions
+  int TotalU3Subspaces(const LGIVectorType& lgi_vector);
+  int TotalDimensionU3(const LGIVectorType& lgi_vector);
+  int TotalDimensionU3LS(const LGIVectorType& lgi_vector);
+  int TotalDimensionU3LSJ(const LGIVectorType& lgi_vector);
+  int TotalDimensionU3LSJConstrained(const LGIVectorType& lgi_vector, const HalfInt& J);
 
   
 

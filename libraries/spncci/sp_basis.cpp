@@ -149,5 +149,147 @@ namespace spncci
       }
   }
 
+  ////////////////////////////////////////////////////////////////
+  // iteration over Sp(3,R) -> U(3) subspaces & states
+  ////////////////////////////////////////////////////////////////
+
+  int TotalU3Subspaces(const LGIVectorType& lgi_vector)
+  {
+    int subspaces = 0;
+    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+      {
+        const spncci::LGI& lgi = *it;
+        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        subspaces += irrep.size();
+      }
+
+    return subspaces;
+  }
+
+  int TotalDimensionU3(const LGIVectorType& lgi_vector)
+  {
+    int dimension = 0;
+    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+      {
+        const spncci::LGI& lgi = *it;
+        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        for (int i_subspace = 0; i_subspace < irrep.size(); ++i_subspace)
+          {
+            const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
+            dimension += u3_subspace.size();
+          }
+      }
+
+    return dimension;
+  }
+
+  int TotalDimensionU3LS(const LGIVectorType& lgi_vector)
+  {
+    int dimension = 0;
+    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+      {
+        const spncci::LGI& lgi = *it;
+        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
+          {
+            const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
+
+            // L branching of each irrep in subspace
+            //
+            // branching_vector is list of L values tagged with their
+            // multiplicity.
+            u3::U3 omega = u3_subspace.U3();
+            branching_vector = BranchingSO3(omega);
+            int L_dimension = 0;
+            for (int i_L=0; i_L<branching_vector.size(); ++i_L)
+              L_dimension += branching_vector[i].tag;
+
+            // dimension contribution of subspace
+            //
+            // At LS-coupled level, the dimension contribution is the
+            // product of the number of U(3) reduced states and their
+            // L substates.
+            dimension += u3_subspace.size()*L_dimension;
+          }
+      }
+
+    return dimension;
+  }
+
+  int TotalDimensionU3LSJConstrained(const LGIVectorType& lgi_vector, const HalfInt& J)
+  {
+    int dimension = 0;
+    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+      {
+        const spncci::LGI& lgi = *it;
+        HalfInt S = lgi.S;
+        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
+          {
+            const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
+
+            // L branching of each irrep in subspace
+            //
+            // branching_vector is list of L values tagged with their
+            // multiplicity.
+            u3::U3 omega = u3_subspace.U3();
+
+            // TODO 
+
+            branching_vector = BranchingSO3(omega);
+            for (int i_L=0; i_L<branching_vector.size(); ++i_L)
+              {
+                int L = branching_vector[i].irrep;
+                int L_multiplicity = branching_vector[i].tag;
+                int J_values = int((L+S) - abs(L-S) + 1);
+
+
+                // dimension contribution of this L
+                //
+                // At J-coupled level, the dimension contribution of this L is the
+                // product of the L multiplicity with the number of J values.
+                dimension += L_multiplicity*J_values;
+              }
+          }
+
+    return dimension;
+  }
+
+  int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector);
+  {
+    int dimension = 0;
+    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+      {
+        const spncci::LGI& lgi = *it;
+        HalfInt S = lgi.S;
+        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
+          {
+            const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
+
+            // L branching of each irrep in subspace
+            //
+            // branching_vector is list of L values tagged with their
+            // multiplicity.
+            u3::U3 omega = u3_subspace.U3();
+            branching_vector = BranchingSO3(omega);
+            for (int i_L=0; i_L<branching_vector.size(); ++i_L)
+              {
+                int L = branching_vector[i].irrep;
+                int L_multiplicity = branching_vector[i].tag;
+                int J_values = int((L+S) - abs(L-S) + 1);
+
+
+                // dimension contribution of this L
+                //
+                // At J-coupled level, the dimension contribution of this L is the
+                // product of the L multiplicity with the number of J values.
+                dimension += L_multiplicity*J_values;
+              }
+          }
+
+    return dimension;
+  }
+
 
 }  // namespace
