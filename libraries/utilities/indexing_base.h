@@ -58,7 +58,8 @@
   3/5/16 (mac): Update header comment.
   3/9/16 (mac): Relax protection of BaseSpace indexing containers 
     from private to protected to support sp3rlib.
-  3/11/16 (mac): Add subspace size() method.
+  3/11/16 (mac): Add subspace size() method and space 
+    TotalDimension() method.
 
 ****************************************************************/
 
@@ -381,6 +382,14 @@ namespace shell {
       {
 	return subspaces_.size();
       };
+
+      int TotalDimension() const
+      // Sum dimensions of subspaces.
+      {
+        int dimension = 0;
+        for (int i=0; i<size(); ++i)
+          dimension += GetSubspace(i).size();
+      }
 
     protected:
 

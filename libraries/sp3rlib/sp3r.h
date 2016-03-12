@@ -14,6 +14,7 @@
 #ifndef SP3R_H_
 #define SP3R_H_
 
+#include <cassert>
 #include <map>
 #include <sstream>
 #include <string>
@@ -134,7 +135,12 @@ namespace sp3r
 
     // default constructor
     //
-    // Should never be needed.
+    // Should never be needed.  However, compiler requires its
+    // existence to dereference a map with value type Sp3RSpace, to
+    // allow for possibility that the key might not be found and a
+    // "default" value thus entered into the map.  And apparently it
+    // *is* called, even when nominally not needed...
+    inline Sp3RSpace() : Nn_max_(-999) {}
 
     // constructor
     Sp3RSpace(const u3::U3& sigma, int Nn_max);

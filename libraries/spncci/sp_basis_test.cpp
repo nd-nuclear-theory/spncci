@@ -39,6 +39,10 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,sigma_irrep_map,truncator);
 
+  std::cout << "LGI vector reprise" << std::endl;
+  for (int i=0; i<lgi_vector.size(); ++i)
+    std::cout << i << " " << lgi_vector[i].DebugString();
+
   // examine irreps
   std::cout << "irreps (by sigma)" << std::endl;
   for (auto it = sigma_irrep_map.begin(); it != sigma_irrep_map.end(); ++it)

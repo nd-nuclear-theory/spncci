@@ -24,11 +24,24 @@ namespace spncci
 
     ss << "[" 
        << " " << Nex
-       << " " << Sp
-       << " " << Sn
-       << " " << S
        << " " << sigma.Str()
-       << " " << "]";
+       << " (" << Sp
+       << "," << Sn
+       << "," << S
+       << ") " << "]";
+    return ss.str();
+  }
+
+  std::string LGI::DebugString() const
+  {
+    std::ostringstream ss;
+
+    ss << Str() << std::endl;
+    ss << "  " 
+       << " Nn_max " << Nn_max  << " dimension " << dimension
+       << " irrep_ptr " << irrep_ptr
+       << std::endl;
+
     return ss.str();
   }
 
@@ -109,7 +122,9 @@ namespace spncci
         // need to insert an SP3RSpace using the (nonexistent)
         // default constructor sp3r::Sp3RSpace()
         //
-        // sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);  
+        // sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);
+        //
+        // SOLUTION: add default constructor
 
         // FAILS in g++ 4.5: map.emplace not yet defined?
         //
@@ -118,16 +133,18 @@ namespace spncci
         //                sigma,Nn_max  // constructor arguments for value
         //                );
 
-        if (sigma_irrep_map.count(sigma) == 0)
-          sigma_irrep_map.insert(
-                                 //                                 std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
-                                 );
+        // WORKS: but cumbersome
+        // sigma_irrep_map.insert(
+        //                         std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
+        //                         );
 
+        if (sigma_irrep_map.count(sigma) == 0)
+          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);
+          
         // save info back to LGI
-        
-        int dimension = 0;
-        
-        //lgi.SaveSubspaceInfo(Nn_max,dimension,sigma_irrep_map[sigma]);
+        const sp3r::Sp3RSpace& irrep = sigma_irrep_map[sigma];
+        int dimension = irrep.TotalDimension();
+        lgi.SaveSubspaceInfo(Nn_max,dimension,irrep);
 
       }
   }
