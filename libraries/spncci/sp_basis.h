@@ -295,8 +295,9 @@ namespace spncci
   int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector);
   // Compute total number of LxS->J branched states, over all J, from
   // the given LGI set.
-
-  
+  //
+  // This is equivalent to the M-space dimension for the universal
+  // donor value of M (M=0 or 1/2).
 
 }  // namespace
 

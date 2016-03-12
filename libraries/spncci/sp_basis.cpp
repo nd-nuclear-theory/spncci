@@ -236,9 +236,19 @@ namespace spncci
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
             MultiplicityTagged<int>::vector branching_vector = BranchingSO3Constrained(omega.SU3(),am::ProductAngularMomentumRange(S,J));
+            // std::cout << " omega " << omega.Str() << " S " << S << " J " << J << std::endl;
             int L_dimension = 0;
             for (int i_L=0; i_L<branching_vector.size(); ++i_L)
+              // std::cout << " L " << branching_vector[i_L].irrep << " " << branching_vector[i_L].tag << std::endl;
               L_dimension += branching_vector[i_L].tag;
+
+            // dimension contribution of subspace
+            //
+            // At LS-coupled level, the dimension contribution is the
+            // product of the number of U(3) reduced states and their
+            // L substates.
+            dimension += u3_subspace.size()*L_dimension;
+
           }
       }
     return dimension;

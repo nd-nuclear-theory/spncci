@@ -191,7 +191,7 @@ namespace u3
 
     // allocate container for product
     MultiplicityTagged<int>::vector branching;
-    int max_entries = L_max-L_min+1;
+    int max_entries = std::max(L_max-L_min+1,0);  // expression might be negative so impose floor of 0
     branching.reserve(max_entries);
 
     // generate branching

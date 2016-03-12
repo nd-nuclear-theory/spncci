@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3(lgi_vector) << std::endl;
   std::cout << "TotalDimensionU3LS " << spncci::TotalDimensionU3LS(lgi_vector) << std::endl;
   std::cout << "TotalDimensionU3LSJConstrained ";
-  for (HalfInt J=0; J<4; ++J)
+  for (HalfInt J=0; J<10; ++J)
     std::cout << J << " " << spncci::TotalDimensionU3LSJConstrained(lgi_vector,J) << "    ";
   std::cout << std::endl;
   std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(lgi_vector) << std::endl;
