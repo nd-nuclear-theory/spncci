@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "am/am.h"
 #include "utilities/parsing.h"
 
 
@@ -199,10 +200,10 @@ namespace spncci
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-            branching_vector = BranchingSO3(omega);
+            MultiplicityTagged<int>::vector branching_vector = BranchingSO3(omega.SU3());
             int L_dimension = 0;
             for (int i_L=0; i_L<branching_vector.size(); ++i_L)
-              L_dimension += branching_vector[i].tag;
+              L_dimension += branching_vector[i_L].tag;
 
             // dimension contribution of subspace
             //
@@ -229,33 +230,21 @@ namespace spncci
             const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
 
             // L branching of each irrep in subspace
+            //   subject to triangle(LSJ) constraint
             //
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-
-            // TODO 
-
-            branching_vector = BranchingSO3(omega);
+            MultiplicityTagged<int>::vector branching_vector = BranchingSO3Constrained(omega.SU3(),am::ProductAngularMomentumRange(S,J));
+            int L_dimension = 0;
             for (int i_L=0; i_L<branching_vector.size(); ++i_L)
-              {
-                int L = branching_vector[i].irrep;
-                int L_multiplicity = branching_vector[i].tag;
-                int J_values = int((L+S) - abs(L-S) + 1);
-
-
-                // dimension contribution of this L
-                //
-                // At J-coupled level, the dimension contribution of this L is the
-                // product of the L multiplicity with the number of J values.
-                dimension += L_multiplicity*J_values;
-              }
+              L_dimension += branching_vector[i_L].tag;
           }
-
+      }
     return dimension;
   }
 
-  int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector);
+  int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector)
   {
     int dimension = 0;
     for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
@@ -272,13 +261,12 @@ namespace spncci
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-            branching_vector = BranchingSO3(omega);
+            MultiplicityTagged<int>::vector branching_vector = BranchingSO3(omega.SU3());
             for (int i_L=0; i_L<branching_vector.size(); ++i_L)
               {
-                int L = branching_vector[i].irrep;
-                int L_multiplicity = branching_vector[i].tag;
+                int L = branching_vector[i_L].irrep;
+                int L_multiplicity = branching_vector[i_L].tag;
                 int J_values = int((L+S) - abs(L-S) + 1);
-
 
                 // dimension contribution of this L
                 //
@@ -287,9 +275,11 @@ namespace spncci
                 dimension += L_multiplicity*J_values;
               }
           }
+      }
 
     return dimension;
   }
+
 
 
 }  // namespace

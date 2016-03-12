@@ -267,12 +267,34 @@ namespace spncci
   //         for each L
   //           for each J
 
-  // basic counting functions
+  // total dimension counting functions
+
   int TotalU3Subspaces(const LGIVectorType& lgi_vector);
+  // Compute total number of U(3) subspaces from given LGI set.
+  //
+  // That is, we are counting the number of Sp(3,R) -> U(3) subspaces
+  // in the branching, as defined under "Traversal schemes" above, not
+  // just the number of distinct final U(3) labels.
+
   int TotalDimensionU3(const LGIVectorType& lgi_vector);
+  // Compute total number of U(3)xS reduced states from the given LGI
+  // set.
+
   int TotalDimensionU3LS(const LGIVectorType& lgi_vector);
-  int TotalDimensionU3LSJ(const LGIVectorType& lgi_vector);
+  // Compute total number of LxS branched states from the given LGI
+  // set.
+
   int TotalDimensionU3LSJConstrained(const LGIVectorType& lgi_vector, const HalfInt& J);
+  // Compute total number of LxS->J branched states of a given J, from
+  // the given LGI set.
+  //
+  // From the point of view of counting and enumerating, this is more
+  // simply the number of LxS branched states contributing to the
+  // given given J, from the given LGI set.
+
+  int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector);
+  // Compute total number of LxS->J branched states, over all J, from
+  // the given LGI set.
 
   
 

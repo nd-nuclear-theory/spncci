@@ -59,7 +59,7 @@
   3/9/16 (mac): Relax protection of BaseSpace indexing containers 
     from private to protected to support sp3rlib.
   3/11/16 (mac): Add subspace size() method and space 
-    TotalDimension() method.
+    TotalDimension() and ContainsSubspace methods.
 
 ****************************************************************/
 
@@ -337,6 +337,11 @@ namespace shell {
       ////////////////////////////////////////////////////////////////
       // subspace lookup and retrieval
       ////////////////////////////////////////////////////////////////
+
+      bool ContainsSubspace(const typename SubspaceType::SubspaceLabelsType& subspace_labels) const
+      {
+        return lookup_.count(subspace_labels);
+      }
 
       int LookUpSubspaceIndex(const typename SubspaceType::SubspaceLabelsType& subspace_labels) const
       {
