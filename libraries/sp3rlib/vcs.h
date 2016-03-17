@@ -1,4 +1,4 @@
-/****************************************************************
+  /****************************************************************
   vcs.h                       
 
   Define vector coherent state methods for Sp(3,R).
@@ -16,8 +16,12 @@
 #define VCS_H_
 
 #include <cmath>
+#include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Eigenvalues>  
+
 #include "sp3rlib/u3.h"
-#include "sp3rlib/u3coef.h"  
+#include "sp3rlib/u3coef.h" 
+#include "sp3rlib/sp3r.h"  
   
 
 
@@ -50,10 +54,10 @@ namespace vcs
   // Returns:
   //    rme: (double) reduced matrix element of boson creation operator. 
 
-  double SMatrix(const u3::U3& s, const u3::U3& omega, MultiplicityTagged<u3::U3>& n1_tagged, MultiplicityTagged<u3::U3>& n2_tagged);
+  // double SMatrix(const u3::U3& s, const u3::U3& omega, MultiplicityTagged<u3::U3>& n1_tagged, MultiplicityTagged<u3::U3>& n2_tagged);
   // Calculate the K^2 matrix elements
 
-  Eigen::MatrixXd KMatrix(const u3::U3& sigma, const u3::U3& omega);
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep,std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map);
   //Calculates the K matrix 	
 
 }  //  namespace
