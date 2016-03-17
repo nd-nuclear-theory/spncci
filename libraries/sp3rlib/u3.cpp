@@ -4,6 +4,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+
+// 3/16/16 aem added validity check to U(3) Kronecker product.
 ****************************************************************/
 
 #include "sp3rlib/u3.h"
@@ -142,9 +144,13 @@ namespace u3
     u3_product.reserve(su3_product.size());
     for (auto x_tagged_iter = su3_product.begin(); x_tagged_iter !=su3_product.end(); ++x_tagged_iter)
       {
-	MultiplicityTagged<u3::SU3> x_tagged = *x_tagged_iter;
-	MultiplicityTagged<u3::U3> omega_tagged(u3::U3(N,x_tagged.irrep),x_tagged.tag);
-	u3_product.push_back(omega_tagged);
+        MultiplicityTagged<u3::SU3> x_tagged = *x_tagged_iter;
+        // AEM
+        if (u3::U3(N,x_tagged.irrep).Valid())
+        {
+          MultiplicityTagged<u3::U3> omega_tagged(u3::U3(N,x_tagged.irrep),x_tagged.tag);
+          u3_product.push_back(omega_tagged);
+        }
       }
 
     return u3_product;

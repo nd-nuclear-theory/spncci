@@ -54,26 +54,34 @@ int main(int argc, char **argv)
 	////////////////////////////////////////////////////////
 	u3::U3 s(20,13,10);
 	sp3r::Sp3RSpace irrep(s,4);
+
+
 	std::map<u3::U3,Eigen::MatrixXd> K_matrix_map;
 
   	vcs::GenerateKMatrices(irrep,K_matrix_map);
 
-  	//std::map<u3::U3,Eigen::MatrixXd>::const_interator it=K_matrix_map.begin();
-  	//while (int it!=K_matrix_map.end())
-  	//	{
-  	//		std::cout<< it->first.Str() <<it->second<<std::endl;
-  	//	}
+	// for(int i=0; i<irrep.size(); i++ )
+ //    {
+      
+ //      // Generate S_matrix = K_matrix^2
+ //      sp3r::U3Subspace u3_subspace_p=irrep.GetSubspace(i);
+ //      u3::U3 omega_p=u3_subspace_p.GetSubspaceLabels();
 
-      // s=U3State([20,13,10])
-      // w=U3State([22,15,10])
-      // n1=U3State([2,2,0])
-      // r1=1
-      // n2=U3State([4,0,0])
-      // r2=1
-      // smatrix(s,w,n1,r1,n1,r1) returns 
-      //   1014.0
-      // Smatrix(s,w,n1,r1,n2,r2) returns 
-      //   -28.9827534924
+ //      int dimension_p=u3_subspace_p.size();
+ //      std::cout<<omega_p.Str()<<dimension_p<<std::endl;
+ //      std::cout<<K_matrix_map[omega_p]<<std::endl;
+ //  	}
+
+
+
+
+  	std::map<u3::U3,Eigen::MatrixXd>::const_iterator it;
+  	// std::cout<<K_matrix_map.begin()<<std::endl;
+    for (auto it=K_matrix_map.begin(); it !=K_matrix_map.end(); ++it)
+  		{
+  			std::cout <<it->first.Str()<<it->second<<std::endl;
+  		}
+
 
 
 } // main 

@@ -175,8 +175,7 @@ namespace u3
     // but we also allow conjugate representations with all labels
     // nonpositive (f1<=0).
     {
-      return (f1 >= f2) && (f2 >= f3)
-	&& ((f3>=0) || (f1<=0));
+      return (f1 >= f2) && (f2 >= f3) && ((f3>=0) || (f1<=0));
     }
 
     ////////////////////////////////////////////////////////////////
