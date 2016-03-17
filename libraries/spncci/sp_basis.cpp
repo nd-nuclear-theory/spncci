@@ -39,7 +39,7 @@ namespace spncci
 
     ss << Str() << std::endl;
     ss << "  " 
-       << " Nn_max " << Nn_max  << " dimension " << dimension
+      // << " Nn_max " << Nn_max  << " dimension " << dimension
        << " irrep_ptr " << irrep_ptr
        << std::endl;
 
@@ -144,8 +144,7 @@ namespace spncci
           
         // save info back to LGI
         const sp3r::Sp3RSpace& irrep = sigma_irrep_map[sigma];
-        int dimension = irrep.TotalDimension();
-        lgi.SaveSubspaceInfo(Nn_max,dimension,irrep);
+        lgi.SaveSubspaceInfo(irrep);
 
       }
   }
