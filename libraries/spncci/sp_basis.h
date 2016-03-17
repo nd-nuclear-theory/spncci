@@ -8,6 +8,7 @@
 
   3/10/16 (aem,mac): Created.
   3/11/16 (aem,mac): Implement basis irrep construction and traversal.
+  3/17/16 (aem,mac): Remove superfluous data members from LGI.
 
 ****************************************************************/
 
@@ -58,14 +59,13 @@ namespace spncci
 
     inline
     LGI(int Nex_, const u3::U3& sigma_, const HalfInt& Sp_, const HalfInt& Sn_, const HalfInt& S_)
-      : Nex(Nex_), sigma(sigma_), Sp(Sp_), Sn(Sn_), S(S_), 
-        Nn_max(0), dimension(0), irrep_ptr(NULL) {}
+      : Nex(Nex_), sigma(sigma_), Sp(Sp_), Sn(Sn_), S(S_), irrep_ptr(NULL) {}
 
     ////////////////////////////////////////////////////////////////
     // initialization
     ////////////////////////////////////////////////////////////////
 
-    void SaveSubspaceInfo(int Nn_max_, int dimension_, const sp3r::Sp3RSpace& irrep_)
+    void SaveSubspaceInfo(const sp3r::Sp3RSpace& irrep_)
     // Save information on Sp3RSpace associated with this LGI's sigma
     // for quick reference, i.e., without requiring a map lookup.
     //
@@ -74,7 +74,7 @@ namespace spncci
     // safely stored elsewhere, e.g., in a sigma_irrep_map, without
     // going "out of scope" and being destroyed.
     {
-      Nn_max = Nn_max_; dimension = dimension_; irrep_ptr = &irrep_;
+      irrep_ptr = &irrep_;
     }
 
 
@@ -104,8 +104,6 @@ namespace spncci
     HalfInt Sp, Sn, S;
 
     // quick-reference information
-    int Nn_max;
-    int dimension;
     const sp3r::Sp3RSpace* irrep_ptr;
   };
 
