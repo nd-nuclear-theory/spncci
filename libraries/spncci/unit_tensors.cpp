@@ -21,6 +21,7 @@
 #include "spncci/sp_basis.h"
 #include "spncci/unit_tensors.h"
 
+extern spncci::LGIVectorType lgi_vector;
 
 extern std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
 	
@@ -114,7 +115,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 	Eigen::MatrixXd K_inv=K_matrix_map[lgi.sigma][omega].inverse();
 
 	MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
-	MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omegap, u3::U3(0,0,-2));
+	MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
 	MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
 
 	// summing over omega1
@@ -166,6 +167,8 @@ Eigen::MatrixXd UnitTensorMatrix(
 			Eigen::MatrixXd KBUK(dim1,dim);
 			KBUK=K1*BU*K_inv;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////
+		  
+
 		  //summing over omega0'
 			for (int w0p=0; w0p<omega0p_set.size(); w0p++)
 				{
@@ -203,6 +206,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 									// Initialize matrix of a^\dagger for A matrix
 									Eigen::MatrixXd boson_matrix(dimp,dimpp);
 							    //Constructing a^\dagger matrix
+
 									for(int vpp=0; vpp<dimpp; vpp++)
 										{
 											MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
@@ -216,18 +220,21 @@ Eigen::MatrixXd UnitTensorMatrix(
 										}
 									Eigen::MatrixXd unit3pp_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
 									int rho0pp_max=u3::OuterMultiplicity(omegapp.SU3(),omega0.SU3(),omegap.SU3());
+									
 									// Summing over rho0''
 									for (int rho0pp=1; rho0pp<=rho0pp_max; rho0pp++)
 										{
-
-																			// Retriving unit tensor matrix 
+											// Retriving unit tensor matrix 
 											u3::UnitTensorRME unit3_labels(
 												omegapp, 
 												omega1, 
 												u3::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),rho0pp
 												);
+											std::cout<<omegapp.Str()<<" "<<omega1.Str()<<" "<< unit3_labels.tensor.Str()<<std::endl;
+
 											assert(unit_tensor_rme_map.count(unit3_labels)>0); 
 											
+											std::cout<<omegapp.Str()<<" "<<omega1.Str()<<" "<< unit3_labels.tensor.Str()<<std::endl;
 											std::cout<<unit3pp_matrix.rows()<<unit3pp_matrix.cols()<<std::endl;
 										  std::cout<<unit_tensor_rme_map[unit3_labels].rows()<<unit_tensor_rme_map[unit3_labels].cols()<<std::endl;
 
@@ -235,72 +242,77 @@ Eigen::MatrixXd UnitTensorMatrix(
 													u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
 																omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
 													*unit_tensor_rme_map[unit3_labels];
-
-
 										} //end rho0pp
 									// matrix product (v',v')*(v',v'')*(v'',v1)
-									//unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
+									unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
 								} // end wpp
-							// Coefficients 
-						  
-						 //  if (u3::OuterMultiplicity(u3::SU3(rbp,0),u3::SU3(0,rb-2),omega0p.SU3())>0 && (rb-2)>0)
-							// 	{
-							// 		u3::UnitTensorRME unit1_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp,Sbp,Tbp,rb-2,Sb,Tb),rho0p);
+								if ((unit3_matrix.rows()+unit3_matrix.cols())!=0)
+									unit_matrix+=coef3*unit3_matrix;
 
-							// 		double coef1=
-							// 		(s
-							// 			u3::U(
-							// 				omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-							// 				omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
-							// 				)
-							// 			*u3::U(
-							// 				u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
-							// 				omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1
-							// 				)
-							// 			*sqrt(
-							// 				1.*u3::dim(omega0p)*Factorial(rb)
-							// 				/(Factorial(2)*Factorial(rb-2)*u3::dim(omega0))
-							// 				)
-							// 			);
+							// Coefficients 
+
+						  if (u3::OuterMultiplicity(u3::SU3(rbp,0),u3::SU3(0,rb-2),omega0p.SU3())>0 && (rb-2)>0)
+								{
+									u3::UnitTensorRME unit1_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp,Sbp,Tbp,rb-2,Sb,Tb),rho0p);
+
+									double coef1=
+									(
+										u3::U(
+											omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
+											omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
+											)
+										*u3::U(
+											u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
+											omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1
+											)
+										*sqrt(
+											1.*u3::dim(omega0p)*Factorial(rb)
+											/(Factorial(2)*Factorial(rb-2)*u3::dim(omega0))
+											)
+										);
+
 									
-							// 		Eigen::MatrixXd matrix1=unit_tensor_rme_map[unit1_labels];
-							// 		unit_matrix+=coef1*matrix1;
-							// 	}
-							
-							// // second term 
-						 //  if ((u3::OuterMultiplicity(u3::SU3(rbp+2,0),u3::SU3(0,rb),omega0p.SU3())>0)
-							// 	  &&
-							// 	  (u3::OuterMultiplicity(omega1.SU3(),omega0p.SU3(),omegap.SU3())>0))
-							// 	{
-							// 		u3::UnitTensorRME unit2_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp+2,Sbp,Tbp,rb,Sb,Tb),rho0p);
-							// 		double coef2=
-							// 						(-1
-							// 							*u3::U(
-							// 								omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-							// 								omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
-							// 								)
-							// 							*u3::U(
-							// 								u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), 
-							// 								u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1
-							// 								)
-							// 							*sqrt(
-							// 								1.*Factorial(rbp+2)*u3::dim(omega0p)*u3::dim(u3::SU3(rbp,0))
-							// 								/(
-							// 									Factorial(2)*Factorial(rbp)*u3::dim(omega0)*u3::dim(u3::SU3(rbp+2,0))
-							// 									)
-							// 								)
-							// 							);
-							// 		unit_matrix+=coef2*unit_tensor_rme_map[unit2_labels];
-							// 	}
-							// unit_matrix+=(
-							// 		coef1*unit_tensor_rme_map[lgi_pair][unit1_labels]
-							// 		+coef2*unit_tensor_rme_map[lgi_pair][unit2_labels]
-							// 		+unit3_matrix
-							// 		);
+									std::cout<<"hi "<<omegap.Str()<<" "<< omega1.Str()<<"  "<<unit1_labels.tensor.Str()<<std::endl;
+									Eigen::MatrixXd matrix1=unit_tensor_rme_map[unit1_labels];
+									
+									std::cout<<matrix1.rows()<<matrix1.cols()<<std::endl;
+
+									unit_matrix+=coef1*matrix1;
+								}
+							// second term 
+						  // if ((u3::OuterMultiplicity(u3::SU3(rbp+2,0),u3::SU3(0,rb),omega0p.SU3())>0)
+								//   &&
+								//   (u3::OuterMultiplicity(omega1.SU3(),omega0p.SU3(),omegap.SU3())>0))
+								// {
+								// 	u3::UnitTensorRME unit2_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp+2,Sbp,Tbp,rb,Sb,Tb),rho0p);
+								// 	double coef2=
+								// 					(-1
+								// 						*u3::U(
+								// 							omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
+								// 							omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
+								// 							)
+								// 						*u3::U(
+								// 							u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), 
+								// 							u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1
+								// 							)
+								// 						*sqrt(
+								// 							1.*Factorial(rbp+2)*u3::dim(omega0p)*u3::dim(u3::SU3(rbp,0))
+								// 							/(
+								// 								Factorial(2)*Factorial(rbp)*u3::dim(omega0)*u3::dim(u3::SU3(rbp+2,0))
+								// 								)
+								// 							)
+								// 						);
+								// 	unit_matrix+=coef2*unit_tensor_rme_map[unit2_labels];
+								// }
+
 						} //end rho0p
 				} //end w0p
-				//unit_tensor_matrix+=unit_matrix*KBUK;
+				std::cout<<unit_tensor_matrix.rows()<<unit_tensor_matrix.cols()<<std::endl;
+				std::cout<<KBUK.rows()<<KBUK.cols()<<std::endl;
+
+				unit_tensor_matrix+=unit_matrix*KBUK;
 		}// end omega1
+
 		return unit_tensor_matrix;
 	} // End function
 
@@ -335,9 +347,10 @@ Eigen::MatrixXd UnitTensorMatrix(
     for (int i=0; i<unit_sym_map.size(); i++)
         {
           if (unit_tensor_rme_map.count(u3::UnitTensorRME(lgip.sigma,lgi.sigma,unit_sym_map[0][i],1))>0)
-            std::cout<< unit_sym_map[0][i].Str()<<unit_tensor_rme_map[u3::UnitTensorRME(lgip.sigma,lgi.sigma,unit_sym_map[0][i],1)]<<std::endl;
+            std::cout<< lgip.sigma.Str()<<"  "<<lgi.sigma.Str()<<"  "<<unit_sym_map[0][i].Str()<<"  "<<unit_tensor_rme_map[u3::UnitTensorRME(lgip.sigma,lgi.sigma,unit_sym_map[0][i],1)]<<std::endl;
         }
 ////////////
+
 	  //Generate Sp(3,R) irreps 
 		sp3r::Sp3RSpace irrepp(lgip.sigma,Nmax-lgip.Nex);
 		sp3r::Sp3RSpace irrep(lgi.sigma, Nmax-lgi.Nex);
@@ -361,22 +374,22 @@ Eigen::MatrixXd UnitTensorMatrix(
 		// Looping over omega' and omega subspaces 
 		////////////////////////////////////////////////////////////////////////////////////
 		//  omega subspace
-		for(int i=0; i<irrep.size(); i++ )
+		for(int ip=0; ip<irrepp.size(); ip++ )
 			{
 				//sp3r::U3Subspace& u3_subspace=irrep.GetSubspace(i);
-				u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
+				u3::U3 omegap=irrepp.GetSubspace(ip).GetSubspaceLabels();
 						//omega' subspace 
-				int Nn=int(omega.N()-lgi.sigma.N());
-				for(int ip=0; ip<irrepp.size(); ip++ )
+				int Nnp=int(omegap.N()-lgip.sigma.N());
+				for(int i=0; i<irrep.size(); i++ )
 					{
 						//sp3r::U3Subspace& u3_subspacep=irrepp.GetSubspace(ip);
-						u3::U3 omegap=irrepp.GetSubspace(ip).GetSubspaceLabels();
+						u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
 						// Nnp
-						int Nnp=int(omegap.N()-lgip.sigma.N());
+						int Nn=int(omega.N()-lgi.sigma.N());
 						// Get set of operator labels for given omega'omega sector
 						std::vector<u3::UnitTensor>& operator_set=unit_sym_map[abs(int(omegap.N()-omega.N()))];
 						// Iterating over the operator labels 
-						
+						std::cout<<omegap.Str()<<" "<<omega.Str()<<std::endl;
 						for (int w=0; w<operator_set.size(); w++)
 							{						      		
 								u3::UnitTensor unit_tensor=operator_set[w];
@@ -409,6 +422,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 										if (omegap.N()!=lgip.sigma.N() && omega.N()==lgi.sigma.N())
 											{
 												u3::UnitTensorRME unit_labels(omegap,omega,unit_tensor,rho0);
+												std::cout<<"hi"<<std::endl;
 
 												Eigen::MatrixXd temp_matrix
 													=u3::UnitTensorMatrix(
@@ -421,6 +435,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 													ParitySign(rbp+rb+ConjugationGrade(omega)+ConjugationGrade(omegap))
 													*sqrt(1.*dim(u3::SU3(rbp,0))*dim(omega)/(dim(u3::SU3(rb,0))*dim(omegap)))
 													*temp_matrix.transpose();
+												std::cout<<unit_tensor.Str()<<"  "<<unit_tensor_rme_map[unit_labels]<<std::endl;
 											}
 										// In the case that omegap.N()< omega.N(), then the correct unit tensor symmetry will be the 
 										//  conjugate symmetry	
@@ -431,7 +446,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 												u3::UnitTensorRME unit_labels(
 													omegap,omega,u3::UnitTensor(Conjugate(omega0),S0, T0,rb,Sb,Tb,rbp,Sbp,Tbp),rho0
 													);
-
 												unit_tensor_rme_map[unit_labels]
 													=u3::UnitTensorMatrix(lgi_pair, irrepp, irrep, unit_labels,unit_tensor_rme_map);
 											}								
@@ -440,7 +454,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 												u3::UnitTensorRME unit_labels(omegap,omega,unit_tensor,rho0);
 												unit_tensor_rme_map[unit_labels]
 												=u3::UnitTensorMatrix(lgi_pair, irrepp, irrep, unit_labels,unit_tensor_rme_map);
-
 											}
 									}
 							}

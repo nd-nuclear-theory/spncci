@@ -22,7 +22,6 @@
 #include "sp3rlib/u3.h"
 #include "spncci/sp_basis.h"
 
-extern spncci::LGIVectorType lgi_vector;
 
 namespace u3
 {
@@ -183,25 +182,25 @@ Eigen::MatrixXd UnitTensorMatrix(
    std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
   );
 
-  inline void TestFunction(  
-    // boson number cutoff
-    int Nmax, 
-    // a given spncci sector pair given as index pair  from global list lgi_vector 
-    std::pair<int,int> lgi_pair,
-    // Address to map with list of unit tensor labels with key N0 
-    std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
-    // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-    std:: map< std::pair<int,int>, std::map< u3::UnitTensorRME,Eigen::MatrixXd> >& unit_tensor_rme_map
-    )
-    {
-      U3 sp=lgi_vector[lgi_pair.first].sigma;
-      U3 s=lgi_vector[lgi_pair.second].sigma;
-      for (int i=0; i<unit_sym_map.size(); i++)
-        {
-          if (u3::OuterMultiplicity(s.SU3(),unit_sym_map[0][i].omega0.SU3(),sp.SU3())>0)
-            std::cout<< unit_tensor_rme_map[lgi_pair][u3::UnitTensorRME(sp,s,unit_sym_map[0][i],1)]<<std::endl;
-        }
-    }
+  // inline void TestFunction(  
+  //   // boson number cutoff
+  //   int Nmax, 
+  //   // a given spncci sector pair given as index pair  from global list lgi_vector 
+  //   std::pair<int,int> lgi_pair,
+  //   // Address to map with list of unit tensor labels with key N0 
+  //   std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
+  //   // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+  //   std:: map< std::pair<int,int>, std::map< u3::UnitTensorRME,Eigen::MatrixXd> >& unit_tensor_rme_map
+  //   )
+  //   {
+  //     U3 sp=lgi_vector[lgi_pair.first].sigma;
+  //     U3 s=lgi_vector[lgi_pair.second].sigma;
+  //     for (int i=0; i<unit_sym_map.size(); i++)
+  //       {
+  //         if (u3::OuterMultiplicity(s.SU3(),unit_sym_map[0][i].omega0.SU3(),sp.SU3())>0)
+  //           std::cout<< unit_tensor_rme_map[lgi_pair][u3::UnitTensorRME(sp,s,unit_sym_map[0][i],1)]<<std::endl;
+  //       }
+  //   }
 
   void UnitTensorMatrixGenerator(
     int N1b,
