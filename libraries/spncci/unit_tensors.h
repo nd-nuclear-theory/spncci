@@ -165,10 +165,23 @@ namespace u3
   }
 
 
-  void UnitSymmetryGenerator(int N1b, int Nmax, std::map< int,std::vector<u3::UnitTensor> >& unit_sym_map);
+  void UnitSymmetryGenerator(int Nmax, std::map< int,std::vector<u3::UnitTensor> >& unit_sym_map);
   // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
   //
   // 
+
+Eigen::MatrixXd UnitTensorMatrix(
+  // LGI pair sector 
+  const std::pair<int,int> lgi_pair,
+  // sigma' irrep
+  const sp3r::Sp3RSpace& irrepp,
+  // sigma irrep
+  const sp3r::Sp3RSpace& irrep,
+  // unit tensor labels 
+  u3::UnitTensorRME unit_labels,
+   // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+   std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
+  );
 
   inline void TestFunction(  
     // boson number cutoff
@@ -191,6 +204,7 @@ namespace u3
     }
 
   void UnitTensorMatrixGenerator(
+    int N1b,
   // boson number cutoff
     int Nmax, 
   // a given spncci sector pair given as index pair  from global list lgi_vector 
@@ -198,7 +212,7 @@ namespace u3
   // Address to map with list of unit tensor labels with key N0 
     std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
   // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-    std:: map< std::pair<int,int>, std::map< u3::UnitTensorRME,Eigen::MatrixXd> >& unit_tensor_rme_map
+    std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
     );
 } //namespace 
 
