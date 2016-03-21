@@ -69,4 +69,10 @@ int main(int argc, char **argv)
   std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(lgi_vector) << std::endl;
 
 
+  sp3r::Sp3RSpace irrep(u3::U3(11,u3::SU3(0,1)),4);
+  for (int i=0; i<irrep.size(); i++)
+    std::cout<<irrep.GetSubspace(i).GetSubspaceLabels().Str()<<
+    irrep.ContainsSubspace(u3::U3(11,u3::SU3(2,0)))<<(2==3)<<std::endl;
+
+
 } //main

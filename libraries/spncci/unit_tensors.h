@@ -22,6 +22,7 @@
 #include "sp3rlib/u3.h"
 #include "spncci/sp_basis.h"
 
+extern spncci::LGIVectorType lgi_vector;
 
 namespace u3
 {
@@ -98,56 +99,56 @@ namespace u3
     return unit1.Key() < unit2.Key();
   }
 
-struct UnitTensorRME
-	{
-		////////////////////////////////////////////////////////////////
-    // typedefs
-    ////////////////////////////////////////////////////////////////
+  struct UnitTensorRME
+  	{
+  		////////////////////////////////////////////////////////////////
+      // typedefs
+      ////////////////////////////////////////////////////////////////
 
-		typedef std::tuple<	u3::U3, u3::U3, u3::UnitTensor, int> KeyType;
-		// w'S', wS, Unit tensor labels,r0
+  		typedef std::tuple<	u3::U3, u3::U3, u3::UnitTensor, int> KeyType;
+  		// w'S', wS, Unit tensor labels,r0
 
-    ////////////////////////////////////////////////////////////////
-    // constructors
-    ////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////
+      // constructors
+      ////////////////////////////////////////////////////////////////
 
-    // copy constructor: synthesized copy constructor since only data
-    // member needs copying
+      // copy constructor: synthesized copy constructor since only data
+      // member needs copying
 
-    // default constructor
-    
-    //inline UnitTensor() 
-    //  : {}
-    
-    // construction from (lambda,mu)
-    inline UnitTensorRME(u3::U3 omegap_, u3::U3 omega_, u3::UnitTensor tensor_, int rho0_)
-		: omegap(omegap_),omega(omega_), tensor(tensor_), rho0(rho0_) {}
+      // default constructor
+      
+      //inline UnitTensor() 
+      //  : {}
+      
+      // construction from (lambda,mu)
+      inline UnitTensorRME(u3::U3 omegap_, u3::U3 omega_, u3::UnitTensor tensor_, int rho0_)
+  		: omegap(omegap_),omega(omega_), tensor(tensor_), rho0(rho0_) {}
 
-    ////////////////////////////////////////////////////////////////
-    // accessors
-    ////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////
+      // accessors
+      ////////////////////////////////////////////////////////////////
 
-    inline KeyType Key() const
-    {
-      return KeyType(omegap,omega,tensor,rho0);
-    }
+      inline KeyType Key() const
+      {
+        return KeyType(omegap,omega,tensor,rho0);
+      }
 
-    ////////////////////////////////////////////////////////////////
-    // string conversion
-    ////////////////////////////////////////////////////////////////
-    
-    std::string Str() const;
+      ////////////////////////////////////////////////////////////////
+      // string conversion
+      ////////////////////////////////////////////////////////////////
+      
+      std::string Str() const;
 
-    ////////////////////////////////////////////////////////////////
-    // labels
-    ////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////
+      // labels
+      ////////////////////////////////////////////////////////////////
 
-    // Operator labels
-    u3::U3 omegap,omega;
-  	u3::UnitTensor tensor;
-    int rho0;
+      // Operator labels
+      u3::U3 omegap,omega;
+    	u3::UnitTensor tensor;
+      int rho0;
 
-  };
+    };
 
   ////////////////////////////////////////////////////////////////
   // relational operators
@@ -163,16 +164,43 @@ struct UnitTensorRME
     return unit1rme.Key() < unit2rme.Key();
   }
 
+
+  void UnitSymmetryGenerator(int N1b, int Nmax, std::map< int,std::vector<u3::UnitTensor> >& unit_sym_map);
+  // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
+  //
+  // 
+
+  inline void TestFunction(  
+    // boson number cutoff
+    int Nmax, 
+    // a given spncci sector pair given as index pair  from global list lgi_vector 
+    std::pair<int,int> lgi_pair,
+    // Address to map with list of unit tensor labels with key N0 
+    std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
+    // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+    std:: map< std::pair<int,int>, std::map< u3::UnitTensorRME,Eigen::MatrixXd> >& unit_tensor_rme_map
+    )
+    {
+      U3 sp=lgi_vector[lgi_pair.first].sigma;
+      U3 s=lgi_vector[lgi_pair.second].sigma;
+      for (int i=0; i<unit_sym_map.size(); i++)
+        {
+          if (u3::OuterMultiplicity(s.SU3(),unit_sym_map[0][i].omega0.SU3(),sp.SU3())>0)
+            std::cout<< unit_tensor_rme_map[lgi_pair][u3::UnitTensorRME(sp,s,unit_sym_map[0][i],1)]<<std::endl;
+        }
+    }
+
+  void UnitTensorMatrixGenerator(
+  // boson number cutoff
+    int Nmax, 
+  // a given spncci sector pair given as index pair  from global list lgi_vector 
+    std::pair<int,int> lgi_pair,
+  // Address to map with list of unit tensor labels with key N0 
+    std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
+  // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+    std:: map< std::pair<int,int>, std::map< u3::UnitTensorRME,Eigen::MatrixXd> >& unit_tensor_rme_map
+    );
 } //namespace 
-
-
-void UnitSymmetryGenerator(int N1b, int Nmax, std::map< int,std::vector<u3::UnitTensor> >& unit_sym_map);
-// Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
-
-
-void UnitTensorMatrix(int Nshell, int Nsigma_0, int Nmax, std::string LGI_filename);
-//
-// 
 
 
 

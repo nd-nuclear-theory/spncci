@@ -297,6 +297,15 @@ namespace spncci
   // This is equivalent to the M-space dimension for the universal
   // donor value of M (M=0 or 1/2).
 
+
+  std::vector< std::pair<int,int> > LGIPairGenerator(spncci::LGIVectorType lgi_vector);
+  // Given a vector of LGI's, apply angular momentum selection rules to return a list 
+  // of LGI pairs which will have non-zero matrix elements between states in their irreps.  
+
+  // Selection rules: abs(Si-Sf)<=2 for total spin, neutron spin and proton spin.
+  
+
+
 }  // namespace
 
 #endif

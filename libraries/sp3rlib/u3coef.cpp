@@ -53,11 +53,11 @@ namespace u3
     // r12_max<<"  "<< r12_3_max<<"  "<< r23_max<<"  "<< r1_23_max<<
     // std::endl;
     assert(
-      (r_max>0)
-      &&(r12_max>=r12)
-      &&(r12_3_max>=r12_3)
-      &&(r23_max>=r23)
-      &&(r1_23_max>=r1_23)
+      (r_max > 0)
+      &&(r12_max   >= r12)
+      &&(r12_3_max >= r12_3)
+      &&(r23_max   >= r23)
+      &&(r1_23_max >= r1_23)
       );
 
     int index=r12+r12_max*(r12_3-1)+r12_max*r12_3_max*(r23-1)+r12_max*r12_3_max*r23_max*(r1_23-1)-1;

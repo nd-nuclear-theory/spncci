@@ -1,5 +1,5 @@
 /****************************************************************
-  vcs.h                       
+  vcs.cpp                       
 
   Define vector coherent state methods for Sp(3,R).
 
@@ -52,6 +52,19 @@ namespace vcs{
 
   	}
 
+    double U3BosonCreationRME(
+      const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
+      const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega)
+    {
+      if (sigmap==sigma)
+        return (
+          u3::U(sigma.SU3(), n_rho.irrep.SU3(), omegap.SU3(), u3::SU3(2,0), omega.SU3(),n_rho.tag,1,np_rhop.irrep.SU3(),1,np_rhop.tag)
+          *BosonCreationRME(np_rhop.irrep,n_rho.irrep)
+          );
+      else
+        return 0.0;
+    }
+
 
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map)
   {
@@ -92,8 +105,7 @@ namespace vcs{
               Eigen::MatrixXd coef1_matrix(dimension_p,dimension);
               Eigen::MatrixXd coef2_matrix(dimension,dimension_p);
               
-              
-              // iterate over n1p,rho1p and n1p rho2p
+              // iterate over n1p,rho1p and n2p rho2p
               for (int i1=0; i1<dimension_p; i1++)
                 {
                   
@@ -109,13 +121,14 @@ namespace vcs{
                         {
                           MultiplicityTagged<u3::U3> n1_rho1=u3_subspace.GetStateLabels(j1);
                           u3::U3 n1(n1_rho1.irrep);
-                          double coef1=(
-                            2./int(n1p.N())
-                            *(Omega(n1p, omega_p)-Omega(n1,omega))
-                            *u3::U(sigma.SU3(),n1.SU3(),omega_p.SU3(),u3::SU3(2,0),omega.SU3(),n1_rho1.tag,1,n1p.SU3(),1,n1p_rho1p.tag)
-                            *BosonCreationRME(n1p,n1)
-                            );
-                          coef1_matrix(i1,j1)=coef1;
+                          if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0), n1p.SU3())>0)
+                            coef1_matrix(i1,j1)=(
+                              2./int(n1p.N())
+                              *(Omega(n1p, omega_p)-Omega(n1,omega))
+                              *U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
+                              );
+                          else
+                            coef1_matrix(i1,j1)=0.0;
                         }
 
                       // Filling out coef2_matrix                      
@@ -123,12 +136,10 @@ namespace vcs{
                         {
                           MultiplicityTagged<u3::U3> n2_rho2=u3_subspace.GetStateLabels(j2);
                           u3::U3 n2(n2_rho2.irrep);
-                          double coef2=(
-                            u3::U(sigma.SU3(),n2.SU3(),omega_p.SU3(),u3::SU3(2,0),omega.SU3(),n2_rho2.tag,1,n2p.SU3(),1,n2p_rho2p.tag)
-                            *BosonCreationRME(n2p,n2)
-                            );
-
-                          coef2_matrix(j2,i2)=coef2;
+                          if (u3::OuterMultiplicity(n2.SU3(),u3::SU3(2,0), n2p.SU3())>0)
+                            coef2_matrix(j2,i2)=U3BosonCreationRME(sigma, n2p_rho2p, omega_p, sigma, n2_rho2, omega);
+                          else
+                            coef2_matrix(j2,i2)=0.0;
                         }
                     }                  
                 }

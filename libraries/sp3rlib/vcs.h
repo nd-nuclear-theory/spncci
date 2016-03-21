@@ -57,6 +57,10 @@ namespace vcs
   // double SMatrix(const u3::U3& s, const u3::U3& omega, MultiplicityTagged<u3::U3>& n1_tagged, MultiplicityTagged<u3::U3>& n2_tagged);
   // Calculate the K^2 matrix elements
 
+  double U3BosonCreationRME(
+  const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
+  const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega);
+
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep,std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map);
   //Calculates the K matrix 	
 
