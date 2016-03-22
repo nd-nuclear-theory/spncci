@@ -40,8 +40,8 @@ Example:
    $HOME/local/opt/eigen-3.2.7
 
    % tar xvf eigen-eigen-b30b87236a1b.tar.gz
-   % mkdir --parents $HOME/local/opt/eigen-3.2.7/eigen3
-   % mv eigen-eigen-b30b87236a1b/Eigen $HOME/local/opt/eigen-3.2.7/eigen3/
+   % mkdir --parents $HOME/local/opt/eigen-3.2.7/include/eigen3
+   % mv eigen-eigen-b30b87236a1b/Eigen $HOME/local/opt/eigen-3.2.7/include/eigen3/
    % rm -r eigen-eigen-b30b87236a1b
 
 Then set the search_prefix in config.mk to include this directory...
@@ -68,7 +68,11 @@ Thus, in config.mk, we should have
 
 On the ND CRC: module load gsl
 
-4) make all
+*) make all
+
+If you encounter the error "cannot find -lm", then the math libraries
+are not available for static linking on your installation. In
+config.mk, comment out the line "CXXFLAGS += -static".
 
 ----------------------------------------------------------------
 
