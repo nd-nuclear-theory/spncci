@@ -6,7 +6,7 @@ Installation notes for spncci
 
 Basic installation (3/22/16)
 
-1) Retrieving source:
+*) Retrieving source:
 
   git clone --recursive ssh://crcfe01.crc.nd.edu/scratch365/mcaprio/git/spncci.git
 
@@ -14,15 +14,20 @@ Basic installation (3/22/16)
 
   git clone --recursive /scratch365/mcaprio/git/spncci.git
 
-1') Switch to the desired development branch, e.g.,
+Then switch to the desired development branch, e.g.,
 
   git checkout u3devel
 
-2) Set up config.mk.  An example file config_generic-gcc4.mk is
+*) Set up config.mk.  An example file config_generic-gcc4.mk is
 provided.  If you are using GCC, you can start by simply copying this
 example file to config.mk.
 
-3) Make sure the Eigen 3 header files are installed somewhere
+Make sure the appropriate compiler suite is loaded.  Note: Current
+testing is on gcc 4.5..4.8.  Fails on gcc 4.4.
+
+On the ND CRC: module load gsl
+
+*) Make sure the Eigen 3 header files are installed somewhere
 accessible, and add this path to config.mk.
 
 Example:
@@ -59,6 +64,9 @@ Thus, in config.mk, we should have
 
   search_prefix := $(HOME)/local/opt/eigen-3.2.7
 
+*) Make sure GSL is accessible.
+
+On the ND CRC: module load gsl
 
 4) make all
 
