@@ -123,6 +123,11 @@ namespace u3
       inline UnitTensorRME(u3::U3 omegap_, u3::U3 omega_, u3::UnitTensor tensor_, int rho0_)
   		: omegap(omegap_),omega(omega_), tensor(tensor_), rho0(rho0_) {}
 
+      
+      inline UnitTensorRME() 
+      :rho0(0) {}
+  
+
       ////////////////////////////////////////////////////////////////
       // accessors
       ////////////////////////////////////////////////////////////////

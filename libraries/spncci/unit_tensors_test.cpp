@@ -25,6 +25,9 @@ std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
 
 int main(int argc, char **argv)
 {
+
+  int Nmax=4;
+
 	u3::U3CoefInit();
 	// For generating the lgi_vector, using Li-6 as example;
  	HalfInt Nsigma_0 = HalfInt(11,1);
@@ -36,7 +39,7 @@ int main(int argc, char **argv)
 
   std::vector< std::pair<int,int> > lgi_pair_vector=spncci::LGIPairGenerator(lgi_vector);
 
-  int Nmax=4;
+
 
   std::map< int, std::vector<u3::UnitTensor> > unit_sym_map;
   u3::UnitSymmetryGenerator(Nmax,unit_sym_map);
