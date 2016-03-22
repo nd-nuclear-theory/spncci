@@ -15,7 +15,7 @@
 #
 #   $(HOME)/local/opt/eigen-3.0.3
 
-search_prefix := $(HOME)/local/opt/eigen-3.0.3
+search_prefix := $(HOME)/local/opt/eigen-3.2.7
 
 # directories to directly include in include path or lib path
 #
