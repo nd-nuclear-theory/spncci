@@ -118,7 +118,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 	int Nn=int(omega.N()-lgi.sigma.N());
 	int Nnp=int(omegap.N()-lgip.sigma.N());
 
-
 	int dimp=u3_subspacep.size();
 	int dim=u3_subspace.size();
 	assert(dimp!=0 && dim!=0);
@@ -126,9 +125,12 @@ Eigen::MatrixXd UnitTensorMatrix(
 	u3::UnitTensor unit_tensor=unit_labels.tensor;
 	std::tie (omega0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = unit_tensor.Key();
 
+	std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map_lgi=K_matrix_map[lgi.sigma];
+	std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map_lgip=K_matrix_map[lgip.sigma];
 
-	Eigen::MatrixXd Kp=K_matrix_map[lgip.sigma][omegap];
-	Eigen::MatrixXd K_inv=K_matrix_map[lgi.sigma][omega].inverse();
+	Eigen::MatrixXd Kp=K_matrix_map_lgip[omegap];
+	//Eigen::MatrixXd Kp=K_matrix_map[lgip.sigma][omegap];
+	Eigen::MatrixXd K_inv=K_matrix_map_lgi[omega].inverse();
 
 	MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
 	MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
@@ -148,7 +150,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 			int dim1=u3_subspace1.size();
 
 		  // Look up K1 matrix (dim v1, v1)
-			Eigen::MatrixXd K1=K_matrix_map[lgi.sigma][omega1];
+			Eigen::MatrixXd K1=K_matrix_map_lgi[omega1];
 			
 			// Initializing unit tensor matrix with dim. v' v1
 			Eigen::MatrixXd unit_matrix= Eigen::MatrixXd::Zero(dimp,dim1);
@@ -185,7 +187,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 						}	
 				}								        
 			Eigen::MatrixXd KBUK(dim1,dim);
-			KBUK=K1*BU*K_inv;
+			KBUK.noalias()=K1*BU*K_inv;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		  //summing over omega0'
@@ -228,7 +230,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 											sp3r::U3Subspace u3_subspacepp=irrepp.LookUpSubspace(omegapp);
 											int dimpp=u3_subspacepp.size();
 										  // Obtaining K matrix for omega''
-											Eigen::MatrixXd Kpp_inv=K_matrix_map[lgip.sigma][omegapp].inverse();
+											Eigen::MatrixXd Kpp_inv=K_matrix_map_lgip[omegapp].inverse();
 											// Initialize matrix of a^\dagger for A matrix
 											Eigen::MatrixXd boson_matrix(dimp,dimpp);
 									    //Constructing a^\dagger matrix
@@ -352,6 +354,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 				unit_tensor_matrix+=unit_matrix*KBUK;				
 		}// end sum over omega1
 		assert(unit_tensor_matrix.cols()!=0 && unit_tensor_matrix.rows()!=0);
+		std::cout<<unit_tensor_matrix <<std::endl;
 		return unit_tensor_matrix;
 	} // End function
 

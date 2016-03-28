@@ -4,6 +4,78 @@ Installation notes for spncci
 
 ----------------------------------------------------------------
 
+Basic installation (3/22/16)
+
+*) Retrieving source:
+
+  git clone --recursive ssh://crcfe01.crc.nd.edu/scratch365/mcaprio/git/spncci.git
+
+  Or, locally on the ND CRC,
+
+  git clone --recursive /scratch365/mcaprio/git/spncci.git
+
+Then switch to the desired development branch, e.g.,
+
+  git checkout u3devel
+
+*) Set up config.mk.  An example file config_generic-gcc4.mk is
+provided.  If you are using GCC, you can start by simply copying this
+example file to config.mk.
+
+Make sure the appropriate compiler suite is loaded.  Note: Current
+testing is on gcc 4.5..4.8.  Fails on gcc 4.4.
+
+On the ND CRC: module load gsl
+
+*) Make sure the Eigen 3 header files are installed somewhere
+accessible, and add this path to config.mk.
+
+Example:
+
+   (1) We assume you have downloaded the distribution archive for
+   Eigen 3.2.7 (eigen-eigen-b30b87236a1b.tar.gz) and that it is in
+   your current working directory...
+
+   (2) We are installing beneath your home directory, in
+   $HOME/local/opt/eigen-3.2.7
+
+   % tar xvf eigen-eigen-b30b87236a1b.tar.gz
+   % mkdir --parents $HOME/local/opt/eigen-3.2.7/include/eigen3
+   % mv eigen-eigen-b30b87236a1b/Eigen $HOME/local/opt/eigen-3.2.7/include/eigen3/
+   % rm -r eigen-eigen-b30b87236a1b
+
+Then set the search_prefix in config.mk to include this directory...
+
+That is, if the eigen include files are
+
+     $(HOME)/local/opt/eigen-3.2.7/include/eigen3/Eigen/{Array,Cholesky,...,Eigen,...}
+
+then the search prefix list should include
+
+     $(HOME)/local/opt/eigen-3.2.7
+
+Thus, in config.mk, we should have
+
+  # search prefix
+  #
+  #   additional path to search for required include and lib 
+  #   directories
+  #
+
+  search_prefix := $(HOME)/local/opt/eigen-3.2.7
+
+*) Make sure GSL is accessible.
+
+On the ND CRC: module load gsl
+
+*) make all
+
+If you encounter the error "cannot find -lm", then the math libraries
+are not available for static linking on your installation. In
+config.mk, comment out the line "CXXFLAGS += -static".
+
+----------------------------------------------------------------
+
 If subpackage am has been updated upstream:
 
    cd libraries/am

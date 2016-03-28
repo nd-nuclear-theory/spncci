@@ -10,6 +10,8 @@
   T. Dytrych CSU3Master.
 ****************************************************************/
 #include <cassert>
+#include <map>
+#include <tuple>
 #include <vector>
 
 #include "am/halfint.h"
@@ -18,6 +20,10 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
+std::map<
+    std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3, u3::SU3, int, int, u3::SU3, int, int>,
+    int 
+  >ucoef_map;
 
 namespace u3
 {
@@ -52,6 +58,12 @@ namespace u3
     // x3.lambda<<"  "<< x3.mu<<"  "<< x12.lambda<<"  "<< x12.mu<<"  "<< x23.lambda<<"  "<< x23.mu<<"  "<<
     // r12_max<<"  "<< r12_3_max<<"  "<< r23_max<<"  "<< r1_23_max<<
     // std::endl;
+    
+    //std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3, u3::SU3, int, int, u3::SU3, int, int> 
+    // Counting the number of time each symmetry is called 
+    // auto label_vector=std::make_tuple(x1, x2, x, x3, x12, r12, r12_3, x23, r23, r1_23);
+    // ucoef_map[label_vector]+=1;
+
     assert(
       (r_max > 0)
       &&(r12_max   >= r12)
@@ -59,6 +71,7 @@ namespace u3
       &&(r23_max   >= r23)
       &&(r1_23_max >= r1_23)
       );
+
 
     int index=r12+r12_max*(r12_3-1)+r12_max*r12_3_max*(r23-1)+r12_max*r12_3_max*r23_max*(r1_23-1)-1;
     std::vector<double> u_array;
