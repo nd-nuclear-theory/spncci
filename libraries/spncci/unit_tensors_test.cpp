@@ -22,6 +22,12 @@
 
 spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
+extern  std::map< std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3, 
+                            u3::SU3, int, int, u3::SU3, int, int
+                            >,
+                  int 
+                >ucoef_map;
+
 
 int main(int argc, char **argv)
 {
@@ -84,7 +90,23 @@ int main(int argc, char **argv)
   		u3::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
 
   	}
+  // std::cout << "********************************" << std::endl;
 
+  // ////////////////////////////////////////////////////////////////
+  // // indicate dimensions
+  // ////////////////////////////////////////////////////////////////
+  // for (int i=0; i<lgi_vector.size(); i++)
+  //   {
+  //     std::cout<<lgi_vector[i].Str()<<std::endl;
+  //   }
+
+
+  // std::cout << "********************************" << std::endl;
+  // std::cout << "U coefficient reusage test"<< std::endl;
+  // for (auto it = ucoef_map.begin(); it!=ucoef_map.end(); ++it)
+  //   {
+  //     std::cout<< it->second <<std::endl;
+  //   }
 
 
 
