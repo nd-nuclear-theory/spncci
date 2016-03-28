@@ -26,13 +26,13 @@ std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
 int main(int argc, char **argv)
 {
 
-  int Nmax=4;
+  int Nmax=16;
 
 	u3::U3CoefInit();
 	// For generating the lgi_vector, using Li-6 as example;
  	HalfInt Nsigma_0 = HalfInt(11,1);
  	int N1b=2;
-	std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+	std::string filename = "lgi-3-3-2-fql-mini-mini.dat";
 
 	
 	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
