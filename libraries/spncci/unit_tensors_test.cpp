@@ -32,7 +32,7 @@ extern  std::map< std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3,
 int main(int argc, char **argv)
 {
 
-  int Nmax=4;
+  int Nmax=14;
 
 	u3::U3CoefInit();
 	// For generating the lgi_vector, using Li-6 as example;

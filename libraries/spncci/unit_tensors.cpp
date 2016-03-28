@@ -139,6 +139,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 	// summing over omega1
 	for (int w1=0; w1<omega1_set.size(); w1++)
 		{	
+
 			u3::U3 omega1=omega1_set[w1].irrep;
 			
 			//check that omega1 in irrep  
@@ -154,7 +155,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 			
 			// Initializing unit tensor matrix with dim. v' v1
 			Eigen::MatrixXd unit_matrix= Eigen::MatrixXd::Zero(dimp,dim1);
-
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// Matrix of B*U coefs with dim v1 and v
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,7 +189,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 			Eigen::MatrixXd KBUK(dim1,dim);
 			KBUK.noalias()=K1*BU*K_inv;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 		  //summing over omega0'
 			for (int w0p=0; w0p<omega0p_set.size(); w0p++)
 				{
@@ -199,12 +198,10 @@ Eigen::MatrixXd UnitTensorMatrix(
 				  // summing over rho0'
 					for (int rho0p=1; rho0p<=rho0p_max; rho0p++)
 						{
-							
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
 							// third term
 							// sum over omega'', v'' and rho0''
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
-							
 							double coef3=u3::U(
 										omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
 										omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
@@ -277,7 +274,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 										} // end wpp
 									}
 								unit_matrix+=coef3*unit3_matrix;
-
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
 							//first term 
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -300,15 +296,13 @@ Eigen::MatrixXd UnitTensorMatrix(
 													omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1
 													)
 												*sqrt(
-													1.*u3::dim(omega0p)*Factorial(rb)
-													/(Factorial(2)*Factorial(rb-2)*u3::dim(omega0))
+													1.*u3::dim(omega0p)*Choose(rb,2)/u3::dim(omega0)
 													)
 												);											
-
 											unit_matrix+=coef1*unit_tensor_rme_map[unit1_labels];
 										}
 								}
-							
+
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
 							// second term 
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -337,24 +331,25 @@ Eigen::MatrixXd UnitTensorMatrix(
 														u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1
 														)
 													*sqrt(
-														1.*Factorial(rbp+2)*u3::dim(omega0p)*u3::dim(u3::SU3(rbp,0))
-														/(
-															Factorial(2)*Factorial(rbp)*u3::dim(omega0)*u3::dim(u3::SU3(rbp+2,0))
-															)
+														1.*Choose(rbp+2,2)*u3::dim(omega0p)*u3::dim(u3::SU3(rbp,0))
+														/(u3::dim(omega0)*u3::dim(u3::SU3(rbp+2,0)))
 														)
 													);
 											unit_matrix+=coef2*unit_tensor_rme_map[unit2_labels];
 										}
-
 								}
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 						} //end rho0p
+
 				} //end sum over w0p
 				// summing over n, rho, n1, rho1, v1
-				unit_tensor_matrix+=unit_matrix*KBUK;				
+			unit_tensor_matrix+=unit_matrix*KBUK;
+
+
 		}// end sum over omega1
 		assert(unit_tensor_matrix.cols()!=0 && unit_tensor_matrix.rows()!=0);
-		std::cout<<unit_tensor_matrix <<std::endl;
+		//std::cout<<unit_tensor_matrix <<std::endl;
 		return unit_tensor_matrix;
 	} // End function
 
