@@ -10,6 +10,8 @@
 ****************************************************************/
 #include <cmath>
 #include <eigen3/Eigen/Eigen>
+#include <iostream>
+#include <fstream>
 #include <map>
 #include <sstream>
 #include <vector>
@@ -22,17 +24,11 @@
 
 spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
-extern  std::map< std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3, 
-                            u3::SU3, int, int, u3::SU3, int, int
-                            >,
-                  int 
-                >ucoef_map;
-
 
 int main(int argc, char **argv)
 {
 
-  int Nmax=14;
+  int Nmax=8;
 
 	u3::U3CoefInit();
 	// For generating the lgi_vector, using Li-6 as example;
@@ -45,23 +41,33 @@ int main(int argc, char **argv)
 
   std::vector< std::pair<int,int> > lgi_pair_vector=spncci::LGIPairGenerator(lgi_vector);
 
-
-
+  // Generate map of allowed unit tensor labels for given nucleu
   std::map< int, std::vector<u3::UnitTensor> > unit_sym_map;
   u3::UnitSymmetryGenerator(Nmax,unit_sym_map);
 
-	std:: map< std::pair<int,int>, std::map< u3::UnitTensorRME,Eigen::MatrixXd> > lgi_unit_tensor_rme_map;
+	// Initialize map of LGI pair -> (unit tensor redued matrix sector labels-> reduced matrix indexed
+  //  by v'v of state)
+  std:: map< 
+            std::pair<int,int>, 
+            std::map< u3::UnitTensorRME,Eigen::MatrixXd> 
+          > lgi_unit_tensor_rme_map;
 
+  // Looping over LGI pairs and generating the unit_tensor_rme maps 
   for (int i=0; i<lgi_pair_vector.size(); i++)
   	{
-  		std::pair<int,int> lgi_pair=lgi_pair_vector[i];
+      std::pair<int,int> lgi_pair=lgi_pair_vector[i];
   		u3::U3 sigmap=lgi_vector[lgi_pair.first].sigma;
-  		// operator boson number between to lgi's
+  		
+      // operator boson number between to lgi's
   		u3::U3 sigma=lgi_vector[lgi_pair.second].sigma;
   		int N0=int(sigmap.N()-sigma.N());
   		
   		std::map <u3::UnitTensorRME, Eigen::MatrixXd> temp_unit_map;
-  		for (int j=0; j<unit_sym_map[N0].size(); j++)
+      
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      // Initializing the unit_tensor_rme_map with LGI rm's 
+  		//////////////////////////////////////////////////////////////////////////////////////////////
+      for (int j=0; j<unit_sym_map[N0].size(); j++)
   			{
   				Eigen::MatrixXd temp_matrix(1,1);
   				temp_matrix(0,0)=1;
@@ -78,8 +84,10 @@ int main(int argc, char **argv)
   						}
   					}
   			}
-
   		lgi_unit_tensor_rme_map[lgi_pair]=temp_unit_map;
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      // Generating the rme's of the unit tensor for each LGI
+      u3::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
 
   		// for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
   		// 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
@@ -87,28 +95,6 @@ int main(int argc, char **argv)
 		  // 			std::cout <<i->first.tensor.Str()<<"  "<<i->second<<std::endl;
 		  // 		}
 			//u3::TestFunction(Nmax, lgi_pair, unit_sym_map, lgi_unit_tensor_rme_map);
-  		u3::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
 
   	}
-  // std::cout << "********************************" << std::endl;
-
-  // ////////////////////////////////////////////////////////////////
-  // // indicate dimensions
-  // ////////////////////////////////////////////////////////////////
-  // for (int i=0; i<lgi_vector.size(); i++)
-  //   {
-  //     std::cout<<lgi_vector[i].Str()<<std::endl;
-  //   }
-
-
-  // std::cout << "********************************" << std::endl;
-  // std::cout << "U coefficient reusage test"<< std::endl;
-  // for (auto it = ucoef_map.begin(); it!=ucoef_map.end(); ++it)
-  //   {
-  //     std::cout<< it->second <<std::endl;
-  //   }
-
-
-
-
 }// end main 
