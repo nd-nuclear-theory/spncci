@@ -184,7 +184,10 @@ Eigen::MatrixXd UnitTensorMatrix(
   // unit tensor labels 
   u3::UnitTensorRME unit_labels,
    // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-   std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
+   std::map<
+     std::pair<int,int>, 
+     std::map<u3::UnitTensorRME,Eigen::MatrixXd> 
+     >& unit_tensor_rme_map
   );
 
   // inline void TestFunction(  
@@ -216,7 +219,10 @@ Eigen::MatrixXd UnitTensorMatrix(
   // Address to map with list of unit tensor labels with key N0 
     std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
   // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-    std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
+    std::map<
+      std::pair<int,int>,
+      std::map< u3::UnitTensorRME,Eigen::MatrixXd >
+      >& unit_tensor_rme_map
     );
 } //namespace 
 

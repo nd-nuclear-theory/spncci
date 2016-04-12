@@ -9,6 +9,7 @@
   3/18/16 (aem,mac): Created.
 ****************************************************************/
 #include <cmath>
+#include <cstdio>
 #include <eigen3/Eigen/Eigen>
 #include <iostream>
 #include <fstream>
@@ -25,10 +26,14 @@
 spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
 
+int Nmax;
 int main(int argc, char **argv)
 {
+  if(argc>1)
+      Nmax=std::stoi(argv[1]); 
+  else
+    Nmax=2;
 
-  int Nmax=8;
 
 	u3::U3CoefInit();
 	// For generating the lgi_vector, using Li-6 as example;
@@ -49,7 +54,10 @@ int main(int argc, char **argv)
   //  by v'v of state)
   std:: map< 
             std::pair<int,int>, 
-            std::map< u3::UnitTensorRME,Eigen::MatrixXd> 
+            std::map<
+              std::pair<int,int>,
+              std::map< u3::UnitTensorRME,Eigen::MatrixXd> 
+              >
           > lgi_unit_tensor_rme_map;
 
   // Looping over LGI pairs and generating the unit_tensor_rme maps 
@@ -67,6 +75,7 @@ int main(int argc, char **argv)
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
   		//////////////////////////////////////////////////////////////////////////////////////////////
+      std::pair<int,int> N0_pair(0,0);
       for (int j=0; j<unit_sym_map[N0].size(); j++)
   			{
   				Eigen::MatrixXd temp_matrix(1,1);
@@ -84,7 +93,7 @@ int main(int argc, char **argv)
   						}
   					}
   			}
-  		lgi_unit_tensor_rme_map[lgi_pair]=temp_unit_map;
+  		lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
       u3::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );

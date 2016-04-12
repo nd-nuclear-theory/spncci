@@ -95,7 +95,10 @@ Eigen::MatrixXd UnitTensorMatrix(
 	// unit tensor labels 
 	u3::UnitTensorRME unit_labels,
    // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-   std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
+   std::map<
+   std::pair<int,int>,
+   std::map< u3::UnitTensorRME,Eigen::MatrixXd >
+   >& unit_tensor_rme_map
 	)
 {
 
@@ -117,6 +120,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 	int rho0=unit_labels.rho0;
 	int Nn=int(omega.N()-lgi.sigma.N());
 	int Nnp=int(omegap.N()-lgip.sigma.N());
+	std::pair<int,int> NpN_pair(Nnp,Nn);
 
 	int dimp=u3_subspacep.size();
 	int dim=u3_subspace.size();
@@ -218,7 +222,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 										  if (not irrepp.ContainsSubspace(omegapp))
 			      						continue;
 			      					if (
-			      						unit_tensor_rme_map.count(
+			      						unit_tensor_rme_map[NpN_pair].count(
 			      						u3::UnitTensorRME(omegapp,omega1,u3::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1))==0
 			      						)
 			      						continue;						
@@ -261,12 +265,12 @@ Eigen::MatrixXd UnitTensorMatrix(
 														u3::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),rho0pp
 														);
 
-													assert(unit_tensor_rme_map.count(unit3_labels)>0);
+													assert(unit_tensor_rme_map[NpN_pair].count(unit3_labels)>0);
 													
 													unit3pp_matrix+=
 													u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
 														omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
-														*unit_tensor_rme_map[unit3_labels];
+														*unit_tensor_rme_map[NpN_pair][unit3_labels];
 
 												} //end rho0pp
 											// matrix product (v',v')*(v',v'')*(v'',v1)
@@ -282,7 +286,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 
 									
 									u3::UnitTensorRME unit1_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp,Sbp,Tbp,rb-2,Sb,Tb),rho0p);
-									if (unit_tensor_rme_map.count(unit1_labels)!=0)
+									if (unit_tensor_rme_map[NpN_pair].count(unit1_labels)!=0)
 										{
 
 											double coef1=
@@ -299,7 +303,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 													1.*u3::dim(omega0p)*Choose(rb,2)/u3::dim(omega0)
 													)
 												);											
-											unit_matrix+=coef1*unit_tensor_rme_map[unit1_labels];
+											unit_matrix+=coef1*unit_tensor_rme_map[NpN_pair][unit1_labels];
 										}
 								}
 
@@ -316,7 +320,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 								{
 									u3::UnitTensorRME unit2_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp+2,Sbp,Tbp,rb,Sb,Tb),rho0p);
 									double coef2;
-									if(unit_tensor_rme_map.count(unit2_labels)>0)
+									if(unit_tensor_rme_map[NpN_pair].count(unit2_labels)>0)
 										{
 											
 
@@ -335,7 +339,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 														/(u3::dim(omega0)*u3::dim(u3::SU3(rbp+2,0)))
 														)
 													);
-											unit_matrix+=coef2*unit_tensor_rme_map[unit2_labels];
+											unit_matrix+=coef2*unit_tensor_rme_map[NpN_pair][unit2_labels];
 										}
 								}
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,8 +368,10 @@ Eigen::MatrixXd UnitTensorMatrix(
 	// Address to map with list of unit tensor labels with key N0 
 		std::map< int,std::vector<u3::UnitTensor>>& unit_sym_map,
 	// Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-     std::map< u3::UnitTensorRME,Eigen::MatrixXd >& unit_tensor_rme_map
-
+     	std::map<
+	     	std::pair<int,int>,
+	     	std::map< u3::UnitTensorRME,Eigen::MatrixXd > 
+	     	>& unit_tensor_rme_map
 		)
 	// Generates all unit tensor matrix matrices between states in the irreps of lgi_pair
 	// The unit tensors are stored in the map unit_tensor_rme_map which has key lgi_pair and 
@@ -416,6 +422,8 @@ Eigen::MatrixXd UnitTensorMatrix(
 							continue;
 
 						int Nn=int(omega.N()-lgi.sigma.N());
+						
+						std::pair<int,int> NpN_pair(Nnp,Nn);
 						// Get set of operator labels for given omega'omega sector
 						std::vector<u3::UnitTensor>& operator_set=unit_sym_map[abs(int(omegap.N()-omega.N()))];
 						// Iterating over the operator labels 						
@@ -470,7 +478,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 														unit_tensor_rme_map 
 														);
 												
-												unit_tensor_rme_map[unit_map_key]=
+												unit_tensor_rme_map[NpN_pair][unit_map_key]=
 													ParitySign(rbp+rb+ConjugationGrade(omega)+ConjugationGrade(omegap))
 													*sqrt(1.*dim(u3::SU3(rbp,0))*dim(omega)/(dim(u3::SU3(rb,0))*dim(omegap)))
 													*temp_matrix.transpose();
@@ -494,7 +502,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 												/////////////////////
 												temp_matrix=u3::UnitTensorMatrix(lgi_pair, irrepp, irrep, unit_labels,unit_tensor_rme_map);
 												if (temp_matrix.any())
-													unit_tensor_rme_map[unit_labels]
+													unit_tensor_rme_map[NpN_pair][unit_labels]
 														=u3::UnitTensorMatrix(lgi_pair, irrepp, irrep, unit_labels,unit_tensor_rme_map);
 												// else
 													//std::cout<<unit_labels.Str()<<unit_tensor_rme_map[unit_labels]
