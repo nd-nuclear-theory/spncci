@@ -39,19 +39,22 @@ int main(int argc, char **argv)
 	// For generating the lgi_vector, using Li-6 as example;
  	HalfInt Nsigma_0 = HalfInt(11,1);
  	int N1b=2;
+  // input file containing LGI's
 	std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
 
-	
+	// Generate vector of LGI's from input file 
 	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
 
+  // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
   std::vector< std::pair<int,int> > lgi_pair_vector=spncci::LGIPairGenerator(lgi_vector);
 
-  // Generate map of allowed unit tensor labels for given nucleu
+  // generate map that stores unit tensor labels keyed by N0
   std::map< int, std::vector<u3::UnitTensor> > unit_sym_map;
   u3::UnitSymmetryGenerator(Nmax,unit_sym_map);
 
-	// Initialize map of LGI pair -> (unit tensor redued matrix sector labels-> reduced matrix indexed
-  //  by v'v of state)
+  //initializing map that will store map containing unit tensors.  Outer map is keyed LGI pair. 
+  // inner map is keyed by unit tensor matrix element labels of type UnitTensorRME
+  // LGI pair -> UnitTensorRME -> Matrix of reduced unit tensor matrix elements for v'v subsector
   std:: map< 
             std::pair<int,int>, 
             std::map<
@@ -60,7 +63,10 @@ int main(int argc, char **argv)
               >
           > lgi_unit_tensor_rme_map;
 
-  // Looping over LGI pairs and generating the unit_tensor_rme maps 
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Filling out lgi_unit_tensor_rme_map 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
   for (int i=0; i<lgi_pair_vector.size(); i++)
   	{
       std::pair<int,int> lgi_pair=lgi_pair_vector[i];
@@ -75,7 +81,7 @@ int main(int argc, char **argv)
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
   		//////////////////////////////////////////////////////////////////////////////////////////////
-      std::pair<int,int> N0_pair(0,0);
+      std::pair<int,int> N0_pair(lgi_vector[lgi_pair.first].Nex,lgi_vector[lgi_pair.second].Nex);
       for (int j=0; j<unit_sym_map[N0].size(); j++)
   			{
   				Eigen::MatrixXd temp_matrix(1,1);
@@ -100,7 +106,8 @@ int main(int argc, char **argv)
 
   		// for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
   		// 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
-		  // 		{
+		  		
+    //       {
 		  // 			std::cout <<i->first.tensor.Str()<<"  "<<i->second<<std::endl;
 		  // 		}
 			//u3::TestFunction(Nmax, lgi_pair, unit_sym_map, lgi_unit_tensor_rme_map);
