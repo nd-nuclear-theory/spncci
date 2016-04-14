@@ -15,11 +15,11 @@
 #ifndef VCS_H_
 #define VCS_H_
 
-#include <cmath>
+
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Eigenvalues>  
 
-#include "sp3rlib/u3.h"
+
 #include "sp3rlib/u3coef.h" 
 #include "sp3rlib/sp3r.h"  
   

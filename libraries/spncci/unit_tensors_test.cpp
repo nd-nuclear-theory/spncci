@@ -8,19 +8,8 @@
 
   3/18/16 (aem,mac): Created.
 ****************************************************************/
-#include <cmath>
 #include <cstdio>
-#include <eigen3/Eigen/Eigen>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <sstream>
-#include <vector>
 
-#include "am/am.h"
-#include "sp3rlib/u3.h"
-#include "sp3rlib/u3coef.h"
-#include "spncci/sp_basis.h"
 #include "spncci/unit_tensors.h"
 
 spncci::LGIVectorType lgi_vector;

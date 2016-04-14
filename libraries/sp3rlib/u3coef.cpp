@@ -9,15 +9,6 @@
   3/10/16 (aem,mac): Created based on prototype u3.py and 
   T. Dytrych CSU3Master.
 ****************************************************************/
-#include <cassert>
-#include <map>
-#include <tuple>
-#include <vector>
-
-#include "am/halfint.h"
-#include "utilities/utilities.h"
-#include "utilities/multiplicity_tagged.h"
-#include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
 

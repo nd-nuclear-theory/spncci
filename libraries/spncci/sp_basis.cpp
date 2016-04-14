@@ -5,15 +5,7 @@
   University of Notre Dame
 
 ****************************************************************/
-
 #include "spncci/sp_basis.h"
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "am/am.h"
-#include "utilities/parsing.h"
 
 
 namespace spncci

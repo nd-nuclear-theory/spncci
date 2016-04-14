@@ -11,17 +11,8 @@
 #ifndef UNIT_TENSOR_H_
 #define UNIT_TENSOR_H_
 
-
-#include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Eigenvalues>  
-#include <map>
-#include <tuple>
-#include <vector>  
-
-#include "am/am.h"
-#include "sp3rlib/u3.h"
 #include "spncci/sp_basis.h"
-
+#include "sp3rlib/vcs.h"
 
 namespace u3
 {
@@ -174,22 +165,6 @@ namespace u3
   //
   // 
 
-Eigen::MatrixXd UnitTensorMatrix(
-  // LGI pair sector 
-  const std::pair<int,int> lgi_pair,
-  // sigma' irrep
-  const sp3r::Sp3RSpace& irrepp,
-  // sigma irrep
-  const sp3r::Sp3RSpace& irrep,
-  // unit tensor labels 
-  u3::UnitTensorRME unit_labels,
-   // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-   std::map<
-     std::pair<int,int>, 
-     std::map<u3::UnitTensorRME,Eigen::MatrixXd> 
-     >& unit_tensor_rme_map
-  );
-
   // inline void TestFunction(  
   //   // boson number cutoff
   //   int Nmax, 
@@ -225,16 +200,5 @@ Eigen::MatrixXd UnitTensorMatrix(
       >& unit_tensor_rme_map
     );
 } //namespace 
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

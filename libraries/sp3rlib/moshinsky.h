@@ -15,10 +15,8 @@
 #ifndef MOSHINSKY_H_
 #define MOSHINSKY_H_
 
-#include "am/halfint.h"
 #include "u3.h"
-//#include "utilities/utilities.h"
-//#include "utilities/multiplicity_tagged.h"
+
 
 namespace u3 
 {

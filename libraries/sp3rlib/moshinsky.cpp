@@ -13,10 +13,7 @@
 ****************************************************************/
 
 #include <cmath>
-
-#include "am/halfint.h"
-#include "u3.h"
-#include "utilities/utilities.h"
+#include "moshinsky.h"
 
 namespace u3 
 {
