@@ -53,6 +53,22 @@ namespace u3
 		return IrrepPartionN;
 	}
 
+	std::pair<int,int> GetNSectorIndices(const int Nmax, const int irrep_size, const int Nn, std::vector<int>& NPartition)
+	{
+		int i_min, i_max;
+		// Starting index
+		if (Nn==0)
+			i_min=0;
+		else
+			i_min=NPartition[Nn/2];
+		// Ending index+1.   
+		if (Nn==Nmax)
+			i_max=irrep_size;
+		else 
+			i_max=NPartition[(Nn+2)/2];
+		return std::pair<int,int>(i_min,i_max);
+	}
+
 
   void UnitSymmetryGenerator(int Nmax, std::map< int,std::vector<u3::UnitTensor> >& unit_sym_map)
 // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
@@ -210,6 +226,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 				}								        
 			Eigen::MatrixXd KBUK(dim1,dim);
 			KBUK.noalias()=K1*BU*K_inv;
+			//std::cout<<"KBUK "<<KBUK<<std::endl;
 			////////////////////////////////////////////////////////////////////////////////////////////////////////
 		  //summing over omega0'
 			for (int w0p=0; w0p<omega0p_set.size(); w0p++)
@@ -301,8 +318,8 @@ Eigen::MatrixXd UnitTensorMatrix(
 								//std::cout<<"unit3_matrix "<<unit3_matrix<<std::endl;
 								unit_matrix+=coef3*unit3_matrix;
 
-							
-							std::pair<int,int>NpN2_pair(Nnp,Nn-2);
+							//std::cout<<"term 3"<<unit_matrix<<std::endl;							
+							//std::pair<int,int>NpN2_pair(Nnp,Nn-2);
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
 							//first term 
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -321,7 +338,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 											unit_matrix+=coef1*(*NpN2)[unit1_labels];
 										}
 								}
-
+							//std::cout<< "term1 "<<unit_matrix<<std::endl;
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
 							// second term 
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -358,7 +375,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 										}
 								}
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+							//std::cout<<"term2 "<<unit_matrix<<std::endl;
 						} //end rho0p
 
 				} //end sum over w0p
@@ -405,19 +422,20 @@ Eigen::MatrixXd UnitTensorMatrix(
 	  // TODO replace Nmax-lgip.Nex with truncator function 
 		sp3r::Sp3RSpace irrepp(lgip.sigma,Nmax-lgip.Nex);
 		sp3r::Sp3RSpace irrep(lgi.sigma, Nmax-lgi.Nex);
-
+		int irrep_size=irrep.size();
+		int irrepp_size=irrepp.size();
 		// partition irreps by Nn and Nnp.  Each int in vector corresponds to the start of the next N space 
 		std::vector<int> NpPartition=PartitionIrrepByNn(irrepp, Nmax);
 		std::vector<int> NPartition=PartitionIrrepByNn(irrep, Nmax);
 
 	  // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
-		for (int k = 0; k<irrep.size(); k++)
+		for (int k = 0; k<irrep_size; k++)
 			{
 				std::map<u3::U3,Eigen::MatrixXd> K_map;
 				vcs::GenerateKMatrices(irrep, K_map);
 				K_matrix_map[lgi.sigma]=K_map;
 			}
-		for (int kp = 0; kp<irrepp.size(); kp++)
+		for (int kp = 0; kp<irrepp_size; kp++)
 			{
 				std::map<u3::U3,Eigen::MatrixXd> K_map;
 				vcs::GenerateKMatrices(irrepp, K_map);
@@ -433,10 +451,11 @@ Eigen::MatrixXd UnitTensorMatrix(
 					int Nn=Nsum-Nnp;
 					if (Nn>Nmax)
 						continue; 
-
+					//std::cout<<"initial set up "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
 					// Setting up vector of pointers to the (Nnp,Nn-2) and (Nnp-2,Nn-2) sectors in
 					// the unit tensor map for the thwo different cases
 					std::vector< std::map< u3::UnitTensorRME,Eigen::MatrixXd >*> NSectorPointers;
+					
 					if (Nnp!=0 && Nn==0)
 						{
 							NSectorPointers.push_back(&unit_tensor_rme_map[std::pair<int,int>(Nn,Nnp-2)]);
@@ -448,34 +467,16 @@ Eigen::MatrixXd UnitTensorMatrix(
 							NSectorPointers.push_back(&unit_tensor_rme_map[std::pair<int,int>(Nnp-2,Nn-2)]);
 						}
 
-					int ip_min, ip_max, i_min, i_max;
 					// Selecting section of spaces to iterate over
-					// for bra 
-					if (Nnp==0)
-						ip_min=0;
-					else
-						ip_min=NpPartition[Nnp/2];
-					if (Nnp==Nmax)
-						ip_max=irrepp.size();
-					else 
-						ip_max=NpPartition[(Nnp+2)/2];
-					// for ket
-					if (Nn==0)
-						i_min=0;
-					else
-						i_min=NPartition[Nn/2];
-					if (Nn==Nmax)
-						i_max=irrep.size();
-					else 
-						i_max=NPartition[(Nn+2)/2];
-
+					int ip_min, ip_max, i_min, i_max;
+					std::tie (i_min,i_max)=GetNSectorIndices(Nmax, irrep_size, Nn, NPartition);
+					std::tie (ip_min,ip_max)=GetNSectorIndices(Nmax, irrepp_size, Nnp, NpPartition);
+					
 					//  omega' subspace
-					//std::cout<<Nsum<<"  "<<Nnp<<"  "<< Nn<<std::endl;
 					for(int ip=ip_min; ip<ip_max; ip++ )
 						{
 							//sp3r::U3Subspace& u3_subspace=irrep.GetSubspace(i);
 							u3::U3 omegap=irrepp.GetSubspace(ip).GetSubspaceLabels();		 
-
 							//omega subspace
 							for(int i=i_min; i<i_max; i++ )
 								{
@@ -492,7 +493,6 @@ Eigen::MatrixXd UnitTensorMatrix(
 
 											//unpack unit_tensor labels 
 											std::tie (omega0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = unit_tensor.Key();
-											
 
 											///////////////////////////////////////////////////////////////////////////////////////
 											// defining rho0_max for the two cases 
@@ -549,11 +549,14 @@ Eigen::MatrixXd UnitTensorMatrix(
 																	);
 															// if the matrix has non-zero entries,
 															if (temp_matrix.any())
+															{
 																// apply symmtry factors, transpose the matrix and 
 																unit_tensor_rme_map[NpN_pair][unit_map_key]=
 																	ParitySign(rbp+rb+ConjugationGrade(omega)+ConjugationGrade(omegap))
 																	*sqrt(1.*dim(u3::SU3(rbp,0))*dim(omega)/(dim(u3::SU3(rb,0))*dim(omegap)))
 																	*temp_matrix.transpose();
+																//std::cout<<unit_tensor_rme_map[NpN_pair][unit_map_key]<<std::endl;
+															}
 														}
 													// otherwise, directly apply the algorithm
 													else 
@@ -578,8 +581,9 @@ Eigen::MatrixXd UnitTensorMatrix(
 															if (temp_matrix.any())
 															{
 																unit_tensor_rme_map[NpN_pair][unit_labels]
-																	=u3::UnitTensorMatrix(lgi_pair,NSectorPointers, irrepp, irrep, unit_labels);
-															//std::cout<<unit_tensor_rme_map[NpN_pair][unit_labels]<<std::endl;
+																	=temp_matrix;
+																//std::cout<<temp_matrix<<std::endl;
+
 															}
 														}
 												}
