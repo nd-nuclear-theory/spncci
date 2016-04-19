@@ -1,10 +1,11 @@
 Installation notes for spncci
 
   3/7/16 (aem,mac): Created.
+  4/19/16 (mac): Updated.
 
 ----------------------------------------------------------------
 
-Basic installation (3/22/16)
+Basic installation
 
 *) Retrieving source:
 
@@ -18,14 +19,19 @@ Then switch to the desired development branch, e.g.,
 
   git checkout u3devel
 
+There are sometimes issues with retrieving the correct commit of the
+am subpackage.  If issues arise...
+
+  cd libraries/am
+  git fetch
+  git merge origin/master
+
 *) Set up config.mk.  An example file config_generic-gcc4.mk is
 provided.  If you are using GCC, you can start by simply copying this
 example file to config.mk.
 
 Make sure the appropriate compiler suite is loaded.  Note: Current
-testing is on gcc 4.5..4.8.  Fails on gcc 4.4.
-
-On the ND CRC: module load gsl
+testing is on gcc 4.5..4.9.  Fails on gcc 4.4.
 
 *) Make sure the Eigen 3 header files are installed somewhere
 accessible, and add this path to config.mk.
@@ -64,23 +70,22 @@ Thus, in config.mk, we should have
 
   search_prefix := $(HOME)/local/opt/eigen-3.2.7
 
-*) Make sure GSL is accessible.
+*) Make sure GSL is accessible, and that its path is properly
+ specified in config.mk.
 
-On the ND CRC: module load gsl
+  On the ND CRC, this is simply a module load.  See below.
+
+*) Load modules: On the ND CRC...
+
+  module load gcc/4.9.2
+  module load gsl
+  module load boost/1.58
 
 *) make all
 
 If you encounter the error "cannot find -lm", then the math libraries
 are not available for static linking on your installation. In
 config.mk, comment out the line "CXXFLAGS += -static".
-
-----------------------------------------------------------------
-
-If subpackage am has been updated upstream:
-
-   cd libraries/am
-   git fetch
-   git merge origin/master
 
 ----------------------------------------------------------------
 
