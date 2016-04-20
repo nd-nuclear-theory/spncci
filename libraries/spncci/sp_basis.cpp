@@ -43,7 +43,7 @@ namespace spncci
 
     // open input file
     std::ifstream lgi_stream(lgi_filename.c_str());
-    OpenCheck(lgi_stream,lgi_filename);
+    OpenCheck(bool(lgi_stream),lgi_filename);  // explicit cast to bool required in gcc 5
 
     // scan input file
     std::string line;
