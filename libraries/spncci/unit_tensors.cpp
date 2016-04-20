@@ -198,7 +198,7 @@ namespace spncci
 
                       int r1=N_greater?rbp:rb;
                       int r2=N_greater?rb:rbp;
-                      if (r1>(Nn+N1b)|| r2>(Nnp+N1b))
+                      if (r1>(Nn+N1b+lgi.Nex)|| r2>(Nnp+N1b+lgip.Nex))
                         continue;
 
                       u3::SU3 lm=N_greater?omegap.SU3():omega.SU3();
@@ -257,12 +257,10 @@ namespace spncci
     spncci::LGI  lgi  = lgi_vector[lgi_pair.second];
 
     std::tie(omegap,omega,tensor,rho0) = unit_labels.Key();
-    // u3::U3 omegap = unit_labels.omegap();
-    // u3::U3 omega  = unit_labels.omega();
 	
     sp3r::U3Subspace u3_subspacep = irrepp.LookUpSubspace(omegap);
     sp3r::U3Subspace u3_subspace  = irrep.LookUpSubspace(omega);
-    // int rho0=unit_labels.rho0();
+
     int Nn=int(omega.N()-lgi.sigma.N());
     int Nnp=int(omegap.N()-lgip.sigma.N());
 
@@ -279,10 +277,6 @@ namespace spncci
 
     Eigen::MatrixXd Kp=K_matrix_map_lgip[omegap];
     Eigen::MatrixXd K_inv=K_matrix_map_lgi[omega].inverse();
-
-    // setting up pointers to relevant lower lever unit tensors
-    // const std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& NpN2=NSectorPointers[0];
-    // const std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& NpN4=NSectorPointers[1];
 
     // Precalculating kronecker products used in sum to calculate unit tensor matrix
     MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
@@ -358,7 +352,7 @@ namespace spncci
             // summing over rho0'
             for (int rho0p=1; rho0p<=rho0p_max; rho0p++)
               {
-                std::pair<int,int>NpN4_pair(Nnp-2,Nn-2);
+                // std::pair<int,int>NpN4_pair(Nnp-2,Nn-2);
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // third term
                 // sum over omega'', v'' and rho0''
@@ -371,7 +365,7 @@ namespace spncci
                                    );
                 //Initilize 3rd-term-unit-tensor matrix
                 Eigen::MatrixXd unit3_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
-                if ( rbp<=(Nnp-2+N1b) && rb<=(Nn-2+N1b) )
+                if ( rbp<=(Nnp-2+N1b+lgip.Nex) && rb<=(Nn-2+N1b+lgi.Nex) )
                   {	
                     // Summing over omega''
                     for (int wpp=0; wpp<omegapp_set.size(); wpp++)
@@ -380,9 +374,9 @@ namespace spncci
                         u3::U3 omegapp(omegapp_set[wpp].irrep);
                         if (not irrepp.ContainsSubspace(omegapp))
                           continue;
+                        spncci::UnitTensorU3Sector unit_U3Sectors1(omegapp,omega1,spncci::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1);
                         if (
-                            (sector_NpN4).count(
-                                                spncci::UnitTensorU3Sector(omegapp,omega1,spncci::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1))==0
+                            (sector_NpN4).count(unit_U3Sectors1)==0
                             )
                           continue;						
                         // omega'' subspace (v'')
