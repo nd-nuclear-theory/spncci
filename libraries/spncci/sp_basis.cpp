@@ -281,7 +281,7 @@ namespace spncci
     return dimension;
   }
 
-  std::vector< std::pair<int,int> > LGIPairGenerator(spncci::LGIVectorType lgi_vector )
+  std::vector< std::pair<int,int> > GenerateLGIPairs(spncci::LGIVectorType lgi_vector )
   {
     std::vector< std::pair<int,int> >  lgi_pair_vector;
     for(int i=0; i<lgi_vector.size(); i++)

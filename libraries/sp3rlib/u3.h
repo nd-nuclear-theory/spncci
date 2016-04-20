@@ -68,7 +68,7 @@ namespace u3
 
     inline KeyType Key() const
     {
-      assert(false);
+      //assert(false);
       return KeyType(lambda(),mu());
     }
 

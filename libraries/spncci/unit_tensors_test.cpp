@@ -29,7 +29,7 @@ int main(int argc, char **argv)
  	HalfInt Nsigma_0 = HalfInt(11,1);
  	int N1b=2;
   // input file containing LGI's
-	std::string filename = "/libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+	std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
 
 	// Generate vector of LGI's from input file 
 	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
             std::pair<int,int>, 
             std::map<
               std::pair<int,int>,
-              std::map< spncci::UnitTensorRME,Eigen::MatrixXd> 
+              std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd> 
               >
           > lgi_unit_tensor_rme_map;
 
@@ -63,33 +63,40 @@ int main(int argc, char **argv)
   for (int i=0; i<lgi_pair_vector.size(); i++)
   	{
       std::pair<int,int> lgi_pair=lgi_pair_vector[i];
-  		u3::U3 sigmap=lgi_vector[lgi_pair.first].sigma;
+      spncci::LGI lgip=lgi_vector[lgi_pair.first];
+      spncci::LGI lgi=lgi_vector[lgi_pair.second];
+  		u3::U3 sigmap=lgip.sigma;
   		
       // operator boson number between to lgi's
-  		u3::U3 sigma=lgi_vector[lgi_pair.second].sigma;
+  		u3::U3 sigma=lgi.sigma;
   		int N0=int(sigmap.N()-sigma.N());
   		
-  		std::map <spncci::UnitTensorRME, Eigen::MatrixXd> temp_unit_map;
-      
+  		std::map <spncci::UnitTensorU3Sector, Eigen::MatrixXd> temp_unit_map;
+      int S0, rp,r;
+      u3::U3 omega0;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
   		//////////////////////////////////////////////////////////////////////////////////////////////
-      std::pair<int,int> N0_pair(lgi_vector[lgi_pair.first].Nex,lgi_vector[lgi_pair.second].Nex);
+      std::pair<int,int> N0_pair(lgip.Nex,lgi.Nex);
       for (int j=0; j<unit_sym_map[N0].size(); j++)
   			{
   				Eigen::MatrixXd temp_matrix(1,1);
   				temp_matrix(0,0)=1;
 					
 					spncci::UnitTensor unit_tensor=unit_sym_map[N0][j];
-					int rho0_max=u3::OuterMultiplicity(sigma.SU3(),unit_tensor.omega0.SU3(), sigmap.SU3());
+          std::tie (omega0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore);
+					int rho0_max=u3::OuterMultiplicity(sigma.SU3(),omega0.SU3(), sigmap.SU3());
 					for (int rho0=1; rho0<=rho0_max; rho0++)
 						{
-  						if (unit_tensor.rp<=(N1b+(sigmap.N()-Nsigma_0)) && unit_tensor.r<=(N1b+(sigma.N()-Nsigma_0)))
-  						{
-	  						//std::cout<<unit_tensor.Str()<<std::endl;
-	  						temp_unit_map[spncci::UnitTensorRME(sigmap,sigma,unit_tensor,rho0)]=temp_matrix;
-  							
-  						}
+  						if (
+                rp<=(N1b+lgip.Nex) 
+                && r<=(N1b+lgi.Nex)
+                && abs(lgi.S+S0)>=lgip.S
+                )
+    						{
+  	  						//std::cout<<unit_tensor.Str()<<std::endl;
+  	  						temp_unit_map[spncci::UnitTensorU3Sector(sigmap,sigma,unit_tensor,rho0)]=temp_matrix;	
+    						}
   					}
   			}
   		lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
