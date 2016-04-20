@@ -25,7 +25,7 @@ namespace u3
     
 
     double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
-    su3lib::wu3r3w_(x1.lambda, x1.mu, x2.lambda, x2.mu, x3.lambda, x3.mu, L1 , L2, L3, r0,1,1,1, w_array);
+    su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, r0,1,1,1, w_array);
     //Using row-major C to access column-major Fortran array
     return w_array[k3-1][k2-1][k1-1][r0-1];
   }
@@ -37,7 +37,7 @@ namespace u3
     int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
     std::vector<double> u_array(r_max);
     su3lib::wru3optimized_(
-         x1.lambda, x1.mu, x2.lambda, x2.mu, x.lambda, x.mu, x3.lambda, x3.mu, x12.lambda, x12.mu, x23.lambda, x23.mu,
+         x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
          r12_max, r12_3_max, r23_max, r1_23_max, 
          &u_array[0], r_max
          ); 
@@ -55,8 +55,8 @@ namespace u3
     int r1_23_max=u3::OuterMultiplicity(x1,x23,x);
     int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
     // std::cout<<
-    // x1.lambda<<"  "<< x1.mu<<"  "<< x2.lambda<<"  "<< x2.mu<<"  "<< x.lambda<<"  "<< x.mu<<"  "<< 
-    // x3.lambda<<"  "<< x3.mu<<"  "<< x12.lambda<<"  "<< x12.mu<<"  "<< x23.lambda<<"  "<< x23.mu<<"  "<<
+    // x1.lambda()<<"  "<< x1.mu()<<"  "<< x2.lambda()<<"  "<< x2.mu()<<"  "<< x.lambda()<<"  "<< x.mu()<<"  "<< 
+    // x3.lambda()<<"  "<< x3.mu()<<"  "<< x12.lambda()<<"  "<< x12.mu()<<"  "<< x23.lambda()<<"  "<< x23.mu()<<"  "<<
     // r12_max<<"  "<< r12_3_max<<"  "<< r23_max<<"  "<< r1_23_max<<
     // std::endl;
     
@@ -74,7 +74,7 @@ namespace u3
     std::vector<double> u_array(r_max);
 
     su3lib::wru3optimized_(
-			   x1.lambda, x1.mu, x2.lambda, x2.mu, x.lambda, x.mu, x3.lambda, x3.mu, x12.lambda, x12.mu, x23.lambda, x23.mu,
+			   x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
 			   r12_max, r12_3_max, r23_max, r1_23_max, 
 			   &u_array[0], r_max
 			   );
@@ -93,8 +93,8 @@ namespace u3
     std::vector<double> u_array;
     u_array.resize(r_max);
     su3lib::wzu3optimized_(
-      x1.lambda, x1.mu, x2.lambda, x2.mu, x.lambda, x.mu, 
-      x3.lambda, x3.mu, x12.lambda, x12.mu, x23.lambda, x23.mu,
+      x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), 
+      x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
       r12_max, r12_3_max, r23_max, r1_23_max, 
       &u_array[0], r_max);
 
@@ -133,9 +133,9 @@ namespace u3
       double NLM_array[r_max];
       //NLM_array.resize(r_max);
       su3lib::wu39lm_(
-        x1.lambda, x1.mu, x2.lambda, x2.mu, x12.lambda, x12.mu,
-        x3.lambda, x3.mu, x4.lambda, x4.mu, x34.lambda, x34.mu,
-        x13.lambda, x13.mu, x24.lambda, x24.mu, x.lambda, x.mu,
+        x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x12.lambda(), x12.mu(),
+        x3.lambda(), x3.mu(), x4.lambda(), x4.mu(), x34.lambda(), x34.mu(),
+        x13.lambda(), x13.mu(), x24.lambda(), x24.mu(), x.lambda(), x.mu(),
         NLM_array,r_max
         );    
       return NLM_array[index];

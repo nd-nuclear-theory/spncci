@@ -19,6 +19,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/functional/hash.hpp>
+
 #include "am/halfint.h"
 #include "utilities/utilities.h"
 #include "utilities/multiplicity_tagged.h"
@@ -32,29 +34,33 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-  struct SU3
+  class SU3
   {
 
     ////////////////////////////////////////////////////////////////
     // typedefs
     ////////////////////////////////////////////////////////////////
 
+  public:
     typedef std::pair<int,int> KeyType;
 
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
+  public:
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
     // default constructor
     inline SU3() 
-      : lambda(0), mu(0) {}
+      : lambda_(0), mu_(0) {}
     
     // construction from (lambda,mu)
-    inline SU3(int lambda_, int mu_) 
-      : lambda(lambda_), mu(mu_) {}
+    //
+    // underscore on arguments avoids name clash with accessors
+    inline SU3(int lambda, int mu) 
+      : lambda_(lambda), mu_(mu) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -62,7 +68,31 @@ namespace u3
 
     inline KeyType Key() const
     {
-      return KeyType(lambda,mu);
+      assert(false);
+      return KeyType(lambda(),mu());
+    }
+
+    inline int lambda() const
+    {
+      return lambda_;
+    }
+
+    inline int mu() const
+    {
+      return mu_;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+
+    static const int label_width = 8;
+    inline friend std::size_t hash_value(const SU3& x)
+    {
+      int packed_labels = (x.lambda_ << label_width) | (x.mu_ << 0);
+
+      boost::hash<int> hasher;
+      return hasher(packed_labels);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -74,11 +104,18 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
+   
+  private:
 
     // Elliott labels
-    int lambda, mu;
+    int lambda_, mu_;
+
+    // Could save memory by packing labels into a uint16_t:
+    // uint16_t packed_labels_;
+    // packed_labels_ = (lambda << label_width) | (mu << 0);
 
   };
+
 
   ////////////////////////////////////////////////////////////////
   // relational operators
@@ -103,31 +140,31 @@ namespace u3
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
-    return (x.lambda+1)*(x.mu+1)*(x.lambda+x.mu+2)/2;
+    return (x.lambda()+1)*(x.mu()+1)*(x.lambda()+x.mu()+2)/2;
   }
 
   inline u3::SU3 Conjugate(const u3::SU3& x)
   // Conjugate irrep.
   {
-    return u3::SU3(x.mu,x.lambda);
+    return u3::SU3(x.mu(),x.lambda());
   }
 
   inline int ConjugationGrade(const u3::SU3& x)
   // Integer contribution to phase on conjugation.
   {
-    return x.mu + x.lambda;
+    return x.mu() + x.lambda();
   }
 
   inline double Casimir2( const u3::SU3& x)
   //Second order Casimir 
   {
-    return 2./3*(sqr(x.lambda)+x.lambda*x.mu+sqr(x.mu)+3*x.lambda+3*x.mu);
+    return 2./3*(sqr(x.lambda())+x.lambda()*x.mu()+sqr(x.mu())+3*x.lambda()+3*x.mu());
   } 
 
   inline double Casimir3(const u3::SU3& x)
   //Third order Casimir
   {
-    return 1./9*(x.lambda-x.mu)*(x.lambda+2*x.mu+3)*(2*x.lambda+x.mu+3);
+    return 1./9*(x.lambda()-x.mu())*(x.lambda()+2*x.mu()+3)*(2*x.lambda()+x.mu()+3);
   }
   
   ////////////////////////////////////////////////////////////////
@@ -136,14 +173,16 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-  struct U3
+class U3
   {
 
     ////////////////////////////////////////////////////////////////
     // typedefs
     ////////////////////////////////////////////////////////////////
 
+  public:
     typedef std::pair<HalfInt,u3::SU3> KeyType;
+    // typedef std::tuple<HalfInt,HalfInt,HalfInt> KeyType;
 
     ////////////////////////////////////////////////////////////////
     // constructors
@@ -154,15 +193,15 @@ namespace u3
 
     // default constructor
     inline U3() 
-      : f1(0), f2(0), f3(0) {}
+      : f1_(0), f2_(0), f3_(0) {}
 
 
     // construction from f1,f2,f3
-    inline U3(const HalfInt& f1_, const HalfInt& f2_, const HalfInt& f3_) 
-      : f1(f1_), f2(f2_), f3(f3_) {}
+    inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3) 
+      : f1_(f1), f2_(f2), f3_(f3) {}
 
     // construction from N and lm
-    inline U3(const HalfInt& N_, const u3::SU3& lm_);
+    inline U3(const HalfInt& N_, const u3::SU3& x_);
 
     ////////////////////////////////////////////////////////////////
     // validation
@@ -175,33 +214,66 @@ namespace u3
     // but we also allow conjugate representations with all labels
     // nonpositive (f1<=0).
     {
-      return (f1 >= f2) && (f2 >= f3) && ((f3>=0) || (f1<=0));
+      return (f1_ >= f2_) && (f2_ >= f3_) && ((f3_ >=0 ) || (f1_ <= 0));
     }
 
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    // access N and SU(3) part
+    // access Cartesian labels
+
+    inline HalfInt f1() const
+    {
+      return f1_;
+    }
+
+    inline HalfInt f2() const
+    {
+      return f2_;
+    }
+
+    inline HalfInt f3() const
+    {
+      return f3_;
+    }
+
+    // access N and SU(3) parts
     
     // Note: Meed to use explicit reference to u3::SU3 since name is
     // masked here by u3::U3::SU3.
 
     inline HalfInt N() const
     {
-      return f1+f2+f3;
+      return f1_+f2_+f3_;
     }
 
     inline u3::SU3 SU3() const
     {
-      int lambda = int(f1-f2);
-      int mu = int(f2-f3);
+      int lambda = int(f1_-f2_);
+      int mu = int(f2_-f3_);
       return u3::SU3(lambda,mu);
     }
 
     inline KeyType Key() const
     {
       return KeyType(N(),SU3());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+
+    static const int label_width = 12;
+    inline friend std::size_t hash_value(const U3& omega)
+    {
+      int packed_labels =
+        (TwiceValue(omega.f1_) << 2*label_width)
+        | (TwiceValue(omega.f2_) << label_width)
+        | (TwiceValue(omega.f3_) << 0);
+
+      boost::hash<int> hasher;
+      return hasher(packed_labels);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -214,8 +286,9 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
 
+  private:
     // Cartesian labels
-    HalfInt f1, f2, f3;
+    HalfInt f1_, f2_, f3_;
 
   };
 
@@ -229,15 +302,14 @@ namespace u3
       // recover f3 first
       // N - 2mu - lambda = (f1+f2+f3)-2*(f2-f3)-(f1-f2) = 3*f3
       // but since division is not defined for HalfInt, work with twice value for division purposes
-      int twice_f3 = TwiceValue(N_-2*lm_.mu-lm_.lambda) / 3;
-      f3 = HalfInt(twice_f3,2);
+      int twice_f3 = TwiceValue(N_-2*lm_.mu()-lm_.lambda()) / 3;
+      f3_ = HalfInt(twice_f3,2);
       
       // recover f2 and f1
-      f2 = f3 + lm_.mu;
-      f1 = f2 + lm_.lambda;
+      f2_ = f3_ + lm_.mu();
+      f1_ = f2_ + lm_.lambda();
 
     }
-
 
   ////////////////////////////////////////////////////////////////
   // relational operators
@@ -282,6 +354,8 @@ namespace u3
   // U(3) x SU(2) irrep
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
+
+  // TODO (if ever used): upgrade from struct to class and add hash_value
 
   struct U3S
   {
@@ -373,6 +447,8 @@ namespace u3
   // U(3) x SU(2)x SU(2) irrep
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
+
+  // TODO (if ever used): upgrade from struct to class and add hash_value
 
   struct U3ST
   {

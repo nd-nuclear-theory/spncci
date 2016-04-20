@@ -107,6 +107,7 @@ namespace spncci
     HalfInt Sp, Sn, S;
 
     // quick-reference information
+  private:
     const sp3r::Sp3RSpace* irrep_ptr;
   };
 

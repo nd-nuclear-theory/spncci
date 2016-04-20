@@ -38,9 +38,9 @@ namespace vcs
   //   (double) : Omega factor
   {
     double value=0;
-    value += (2*sqr(double(omega.f1))-sqr(double(n.f1))+8*(double(omega.f1)-double(n.f1))-2*(2*double(omega.f1)-double(n.f1)));
-    value += (2*sqr(double(omega.f2))-sqr(double(n.f2))+8*(double(omega.f2)-double(n.f2))-4*(2*double(omega.f2)-double(n.f2)));
-    value += (2*sqr(double(omega.f3))-sqr(double(n.f3))+8*(double(omega.f3)-double(n.f3))-6*(2*double(omega.f3)-double(n.f3)));
+    value += (2*sqr(double(omega.f1()))-sqr(double(n.f1()))+8*(double(omega.f1())-double(n.f1()))-2*(2*double(omega.f1())-double(n.f1())));
+    value += (2*sqr(double(omega.f2()))-sqr(double(n.f2()))+8*(double(omega.f2())-double(n.f2()))-4*(2*double(omega.f2())-double(n.f2())));
+    value += (2*sqr(double(omega.f3()))-sqr(double(n.f3()))+8*(double(omega.f3())-double(n.f3()))-6*(2*double(omega.f3())-double(n.f3())));
     return value/4.;
 
   }
@@ -58,7 +58,7 @@ namespace vcs
   // Calculate the K^2 matrix elements
 
   double U3BosonCreationRME(
-  const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
+  const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop, const u3::U3& omegap,
   const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega);
 
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep,std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map);

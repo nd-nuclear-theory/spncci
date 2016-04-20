@@ -20,7 +20,7 @@ namespace u3
   {
     std::ostringstream ss;
 
-    ss << "(" << lambda << "," << mu << ")";
+    ss << "(" << lambda() << "," << mu() << ")";
     return ss.str();
   }
 
@@ -56,7 +56,7 @@ namespace u3
   int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
   {
     int multiplicity = 0;
-    int Nx = (x1.lambda-x1.mu) + (x2.lambda-x2.mu) - (x3.lambda-x3.mu);
+    int Nx = (x1.lambda()-x1.mu()) + (x2.lambda()-x2.mu()) - (x3.lambda()-x3.mu());
 
     // short circuit
     if ((Nx%3)!=0)
@@ -82,11 +82,11 @@ namespace u3
       }
     
     // main calculation
-    Nx = Mx+y1.mu+y2.mu-y3.mu;
-    int Mu = std::min(y1.lambda-Mx,y2.mu);
+    Nx = Mx+y1.mu()+y2.mu()-y3.mu();
+    int Mu = std::min(y1.lambda()-Mx,y2.mu());
     if (Mu>=0)
       {
-	int Nu = std::min(y2.lambda-Mx,y1.mu);
+	int Nu = std::min(y2.lambda()-Mx,y1.mu());
 	if (Nu>=0)
 	  multiplicity = std::max(std::min(Nx,Nu)-std::max(Nx-Mu,0)+1,0);
       }
@@ -99,14 +99,14 @@ namespace u3
     // calculate bounds on (lambda3,mu3)
     int lambda3_min = 0;  // could be further constrained
     int mu3_min = 0;  // could be further constrained
-    int lambda3_max = x1.lambda+x2.lambda+std::min(x2.mu,x1.lambda+x1.mu);  // asymmetric expression, may be further constrained
-    int mu3_max = x1.mu+x2.mu+std::min(x1.lambda,x2.lambda);
+    int lambda3_max = x1.lambda()+x2.lambda()+std::min(x2.mu(),x1.lambda()+x1.mu());  // asymmetric expression, may be further constrained
+    int mu3_max = x1.mu()+x2.mu()+std::min(x1.lambda(),x2.lambda());
 
     // allocate container for product
 
     // Is this max_entries too big?
     //
-    // SU3::Couple just reserves x1.lambda+x2.lambda+x1.mu+x2.mu.
+    // SU3::Couple just reserves x1.lambda()+x2.lambda()+x1.mu()+x2.mu().
     //
     // TESTING: compare final size() with final capacity()
     //
@@ -159,9 +159,9 @@ namespace u3
   int BranchingMultiplicitySO3(const u3::SU3& x, int L)
   {
     int multiplicity 
-      = std::max(0,(x.lambda+x.mu+2-L)/2)
-      - std::max(0,(x.lambda+1-L)/2)
-      - std::max(0,(x.mu+1-L)/2);
+      = std::max(0,(x.lambda()+x.mu()+2-L)/2)
+      - std::max(0,(x.lambda()+1-L)/2)
+      - std::max(0,(x.mu()+1-L)/2);
     return multiplicity;
   }
 
@@ -169,8 +169,8 @@ namespace u3
   {
 
     // calculate bound on L
-    int L_min = std::min(x.lambda,x.mu)%2;
-    int L_max = x.lambda+x.mu;
+    int L_min = std::min(x.lambda(),x.mu())%2;
+    int L_max = x.lambda()+x.mu();
 
     // allocate container for product
     MultiplicityTagged<int>::vector branching;
@@ -192,8 +192,8 @@ namespace u3
   {
 
     // calculate bound on L
-    int L_min = std::max(std::min(x.lambda,x.mu)%2,int(r.first));
-    int L_max = std::min(x.lambda+x.mu,int(r.second));
+    int L_min = std::max(std::min(x.lambda(),x.mu())%2,int(r.first));
+    int L_max = std::min(x.lambda()+x.mu(),int(r.second));
 
     // allocate container for product
     MultiplicityTagged<int>::vector branching;
