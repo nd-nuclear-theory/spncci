@@ -29,13 +29,17 @@ int main(int argc, char **argv)
  	HalfInt Nsigma_0 = HalfInt(11,1);
  	int N1b=2;
   // input file containing LGI's
-	std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+	std::string filename = "/libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
 
 	// Generate vector of LGI's from input file 
 	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
 
+  spncci::SigmaIrrepMapType sigma_irrep_map;
+  spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
+  spncci::GenerateSp3RIrreps(lgi_vector,sigma_irrep_map,truncator);
+
   // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
-  std::vector< std::pair<int,int> > lgi_pair_vector=spncci::LGIPairGenerator(lgi_vector);
+  std::vector< std::pair<int,int> > lgi_pair_vector=spncci::GenerateLGIPairs(lgi_vector);
 
   // generate map that stores unit tensor labels keyed by N0
   std::map< int, std::vector<u3::UnitTensor> > unit_sym_map;

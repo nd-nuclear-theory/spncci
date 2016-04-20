@@ -63,9 +63,9 @@ namespace u3
 			i_min=NPartition[Nn/2];
 		// Ending index+1.   
 		if (Nn==Nmax)
-			i_max=irrep_size;
+			i_max=irrep_size-1;
 		else 
-			i_max=NPartition[(Nn+2)/2];
+			i_max=NPartition[(Nn+2)/2]-1;
 		return std::pair<int,int>(i_min,i_max);
 	}
 
@@ -113,7 +113,8 @@ Eigen::MatrixXd UnitTensorMatrix(
 	// LGI pair sector 
 	const std::pair<int,int> lgi_pair,
 	// vector of addresses to relevant Np,N sectors of unit tensor matrix
-	std::vector< std::map< u3::UnitTensorRME,Eigen::MatrixXd >*> NSectorPointers,
+	std::map< u3::UnitTensorRME,Eigen::MatrixXd >& sector_NpN2,
+	std::map< u3::UnitTensorRME,Eigen::MatrixXd >& sector_NpN4,
 	// sigma' irrep
 	const sp3r::Sp3RSpace& irrepp,
 	// sigma irrep
@@ -160,8 +161,8 @@ Eigen::MatrixXd UnitTensorMatrix(
 	Eigen::MatrixXd K_inv=K_matrix_map_lgi[omega].inverse();
 
 	// setting up pointers to relevant lower lever unit tensors
-	std::map< u3::UnitTensorRME,Eigen::MatrixXd >* NpN2=NSectorPointers[0];
-	std::map< u3::UnitTensorRME,Eigen::MatrixXd >* NpN4=NSectorPointers[1];
+	// const std::map< u3::UnitTensorRME,Eigen::MatrixXd >& NpN2=NSectorPointers[0];
+	// const std::map< u3::UnitTensorRME,Eigen::MatrixXd >& NpN4=NSectorPointers[1];
 
 	// Precalculating kronecker products used in sum to calculate unit tensor matrix
 	MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
@@ -260,7 +261,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 										  if (not irrepp.ContainsSubspace(omegapp))
 			      						continue;
 			      					if (
-			      						(*NpN4).count(
+			      						(sector_NpN4).count(
 			      						u3::UnitTensorRME(omegapp,omega1,u3::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1))==0
 			      						)
 			      						continue;						
@@ -303,12 +304,12 @@ Eigen::MatrixXd UnitTensorMatrix(
 														u3::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),rho0pp
 														);
 
-													assert((*NpN4).count(unit3_labels)>0);
+													assert(sector_NpN4.count(unit3_labels)>0);
 
 													unit3pp_matrix+=
 													u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
 														omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
-														*(*NpN4)[unit3_labels];
+														*sector_NpN4[unit3_labels];
 
 												} //end rho0pp
 											// matrix product (v',v')*(v',v'')*(v'',v1)
@@ -326,7 +327,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 						  if (u3::OuterMultiplicity(u3::SU3(rbp,0),u3::SU3(0,rb-2),omega0p.SU3())>0 && (rb-2)>=0)
 								{
 									u3::UnitTensorRME unit1_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp,Sbp,Tbp,rb-2,Sb,Tb),rho0p);
-									if ( (*NpN2).count(unit1_labels)!=0)
+									if ( sector_NpN2.count(unit1_labels)!=0)
 										{
 											double coef1=(
 												u3::U(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
@@ -335,7 +336,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 													omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1)
 												*sqrt(1.*u3::dim(omega0p)*Choose(rb,2)/u3::dim(omega0))
 												);											
-											unit_matrix+=coef1*(*NpN2)[unit1_labels];
+											unit_matrix+=coef1*sector_NpN2[unit1_labels];
 										}
 								}
 							//std::cout<< "term1 "<<unit_matrix<<std::endl;
@@ -352,7 +353,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 								{
 									u3::UnitTensorRME unit2_labels(omegap,omega1,u3::UnitTensor(omega0p,S0,T0,rbp+2,Sbp,Tbp,rb,Sb,Tb),rho0p);
 									double coef2;
-									if((*NpN2).count(unit2_labels)>0)
+									if(sector_NpN2.count(unit2_labels)>0)
 										{
 											
 
@@ -371,7 +372,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 														/(u3::dim(omega0)*u3::dim(u3::SU3(rbp+2,0)))
 														)
 													);
-											unit_matrix+=coef2*(*NpN2)[unit2_labels];
+											unit_matrix+=coef2*sector_NpN2[unit2_labels];
 										}
 								}
 							//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,8 +421,10 @@ Eigen::MatrixXd UnitTensorMatrix(
 
 	  //Generate Sp(3,R) irreps
 	  // TODO replace Nmax-lgip.Nex with truncator function 
-		sp3r::Sp3RSpace irrepp(lgip.sigma,Nmax-lgip.Nex);
-		sp3r::Sp3RSpace irrep(lgi.sigma, Nmax-lgi.Nex);
+		//const sp3r::Sp3RSpace& irrepp=*lgip.irrep_ptr;//irrepp(lgip.sigma,Nmax-lgip.Nex);
+		const sp3r::Sp3RSpace& irrepp=lgip.Sp3RSpace();
+		const sp3r::Sp3RSpace& irrep=lgi.Sp3RSpace();
+		//sp3r::Sp3RSpace irrep(lgi.sigma, Nmax-lgi.Nex);
 		int irrep_size=irrep.size();
 		int irrepp_size=irrepp.size();
 		// partition irreps by Nn and Nnp.  Each int in vector corresponds to the start of the next N space 
@@ -445,7 +448,7 @@ Eigen::MatrixXd UnitTensorMatrix(
 		////////////////////////////////////////////////////////////////////////////////////
 		// Looping over omega' and omega subspaces 
 		////////////////////////////////////////////////////////////////////////////////////
-		for (int Nsum=0; Nsum<2*Nmax; Nsum+=2)
+		for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
 			for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
 				{
 					int Nn=Nsum-Nnp;
@@ -454,38 +457,41 @@ Eigen::MatrixXd UnitTensorMatrix(
 					//std::cout<<"initial set up "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
 					// Setting up vector of pointers to the (Nnp,Nn-2) and (Nnp-2,Nn-2) sectors in
 					// the unit tensor map for the thwo different cases
-					std::vector< std::map< u3::UnitTensorRME,Eigen::MatrixXd >*> NSectorPointers;
-					
+					//std::vector< std::map< u3::UnitTensorRME,Eigen::MatrixXd >*> NSectorPointers;
+					std::pair<int,int> NpN2, NpN4;
 					if (Nnp!=0 && Nn==0)
 						{
-							NSectorPointers.push_back(&unit_tensor_rme_map[std::pair<int,int>(Nn,Nnp-2)]);
-							NSectorPointers.push_back(&unit_tensor_rme_map[std::pair<int,int>(Nn-2,Nnp-2)]);
-						}
-					else
-						{
-							NSectorPointers.push_back(&unit_tensor_rme_map[std::pair<int,int>(Nnp,Nn-2)]);
-							NSectorPointers.push_back(&unit_tensor_rme_map[std::pair<int,int>(Nnp-2,Nn-2)]);
+							NpN2=std::pair<int,int>(Nn,Nnp-2);
+							NpN4=std::pair<int,int>(Nn-2,Nnp-2);
 						}
 
+					else
+						{
+							NpN2=std::pair<int,int>(Nnp,Nn-2);
+							NpN4=std::pair<int,int>(Nnp-2,Nn-2);
+						}
+					std::map< u3::UnitTensorRME,Eigen::MatrixXd >& sector_NpN2=unit_tensor_rme_map[NpN2];
+					std::map< u3::UnitTensorRME,Eigen::MatrixXd >& sector_NpN4=unit_tensor_rme_map[NpN4];
 					// Selecting section of spaces to iterate over
 					int ip_min, ip_max, i_min, i_max;
 					std::tie (i_min,i_max)=GetNSectorIndices(Nmax, irrep_size, Nn, NPartition);
 					std::tie (ip_min,ip_max)=GetNSectorIndices(Nmax, irrepp_size, Nnp, NpPartition);
 					
+					// Get set of operator labels for given omega'omega sector
+					std::vector<u3::UnitTensor>& operator_set=unit_sym_map[abs(int(lgip.sigma.N()-lgi.sigma.N())+Nnp-Nn)];
+
 					//  omega' subspace
-					for(int ip=ip_min; ip<ip_max; ip++ )
+					for(int ip=ip_min; ip<=ip_max; ip++ )
 						{
 							//sp3r::U3Subspace& u3_subspace=irrep.GetSubspace(i);
 							u3::U3 omegap=irrepp.GetSubspace(ip).GetSubspaceLabels();		 
 							//omega subspace
-							for(int i=i_min; i<i_max; i++ )
+							for(int i=i_min; i<=i_max; i++ )
 								{
 									//sp3r::U3Subspace& u3_subspacep=irrepp.GetSubspace(ip);
 									u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
 									
 									std::pair<int,int> NpN_pair(Nnp,Nn);
-									// Get set of operator labels for given omega'omega sector
-									std::vector<u3::UnitTensor>& operator_set=unit_sym_map[abs(int(omegap.N()-omega.N()))];
 									// Iterating over the operator labels 						
 									for (int w=0; w<operator_set.size(); w++)
 										{						      		
@@ -493,34 +499,25 @@ Eigen::MatrixXd UnitTensorMatrix(
 
 											//unpack unit_tensor labels 
 											std::tie (omega0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = unit_tensor.Key();
-
 											///////////////////////////////////////////////////////////////////////////////////////
 											// defining rho0_max for the two cases 
 											///////////////////////////////////////////////////////////////////////////////////////
 											// 
-											int rho0_max;
-											if ((omegap.N()-omega.N())<0)
-												{
-													if( (rbp > (Nn+N1b)) || (rb > (Nnp+N1b)) )
-														continue;
+											bool N_greater=(omegap.N()-omega.N())<0;
 
-													rho0_max=OuterMultiplicity(omegap.SU3(),omega0.SU3(),omega.SU3());
-												}
-											else 
-												{
-													if( (rb > (Nn+N1b)) || (rbp > (Nnp+N1b)) )
-														continue;
+											int r1=N_greater?rbp:rb;
+											int r2=N_greater?rb:rbp;
+											if (r1>(Nn+N1b)|| r2>(Nnp+N1b))
+												continue;
 
-													rho0_max=OuterMultiplicity(omega.SU3(),omega0.SU3(),omegap.SU3());
-												}	
+											u3::SU3 lm=N_greater?omegap.SU3():omega.SU3();
+											u3::SU3 lmp=N_greater?omega.SU3():omegap.SU3();
+											int rho0_max=OuterMultiplicity(lm,omega0.SU3(),lmp);
+
 											///////////////////////////////////////////////////////////////////////////////////////
 											// Iterating over outer multiplicity
 											for (int rho0=1; rho0<=rho0_max; rho0++)
 												{										
-													// if LGI, unit tensor matrix is already calculated 
-													if (omegap.N()==lgip.sigma.N() && omega.N()==lgi.sigma.N())
-															continue;
-
 													// otherwise, calculate unit tensor matrix.   
 													///////////////////////////////////////////////////////////////////////////////////////
 													u3::UnitTensorRME unit_labels;
@@ -530,23 +527,13 @@ Eigen::MatrixXd UnitTensorMatrix(
 													// need to calculate the conjugate transpose of the unit tensor matrix and then invert and multiply 
 													// by factor to obtain desired matrix
 													if (Nnp!=0 && Nn==0)
-	//												if (omegap.N()!=lgip.sigma.N() && omega.N()==lgi.sigma.N())
 														{
 															u3::UnitTensorRME unit_map_key(omegap,omega,unit_tensor,rho0);
-															unit_labels=u3::UnitTensorRME(
-																						omega,omegap,
-																						UnitTensor(u3::Conjugate(omega0),S0,T0,rb,Sb,Tb,rbp,Sbp,Tbp),
-																						rho0
-																					);
+															unit_labels=u3::UnitTensorRME(omega,omegap,UnitTensor(u3::Conjugate(omega0),S0,T0,rb,Sb,Tb,rbp,Sbp,Tbp),rho0);
 															//  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
 															//  corresponding to omega' and omega
-															temp_matrix=u3::UnitTensorMatrix(
-																	std::pair<int,int>(lgi_pair.second,lgi_pair.first),
-																	NSectorPointers, 
-																	irrep, 
-																	irrepp,
-																	unit_labels
-																	);
+															temp_matrix=u3::UnitTensorMatrix(std::pair<int,int>(lgi_pair.second,lgi_pair.first),
+																																	sector_NpN2, sector_NpN4, irrep, irrepp, unit_labels);
 															// if the matrix has non-zero entries,
 															if (temp_matrix.any())
 															{
@@ -563,26 +550,19 @@ Eigen::MatrixXd UnitTensorMatrix(
 														{
 															// In the case that omegap.N()< omega.N(), then the correct unit tensor symmetry will be the 
 															//  conjugate symmetry	
-															if ( (omegap.N()-omega.N())<0 )
-																// Operator labels are conjugates 
-																unit_labels=u3::UnitTensorRME(
-																							omegap,omega,
-																							u3::UnitTensor(Conjugate(omega0),S0, T0,rb,Sb,Tb,rbp,Sbp,Tbp),
-																							rho0
-																						);
-															else
-																unit_labels=u3::UnitTensorRME(omegap,omega,unit_tensor,rho0);
+															unit_labels=N_greater?
+																u3::UnitTensorRME(omegap,omega,u3::UnitTensor(Conjugate(omega0),S0, T0,rb,Sb,Tb,rbp,Sbp,Tbp),rho0):
+																u3::UnitTensorRME(omegap,omega,unit_tensor,rho0);
 															
 															//  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
 															//  corresponding to omega' and omega
-															temp_matrix=u3::UnitTensorMatrix(lgi_pair, NSectorPointers,irrepp, irrep, unit_labels);
+															temp_matrix=u3::UnitTensorMatrix(lgi_pair, sector_NpN2, sector_NpN4,irrepp, irrep, unit_labels);
 															
 															// If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
 															if (temp_matrix.any())
 															{
-																unit_tensor_rme_map[NpN_pair][unit_labels]
-																	=temp_matrix;
-																//std::cout<<temp_matrix<<std::endl;
+																unit_tensor_rme_map[NpN_pair][unit_labels]=temp_matrix;
+																std::cout<<temp_matrix<<std::endl;
 
 															}
 														}
