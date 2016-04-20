@@ -72,7 +72,8 @@ int main(int argc, char **argv)
   		int N0=int(sigmap.N()-sigma.N());
   		
   		std::map <spncci::UnitTensorU3Sector, Eigen::MatrixXd> temp_unit_map;
-      int S0, rp,r;
+      int rp,r;
+      HalfInt S0;
       u3::U3 omega0;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
@@ -84,7 +85,7 @@ int main(int argc, char **argv)
   				temp_matrix(0,0)=1;
 					
 					spncci::UnitTensor unit_tensor=unit_sym_map[N0][j];
-          std::tie (omega0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore);
+          std::tie (omega0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore)=unit_tensor.Key();
 					int rho0_max=u3::OuterMultiplicity(sigma.SU3(),omega0.SU3(), sigmap.SU3());
 					for (int rho0=1; rho0<=rho0_max; rho0++)
 						{
