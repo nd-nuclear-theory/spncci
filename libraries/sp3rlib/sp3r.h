@@ -15,15 +15,16 @@
 #define SP3R_H_
 
 #include <cassert>
+#include <cmath>
+
 #include <map>
 #include <sstream>
 #include <string>
 #include <utility>
+#include "gsl/gsl_sf.h"  
 
-#include "am/halfint.h"
 #include "sp3rlib/u3.h"
 #include "utilities/indexing_base.h"
-#include "utilities/multiplicity_tagged.h"
 
 namespace sp3r 
 {
@@ -54,9 +55,6 @@ namespace sp3r
 
   // raising polynomial enumeration
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
-  // Less than 24 hours.  That was the other thing I was writing in my
-  // head on my run.  (TODO remove this note) Let's see how long it
-  // takes Anna to find this.
   //
   // Generate full set of raising polynomial U3 labels up to given Nn_max.
   //

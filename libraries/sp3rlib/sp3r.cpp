@@ -5,13 +5,6 @@
   University of Notre Dame
 
 ****************************************************************/
-
-#include <cassert>
-#include <cmath>
-#include <sstream>
-#include <vector>
-
-#include "gsl/gsl_sf.h"  
 #include "sp3rlib/sp3r.h"
 
   namespace sp3r

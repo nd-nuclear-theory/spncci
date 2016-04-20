@@ -9,21 +9,8 @@
   3/10/16 (aem,mac): Created based on prototype u3.py and 
   T. Dytrych CSU3Master.
 ****************************************************************/
-#include <cassert>
-#include <map>
-#include <tuple>
-#include <vector>
-
-#include "am/halfint.h"
-#include "utilities/utilities.h"
-#include "utilities/multiplicity_tagged.h"
-#include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
-std::map<
-    std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3, u3::SU3, int, int, u3::SU3, int, int>,
-    int 
-  >ucoef_map;
 
 namespace u3
 {
@@ -43,6 +30,20 @@ namespace u3
     return w_array[k3-1][k2-1][k1-1][r0-1];
   }
 
+  
+  std::vector<double> GenerateUVector(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+    const u3::SU3& x12, int r12_max, int r12_3_max, const u3::SU3& x23, int r23_max, int r1_23_max)
+  {
+    int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
+    std::vector<double> u_array(r_max);
+    su3lib::wru3optimized_(
+         x1.lambda, x1.mu, x2.lambda, x2.mu, x.lambda, x.mu, x3.lambda, x3.mu, x12.lambda, x12.mu, x23.lambda, x23.mu,
+         r12_max, r12_3_max, r23_max, r1_23_max, 
+         &u_array[0], r_max
+         ); 
+    return u_array;
+  }
+
   double U(
     const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
     const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
@@ -59,10 +60,6 @@ namespace u3
     // r12_max<<"  "<< r12_3_max<<"  "<< r23_max<<"  "<< r1_23_max<<
     // std::endl;
     
-    //std::tuple<u3::SU3, u3::SU3,u3::SU3, u3::SU3, u3::SU3, int, int, u3::SU3, int, int> 
-    // Counting the number of time each symmetry is called 
-    // auto label_vector=std::make_tuple(x1, x2, x, x3, x12, r12, r12_3, x23, r23, r1_23);
-    // ucoef_map[label_vector]+=1;
 
     assert(
       (r_max > 0)
@@ -74,8 +71,7 @@ namespace u3
 
 
     int index=r12+r12_max*(r12_3-1)+r12_max*r12_3_max*(r23-1)+r12_max*r12_3_max*r23_max*(r1_23-1)-1;
-    std::vector<double> u_array;
-    u_array.resize(r_max);
+    std::vector<double> u_array(r_max);
 
     su3lib::wru3optimized_(
 			   x1.lambda, x1.mu, x2.lambda, x2.mu, x.lambda, x.mu, x3.lambda, x3.mu, x12.lambda, x12.mu, x23.lambda, x23.mu,

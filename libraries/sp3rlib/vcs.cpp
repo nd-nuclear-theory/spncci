@@ -11,16 +11,7 @@
   3/9/16 (aem): Created based on prototype vcs.py.
 
 ****************************************************************/
-
-#include <cmath>  
-#include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Eigenvalues>  
-#include <string>
-
-#include "sp3rlib/u3.h"
-#include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h"
-#include "sp3rlib/sp3r.h"
 
 
 
