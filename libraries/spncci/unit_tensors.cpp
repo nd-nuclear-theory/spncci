@@ -124,9 +124,7 @@ namespace spncci
     // For each NpN pair key in map the corresponding value is a vector of UnitTensorU3Sectors. 
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_NpNSector_map
     )
-  // Generates all unit tensor matrix matrices between states in the irreps of lgi_pair
-  // The unit tensors are stored in the map of a map unit_tensor_rme_map which has key lgi_pair to 
-  // a map with key std::pair<Nnp,Nn> and value map(matrix labels for w'w sector, matrix) 
+  // Generates labels of all sectors of unit tensor matrix matrices between states in the irreps of lgi_pair
   {   
 
     // initial declarations     
@@ -209,8 +207,6 @@ namespace spncci
                       // Iterating over outer multiplicity
                       for (int rho0=1; rho0<=rho0_max; rho0++)
                         {                   
-                          // otherwise, calculate unit tensor matrix.   
-                          ///////////////////////////////////////////////////////////////////////////////////////
                           unit_U3Sectors=N_greater?
                             spncci::UnitTensorU3Sector(omegap,omega,spncci::UnitTensor(Conjugate(omega0),S0, T0,rb,Sb,Tb,rbp,Sbp,Tbp),rho0):
                             spncci::UnitTensorU3Sector(omegap,omega,unit_tensor,rho0);
@@ -223,6 +219,56 @@ namespace spncci
         }
     
   }
+
+
+// void GenerateUCoefLabels(spncci::UnitTensorU3Sector unit_U3Sectors, std::pair<int,int> lgi_pair, irrepp, irrep)
+// {
+//   u3::U3 omegap,omega,omega0; 
+//   int rp, r,rho0;
+//   HalfInt S0, T0, Sp, Tp, S, T;
+//   spncci::UnitTensor unit_tensor;
+
+//   std::tie(omegap,omega,unit_tensor,rho0)=unit_U3Sectors.Key();
+//   std::tie(omega0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
+
+//   const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
+//   const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
+//   u3::U3 sigmap=lgip.sigma;
+//   u3::U3 sigma=lgi.sigma;
+
+//   // omegax(0,2)->omega1
+//   //omega0x(2,0)->omega0p
+//   //omegapx(0,2)->omegapp
+//   MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
+//   MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
+//   MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
+
+//   // loop over omega0p
+//   /// ////
+//   // operator only 
+//   ///////
+//   u3::U(u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1)
+//   u3::U(u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1)
+//   // loop over omega1
+
+//   sp3r::U3Subspace u3_subspace  = irrep.LookUpSubspace(omega);
+//   // needs loop over omega1
+//   for (int i=0; i<u3_subspace.size(); i++)
+//     {
+//       u3::U3 n=u3_subspace.GetStateLabels(i).irrep;
+//       // TODO wrong subspace should be omega1
+//       for (int j=0; j<u3_subspace.size(); j++)
+//         {
+//           u3::U3 n1=u3_subspace.GetStateLabels(j).irrep;
+//           //  u3::U(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
+
+//         }
+//     }
+
+//   u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
+//   u3::U(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0)
+
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////
 

@@ -45,6 +45,52 @@ namespace u3
 
   } //namespace
 
+  class UCoefLabel
+  {
+  public:
+    typedef std::tuple<u3::SU3,u3::SU3,u3::SU3,u3::SU3,u3::SU3,u3::SU3> KeyType;
+
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+
+  inline UCoefLabel(const u3::SU3 x1, const u3::SU3 x2, const u3::SU3 x,
+   const u3::SU3 x3, const u3::SU3 x12, const u3::SU3 x23)
+      :x1_(x1), x2_(x2), x_(x), x3_(x3), x12_(x12), x23_(x23){}
+  ////////////////////////////////////////////////////////////////
+  // accessors
+  ////////////////////////////////////////////////////////////////
+ 
+  inline KeyType Key() const
+  {
+    return KeyType(x1_, x2_, x_, x3_, x12_, x23_);
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // hashing
+  ////////////////////////////////////////////////////////////////
+
+  inline friend std::size_t hash_value(const UCoefLabel& ucoef_labels)
+  {
+    // TODO (Andika)
+
+    return 0;
+  }
+  ////////////////////////////////////////////////////////////////
+  // string conversion
+  ////////////////////////////////////////////////////////////////
+  
+  std::string Str() const;
+
+  ////////////////////////////////////////////////////////////////
+  // labels
+  ////////////////////////////////////////////////////////////////
+
+  // Operator labels
+  u3::SU3 x1_, x2_, x_, x3_, x12_, x23_;
+
+  };
+
   void U3CoefInit();
 
 
@@ -53,6 +99,8 @@ namespace u3
   //
   // Provides wrapper for su3lib function wu3r3w_
 
+  std::vector<double> UCoefVector(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+    const u3::SU3& x12, int r12_max, int r12_3_max, const u3::SU3& x23, int r23_max, int r1_23_max);
 
 
   double U(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23);

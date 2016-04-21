@@ -31,7 +31,7 @@ namespace u3
   }
 
   
-  std::vector<double> GenerateUVector(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+  std::vector<double> UCoefVector(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
     const u3::SU3& x12, int r12_max, int r12_3_max, const u3::SU3& x23, int r23_max, int r1_23_max)
   {
     int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
