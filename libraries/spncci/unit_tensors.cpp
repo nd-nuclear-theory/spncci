@@ -1,16 +1,11 @@
 /****************************************************************
   unit_tensor.cpp
 
-  Unit tensor algorithms
-                                  
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/15/16 (aem,mac): Created.
-  4/14/16 aem: Added Np,N sector look ups and changed iteration order
-  4/20/16 aem: Defined GenerateUnitTensorU3SectorLabels function and 
-               changed interation in UnitTensorMatrixGenerator
 ****************************************************************/
+
 #include "spncci/unit_tensors.h"
 
 extern spncci::LGIVectorType lgi_vector;
@@ -220,6 +215,8 @@ namespace spncci
     
   }
 
+////////////////////////////////////////////////////////////////////////////////////
+
 
 // void GenerateUCoefLabels(spncci::UnitTensorU3Sector unit_U3Sectors, std::pair<int,int> lgi_pair, irrepp, irrep)
 // {
@@ -267,8 +264,6 @@ namespace spncci
 
 //   u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
 //   u3::U(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0)
-
-// }
 
 ////////////////////////////////////////////////////////////////////////////////////
 

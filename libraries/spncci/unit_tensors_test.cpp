@@ -1,5 +1,5 @@
 /****************************************************************
-  unit_tensor_test.cpp
+  unit_tensors_test.cpp
 
   Unit tensor algorithms
                                   

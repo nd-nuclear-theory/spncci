@@ -9,6 +9,7 @@
   3/7/16 (aem,mac): Created based on prototype u3states.py, u3.py, and so3.py.
   3/8/16 (aem,mac): Add U3ST structure and rename U3S structure.
   3/9/16 (aem,mac): Add KeyType typedefs.  Extract MultiplicityTagged.
+  3/16/16 (aem): Add validity check to U(3) Kronecker product.
 
 ****************************************************************/
 
