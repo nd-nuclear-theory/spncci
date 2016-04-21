@@ -77,7 +77,9 @@ namespace spncci
     inline friend std::size_t hash_value(const UnitTensor& tensor)
     {
       // TODO (Andika)
-      //
+      // hash of each parameter of KeyType
+      // omega, S0, T0, rp, Sp, Tp, r, S, T
+      // 
       // r and rp need 6 bits
       // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits 
       // See constants defined just above...
@@ -162,6 +164,9 @@ namespace spncci
     inline friend std::size_t hash_value(const UnitTensorU3Sector& tensor)
     {
       // TODO (Andika)
+      // redundant function??
+      // hash omegap_, omega_, tensor_, rho0_
+      // hash_combine omegap_, omega_, tensor_, rho0_
 
       return 0;
     }
