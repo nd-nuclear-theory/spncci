@@ -49,9 +49,15 @@ int main(int argc, char **argv)
     1,    1,   1
     )<<std::endl;
 
-
-
-
+  // block access
+  std::cout << "U block test" << std::endl;
+  u3::UCoefLabels labels(x1, x2, x, x3, x12, x23);
+  u3::UCoefBlock block(labels);
+  int r12_max, r12_3_max, r23_max, r1_23_max;
+  std::tie(r12_max, r12_3_max, r23_max, r1_23_max) = block.Key();
+  std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
+  std::cout << block.GetCoef(1,1,1,1) << std::endl;
+  
 
 
 

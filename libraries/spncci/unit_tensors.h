@@ -13,6 +13,7 @@
 
 #include "spncci/sp_basis.h"
 #include "sp3rlib/vcs.h"
+#include <unordered_set>
 
 namespace spncci
 {
