@@ -7,6 +7,9 @@
   University of Notre Dame
 
   3/15/16 (aem,mac): Created.
+  4/14/16 (aem): Added Np,N sector look ups and changed iteration order
+  4/20/16 (aem): Defined GenerateUnitTensorU3SectorLabels function and 
+               changed interation in UnitTensorMatrixGenerator
 ****************************************************************/
 #ifndef UNIT_TENSOR_H_
 #define UNIT_TENSOR_H_
