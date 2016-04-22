@@ -30,20 +30,6 @@ namespace u3
     return w_array[k3-1][k2-1][k1-1][r0-1];
   }
 
-  
-  std::vector<double> UCoefVector(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
-    const u3::SU3& x12, int r12_max, int r12_3_max, const u3::SU3& x23, int r23_max, int r1_23_max)
-  {
-    int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
-    std::vector<double> u_array(r_max);
-    su3lib::wru3optimized_(
-         x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-         r12_max, r12_3_max, r23_max, r1_23_max, 
-         &u_array[0], r_max
-         ); 
-    return u_array;
-  }
-
   double U(
     const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
     const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
@@ -140,6 +126,34 @@ namespace u3
         );    
       return NLM_array[index];
     }
+
+
+  
+  UCoefBlock::UCoefBlock(const u3::UCoefLabels& labels)
+  {
+    // calculate multiplicities
+    u3::SU3 x1,x2,x,x3,x12,x23;
+    std::tie(x1,x2,x,x3,x12,x23) = labels.Key();
+
+    r12_max_ = u3::OuterMultiplicity(x1,x2,x12);
+    r12_3_max_ = u3::OuterMultiplicity(x12,x3,x);
+    r23_max_ = u3::OuterMultiplicity(x2,x2,x23);
+    r1_23_max_ = u3::OuterMultiplicity(x1,x23,x);
+
+    // pre-size vector
+    int r_max = r12_max_*r12_3_max_*r23_max_*r1_23_max_;
+    assert(r_max > 0);
+    coefs_.resize(r_max);
+
+    // populate vector
+    su3lib::wru3optimized_(
+         x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+         r12_max_, r12_3_max_, r23_max_, r1_23_max_, 
+         &coefs_[0], r_max
+         ); 
+  }
+
+
 
 
 } // namespace 

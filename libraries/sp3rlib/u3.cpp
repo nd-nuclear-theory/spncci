@@ -4,8 +4,6 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-
-// 3/16/16 aem added validity check to U(3) Kronecker product.
 ****************************************************************/
 
 #include "sp3rlib/u3.h"

@@ -1,21 +1,18 @@
 /****************************************************************
   unit_tensor.cpp
 
-  Unit tensor algorithms
-                                  
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/15/16 (aem,mac): Created.
-  4/14/16 aem: Added Np,N sector look ups and changed iteration order
-  4/20/16 aem: Defined GenerateUnitTensorU3SectorLabels function and 
-               changed interation in UnitTensorMatrixGenerator
 ****************************************************************/
 #include "spncci/unit_tensors.h"
 
 extern spncci::LGIVectorType lgi_vector;
 
 extern std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
+
+// std::unordered_set<u3::UCoefLabels> Ucoef_labels;
+
 	
 //spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
 namespace spncci
@@ -220,71 +217,81 @@ namespace spncci
     
   }
 
+////////////////////////////////////////////////////////////////////////////////////
 
-// void GenerateUCoefLabels(spncci::UnitTensorU3Sector unit_U3Sectors, std::pair<int,int> lgi_pair, irrepp, irrep)
-// {
-//   u3::U3 omegap,omega,omega0; 
-//   int rp, r,rho0;
-//   HalfInt S0, T0, Sp, Tp, S, T;
-//   spncci::UnitTensor unit_tensor;
+// template < class Key,                        // unordered_set::key_type/value_type
+//            class Hash = hash<Key>,           // unordered_set::hasher
+//            class Pred = equal_to<Key>,       // unordered_set::key_equal
+//            class Alloc = allocator<Key>      // unordered_set::allocator_type
+//            > class unordered_set;
 
-//   std::tie(omegap,omega,unit_tensor,rho0)=unit_U3Sectors.Key();
-//   std::tie(omega0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
+// std::unordered_set<u3::UCoefLabels> ucoef_set;
 
-//   const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
-//   const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
-//   u3::U3 sigmap=lgip.sigma;
-//   u3::U3 sigma=lgi.sigma;
+void GenerateUCoefLabels(spncci::UnitTensorU3Sector unit_U3Sectors, std::pair<int,int> lgi_pair, sp3r::Sp3RSpace& irrepp, sp3r::Sp3RSpace &irrep)
+{
+  u3::U3 omegap,omega,omega0; 
+  int rp, r,rho0;
+  HalfInt S0, T0, Sp, Tp, S, T;
+  spncci::UnitTensor unit_tensor;
 
-//   // omegax(0,2)->omega1
-//   //omega0x(2,0)->omega0p
-//   //omegapx(0,2)->omegapp
-//   MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
-//   MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
-//   MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
+  std::tie(omegap,omega,unit_tensor,rho0)=unit_U3Sectors.Key();
+  std::tie(omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
 
-//   // loop over omega0p
-//   /// ////
-//   // operator only 
-//   ///////
-//   u3::U(u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1)
-//   u3::U(u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1)
-//   // loop over omega1
+  const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
+  const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
+  u3::U3 sigmap=lgip.sigma;
+  u3::U3 sigma=lgi.sigma;
 
-//   sp3r::U3Subspace u3_subspace  = irrep.LookUpSubspace(omega);
-//   // needs loop over omega1
-//   for (int i=0; i<u3_subspace.size(); i++)
-//     {
-//       u3::U3 n=u3_subspace.GetStateLabels(i).irrep;
-//       // TODO wrong subspace should be omega1
-//       for (int j=0; j<u3_subspace.size(); j++)
-//         {
-//           u3::U3 n1=u3_subspace.GetStateLabels(j).irrep;
-//           //  u3::U(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
+  MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
+  MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
+  MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
 
-//         }
-//     }
+  // for (int a=0; a<omega0p_set.size(); a++ )
+  //   {
+  //     // u3::U3 omega0p=omega0p_set[a].irrep;
+  //     // if 
+  //     // u3::U(u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1)
+  //     // u3::U(u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1)
+  //   }
+  // loop over omega0p
+  /// ////
+  // operator only 
+  ///////
+  // loop over omega1
+
+  // sp3r::U3Subspace u3_subspace  = irrep.LookUpSubspace(omega);
+  // // needs loop over omega1
+  // for (int i=0; i<u3_subspace.size(); i++)
+  //   {
+  //     u3::U3 n=u3_subspace.GetStateLabels(i).irrep;
+  //     // TODO wrong subspace should be omega1
+  //     for (int j=0; j<u3_subspace.size(); j++)
+  //       {
+  //         u3::U3 n1=u3_subspace.GetStateLabels(j).irrep;
+  //         //  u3::U(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
+
+  //       }
+   }
 
 //   u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
 //   u3::U(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0)
 
-// }
-
 ////////////////////////////////////////////////////////////////////////////////////
 
+
   Eigen::MatrixXd UnitTensorMatrix(
-                                   // LGI pair sector 
-                                   const std::pair<int,int> lgi_pair,
-                                   // vector of addresses to relevant Np,N sectors of unit tensor matrix
-                                   std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN2,
-                                   std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN4,
-                                   // sigma' irrep
-                                   const sp3r::Sp3RSpace& irrepp,
-                                   // sigma irrep
-                                   const sp3r::Sp3RSpace& irrep,
-                                   // unit tensor labels 
-                                   spncci::UnitTensorU3Sector unit_labels
-                                   )
+                     // LGI pair sector 
+                     const std::pair<int,int> lgi_pair,
+                     // vector of addresses to relevant Np,N sectors of unit tensor matrix
+                     std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN2,
+                     std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN4,
+                     // sigma' irrep
+                     const sp3r::Sp3RSpace& irrepp,
+                     // sigma irrep
+                     const sp3r::Sp3RSpace& irrep,
+                     // unit tensor labels 
+                     spncci::UnitTensorU3Sector unit_labels
+                     )
   {
     //std::cout<<"enter sub"<<std::endl;
     // initial declarations 		
@@ -544,7 +551,75 @@ namespace spncci
   } // End function
 
 
-  void UnitTensorMatrixGenerator(
+void   GenerateUnitTensorU3Sectors(
+          const spncci::UnitTensorU3Sector& unit_tensor_U3Sector, 
+           // LGI pair sector 
+          const std::pair<int,int> lgi_pair,
+          // vector of addresses to relevant Np,N sectors of unit tensor matrix
+          // Eigen doesn't like const 
+          std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN2,
+          std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN4,
+          // sigma' irrep
+          const sp3r::Sp3RSpace& irrepp,
+          // sigma irrep
+          const sp3r::Sp3RSpace& irrep,
+          bool Nn_zero,
+          std::vector< UnitU3SectorPair >&temp_unit_U3sectors_vector)
+  {
+
+  //calculate unit tensor matrix.   
+  /////////////////////////////////////////////////////////////////////////////////////
+  Eigen::MatrixXd temp_matrix;
+  // In the special case that omegap.N()!=sigmap.N() but omega.N()==sigma.N(), then to calculate we
+  // need to calculate the conjugate transpose of the unit tensor matrix and then invert and multiply 
+  // by factor to obtain desired matrix
+  if (Nn_zero)
+    {
+      u3::U3 omegap,omega,omega0;
+      int rp, r,rho0;
+      HalfInt S0, T0, Sp, Tp, S, T;
+      spncci::UnitTensor unit_tensor;
+
+      std::tie (omegap,omega,unit_tensor,rho0)=unit_tensor_U3Sector.Key();
+      std::tie (omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
+      spncci::UnitTensorU3Sector unit_tensor_calc_U3Sector
+        =spncci::UnitTensorU3Sector(omega,omegap,UnitTensor(u3::Conjugate(omega0),S0,T0,r,S,T,rp,Sp,Tp),rho0);
+      //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
+      //  corresponding to omega' and omega
+      temp_matrix
+        =spncci::UnitTensorMatrix(std::pair<int,int>(lgi_pair.second,lgi_pair.first),
+            sector_NpN2, sector_NpN4, irrep, irrepp, unit_tensor_calc_U3Sector);
+
+      // if the matrix has non-zero entries,
+      if (temp_matrix.any())
+        {
+          // apply symmtry factors, transpose the matrix and 
+          double coef=ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap))
+                      *sqrt(1.*dim(u3::SU3(rp,0))*dim(omega)/(dim(u3::SU3(r,0))*dim(omegap)));
+          //unit_tensor_rme_map[NpN_pair][unit_tensor_U3Sector]=
+          temp_unit_U3sectors_vector.push_back(
+              UnitU3SectorPair(unit_tensor_U3Sector,coef*temp_matrix.transpose())
+              );
+        }
+    }
+  // otherwise, directly apply the algorithm
+  else 
+    {
+       //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
+      //  corresponding to omega' and omega
+      temp_matrix=spncci::UnitTensorMatrix(lgi_pair, sector_NpN2, sector_NpN4,irrepp, irrep, unit_tensor_U3Sector);
+      
+      // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
+      if (temp_matrix.any())
+        {
+          temp_unit_U3sectors_vector.push_back(
+              UnitU3SectorPair(unit_tensor_U3Sector,temp_matrix)
+              );
+        }
+    }
+}
+
+  void GenerateUnitTensorMatrix(
        // single particle cutoff, relative particle <= 2*N1b+Nn
        int N1b,
        // boson number cutoff
@@ -562,7 +637,7 @@ namespace spncci
   // Generates all unit tensor matrix matrices between states in the irreps of lgi_pair
   // The unit tensors are stored in the map of a map unit_tensor_rme_map which has key lgi_pair to 
   // a map with key std::pair<Nnp,Nn> and value map(matrix labels for w'w sector, matrix) 
-  {		
+  {   
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector> > unit_NpNSector_map;
   
     GenerateUnitTensorU3SectorLabels(N1b, Nmax, lgi_pair, unit_sym_map,unit_NpNSector_map);
@@ -574,18 +649,14 @@ namespace spncci
     const sp3r::Sp3RSpace& irrepp=lgip.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=lgi.Sp3RSpace();
 
-
-    int irrep_size=irrep.size();
-    int irrepp_size=irrepp.size();
-
     // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
-    for (int k = 0; k<irrep_size; k++)
+    for (int k = 0; k<irrep.size(); k++)
       {
         std::map<u3::U3,Eigen::MatrixXd> K_map;
         vcs::GenerateKMatrices(irrep, K_map);
         K_matrix_map[lgi.sigma]=K_map;
       }
-    for (int kp = 0; kp<irrepp_size; kp++)
+    for (int kp = 0; kp<irrepp.size(); kp++)
       {
         std::map<u3::U3,Eigen::MatrixXd> K_map;
         vcs::GenerateKMatrices(irrepp, K_map);
@@ -604,7 +675,6 @@ namespace spncci
 
           std::pair<int,int> NpN_pair(Nnp,Nn);
           const std::vector<spncci::UnitTensorU3Sector>& unit_U3Sector_vector=unit_NpNSector_map[NpN_pair];
-          //std::cout<<"initial set up "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
           
           bool Nn_zero=(Nnp!=0 && Nn==0);
           std::pair<int,int> NpN2=Nn_zero?std::pair<int,int>(Nn,Nnp-2):std::pair<int,int>(Nnp,Nn-2);
@@ -612,62 +682,21 @@ namespace spncci
 
           std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN2=unit_tensor_rme_map[NpN2];
           std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN4=unit_tensor_rme_map[NpN4];
-									
+
+          std::vector< spncci::UnitU3SectorPair > u3sector_pairs;
           
-          for (int i=0; i<unit_U3Sector_vector.size(); i++)
-          {
-            // calculate unit tensor matrix.   
-            ///////////////////////////////////////////////////////////////////////////////////////
-            spncci::UnitTensorU3Sector unit_tensor_U3Sector=unit_U3Sector_vector[i];
-            Eigen::MatrixXd temp_matrix;
-  					
-            // In the special case that omegap.N()!=sigmap.N() but omega.N()==sigma.N(), then to calculate we
-            // need to calculate the conjugate transpose of the unit tensor matrix and then invert and multiply 
-            // by factor to obtain desired matrix
-            if (Nn_zero)
-              {
-                u3::U3 omegap,omega,omega0;
-                int rp, r,rho0;
-                HalfInt S0, T0, Sp, Tp, S, T;
-                spncci::UnitTensor unit_tensor;
+            for (int i=0; i<unit_U3Sector_vector.size(); i++)
+            {
+              spncci::UnitTensorU3Sector unit_tensor_U3Sector=unit_U3Sector_vector[i];
+              GenerateUnitTensorU3Sectors(unit_tensor_U3Sector, lgi_pair, sector_NpN2, sector_NpN4, irrepp, irrep, Nn_zero, u3sector_pairs);
 
-                std::tie (omegap,omega,unit_tensor,rho0)=unit_tensor_U3Sector.Key();
-                std::tie (omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
-                spncci::UnitTensorU3Sector unit_tensor_calc_U3Sector
-                  =spncci::UnitTensorU3Sector(omega,omegap,UnitTensor(u3::Conjugate(omega0),S0,T0,r,S,T,rp,Sp,Tp),rho0);
-                //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
-                //  corresponding to omega' and omega
-                temp_matrix
-                  =spncci::UnitTensorMatrix(std::pair<int,int>(lgi_pair.second,lgi_pair.first),
-                      sector_NpN2, sector_NpN4, irrep, irrepp, unit_tensor_calc_U3Sector);
-
-                // if the matrix has non-zero entries,
-                if (temp_matrix.any())
-                  {
-                    // apply symmtry factors, transpose the matrix and 
-                    unit_tensor_rme_map[NpN_pair][unit_tensor_U3Sector]=
-                      ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap))
-                      *sqrt(1.*dim(u3::SU3(rp,0))*dim(omega)/(dim(u3::SU3(r,0))*dim(omegap)))
-                      *temp_matrix.transpose();
-                    //std::cout<<unit_tensor_rme_map[NpN_pair][unit_map_key]<<std::endl;
-                  }
-              }
-            // otherwise, directly apply the algorithm
-            else 
-              {
-                 //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
-                //  corresponding to omega' and omega
-                temp_matrix=spncci::UnitTensorMatrix(lgi_pair, sector_NpN2, sector_NpN4,irrepp, irrep, unit_tensor_U3Sector);
-  							
-                // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
-                if (temp_matrix.any())
-                  {
-                    unit_tensor_rme_map[NpN_pair][unit_tensor_U3Sector]=temp_matrix;
-                    std::cout<<temp_matrix<<std::endl;
-                  }
-              }
+              for (int j=0; j<u3sector_pairs.size(); j++)
+                {
+                  unit_tensor_rme_map[NpN_pair][u3sector_pairs[j].labels()]=u3sector_pairs[j].sector();
+                  std::cout<<u3sector_pairs[j].sector()<<std::endl;
+                }
             }
-        }
-  }
+          }
+  }// end function
 
 } // End namespace 

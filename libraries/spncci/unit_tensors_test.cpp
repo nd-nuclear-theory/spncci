@@ -1,5 +1,5 @@
 /****************************************************************
-  unit_tensor_test.cpp
+  unit_tensors_test.cpp
 
   Unit tensor algorithms
                                   
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   		lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
-      spncci::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
+      spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
 
   		// for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
   		// 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
