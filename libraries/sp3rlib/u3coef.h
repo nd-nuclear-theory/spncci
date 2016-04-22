@@ -130,12 +130,12 @@ namespace u3
       // 6 labels all of SU3 type
       // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
       // SU3 hash_value defined in sp3rlib/u3.h
-      std::size_t ulab1 = u3::hash_value(ucoef_labels.x1_);
-      std::size_t ulab2 = u3::hash_value(ucoef_labels.x2_);
-      std::size_t ulab3 = u3::hash_value(ucoef_labels.x_);
-      std::size_t ulab4 = u3::hash_value(ucoef_labels.x3_);
-      std::size_t ulab5 = u3::hash_value(ucoef_labels.x12_);
-      std::size_t ulab6 = u3::hash_value(ucoef_labels.x23_);
+      std::size_t ulab1 = hash_value(ucoef_labels.x1_);
+      std::size_t ulab2 = hash_value(ucoef_labels.x2_);
+      std::size_t ulab3 = hash_value(ucoef_labels.x_);
+      std::size_t ulab4 = hash_value(ucoef_labels.x3_);
+      std::size_t ulab5 = hash_value(ucoef_labels.x12_);
+      std::size_t ulab6 = hash_value(ucoef_labels.x23_);
 
       // naive implementation: sum hashes together
       std::size_t ulabsum = 0;
