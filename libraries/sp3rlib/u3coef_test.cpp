@@ -46,7 +46,7 @@ void iteration_test()
 
   for (int a=0; a<label_set.size(); a++)
     {
-      std::cout << u3::hash_value(label_set[a]) << std::endl;
+      std::cout << label_set[a].Str() << " " << hash_value(label_set[a]) << std::endl;
     }
 }
 
