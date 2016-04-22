@@ -32,18 +32,13 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
 
   public:
-    typedef std::tuple<
-      u3::U3, HalfInt, HalfInt, 
-      int, HalfInt, HalfInt, 
-      int, HalfInt, HalfInt> KeyType;
+    typedef std::tuple<u3::U3, HalfInt, HalfInt, int, HalfInt, HalfInt, 
+                        int, HalfInt, HalfInt> KeyType;
     // w0, S0, T0, rbp, Sb, Tb, r, S, T
 
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
-
-    // copy constructor: synthesized copy constructor since only data
-    // member needs copying
 
     // default constructor
     inline UnitTensor() 
@@ -201,6 +196,67 @@ namespace spncci
     return unit1rme.Key() < unit2rme.Key();
   }
 
+
+
+  class UnitU3SectorPair
+  {
+    ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
+  public:
+    typedef std::pair< UnitTensorU3Sector, Eigen::MatrixXd> KeyType;
+    // w'S', wS, Unit tensor labels,r0
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    // copy constructor: synthesized copy constructor since only data
+    // member needs copying
+
+    // default constructor
+      
+   
+    // construction from labels
+    inline UnitU3SectorPair(spncci::UnitTensorU3Sector labels, Eigen::MatrixXd sector)
+      : labels_(labels), sector_(sector) {}
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    inline KeyType Key() const
+    {
+      return KeyType(labels_, sector_);
+    }
+
+    inline spncci::UnitTensorU3Sector labels() const
+    {
+      return labels_;
+    }
+
+    inline Eigen::MatrixXd sector() const
+    {
+      return sector_;
+    }
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+      
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+  private:
+    // Operator labels
+    spncci::UnitTensorU3Sector labels_;
+    Eigen::MatrixXd sector_;
+  };
+
+
   ////////////////////////////////////////////////////////////////
   // unit tensor operator labels
   ////////////////////////////////////////////////////////////////
@@ -230,20 +286,20 @@ namespace spncci
   //       }
   //   }
 
-  void UnitTensorMatrixGenerator(
-                                 int N1b,
-                                 // boson number cutoff
-                                 int Nmax, 
-                                 // a given spncci sector pair given as index pair  from global list lgi_vector 
-                                 std::pair<int,int> lgi_pair,
-                                 // Address to map with list of unit tensor labels with key N0 
-                                 std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
-                                 // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-                                 std::map<
-                                 std::pair<int,int>,
-                                 std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >
-                                 >& unit_tensor_rme_map
-                                 );
+  void GenerateUnitTensorMatrix(
+         int N1b,
+         // boson number cutoff
+         int Nmax, 
+         // a given spncci sector pair given as index pair  from global list lgi_vector 
+         std::pair<int,int> lgi_pair,
+         // Address to map with list of unit tensor labels with key N0 
+         std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
+         // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+         std::map<
+         std::pair<int,int>,
+         std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >
+         >& unit_tensor_rme_map
+         );
 } //namespace 
 
 #endif
