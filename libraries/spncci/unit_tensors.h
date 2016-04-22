@@ -98,14 +98,18 @@ namespace spncci
       std::size_t intHash = intHasher(packed_Ints);
       std::size_t u3Hash = hash_value(tensor.omega0_);
       
+      #ifdef NAIVEHASH 
       // naive implementation: add hashes together
       return intHash+u3Hash;
-      
+      #endif
+
+      #ifdef BOOSTHASH      
       // smart implementation: boost::hash_combine
-      // std::size_t seed = 0;
-      // boost::hash_combine(seed,intHash);
-      // boost::hash_combine(seed,u3Hash);
-      // return seed;
+      std::size_t seed = 0;
+      boost::hash_combine(seed,intHash);
+      boost::hash_combine(seed,u3Hash);
+      return seed;
+      #endif
     }
 
     ////////////////////////////////////////////////////////////////
@@ -193,17 +197,21 @@ namespace spncci
       std::size_t tensorHash = hash_value(tensor.tensor_);
       boost::hash<int> rhoHasher;
       std::size_t rhoHash = rhoHasher(tensor.rho0_);
-      
+     
+      #ifdef NAIVEHASH 
       // naive implementation: add hashes together
       return omegapHash + omegaHash + tensorHash + rhoHash;
+      #endif
       
+      #ifdef BOOSTHASH
       // smart implementation: boost::hash_combine
-      // std::type_t seed = 0;
-      // boost::hash_combine(seed,omegapHash);
-      // boost::hash_combine(seed,omegaHash);
-      // boost::hash_combine(seed,tensorHash);
-      // boost::hash_combine(seed,rhoHash);
-      // return seed;
+      std::size_t seed = 0;
+      boost::hash_combine(seed,omegapHash);
+      boost::hash_combine(seed,omegaHash);
+      boost::hash_combine(seed,tensorHash);
+      boost::hash_combine(seed,rhoHash);
+      return seed;
+      #endif
     }
 
     ////////////////////////////////////////////////////////////////

@@ -8,7 +8,7 @@ module_units_h :=
 module_units_cpp-h := sp_basis coef_cache unit_tensors
 
 # module_units_f := 
-module_programs_cpp := sp_basis_test coef_cache_test unit_tensors_test
+module_programs_cpp := sp_basis_test coef_cache_test unit_tensors_test unit_tensor_hash_test.cpp
 # module_programs_f :=
 # module_generated :=
 
