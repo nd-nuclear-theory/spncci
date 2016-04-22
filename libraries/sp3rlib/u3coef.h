@@ -22,6 +22,7 @@
 #include <cassert>
 #include <map>
 #include <tuple>
+#include <boost/functional/hash_fwd.hpp>
 
 #include "sp3rlib/u3.h"
 
@@ -126,8 +127,29 @@ namespace u3
     inline friend std::size_t hash_value(const UCoefLabels& ucoef_labels)
     {
       // TODO (Andika)
+      // 6 labels all of SU3 type
+      // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
+      // SU3 hash_value defined in sp3rlib/u3.h
+      std::size_t ulab1 = u3::hash_value(ucoef_labels.x1_);
+      std::size_t ulab2 = u3::hash_value(ucoef_labels.x2_);
+      std::size_t ulab3 = u3::hash_value(ucoef_labels.x_);
+      std::size_t ulab4 = u3::hash_value(ucoef_labels.x3_);
+      std::size_t ulab5 = u3::hash_value(ucoef_labels.x12_);
+      std::size_t ulab6 = u3::hash_value(ucoef_labels.x23_);
 
-      return 0;
+      // naive implementation: sum hashes together
+      std::size_t ulabsum = 0;
+      return ulabsum = ulab1 + ulab2 + ulab3 + ulab4 +ulab5 + ulab6;
+
+      // smarter implementation: boost::hashcombine
+      // std::size_t seed = 0;
+      // boost::hashcombine(seed,ulab1);
+      // boost::hashcombine(seed,ulab2);
+      // boost::hashcombine(seed,ulab3);
+      // boost::hashcombine(seed,ulab4);
+      // boost::hashcombine(seed,ulab5);
+      // boost::hashcombine(seed,ulab6);
+      // return seed;
     }
     ////////////////////////////////////////////////////////////////
     // string conversion
