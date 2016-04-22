@@ -11,6 +11,7 @@ C             07/91  UPDATED ... WST & DRU3 INDEXING ... YRU3 --> WRU3
 C             03/94  UPDATED ... WST AS FOR PUBLICATION (C. BAHRI)
 C             07/95  COMMON BLOCK FOR WST ARRAYS (C. BAHRI)
 C             07/11  WST & MULTU3 OVERHEAD REMOVED (T. DYTRYCH)
+C             04/16  MADE COMMON BLOCKS THREAD PRIVATE (A. MCCOY)
 C                                                                       
 C     REFERENCES--J.P.DRAAYER AND Y.AKIYAMA, J.MATH.PHYS.14(1973)1904   
 C                 K.T.HECHT, NUCL.PHYS.62(1965)1                        
@@ -77,7 +78,8 @@ C     ------------------------------------------------------------------
      3JXTC(13244),JYTC(13244),IEC(13244),JXTD(13244),JYTD(13244),       
      4IED(13244)                                                        
       COMMON/BKSAVE/                                                    
-     1DEWU3A(39732),DEWU3B(39732),DEWU3C(39732),DEWU3D(39732)           
+     1DEWU3A(39732),DEWU3B(39732),DEWU3C(39732),DEWU3D(39732)
+      !$omp threadprivate(/BKSAVE/)           
       DIMENSION                                                         
      1IA(42),DA(378),DB(9),DT(9),DWU3(27090),J2SMAX(1764),              
      2J2TMAX(1764),J3SMAX(42),J3TMAX(42),INDMAT(1764)                   
