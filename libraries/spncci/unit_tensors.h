@@ -16,7 +16,9 @@
 
 #include "spncci/sp_basis.h"
 #include "sp3rlib/vcs.h"
+#include "sp3rlib/u3.h"
 #include <unordered_set>
+#include <boost/functional/hash_fwd.hpp>
 
 namespace spncci
 {
@@ -75,14 +77,35 @@ namespace spncci
     inline friend std::size_t hash_value(const UnitTensor& tensor)
     {
       // TODO (Andika)
-      // hash of each parameter of KeyType
-      // omega, S0, T0, rp, Sp, Tp, r, S, T
+      // pack ints and Halfnts together first
+      // omega0, S0, T0, rp, Sp, Tp, r, S, T
+      // types: U3 (3 HalfInt), HalfInt, HalfInt, int, HalfInt, HalfInt, int, HalfInt, HalfInt
+      // then hash the packed values together and combine
+      // U3 hashing defined in sp3rlib/u3.h
       // 
       // r and rp need 6 bits
-      // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits 
+      // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits
       // See constants defined just above...
-
-      return 0;
+      int packed_Ints = (TwiceValue(tensor.S0_) << 5*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.T0_) << 4*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.Sp_) << 3*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.Tp_) << 2*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.S_) << spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.T_) << 2*quanta_label_width)
+        | (rp_ << quanta_label_width) | (r_ << 0);
+      
+      boost::hash<int> intHasher;
+      std::size_t intHash = intHasher(packed_Ints);
+      std::size_t u3Hash = u3::hash_value(tensor.omega0_);
+      
+      // naive implementation: add hashes together
+      return intHash+u3Hash;
+      
+      // smart implementation: boost::hash_combine
+      // std::size_t seed = 0;
+      // boost::hash_combine(seed,intHash);
+      // boost::hash_combine(seed,u3Hash);
+      // return seed;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -162,11 +185,25 @@ namespace spncci
     inline friend std::size_t hash_value(const UnitTensorU3Sector& tensor)
     {
       // TODO (Andika)
-      // redundant function??
-      // hash omegap_, omega_, tensor_, rho0_
-      // hash_combine omegap_, omega_, tensor_, rho0_
-
-      return 0;
+      // labels omegap_, omega_, tensor_, rho0_
+      // type: U3, U3, tensor, int
+      // hash them all
+      std::size_t omegapHash = u3::hash_value(tensor.omegap_);
+      std::size_t omegaHash = u3::hash_value(tensor.omega_);
+      std::size_t tensorHash = hash_value(tensor.tensor_);
+      boost::hash<int> rhoHasher;
+      std::size_t rhoHash = rhoHasher(tensor.rho0_);
+      
+      // naive implementation: add hashes together
+      return omegapHash + omegaHash + tensorHash + rhoHash;
+      
+      // smart implementation: boost::hash_combine
+      // std::type_t seed = 0;
+      // boost::hash_combine(seed,omegapHash);
+      // boost::hash_combine(seed,omegaHash);
+      // boost::hash_combine(seed,tensorHash);
+      // boost::hash_combine(seed,rhoHash);
+      // return seed;
     }
 
     ////////////////////////////////////////////////////////////////
