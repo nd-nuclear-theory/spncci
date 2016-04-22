@@ -145,6 +145,21 @@ namespace u3
 
   };
 
+
+  inline bool operator == (const UCoefLabels& coef1, const UCoefLabels& coef2)
+  {
+    return coef1.Key() == coef2.Key();
+  }
+
+  inline bool operator < (const UCoefLabels& coef1, const UCoefLabels& coef2)
+  {
+    return coef1.Key() < coef2.Key();
+  }
+
+
+
+
+
   class UCoefBlock
   // Class to store and retrieve block of U coefficients sharing same
   // SU(3) labels but with different multiplicity indices
@@ -197,6 +212,10 @@ namespace u3
     std::vector<double> coefs_;
 
   };
+
+
+
+
 
 inline double UCoefBlock::GetCoef(int r12, int r12_3, int r23, int r1_23)
   {

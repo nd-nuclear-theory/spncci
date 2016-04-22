@@ -225,26 +225,26 @@ namespace spncci
 //            class Alloc = allocator<Key>      // unordered_set::allocator_type
 //            > class unordered_set;
 
+// std::unordered_set<u3::UCoefLabels> ucoef_set;
 
+void GenerateUCoefLabels(spncci::UnitTensorU3Sector unit_U3Sectors, std::pair<int,int> lgi_pair, sp3r::Sp3RSpace& irrepp, sp3r::Sp3RSpace &irrep)
+{
+  u3::U3 omegap,omega,omega0; 
+  int rp, r,rho0;
+  HalfInt S0, T0, Sp, Tp, S, T;
+  spncci::UnitTensor unit_tensor;
 
-//void GenerateUCoefLabels(spncci::UnitTensorU3Sector unit_U3Sectors, std::pair<int,int> lgi_pair, irrepp, irrep)
-//{
-  // u3::U3 omegap,omega,omega0; 
-  // int rp, r,rho0;
-  // HalfInt S0, T0, Sp, Tp, S, T;
-  // spncci::UnitTensor unit_tensor;
+  std::tie(omegap,omega,unit_tensor,rho0)=unit_U3Sectors.Key();
+  std::tie(omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
 
-  // std::tie(omegap,omega,unit_tensor,rho0)=unit_U3Sectors.Key();
-  // std::tie(omega0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
+  const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
+  const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
+  u3::U3 sigmap=lgip.sigma;
+  u3::U3 sigma=lgi.sigma;
 
-  // const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
-  // const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
-  // u3::U3 sigmap=lgip.sigma;
-  // u3::U3 sigma=lgi.sigma;
-
-  // MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
-  // MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
-  // MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
+  MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
+  MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
+  MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
 
   // for (int a=0; a<omega0p_set.size(); a++ )
   //   {
@@ -271,7 +271,7 @@ namespace spncci
   //         //  u3::U(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
 
   //       }
-  //  }
+   }
 
 //   u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
 //   u3::U(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0)
@@ -692,7 +692,7 @@ void   GenerateUnitTensorU3Sectors(
 
               for (int j=0; j<u3sector_pairs.size(); j++)
                 {
-                  unit_tensor_rme_map[NpN_pair][u3sector_pairs[j].label()]=u3sector_pairs[j].sector();
+                  unit_tensor_rme_map[NpN_pair][u3sector_pairs[j].labels()]=u3sector_pairs[j].sector();
                   std::cout<<u3sector_pairs[j].sector()<<std::endl;
                 }
             }
