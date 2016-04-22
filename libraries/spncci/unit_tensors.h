@@ -92,11 +92,11 @@ namespace spncci
         | (TwiceValue(tensor.Tp_) << 2*spin_label_width+2*quanta_label_width)
         | (TwiceValue(tensor.S_) << spin_label_width+2*quanta_label_width)
         | (TwiceValue(tensor.T_) << 2*quanta_label_width)
-        | (rp_ << quanta_label_width) | (r_ << 0);
+        | (tensor.rp_ << quanta_label_width) | (tensor.r_ << 0);
       
       boost::hash<int> intHasher;
       std::size_t intHash = intHasher(packed_Ints);
-      std::size_t u3Hash = u3::hash_value(tensor.omega0_);
+      std::size_t u3Hash = hash_value(tensor.omega0_);
       
       // naive implementation: add hashes together
       return intHash+u3Hash;
@@ -188,8 +188,8 @@ namespace spncci
       // labels omegap_, omega_, tensor_, rho0_
       // type: U3, U3, tensor, int
       // hash them all
-      std::size_t omegapHash = u3::hash_value(tensor.omegap_);
-      std::size_t omegaHash = u3::hash_value(tensor.omega_);
+      std::size_t omegapHash = hash_value(tensor.omegap_);
+      std::size_t omegaHash = hash_value(tensor.omega_);
       std::size_t tensorHash = hash_value(tensor.tensor_);
       boost::hash<int> rhoHasher;
       std::size_t rhoHash = rhoHasher(tensor.rho0_);
