@@ -45,9 +45,6 @@ namespace u3
       extern void wu3r3w_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[MAX_K][MAX_K][MAX_K][MAX_K]);
       extern void wru3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
       extern void wzu3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
-      //extern void wru3_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
-      //extern void wzu3_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
- 
       extern void wu39lm_(const int&, const int& , const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, double[], const int&);
       extern void blocks_(void);
     }
@@ -127,7 +124,7 @@ namespace u3
     // hashing
     ////////////////////////////////////////////////////////////////
 
-    inline friend std::size_t hash_value(const UCoefLabels& ucoef_labels)
+    inline friend std::size_t hash_value(UCoefLabels const& ucoef_labels)
     {
       // TODO (Andika)
       // 6 labels all of SU3 type
@@ -202,8 +199,11 @@ namespace u3
     // constructors
     ////////////////////////////////////////////////////////////////
 
-    UCoefBlock(const u3::UCoefLabels& labels);
+    inline UCoefBlock()
+    : r12_max_(0), r12_3_max_(0), r23_max_(0), r1_23_max_(0){}
     // Construct and store multiplicites and coefficient values
+
+    UCoefBlock(const u3::UCoefLabels& labels);
 
     ////////////////////////////////////////////////////////////////
     // accessors
