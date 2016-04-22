@@ -16,6 +16,39 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
+void iteration_test()
+{
+
+  // label set
+  std::vector<u3::UCoefLabels> label_set;
+
+
+  u3::SU3 x1(2,0);
+  u3::SU3 x2(3,1);
+  u3::SU3 x3(4,2);
+  MultiplicityTagged<u3::SU3>::vector x12_vector=KroneckerProduct(x1,x2);
+  MultiplicityTagged<u3::SU3>::vector x23_vector=KroneckerProduct(x2,x3);
+  for(int i=0; i<x12_vector.size(); i++)
+    {
+      u3::SU3 x12=x12_vector[i].irrep;
+      MultiplicityTagged<u3::SU3>::vector x_vector=KroneckerProduct(x12,x3);
+      for(int j=0; j<x23_vector.size(); j++)
+        {
+          u3::SU3 x23=x23_vector[j].irrep;
+          for(int k=0; k<x_vector.size(); k++)
+            {
+              u3::SU3 x=x_vector[k].irrep;
+              if(u3::OuterMultiplicity(x1,x23,x)>0)
+                label_set.push_back(u3::UCoefLabels(x1,x2,x,x3,x12,x23));
+            }
+        }
+    }
+
+  for (int a=0; a<label_set.size(); a++)
+    {
+      std::cout << u3::hash_value(label_set[a]) << std::endl;
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -58,7 +91,8 @@ int main(int argc, char **argv)
   std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
   std::cout << block.GetCoef(1,1,1,1) << std::endl;
   
-
+  // test iteration over many labels
+  iteration_test();
 
 
 }
