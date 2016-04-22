@@ -124,7 +124,7 @@ namespace u3
     // hashing
     ////////////////////////////////////////////////////////////////
 
-    inline friend std::size_t hash_value(const UCoefLabels& ucoef_labels)
+    inline friend std::size_t hash_value(UCoefLabels const& ucoef_labels)
     {
       // TODO (Andika)
       // 6 labels all of SU3 type
@@ -203,8 +203,11 @@ namespace u3
     // constructors
     ////////////////////////////////////////////////////////////////
 
-    UCoefBlock(const u3::UCoefLabels& labels);
+    inline UCoefBlock()
+    : r12_max_(0), r12_3_max_(0), r23_max_(0), r1_23_max_(0){}
     // Construct and store multiplicites and coefficient values
+
+    UCoefBlock(const u3::UCoefLabels& labels);
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -238,9 +241,6 @@ namespace u3
     std::vector<double> coefs_;
 
   };
-
-
-
 
 
 inline double UCoefBlock::GetCoef(int r12, int r12_3, int r23, int r1_23)

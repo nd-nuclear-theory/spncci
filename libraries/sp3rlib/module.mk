@@ -5,7 +5,7 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h := 
-module_units_cpp-h := u3 vcs sp3r moshinsky u3coef
+module_units_cpp-h := u3 vcs sp3r moshinsky u3coef lsushell_wru3
 
 # module_units_f := 
 module_programs_cpp := u3_test sp3r_test moshinsky_test u3coef_test vcs_test 
