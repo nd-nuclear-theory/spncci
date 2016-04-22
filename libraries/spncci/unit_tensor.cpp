@@ -5,7 +5,7 @@
   University of Notre Dame
 
 ****************************************************************/
-#include "spncci/unit_tensors.h"
+#include "spncci/unit_tensor.h"
 
 extern spncci::LGIVectorType lgi_vector;
 

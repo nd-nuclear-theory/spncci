@@ -1,5 +1,5 @@
 /****************************************************************
-  unit_tensors_test.cpp
+  unit_tensor_test.cpp
 
   Unit tensor algorithms
                                   
@@ -10,7 +10,7 @@
 ****************************************************************/
 #include <cstdio>
 
-#include "spncci/unit_tensors.h"
+#include "spncci/unit_tensor.h"
 
 spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
