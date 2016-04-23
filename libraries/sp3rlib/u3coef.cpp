@@ -10,6 +10,7 @@
   T. Dytrych CSU3Master.
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
+#include "sp3rlib/lsushell_wru3.h"
 
 
 namespace u3
@@ -58,11 +59,12 @@ namespace u3
     std::vector<double> u_array(r_max);
     if (mode == UZMode::kU)
       {
-        su3lib::wru3optimized_(
-                               x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                               r12_max, r12_3_max, r23_max, r1_23_max, 
-                               &u_array[0], r_max
-                               );
+        // su3lib::wru3optimized_(
+        u3::lsu::wru3(
+                     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+                     r12_max, r12_3_max, r23_max, r1_23_max, 
+                     &u_array[0], r_max
+                     );
       }
     else
       {
@@ -162,11 +164,11 @@ namespace u3
     coefs_.resize(r_max);
 
     // populate vector
-    su3lib::wru3optimized_(
-                           x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                           r12_max_, r12_3_max_, r23_max_, r1_23_max_, 
-                           &coefs_[0], r_max
-                           ); 
+    u3::lsu::wru3(
+                 x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+                 r12_max_, r12_3_max_, r23_max_, r1_23_max_, 
+                 &coefs_[0], r_max
+                 ); 
   }
 
 
@@ -198,7 +200,7 @@ namespace u3
     return value;
   }
 
-  bool g_u_cache_enabled = true;
+  bool g_u_cache_enabled = false;
 
   double UCached(
                  const u3::UCoefCache& cache, 
