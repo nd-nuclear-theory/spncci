@@ -200,7 +200,7 @@ namespace u3
     return value;
   }
 
-  bool g_u_cache_enabled = false;
+  bool g_u_cache_enabled = true;
 
   double UCached(
                  const u3::UCoefCache& cache, 
