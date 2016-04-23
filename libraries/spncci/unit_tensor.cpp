@@ -117,95 +117,6 @@ namespace spncci
   #endif
   } //end function
 
-  void GenerateUCoefLabels(
-                   const spncci::UnitTensorU3Sector& unit_U3Sectors, 
-                   const std::pair<int,int>& lgi_pair, 
-                   const sp3r::Sp3RSpace& irrepp, 
-                   const sp3r::Sp3RSpace &irrep, 
-                   UCoefCache& u_coef_cache
-                   )
-  // for a given U(3) sector, create cache entries to be filled
-  {
-    std::cout<<"Entering GenerateUCoefLabels"<<std::endl;
-    const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
-    const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
-    u3::SU3 xsp=lgip.sigma.SU3();
-    u3::SU3 xs=lgi.sigma.SU3();
-
-    u3::U3 omegap,omega,omega0; 
-    int rp, r,rho0;
-    HalfInt S0, T0, Sp, Tp, S, T;
-    spncci::UnitTensor unit_tensor;
-
-    std::tie(omegap,omega,unit_tensor,rho0)=unit_U3Sectors.Key();
-    std::tie(omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
-    // extract SU(3) character
-    u3::SU3 x0=omega0.SU3();
-    u3::SU3 x=omega.SU3();
-    u3::SU3 xp=omegap.SU3();
-
-    const sp3r::U3Subspace& subspace  = irrep.LookUpSubspace(omega);
-    const sp3r::U3Subspace& subspacep = irrep.LookUpSubspace(omegap);
-
-    MultiplicityTagged<u3::SU3>::vector omegapp_set=KroneckerProduct(xp, u3::SU3(0,2)); 
-    MultiplicityTagged<u3::SU3>::vector omega0p_set=KroneckerProduct(x0, u3::SU3(2,0));
-    MultiplicityTagged<u3::SU3>::vector omega1_set=KroneckerProduct(x, u3::SU3(0,2));
-
-    //looping over omega0p 
-    for(int a=0; a<omega0p_set.size(); a++ )
-      {
-        //extracting SU(3) character of omega0p
-        u3::SU3 x0p=omega0p_set[a].irrep;
-        // Adding UCoefLabels into u_coef_cache. 
-        u_coef_cache[u3::UCoefLabels(u3::SU3(rp,0), u3::SU3(0,r), x0p, u3::SU3(2,0), x0, u3::SU3(0,r-2))];
-        u_coef_cache[u3::UCoefLabels(u3::SU3(2,0), u3::SU3(rp,0), x0p, u3::SU3(0,r), u3::SU3(rp+2,0), x0)];
-        // looping over omega1
-        for(int b=0; b<omega1_set.size(); b++)
-          {
-            u3::SU3 x1=omega1_set[b].irrep; 
-
-            u3::U3 omega1=u3::U3(omega.N()-2,x1);
-            const sp3r::U3Subspace& subspace1  = irrep.LookUpSubspace(omega1);
-
-            u_coef_cache[u3::UCoefLabels(x0,u3::SU3(2,0), xp, x1, x0p, x)];
-
-            for(int c=0; c<omegapp_set.size(); c++)
-              {
-                u3::SU3 xpp=omegapp_set[c].irrep; 
-                u3::U3 omegapp(omegap.N()-2,xpp);
-
-                u_coef_cache[u3::UCoefLabels(u3::SU3(2,0), x0, xp, x1, x0p, xpp)];
-                const sp3r::U3Subspace& subspacepp= irrep.LookUpSubspace(omegapp);
-                for (int ipp=0; ipp<subspacepp.size(); ipp++)
-                  {
-                    u3::SU3 xnpp=subspacepp.GetStateLabels(ipp).irrep.SU3();
-                    int rhopp=subspacepp.GetStateLabels(ipp).tag;
-                    for (int ip=0; ip<subspacep.size(); ip++)
-                      {
-                        u3::SU3 xnp=subspacep.GetStateLabels(ip).irrep.SU3();
-                        int rhop=subspacep.GetStateLabels(ip).tag;
-                        u_coef_cache[u3::UCoefLabels(xsp, xnpp, xp, u3::SU3(2,0), xpp, xnp)];
-                      }
-                  }
-              }// end omegapp
-            for(int i1=0; i1<subspace1.size(); i1++)
-              {
-                u3::SU3 xn1=subspace1.GetStateLabels(i1).irrep.SU3();
-                int rho1=subspace1.GetStateLabels(i1).tag;
-                for(int i=0; i<subspace.size(); i++ )
-                  {
-                    u3::SU3 xn=subspace.GetStateLabels(i).irrep.SU3();
-                    int rho=subspace.GetStateLabels(i).tag;
-                    u_coef_cache[u3::UCoefLabels(u3::SU3(2,0), xn1, x, xs, xn, x1)];
-                  }
-              }
-          }
-      }
-    #ifdef VERBOSE
-    std::cout<<"Exiting GenerateUCoefLabels"<<std::endl;
-    #endif
-  }
-
   ////////////////////////////////////////////////////////////////////////////////////
   void GenerateUnitTensorU3SectorLabels(
                                         // single particle cutoff, relative particle <= 2*N1b+Nn
@@ -317,6 +228,105 @@ namespace spncci
   }
 
   ////////////////////////////////////////////////////////////////////////////////////
+
+
+  void GenerateUCoefLabelsForSector(
+                   const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, 
+                   const std::pair<int,int>& lgi_pair, 
+                   const sp3r::Sp3RSpace& irrepp, 
+                   const sp3r::Sp3RSpace &irrep, 
+                   UCoefCache& u_coef_cache
+                   )
+  // for a given U(3) sector, create cache entries to be filled
+  {
+    std::cout<<"Entering GenerateUCoefLabels"<<std::endl;
+    const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
+    const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
+    u3::SU3 xsp=lgip.sigma.SU3();
+    u3::SU3 xs=lgi.sigma.SU3();
+
+    u3::U3 omegap,omega,omega0; 
+    int rp, r,rho0;
+    HalfInt S0, T0, Sp, Tp, S, T;
+    spncci::UnitTensor unit_tensor;
+
+    std::tie(omegap,omega,unit_tensor,rho0)=unit_tensor_u3_sector.Key();
+    std::tie(omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
+    // extract SU(3) character
+    u3::SU3 x0=omega0.SU3();
+    u3::SU3 x=omega.SU3();
+    u3::SU3 xp=omegap.SU3();
+
+    const sp3r::U3Subspace& subspace  = irrep.LookUpSubspace(omega);
+    const sp3r::U3Subspace& subspacep = irrep.LookUpSubspace(omegap);
+
+    MultiplicityTagged<u3::SU3>::vector omegapp_set=KroneckerProduct(xp, u3::SU3(0,2)); 
+    MultiplicityTagged<u3::SU3>::vector omega0p_set=KroneckerProduct(x0, u3::SU3(2,0));
+    MultiplicityTagged<u3::SU3>::vector omega1_set=KroneckerProduct(x, u3::SU3(0,2));
+
+    //looping over omega0p 
+    for(int a=0; a<omega0p_set.size(); a++ )
+      {
+        //extracting SU(3) character of omega0p
+        u3::SU3 x0p=omega0p_set[a].irrep;
+        // Adding UCoefLabels into u_coef_cache. 
+        u_coef_cache[u3::UCoefLabels(u3::SU3(rp,0), u3::SU3(0,r), x0p, u3::SU3(2,0), x0, u3::SU3(0,r-2))];
+        u_coef_cache[u3::UCoefLabels(u3::SU3(2,0), u3::SU3(rp,0), x0p, u3::SU3(0,r), u3::SU3(rp+2,0), x0)];
+        // looping over omega1
+        for(int b=0; b<omega1_set.size(); b++)
+          {
+            u3::SU3 x1=omega1_set[b].irrep; 
+
+            u3::U3 omega1=u3::U3(omega.N()-2,x1);
+            const sp3r::U3Subspace& subspace1  = irrep.LookUpSubspace(omega1);
+
+            u_coef_cache[u3::UCoefLabels(x0,u3::SU3(2,0), xp, x1, x0p, x)];
+
+            for(int c=0; c<omegapp_set.size(); c++)
+              {
+                u3::SU3 xpp=omegapp_set[c].irrep; 
+                u3::U3 omegapp(omegap.N()-2,xpp);
+
+                u_coef_cache[u3::UCoefLabels(u3::SU3(2,0), x0, xp, x1, x0p, xpp)];
+                const sp3r::U3Subspace& subspacepp= irrep.LookUpSubspace(omegapp);
+                for (int ipp=0; ipp<subspacepp.size(); ipp++)
+                  {
+                    u3::SU3 xnpp=subspacepp.GetStateLabels(ipp).irrep.SU3();
+                    int rhopp=subspacepp.GetStateLabels(ipp).tag;
+                    for (int ip=0; ip<subspacep.size(); ip++)
+                      {
+                        u3::SU3 xnp=subspacep.GetStateLabels(ip).irrep.SU3();
+                        int rhop=subspacep.GetStateLabels(ip).tag;
+                        u_coef_cache[u3::UCoefLabels(xsp, xnpp, xp, u3::SU3(2,0), xpp, xnp)];
+                      }
+                  }
+              }// end omegapp
+            for(int i1=0; i1<subspace1.size(); i1++)
+              {
+                u3::SU3 xn1=subspace1.GetStateLabels(i1).irrep.SU3();
+                int rho1=subspace1.GetStateLabels(i1).tag;
+                for(int i=0; i<subspace.size(); i++ )
+                  {
+                    u3::SU3 xn=subspace.GetStateLabels(i).irrep.SU3();
+                    int rho=subspace.GetStateLabels(i).tag;
+                    u_coef_cache[u3::UCoefLabels(u3::SU3(2,0), xn1, x, xs, xn, x1)];
+                  }
+              }
+          }
+      }
+    #ifdef VERBOSE
+    std::cout<<"Exiting GenerateUCoefLabels"<<std::endl;
+    #endif
+  }
+
+  void CacheUCoef(
+                  const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, 
+                  const std::pair<int,int>& lgi_pair, 
+                  const sp3r::Sp3RSpace& irrepp, 
+                  const sp3r::Sp3RSpace &irrep, 
+                  UCoefCache& u_coef_cache
+                  )
+    
 
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -472,9 +482,9 @@ namespace spncci
                         u3::U3 omegapp(omegapp_set[wpp].irrep);
                         if (not irrepp.ContainsSubspace(omegapp))
                           continue;
-                        spncci::UnitTensorU3Sector unit_U3Sectors1(omegapp,omega1,spncci::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1);
+                        spncci::UnitTensorU3Sector unit_tensor_u3_sector_1(omegapp,omega1,spncci::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1);
                         if (
-                            (sector_NpN4).count(unit_U3Sectors1)==0
+                            (sector_NpN4).count(unit_tensor_u3_sector_1)==0
                             )
                           continue;						
                         // omega'' subspace (v'')
@@ -718,7 +728,7 @@ namespace spncci
     // pass through to actual calculation (via switchable wrapper)
     
     UCoefCache u_coef_cache;
-    // GenerateUCoeffCache(...,u_coef_cache);
+    // GenerateUCoefCache(...,u_coef_cache);
     
 
     // Extracting LGI labels from pair
