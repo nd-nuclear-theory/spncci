@@ -73,7 +73,7 @@ C
       QTS=QTS*DFLOAT(IS+1)*                                             
 #if defined(SU3DBL)
      1    DSQRT(QBINO(ND(LAM,IPB))*QBINO(ND(MU,IQB))*                   
-#else defined(SU3QUAD)
+#elif defined(SU3QUAD)
      1    QSQRT(QBINO(ND(LAM,IPB))*QBINO(ND(MU,IQB))*                   
 #endif
      2    QBINO(ND(LAM+MU+1,IQB))*QBINV(ND(IPB+MU+1,IQB))*              
