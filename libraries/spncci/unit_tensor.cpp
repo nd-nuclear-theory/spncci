@@ -7,8 +7,6 @@
 ****************************************************************/
 
 
-#include "spncci/coef_cache.h"
-
 #include "spncci/unit_tensor.h"
 
 extern spncci::LGIVectorType lgi_vector;
@@ -235,7 +233,7 @@ namespace spncci
                    const std::pair<int,int>& lgi_pair, 
                    const sp3r::Sp3RSpace& irrepp, 
                    const sp3r::Sp3RSpace &irrep, 
-                   UCoefCache& u_coef_cache
+                   u3::UCoefCache& u_coef_cache
                    )
   // for a given U(3) sector, create cache entries to be filled
   {
@@ -324,8 +322,8 @@ namespace spncci
                   const std::pair<int,int>& lgi_pair, 
                   const sp3r::Sp3RSpace& irrepp, 
                   const sp3r::Sp3RSpace &irrep, 
-                  UCoefCache& u_coef_cache
-                  )
+                  u3::UCoefCache& u_coef_cache
+                  );
     
 
 
@@ -333,6 +331,7 @@ namespace spncci
 
 
   Eigen::MatrixXd UnitTensorMatrix(
+                                   const u3::UCoefCache& u_coef_cache,
                                    // LGI pair sector 
                                    const std::pair<int,int> lgi_pair,
                                    // vector of addresses to relevant Np,N sectors of unit tensor matrix
@@ -437,7 +436,7 @@ namespace spncci
                     )
                   BU(m1,m)=(
                             vcs::BosonCreationRME(n,n1)
-                            *u3::UCashed(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),
+                            *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),
                                           n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
                             );
 							
@@ -468,7 +467,7 @@ namespace spncci
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 //std::cout<<"third term"<<std::endl;
 
-                double coef3=u3::UCashed(u_coef_cache,
+                double coef3=u3::UCached(u_coef_cache,
                                    omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
                                    omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
                                    );
@@ -511,7 +510,7 @@ namespace spncci
                                   boson_matrix(vp,vpp)=
                                     //vcs::U3BosonCreationRME(lgip.sigma, np_rhop, omegap, lgip.sigma, npp_rhopp,omegapp);
                                     vcs::BosonCreationRME(np,npp)
-                                    *u3::UCashed(u_coef_cache,lgip.sigma.SU3(), npp.SU3(), omegap.SU3(), u3::SU3(2,0), 
+                                    *u3::UCached(u_coef_cache,lgip.sigma.SU3(), npp.SU3(), omegap.SU3(), u3::SU3(2,0), 
                                            omegapp.SU3(), rhopp, 1, np.SU3(), 1, rhop);
 
                                 else
@@ -532,7 +531,7 @@ namespace spncci
                             assert(sector_NpN4.count(unit3_labels)>0);
 
                             unit3pp_matrix+=
-                              u3::UCashed(u_coef_cache,u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
+                              u3::UCached(u_coef_cache,u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
                                     omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
                               *sector_NpN4[unit3_labels];
 
@@ -555,9 +554,9 @@ namespace spncci
                     if ( sector_NpN2.count(unit1_labels)!=0)
                       {
                         double coef1=(
-                                      u3::UCashed(u_coef_cache,omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
+                                      u3::UCached(u_coef_cache,omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
                                             omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0)
-                                      *u3::UCashed(u_coef_cache,u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
+                                      *u3::UCached(u_coef_cache,u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
                                              omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1)
                                       *sqrt(1.*u3::dim(omega0p)*Choose(rb,2)/u3::dim(omega0))
                                       );											
@@ -582,11 +581,11 @@ namespace spncci
                       {
                         coef2=
                           (-1
-                           *u3::UCashed(u_coef_cache,
+                           *u3::UCached(u_coef_cache,
                                   omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
                                   omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
                                   )
-                           *u3::UCashed(u_coef_cache,
+                           *u3::UCached(u_coef_cache,
                                   u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), 
                                   u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1
                                   )
@@ -618,19 +617,20 @@ namespace spncci
 
 
   void GenerateUnitTensorU3Sector(
-                                     const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, 
-                                     // LGI pair sector 
-                                     const std::pair<int,int> lgi_pair,
-                                     // vector of addresses to relevant Np,N sectors of unit tensor matrix
-                                     // Eigen doesn't like const 
-                                     spncci::UnitTensorSectorsCache& sector_NpN2,
-                                     spncci::UnitTensorSectorsCache& sector_NpN4,
-                                     // sigma' irrep
-                                     const sp3r::Sp3RSpace& irrepp,
-                                     // sigma irrep
-                                     const sp3r::Sp3RSpace& irrep,
-                                     bool Nn_zero,
-                                     std::vector< UnitTensorU3SectorPair >& unit_tensor_u3_sector_pairs)
+                                  const u3::UCoefCache& u_coef_cache,
+                                  const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, 
+                                  // LGI pair sector 
+                                  const std::pair<int,int> lgi_pair,
+                                  // vector of addresses to relevant Np,N sectors of unit tensor matrix
+                                  // Eigen doesn't like const 
+                                  spncci::UnitTensorSectorsCache& sector_NpN2,
+                                  spncci::UnitTensorSectorsCache& sector_NpN4,
+                                  // sigma' irrep
+                                  const sp3r::Sp3RSpace& irrepp,
+                                  // sigma irrep
+                                  const sp3r::Sp3RSpace& irrep,
+                                  bool Nn_zero,
+                                  std::vector< UnitTensorU3SectorPair >& unit_tensor_u3_sector_pairs)
   {
 
     //calculate unit tensor matrix.   
@@ -653,12 +653,18 @@ namespace spncci
 
         std::tie (omegap,omega,unit_tensor,rho0)=unit_tensor_u3_sector.Key();
         std::tie (omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
-        spncci::UnitTensorU3Sector unit_tensor_calc_U3Sector
+        spncci::UnitTensorU3Sector unit_tensor_calc_u3_sector
           =spncci::UnitTensorU3Sector(omega,omegap,UnitTensor(u3::Conjugate(omega0),S0,T0,r,S,T,rp,Sp,Tp),rho0);
+
         //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
         //  corresponding to omega' and omega
-        temp_matrix=spncci::UnitTensorMatrix(std::pair<int,int>(lgi_pair.second,lgi_pair.first),
-                                    sector_NpN2, sector_NpN4, irrep, irrepp, unit_tensor_calc_U3Sector);
+        temp_matrix=spncci::UnitTensorMatrix(
+                                             u_coef_cache,
+                                             std::pair<int,int>(lgi_pair.second,lgi_pair.first),
+                                             sector_NpN2,sector_NpN4,
+                                             irrep,irrepp,
+                                             unit_tensor_calc_u3_sector
+                                             );
         
         double coef=ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap))
               *sqrt(1.*dim(u3::SU3(rp,0))*dim(omega)/(dim(u3::SU3(r,0))*dim(omegap)));
@@ -678,7 +684,13 @@ namespace spncci
       {
         //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
         //  corresponding to omega' and omega
-        temp_matrix=spncci::UnitTensorMatrix(lgi_pair, sector_NpN2, sector_NpN4,irrepp, irrep, unit_tensor_u3_sector);
+        temp_matrix=spncci::UnitTensorMatrix(
+                                             u_coef_cache,
+                                             lgi_pair,
+                                             sector_NpN2,sector_NpN4,
+                                             irrepp,irrep,
+                                             unit_tensor_u3_sector
+                                             );
       
     // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
         if (temp_matrix.any())
@@ -728,7 +740,7 @@ namespace spncci
     // 2) populate cache with values
     // pass through to actual calculation (via switchable wrapper)
     
-    UCoefCache u_coef_cache;
+    u3::UCoefCache u_coef_cache;
     // GenerateUCoefCache(...,u_coef_cache);
     
 
@@ -790,7 +802,7 @@ namespace spncci
             for (int i=0; i<unit_U3Sector_vector.size(); i++)
               {
                 const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];
-                GenerateUnitTensorU3Sector(unit_tensor_u3_sector, lgi_pair, sector_NpN2, sector_NpN4, irrepp, irrep, Nn_zero, u3sector_pairs);
+                GenerateUnitTensorU3Sector(u_coef_cache, unit_tensor_u3_sector, lgi_pair, sector_NpN2, sector_NpN4, irrepp, irrep, Nn_zero, u3sector_pairs);
                 dist++;
               }
 
