@@ -250,10 +250,11 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
   // typedefs
   ////////////////////////////////////////////////////////////////
-  
-  typedef std::map< spncci::UnitTensorU3Sector, Eigen::MatrixXd > UnitTensorSectorsCache;
-
-
+  #ifdef HASH_UNIT_TENSOR
+    typedef std::unordered_map< spncci::UnitTensorU3Sector, Eigen::MatrixXd, boost::hash<spncci::UnitTensorU3Sector> > UnitTensorSectorsCache;
+  #else
+    typedef std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd > UnitTensorSectorsCache;
+  #endif
 
   void GenerateUnitTensors(int Nmax, std::map< int,std::vector<spncci::UnitTensor> >& unit_sym_map);
   // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
@@ -291,7 +292,7 @@ namespace spncci
          // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
          std::map<
          std::pair<int,int>,
-         std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >
+         UnitTensorSectorsCache
          >& unit_tensor_rme_map
          );
 } //namespace 
