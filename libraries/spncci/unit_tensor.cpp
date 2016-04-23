@@ -760,17 +760,20 @@ namespace spncci
 
             // save out sectors
             #pragma omp critical
-            for (int j=0; j<u3sector_pairs.size(); j++)
-              {
-                ++sector_count;
-                unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs[j]);
-                // std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " << sector_count << std::endl;
-                // std::cout << " " << u3sector_pairs[j].second<<std::endl;
-              }
+            unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());
+            sector_count += u3sector_pairs.size();
+
+            // for (int j=0; j<u3sector_pairs.size(); j++)
+            //   {
+            //     ++sector_count;
+            //     unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs[j]);
+            //     // std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " << sector_count << std::endl;
+            //     // std::cout << " " << u3sector_pairs[j].second<<std::endl;
+            //   }
           
           }  // omp parallel
-          // std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " 
-          //           << "sector_count for sector " << sector_count <<std::endl;
+          std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " 
+                    << "sector_count for sector " << sector_count << " stored " << unit_tensor_rme_map[NpN_pair].size() <<std::endl;
 
           
         }  
