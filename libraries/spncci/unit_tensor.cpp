@@ -137,6 +137,7 @@ namespace spncci
     #ifdef VERBOSE
     std::cout<<"Entering GenerateUnitTensorU3SectorLabels"<<std::endl;
     #endif
+
     // initial declarations     
     u3::U3 omega0;
     HalfInt S0, T0, Sbp, Tbp, Sb, Tb ;
@@ -227,6 +228,10 @@ namespace spncci
                 }
             }
         }    
+
+    #ifdef VERBOSE
+    std::cout<<"Exiting GenerateUnitTensorU3SectorLabels"<<std::endl;
+    #endif
   }
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -249,7 +254,9 @@ namespace spncci
   //   (std::vector<u3::UCoefLabels>): the vector of labels (no particular ordering)
   {
 
+    #ifdef VERBOSE
     std::cout<<"Entering GenerateUCoefLabels"<<std::endl;
+    #endif
 
     // retrieve LGI info
     const u3::SU3 xsp=lgip.sigma.SU3();
@@ -287,25 +294,39 @@ namespace spncci
             //extracting SU(3) character of omega0p
             u3::SU3 x0p=omega0p_set[a].irrep;
             // Adding UCoefLabels
-            u_coef_labels_set.insert(u3::UCoefLabels(u3::SU3(rp,0), u3::SU3(0,r), x0p, u3::SU3(2,0), x0, u3::SU3(0,r-2)));
-            u_coef_labels_set.insert(u3::UCoefLabels(u3::SU3(2,0), u3::SU3(rp,0), x0p, u3::SU3(0,r), u3::SU3(rp+2,0), x0));
-            // looping over omega1
+            u3::UCoefLabels labels1(u3::SU3(rp,0),u3::SU3(0,r),x0p,u3::SU3(2,0),x0,u3::SU3(0,r-2));
+            u3::UCoefLabels labels2(u3::SU3(2,0),u3::SU3(rp,0),x0p,u3::SU3(0,r),u3::SU3(rp+2,0),x0);
+            if (labels1.Allowed())
+              u_coef_labels_set.insert(labels1);
+            if (labels2.Allowed())
+              u_coef_labels_set.insert(labels2);
+
             for(int b=0; b<omega1_set.size(); b++)
               {
                 u3::SU3 x1=omega1_set[b].irrep; 
 
                 u3::U3 omega1=u3::U3(omega.N()-2,x1);
+                if (not irrep.ContainsSubspace(omega1))
+                  continue;
                 const sp3r::U3Subspace& subspace1  = irrep.LookUpSubspace(omega1);
 
-                u_coef_labels_set.insert(u3::UCoefLabels(x0,u3::SU3(2,0), xp, x1, x0p, x));
+                u3::UCoefLabels labels3(x0,u3::SU3(2,0),xp,x1,x0p,x);
+                if (labels3.Allowed())
+                  u_coef_labels_set.insert(labels3);
 
                 for(int c=0; c<omegapp_set.size(); c++)
                   {
                     u3::SU3 xpp=omegapp_set[c].irrep; 
                     u3::U3 omegapp(omegap.N()-2,xpp);
 
-                    u_coef_labels_set.insert(u3::UCoefLabels(u3::SU3(2,0), x0, xp, x1, x0p, xpp));
-                    const sp3r::U3Subspace& subspacepp= irrep.LookUpSubspace(omegapp);
+                    u3::UCoefLabels labels4(u3::SU3(2,0), x0, xp, x1, x0p, xpp);
+                    if (labels4.Allowed())
+                      u_coef_labels_set.insert(labels4);
+
+                    if (not irrepp.ContainsSubspace(omegapp))
+                          continue;
+                    const sp3r::U3Subspace& subspacepp= irrepp.LookUpSubspace(omegapp);
+
                     for (int ipp=0; ipp<subspacepp.size(); ipp++)
                       {
                         u3::SU3 xnpp=subspacepp.GetStateLabels(ipp).irrep.SU3();
@@ -314,10 +335,14 @@ namespace spncci
                           {
                             u3::SU3 xnp=subspacep.GetStateLabels(ip).irrep.SU3();
                             int rhop=subspacep.GetStateLabels(ip).tag;
-                            u_coef_labels_set.insert(u3::UCoefLabels(xsp, xnpp, xp, u3::SU3(2,0), xpp, xnp));
+
+                            u3::UCoefLabels labels5(xsp, xnpp, xp, u3::SU3(2,0), xpp, xnp);
+                            if (labels5.Allowed())
+                              u_coef_labels_set.insert(labels5);
                           }
                       }
                   }// end omegapp
+
                 for(int i1=0; i1<subspace1.size(); i1++)
                   {
                     u3::SU3 xn1=subspace1.GetStateLabels(i1).irrep.SU3();
@@ -326,7 +351,10 @@ namespace spncci
                       {
                         u3::SU3 xn=subspace.GetStateLabels(i).irrep.SU3();
                         int rho=subspace.GetStateLabels(i).tag;
-                        u_coef_labels_set.insert(u3::UCoefLabels(u3::SU3(2,0), xn1, x, xs, xn, x1));
+
+                        u3::UCoefLabels labels6(u3::SU3(2,0), xn1, x, xs, xn, x1);
+                        if (labels6.Allowed())
+                          u_coef_labels_set.insert(labels6);
                       }
                   }
               }
@@ -378,17 +406,24 @@ namespace spncci
     for (const auto& labels : u_coef_labels_vector)
       u_coef_cache[labels];
 
-    // populate cache with U coefficients themselves
-    for (const auto& labels : u_coef_labels_vector)
+    // populate cache with U coefficients
+    // for (const auto& labels : u_coef_labels_vector)
+    //   { 
+    //     const int progress_interval = 1000;
+    //     u_coef_cache[labels] = u3::UCoefBlock(labels);
+    //   }
+
+    // populate cache with U coefficients
+    #pragma omp parallel for if(0)
+    for (int i = 0; i < u_coef_labels_vector.size(); ++i)
       { 
-        const int progress_interval = 1000;
-        if ((u_coef_cache.size()%progress_interval)==0)
-          std::cout << "  cache size " << u_coef_cache.size() << "..." << std::endl;
+        const u3::UCoefLabels& labels = u_coef_labels_vector[i];
+        // std::cout << "caching " << labels.Str() << std::endl;
         u_coef_cache[labels] = u3::UCoefBlock(labels);
       }
-    std::cout << "  cached " << u_coef_cache.size() << std::endl;
 
     #ifdef VERBOSE
+    std::cout << "  cached " << u_coef_cache.size() << std::endl;
     std::cout << "Exiting GenerateUCoefCache" << std::endl;
     #endif
 
