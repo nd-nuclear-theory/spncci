@@ -43,7 +43,7 @@ extras :=
 # Gnu Scientific Library
 LDLIBS += -lgsl 
 LDLIBS += -lgslcblas 
-CPPFLAGS += -DHAVE_INLINE
+CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH
 
 # SU3LIB numerical precision
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.

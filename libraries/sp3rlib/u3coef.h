@@ -137,19 +137,23 @@ namespace u3
       std::size_t ulab5 = hash_value(ucoef_labels.x12_);
       std::size_t ulab6 = hash_value(ucoef_labels.x23_);
 
+      #ifdef NAIVEHASH
       // naive implementation: sum hashes together
       std::size_t ulabsum = 0;
       return ulabsum = ulab1 + ulab2 + ulab3 + ulab4 +ulab5 + ulab6;
+      #endif
 
+      #ifdef BOOSTHASH
       // smarter implementation: boost::hashcombine
-      // std::size_t seed = 0;
-      // boost::hashcombine(seed,ulab1);
-      // boost::hashcombine(seed,ulab2);
-      // boost::hashcombine(seed,ulab3);
-      // boost::hashcombine(seed,ulab4);
-      // boost::hashcombine(seed,ulab5);
-      // boost::hashcombine(seed,ulab6);
-      // return seed;
+      std::size_t seed = 0;
+      boost::hash_combine(seed,ulab1);
+      boost::hash_combine(seed,ulab2);
+      boost::hash_combine(seed,ulab3);
+      boost::hash_combine(seed,ulab4);
+      boost::hash_combine(seed,ulab5);
+      boost::hash_combine(seed,ulab6);
+      return seed;
+      #endif
     }
     ////////////////////////////////////////////////////////////////
     // string conversion

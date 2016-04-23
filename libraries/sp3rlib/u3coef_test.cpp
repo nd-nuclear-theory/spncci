@@ -15,6 +15,7 @@
 #include "utilities/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
+#include <map>
 
 void iteration_test()
 {
@@ -23,9 +24,9 @@ void iteration_test()
   std::vector<u3::UCoefLabels> label_set;
 
 
-  u3::SU3 x1(2,0);
-  u3::SU3 x2(3,1);
-  u3::SU3 x3(4,2);
+  u3::SU3 x1(10,0);
+  u3::SU3 x2(8,5);
+  u3::SU3 x3(5,8);
   MultiplicityTagged<u3::SU3>::vector x12_vector=KroneckerProduct(x1,x2);
   MultiplicityTagged<u3::SU3>::vector x23_vector=KroneckerProduct(x2,x3);
   for(int i=0; i<x12_vector.size(); i++)
@@ -44,10 +45,28 @@ void iteration_test()
         }
     }
 
+  int countHash = 0;
+  std::map<std::size_t,int> uniqueHash;
   for (int a=0; a<label_set.size(); a++)
     {
-      std::cout << label_set[a].Str() << " " << hash_value(label_set[a]) << std::endl;
+      std::size_t newHash = hash_value(label_set[a]);
+      std::cout << label_set[a].Str() << " " << newHash << std::endl;
+      countHash++;
+      uniqueHash[newHash]++;
+
     }
+
+  int collisionHash = 0;
+  for (std::map<std::size_t,int>::const_iterator it = uniqueHash.begin();
+	it != uniqueHash.end(); ++it)
+    {
+//      if (it->second > 1)
+      std::cout << it->first << "\t" << it->second << std::endl;
+//        collisionHash++;
+    }
+
+std::cout << "Total number of hashes made: " << std::to_string(countHash) << std::endl;
+//std::cout << "Number of hash collision: " << std::to_string(collisionHash) << std::endl;
 }
 
 int main(int argc, char **argv)
