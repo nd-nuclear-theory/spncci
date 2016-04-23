@@ -43,7 +43,13 @@ extras :=
 # Gnu Scientific Library
 LDLIBS += -lgsl 
 LDLIBS += -lgslcblas 
-CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH
+CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH  -DHASH_UNIT_TENSOR 
+
+#for lots of output
+# -DVERBOSE 
+
+# to use hash table storage for unit tensor sectors
+#-DHASH_UNIT_TENSOR
 
 # SU3LIB numerical precision
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.

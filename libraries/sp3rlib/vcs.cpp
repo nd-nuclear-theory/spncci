@@ -56,10 +56,10 @@ namespace vcs{
   }
 
 
-  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map)
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, MatrixCache& K_matrix_map)
   {
     u3::U3 sigma=irrep.sigma();
-    std::map<u3::U3,Eigen::MatrixXd> S_matrix_map;
+    vcs::MatrixCache S_matrix_map;
     for(int i=0; i<irrep.size(); i++)
       {
       

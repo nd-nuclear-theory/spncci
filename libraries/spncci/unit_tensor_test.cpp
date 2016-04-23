@@ -13,7 +13,7 @@
 #include "spncci/unit_tensor.h"
 
 spncci::LGIVectorType lgi_vector;
-std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
+std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
 
 int Nmax;
 int main(int argc, char **argv)
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
   std:: map< 
             std::pair<int,int>, 
             std::map<
-              std::pair<int,int>,
-              std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd> 
-              >
+            std::pair<int,int>,
+            spncci::UnitTensorSectorsCache 
+            >
           > lgi_unit_tensor_rme_map;
 
 
@@ -71,13 +71,14 @@ int main(int argc, char **argv)
   		u3::U3 sigma=lgi.sigma;
   		int N0=int(sigmap.N()-sigma.N());
   		
-  		std::map <spncci::UnitTensorU3Sector, Eigen::MatrixXd> temp_unit_map;
+  		spncci::UnitTensorSectorsCache temp_unit_map;
       int rp,r;
       HalfInt S0;
       u3::U3 omega0;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
   		//////////////////////////////////////////////////////////////////////////////////////////////
+      std::cout <<"LGI pair"<< lgip.Str()<<"  "<<lgi.Str()<<std::endl;
       std::pair<int,int> N0_pair(lgip.Nex,lgi.Nex);
       for (int j=0; j<unit_sym_map[N0].size(); j++)
   			{
@@ -104,7 +105,6 @@ int main(int argc, char **argv)
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
       spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
-
   		// for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
   		// 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
 		  		
@@ -114,4 +114,5 @@ int main(int argc, char **argv)
 			//u3::TestFunction(Nmax, lgi_pair, unit_sym_map, lgi_unit_tensor_rme_map);
 
   	}
+  std::cout<<"all done"<<std::endl;
 }// end main 

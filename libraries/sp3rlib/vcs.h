@@ -18,7 +18,7 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Eigenvalues>  
-
+#include <unordered_map>
 
 #include "sp3rlib/u3coef.h" 
 #include "sp3rlib/sp3r.h"  
@@ -27,6 +27,9 @@
 
 namespace vcs
 {
+  typedef std::map<u3::U3,Eigen::MatrixXd> MatrixCache;
+  // typedef std::unordered_map<u3::U3,Eigen::MatrixXd, boost::hash<u3::U3> > MatrixCache;
+
   inline double Omega(const u3::U3& n, const u3::U3& omega)
 
   // Calculate Omega factor used in Kmatrix calculations.
@@ -61,7 +64,7 @@ namespace vcs
   const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop, const u3::U3& omegap,
   const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega);
 
-  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep,std::map<u3::U3,Eigen::MatrixXd>& K_matrix_map);
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map);
   //Calculates the K matrix 	
 
 }  //  namespace
