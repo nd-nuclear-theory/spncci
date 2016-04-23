@@ -43,7 +43,7 @@ extras :=
 # Gnu Scientific Library
 LDLIBS += -lgsl 
 LDLIBS += -lgslcblas 
-CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH  -DHASH_UNIT_TENSOR 
+CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH -DHASH_UNIT_TENSOR -DVERBOSE
 
 #for lots of output
 # -DVERBOSE 

@@ -160,6 +160,19 @@ namespace u3
     }
 
     ////////////////////////////////////////////////////////////////
+    // validation
+    ////////////////////////////////////////////////////////////////
+    
+    inline bool Allowed() const
+    // Checks if labels satisfy coupling constraints.
+    {
+      int r12_max, r12_3_max, r23_max, r1_23_max;
+      std::tie(r12_max,r12_3_max,r23_max,r1_23_max) = UMultiplicity(x1_,x2_,x_,x3_,x12_,x23_);
+      int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
+      return (r_max > 0);
+    }
+
+    ////////////////////////////////////////////////////////////////
     // hashing
     ////////////////////////////////////////////////////////////////
 
