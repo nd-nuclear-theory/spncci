@@ -128,6 +128,15 @@ namespace u3
     }
 
 
+
+  std::string UCoefLabels::Str() const
+  {
+    std::ostringstream ss;
+
+    ss << "[" << x1_.Str() << x2_.Str() << x_.Str() << x3_.Str()
+       << x12_.Str() << x23_.Str() << "]";
+    return ss.str();
+  }
   
   UCoefBlock::UCoefBlock(const u3::UCoefLabels& labels)
   {

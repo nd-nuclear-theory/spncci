@@ -1,9 +1,11 @@
 # general patterns
-
 *.[oa]
 *~
 *.mod
 .DS_Store 
+
+# temporary diagnostic output files
+*.out
 
 # draconian ignore -- doesn't work?
 #   only track: .mk .h .cpp .F
@@ -12,6 +14,7 @@
 config.mk
 
 bin/
+
 
 # specific executables
 libraries/su3lib/su3genbk

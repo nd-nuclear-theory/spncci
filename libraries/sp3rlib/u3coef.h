@@ -22,6 +22,7 @@
 #include <cassert>
 #include <map>
 #include <tuple>
+#include <boost/functional/hash_fwd.hpp>
 
 #include "sp3rlib/u3.h"
 
@@ -123,11 +124,36 @@ namespace u3
     // hashing
     ////////////////////////////////////////////////////////////////
 
-    inline friend std::size_t hash_value(const UCoefLabels& ucoef_labels)
+    inline friend std::size_t hash_value(UCoefLabels const& ucoef_labels)
     {
       // TODO (Andika)
+      // 6 labels all of SU3 type
+      // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
+      // SU3 hash_value defined in sp3rlib/u3.h
+      std::size_t ulab1 = hash_value(ucoef_labels.x1_);
+      std::size_t ulab2 = hash_value(ucoef_labels.x2_);
+      std::size_t ulab3 = hash_value(ucoef_labels.x_);
+      std::size_t ulab4 = hash_value(ucoef_labels.x3_);
+      std::size_t ulab5 = hash_value(ucoef_labels.x12_);
+      std::size_t ulab6 = hash_value(ucoef_labels.x23_);
 
-      return 0;
+      #ifdef NAIVEHASH
+      // naive implementation: sum hashes together
+      std::size_t ulabsum = 0;
+      return ulabsum = ulab1 + ulab2 + ulab3 + ulab4 +ulab5 + ulab6;
+      #endif
+
+      #ifdef BOOSTHASH
+      // smarter implementation: boost::hashcombine
+      std::size_t seed = 0;
+      boost::hash_combine(seed,ulab1);
+      boost::hash_combine(seed,ulab2);
+      boost::hash_combine(seed,ulab3);
+      boost::hash_combine(seed,ulab4);
+      boost::hash_combine(seed,ulab5);
+      boost::hash_combine(seed,ulab6);
+      return seed;
+      #endif
     }
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -144,6 +170,21 @@ namespace u3
     u3::SU3 x1_, x2_, x_, x3_, x12_, x23_;
 
   };
+
+
+  inline bool operator == (const UCoefLabels& coef1, const UCoefLabels& coef2)
+  {
+    return coef1.Key() == coef2.Key();
+  }
+
+  inline bool operator < (const UCoefLabels& coef1, const UCoefLabels& coef2)
+  {
+    return coef1.Key() < coef2.Key();
+  }
+
+
+
+
 
   class UCoefBlock
   // Class to store and retrieve block of U coefficients sharing same
@@ -162,8 +203,11 @@ namespace u3
     // constructors
     ////////////////////////////////////////////////////////////////
 
-    UCoefBlock(const u3::UCoefLabels& labels);
+    inline UCoefBlock()
+    : r12_max_(0), r12_3_max_(0), r23_max_(0), r1_23_max_(0){}
     // Construct and store multiplicites and coefficient values
+
+    UCoefBlock(const u3::UCoefLabels& labels);
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -197,6 +241,7 @@ namespace u3
     std::vector<double> coefs_;
 
   };
+
 
 inline double UCoefBlock::GetCoef(int r12, int r12_3, int r23, int r1_23)
   {

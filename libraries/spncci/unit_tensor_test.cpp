@@ -1,5 +1,5 @@
 /****************************************************************
-  unit_tensors_test.cpp
+  unit_tensor_test.cpp
 
   Unit tensor algorithms
                                   
@@ -10,7 +10,7 @@
 ****************************************************************/
 #include <cstdio>
 
-#include "spncci/unit_tensors.h"
+#include "spncci/unit_tensor.h"
 
 spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
  	HalfInt Nsigma_0 = HalfInt(11,1);
  	int N1b=2;
   // input file containing LGI's
-	std::string filename = "/afs/crc.nd.edu/user/a/amccoy/projects/spncci/libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+	std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
 
 	// Generate vector of LGI's from input file 
 	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   		lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
-      spncci::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
+      spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
 
   		// for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
   		// 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)

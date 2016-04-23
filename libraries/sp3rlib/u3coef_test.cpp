@@ -15,7 +15,59 @@
 #include "utilities/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
+#include <map>
 
+void iteration_test()
+{
+
+  // label set
+  std::vector<u3::UCoefLabels> label_set;
+
+
+  u3::SU3 x1(10,0);
+  u3::SU3 x2(8,5);
+  u3::SU3 x3(5,8);
+  MultiplicityTagged<u3::SU3>::vector x12_vector=KroneckerProduct(x1,x2);
+  MultiplicityTagged<u3::SU3>::vector x23_vector=KroneckerProduct(x2,x3);
+  for(int i=0; i<x12_vector.size(); i++)
+    {
+      u3::SU3 x12=x12_vector[i].irrep;
+      MultiplicityTagged<u3::SU3>::vector x_vector=KroneckerProduct(x12,x3);
+      for(int j=0; j<x23_vector.size(); j++)
+        {
+          u3::SU3 x23=x23_vector[j].irrep;
+          for(int k=0; k<x_vector.size(); k++)
+            {
+              u3::SU3 x=x_vector[k].irrep;
+              if(u3::OuterMultiplicity(x1,x23,x)>0)
+                label_set.push_back(u3::UCoefLabels(x1,x2,x,x3,x12,x23));
+            }
+        }
+    }
+
+  int countHash = 0;
+  std::map<std::size_t,int> uniqueHash;
+  for (int a=0; a<label_set.size(); a++)
+    {
+      std::size_t newHash = hash_value(label_set[a]);
+      std::cout << label_set[a].Str() << " " << newHash << std::endl;
+      countHash++;
+      uniqueHash[newHash]++;
+
+    }
+
+  int collisionHash = 0;
+  for (std::map<std::size_t,int>::const_iterator it = uniqueHash.begin();
+	it != uniqueHash.end(); ++it)
+    {
+//      if (it->second > 1)
+      std::cout << it->first << "\t" << it->second << std::endl;
+//        collisionHash++;
+    }
+
+std::cout << "Total number of hashes made: " << std::to_string(countHash) << std::endl;
+//std::cout << "Number of hash collision: " << std::to_string(collisionHash) << std::endl;
+}
 
 int main(int argc, char **argv)
 {
@@ -58,7 +110,8 @@ int main(int argc, char **argv)
   std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
   std::cout << block.GetCoef(1,1,1,1) << std::endl;
   
-
+  // test iteration over many labels
+  iteration_test();
 
 
 }

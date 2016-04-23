@@ -16,7 +16,10 @@
 
 #include "spncci/sp_basis.h"
 #include "sp3rlib/vcs.h"
+#include "sp3rlib/u3.h"
 #include <unordered_set>
+#include <unordered_map>
+#include <boost/functional/hash_fwd.hpp>
 
 namespace spncci
 {
@@ -32,18 +35,13 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
 
   public:
-    typedef std::tuple<
-      u3::U3, HalfInt, HalfInt, 
-      int, HalfInt, HalfInt, 
-      int, HalfInt, HalfInt> KeyType;
+    typedef std::tuple<u3::U3, HalfInt, HalfInt, int, HalfInt, HalfInt, 
+                        int, HalfInt, HalfInt> KeyType;
     // w0, S0, T0, rbp, Sb, Tb, r, S, T
 
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
-
-    // copy constructor: synthesized copy constructor since only data
-    // member needs copying
 
     // default constructor
     inline UnitTensor() 
@@ -80,12 +78,39 @@ namespace spncci
     inline friend std::size_t hash_value(const UnitTensor& tensor)
     {
       // TODO (Andika)
-      //
+      // pack ints and Halfnts together first
+      // omega0, S0, T0, rp, Sp, Tp, r, S, T
+      // types: U3 (3 HalfInt), HalfInt, HalfInt, int, HalfInt, HalfInt, int, HalfInt, HalfInt
+      // then hash the packed values together and combine
+      // U3 hashing defined in sp3rlib/u3.h
+      // 
       // r and rp need 6 bits
-      // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits 
+      // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits
       // See constants defined just above...
+      int packed_Ints = (TwiceValue(tensor.S0_) << 5*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.T0_) << 4*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.Sp_) << 3*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.Tp_) << 2*spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.S_) << spin_label_width+2*quanta_label_width)
+        | (TwiceValue(tensor.T_) << 2*quanta_label_width)
+        | (tensor.rp_ << quanta_label_width) | (tensor.r_ << 0);
+      
+      boost::hash<int> intHasher;
+      std::size_t intHash = intHasher(packed_Ints);
+      std::size_t u3Hash = hash_value(tensor.omega0_);
+      
+      #ifdef NAIVEHASH 
+      // naive implementation: add hashes together
+      return intHash+u3Hash;
+      #endif
 
-      return 0;
+      #ifdef BOOSTHASH      
+      // smart implementation: boost::hash_combine
+      std::size_t seed = 0;
+      boost::hash_combine(seed,intHash);
+      boost::hash_combine(seed,u3Hash);
+      return seed;
+      #endif
     }
 
     ////////////////////////////////////////////////////////////////
@@ -165,8 +190,29 @@ namespace spncci
     inline friend std::size_t hash_value(const UnitTensorU3Sector& tensor)
     {
       // TODO (Andika)
-
-      return 0;
+      // labels omegap_, omega_, tensor_, rho0_
+      // type: U3, U3, tensor, int
+      // hash them all
+      std::size_t omegapHash = hash_value(tensor.omegap_);
+      std::size_t omegaHash = hash_value(tensor.omega_);
+      std::size_t tensorHash = hash_value(tensor.tensor_);
+      boost::hash<int> rhoHasher;
+      std::size_t rhoHash = rhoHasher(tensor.rho0_);
+     
+      #ifdef NAIVEHASH 
+      // naive implementation: add hashes together
+      return omegapHash + omegaHash + tensorHash + rhoHash;
+      #endif
+      
+      #ifdef BOOSTHASH
+      // smart implementation: boost::hash_combine
+      std::size_t seed = 0;
+      boost::hash_combine(seed,omegapHash);
+      boost::hash_combine(seed,omegaHash);
+      boost::hash_combine(seed,tensorHash);
+      boost::hash_combine(seed,rhoHash);
+      return seed;
+      #endif
     }
 
     ////////////////////////////////////////////////////////////////
@@ -230,20 +276,20 @@ namespace spncci
   //       }
   //   }
 
-  void UnitTensorMatrixGenerator(
-                                 int N1b,
-                                 // boson number cutoff
-                                 int Nmax, 
-                                 // a given spncci sector pair given as index pair  from global list lgi_vector 
-                                 std::pair<int,int> lgi_pair,
-                                 // Address to map with list of unit tensor labels with key N0 
-                                 std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
-                                 // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-                                 std::map<
-                                 std::pair<int,int>,
-                                 std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >
-                                 >& unit_tensor_rme_map
-                                 );
+  void GenerateUnitTensorMatrix(
+         int N1b,
+         // boson number cutoff
+         int Nmax, 
+         // a given spncci sector pair given as index pair  from global list lgi_vector 
+         std::pair<int,int> lgi_pair,
+         // Address to map with list of unit tensor labels with key N0 
+         std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
+         // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+         std::map<
+         std::pair<int,int>,
+         std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >
+         >& unit_tensor_rme_map
+         );
 } //namespace 
 
 #endif
