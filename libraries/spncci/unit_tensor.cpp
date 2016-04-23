@@ -427,7 +427,8 @@ namespace spncci
                     )
                   BU(m1,m)=(
                             vcs::BosonCreationRME(n,n1)
-                            *u3::U(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
+                            *u3::UCashed(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),
+                                          n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
                             );
 							
                 else
@@ -457,7 +458,7 @@ namespace spncci
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 //std::cout<<"third term"<<std::endl;
 
-                double coef3=u3::U(
+                double coef3=u3::UCashed(u_coef_cache,
                                    omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
                                    omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
                                    );
@@ -500,7 +501,7 @@ namespace spncci
                                   boson_matrix(vp,vpp)=
                                     //vcs::U3BosonCreationRME(lgip.sigma, np_rhop, omegap, lgip.sigma, npp_rhopp,omegapp);
                                     vcs::BosonCreationRME(np,npp)
-                                    *u3::U(lgip.sigma.SU3(), npp.SU3(), omegap.SU3(), u3::SU3(2,0), 
+                                    *u3::UCashed(u_coef_cache,lgip.sigma.SU3(), npp.SU3(), omegap.SU3(), u3::SU3(2,0), 
                                            omegapp.SU3(), rhopp, 1, np.SU3(), 1, rhop);
 
                                 else
@@ -521,7 +522,7 @@ namespace spncci
                             assert(sector_NpN4.count(unit3_labels)>0);
 
                             unit3pp_matrix+=
-                              u3::U(u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
+                              u3::UCashed(u_coef_cache,u3::SU3(2,0),omega0.SU3(),omegap.SU3(), omega1.SU3(),
                                     omega0p.SU3(),1,rho0p,omegapp.SU3(),rho0pp, 1)
                               *sector_NpN4[unit3_labels];
 
@@ -544,9 +545,9 @@ namespace spncci
                     if ( sector_NpN2.count(unit1_labels)!=0)
                       {
                         double coef1=(
-                                      u3::U(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
+                                      u3::UCashed(u_coef_cache,omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
                                             omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0)
-                                      *u3::U(u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
+                                      *u3::UCashed(u_coef_cache,u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
                                              omega0.SU3(),1,1,u3::SU3(0,rb-2),1,1)
                                       *sqrt(1.*u3::dim(omega0p)*Choose(rb,2)/u3::dim(omega0))
                                       );											
@@ -571,11 +572,11 @@ namespace spncci
                       {
                         coef2=
                           (-1
-                           *u3::U(
+                           *u3::UCashed(u_coef_cache,
                                   omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
                                   omega0p.SU3(),1,rho0p,omega.SU3(),1,rho0
                                   )
-                           *u3::U(
+                           *u3::UCashed(u_coef_cache,
                                   u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), 
                                   u3::SU3(rbp+2,0),1,1,omega0.SU3(),1,1
                                   )
