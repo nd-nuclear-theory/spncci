@@ -17,8 +17,8 @@
 #include "spncci/sp_basis.h"
 #include "sp3rlib/vcs.h"
 #include "sp3rlib/u3.h"
-#include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <boost/functional/hash_fwd.hpp>
 
 namespace spncci
