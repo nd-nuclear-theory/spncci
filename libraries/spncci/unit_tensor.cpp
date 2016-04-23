@@ -203,7 +203,6 @@ namespace spncci
   }
 
   ////////////////////////////////////////////////////////////////////////////////////
-
   void GenerateUnitTensorU3SectorLabels(
                                         // single particle cutoff, relative particle <= 2*N1b+Nn
                                         int N1b,
@@ -218,7 +217,7 @@ namespace spncci
                                         )
   // Generates labels of all sectors of unit tensor matrix matrices between states in the irreps of lgi_pair
   {   
-
+    std::cout<<"enter GenerateUnitTensorU3SectorLabels"<<std::endl;
     // initial declarations     
     u3::U3 omega0;
     HalfInt S0, T0, Sbp, Tbp, Sb, Tb ;
@@ -230,6 +229,7 @@ namespace spncci
     const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
     u3::U3 sigmap=lgip.sigma;
     u3::U3 sigma=lgi.sigma; 
+    std::cout<<"LGI's  "<<lgip.Str()<<"   "<<lgi.Str()<<std::endl;
 
     const sp3r::Sp3RSpace& irrepp=lgip.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=lgi.Sp3RSpace();
@@ -308,6 +308,7 @@ namespace spncci
                     }
                 }
             }
+          std::cout<<"Sector  "<< Nnp <<"  "<<Nn<<"  "<< unit_NpNSector_map[NpN_pair].size()<<std::endl;
         }
     
   }
@@ -615,6 +616,7 @@ namespace spncci
   {
 
     //calculate unit tensor matrix.   
+    int zerocout=0;
     /////////////////////////////////////////////////////////////////////////////////////
     Eigen::MatrixXd temp_matrix;
     // In the special case that omegap.N()!=sigmap.N() but omega.N()==sigma.N(), then to calculate we
@@ -643,11 +645,11 @@ namespace spncci
             // apply symmtry factors, transpose the matrix and 
             double coef=ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap))
               *sqrt(1.*dim(u3::SU3(rp,0))*dim(omega)/(dim(u3::SU3(r,0))*dim(omegap)));
-            //unit_tensor_rme_map[NpN_pair][unit_tensor_u3_sector]=
-            unit_tensor_u3_sector_pairs.push_back(
-                                                  UnitTensorU3SectorPair(unit_tensor_u3_sector,coef*temp_matrix.transpose())
-                                                  );
+
+            unit_tensor_u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,coef*temp_matrix.transpose()));
           }
+        else
+          zerocout++;
       }
     // otherwise, directly apply the algorithm
     else 
@@ -659,11 +661,10 @@ namespace spncci
         // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
         if (temp_matrix.any())
           {
-            unit_tensor_u3_sector_pairs.push_back(
-                                                  UnitTensorU3SectorPair(unit_tensor_u3_sector,temp_matrix)
-                                                  );
+            unit_tensor_u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,temp_matrix));
           }
       }
+    std::cout<<"zero count  "<<zerocout<<std::endl;
   }
 
   void GenerateUnitTensorMatrix(
@@ -678,7 +679,7 @@ namespace spncci
                                 // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
                                 std::map<
                                 std::pair<int,int>,
-                                std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd > 
+                                spncci::UnitTensorSectorsCache
                                 >& unit_tensor_rme_map
                                 )
   // Generates all unit tensor matrix matrices between states in the irreps of lgi_pair
@@ -745,37 +746,43 @@ namespace spncci
           std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd >& sector_NpN4=unit_tensor_rme_map[NpN4];
 
           int sector_count = 0;  // debugging variable
+          std::cout<<"sector size  "<<unit_U3Sector_vector.size()<<std::endl;
+
           #pragma omp parallel reduction(+:sector_count)
           {
             // private storage of generated sectors
             std::vector< spncci::UnitTensorU3SectorPair > u3sector_pairs;
-
             // generate sectors
+            int dist=0;
             #pragma omp for
             for (int i=0; i<unit_U3Sector_vector.size(); i++)
               {
                 const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];
                 GenerateUnitTensorU3Sector(unit_tensor_u3_sector, lgi_pair, sector_NpN2, sector_NpN4, irrepp, irrep, Nn_zero, u3sector_pairs);
+                dist++;
               }
 
             // save out sectors
             #pragma omp critical
             unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());
             sector_count += u3sector_pairs.size();
-
+            std::cout<<"bunny rabbits "<<omp_get_num_threads()<<"  "<<omp_get_thread_num()<<"  "<<u3sector_pairs.size()<<"  "<<dist<<std::endl;
             // for (int j=0; j<u3sector_pairs.size(); j++)
             //   {
             //     ++sector_count;
             //     unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs[j]);
-            //     // std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " << sector_count << std::endl;
-            //     // std::cout << " " << u3sector_pairs[j].second<<std::endl;
+            //     std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " << sector_count << std::endl;
+            //     std::cout << " " << u3sector_pairs[j].second<<std::endl;
             //   }
           
           }  // omp parallel
           std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " 
                     << "sector_count for sector " << sector_count << " stored " << unit_tensor_rme_map[NpN_pair].size() <<std::endl;
 
-          
+          // remove invalid NpN4 key that was inserted into map.          
+          if (Nsum==2)
+            unit_tensor_rme_map.erase(NpN4);
+
         }  
   }// end function
         

@@ -248,8 +248,12 @@ namespace spncci
   }
 
   ////////////////////////////////////////////////////////////////
-  // unit tensor operator labels
+  // typedefs
   ////////////////////////////////////////////////////////////////
+  
+  typedef std::map< spncci::UnitTensorU3Sector, Eigen::MatrixXd > UnitTensorSectorsCache;
+
+
 
   void GenerateUnitTensors(int Nmax, std::map< int,std::vector<spncci::UnitTensor> >& unit_sym_map);
   // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
