@@ -12,6 +12,7 @@ C             03/94  UPDATED ... WST AS FOR PUBLICATION  YZU3 --> WZU3
 C                                ELIMINATE EJR CHECK (UNNECESSARY)
 C             07/95  COMMON BLOCK FOR WST ARRAYS (C. BAHRI)
 C             07/11  WST & MULTU3 OVERHEAD REMOVED (T. DYTRYCH)
+C             04/16  MADE COMMON BLOCKS THREAD PRIVATE (A. MCCOY)
 C     ------------------------------------------------------------------
 C     PARAMERTERS--SEE ALSO XEWU3 AND XWU3                              
 C       EXTERNAL--NABCD=MAX(KR0A*KR0B*KR0C*KR0D)
@@ -57,6 +58,7 @@ C     ------------------------------------------------------------------
      4IED(13244)                                                        
       COMMON/BKSAVE/                                                    
      1DEWU3A(39732),DEWU3B(39732),DEWU3C(39732),DEWU3D(39732)           
+!$omp threadprivate(/BKSAVE/)           
       DIMENSION                                                         
      1IA(42),DA(378),DB(9),DT(9),DWU3(27090),J2SMAX(1764),              
      2J2TMAX(1764),J1SMAX(42),J1TMAX(42),INDMAT(1764)                   

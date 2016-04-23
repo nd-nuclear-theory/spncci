@@ -43,15 +43,14 @@ CXX := g++
 # (e.g., need to load same modules as at compile time)
 #
 # CAVEAT: may cause trouble with system library linkage on OS X
-CXXFLAGS += -static
+## CXXFLAGS += -static
 
-# C++11 standard
-CXXFLAGS += -std=c++0x
+# langage standard
+CXXFLAGS += -std=c++11 -fopenmp
 
-# parallel C++ compiler
-#   used in module.mk files as
-#   program program.o: CXX := $(MPICXX)
-MPICXX := mpicxx -cxx=$(CXX)
+# avoid gcc 5 warnings on Eigen library
+CXXFLAGS += -Wno-deprecated-declarations
+
 
 ################################################################
 # FORTRAN compiler-specific configuration
@@ -63,6 +62,8 @@ MPICXX := mpicxx -cxx=$(CXX)
 #   for GCC 4.x: gfortran
 #   for Intel: ifort
 FC := gfortran
+
+FFLAGS += -fopenmp -frecursive
 
 ################################################################
 # C++/FORTRAN linking 

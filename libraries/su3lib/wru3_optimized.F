@@ -79,7 +79,7 @@ C     ------------------------------------------------------------------
      4IED(13244)                                                        
       COMMON/BKSAVE/                                                    
      1DEWU3A(39732),DEWU3B(39732),DEWU3C(39732),DEWU3D(39732)
-      !$omp threadprivate(/BKSAVE/)           
+!$omp threadprivate(/BKSAVE/)           
       DIMENSION                                                         
      1IA(42),DA(378),DB(9),DT(9),DWU3(27090),J2SMAX(1764),              
      2J2TMAX(1764),J3SMAX(42),J3TMAX(42),INDMAT(1764)                   
