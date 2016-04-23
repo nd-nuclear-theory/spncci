@@ -20,7 +20,7 @@
 #define U3COEF_H_
 
 #include <cassert>
-#include <map>
+#include <unordered_map>
 #include <tuple>
 #include <boost/functional/hash_fwd.hpp>
 
@@ -58,20 +58,62 @@ namespace u3
   void U3CoefInit();
 
   double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int r0);
-  // SU(3) reduced coupling coefficient, as referred to as Wigner coefficient 
+  // Compute SU(3) reduced coupling coefficient, referred to as Wigner coefficient 
   //
   // Provides wrapper for su3lib function wu3r3w_
 
-  double U(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23);
-  // SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 1x(2x3). 
-  //
-  // Provides wrapper for su3lib function wru3optimized
 
-
-  double Z(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23);
-  // SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 2x(1x3). 
+  typedef std::tuple<int,int,int,int> UMultiplicityTuple;
+  u3::UMultiplicityTuple UMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
+                                       const u3::SU3& x3, const u3::SU3& x12, const u3::SU3& x23);
+  // Calculate multiplicities for SU(3) Racah U and Z coefficients.
   //
-  // Provides wrapper for su3lib function wzu3optimized
+  // Arguments:
+  //   x1, x2, ... (u3::SU3): SU3 labels for recoupling coefficient
+  //
+  // Returns:
+  //   (UMultiplicityTuple): tuple of multiplicities (r12_max,r12_3_max,r23_max,r1_23_max)
+
+  enum class UZMode {kU, kZ};
+  double UZ(
+           const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+           const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23,
+           UZMode mode
+            );
+  // Calculate SU(3) Racah recoupling coefficient (six-lm symbol).
+  //
+  // Provides wrapper for su3lib function wru3optimized_ or wzu3optimized_.
+  //
+  // Arguments:
+  //   x1, x2, ... (u3::SU3): SU3 labels for recoupling coefficient
+  //   r12, ... (int): multiplicity (rho) labels for recoupling coefficient
+  //   mode (UZMode): kU for U coefficient [(1x2)x3 to 1x(2x3)], kZ for Z coefficient [(1x2)x3 to 2x(1x3)]
+  //
+  // Returns:
+  //   (double): value of coefficient
+
+  inline
+  double U(
+           const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+           const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
+           )
+  // Compute U coefficient.  See comment for UZ above.
+  {
+    return u3::UZ(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23,UZMode::kU);
+  }
+
+  inline
+  double Z(
+           const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+           const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
+           )
+  // Compute Z coefficient.  See comment for UZ above.
+  {
+    return UZ(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23,UZMode::kZ);
+  }
+
+  double Phi(const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x3, int r, int rp);
+  // Compute Phi phase factor that arrises in chainging the coupling order of SU(3) irreps 
 
   double Unitary9LambdaMu(
                           const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x12, int r12,
@@ -79,12 +121,9 @@ namespace u3
                           const u3::SU3& x13, const u3::SU3& x24, const u3::SU3& x,   int r13_24,
                           int r13,     int r24,     int r12_34
                           );
-  //SU(3) unitary 9-(lambda,mu) symbol.
+  // Compute SU(3) unitary 9-(lambda,mu) symbol.
   //
   // Provides wrapper for su3lib function wu39lm_
-
-  double Phi(const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x3, int r, int rp);
-  // Phi phase factor that arrises in chainging the coupling order of SU(3) irreps 
 
 
   ////////////////////////////////////////////////////////////////
@@ -126,7 +165,6 @@ namespace u3
 
     inline friend std::size_t hash_value(UCoefLabels const& ucoef_labels)
     {
-      // TODO (Andika)
       // 6 labels all of SU3 type
       // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
       // SU3 hash_value defined in sp3rlib/u3.h
@@ -171,7 +209,6 @@ namespace u3
 
   };
 
-
   inline bool operator == (const UCoefLabels& coef1, const UCoefLabels& coef2)
   {
     return coef1.Key() == coef2.Key();
@@ -182,13 +219,12 @@ namespace u3
     return coef1.Key() < coef2.Key();
   }
 
-
-
-
-
   class UCoefBlock
   // Class to store and retrieve block of U coefficients sharing same
   // SU(3) labels but with different multiplicity indices
+  //
+  // FUTURE: Can generalize to store blocks of Z coefficients as well,
+  // like function UZ above.
   {
   public:
 
@@ -215,14 +251,14 @@ namespace u3
 
     inline KeyType Key() const
     {
-      return KeyType(r12_max_, r12_3_max_, r23_max_, r1_23_max_);
+      return KeyType(r12_max_,r12_3_max_,r23_max_,r1_23_max_);
     }
  
     ////////////////////////////////////////////////////////////////
     // entry lookup
     ////////////////////////////////////////////////////////////////
 
-    inline double GetCoef(int r12, int r12_3, int r23, int r1_23);
+    double GetCoef(int r12, int r12_3, int r23, int r1_23) const;
 
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -242,34 +278,37 @@ namespace u3
 
   };
 
+  ////////////////////////////////////////////////////////////////
+  // U coefficient caching
+  ////////////////////////////////////////////////////////////////
 
-inline double UCoefBlock::GetCoef(int r12, int r12_3, int r23, int r1_23)
-  {
-    // validate multiplicity indices
-    assert(
-           (r12 <= r12_max_)
-           &&(r12_3 <= r12_3_max_)
-           &&(r23 <= r23_max_)
-           &&(r1_23 <= r1_23_max_)
-           );
-    
-    // calculate index into block
-    //
-    // build up index, dimension by dimension
-    //
-    // equivalent to (but with fewer multiplies and potentially better mult+add structure)
-    //   index=r12+r12_max_*(r12_3-1)+r12_max_*r12_3_max_*(r23-1)+r12_max_*r12_3_max_*r23_max_*(r1_23-1)-1;
+  typedef std::unordered_map<
+    u3::UCoefLabels,
+    u3::UCoefBlock,
+    boost::hash<u3::UCoefLabels> > UCoefCache;
 
-    int index = (r1_23-1);
-    index = index * r23_max_ + (r23-1);
-    index = index * r12_3_max_ + (r12_3-1);
-    index = index * r12_max_ + (r12-1);
+  extern bool g_u_cache_enabled;
+  double UCached(
+                 const UCoefCache& cache, 
+                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
+                 int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
+                 );
+  // Cached SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 1x(2x3). 
+  //
+  // Global:
+  //
+  //   u3::g_u_cache_enabled (bool): mode flag determining whether to
+  //     use caching or calculate on the fly (for debugging and
+  //     profiling)
+  //
+  // Arguments:
+  //   cache (UCoefCache): cache to use for U coefficients
+  //   x1, ...: standard U coefficient SU(3) and multiplicity labels
+  //
+  // Returns;
+  //   (double): single coefficient value
 
-    // retrieve entry
-    double value = coefs_[index];
 
-    return value;
-  }
 
 
 } //namespace 

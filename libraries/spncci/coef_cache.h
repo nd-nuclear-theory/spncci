@@ -20,14 +20,6 @@
 namespace spncci
 {
 
-  ////////////////////////////////////////////////////////////////
-  // U coefficient cache type
-  ////////////////////////////////////////////////////////////////
-
-  typedef std::unordered_map<
-    u3::UCoefLabels,
-    u3::UCoefBlock,
-    boost::hash<u3::UCoefLabels> > UCoefCache;
 
 
 } //namespace 
