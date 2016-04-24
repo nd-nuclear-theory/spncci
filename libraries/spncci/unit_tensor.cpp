@@ -936,7 +936,7 @@ namespace spncci
             #pragma omp critical
             {
               #ifdef VERBOSE_OMP
-              std::cout << "  Saving sectors from thread " << omp_get_num_threads() << std::endl;
+              std::cout << "  Saving sectors from thread " << omp_get_thread_num() << std::endl;
               #endif
 
               // unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());
