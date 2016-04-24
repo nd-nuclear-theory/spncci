@@ -402,6 +402,9 @@ namespace spncci
     // that below, when we actually calculate the U coefficient
     // values, we can writes to the cache in a threadsafe manner,
     // since no new keys will need to be inserted.
+    #ifdef VERBOSE
+    std::cout << "  Populating hash keys..." << std::endl;
+    #endif
     u3::UCoefCache u_coef_cache;
     for (const auto& labels : u_coef_labels_vector)
       u_coef_cache[labels];
@@ -414,11 +417,14 @@ namespace spncci
     //   }
 
     // populate cache with U coefficients
-    #pragma omp parallel for if(0)
+    #ifdef VERBOSE
+    std::cout << "  Populating coefficient values..." << std::endl;
+    #endif
+    //#pragma omp parallel for if(0)
     for (int i = 0; i < u_coef_labels_vector.size(); ++i)
       { 
         const u3::UCoefLabels& labels = u_coef_labels_vector[i];
-        // std::cout << "caching " << labels.Str() << std::endl;
+        std::cout << "caching " << labels.Str() << " " << labels.Allowed() << std::endl;
         u_coef_cache[labels] = u3::UCoefBlock(labels);
       }
 

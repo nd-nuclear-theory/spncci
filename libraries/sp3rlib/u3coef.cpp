@@ -12,6 +12,11 @@
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/lsushell_wru3.h"
 
+#ifdef USE_LSU_WRU3
+#define WRU3_FUNCTION u3::lsu::wru3 
+#else
+#define WRU3_FUNCTION su3lib::wru3optimized_
+#endif
 
 namespace u3
 {
@@ -34,22 +39,22 @@ namespace u3
   u3::UMultiplicityTuple UMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
                                        const u3::SU3& x3, const u3::SU3& x12, const u3::SU3& x23)
   {
-      int r12_max = u3::OuterMultiplicity(x1,x2,x12);
-      int r12_3_max = u3::OuterMultiplicity(x12,x3,x);
-      int r23_max = u3::OuterMultiplicity(x2,x3,x23);
-      int r1_23_max = u3::OuterMultiplicity(x1,x23,x);
+    int r12_max = u3::OuterMultiplicity(x1,x2,x12);
+    int r12_3_max = u3::OuterMultiplicity(x12,x3,x);
+    int r23_max = u3::OuterMultiplicity(x2,x3,x23);
+    int r1_23_max = u3::OuterMultiplicity(x1,x23,x);
       
-      return UMultiplicityTuple(r12_max,r12_3_max,r23_max,r1_23_max);
+    return UMultiplicityTuple(r12_max,r12_3_max,r23_max,r1_23_max);
 
   }
 
   double UZ(
-           const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
-           const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23,
-           UZMode mode
-           )
+            const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+            const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23,
+            UZMode mode
+            )
   {
-    // compute multiplicitie
+    // compute multiplicity
     int r12_max, r12_3_max, r23_max, r1_23_max;
     std::tie(r12_max,r12_3_max,r23_max,r1_23_max) = UMultiplicity(x1,x2,x,x3,x12,x23);
     int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
@@ -59,12 +64,12 @@ namespace u3
     std::vector<double> u_array(r_max);
     if (mode == UZMode::kU)
       {
-        // su3lib::wru3optimized_(
-        u3::lsu::wru3(
-                     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                     r12_max, r12_3_max, r23_max, r1_23_max, 
-                     &u_array[0], r_max
-                     );
+        //        su3lib::wru3optimized_(
+        WRU3_FUNCTION(
+                      x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+                      r12_max, r12_3_max, r23_max, r1_23_max, 
+                      &u_array[0], r_max
+                      );
       }
     else
       {
@@ -164,11 +169,11 @@ namespace u3
     coefs_.resize(r_max);
 
     // populate vector
-    u3::lsu::wru3(
-                 x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                 r12_max_, r12_3_max_, r23_max_, r1_23_max_, 
-                 &coefs_[0], r_max
-                 ); 
+    WRU3_FUNCTION(
+                  x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+                  r12_max_, r12_3_max_, r23_max_, r1_23_max_, 
+                  &coefs_[0], r_max
+                  ); 
   }
 
 
