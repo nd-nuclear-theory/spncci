@@ -43,8 +43,9 @@ extras :=
 # Gnu Scientific Library
 LDLIBS += -lgsl 
 LDLIBS += -lgslcblas 
-CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH -DHASH_UNIT_TENSOR -DVERBOSE -DNO_USE_LSU_WRU3
+CPPFLAGS += -DHAVE_INLINE -DBOOSTHASH -DHASH_UNIT_TENSOR -DVERBOSE -DVERBOSE_OMP -DNO_USE_LSU_WRU3
 
+# https://gcc.gnu.org/bugs/segfault.html
 CXXFLAGS += -g
 
 #for lots of output

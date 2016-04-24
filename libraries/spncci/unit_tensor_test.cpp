@@ -10,6 +10,7 @@
 ****************************************************************/
 #include <cstdio>
 
+#include <sys/resource.h>
 #include "spncci/unit_tensor.h"
 
 spncci::LGIVectorType lgi_vector;
@@ -19,8 +20,19 @@ int Nmax;
 int main(int argc, char **argv)
 {
 
+
+  // general diagnostics
+
+  // stack size
+  {
+    struct rlimit rl;
+    if (!getrlimit(RLIMIT_STACK, &rl))
+      std::cout << "stack size (Mb) " << rl.rlim_cur/double(1024*1024) << std::endl;
+  }
+
   // control caching status
-  u3::g_u_cache_enabled = true;
+  u3::g_u_cache_enabled = false;
+  std::cout << "u3::g_u_cache_enabled " << u3::g_u_cache_enabled << std::endl;
 
   if(argc>1)
     Nmax=std::stoi(argv[1]); 
