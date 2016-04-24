@@ -31,7 +31,12 @@ int main(int argc, char **argv)
   }
 
   // control caching status
+  #ifdef USE_U_COEF_CACHE
+  u3::g_u_cache_enabled = true;
+  #else
   u3::g_u_cache_enabled = false;
+  #endif
+
   std::cout << "u3::g_u_cache_enabled " << u3::g_u_cache_enabled << std::endl;
 
   if(argc>1)
