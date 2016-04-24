@@ -282,7 +282,7 @@ namespace spncci
         u3::SU3 xp=omegap.SU3();
 
         const sp3r::U3Subspace& subspace  = irrep.LookUpSubspace(omega);
-        const sp3r::U3Subspace& subspacep = irrep.LookUpSubspace(omegap);
+        const sp3r::U3Subspace& subspacep = irrepp.LookUpSubspace(omegap);
 
         MultiplicityTagged<u3::SU3>::vector omegapp_set=KroneckerProduct(xp, u3::SU3(0,2)); 
         MultiplicityTagged<u3::SU3>::vector omega0p_set=KroneckerProduct(x0, u3::SU3(2,0));
@@ -433,6 +433,7 @@ namespace spncci
     std::cout << "Exiting GenerateUCoefCache" << std::endl;
     #endif
 
+    return u_coef_cache;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -900,7 +901,7 @@ namespace spncci
 
           int sector_count = 0;  // debugging variable
           #ifdef VERBOSE
-          std::cout<<"Begin generating sectors "<<unit_U3Sector_vector.size()<<std::endl;
+          std::cout<<"Begin generating sectors "<< unit_U3Sector_vector.size()<<std::endl;
           #endif
 
           #pragma omp parallel reduction(+:sector_count)

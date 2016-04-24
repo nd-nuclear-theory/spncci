@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 {
 
   // control caching status
-  u3::g_u_cache_enabled = false;
+  u3::g_u_cache_enabled = true;
 
   if(argc>1)
     Nmax=std::stoi(argv[1]); 
