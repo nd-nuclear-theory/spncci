@@ -18,6 +18,10 @@ std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
 int Nmax;
 int main(int argc, char **argv)
 {
+
+  // control caching status
+  u3::g_u_cache_enabled = false;
+
   if(argc>1)
       Nmax=std::stoi(argv[1]); 
   else
