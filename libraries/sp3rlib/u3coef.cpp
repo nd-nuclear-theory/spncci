@@ -218,6 +218,10 @@ namespace u3
       // retrieve from cache
       {
         const u3::UCoefLabels labels(x1,x2,x,x3,x12,x23);
+        #ifdef VERBOSE
+        if (cache.count(labels)==0)
+          std::cout << "UCached: cannot recall coefficient " << labels.Str() << std::endl;
+        #endif
         const u3::UCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(r12,r12_3,r23,r1_23);
       }

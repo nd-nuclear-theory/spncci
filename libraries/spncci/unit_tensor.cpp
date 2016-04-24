@@ -7,6 +7,7 @@
 ****************************************************************/
 
 #include <unordered_set>
+#include <omp.h>
 
 
 #include "spncci/unit_tensor.h"
@@ -402,9 +403,6 @@ namespace spncci
     // that below, when we actually calculate the U coefficient
     // values, we can writes to the cache in a threadsafe manner,
     // since no new keys will need to be inserted.
-    #ifdef VERBOSE
-    std::cout << "  Populating hash keys..." << std::endl;
-    #endif
     u3::UCoefCache u_coef_cache;
     for (const auto& labels : u_coef_labels_vector)
       u_coef_cache[labels];
@@ -417,17 +415,26 @@ namespace spncci
     //   }
 
     // populate cache with U coefficients
-    #ifdef VERBOSE
-    std::cout << "  Populating coefficient values..." << std::endl;
-    #endif
-    //#pragma omp parallel for if(0)
-    for (int i = 0; i < u_coef_labels_vector.size(); ++i)
-      { 
-        const u3::UCoefLabels& labels = u_coef_labels_vector[i];
-        std::cout << "caching " << labels.Str() << " " << labels.Allowed() << std::endl;
-        u_coef_cache[labels] = u3::UCoefBlock(labels);
-      }
+    #pragma omp parallel
+    {
 
+      #ifdef VERBOSE_OMP
+      #pragma omp single
+      std::cout << "omp_get_num_threads " << omp_get_num_threads() << std::endl;
+      #endif
+
+      # pragma omp for schedule(dynamic)
+      for (int i = 0; i < u_coef_labels_vector.size(); ++i)
+        { 
+          const u3::UCoefLabels& labels = u_coef_labels_vector[i];
+          #ifdef VERBOSE_OMP
+          #pragma omp critical
+          std::cout << "  caching " << labels.Str() << " thread " << omp_get_thread_num() << std::endl;
+          #endif
+          u_coef_cache[labels] = u3::UCoefBlock(labels);
+        }
+    }
+    
     #ifdef VERBOSE
     std::cout << "  cached " << u_coef_cache.size() << std::endl;
     std::cout << "Exiting GenerateUCoefCache" << std::endl;
@@ -907,6 +914,11 @@ namespace spncci
           #pragma omp parallel reduction(+:sector_count)
           {
             
+            #ifdef VERBOSE_OMP
+            #pragma omp single
+            std::cout << "omp_get_num_threads " << omp_get_num_threads() << std::endl;
+            #endif
+
             // private storage of generated sectors
             std::vector< spncci::UnitTensorU3SectorPair > u3sector_pairs;
             // generate sectors
@@ -922,17 +934,23 @@ namespace spncci
 
             // save out sectors
             #pragma omp critical
-            // unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());
-            // sector_count += u3sector_pairs.size();
-            // std::cout<<"bunny rabbits "<<omp_get_num_threads()<<"  "<<omp_get_thread_num()<<"  "<<u3sector_pairs.size()<<"  "<<dist<<std::endl;
-            for (int j=0; j<u3sector_pairs.size(); j++)
-              {
-                std::cout << " " << u3sector_pairs[j].second<<std::endl;
+            {
+              #ifdef VERBOSE_OMP
+              std::cout << "  Saving sectors from thread " << omp_get_num_threads() << std::endl;
+              #endif
 
-                ++sector_count;
-                unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs[j]);
-                // std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " << sector_count << std::endl;
-              }
+              // unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());
+              // sector_count += u3sector_pairs.size();
+              // std::cout<<"bunny rabbits "<<omp_get_num_threads()<<"  "<<omp_get_thread_num()<<"  "<<u3sector_pairs.size()<<"  "<<dist<<std::endl;
+              for (int j=0; j<u3sector_pairs.size(); j++)
+                {
+                  std::cout << " " << u3sector_pairs[j].second<<std::endl;
+
+                  ++sector_count;
+                  unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs[j]);
+                  // std::cout << "NpN" <<  " " << NpN_pair.first << " " << NpN_pair.second << " " << sector_count << std::endl;
+                }
+            }
 
           }  // omp parallel
           #ifdef VERBOSE
