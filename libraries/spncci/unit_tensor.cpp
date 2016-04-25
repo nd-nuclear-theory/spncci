@@ -897,8 +897,12 @@ namespace spncci
       }
 
     // generate cache of U coefficients
+    #ifdef USE_U_COEF_CACHE
     u3::UCoefCache u_coef_cache
       = GenerateUCoefCache(lgip,lgi,unit_tensor_u3_sector_vector);
+    #else
+    u3::UCoefCache u_coef_cache;
+    #endif
 
     // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
     for (int k = 0; k<irrep.size(); k++)
@@ -964,7 +968,7 @@ namespace spncci
             #pragma omp critical
             {
               #ifdef VERBOSE_OMP
-              std::cout << "  Saving sectors from thread " << omp_get_num_threads() << std::endl;
+              std::cout << "  Saving sectors from thread " << omp_get_thread_num() << std::endl;
               #endif
 
               // unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());

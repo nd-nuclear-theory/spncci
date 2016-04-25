@@ -16,7 +16,6 @@
 spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
 
-int Nmax;
 int main(int argc, char **argv)
 {
 
@@ -31,14 +30,22 @@ int main(int argc, char **argv)
   }
 
   // control caching status
+  #ifdef USE_U_COEF_CACHE
+  u3::g_u_cache_enabled = true;
+  #else
   u3::g_u_cache_enabled = false;
+  #endif
+
   std::cout << "u3::g_u_cache_enabled " << u3::g_u_cache_enabled << std::endl;
 
-  if(argc>1)
-    Nmax=std::stoi(argv[1]); 
-  else
-    Nmax=2;
-
+  // parse arguments
+  if (argc<2)
+    {
+      std::cout << "Syntax: lgi_file_name Nmax" << std::endl;
+      std::exit(1);
+    }
+  std::string lgi_file_name(argv[1]);
+  int Nmax = std::stoi(argv[2]);
 
   u3::U3CoefInit();
   // For generating the lgi_vector, using Li-6 as example;
