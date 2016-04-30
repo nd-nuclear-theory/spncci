@@ -19,7 +19,6 @@ std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
 int main(int argc, char **argv)
 {
 
-
   // general diagnostics
 
   // stack size

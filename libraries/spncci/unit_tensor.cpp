@@ -954,6 +954,7 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
         }
         // std::cout<<"zero count  "<<zerocout<<std::endl;
   #ifdef VERBOSE
+  std::cout<<"Number of pairs  "<<unit_tensor_u3_sector_pairs.size()<<std::endl;
   std::cout<<"Exiting GenerateUnitTensorU3Sector"<<std::endl;
   #endif
   }
@@ -1093,24 +1094,27 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
                                       unit_tensor_u3_sectors_for_NpN.end()
                                       );
       }
-    int iterations;
+    int iterations=2;
+    int start;
     #ifdef USE_U_COEF_CACHE
-      iterations=2;
+      start=0;
     #else
-      iterations=1;
+      start=1;
     #endif
+    
+    int num_unit_tensor_sectors=0;
 
     u3::UCoefCache u_coef_cache;
-    for(int i=0; i<iterations; i++)
+    for(int i=start; i<iterations; i++)
     {
 
       // generate cache of U coefficients
       if(i==1)
-      {
-        #ifdef USE_U_COEF_CACHE
-          u_coef_cache = GenerateUCoefCache(lgip,lgi,unit_tensor_u3_sector_vector, u_coef_labels_vector);
-        #endif
-      }
+        {
+          #ifdef USE_U_COEF_CACHE
+            u_coef_cache = GenerateUCoefCache(lgip,lgi,unit_tensor_u3_sector_vector, u_coef_labels_vector);
+          #endif
+        }
 
       // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
       for (int k = 0; k<irrep.size(); k++)
@@ -1143,12 +1147,18 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
               GenerateNpNSectorCoefLabels(NpN_pair,lgip, lgi, u_coef_labels_set,unit_tensor_NpN_sector_map);              
             }
             else
-              GenerateNpNSector( NpN_pair,lgip,lgi,u_coef_cache,unit_tensor_rme_map,unit_tensor_NpN_sector_map);   
-
+              {
+                GenerateNpNSector( NpN_pair,lgip,lgi,u_coef_cache,unit_tensor_rme_map,unit_tensor_NpN_sector_map); 
+                int num=unit_tensor_rme_map[NpN_pair].size();
+                num_unit_tensor_sectors+=num;
+              }
           } 
       u_coef_labels_vector.insert(u_coef_labels_vector.begin(),u_coef_labels_set.begin(),u_coef_labels_set.end());
+
     } //for i in interations
-  #ifdef VERBOSE       
+    std::cout<<"number of unit tensor sectors "<< num_unit_tensor_sectors<<std::endl;
+
+  #ifdef VERBOSE
   std::cout<<"Exiting GenerateUnitTensorMatrix"<<std::endl; 
   #endif     
 }  // end function
