@@ -59,7 +59,8 @@ namespace spncci
         // parse line
         //   Nex lambda mu 2Sp 2Sn 2S count
         int Nex, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
-        line_stream >> Nex >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S >> count;
+        line_stream >> Nex >> twice_Sp >> twice_Sn >> twice_S >> lambda >> mu >> count;
+        //line_stream >> Nex >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S >> count;
         ParsingCheck(line_stream, line_count, line);
 
         // conversions
