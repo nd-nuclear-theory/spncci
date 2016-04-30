@@ -43,7 +43,7 @@ int main(int argc, char **argv)
       std::cout << "Syntax: lgi_file_name Nmax" << std::endl;
       std::exit(1);
     }
-  std::string lgi_file_name(argv[1]);
+  std::string filename(argv[1]);
   int Nmax = std::stoi(argv[2]);
 
   u3::U3CoefInit();
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   HalfInt Nsigma_0 = HalfInt(11,1);
   int N1b=2;
   // input file containing LGI's
-  std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+  // std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
 
   // Generate vector of LGI's from input file 
   spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);

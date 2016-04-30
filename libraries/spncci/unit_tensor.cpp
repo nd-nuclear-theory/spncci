@@ -52,7 +52,6 @@ namespace spncci
 
         if ( Nn_last!=int(omega.N()-Ns) )
           {
-						
             IrrepPartionN.push_back(i);
             Nn_last=int(omega.N()-Ns);
           }
@@ -69,7 +68,7 @@ namespace spncci
     else
       i_min=NPartition[Nn/2];
     // Ending index+1.   
-    if (Nn==Nmax)
+    if (NPartition.size()==(Nn+2)/2)
       i_max=irrep_size-1;
     else 
       i_max=NPartition[(Nn+2)/2]-1;
@@ -163,11 +162,15 @@ namespace spncci
     ////////////////////////////////////////////////////////////////////////////////////
     // Looping over omega' and omega subspaces 
     ////////////////////////////////////////////////////////////////////////////////////
+
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
         {
+          if((Nnp+lgip.Nex)>Nmax)
+            continue;
           int Nn=Nsum-Nnp;
-          if (Nn>Nmax)
+
+          if ((Nn+lgi.Nex)>Nmax)
             continue; 
 
           std::pair<int,int> NpN_pair(Nnp,Nn);
@@ -176,10 +179,8 @@ namespace spncci
           int ip_min, ip_max, i_min, i_max;
           std::tie (i_min,i_max)=GetNSectorIndices(Nmax, irrep_size, Nn, NPartition);
           std::tie (ip_min,ip_max)=GetNSectorIndices(Nmax, irrepp_size, Nnp, NpPartition);
-          
           // Get set of operator labels for given omega'omega sector
           std::vector<spncci::UnitTensor>& operator_set=unit_sym_map[abs(lgip.Nex-lgi.Nex+Nnp-Nn)];
-
           //  omega' subspace
           for(int ip=ip_min; ip<=ip_max; ip++ )
             {
@@ -189,11 +190,11 @@ namespace spncci
                 {
                   u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
                   
+
                   // Iterating over the operator labels             
                   for (int w=0; w<operator_set.size(); w++)
                     {                     
                       spncci::UnitTensor unit_tensor=operator_set[w];
-
                       //unpack unit_tensor labels 
                       std::tie (omega0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = unit_tensor.Key();
                       
@@ -214,7 +215,6 @@ namespace spncci
                       u3::SU3 lm=N_greater?omegap.SU3():omega.SU3();
                       u3::SU3 lmp=N_greater?omega.SU3():omegap.SU3();
                       int rho0_max=OuterMultiplicity(lm,omega0.SU3(),lmp);
-
                       ///////////////////////////////////////////////////////////////////////////////////////
                       // Iterating over outer multiplicity
                       for (int rho0=1; rho0<=rho0_max; rho0++)
