@@ -126,6 +126,7 @@ int main(int argc, char **argv)
             }
         }
       lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
+      std::cout<<"number of lgi sectors "<<temp_unit_map.size()<<std::endl;;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
       spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );

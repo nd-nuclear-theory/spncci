@@ -101,11 +101,15 @@ namespace spncci
                         if ( (r+S+T)%2!=1)
                           continue;
 
-                        MultiplicityTagged<u3::U3>::vector omega0_set
-                          =u3::KroneckerProduct(u3::U3(rp,0,0),u3::U3(0,0,-r));
+                        MultiplicityTagged<u3::SU3>::vector omega0_set
+                        //  =u3::KroneckerProduct(u3::U3(rp,0,0),u3::U3(0,0,-r));
+                          =u3::KroneckerProduct(u3::SU3(rp,0),u3::SU3(0,r));
                         for(int w=0; w<omega0_set.size(); w++)
                           {
-                            u3::U3 omega0(omega0_set[w].irrep);
+                            //
+                            u3::U3 omega0(N0,omega0_set[w].irrep);
+                            //
+                            // u3::U3 omega0(omega0_set[w].irrep);
                             sym_vec.push_back(spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T));
                             //std::cout<<"unit tensors  "<<spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T).Str()<<std::endl;
                           }
@@ -725,20 +729,21 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
                                    );
                 //Initilize 3rd-term-unit-tensor matrix
                 Eigen::MatrixXd unit3_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
+
                 if ( rbp<=(Nnp-2+N1b+lgip.Nex) && rb<=(Nn-2+N1b+lgi.Nex) )
                   {	
+                   
                     // Summing over omega''
                     for (int wpp=0; wpp<omegapp_set.size(); wpp++)
                       {
-											
+											 
+
                         u3::U3 omegapp(omegapp_set[wpp].irrep);
                         if (not irrepp.ContainsSubspace(omegapp))
                           continue;
                         spncci::UnitTensorU3Sector unit_tensor_u3_sector_1(omegapp,omega1,spncci::UnitTensor(omega0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1);
-                        if (
-                            (sector_NpN4).count(unit_tensor_u3_sector_1)==0
-                            )
-                          continue;						
+                        if ((sector_NpN4).count(unit_tensor_u3_sector_1)==0)
+                          continue;	
                         // omega'' subspace (v'')
                         sp3r::U3Subspace u3_subspacepp=irrepp.LookUpSubspace(omegapp);
                         int dimpp=u3_subspacepp.size();
@@ -770,6 +775,7 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
 
                               }
                           }
+
                         //std::cout<<"boson matrix "<<boson_matrix<<std::endl;
                         Eigen::MatrixXd unit3pp_matrix=Eigen::MatrixXd::Zero(dimpp,dim1);
                         int rho0pp_max=u3::OuterMultiplicity(omega1.SU3(),omega0.SU3(),omegapp.SU3());
@@ -792,7 +798,7 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
                         unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
                       } // end wpp
                   }
-                //std::cout<<"unit3_matrix "<<unit3_matrix<<std::endl;
+                // std::cout<<"unit3_matrix "<<unit3_matrix<<std::endl;
                 unit_matrix+=coef3*unit3_matrix;
 
                 // std::cout<<"term 3  "<<unit_matrix<<std::endl;							
@@ -992,6 +998,7 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
           UnitTensorSectorsCache& sector_NpN2=unit_tensor_rme_map[NpN2];
           UnitTensorSectorsCache& sector_NpN4=unit_tensor_rme_map[NpN4];
 
+
           int sector_count = 0;  // debugging variable
           #ifdef VERBOSE
           std::cout<<"Begin generating sectors "<< unit_U3Sector_vector.size()<<std::endl;
@@ -1137,9 +1144,13 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
       for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
         for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
           {
-            int Nn=Nsum-Nnp;
-            if (Nn>Nmax)
+            if((Nnp+lgip.Nex)>Nmax)
               continue;
+
+            int Nn=Nsum-Nnp;
+            if ((Nn+lgi.Nex)>Nmax)
+              continue;
+
             ////////////////////// NSectors///////////////////////////////////////////////////////
             std::pair<int,int> NpN_pair(Nnp,Nn);
             if (i==0)
@@ -1148,6 +1159,7 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
             }
             else
               {
+                
                 GenerateNpNSector( NpN_pair,lgip,lgi,u_coef_cache,unit_tensor_rme_map,unit_tensor_NpN_sector_map); 
                 int num=unit_tensor_rme_map[NpN_pair].size();
                 num_unit_tensor_sectors+=num;
