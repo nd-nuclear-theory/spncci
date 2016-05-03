@@ -35,14 +35,14 @@ T sqr(const T& x)
 
 inline int Choose(int x, int y)
 {
-	int choose=0;
+  int choose=0;
   if ((x>=y)&&(y>=0))
-  {
-    gsl_sf_result result;
-  	gsl_sf_choose_e(x,y,&result);
-    choose=result.val;
-  }
-	return choose;
+    {
+      gsl_sf_result result;
+      gsl_sf_choose_e(x,y,&result);
+      choose=result.val;
+    }
+  return choose;
 }
 
 inline int Factorial(int x)

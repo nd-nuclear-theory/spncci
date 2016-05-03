@@ -60,6 +60,7 @@
     from private to protected to support sp3rlib.
   3/11/16 (mac): Add subspace size() method and space 
     TotalDimension() and ContainsSubspace methods.
+  5/3/16 (mac): Add boost-style hashing option ad hoc on subspace labels.
 
 ****************************************************************/
 
@@ -71,6 +72,10 @@
 #include <map>
 #include <tuple>
 #include <vector>
+
+#ifdef INDEXING_BASE_HASH_SPACE
+#include <unordered_map>
+#endif
 
 namespace shell {
 
@@ -417,8 +422,11 @@ namespace shell {
       std::vector<SubspaceType> subspaces_;
 
       // subspace index lookup by labels
+      #ifdef INDEXING_BASE_HASH_SPACE
+      std::unordered_map<typename SubspaceType::SubspaceLabelsType,int,boost::hash<typename SubspaceType::SubspaceLabelsType>> lookup_;
+      #else
       std::map<typename SubspaceType::SubspaceLabelsType,int> lookup_;
-      
+      #endif
     };
 
   ////////////////////////////////////////////////////////////////
