@@ -177,7 +177,7 @@ namespace u3
   }
 
 
-  inline double UCoefBlock::GetCoef(int r12, int r12_3, int r23, int r1_23) const
+  double UCoefBlock::GetCoef(int r12, int r12_3, int r23, int r1_23) const
   {
     // validate multiplicity indices
     assert(
