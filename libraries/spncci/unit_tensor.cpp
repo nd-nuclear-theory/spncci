@@ -1017,7 +1017,7 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
             // generate sectors
             int dist=0;
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<unit_U3Sector_vector.size(); i++)
               {
                 const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];
