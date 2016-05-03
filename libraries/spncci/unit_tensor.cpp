@@ -508,11 +508,21 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
           std::cout<<"Begin generating sectors "<< unit_U3Sector_vector.size()<<std::endl;
           #endif
           // generate coef labels for each U(3) sector
-          for (int i=0; i<unit_U3Sector_vector.size(); i++)
-            {
-              const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];                
-              GenerateU3SectorCoefLabels(lgip,lgi,unit_tensor_u3_sector, Nn_zero,u_coef_labels_set);
-            }
+          #pragma omp parallel
+          {
+            std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>> u_coef_labels_subset;
+
+            #pragma omp for schedule(runtime)
+            for (int i=0; i<unit_U3Sector_vector.size(); i++)
+              {
+                const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];                
+                GenerateU3SectorCoefLabels(lgip,lgi,unit_tensor_u3_sector, Nn_zero,u_coef_labels_subset);
+              }
+            #pragma omp critical
+              {
+                u_coef_labels_set.insert(u_coef_labels_subset.begin(),u_coef_labels_subset.end());
+              }
+          }
           #ifdef VERBOSE
           std::cout<<"Exiting GenerateNpNSectorCoefLabels "<<std::endl;
           #endif
@@ -1022,7 +1032,6 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
               {
                 const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];
                 GenerateUnitTensorU3Sector(u_coef_cache, unit_tensor_u3_sector, lgip, lgi, sector_NpN2, sector_NpN4, irrepp, irrep, Nn_zero, u3sector_pairs);
-                dist++;
               }
 
             // save out sectors
