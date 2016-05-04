@@ -27,8 +27,11 @@
 
 namespace vcs
 {
+  #ifdef HASH_UNIT_TENSOR  
+  typedef std::unordered_map<u3::U3,Eigen::MatrixXd, boost::hash<u3::U3> > MatrixCache;
+  #else
   typedef std::map<u3::U3,Eigen::MatrixXd> MatrixCache;
-  // typedef std::unordered_map<u3::U3,Eigen::MatrixXd, boost::hash<u3::U3> > MatrixCache;
+  #endif
 
   inline double Omega(const u3::U3& n, const u3::U3& omega)
 
@@ -66,6 +69,8 @@ namespace vcs
 
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map);
   //Calculates the K matrix 	
+  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, vcs::MatrixCache& K_matrix_map);
+
 
 }  //  namespace
 

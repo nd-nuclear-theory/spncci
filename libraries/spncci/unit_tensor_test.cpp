@@ -14,7 +14,12 @@
 #include "spncci/unit_tensor.h"
 
 spncci::LGIVectorType lgi_vector;
+#ifdef DHASH_UNIT_TENSOR
+ std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3> >  K_matrix_map;
+#else
 std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
+#endif
+
 
 int main(int argc, char **argv)
 {
@@ -52,7 +57,6 @@ int main(int argc, char **argv)
   int N1b=2;
   // input file containing LGI's
   // std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
-
   // Generate vector of LGI's from input file 
   spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
 
@@ -60,6 +64,21 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,sigma_irrep_map,truncator);
 
+  // Generate Kmatrices 
+  std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
+  for(int l=0; l<lgi_vector.size(); l++)
+      sigma_set.insert(lgi_vector[l].sigma);
+  std::cout<<"hi" <<std::endl;   
+  for( const auto& s : sigma_set)
+    {
+      vcs::MatrixCache K_map;
+//      int Nex=int(s.N()-Nsigma_0);
+//      vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, K_map);
+      vcs::GenerateKMatrices(sigma_irrep_map[s], K_map);
+
+      K_matrix_map[s]=K_map;
+    }
+  std::cout<<"bye"<<std::endl;
   // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
   std::vector< std::pair<int,int> > lgi_pair_vector=spncci::GenerateLGIPairs(lgi_vector);
 

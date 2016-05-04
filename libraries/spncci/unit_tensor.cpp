@@ -6,7 +6,7 @@
 
 ****************************************************************/
 
-#include <unordered_set>
+
 #include <omp.h>
 
 
@@ -40,24 +40,26 @@ namespace spncci
     return ss.str();
   }
 
-  std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
-  {
-    // partition irreps by Nn
-    HalfInt Ns=irrep.GetSubspace(0).GetSubspaceLabels().N();
-    int Nn_last=-1;
-    std::vector<int> IrrepPartionN;
-    for(int i=0; i<irrep.size(); i++ )
-      {
-        u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();		 
+  // std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
+  // {
+  //   // partition irreps by Nn
+  //   // HalfInt Ns=irrep.GetSubspace(0).GetSubspaceLabels().N();
+  //   // int Nn_last=-1;
+  //   // std::vector<int> IrrepPartionN;
+  //   // for(int i=0; i<irrep.size(); i++ )
+  //   //   {
+  //   //     u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();		 
 
-        if ( Nn_last!=int(omega.N()-Ns) )
-          {
-            IrrepPartionN.push_back(i);
-            Nn_last=int(omega.N()-Ns);
-          }
-      }
-    return IrrepPartionN;
-  }
+  //   //     if ( Nn_last!=int(omega.N()-Ns) )
+  //   //       {
+  //   //         IrrepPartionN.push_back(i);
+  //   //         Nn_last=int(omega.N()-Ns);
+  //   //       }
+  //   //   }
+  //   // return IrrepPartionN;
+  //   return sp3r::PartitionIrrepByNn(irrep, Nmax);
+
+  // }
 
   std::pair<int,int> GetNSectorIndices(const int Nmax, const int irrep_size, const int Nn, std::vector<int>& NPartition)
   {
@@ -161,8 +163,8 @@ namespace spncci
     int irrepp_size=irrepp.size();
 
     // partition irreps by Nn and Nnp.  Each int in vector corresponds to the start of the next N space 
-    std::vector<int> NpPartition=PartitionIrrepByNn(irrepp, Nmax);
-    std::vector<int> NPartition=PartitionIrrepByNn(irrep, Nmax);
+    std::vector<int> NpPartition=sp3r::PartitionIrrepByNn(irrepp, Nmax);
+    std::vector<int> NPartition=sp3r::PartitionIrrepByNn(irrep, Nmax);
     ////////////////////////////////////////////////////////////////////////////////////
     // Looping over omega' and omega subspaces 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1047,7 +1049,6 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
               //   {
               //     std::cout << " " << u3sector_pairs[j].second<<std::endl;
 
-              //     ++sector_count;
               //     unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs[j]);
               //   }
             }
@@ -1133,18 +1134,20 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
         }
 
       // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
-      for (int k = 0; k<irrep.size(); k++)
-        {
-          vcs::MatrixCache K_map;
-          vcs::GenerateKMatrices(irrep, K_map);
-          K_matrix_map[lgi.sigma]=K_map;
-        }
-      for (int kp = 0; kp<irrepp.size(); kp++)
-        {
-          vcs::MatrixCache K_map;
-          vcs::GenerateKMatrices(irrepp, K_map);
-          K_matrix_map[lgip.sigma]=K_map;
-        }
+      // if (K_matrix_map.count(lgi.sigma)==0)
+      //   for (int k = 0; k<irrep.size(); k++)
+      //     {
+      //       vcs::MatrixCache K_map;
+      //       vcs::GenerateKMatrices(irrep, K_map);
+      //       K_matrix_map[lgi.sigma]=K_map;
+      //     }
+      // if (K_matrix_map.count(lgip.sigma)==0)
+      //   for (int kp = 0; kp<irrepp.size(); kp++)
+      //     {
+      //       vcs::MatrixCache K_map;
+      //       vcs::GenerateKMatrices(irrepp, K_map);
+      //       K_matrix_map[lgip.sigma]=K_map;
+      //     }
 
       std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>> u_coef_labels_set;
       ////////////////////////////////////////////////////////////////////////////////////
