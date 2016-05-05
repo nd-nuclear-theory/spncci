@@ -28,8 +28,7 @@ int main(int argc, char **argv)
 	// For generating the lgi_vector, using Li-6 as example;
  	HalfInt Nsigma_0 = HalfInt(11,1);
  	int N1b=2;
-  // input file containing LGI's
-	std::string filename = "/libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+	std::string filename = "lgi-3-3-2-fql-mini-mini.dat";
 
 	// Generate vector of LGI's from input file 
 	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
