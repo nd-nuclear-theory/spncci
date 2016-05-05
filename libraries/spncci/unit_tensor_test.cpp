@@ -10,99 +10,153 @@
 ****************************************************************/
 #include <cstdio>
 
-#include "spncci/unit_tensors.h"
+#include <sys/resource.h>
+#include "spncci/unit_tensor.h"
 
 spncci::LGIVectorType lgi_vector;
-std::map< u3::U3,std::map<u3::U3,Eigen::MatrixXd> > K_matrix_map;
+#ifdef DHASH_UNIT_TENSOR
+ std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3> >  K_matrix_map;
+#else
+std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
+#endif
 
-int Nmax;
+
 int main(int argc, char **argv)
 {
-  if(argc>1)
-      Nmax=std::stoi(argv[1]); 
-  else
-    Nmax=2;
 
+  // general diagnostics
 
-	u3::U3CoefInit();
-	// For generating the lgi_vector, using Li-6 as example;
- 	HalfInt Nsigma_0 = HalfInt(11,1);
- 	int N1b=2;
-	std::string filename = "lgi-3-3-2-fql-mini-mini.dat";
+  // stack size
+  {
+    struct rlimit rl;
+    if (!getrlimit(RLIMIT_STACK, &rl))
+      std::cout << "stack size (Mb) " << rl.rlim_cur/double(1024*1024) << std::endl;
+  }
 
-	// Generate vector of LGI's from input file 
-	spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
+  // control caching status
+  #ifdef USE_U_COEF_CACHE
+  u3::g_u_cache_enabled = true;
+  #else
+  u3::g_u_cache_enabled = false;
+  #endif
+
+  std::cout << "u3::g_u_cache_enabled " << u3::g_u_cache_enabled << std::endl;
+
+  // parse arguments
+  if (argc<2)
+    {
+      std::cout << "Syntax: lgi_file_name Nmax" << std::endl;
+      std::exit(1);
+    }
+  std::string filename(argv[1]);
+  int Nmax = std::stoi(argv[2]);
+
+  u3::U3CoefInit();
+  // For generating the lgi_vector, using Li-6 as example;
+  HalfInt Nsigma_0 = HalfInt(11,1);
+  int N1b=2;
+  // input file containing LGI's
+  // std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini-mini.dat";
+  // Generate vector of LGI's from input file 
+  spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
 
   spncci::SigmaIrrepMapType sigma_irrep_map;
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,sigma_irrep_map,truncator);
 
+  // Generate Kmatrices 
+  std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
+  for(int l=0; l<lgi_vector.size(); l++)
+      sigma_set.insert(lgi_vector[l].sigma);
+  std::cout<<"hi" <<std::endl;   
+  for( const auto& s : sigma_set)
+    {
+      vcs::MatrixCache K_map;
+//      int Nex=int(s.N()-Nsigma_0);
+//      vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, K_map);
+      vcs::GenerateKMatrices(sigma_irrep_map[s], K_map);
+
+      K_matrix_map[s]=K_map;
+    }
+  std::cout<<"bye"<<std::endl;
   // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
   std::vector< std::pair<int,int> > lgi_pair_vector=spncci::GenerateLGIPairs(lgi_vector);
 
   // generate map that stores unit tensor labels keyed by N0
-  std::map< int, std::vector<u3::UnitTensor> > unit_sym_map;
-  u3::UnitSymmetryGenerator(Nmax,unit_sym_map);
+  std::map< int, std::vector<spncci::UnitTensor> > unit_sym_map;
+  spncci::GenerateUnitTensors(Nmax,unit_sym_map);
 
   //initializing map that will store map containing unit tensors.  Outer map is keyed LGI pair. 
   // inner map is keyed by unit tensor matrix element labels of type UnitTensorRME
   // LGI pair -> UnitTensorRME -> Matrix of reduced unit tensor matrix elements for v'v subsector
   std:: map< 
-            std::pair<int,int>, 
-            std::map<
-              std::pair<int,int>,
-              std::map< u3::UnitTensorRME,Eigen::MatrixXd> 
-              >
-          > lgi_unit_tensor_rme_map;
+    std::pair<int,int>, 
+    std::map<
+      std::pair<int,int>,
+      spncci::UnitTensorSectorsCache 
+      >
+    > lgi_unit_tensor_rme_map;
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
   // Filling out lgi_unit_tensor_rme_map 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
   for (int i=0; i<lgi_pair_vector.size(); i++)
-  	{
+    {
+      std::cout <<"Entering LGI pair loop" << std::endl;
+
       std::pair<int,int> lgi_pair=lgi_pair_vector[i];
-  		u3::U3 sigmap=lgi_vector[lgi_pair.first].sigma;
+      spncci::LGI lgip=lgi_vector[lgi_pair.first];
+      spncci::LGI lgi=lgi_vector[lgi_pair.second];
+      u3::U3 sigmap=lgip.sigma;
   		
       // operator boson number between to lgi's
-  		u3::U3 sigma=lgi_vector[lgi_pair.second].sigma;
-  		int N0=int(sigmap.N()-sigma.N());
+      u3::U3 sigma=lgi.sigma;
+      int N0=int(sigmap.N()-sigma.N());
   		
-  		std::map <u3::UnitTensorRME, Eigen::MatrixXd> temp_unit_map;
-      
+      spncci::UnitTensorSectorsCache temp_unit_map;
+      int rp,r;
+      HalfInt S0;
+      u3::U3 omega0;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
-  		//////////////////////////////////////////////////////////////////////////////////////////////
-      std::pair<int,int> N0_pair(lgi_vector[lgi_pair.first].Nex,lgi_vector[lgi_pair.second].Nex);
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      std::cout <<"LGI pair"<< lgip.Str()<<"  "<<lgi.Str()<<std::endl;
+      std::pair<int,int> N0_pair(lgip.Nex,lgi.Nex);
       for (int j=0; j<unit_sym_map[N0].size(); j++)
-  			{
-  				Eigen::MatrixXd temp_matrix(1,1);
-  				temp_matrix(0,0)=1;
+        {
+          Eigen::MatrixXd temp_matrix(1,1);
+          temp_matrix(0,0)=1;
 					
-					u3::UnitTensor unit_tensor=unit_sym_map[N0][j];
-					int rho0_max=u3::OuterMultiplicity(sigma.SU3(),unit_tensor.omega0.SU3(), sigmap.SU3());
-					for (int rho0=1; rho0<=rho0_max; rho0++)
-						{
-  						if (unit_tensor.rp<=(N1b+(sigmap.N()-Nsigma_0)) && unit_tensor.r<=(N1b+(sigma.N()-Nsigma_0)))
-  						{
-	  						//std::cout<<unit_tensor.Str()<<std::endl;
-	  						temp_unit_map[u3::UnitTensorRME(sigmap,sigma,unit_tensor,rho0)]=temp_matrix;
-  							
-  						}
-  					}
-  			}
-  		lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
+          spncci::UnitTensor unit_tensor=unit_sym_map[N0][j];
+          std::tie (omega0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore)=unit_tensor.Key();
+          int rho0_max=u3::OuterMultiplicity(sigma.SU3(),omega0.SU3(), sigmap.SU3());
+          for (int rho0=1; rho0<=rho0_max; rho0++)
+            {
+              if (
+                  rp<=(N1b+lgip.Nex) 
+                  && r<=(N1b+lgi.Nex)
+                  && abs(lgi.S+S0)>=lgip.S
+                  )
+                {
+                  //std::cout<<unit_tensor.Str()<<std::endl;
+                  temp_unit_map[spncci::UnitTensorU3Sector(sigmap,sigma,unit_tensor,rho0)]=temp_matrix;	
+                }
+            }
+        }
+      lgi_unit_tensor_rme_map[lgi_pair][N0_pair]=temp_unit_map;
+      std::cout<<"number of lgi sectors "<<temp_unit_map.size()<<std::endl;;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
-      u3::UnitTensorMatrixGenerator(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
-
-  		// for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
-  		// 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
+      spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
+      // for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
+      // 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
 		  		
-    //       {
-		  // 			std::cout <<i->first.tensor.Str()<<"  "<<i->second<<std::endl;
-		  // 		}
-			//u3::TestFunction(Nmax, lgi_pair, unit_sym_map, lgi_unit_tensor_rme_map);
+      //       {
+      // 			std::cout <<i->first.tensor.Str()<<"  "<<i->second<<std::endl;
+      // 		}
+      //u3::TestFunction(Nmax, lgi_pair, unit_sym_map, lgi_unit_tensor_rme_map);
 
-  	}
+    }
+  std::cout<<"all done"<<std::endl;
 }// end main 

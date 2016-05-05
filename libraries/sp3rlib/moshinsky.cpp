@@ -21,9 +21,9 @@ namespace u3
 	// SU(3) Moshinsky Coefficient which is equivalent to a Wigner little d function evaluated at pi/2
 	{
 		
-		HalfInt J(x.lambda,2);
-		HalfInt Mp(x1.lambda-x2.lambda,2);
-		HalfInt M(xr.lambda-xc.lambda,2); 
+		HalfInt J(x.lambda(),2);
+		HalfInt Mp(x1.lambda()-x2.lambda(),2);
+		HalfInt M(xr.lambda()-xc.lambda(),2); 
 	
 
 		double moshinsky_coef=0;
@@ -54,7 +54,7 @@ namespace u3
 		// and SU(3) total symmetry (lambda,mu)
 		{
 
-			HalfInt J(x.lambda,2);
+			HalfInt J(x.lambda(),2);
 			HalfInt Mp(r1-r2,2);
 			HalfInt M(r-R,2) ;
 			

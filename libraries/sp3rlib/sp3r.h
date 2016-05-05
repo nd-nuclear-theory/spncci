@@ -158,6 +158,7 @@ namespace sp3r
 
   };
 
+  std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax);
 
 }  // namespace
 

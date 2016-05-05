@@ -5,10 +5,11 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h := 
-module_units_cpp-h := sp_basis unit_tensors
+module_units_cpp-h := sp_basis unit_tensor
 
 # module_units_f := 
-module_programs_cpp := sp_basis_test unit_tensors_test
+module_programs_cpp := sp_basis_test unit_tensor_test
+
 # module_programs_f :=
 # module_generated :=
 

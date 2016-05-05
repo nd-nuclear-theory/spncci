@@ -45,12 +45,33 @@ LDLIBS += -lgsl
 LDLIBS += -lgslcblas 
 CPPFLAGS += -DHAVE_INLINE
 
+# verbosity level
+CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
+
+# program algorithm choices
+#   C++ or FORTRAN wru3optimized
+CPPFLAGS += -DNO_USE_LSU_WRU3 
+#   hash function
+CPPFLAGS += -DBOOSTHASH
+#   map vs. hash unit tensor sectors 
+CPPFLAGS += -DNOHASH_UNIT_TENSOR
+#   precalculation and caching of U coefficients
+CPPFLAGS += -DNOUSE_U_COEF_CACHE
+#   map vs. hash for space lookup in BaseSpace
+CPPFLAGS += -DINDEXING_BASE_HASH_SPACE
+
+# debugging mode
+CXXFLAGS += -g
+
+#for lots of output
+# -DVERBOSE 
+
 # SU3LIB numerical precision
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
 #   Note: quad precision requires ifort compiler
 
 FFLAGS += -DSU3DBL
 
-# BOOST
+# BOOST -- lsu3shell flags
 ## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
 

@@ -107,6 +107,7 @@ namespace spncci
     HalfInt Sp, Sn, S;
 
     // quick-reference information
+  private:
     const sp3r::Sp3RSpace* irrep_ptr;
   };
 
@@ -301,7 +302,7 @@ namespace spncci
   // donor value of M (M=0 or 1/2).
 
 
-  std::vector< std::pair<int,int> > LGIPairGenerator(spncci::LGIVectorType lgi_vector);
+  std::vector< std::pair<int,int> > GenerateLGIPairs(spncci::LGIVectorType lgi_vector);
   // Given a vector of LGI's, apply angular momentum selection rules to return a list 
   // of LGI pairs which will have non-zero matrix elements between states in their irreps.  
 

@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	sp3r::Sp3RSpace irrep(s,4);
 
 
-	std::map<u3::U3,Eigen::MatrixXd> K_matrix_map;
+	vcs::MatrixCache K_matrix_map;
 
   	vcs::GenerateKMatrices(irrep,K_matrix_map);
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
 
 
-  	std::map<u3::U3,Eigen::MatrixXd>::const_iterator it;
+  	vcs::MatrixCache::const_iterator it;
   	// std::cout<<K_matrix_map.begin()<<std::endl;
     for (auto it=K_matrix_map.begin(); it !=K_matrix_map.end(); ++it)
   		{

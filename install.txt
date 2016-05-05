@@ -2,6 +2,7 @@ Installation notes for spncci
 
   3/7/16 (aem,mac): Created.
   4/19/16 (mac): Updated.
+  5/3/16 (mac): Updated.
 
 ----------------------------------------------------------------
 
@@ -28,7 +29,13 @@ am subpackage.  If issues arise...
 
 *) Set up config.mk.  An example file config_generic-gcc4.mk is
 provided.  If you are using GCC, you can start by simply copying this
-example file to config.mk.
+example file to config.mk.  Or better, if you do not need to make any
+edits, use a symbolic link:
+
+   ln -s config_generic-gcc4.mk config.mk
+
+That way, any updates to the generic config file will automatically be
+reflected.
 
 Make sure the appropriate compiler suite is loaded.  Note: Current
 testing is on gcc 4.5..4.9.  Fails on gcc 4.4.

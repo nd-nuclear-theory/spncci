@@ -207,4 +207,24 @@
     return ss.str();
   }
 
+  
+  std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
+  {
+    // partition irreps by Nn
+    HalfInt Ns=irrep.GetSubspace(0).GetSubspaceLabels().N();
+    int Nn_last=-1;
+    std::vector<int> IrrepPartionN;
+    for(int i=0; i<irrep.size(); i++ )
+      {
+        u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();     
+
+        if ( Nn_last!=int(omega.N()-Ns) )
+          {
+            IrrepPartionN.push_back(i);
+            Nn_last=int(omega.N()-Ns);
+          }
+      }
+    return IrrepPartionN;
+  }
+
 }  // namespace
