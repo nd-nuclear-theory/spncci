@@ -16,10 +16,10 @@ project_name := spncci
 
 ## modules := libraries/UNU3SU3 libraries/SU3NCSMUtils 
 
-modules := libraries/spncci libraries/sp3rlib libraries/utilities libraries/su3lib
+modules := libraries/spncci libraries/u3shell libraries/sp3rlib libraries/utilities libraries/su3lib
 
 # additional libraries -- imported
-## modules += libraries/cppformat  # need new gcc!
+modules += libraries/cppformat
  
 # additional libraries -- cloned as submodules
 modules += libraries/am
