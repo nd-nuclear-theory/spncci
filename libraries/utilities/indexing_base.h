@@ -75,6 +75,7 @@
 
 #ifdef INDEXING_BASE_HASH_SPACE
 #include <unordered_map>
+#include "boost/functional/hash.hpp"
 #endif
 
 namespace shell {
