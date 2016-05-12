@@ -192,17 +192,22 @@ class U3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    // default constructor
     inline U3() 
-      : f1_(0), f2_(0), f3_(0) {}
+      : f1_(0), f2_(0), f3_(0)
+      // default constructor
+      {}
 
 
-    // construction from f1,f2,f3
-    inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3) 
-      : f1_(f1), f2_(f2), f3_(f3) {}
+    inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
+      : f1_(f1), f2_(f2), f3_(f3)
+    // Construct from Cartesian labels [f1,f2,f3].
+    {}
 
-    // construction from N and lm
     inline U3(const HalfInt& N_, const u3::SU3& x_);
+    // Construct from N(lambda,mu) labels.
+    //
+    // Precondition: The N(lambda,mu) are assumed to be a valid U(3)
+    // combination.
 
     ////////////////////////////////////////////////////////////////
     // validation
@@ -215,7 +220,28 @@ class U3
     // but we also allow conjugate representations with all labels
     // nonpositive (f1<=0).
     {
-      return (f1_ >= f2_) && (f2_ >= f3_) && ((f3_ >=0 ) || (f1_ <= 0));
+      // return (f1_ >= f2_) && (f2_ >= f3_) && ((f3_ >=0 ) || (f1_ <= 0));
+      return ValidLabels(f1_,f2_,f3_);
+    }
+
+    inline static
+    bool ValidLabels(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
+    // Check validity of U3 labels in Cartesian form.
+    //
+    // Normally there is requirement all labels nonnegative (f3>=0),
+    // but we also allow conjugate representations with all labels
+    // nonpositive (f1<=0).
+    {
+      return (f1 >= f2) && (f2 >= f3) && ((f3 >=0 ) || (f1 <= 0));
+    }
+
+    inline static
+    bool ValidLabels(const HalfInt& N, const u3::SU3& x)
+    // Check validity of U3 labels in N(lambda,mu) form.
+    {
+      int thrice_twice_f3 = TwiceValue(N-2*x.mu()-x.lambda());
+      bool valid = (thrice_twice_f3%3==0);
+      return valid;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -297,18 +323,18 @@ class U3
   // constructors
   ////////////////////////////////////////////////////////////////
 
-  inline U3::U3(const HalfInt& N_, const u3::SU3& lm_)
+  inline U3::U3(const HalfInt& N_, const u3::SU3& x_)
   {
 
       // recover f3 first
       // N - 2mu - lambda = (f1+f2+f3)-2*(f2-f3)-(f1-f2) = 3*f3
       // but since division is not defined for HalfInt, work with twice value for division purposes
-      int twice_f3 = TwiceValue(N_-2*lm_.mu()-lm_.lambda()) / 3;
+      int twice_f3 = TwiceValue(N_-2*x_.mu()-x_.lambda()) / 3;
       f3_ = HalfInt(twice_f3,2);
       
       // recover f2 and f1
-      f2_ = f3_ + lm_.mu();
-      f1_ = f2_ + lm_.lambda();
+      f2_ = f3_ + x_.mu();
+      f1_ = f2_ + x_.lambda();
 
     }
 

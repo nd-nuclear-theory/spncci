@@ -6,130 +6,120 @@
 
 ****************************************************************/
 
+#include <sstream>
 
+#include "cppformat/format.h"
 #include "u3shell/indexing_u3st.h"
 
 namespace u3shell {
 
-
-  ////////////////////////////////////////////////////////////////
-  // relative-cm relative LSJT scheme implementation 
-  ////////////////////////////////////////////////////////////////
-
-  RelativeCMSubspaceU3ST::RelativeCMSubspaceU3ST(int Ncm, const u3::SU3& x, int S, int T, int g, int Nmax)
-  {
-    // set values
-    labels_ = SubspaceLabelsType(Ncm,x,S,T,g);
-    Nmax_ = Nmax;
-
-    // validate
-    assert(ValidLabels()); 
-
-    // set up indexing
-
-    // iterate over total oscillator quanta
-    for (int N = g; N <= Nmax; N +=2)
-      {
-	int Nr = N - Ncm;
-
-        // impose coupling constraint
-        if (u3::OuterMultiplicity(u3::SU3(Ncm,0),u3::SU3(Nr,0),x)==0)
-          continue;
-
-        // keep surviving states
-        PushStateLabels(StateLabelsType(Nr)); 
-      }
-      
-
-  }
-
-  bool RelativeCMSubspaceU3ST::ValidLabels() const
-  {
-    bool valid = true;
-
-    // impose antisymmetry
-    valid &= ((Ncm()+S()+T()+g())%2==1);
-
-    // truncation
-    valid &= ((Nmax()%2)==g());
-
-    return valid;
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // two-body LSJT scheme implementation 
-  ////////////////////////////////////////////////////////////////
-
-  TwoBodySubspaceU3ST::TwoBodySubspaceU3ST(u3::SU3 x, int S, int T, int g, int Nmax)
+  TwoBodySubspaceU3ST::TwoBodySubspaceU3ST(u3::U3 omega, int S, int T, int g)
   {
 
     // set values
-    labels_ = SubspaceLabelsType(x,S,T,g);
-    Nmax_ = Nmax;
+    labels_ = SubspaceLabelsType(omega,S,T,g);
 
     // validate subspace labels
     assert(ValidLabels()); 
 
     // set up indexing
-    // iterate over total oscillator quanta
-    for (int N = g; N <= Nmax; N +=2)
-      // iterate over oscillator quanta for particle 1 
-      for (int N1 = 0; N1 <= N; ++N1)
-    	  {
-	       // oscillator quanta for particle 2 subject to given total N
-    	    int N2 = N - N1;
-    	    
-      		// impose coupling constraint
-      		if (u3::OuterMultiplicity(u3::SU3(N1,0),u3::SU3(N2,0),x)==0)
-      		  continue;
+    // iterate over oscillator quanta for particle 1 
+    u3::SU3 x = omega.SU3();
+    for (int N1 = 0; N1 <= N(); ++N1)
+      {
+        // oscillator quanta for particle 2 subject to given total N
+        int N2 = N() - N1;
 
-      		// impose antisymmetry constraint
-      		if ((N1==N2)&&(x.lambda()+x.mu()+S+T)%2==1))
-      		  continue;
+        // impose coupling constraint
+        if (u3::OuterMultiplicity(u3::SU3(N1,0),u3::SU3(N2,0),x)==0)
+          continue;
 
-      		// keep surviving states
-      		PushStateLabels(StateLabelsType(N1,N2)); 
-      	}
-	}
+        // impose antisymmetry constraint
+        if ((N1==N2)&&!((ConjugationGrade(x)+S+T+1)%2==0))
+          continue;
+
+        // keep surviving states
+        PushStateLabels(StateLabelsType(N1)); 
+      }
+
+  }
 
   bool TwoBodySubspaceU3ST::ValidLabels() const
   {
     bool valid = true; 
     // truncation
-    valid &= ((Nmax()%2)==g());
+    valid &= (N()+g())%2==0;
 
     return valid;
   }
 
+  std::string TwoBodySubspaceU3ST::Str() const
+  {
+
+    return fmt::format(
+                       "[{} {} {} {}]",
+                       omega().Str(),S(),T(),g()
+                       );
+  }
 
   TwoBodySpaceU3ST::TwoBodySpaceU3ST(int Nmax)
   {
     // save Nmax
     Nmax_ = Nmax;
 
-    // iterate over lambda, max value N1max+N2max=2Nmax
-    for (int lambda=0; lambda<=2*Nmax; ++lambda)
-      //iterate over mu
-      for (int mu=0; mu<=Nmax; ++mu)      	
-        // iterate over S
-      	for (int S=0; S<=1; ++S)
-      		// iterate over T
-      		for (int T=0; T<=1; ++T)
-    		    // iterate over g
-    		    for (int g=0; g<=1; ++g)  
-		          {
-          			// downshift Nmax to match parity of subspace
-          			// required to pass label validity tests
-          			int Nmax_subspace = Nmax - (Nmax-g)%2;
-		    
-			          TwoBodySubspaceU3ST subspace(u3::SU3(lambda,mu),S,T,g,Nmax_subspace);
-			
-          			if (subspace.Dimension()!=0)
-          			  PushSubspace(subspace);
+    // for each N in 0..Nmax
+    for (int N=0; N<=Nmax; ++N)
+      // for lambda in 0..N
+      for (int lambda=0; lambda<=N; ++lambda)
+        //for mu in 0..floor(N/2)
+        for (int mu=0; mu<=N/2; ++mu)      	
+        // for each S in 0..1
+          for (int S=0; S<=1; ++S)
+            // for each T in 0..1
+            for (int T=0; T<=1; ++T)
+              
+              {
+                // g is fixed by g~N
+                int g = N%2;
+                
+                // create U(3) label
+                u3::SU3 x(lambda,mu);
+                
+                // check validity of U(3) before attempting construction
+                if (!u3::U3::ValidLabels(N,x))
+                  continue;
 
-		          }
+                // construct subspace
+                u3::U3 omega(N,x);
+                TwoBodySubspaceU3ST subspace(omega,S,T,g);
+			
+                // push subspace if nonempty
+                if (subspace.Dimension()!=0)
+                  PushSubspace(subspace);
+              }
   }
 
+
+  std::string TwoBodySpaceU3ST::Str() const
+  {
+
+    std::ostringstream os;
+    for (int s=0; s<size(); ++s)
+      {
+	const SubspaceType& subspace = GetSubspace(s);
+        
+        std::string subspace_string 
+          = fmt::format(
+                        "index {:3} {} size {:3}",
+                        s,
+                        subspace.Str(),
+                        subspace.size()
+                        );
+                        
+        os << subspace_string << std::endl;
+      }
+    return os.str();
+  }
 
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
