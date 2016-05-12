@@ -79,12 +79,12 @@ namespace u3shell {
 	       // oscillator quanta for particle 2 subject to given total N
     	    int N2 = N - N1;
     	    
-      		// impose triangularity
+      		// impose coupling constraint
       		if (u3::OuterMultiplicity(u3::SU3(N1,0),u3::SU3(N2,0),x)==0)
       		  continue;
 
       		// impose antisymmetry constraint
-      		if ((N1==N2)&&(!((x.lambda()+x.mu()+S+T)%2==1)))
+      		if ((N1==N2)&&(x.lambda()+x.mu()+S+T)%2==1))
       		  continue;
 
       		// keep surviving states
@@ -107,8 +107,8 @@ namespace u3shell {
     // save Nmax
     Nmax_ = Nmax;
 
-    // iterate over lambda
-    for (int lambda=0; lambda<=Nmax; ++lambda)
+    // iterate over lambda, max value N1max+N2max=2Nmax
+    for (int lambda=0; lambda<=2*Nmax; ++lambda)
       //iterate over mu
       for (int mu=0; mu<=Nmax; ++mu)      	
         // iterate over S
