@@ -104,14 +104,14 @@ namespace u3shell {
   {
 
     std::ostringstream os;
-    for (int s=0; s<size(); ++s)
+    for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
-	const SubspaceType& subspace = GetSubspace(s);
+	const SubspaceType& subspace = GetSubspace(subspace_index);
         
         std::string subspace_string 
           = fmt::format(
                         "index {:3} {} size {:3}",
-                        s,
+                        subspace_index,
                         subspace.Str(),
                         subspace.size()
                         );
