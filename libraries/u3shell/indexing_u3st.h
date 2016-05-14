@@ -82,7 +82,9 @@ namespace u3shell {
   // 
   // Subspaces are pruned to those of nonzero dimension.
 
+  ////////////////////////////////////////////////////////////////
   // subspace
+  ////////////////////////////////////////////////////////////////
 
   class TwoBodySubspaceU3ST
     : public shell::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int>>
@@ -120,7 +122,9 @@ namespace u3shell {
 
   };
 
+  ////////////////////////////////////////////////////////////////
   // state
+  ////////////////////////////////////////////////////////////////
 
   class TwoBodyStateU3ST
     : public shell::BaseState<TwoBodySubspaceU3ST>
@@ -152,7 +156,9 @@ namespace u3shell {
 
   };
 
+  ////////////////////////////////////////////////////////////////
   // space
+  ////////////////////////////////////////////////////////////////
 
   class TwoBodySpaceU3ST
     : public shell::BaseSpace<TwoBodySubspaceU3ST>
@@ -176,7 +182,31 @@ namespace u3shell {
 
   };
 
+  ////////////////////////////////////////////////////////////////
   // sectors
+  ////////////////////////////////////////////////////////////////
+  
+  struct OperatorLabelsU3ST
+  // U(1)xSU(3)xSxT operators labels
+  //
+  // For use in selection rules for enumerating operator sectors.
+  //
+  // Note: The U(1)xSU(3) labels do *not* in general constitute a
+  // valid U(3) label and thus cannot be stored in a u3::U3.  E.g.,
+  // operators carrying N0=0 but an SU(3) irrep other than (0,0) are
+  // perfectly well possible.
+  {
+
+  OperatorLabelsU3ST(int N0_, const u3::SU3& x0_, HalfInt S0_, HalfInt T0_, int g0_)
+  : N0(N0_), x0(x0_), S0(S0_), T0(T0_), g0(g0_)
+    {}
+
+
+    int N0;
+    u3::SU3 x0;
+    HalfInt S0, T0;
+    int g0;
+  };
 
   class TwoBodySectorsU3ST
     : public shell::BaseSectors<TwoBodySpaceU3ST>
@@ -186,7 +216,7 @@ namespace u3shell {
 
     // constructor
 
-    TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, int g0);
+    TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, const OperatorLabelsU3ST& operator_labels);
 
     // Enumerates sector pairs connected by an operator of given tensorial and parity character.
     //

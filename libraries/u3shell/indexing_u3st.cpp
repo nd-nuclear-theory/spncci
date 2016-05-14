@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "cppformat/format.h"
+#include "am/am.h"
 #include "u3shell/indexing_u3st.h"
 
 namespace u3shell {
@@ -120,6 +121,45 @@ namespace u3shell {
       }
     return os.str();
   }
+
+  TwoBodySectorsU3ST::TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+	{
+          // retrieve subspaces
+          const TwoBodySubspaceU3ST& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const TwoBodySubspaceU3ST& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+
+	  // verify selection rules
+          bool allowed = true;
+          // U(1)
+          allowed &= (ket_subspace.N() + operator_labels.N0 - bra_subspace.N() == 0);
+          // spin & isosopin
+          allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0,bra_subspace.S());
+          allowed &= am::AllowedTriangle(ket_subspace.T(),operator_labels.T0,bra_subspace.T());
+          // parity
+          allowed &= ((ket_subspace.g() + operator_labels.g0 - bra_subspace.g())%2 == 0);
+          // find SU(3) multiplicity and check SU(3) selection
+          int multiplicity = 0;
+          if (allowed)
+            {
+              multiplicity = u3::OuterMultiplicity(ket_subspace.omega().SU3(),operator_labels.x0,bra_subspace.omega().SU3());
+              allowed &= (multiplicity > 0);
+              // std::cout << fmt::format("{}x{}->{}: {} {}",ket_subspace.omega().SU3().Str(),operator_labels.x0.Str(),bra_subspace.omega().SU3().Str(),multiplicity,allowed)
+              //           << std::endl;
+            }
+
+          // push sectors (tagged by multiplicity)
+	  if (allowed)
+            for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+              {
+                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+              }
+	}
+  }
+
 
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
