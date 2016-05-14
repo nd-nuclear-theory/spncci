@@ -11,6 +11,7 @@
 
   5/11/16 (aem,mac): Created, styled after indexing_lsjt.h.
   5/12/16 (aem,mac): Restructure by U(3) subspace.
+  5/14/16 (mac): Implement sectors.  Impose canonical ordering on two-body states.
 
 ****************************************************************/
 
@@ -28,59 +29,73 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
   // two-body states in U3ST scheme
   ////////////////////////////////////////////////////////////////
-  
+
+  ////////////////////////////////////////////////////////////////  
+  //
+  // Labeling
+  //
   // subspace labels: (omega,S,T,g)
   //   where omega=(N,(lambda,mu)) is a U(3) label
+  //
   // state labels within subspace: (N1)
   //
-  // Subspace labels must obey:
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered by:
+  //    -- increasing omega 
+  //    -- increasing S (S=0,1)
+  //    -- increasing T (T=0,1)
+  //    -- [g is implied by omega (N~g)]
+  // and subject to:
   //   -- N~g
+  // 
+  // Subspaces are pruned to those of nonzero dimension.
+  //
+  // How do we generate the omega list under a given Nmax truncation?
+  //
+  //   Option 1:
+  //     for each N in 0..Nmax
+  //       for each (N1,N2) pair with N1+N2=N  [N1=0..Nmax]
+  //         enumerate (N1,0)x(N2,0) -> omega
+  //     and collect set of distinct omegas
+  //
+  //     This requires duplicative coding and possibly iteration over
+  //     large numbers of duplicative set elements.
+  //
+  //   Option 2 (ADOPTED):
+  //     for each N in 0..Nmax
+  //       for lambda in 0..N
+  //         for mu in 0..floor(N/2)
+  //     attempt to build subspace, but prune to 
+  //     subspaces of nonzero dimension
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // States
   //
   // Within a subspace, the states are ordered by:
   //   -- increasing N1
   //   -- [N2 is implied by N1+N2=N]
   // and subject to:
   //   -- SU(3) coupling constraint (N1,0)x(N2,0)->(lambda,mu)
-  //   -- antisymmetry constraint lambda+mu+S+T~1 if N1==N2
+  //   -- antisymmetry constraint omega+S+T~1 if N1==N2
   //
-  // This basis is for *distinguishable* particle states, subject to
-  // the symmetry constraints which apply to *identical*-particle
-  // states.  That is, although the antisymmetry constraint for identical
-  // orbitals (omega+S+T~1) is applied to the quantum numbers when
-  // enumerating the basis, the states
+  // Here, by the phase contribution from omega, we mean lambda+mu.
+  //
+  // This basis is for *identical* particle states:
+  //   -- The labels are subject to the antisymmetry constraint (omega+S+T~1).
+  //   -- A canonical (lexicographic) ordering constraint is applied to the 
+  //      single-particle quantum numbers.  That is, when
+  //      enumerating the basis, the states
   //    
-  //   |(N1,N2)...>  and  |(N2,N1)...>
+  //        |(N1,N2)...>  and  |(N2,N1)...>
   //
-  // are still counted separately in the basis.  No lexicographical
-  // ordering constraint N1<=N2 on the two single-particle states is
-  // imposed.  The basis is therefore redundant.  This simplifies
-  // implementation of double contractions over "particle 1" and
-  // "particle 2" indices as matrix multiplication, without the
-  // calling code having to worry about "swapping" single particle
-  // states within the two-body state and applying the relevant phase
-  // (~omega+S+T+g+1).
+  //      would be redundant, and only the first (for N1<=N2) is
+  //      retained.
   //
-  // Subpaces in given Nmax truncation:
-  //    How do we generate the omega list?
-  //    Option 1:
-  //      for each N in 0..Nmax
-  //        for each (N1,N2) pair with N1+N2=N  [N1=0..Nmax]
-  //          enumerate (N1,0)x(N2,0) -> omega
-  //      and collect set of distinct omegas
-  //    Option 2:
-  //      for each N in 0..Nmax
-  //        for lambda in 0..N
-  //          for mu in 0..floor(N/2)
-  //      attempt to build subspace, but prune to 
-  //      subspaces of nonzero dimension
-  //    
-  // Within the full space, subspaces are ordered by:
-  //    -- increasing omega 
-  //    -- increasing S (S=0,1)
-  //    -- increasing T (T=0,1)
-  //    -- [g is implied by omega]
-  // 
-  // Subspaces are pruned to those of nonzero dimension.
+  ////////////////////////////////////////////////////////////////  
 
   ////////////////////////////////////////////////////////////////
   // subspace

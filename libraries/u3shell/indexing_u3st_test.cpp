@@ -81,6 +81,35 @@ int main(int argc, char **argv)
         }
     }
 
+
+  if (true)
+    {
+      std::cout << "Sector enumeration"
+                << std::endl;
+
+      // build space
+      int Nmax=4;
+      u3shell::TwoBodySpaceU3ST space(Nmax);
+      std::cout << space.Str();
+      
+      u3shell::OperatorLabelsU3ST op(2,u3::SU3(2,0),0,0,0);
+
+      u3shell::TwoBodySectorsU3ST sectors(space,op);
+      
+      for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
+        {
+          auto sector=sectors.GetSector(sector_index);
+
+          std::cout << fmt::format(
+                                   "{:3} ({:2},{:2},{:1}): {} {}",
+                                   sector_index,
+                                   sector.bra_subspace_index(),sector.ket_subspace_index(),sector.multiplicity_index(),
+                                   sector.bra_subspace().Str(),sector.ket_subspace().Str()
+                                   )
+                    << std::endl;
+        }
+    }
+
   // termination
   return 0;
 }

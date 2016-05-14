@@ -31,6 +31,10 @@ namespace u3shell {
         // oscillator quanta for particle 2 subject to given total N
         int N2 = N() - N1;
 
+        // impose canonical ordering one single-particle states
+        if (!(N1<=N2))
+          continue;
+
         // impose coupling constraint
         if (u3::OuterMultiplicity(u3::SU3(N1,0),u3::SU3(N2,0),x)==0)
           continue;
