@@ -1,7 +1,7 @@
 /****************************************************************
   unit_tensor.h
 
-  Unit tensor algorithms
+  Unit tensor recursive evaluation
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -11,16 +11,19 @@
   4/20/16 (aem): Defined GenerateUnitTensorU3SectorLabels function and 
                changed interation in UnitTensorMatrixGenerator
 ****************************************************************/
+
 #ifndef UNIT_TENSOR_H_
 #define UNIT_TENSOR_H_
 
-#include "spncci/sp_basis.h"
-#include "sp3rlib/vcs.h"
-#include "sp3rlib/u3.h"
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/functional/hash_fwd.hpp>
+
+#include "spncci/sp_basis.h"
+#include "sp3rlib/vcs.h"
+#include "sp3rlib/u3.h"
+
 
 namespace spncci
 {
