@@ -16,6 +16,7 @@
 #ifndef U3_H_
 #define U3_H_
 
+#include <cassert>
 #include <string>
 #include <utility>
 #include <vector>
@@ -174,7 +175,7 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-class U3
+  class U3
   {
 
     ////////////////////////////////////////////////////////////////
@@ -201,7 +202,9 @@ class U3
     inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
       : f1_(f1), f2_(f2), f3_(f3)
     // Construct from Cartesian labels [f1,f2,f3].
-    {}
+    {
+      assert(ValidLabels(f1_,f2_,f3_));
+    }
 
     inline U3(const HalfInt& N_, const u3::SU3& x_);
     // Construct from N(lambda,mu) labels.
@@ -225,7 +228,7 @@ class U3
     }
 
     inline static
-    bool ValidLabels(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
+      bool ValidLabels(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
     // Check validity of U3 labels in Cartesian form.
     //
     // Normally there is requirement all labels nonnegative (f3>=0),
@@ -236,7 +239,7 @@ class U3
     }
 
     inline static
-    bool ValidLabels(const HalfInt& N, const u3::SU3& x)
+      bool ValidLabels(const HalfInt& N, const u3::SU3& x)
     // Check validity of U3 labels in N(lambda,mu) form.
     {
       int thrice_twice_f3 = TwiceValue(N-2*x.mu()-x.lambda());
@@ -326,17 +329,19 @@ class U3
   inline U3::U3(const HalfInt& N_, const u3::SU3& x_)
   {
 
-      // recover f3 first
-      // N - 2mu - lambda = (f1+f2+f3)-2*(f2-f3)-(f1-f2) = 3*f3
-      // but since division is not defined for HalfInt, work with twice value for division purposes
-      int twice_f3 = TwiceValue(N_-2*x_.mu()-x_.lambda()) / 3;
-      f3_ = HalfInt(twice_f3,2);
+    assert(ValidLabels(N_,x_));
       
-      // recover f2 and f1
-      f2_ = f3_ + x_.mu();
-      f1_ = f2_ + x_.lambda();
+    // recover f3 first
+    // N - 2mu - lambda = (f1+f2+f3)-2*(f2-f3)-(f1-f2) = 3*f3
+    // but since division is not defined for HalfInt, work with twice value for division purposes
+    int twice_f3 = TwiceValue(N_-2*x_.mu()-x_.lambda()) / 3;
+    f3_ = HalfInt(twice_f3,2);
+      
+    // recover f2 and f1
+    f2_ = f3_ + x_.mu();
+    f1_ = f2_ + x_.lambda();
 
-    }
+  }
 
   ////////////////////////////////////////////////////////////////
   // relational operators
