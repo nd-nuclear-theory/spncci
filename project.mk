@@ -61,7 +61,7 @@ CPPFLAGS += -DNOUSE_U_COEF_CACHE
 CPPFLAGS += -DINDEXING_BASE_HASH_SPACE
 
 # debugging mode
-CXXFLAGS += -g
+CXXFLAGS += 
 
 #for lots of output
 # -DVERBOSE 
