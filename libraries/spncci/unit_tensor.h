@@ -91,6 +91,13 @@ namespace spncci
       // r and rp need 6 bits
       // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits
       // See constants defined just above...
+
+      // TODO post-Andika: make this a lot more transparent as a sequence of "shift then or" operations
+      // TODO post-Andika: fix up pseudo-Java-esque variable name conventions
+      // TODO post-Andika: uniformly use hash_value instead of declaring boost hasher objects
+      // TODO post-Andika: remove naive hash, or make it and #els alternative to BOOST_HASH
+
+
       int packed_Ints = (TwiceValue(tensor.S0_) << 5*spin_label_width+2*quanta_label_width)
         | (TwiceValue(tensor.T0_) << 4*spin_label_width+2*quanta_label_width)
         | (TwiceValue(tensor.Sp_) << 3*spin_label_width+2*quanta_label_width)
