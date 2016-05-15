@@ -1,7 +1,7 @@
 /****************************************************************
   unit_tensor.h
 
-  Unit tensor algorithms
+  Unit tensor recursive evaluation
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -11,16 +11,19 @@
   4/20/16 (aem): Defined GenerateUnitTensorU3SectorLabels function and 
                changed interation in UnitTensorMatrixGenerator
 ****************************************************************/
+
 #ifndef UNIT_TENSOR_H_
 #define UNIT_TENSOR_H_
 
-#include "spncci/sp_basis.h"
-#include "sp3rlib/vcs.h"
-#include "sp3rlib/u3.h"
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/functional/hash_fwd.hpp>
+
+#include "spncci/sp_basis.h"
+#include "sp3rlib/vcs.h"
+#include "sp3rlib/u3.h"
+
 
 namespace spncci
 {
@@ -88,6 +91,13 @@ namespace spncci
       // r and rp need 6 bits
       // TwiceValue(S0), TwiceValue(T0), etc., need only 2 bits
       // See constants defined just above...
+
+      // TODO post-Andika: make this a lot more transparent as a sequence of "shift then or" operations
+      // TODO post-Andika: fix up pseudo-Java-esque variable name conventions
+      // TODO post-Andika: uniformly use hash_value instead of declaring boost hasher objects
+      // TODO post-Andika: remove naive hash, or make it and #els alternative to BOOST_HASH
+
+
       int packed_Ints = (TwiceValue(tensor.S0_) << 5*spin_label_width+2*quanta_label_width)
         | (TwiceValue(tensor.T0_) << 4*spin_label_width+2*quanta_label_width)
         | (TwiceValue(tensor.Sp_) << 3*spin_label_width+2*quanta_label_width)

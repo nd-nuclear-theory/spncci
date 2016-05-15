@@ -205,7 +205,7 @@ namespace shell {
   public:
 
     ////////////////////////////////////////////////////////////////
-    // common typedefs constructors
+    // common typedefs
     ////////////////////////////////////////////////////////////////
 
     typedef tSubspaceType SubspaceType; 
@@ -431,29 +431,86 @@ namespace shell {
     };
 
   ////////////////////////////////////////////////////////////////
-  // generic sector storage
+  // sector storage -- LEGACY
   ////////////////////////////////////////////////////////////////
 
-  // Sector -- sector index pair
-  //
-  // Derived from pair<int,int> so that can be easily used as sortable key.
-  // Public inheritance so comparisons work.
+  // // LEGACY sector type -- to remove
+  // class Sector
+  //   : public std::pair<int,int> 
+  // // Sector -- sector index pair
+  // //
+  // // Derived from pair<int,int>, so that it can be easily used as sortable key.
+  // // Inheritance is public so that the pair<int,int> comparison operators work.
+  // {
+  // 
+  // public:
+  // 
+  //   // constructor
+  // Sector(int index2, int index1) 
+  //   : pair(index2,index1) {}
+  // 
+  //   // accessors (aliases for pair members)
+  // 
+  //   int index2() const {return first;}
+  //   int index1() const {return second;}
+  // 
+  // };
 
-  class Sector
-    : public std::pair<int,int> 
+  ////////////////////////////////////////////////////////////////
+  // sector storage class
+  ////////////////////////////////////////////////////////////////
+
+  template <typename tSubspaceType>
+  class BaseSector
+    // Store indexing and subspace reference information for a sector.
+    //
+    // Allows for multiplicity index on sector, for symmetry sectors
+    // of groups with outer multiplicities.
   {
 
+    ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
   public:
+    typedef tSubspaceType SubspaceType; 
+    typedef std::tuple<int,int,int> KeyType;
 
-    // constructor
-  Sector(int index2, int index1) 
-    : pair(index2,index1) {}
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
 
-    // accessors (aliases for pair members)
+  BaseSector(
+         int bra_subspace_index, int ket_subspace_index, 
+         const SubspaceType& bra_subspace, const SubspaceType& ket_subspace,
+         int multiplicity_index=1
+         ) 
+    : bra_subspace_index_(bra_subspace_index), ket_subspace_index_(ket_subspace_index), multiplicity_index_(multiplicity_index)
+    {
+      bra_subspace_ptr_ = &bra_subspace;
+      ket_subspace_ptr_ = &ket_subspace;
+    }
 
-    int index2() const {return first;}
-    int index1() const {return second;}
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
 
+    inline KeyType Key() const
+    {
+      return KeyType(bra_subspace_index(),ket_subspace_index(),multiplicity_index());
+    }
+
+    int bra_subspace_index() const {return bra_subspace_index_;}
+    int ket_subspace_index() const {return ket_subspace_index_;}
+    const SubspaceType& bra_subspace() const {return *bra_subspace_ptr_;}
+    const SubspaceType& ket_subspace() const {return *ket_subspace_ptr_;}
+    int multiplicity_index() const {return multiplicity_index_;}
+
+  private:
+    int bra_subspace_index_, ket_subspace_index_;
+    const SubspaceType* bra_subspace_ptr_;
+    const SubspaceType* ket_subspace_ptr_;
+    int multiplicity_index_;
   };
 
   // BaseSectors -- container to hold sectors (as pairs of
@@ -479,21 +536,21 @@ namespace shell {
     ////////////////////////////////////////////////////////////////
 
     typedef tSpaceType SpaceType;
-
-    // constructor to be provided by derived class
+    typedef typename tSpaceType::SubspaceType SubspaceType;
+    typedef BaseSector<SubspaceType> SectorType;
 
     ////////////////////////////////////////////////////////////////
     // subspace lookup and retrieval
     ////////////////////////////////////////////////////////////////
 
-    const Sector& GetSector(int i) const
+    const SectorType& GetSector(int i) const
     {
       return sectors_[i];
     };
 
-    int LookUpSectorIndex(const Sector& sector) const
+    int LookUpSectorIndex(int bra_subspace_index, int ket_subspace_index, int multiplicity_index=1) const
     {
-      return lookup_.at(sector);
+      return lookup_.at(SectorType::KeyType(bra_subspace_index,ket_subspace_index,multiplicity_index));
     };
 
     ////////////////////////////////////////////////////////////////
@@ -510,11 +567,10 @@ namespace shell {
     ////////////////////////////////////////////////////////////////
     // sector push (for initial construction)
     ////////////////////////////////////////////////////////////////
-    
 
-    void PushSector(const Sector& sector)
+    void PushSector(const SectorType& sector)
     {
-      lookup_[sector] = sectors_.size(); // index for lookup
+      lookup_[sector.Key()] = sectors_.size(); // index for lookup
       sectors_.push_back(sector);  // save sector
     };
 
@@ -523,10 +579,10 @@ namespace shell {
     ////////////////////////////////////////////////////////////////
     
     // sectors (accessible by index)
-    std::vector<Sector> sectors_;
+    std::vector<SectorType> sectors_;
 
     // sector index lookup by subspace indices
-    std::map<Sector,int> lookup_;
+    std::map<typename SectorType::KeyType,int> lookup_;
   };
 
   ////////////////////////////////////////////////////////////////
