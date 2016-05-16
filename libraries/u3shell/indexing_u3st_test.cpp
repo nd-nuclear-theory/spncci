@@ -6,9 +6,10 @@
 
 ****************************************************************/
 
+#include "u3shell/indexing_u3st.h"
+
 #include "cppformat/format.h"
 
-#include "u3shell/indexing_u3st.h"
 
 ////////////////////////////////////////////////////////////////
 // main

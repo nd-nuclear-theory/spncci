@@ -22,6 +22,7 @@
 
 #include "utilities/indexing_base.h"
 #include "sp3rlib/u3.h"
+#include "u3shell/tensor.h"
 
 
 namespace u3shell {
@@ -197,31 +198,10 @@ namespace u3shell {
 
   };
 
+
   ////////////////////////////////////////////////////////////////
   // sectors
   ////////////////////////////////////////////////////////////////
-  
-  struct OperatorLabelsU3ST
-  // U(1)xSU(3)xSxT operators labels
-  //
-  // For use in selection rules for enumerating operator sectors.
-  //
-  // Note: The U(1)xSU(3) labels do *not* in general constitute a
-  // valid U(3) label and thus cannot be stored in a u3::U3.  E.g.,
-  // operators carrying N0=0 but an SU(3) irrep other than (0,0) are
-  // perfectly well possible.
-  {
-
-  OperatorLabelsU3ST(int N0_, const u3::SU3& x0_, HalfInt S0_, HalfInt T0_, int g0_)
-  : N0(N0_), x0(x0_), S0(S0_), T0(T0_), g0(g0_)
-    {}
-
-
-    int N0;
-    u3::SU3 x0;
-    HalfInt S0, T0;
-    int g0;
-  };
 
   class TwoBodySectorsU3ST
     : public shell::BaseSectors<TwoBodySpaceU3ST>

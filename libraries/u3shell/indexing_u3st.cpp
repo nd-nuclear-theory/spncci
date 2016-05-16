@@ -139,17 +139,17 @@ namespace u3shell {
 	  // verify selection rules
           bool allowed = true;
           // U(1)
-          allowed &= (ket_subspace.N() + operator_labels.N0 - bra_subspace.N() == 0);
+          allowed &= (ket_subspace.N() + operator_labels.N0() - bra_subspace.N() == 0);
           // spin & isosopin
-          allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0,bra_subspace.S());
-          allowed &= am::AllowedTriangle(ket_subspace.T(),operator_labels.T0,bra_subspace.T());
+          allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0(),bra_subspace.S());
+          allowed &= am::AllowedTriangle(ket_subspace.T(),operator_labels.T0(),bra_subspace.T());
           // parity
-          allowed &= ((ket_subspace.g() + operator_labels.g0 - bra_subspace.g())%2 == 0);
+          allowed &= ((ket_subspace.g() + operator_labels.g0() - bra_subspace.g())%2 == 0);
           // find SU(3) multiplicity and check SU(3) selection
           int multiplicity = 0;
           if (allowed)
             {
-              multiplicity = u3::OuterMultiplicity(ket_subspace.omega().SU3(),operator_labels.x0,bra_subspace.omega().SU3());
+              multiplicity = u3::OuterMultiplicity(ket_subspace.omega().SU3(),operator_labels.x0(),bra_subspace.omega().SU3());
               allowed &= (multiplicity > 0);
               // std::cout << fmt::format("{}x{}->{}: {} {}",ket_subspace.omega().SU3().Str(),operator_labels.x0.Str(),bra_subspace.omega().SU3().Str(),multiplicity,allowed)
               //           << std::endl;
