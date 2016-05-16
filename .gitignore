@@ -21,3 +21,4 @@ libraries/su3lib/su3genbk
 libraries/sp3rlib/su3_coupler
 *_test
 *.exe
+*.dSYM
