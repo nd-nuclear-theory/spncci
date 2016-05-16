@@ -208,7 +208,7 @@ namespace u3
   bool g_u_cache_enabled = true;
 
   double UCached(
-                 const u3::UCoefCache& cache, 
+                 u3::UCoefCache& cache, 
                  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
                  )
@@ -218,10 +218,12 @@ namespace u3
       // retrieve from cache
       {
         const u3::UCoefLabels labels(x1,x2,x,x3,x12,x23);
-        #ifdef VERBOSE
         if (cache.count(labels)==0)
-          std::cout << "UCached: cannot recall coefficient " << labels.Str() << std::endl;
-        #endif
+          {
+            #pragma omp critical
+            cache[labels]=u3::UCoefBlock(labels);
+          }
+        
         const u3::UCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(r12,r12_3,r23,r1_23);
       }

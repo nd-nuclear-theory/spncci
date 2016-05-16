@@ -40,27 +40,6 @@ namespace spncci
     return ss.str();
   }
 
-  // std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
-  // {
-  //   // partition irreps by Nn
-  //   // HalfInt Ns=irrep.GetSubspace(0).GetSubspaceLabels().N();
-  //   // int Nn_last=-1;
-  //   // std::vector<int> IrrepPartionN;
-  //   // for(int i=0; i<irrep.size(); i++ )
-  //   //   {
-  //   //     u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();		 
-
-  //   //     if ( Nn_last!=int(omega.N()-Ns) )
-  //   //       {
-  //   //         IrrepPartionN.push_back(i);
-  //   //         Nn_last=int(omega.N()-Ns);
-  //   //       }
-  //   //   }
-  //   // return IrrepPartionN;
-  //   return sp3r::PartitionIrrepByNn(irrep, Nmax);
-
-  // }
-
   std::pair<int,int> GetNSectorIndices(const int Nmax, const int irrep_size, const int Nn, std::vector<int>& NPartition)
   {
     int i_min, i_max;
@@ -602,7 +581,7 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
 
 
   Eigen::MatrixXd UnitTensorMatrix(
-                                   const u3::UCoefCache& u_coef_cache,
+                                   u3::UCoefCache& u_coef_cache,
                                    // LGI pair sector 
                                   const spncci::LGI& lgip,
                                   const spncci::LGI& lgi,
@@ -888,7 +867,7 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
 
 
   void GenerateUnitTensorU3Sector(
-                                  const u3::UCoefCache& u_coef_cache,
+                                  u3::UCoefCache& u_coef_cache,
                                   const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, 
                                   // LGI pair sector 
                                   const spncci::LGI& lgip,
@@ -981,7 +960,7 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
 void GenerateNpNSector(const std::pair<int,int> NpN_pair, 
                         const spncci::LGI& lgip,
                         const spncci::LGI& lgi,
-                        const u3::UCoefCache& u_coef_cache,
+                        u3::UCoefCache& u_coef_cache,
                         std::map<
                                 std::pair<int,int>,
                                 spncci::UnitTensorSectorsCache
@@ -1114,7 +1093,7 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
     int iterations=2;
     int start;
     #ifdef USE_U_COEF_CACHE
-      start=0;
+      start=1;
     #else
       start=1;
     #endif
@@ -1126,12 +1105,12 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
     {
 
       // generate cache of U coefficients
-      if(i==1)
-        {
-          #ifdef USE_U_COEF_CACHE
-            u_coef_cache = GenerateUCoefCache(lgip,lgi,unit_tensor_u3_sector_vector, u_coef_labels_vector);
-          #endif
-        }
+      // if(i==1)
+      //   {
+      //     #ifdef USE_U_COEF_CACHE
+      //       u_coef_cache = GenerateUCoefCache(lgip,lgi,unit_tensor_u3_sector_vector, u_coef_labels_vector);
+      //     #endif
+      //   }
 
       // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
       // if (K_matrix_map.count(lgi.sigma)==0)

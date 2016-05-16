@@ -56,7 +56,7 @@ CPPFLAGS += -DBOOSTHASH
 #   map vs. hash unit tensor sectors 
 CPPFLAGS += -DNOHASH_UNIT_TENSOR
 #   precalculation and caching of U coefficients
-CPPFLAGS += -DNOUSE_U_COEF_CACHE
+CPPFLAGS += -DUSE_U_COEF_CACHE
 #   map vs. hash for space lookup in BaseSpace
 CPPFLAGS += -DINDEXING_BASE_HASH_SPACE
 

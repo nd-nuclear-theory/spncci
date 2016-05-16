@@ -302,7 +302,7 @@ namespace u3
 
   extern bool g_u_cache_enabled;
   double UCached(
-                 const UCoefCache& cache, 
+                 UCoefCache& cache, 
                  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
                  );
