@@ -391,7 +391,7 @@ namespace u3shell
 
   class RelativeUnitTensorLabelsU3ST
     : public OperatorLabelsU3ST
-  // U(1)xSU(3)xSxT relative unit tensor operators labels
+  // U(1)xSU(3)xSxT relative unit tensor operators labels where unit tensor is defined by <bra|U|ket>=1
   //
   // Stored labels:
   //   (OperatorLabelsU3ST) : tensor operator labels (N0,x0,S0,T0,g0)
@@ -424,7 +424,8 @@ namespace u3shell
       // below.  Piecewise initialization x0_(x0), etc., is not
       // recognized.
 
-      N0_ = bra_.eta() - ket_.eta();  // combined quanta carried by bra (created) and ket (destroyed)
+
+      N0_ = bra_.eta() - ket_.eta();  // the quant carried by the operator must be such that N_bra=N0+N_ket
       x0_= x0;
       S0_ = S0;
       T0_ = T0;
@@ -458,6 +459,14 @@ namespace u3shell
     {
       return KeyType(OperatorLabelsU3ST::Key(),bra().Key(),ket().Key());
     }
+
+    typedef std::tuple<u3::SU3,HalfInt,HalfInt,int,HalfInt,HalfInt,int,HalfInt,HalfInt> FlatKeyType;
+    inline FlatKeyType FlatKey() const
+    {
+      return FlatKeyType(x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T());
+    }
+
+
 
     inline friend bool operator == (const RelativeUnitTensorLabelsU3ST& x1, const RelativeUnitTensorLabelsU3ST& x2)
     {
@@ -538,7 +547,7 @@ namespace u3shell
       // below.  Piecewise initialization x0_(x0), etc., is not
       // recognized.
 
-      N0_ = bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2();  // combined quanta carried by bra (created) and ket (destroyed)
+      N0_ = bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2();  // combined quanta carried by ket (created) and bra (destroyed)
       x0_= x0;
       S0_ = S0;
       T0_ = T0;
@@ -610,6 +619,18 @@ namespace u3shell
     TwoBodyStateLabelsU3ST bra_, ket_;
     int rho0_;
   };
+
+
+  // Generates map of RelativeUnitTensorLabelsU3ST for a given Nmax truncation,   
+  // stored in relative_unit_tensor_labels.
+  // Map keys are N0: number of oscillator quanta carried by the operator
+  // values are vectors of RelativeUnitTensorLabelsU3ST with oscillator quanta N0
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        int Nmax, 
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
+        );
+
+
 
 
 //  ////////////////////////////////////////////////////////////////
