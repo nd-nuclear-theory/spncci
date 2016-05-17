@@ -8,18 +8,11 @@
 
 
 #include <omp.h>
-
-
 #include "spncci/unit_tensor.h"
 
 extern spncci::LGIVectorType lgi_vector;
-
 extern std::map< u3::U3, vcs::MatrixCache > K_matrix_map;
 
-// std::unordered_set<u3::UCoefLabels> Ucoef_labels;
-
-	
-//spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
 namespace spncci
 {
   typedef std::pair<UnitTensorU3Sector, Eigen::MatrixXd> UnitTensorU3SectorPair;
@@ -159,7 +152,6 @@ namespace spncci
             continue; 
 
           std::pair<int,int> NpN_pair(Nnp,Nn);
-
           // Selecting section of spaces to iterate over
           int ip_min, ip_max, i_min, i_max;
           std::tie (i_min,i_max)=GetNSectorIndices(Nmax, irrep_size, Nn, NPartition);
@@ -174,8 +166,6 @@ namespace spncci
               for(int i=i_min; i<=i_max; i++ )
                 {
                   u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
-                  
-
                   // Iterating over the operator labels             
                   for (int w=0; w<operator_set.size(); w++)
                     {                     
@@ -219,367 +209,7 @@ namespace spncci
     std::cout<<"Exiting GenerateU3SectorLabels"<<std::endl;
     #endif
   }
-
-void GenerateUCoefLabels(const spncci::LGI& lgip, 
-                    const spncci::LGI& lgi,
-                    // unit tensor labels 
-                    const spncci::UnitTensorU3Sector& unit_labels,
-                    // unordered set for keeping track of labels 
-                    std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>>& u_coef_labels_set
-                   )
-  {
-    #ifdef VERBOSE
-    std::cout<<"GenerateUCoefLabels"<<std::endl;
-    #endif
-    
-    // initial declarations     
-    u3::U3 omegap, omega, omega0;
-    HalfInt S0, T0, Sbp, Tbp, Sb, Tb ;
-    UnitTensor tensor;
-    int rbp, rb, rho0;
-    // v',v
-    int N1b=2;
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Set up for calculation 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    std::tie(omegap,omega,tensor,rho0) = unit_labels.Key();
-    
-    const sp3r::Sp3RSpace& irrepp = lgip.Sp3RSpace();
-    const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
-
-    sp3r::U3Subspace u3_subspacep = irrepp.LookUpSubspace(omegap);
-    sp3r::U3Subspace u3_subspace  = irrep.LookUpSubspace(omega);
-
-    int Nn=int(omega.N()-lgi.sigma.N());
-    int Nnp=int(omegap.N()-lgip.sigma.N());
-
-    int dimp=u3_subspacep.size();
-    int dim=u3_subspace.size();
-    assert(dimp!=0 && dim!=0);
-  
-    // unpacking the unit tensor labels 
-    std::tie(omega0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = tensor.Key();
-
-    MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
-    MultiplicityTagged<u3::U3>::vector omega0p_set=KroneckerProduct(omega0, u3::U3(2,0,0));
-    MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Calculate unit tensor matrix
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // summing over omega1
-    for (int w1=0; w1<omega1_set.size(); w1++)
-      { 
-        u3::U3 omega1=omega1_set[w1].irrep;
-        //check that omega1 in irrep  
-        if (not irrep.ContainsSubspace(omega1))
-          continue;
-
-        // omega1 sector
-        sp3r::U3Subspace u3_subspace1=irrep.LookUpSubspace(omega1);
-        int dim1=u3_subspace1.size();
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Matrix of B*U coefs with dim v1 and v
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //iterating over (n,rho)
-        for (int m=0; m<dim; m++)
-          {
-            MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(m);
-            u3::U3 n(n_rho.irrep);
-
-            for (int m1=0; m1<dim1; m1++)
-              {
-                MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(m1);
-                u3::U3 n1(n1_rho1.irrep);
-
-                if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
-                {
-                  u3::UCoefLabels label1(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),omega1.SU3());
-                  // if (label1.Allowed())
-                  u_coef_labels_set.insert(label1);
-                }
-              } 
-          }                       
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //summing over omega0'
-        for (int w0p=0; w0p<omega0p_set.size(); w0p++)
-          {
-            u3::U3 omega0p=omega0p_set[w0p].irrep;
-            int rho0p_max=OuterMultiplicity(omega1.SU3(),omega0p.SU3(),omegap.SU3());
-            // summing over rho0'
-            if(rho0p_max!=0)
-              {
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // third term
-                // sum over omega'', v'' and rho0''
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                u3::UCoefLabels label2(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-                                       omega0p.SU3(),omega.SU3());
-                u_coef_labels_set.insert(label2);
-
-                if ( rbp<=(Nnp-2+N1b+lgip.Nex) && rb<=(Nn-2+N1b+lgi.Nex) )
-                  { 
-                    // Summing over omega''
-                    for (int wpp=0; wpp<omegapp_set.size(); wpp++)
-                      {
-                      
-                        u3::U3 omegapp(omegapp_set[wpp].irrep);
-                        
-                        if (not irrepp.ContainsSubspace(omegapp))
-                          continue;
-                        if (u3::OuterMultiplicity(omega1.SU3(),omega0.SU3(),omegapp.SU3())==0)
-                          continue;         
-                        
-                        // omega'' subspace (v'')
-                        sp3r::U3Subspace u3_subspacepp=irrepp.LookUpSubspace(omegapp);
-                        int dimpp=u3_subspacepp.size();
-                        //Constructing a^\dagger matrix
-                        for(int vpp=0; vpp<dimpp; vpp++)
-                          {
-                            MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
-                            const u3::U3& npp=npp_rhopp.irrep;
-                            const int& rhopp=npp_rhopp.tag;
-
-                            for(int vp=0; vp<dimp; vp++)
-                              {
-                                MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
-                                const u3::U3& np=np_rhop.irrep;
-                                const int& rhop=np_rhop.tag; 
-                                if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
-                                  {
-                                    u3::UCoefLabels label3(lgip.sigma.SU3(),npp.SU3(),omegap.SU3(),u3::SU3(2,0),omegapp.SU3(),np.SU3());
-                                    u_coef_labels_set.insert(label3);
-                                  }
-                              }
-                          }
-                          
-                        int rho0pp_max=u3::OuterMultiplicity(omega1.SU3(),omega0.SU3(),omegapp.SU3());
-                        if(rho0pp_max!=0)
-                          {
-                            u3::UCoefLabels label4(u3::SU3(2,0),omega0.SU3(),omegap.SU3(),omega1.SU3(),omega0p.SU3(),omegapp.SU3());
-                            u_coef_labels_set.insert(label4);
-                          } //end rho0pp
-                      } // end wpp
-                  }
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                //first term 
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////  
-                if (u3::OuterMultiplicity(u3::SU3(rbp,0),u3::SU3(0,rb-2),omega0p.SU3())>0 && (rb-2)>=0)
-                  {
-                    if(u3::OuterMultiplicity(omega1.SU3(),omega0p.SU3(),omegap.SU3())==0 
-                      || u3::OuterMultiplicity(u3::SU3(rbp,0),u3::SU3(0,rb-2),omega0p.SU3())==0)
-                      continue;
-                    
-                    u3::UCoefLabels label5(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-                          omega0p.SU3(),omega.SU3());
-                    u_coef_labels_set.insert(label5);
-
-                    u3::UCoefLabels label6(u3::SU3(rbp,0),u3::SU3(0,rb),omega0p.SU3(), u3::SU3(2,0), 
-                           omega0.SU3(),u3::SU3(0,rb-2)); 
-                    u_coef_labels_set.insert(label6);
-                    
-                  }
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // second term 
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////  
-                if (
-                    (u3::OuterMultiplicity(u3::SU3(rbp+2,0),u3::SU3(0,rb),omega0p.SU3())>0)
-                    &&
-                    rb<=(omega1.N()-lgi.sigma.N()+N1b)
-                    &&
-                    (rbp+2)<=(omegap.N()-lgip.sigma.N()+N1b)
-                    )
-                  {
-                    if(u3::OuterMultiplicity(omega1.SU3(),omega0p.SU3(),omegap.SU3())>0)
-                      {
-                           u3::UCoefLabels label7(omega0.SU3(),u3::SU3(2,0),omegap.SU3(), omega1.SU3(),omega0p.SU3(),omega.SU3());
-                           u_coef_labels_set.insert(label7);
-                           u3::UCoefLabels label8(u3::SU3(2,0),u3::SU3(rbp,0),omega0p.SU3(), u3::SU3(0,rb), u3::SU3(rbp+2,0),omega0.SU3());
-                           u_coef_labels_set.insert(label8);
-                      }
-                  }
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-              } //end rho0p
-
-          } //end sum over w0p
-        // summing over n, rho, n1, rho1, v1
-      }// end sum over omega1
-    // converting unordered map to vector for easy iteration    
-    #ifdef VERBOSE
-    std::cout<<"Exiting GenerateUCoefLabels"<<std::endl;
-    #endif
-  } // End function
-
-
-
-void GenerateU3SectorCoefLabels(const spncci::LGI& lgip, 
-                                const spncci::LGI& lgi,
-                                //unit tensor sector labels 
-                                const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, //same as unit_labels 
-                                // which type of calculation
-                                bool Nn_zero,
-                                // set in which to accululate coefficient labels 
-                                std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>>& u_coef_labels_set
-                                )
-  {
-
-    //calculate unit tensor matrix.   
-    // int zerocout=0;
-    /////////////////////////////////////////////////////////////////////////////////////
-    #ifdef VERBOSE
-    std::cout<<"Entering GenerateU3SectorCoefLabels"<<std::endl;
-    #endif
-    
-    Eigen::MatrixXd temp_matrix;
-    // In the special case that omegap.N()!=sigmap.N() but omega.N()==sigma.N(), then to calculate we
-    // need to calculate the conjugate transpose of the unit tensor matrix and then invert and multiply 
-    // by factor to obtain desired matrix
-    const sp3r::Sp3RSpace& irrepp=lgip.Sp3RSpace();
-    const sp3r::Sp3RSpace& irrep=lgi.Sp3RSpace();
-
-    if (Nn_zero)
-      {
-        u3::U3 omegap,omega,omega0;
-        int rp, r,rho0;
-        HalfInt S0, T0, Sp, Tp, S, T;
-        spncci::UnitTensor unit_tensor;
-
-        std::tie (omegap,omega,unit_tensor,rho0)=unit_tensor_u3_sector.Key();
-        std::tie (omega0,S0,T0,rp,Sp,Tp,r,S,T)=unit_tensor.Key();
-        spncci::UnitTensorU3Sector unit_tensor_calc_u3_sector
-          =spncci::UnitTensorU3Sector(omega,omegap,UnitTensor(u3::Conjugate(omega0),S0,T0,r,S,T,rp,Sp,Tp),rho0);
-
-        GenerateUCoefLabels(lgi,lgip, unit_tensor_calc_u3_sector, u_coef_labels_set);
-      }
-    // otherwise, directly apply the algorithm
-    else 
-      GenerateUCoefLabels(lgip,lgi, unit_tensor_u3_sector, u_coef_labels_set);
-
-        // std::cout<<"zero count  "<<zerocout<<std::endl;
-  #ifdef VERBOSE
-
-  std::cout<<"Exiting GenerateU3SectorCoefLabels"<<std::endl;
-  #endif
-  }
-  /////////////////////
-void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair, 
-                        const spncci::LGI& lgip,
-                        const spncci::LGI& lgi,
-                        //const u3::UCoefCache& u_coef_cache,
-                        std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>>& u_coef_labels_set,
-                        std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector> >& unit_tensor_NpN_sector_map)
-{
-          ////////////////////// NSectors///////////////////////////////////////////////////////
-
-          #ifdef VERBOSE
-          std::cout<<"Entering GenerateNpNSectorCoefLabels "<<std::endl;
-          #endif
-
-          const std::vector<spncci::UnitTensorU3Sector>& unit_U3Sector_vector=unit_tensor_NpN_sector_map[NpN_pair];
-
-          const sp3r::Sp3RSpace& irrepp=lgip.Sp3RSpace();
-          const sp3r::Sp3RSpace& irrep=lgi.Sp3RSpace();
-
-          // taking care of two possible cases
-          bool Nn_zero=(NpN_pair.first!=0 && NpN_pair.second==0);
-
-          #ifdef VERBOSE
-          std::cout<<"Begin generating sectors "<< unit_U3Sector_vector.size()<<std::endl;
-          #endif
-          // generate coef labels for each U(3) sector
-          #pragma omp parallel
-          {
-            std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>> u_coef_labels_subset;
-
-            #pragma omp for schedule(runtime)
-            for (int i=0; i<unit_U3Sector_vector.size(); i++)
-              {
-                const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];                
-                GenerateU3SectorCoefLabels(lgip,lgi,unit_tensor_u3_sector, Nn_zero,u_coef_labels_subset);
-              }
-            #pragma omp critical
-              {
-                u_coef_labels_set.insert(u_coef_labels_subset.begin(),u_coef_labels_subset.end());
-              }
-          }
-          #ifdef VERBOSE
-          std::cout<<"Exiting GenerateNpNSectorCoefLabels "<<std::endl;
-          #endif
-}
-
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  u3::UCoefCache
-  GenerateUCoefCache(
-                     const spncci::LGI& lgip, const spncci::LGI& lgi,
-                     const std::vector<spncci::UnitTensorU3Sector>& unit_tensor_u3_sector_vector,
-                     const std::vector<u3::UCoefLabels>& u_coef_labels_vector
-                     )
-  // Generate cache of U coefficients required in calculation for given unit tensor U(3) sectors.
-  //
-  // Works within single LGI pair.
-  //
-  // Arguments:
-  //   lgip, lgi (spncci::LGI): LGIs
-  //   unit_tensor_u3_sector_vector (std::vector): the unit tensor sector labels
-  //
-  // Returns:
-  //   (UCoefCache): the cache
-  {
-
-    #ifdef VERBOSE
-    std::cout << "Entering GenerateUCoefCache" << std::endl;
-    #endif
-
-    // generate list of all U coefficient labels
-    // std::vector<u3::UCoefLabels> u_coef_labels_vector
-    //   = GenerateUCoefLabels(lgip,lgi,unit_tensor_u3_sector_vector);
-
-    // populate cache with keys for all U coefficients
-    //
-    // Values (UCoefBlock) will be default initialized.  Purpose is so
-    // that below, when we actually calculate the U coefficient
-    // values, we can writes to the cache in a threadsafe manner,
-    // since no new keys will need to be inserted.
-    u3::UCoefCache u_coef_cache;
-    for (const auto& labels : u_coef_labels_vector)
-      u_coef_cache[labels];
-
-    // populate cache with U coefficients
-    #pragma omp parallel
-    {
-
-      #ifdef VERBOSE_OMP
-      #pragma omp single
-      std::cout << "omp_get_num_threads " << omp_get_num_threads() << std::endl;
-      #endif
-
-      # pragma omp for schedule(dynamic)
-      for (int i = 0; i < u_coef_labels_vector.size(); ++i)
-        { 
-          const u3::UCoefLabels& labels = u_coef_labels_vector[i];
-          #ifdef VERBOSE_OMP
-          #pragma omp critical
-          std::cout << "  caching " << labels.Str() << " thread " << omp_get_thread_num() << std::endl;
-          #endif
-          u_coef_cache[labels] = u3::UCoefBlock(labels);
-        }
-    }
-    
-    #ifdef VERBOSE
-    std::cout << "  cached " << u_coef_cache.size() << std::endl;
-    std::cout << "Exiting GenerateUCoefCache" << std::endl;
-    #endif
-
-    return u_coef_cache;
-  }
-
   ////////////////////////////////////////////////////////////////////////////////////
-
-
   Eigen::MatrixXd UnitTensorMatrix(
                                    u3::UCoefCache& u_coef_cache,
                                    // LGI pair sector 
@@ -613,11 +243,8 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
     // Extracting labels 
 
     std::tie(omegap,omega,tensor,rho0) = unit_labels.Key();
-
     sp3r::U3Subspace u3_subspacep = irrepp.LookUpSubspace(omegap);
     sp3r::U3Subspace u3_subspace  = irrep.LookUpSubspace(omega);
-
-
 
     int Nn=int(omega.N()-lgi.sigma.N());
     int Nnp=int(omegap.N()-lgip.sigma.N());
@@ -883,7 +510,6 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
                                   bool Nn_zero,
                                   std::vector< UnitTensorU3SectorPair >& unit_tensor_u3_sector_pairs)
   {
-
     //calculate unit tensor matrix.   
     // int zerocout=0;
     /////////////////////////////////////////////////////////////////////////////////////
@@ -894,7 +520,6 @@ void GenerateNpNSectorCoefLabels(const std::pair<int,int> NpN_pair,
     // In the special case that omegap.N()!=sigmap.N() but omega.N()==sigma.N(), then to calculate we
     // need to calculate the conjugate transpose of the unit tensor matrix and then invert and multiply 
     // by factor to obtain desired matrix
-
     if (Nn_zero)
       {
         u3::U3 omegap,omega,omega0;
@@ -1089,82 +714,33 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
                                       unit_tensor_u3_sectors_for_NpN.begin(),
                                       unit_tensor_u3_sectors_for_NpN.end()
                                       );
-      }
-    int iterations=2;
-    int start;
-    #ifdef USE_U_COEF_CACHE
-      start=1;
-    #else
-      start=1;
-    #endif
-    
+      }    
     int num_unit_tensor_sectors=0;
-
     u3::UCoefCache u_coef_cache;
-    for(int i=start; i<iterations; i++)
-    {
+    ////////////////////////////////////////////////////////////////////////////////////
+    // Looping over NpN subspaces 
+    ////////////////////////////////////////////////////////////////////////////////////
+    for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
+      for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
+        {
+          if((Nnp+lgip.Nex)>Nmax)
+            continue;
 
-      // generate cache of U coefficients
-      // if(i==1)
-      //   {
-      //     #ifdef USE_U_COEF_CACHE
-      //       u_coef_cache = GenerateUCoefCache(lgip,lgi,unit_tensor_u3_sector_vector, u_coef_labels_vector);
-      //     #endif
-      //   }
+          int Nn=Nsum-Nnp;
+          if ((Nn+lgi.Nex)>Nmax)
+            continue;
+              
+          GenerateNpNSector( NpN_pair,lgip,lgi,u_coef_cache,unit_tensor_rme_map,unit_tensor_NpN_sector_map); 
+          int num=unit_tensor_rme_map[NpN_pair].size();
+          num_unit_tensor_sectors+=num;              
+        } 
 
-      // Calculating K matrices for each sigma in LGI set and storing in map K_matrix_map with key sigma
-      // if (K_matrix_map.count(lgi.sigma)==0)
-      //   for (int k = 0; k<irrep.size(); k++)
-      //     {
-      //       vcs::MatrixCache K_map;
-      //       vcs::GenerateKMatrices(irrep, K_map);
-      //       K_matrix_map[lgi.sigma]=K_map;
-      //     }
-      // if (K_matrix_map.count(lgip.sigma)==0)
-      //   for (int kp = 0; kp<irrepp.size(); kp++)
-      //     {
-      //       vcs::MatrixCache K_map;
-      //       vcs::GenerateKMatrices(irrepp, K_map);
-      //       K_matrix_map[lgip.sigma]=K_map;
-      //     }
-
-      std::unordered_set<u3::UCoefLabels,boost::hash<u3::UCoefLabels>> u_coef_labels_set;
-      ////////////////////////////////////////////////////////////////////////////////////
-      // Looping over NpN subspaces 
-      ////////////////////////////////////////////////////////////////////////////////////
-      for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
-        for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
-          {
-            if((Nnp+lgip.Nex)>Nmax)
-              continue;
-
-            int Nn=Nsum-Nnp;
-            if ((Nn+lgi.Nex)>Nmax)
-              continue;
-
-            ////////////////////// NSectors///////////////////////////////////////////////////////
-            std::pair<int,int> NpN_pair(Nnp,Nn);
-            if (i==0)
-            {
-              GenerateNpNSectorCoefLabels(NpN_pair,lgip, lgi, u_coef_labels_set,unit_tensor_NpN_sector_map);              
-            }
-            else
-              {
-                
-                GenerateNpNSector( NpN_pair,lgip,lgi,u_coef_cache,unit_tensor_rme_map,unit_tensor_NpN_sector_map); 
-                int num=unit_tensor_rme_map[NpN_pair].size();
-                num_unit_tensor_sectors+=num;
-              }
-          } 
-      u_coef_labels_vector.insert(u_coef_labels_vector.begin(),u_coef_labels_set.begin(),u_coef_labels_set.end());
-
-    } //for i in interations
     std::cout<<"number of unit tensor sectors "<< num_unit_tensor_sectors<<std::endl;
 
-  #ifdef VERBOSE
-  std::cout<<"Exiting GenerateUnitTensorMatrix"<<std::endl; 
-  #endif     
-}  // end function
+    #ifdef VERBOSE
+    std::cout<<"Exiting GenerateUnitTensorMatrix"<<std::endl; 
+    #endif     
+  }  // end function
         
 } // End namespace 
   
