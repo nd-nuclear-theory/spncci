@@ -3,6 +3,7 @@ Installation notes for spncci
   3/7/16 (aem,mac): Created.
   4/19/16 (mac): Updated.
   5/3/16 (mac): Updated.
+  5/17/16 (mac): Updated repository location and branch.
 
 ----------------------------------------------------------------
 
@@ -14,11 +15,11 @@ Basic installation
 
   Or, locally on the ND CRC,
 
-  git clone --recursive /scratch365/mcaprio/git/spncci.git
+  git clone --recursive /afs/crc.nd.edu/group/nuclthy/git/spncci.git
 
 Then switch to the desired development branch, e.g.,
 
-  git checkout u3devel
+  git checkout devel
 
 There are sometimes issues with retrieving the correct commit of the
 am subpackage.  If issues arise...
@@ -82,11 +83,15 @@ Thus, in config.mk, we should have
 
   On the ND CRC, this is simply a module load.  See below.
 
-*) Load modules: On the ND CRC...
+*) Load modules: Typically these would be for gcc, gsl, boost, and
+ possibly eigen.
 
-  module load gcc/4.9.2
-  module load gsl
-  module load boost/1.58
+  As a shortcut on the ND CRC, the current module definitions are
+  maintained in module-load-ndcrc.csh.  This needs to be *sourced*
+  into csh (not run as a script) so that the environment variable
+  definitions provided by these modules are retained:
+
+  source module-load-ndcrc.csh
 
 *) make all
 
