@@ -7,13 +7,23 @@
 #   additional path to search for required include and lib 
 #   directories
 #
-# e.g., if the eigen include files are
+#   Multiple base directories may be listed, delimited by spaces.
 #
-#   $(HOME)/local/opt/eigen-3.0.3/include/eigen3/Eigen/{Array,Cholesky,...,Eigen,...}
+#   Thus,
 #
-# then the search prefix list should include
+#     search_prefix := <base1> <base2>
 #
-#   $(HOME)/local/opt/eigen-3.0.3
+#   means to search for include files in
+#     
+#     <base1>/include  <base2>/include
+#
+#   and library files n 
+#
+#     <base1>/lib  <base2>/lib
+
+# Note: You may wish to simply define an *empty* search path here, and
+# then append to it in a separate config.mk which "include"s this
+# file.
 
 search_prefix := $(HOME)/local/opt/eigen-3.2.7
 
