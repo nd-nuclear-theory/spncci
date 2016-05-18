@@ -1,15 +1,17 @@
 Installation notes for spncci
 
   3/7/16 (aem,mac): Created.
-  4/19/16 (mac): Updated.
-  5/3/16 (mac): Updated.
-  5/17/16 (mac): Updated repository location and branch.
+  4/19/16 (mac): Update.
+  5/3/16 (mac): Update.
+  5/17/16 (mac): Overhaul instructions.  Update repository location and branch.
 
 ----------------------------------------------------------------
 
 Basic installation
 
-*) Retrieving source:
+--------
+
+1) Retrieving source
 
   git clone --recursive ssh://crcfe01.crc.nd.edu/scratch365/mcaprio/git/spncci.git
 
@@ -28,21 +30,27 @@ am subpackage.  If issues arise...
   git fetch
   git merge origin/master
 
-*) Set up config.mk.  An example file config_generic-gcc4.mk is
-provided.  If you are using GCC, you can start by simply copying this
-example file to config.mk.  Or better, if you do not need to make any
-edits, use a symbolic link:
+Under newer versions of git, you should instead be able to use...
 
-   ln -s config_generic-gcc4.mk config.mk
+  git submodule update --remote
 
-That way, any updates to the generic config file will automatically be
-reflected.
+--------
 
-Make sure the appropriate compiler suite is loaded.  Note: Current
-testing is on gcc 4.5..4.9.  Fails on gcc 4.4.
 
-*) Make sure the Eigen 3 header files are installed somewhere
-accessible, and add this path to config.mk.
+2) Compiler
+
+Make sure the appropriate compiler suite is available.  The full C++11
+functionality is required.  With gcc, version 4.4 is known to
+be "too old".  Current testing is with versions 4.9..5.3.
+
+--------
+
+3) Libraries
+
+Eigen: The Eigen 3 library is required.  If it is not available via a
+module load, you may need to install it locally and add this path to
+config.mk.  Note that no compilation is required.  Eigen is a template
+library and consists entirely of header files.
 
 Example:
 
@@ -78,13 +86,47 @@ Thus, in config.mk, we should have
 
   search_prefix := $(HOME)/local/opt/eigen-3.2.7
 
-*) Make sure GSL is accessible, and that its path is properly
+GSL: Make sure GSL is accessible, and that its path is properly
  specified in config.mk.
 
-  On the ND CRC, this is simply a module load.  See below.
+  On the ND CRC, a module load sets GSL_DIR to point to the proper
+  base directory.
 
-*) Load modules: Typically these would be for gcc, gsl, boost, and
- possibly eigen.
+Boost: Boost is used for the functional/hash module.  You need a
+version which is new enough to provide a hash_value specialization for
+std::tuple.  Version 1.58 is known to work.
+
+  On the ND CRC, a module load sets BOOST_ROOT to point to the proper
+  base directory.
+
+--------
+
+4) config.mk
+
+You will need to set up a config.mk file, likely based on the provided
+template (which you may, in fact, be able to use directly).
+
+An example file config_generic-gcc4.mk is provided.  If you are using
+GCC, you can start by simply copying this example file to config.mk.
+Or better, use a symbolic link:
+
+   ln -s config_generic-gcc4.mk config.mk
+
+That way, any updates to the generic config file will automatically be
+reflected.
+
+For the ND CRC, the file config_ndcrc-gcc4.mk "includes" this generic
+config file and then adds some search path entries, so you will want
+to use:
+
+   ln -s config_ndcrc-gcc4.mk config.mk
+
+--------
+
+5) Modules
+
+At compile time, you may need to load modules to access the above
+compiler versions or libraries.
 
   As a shortcut on the ND CRC, the current module definitions are
   maintained in module-load-ndcrc.csh.  This needs to be *sourced*
@@ -93,28 +135,46 @@ Thus, in config.mk, we should have
 
   source module-load-ndcrc.csh
 
-*) make all
+--------
 
-If you encounter the error "cannot find -lm", then the math libraries
-are not available for static linking on your installation. In
-config.mk, comment out the line "CXXFLAGS += -static".
+6) Build
+
+  make all
 
 ----------------------------------------------------------------
 
+General issues
+
+--------
+
+Static linking
+
+Initially, we used static linking, but this is now turned off in the
+example config.mk file.  The line for static linking is
+
+   CXXFLAGS += -static
+
+However, the relevant static libraries are often not available.  For
+instance, if you encounter the error "cannot find -lm", then the math
+libraries are not available for static linking on your
+installation.
+
+--------
+
 Compiling under OSX
 
-Static linking to system libraries is problematic.  Cannot static link against libcrt0.
-So do not include -static compiler flag in config.mk.
+Static linking to system libraries is problematic.  Cannot static link
+against libcrt0.  So do not include -static compiler flag in
+config.mk.
 
 g++ may not automatically find boost under /usr/local/{include,lib}.
 If so, add /usr/local to search_prefix in config.mk.
 
 To install boost:
 
-   brew install boost
+  brew install boost
 
+Updating g++:
 
-3/816 (aem): Updating g++
-
-brew install gcc --use-llvm
+  brew install gcc --use-llvm
 
