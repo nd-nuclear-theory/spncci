@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "u3shell/two_body.h"
+#include "u3shell/two_body_operator.h"
 
 ////////////////////////////////////////////////////////////////
 // main

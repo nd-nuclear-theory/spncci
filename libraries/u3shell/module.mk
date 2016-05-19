@@ -5,10 +5,10 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h := 
-module_units_cpp-h := tensor two_body indexing_u3st moshinsky
+module_units_cpp-h := tensor two_body_operator indexing_u3st moshinsky
 
 # module_units_f := 
-module_programs_cpp := tensor_test two_body_test indexing_u3st_test moshinsky_test
+module_programs_cpp := tensor_test two_body_operator_test indexing_u3st_test moshinsky_test
 # module_programs_f :=
 # module_generated :=
 

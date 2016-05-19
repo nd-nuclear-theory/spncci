@@ -395,7 +395,7 @@ namespace u3shell
   //
   // Stored labels:
   //   (OperatorLabelsU3ST) : tensor operator labels (N0,x0,S0,T0,g0)
-  //   bra, ket (RelativeStateLabelsU3ST) : bra and ket labels
+  //   bra, ket (RelativeStateLabelsU3ST) : bra and ket labels (eta,S,T)
   //
   // Note: Bra labels are always treated as ket-like, i.e., retrieving
   // the bra's SU(3) labels will give ket-like labels.
@@ -520,7 +520,7 @@ namespace u3shell
   //
   // Stored labels:
   //   (OperatorLabelsU3ST) : tensor operator labels (N0,x0,S0,T0,g0)
-  //   bra, ket (TwoBodyStateLabelsU3ST) : bra and ket labels
+  //   bra, ket (TwoBodyStateLabelsU3ST) : bra and ket labels (eta1,eta2,x,S,T)
   //   rho0 (int) : outer multiplicity index
   //
   // Note: Bra labels are always treated as ket-like, i.e., retrieving
@@ -620,7 +620,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+  protected:
     TwoBodyStateLabelsU3ST bra_, ket_;
     int rho0_;
   };
@@ -635,49 +635,49 @@ namespace u3shell
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
         );
 
+  ////////////////////////////////////////////////////////////////
+  // two-body unit tensor operator labels -- suppressing isospin
+  ////////////////////////////////////////////////////////////////
 
+  class TwoBodyUnitTensorLabelsU3SPN
+    : public TwoBodyUnitTensorLabelsU3ST
+  // U(1)xSU(3)xS two-body unit tensor operators labels for use in
+  // labeling pn-scheme coefficients.
+  //
+  // Since we only have limited use for this type, we implement these
+  // labels in a quick-and-dirty way.  We just wrap
+  // TwoBodyUnitTensorLabelsU3ST but insist through assertions that
+  // all isospin labels be set to the dummy value 0.
+  {
 
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
 
-//  ////////////////////////////////////////////////////////////////
-//  // operator file output
-//  ////////////////////////////////////////////////////////////////
-//
-//  class OutLSUOperatorStream
-//  {
-//
-//    ////////////////////////////////////////////////////////////////
-//    // constructor
-//    ////////////////////////////////////////////////////////////////
-//
-//  public:
-//
-//    inline
-//      OutMFDnH2Stream()
-//      : stream_ppnn_(0), stream_pn_(0) {};
-//
-//    ////////////////////////////////////////////////////////////////
-//    // destructor
-//    ////////////////////////////////////////////////////////////////
-//
-//    ~OutMFDnH2Stream()
-//      {
-//        delete stream_ppnn_;
-//        delete stream_pn_;
-//      };
-//
-//    ////////////////////////////////////////////////////////////////
-//    // I/O activities
-//    ////////////////////////////////////////////////////////////////
-//
-//    void Open (const std::string& basename);
-//    void WriteOperator (const & );
-//    void Close ();
-//
-//  private:
-//    // data
-//    std::ofstream* stream_ppnn_, stream_pn_;
-//  };
+  public:
 
+    inline TwoBodyUnitTensorLabelsU3SPN() 
+    // Default constructor.
+    // 
+    // Relies upon parent constructor.
+      {}
+
+    inline TwoBodyUnitTensorLabelsU3SPN(
+                                        const u3::SU3& x0, HalfInt S0, HalfInt T0,
+                                        int rho0,
+                                        const TwoBodyStateLabelsU3ST& bra,
+                                        const TwoBodyStateLabelsU3ST& ket
+                                        )
+      // Construct from labels.
+      : TwoBodyUnitTensorLabelsU3ST(x0,S0,T0,rho0,bra,ket)
+    {
+      // enforce aforementioned ad-hockery
+      assert(T0_==0);
+      assert(bra_.T()==0);
+      assert(ket_.T()==0);
+    }
+    
+  };
 
 }  // namespace
 
