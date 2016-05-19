@@ -17,8 +17,11 @@
 #define MOSHINSKY_H_
 
 #include "sp3rlib/u3.h"
-
-
+#include "sp3rlib/u3coef.h"
+#include "u3shell/indexing_u3st.h"
+#include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Eigenvalues>  
+#include "u3shell/tensor.h"
 namespace u3shell
 {
   // double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x);
@@ -33,6 +36,14 @@ namespace u3shell
 
   double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w);
   // Overloading Moshinsky to take integers and U3 for total symmetry
+
+  void MoshinskyTransformation(const u3shell::RelativeUnitTensorLabelsU3ST& tensor, int Nmax);
+  // Moshinsky transform of relative unit tensor operator to twobody space.  
+
+  
+
+
+
 
 
 } //namespace

@@ -39,7 +39,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
 
   public:
-    typedef std::tuple<u3::U3, HalfInt, HalfInt, int, HalfInt, HalfInt, 
+    typedef std::tuple<u3::SU3, HalfInt, HalfInt, int, HalfInt, HalfInt, 
                         int, HalfInt, HalfInt> KeyType;
     // w0, S0, T0, rbp, Sb, Tb, r, S, T
 
@@ -52,25 +52,25 @@ namespace spncci
       : S0_(0), T0_(0), Sp_(0), Tp_(0), S_(0), T_(0) {}
     
     // construction from labels
-    inline UnitTensor(u3::U3 omega0, HalfInt S0, HalfInt T0, 
+    inline UnitTensor(u3::SU3 x0, HalfInt S0, HalfInt T0, 
                       int rp, HalfInt Sp, HalfInt Tp, 
                       int r, HalfInt S, HalfInt T)
-      : omega0_(omega0), S0_(S0), T0_(T0), 
+      : x0_(x0), S0_(S0), T0_(T0), 
         rp_(rp), Sp_(Sp), Tp_(Tp), 
         r_(r), S_(S), T_(T) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
-    inline u3::U3 omega0() const
+    inline u3::SU3 x0() const
     {
-      return omega0_;
+      return x0_;
     }
 
 
     inline KeyType Key() const
     {
-      return KeyType(omega0_,S0_,T0_,rp_,Sp_,Tp_,r_,S_,T_);
+      return KeyType(x0_,S0_,T0_,rp_,Sp_,Tp_,r_,S_,T_);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ namespace spncci
     {
       // TODO (Andika)
       // pack ints and Halfnts together first
-      // omega0, S0, T0, rp, Sp, Tp, r, S, T
+      // x0, S0, T0, rp, Sp, Tp, r, S, T
       // types: U3 (3 HalfInt), HalfInt, HalfInt, int, HalfInt, HalfInt, int, HalfInt, HalfInt
       // then hash the packed values together and combine
       // U3 hashing defined in sp3rlib/u3.h
@@ -108,7 +108,7 @@ namespace spncci
       
       boost::hash<int> intHasher;
       std::size_t intHash = intHasher(packed_Ints);
-      std::size_t u3Hash = hash_value(tensor.omega0_);
+      std::size_t u3Hash = hash_value(tensor.x0_);
       
       #ifdef NAIVEHASH 
       // naive implementation: add hashes together
@@ -135,7 +135,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
 
     // Operator labels
-    u3::U3 omega0_;
+    u3::SU3 x0_;
     HalfInt S0_, T0_, Sp_, Tp_, S_, T_;
     int rp_, r_;
 
@@ -287,7 +287,7 @@ namespace spncci
   //     U3 s=lgi_vector[lgi_pair.second].sigma;
   //     for (int i=0; i<unit_sym_map.size(); i++)
   //       {
-  //         if (u3::OuterMultiplicity(s.SU3(),unit_sym_map[0][i].omega0.SU3(),sp.SU3())>0)
+  //         if (u3::OuterMultiplicity(s.SU3(),unit_sym_map[0][i].x0,sp.SU3())>0)
   //           std::cout<< unit_tensor_rme_map[lgi_pair][spncci::UnitTensorU3Sector(sp,s,unit_sym_map[0][i],1)]<<std::endl;
   //       }
   //   }
@@ -298,6 +298,8 @@ namespace spncci
          int Nmax, 
          // a given spncci sector pair given as index pair  from global list lgi_vector 
          std::pair<int,int> lgi_pair,
+         //coefficient cache
+         u3::UCoefCache u_coef_cache,
          // Address to map with list of unit tensor labels with key N0 
          std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
          // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair

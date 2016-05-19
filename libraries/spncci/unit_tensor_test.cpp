@@ -20,7 +20,6 @@ spncci::LGIVectorType lgi_vector;
 std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
 #endif
 
-
 int main(int argc, char **argv)
 {
 
@@ -41,6 +40,8 @@ int main(int argc, char **argv)
   #endif
 
   std::cout << "u3::g_u_cache_enabled " << u3::g_u_cache_enabled << std::endl;
+  u3::UCoefCache u_coef_cache;
+
 
   // parse arguments
   if (argc<2)
@@ -96,8 +97,6 @@ int main(int argc, char **argv)
       spncci::UnitTensorSectorsCache 
       >
     > lgi_unit_tensor_rme_map;
-
-
   //////////////////////////////////////////////////////////////////////////////////////////////////////
   // Filling out lgi_unit_tensor_rme_map 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +116,7 @@ int main(int argc, char **argv)
       spncci::UnitTensorSectorsCache temp_unit_map;
       int rp,r;
       HalfInt S0;
-      u3::U3 omega0;
+      u3::SU3 x0;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
       //////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,8 +128,8 @@ int main(int argc, char **argv)
           temp_matrix(0,0)=1;
 					
           spncci::UnitTensor unit_tensor=unit_sym_map[N0][j];
-          std::tie (omega0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore)=unit_tensor.Key();
-          int rho0_max=u3::OuterMultiplicity(sigma.SU3(),omega0.SU3(), sigmap.SU3());
+          std::tie (x0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore)=unit_tensor.Key();
+          int rho0_max=u3::OuterMultiplicity(sigma.SU3(),x0, sigmap.SU3());
           for (int rho0=1; rho0<=rho0_max; rho0++)
             {
               if (
@@ -148,7 +147,7 @@ int main(int argc, char **argv)
       std::cout<<"number of lgi sectors "<<temp_unit_map.size()<<std::endl;;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each LGI
-      spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
+      spncci::GenerateUnitTensorMatrix(N1b, Nmax, lgi_pair, u_coef_cache, unit_sym_map,lgi_unit_tensor_rme_map[lgi_pair] );
       // for (auto it=lgi_unit_tensor_rme_map.begin(); it !=lgi_unit_tensor_rme_map.end(); ++it)
       // 	for (auto i=lgi_unit_tensor_rme_map[it->first].begin(); i !=lgi_unit_tensor_rme_map[it->first].end(); i++)
 		  		

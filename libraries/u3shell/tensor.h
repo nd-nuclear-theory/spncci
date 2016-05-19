@@ -448,6 +448,11 @@ namespace u3shell
       return ket_;
     }
 
+    inline const u3::SU3& x0() const
+    {
+      return x0_;
+    }
+
     ////////////////////////////////////////////////////////////////
     // key tuple & comparisons
     ////////////////////////////////////////////////////////////////
@@ -621,14 +626,14 @@ namespace u3shell
   };
 
 
-  // // Generates map of RelativeUnitTensorLabelsU3ST for a given Nmax truncation,   
-  // // stored in relative_unit_tensor_labels.
-  // // Map keys are N0: number of oscillator quanta carried by the operator
-  // // values are vectors of RelativeUnitTensorLabelsU3ST with oscillator quanta N0
-  // void GenerateRelativeUnitTensorLabelsU3ST(
-  //       int Nmax, 
-  //       std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-  //       );
+  // Generates map of RelativeUnitTensorLabelsU3ST for a given Nmax truncation,   
+  // stored in relative_unit_tensor_labels.
+  // Map keys are N0: number of oscillator quanta carried by the operator
+  // values are vectors of RelativeUnitTensorLabelsU3ST with oscillator quanta N0
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        int Nmax, 
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
+        );
 
 
 

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
   if (true)
     {
       // build space
-      int Nmax=4;
+      int Nmax=8;
       u3shell::TwoBodySpaceU3ST space(Nmax);
       std::cout << space.Str();
 
