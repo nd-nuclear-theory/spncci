@@ -33,20 +33,28 @@ int main(int argc, char **argv)
       // Anna -- Do these label values make sense?
       u3shell::RelativeUnitTensorLabelsU3ST
         unit_tensor_relative(
-                             u3::SU3(1,1),1,1,
-                             u3shell::RelativeStateLabelsU3ST(1,1,0),
-                             u3shell::RelativeStateLabelsU3ST(1,1,0)
-                             ); // x0,S0,T0,bra,ket 
+            u3::SU3(1,1),1,1,
+            u3shell::RelativeStateLabelsU3ST(1,1,0),
+            u3shell::RelativeStateLabelsU3ST(1,1,0)
+          ); // x0,S0,T0,bra,ket 
       std::cout << unit_tensor_relative.Str() << " N0 " << unit_tensor_relative.N0() << std::endl;
 
       // Anna -- Do these label values make sense?
+      // Apparently not.  Multiplicity (x,x0,xp) is zero.
+
+      // % su3_coupler 2 0 0 2                                                                                                                              
+      // (2,0) x (0,2)
+      //   ((0,0),1)
+      //   ((1,1),1)
+      //   ((2,2),1)
+
       u3shell::TwoBodyUnitTensorLabelsU3ST
         unit_tensor_two_body(
-                             u3::SU3(4,0),1,1,
-                             1,
-                             u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0),
-                             u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0)
-                             ); // x0,S0,T0,rho0,bra,ket 
+            u3::SU3(2,2),1,1,
+            1,
+            u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0),
+            u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0)
+          ); // x0,S0,T0,rho0,bra,ket 
       std::cout << unit_tensor_two_body.Str() << " N0 " << unit_tensor_two_body.N0() << std::endl;
 
 

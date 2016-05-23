@@ -55,8 +55,9 @@ namespace u3shell {
   {
 
     return fmt::format(
-                       "U{}({},{})",
+                       "U{}{}({},{})",
                        OperatorLabelsU3ST::Str(),
+                       rho0(),
                        bra().Str(),ket().Str()
                        );
   }

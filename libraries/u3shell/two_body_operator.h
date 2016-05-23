@@ -29,14 +29,18 @@ namespace u3shell
 
   // TODO move into appropriate file (Anna?)
 
-  typedef std::map<u3shell::RelativeUnitTensorLabelsU3ST,double> RelativeUnitTensorCoefficientsU3ST;
+  typedef
+    std::map<u3shell::RelativeUnitTensorLabelsU3ST,double>
+    RelativeUnitTensorCoefficientsU3ST;
   // Storage of coefficients of relative unit tensors in U(3)xSxT scheme.
 
   ////////////////////////////////////////////////////////////////
   // coefficient storage -- two-body
   ////////////////////////////////////////////////////////////////
 
-  typedef std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double> TwoBodyUnitTensorCoefficientsU3ST;
+  typedef
+    std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double>
+    TwoBodyUnitTensorCoefficientsU3ST;
   // Storage of coefficients of two-body unit tensors in U(3)xSxT scheme.
   //
   // Also used to represent coefficients of other similarly-labeled
@@ -47,17 +51,28 @@ namespace u3shell
   // at the two-body level: pppp, nnnn, and pnnp.
   {
     // constuctors
-
     inline CoefficientsPN()
       // Default constructor.
       : pppp(0), nnnn(0), pnnp(0)
     {}
 
+    // arithmetic assignment
+    inline CoefficientsPN& operator +=(const CoefficientsPN& b)
+    {
+      pppp += b.pppp;
+      nnnn += b.nnnn;
+      pnnp += b.pnnp;
+      return *this;
+    }
+
+
     // data
     double pppp, nnnn, pnnp;
   };
 
-  typedef std::map<u3shell::TwoBodyUnitTensorLabelsU3SPN,u3shell::CoefficientsPN> TwoBodyUnitTensorCoefficientsU3SPN;
+  typedef
+    std::map<u3shell::TwoBodyUnitTensorLabelsU3SPN,u3shell::CoefficientsPN>
+    TwoBodyUnitTensorCoefficientsU3SPN;
   // Storage of all three pn-scheme coefficients for given U(3)xS
   // two-body unit tensor labels.
   //
@@ -72,10 +87,10 @@ namespace u3shell
   // xform for an arbitrary operator, if we take the Moshinsky xform
   // for a single relative unit tensor to be our "basic" calculation
 
-  void TransformRelativeToTwoBodyUnitTensor
+  void TransformRelativeUnitTensorToTwoBodyUnitTensor
     (
      const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
-     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_tensor_coefficients
+     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
      );
     // Accumulate biquad coefficients for given two-body unit tensors.
     //
@@ -94,14 +109,13 @@ namespace u3shell
   // transformation from two-body unit tensors to biquads
   ////////////////////////////////////////////////////////////////
 
-  void TransformTwoBodyUnitTensorToBiquad
-    (
-     const u3shell::TwoBodyUnitTensorCoefficientsU3ST& unit_tensor_coefficients,
-     u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
-     );
+  void TransformTwoBodyUnitTensorToBiquad(
+      const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
+      u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
+    );
     // Accumulate biquad coefficients for given two-body unit tensors.
     //
-    // unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
+    // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
     //   : map giving coefficients on a set of two-body U3ST unit tensors 
     // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
     //   : map giving coefficients on a resulting set of two-body U3ST biquads
@@ -111,11 +125,10 @@ namespace u3shell
     // permissible to accumulate onto an existing set of coefficients.
     // Coefficients for the same term will be added.
 
-  void TransformBiquadToPNScheme
-    (
-     const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
-     u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
-     );
+  void TransformBiquadToPNScheme(
+      const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+    );
     // Accumulate biquad coefficients for given two-body unit tensors.
     //
     // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
