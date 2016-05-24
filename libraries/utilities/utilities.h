@@ -31,6 +31,16 @@ T sqr(const T& x)
   return x*x;
 }
 
+template <typename T>
+inline
+int KroneckerDelta(const T& x, const T& y)
+// Return Kronecker delta of variables x and y.
+//
+// That is, returns 1 if x==y, 0 otherwise.
+{
+  return int(x==y);  // Is int(true) guaranteed to be 1?
+}
+
 
 
 inline int Choose(int x, int y)

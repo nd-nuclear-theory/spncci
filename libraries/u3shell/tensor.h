@@ -565,6 +565,11 @@ namespace u3shell
 
     // Note: OperatorLabelsU3ST accessors N0(), ..., are inherited
 
+    int rho0() const
+    {
+      return rho0_;
+    }
+
     inline const TwoBodyStateLabelsU3ST& bra() const
     {
       return bra_;
@@ -579,12 +584,17 @@ namespace u3shell
     // key tuple & comparisons
     ////////////////////////////////////////////////////////////////
 
-    typedef std::tuple<OperatorLabelsU3ST::KeyType,TwoBodyStateLabelsU3ST::KeyType,TwoBodyStateLabelsU3ST::KeyType> KeyType;
-    // operator, bra, ket
+    typedef std::tuple<
+      OperatorLabelsU3ST::KeyType,
+      int,
+      TwoBodyStateLabelsU3ST::KeyType,
+      TwoBodyStateLabelsU3ST::KeyType
+      > KeyType;
+    // operator, rho0, bra, ket
 
     inline KeyType Key() const
     {
-      return KeyType(OperatorLabelsU3ST::Key(),bra().Key(),ket().Key());
+      return KeyType(OperatorLabelsU3ST::Key(),rho0(),bra().Key(),ket().Key());
     }
 
     inline friend bool operator == (const TwoBodyUnitTensorLabelsU3ST& x1, const TwoBodyUnitTensorLabelsU3ST& x2)
