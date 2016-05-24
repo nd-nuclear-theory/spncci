@@ -27,7 +27,8 @@ namespace u3shell
   // coefficient storage -- relative
   ////////////////////////////////////////////////////////////////
 
-  // TODO move into appropriate file (Anna?)
+  // TODO move into separate header with relative operator definitions?
+  // and perhaps upcoupling definitions?
 
   typedef
     std::map<u3shell::RelativeUnitTensorLabelsU3ST,double>
@@ -83,26 +84,27 @@ namespace u3shell
   // transformation from relative to two-body unit tensors
   ////////////////////////////////////////////////////////////////
 
-  // TODO move into appropriate file (Anna?) -- this is the Moshinsky
-  // xform for an arbitrary operator, if we take the Moshinsky xform
-  // for a single relative unit tensor to be our "basic" calculation
-
   void TransformRelativeUnitTensorToTwoBodyUnitTensor
     (
      const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
      u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
      );
-    // Accumulate biquad coefficients for given two-body unit tensors.
-    //
-    // relative_unit_tensor_coefficients (RelativeUnitTensorCoefficientsU3ST, input)
-    //   : map giving coefficients on a set of two-body U3ST unit tensors 
-    // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
-    //   : map giving coefficients on a resulting set of two-body U3ST unit tensors 
-    //
-    // Note: The map given as the second parameter, for storing the
-    // output coefficients, need not initially be empty.  It is
-    // permissible to accumulate onto an existing set of coefficients.
-    // Coefficients for the same term will be added.
+  // Accumulate biquad coefficients for given two-body unit tensors.
+  //
+  // relative_unit_tensor_coefficients (RelativeUnitTensorCoefficientsU3ST, input)
+  //   : map giving coefficients on a set of two-body U3ST unit tensors 
+  // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
+  //   : map giving coefficients on a resulting set of two-body U3ST unit tensors 
+  //
+  // Note: The map given as the second parameter, for storing the
+  // output coefficients, need not initially be empty.  It is
+  // permissible to accumulate onto an existing set of coefficients.
+  // Coefficients for the same term will be added.
+
+  // TODO integrate with or replace with Anna's Moshinsky work -- this is the Moshinsky
+  // xform for an arbitrary operator, if we take the Moshinsky xform
+  // for a single relative unit tensor to be our "basic" calculation
+
 
 
   ////////////////////////////////////////////////////////////////
@@ -110,42 +112,43 @@ namespace u3shell
   ////////////////////////////////////////////////////////////////
 
   void TransformTwoBodyUnitTensorToBiquad(
-      const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
-      u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
-    );
-    // Accumulate biquad coefficients for given two-body unit tensors.
-    //
-    // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
-    //   : map giving coefficients on a set of two-body U3ST unit tensors 
-    // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
-    //   : map giving coefficients on a resulting set of two-body U3ST biquads
-    //
-    // Note: The map given as the second parameter, for storing the
-    // output coefficients, need not initially be empty.  It is
-    // permissible to accumulate onto an existing set of coefficients.
-    // Coefficients for the same term will be added.
+                                          const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
+                                          u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
+                                          );
+  // Accumulate biquad coefficients for given two-body unit tensors.
+  //
+  // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
+  //   : map giving coefficients on a set of two-body U3ST unit tensors 
+  // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
+  //   : map giving coefficients on a resulting set of two-body U3ST biquads
+  //
+  // Note: The map given as the second parameter, for storing the
+  // output coefficients, need not initially be empty.  It is
+  // permissible to accumulate onto an existing set of coefficients.
+  // Coefficients for the same term will be added.
 
   void TransformBiquadToPNScheme(
-      const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
-      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
-    );
-    // Accumulate biquad coefficients for given two-body unit tensors.
-    //
-    // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
-    //   : map giving coefficients on a set of two-body U3ST biquads
-    // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
-    //   : map giving coefficients on a resulting set of two-body U3SPN biquads
-    //
-    // Note: The map given as the second parameter, for storing the
-    // output coefficients, need not initially be empty.  It is
-    // permissible to accumulate onto an existing set of coefficients.
-    // Coefficients for the same term will be added.
+                                 const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
+                                 u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+                                 );
+  // Accumulate biquad coefficients for given two-body unit tensors.
+  //
+  // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
+  //   : map giving coefficients on a set of two-body U3ST biquads
+  // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
+  //   : map giving coefficients on a resulting set of two-body U3SPN biquads
+  //
+  // Note: The map given as the second parameter, for storing the
+  // output coefficients, need not initially be empty.  It is
+  // permissible to accumulate onto an existing set of coefficients.
+  // Coefficients for the same term will be added.
 
 
   ////////////////////////////////////////////////////////////////
   // operator file output for recoupler
   ////////////////////////////////////////////////////////////////
 
+  // TODO replace with WriteBiquadCoefficientsPN
   class OutRecouplerStream
   // Provide output stream for writing input file to Tomas's recoupler
   // code.

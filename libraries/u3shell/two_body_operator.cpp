@@ -22,7 +22,16 @@ namespace u3shell {
      u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
      )
   {
-    // TODO
+
+    for (auto key_value : relative_unit_tensor_coefficients)
+      {
+
+        // extract key and value
+        u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor_labels = key_value.first;
+        double relative_unit_tensor_coefficient = key_value.second;
+
+        // TODO -- or more likely to be replaced by Anna's code
+      }
   }
 
 
@@ -34,38 +43,30 @@ namespace u3shell {
     for (auto key_value : two_body_unit_tensor_coefficients)
       {
 
-        // extract unit tensor labels and coefficient from map
+        // extract key and value
         u3shell::TwoBodyUnitTensorLabelsU3ST two_body_unit_tensor_labels = key_value.first;
         double two_body_unit_tensor_coefficient = key_value.second;
 
-        // extract individual labels on unit tensor
-
-        // Note: This more compact ostensible approach does not work...
-        // "error: invalid initialization of non-const reference..."
-        //
-        //   std::tie(
-        //       std::tie(N0,x0,S0,T0,g0),
-        //       rho0,
-        //       std::tie(eta1p,eta2p,xp,Sp,Tp),
-        //       std::tie(eta1,eta2,x,S,T)
-        //     ) = two_body_unit_tensor_labels.Key();
-
+        // extract unit tensor label groups
         u3shell::OperatorLabelsU3ST::KeyType operator_labels_key;
         int rho0;
         u3shell::TwoBodyStateLabelsU3ST::KeyType bra_key, ket_key;
         std::tie(operator_labels_key,rho0,bra_key,ket_key) = two_body_unit_tensor_labels.Key();
 
+        // extract operator labels
         int N0;
         u3::SU3 x0;
         HalfInt S0,T0;
         int g0;
         std::tie(N0,x0,S0,T0,g0) = operator_labels_key;
         
+        // extract bra labels
         int eta1p, eta2p;
         u3::SU3 xp;
         HalfInt Sp, Tp;
         std::tie(eta1p,eta2p,xp,Sp,Tp) = bra_key;
 
+        // extract ket labels
         int eta1, eta2;
         u3::SU3 x;
         HalfInt S, T;
@@ -84,12 +85,8 @@ namespace u3shell {
                              *sqrt(1+KroneckerDelta(eta1,eta2))
                              );
 
-        // iterate over multiplicities from recoupling cross projector
+        // iterate over outer multiplicity on cross projector
         int outer_multiplicity = u3::OuterMultiplicity(x,x0,xp);
-        //std::cout
-        //  << fmt::format("{} {} {} : {}",x0.Str(),x.Str(),xp.Str(),outer_multiplicity)
-        //  << std::endl;
-
         for (int rho0bar = 1; rho0bar <= outer_multiplicity; ++rho0bar)
           {
             // calculate Phi factor
@@ -125,8 +122,63 @@ namespace u3shell {
       u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
     )
   {
-    // TODO
+    for (auto key_value : biquad_coefficients)
+      {
+
+        // extract key and value
+        u3shell::TwoBodyUnitTensorLabelsU3ST biquad_labels = key_value.first;
+        double biquad_coefficient = key_value.second;
+
+        // extract unit tensor label groups
+        u3shell::OperatorLabelsU3ST::KeyType operator_labels_key;
+        int rho0;
+        u3shell::TwoBodyStateLabelsU3ST::KeyType bra_key, ket_key;
+        std::tie(operator_labels_key,rho0,bra_key,ket_key) = biquad_labels.Key();
+
+        // extract operator labels
+        int N0;
+        u3::SU3 x0;
+        HalfInt S0,T0;
+        int g0;
+        std::tie(N0,x0,S0,T0,g0) = operator_labels_key;
+        
+        // extract bra labels
+        int eta1p, eta2p;
+        u3::SU3 xp;
+        HalfInt Sp, Tp;
+        std::tie(eta1p,eta2p,xp,Sp,Tp) = bra_key;
+
+        // extract ket labels
+        int eta1, eta2;
+        u3::SU3 x;
+        HalfInt S, T;
+        std::tie(eta1,eta2,x,S,T) = ket_key;
+
+        // calculate phase factors
+        int grade = eta1+eta2+ConjugationGrade(x)+int(S);
+        int gradep = eta1p+eta2p+ConjugationGrade(xp)+int(Sp);
+
+        // initialize
+        //TODO
+
+        // assemble biquad labels
+        //u3shell::TwoBodyUnitTensorLabelsU3ST
+        //  biquad_labels(
+        //      x0,S0,T0,
+        //      rho0bar,
+        //      two_body_unit_tensor_labels.bra(),
+        //      two_body_unit_tensor_labels.ket()
+        //    );
+        //TODO
+
+        // accumulate coefficient
+        //biquad_coefficients_pn[biquad_labels_pn] += biquad_coefficient_pn;
+        
+      }
+    
   }
+  
+
 
 
  
