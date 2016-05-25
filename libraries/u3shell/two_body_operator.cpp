@@ -10,8 +10,8 @@
 
 #include "cppformat/format.h"
 #include "am/am.h"
+#include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
-#include "u3shell/two_body_operator.h"
 
 namespace u3shell {
 
@@ -53,7 +53,7 @@ namespace u3shell {
         u3shell::TwoBodyStateLabelsU3ST::KeyType bra_key, ket_key;
         std::tie(operator_labels_key,rho0,bra_key,ket_key) = two_body_unit_tensor_labels.Key();
 
-        // extract operator labels
+        // extract operator label groups
         int N0;
         u3::SU3 x0;
         HalfInt S0,T0;
@@ -135,7 +135,7 @@ namespace u3shell {
         u3shell::TwoBodyStateLabelsU3ST::KeyType bra_key, ket_key;
         std::tie(operator_labels_key,rho0,bra_key,ket_key) = biquad_labels.Key();
 
-        // extract operator labels
+        // extract operator label groups
         int N0;
         u3::SU3 x0;
         HalfInt S0,T0;
@@ -179,6 +179,70 @@ namespace u3shell {
   }
   
 
+  void WriteBiquadCoefficientsPNRecoupler(
+      std::ostream& output_stream,
+      const u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+    )
+  {
+      for (auto key_value : biquad_coefficients_pn)
+        {
+
+          // extract unit tensor labels and coefficients
+          auto biquad_labels= key_value.first;
+          auto coefficients_pn = key_value.second;
+        
+          // extract unit tensor label groups
+          u3shell::OperatorLabelsU3S::KeyType operator_labels_key;
+          int rho0;
+          u3shell::TwoBodyStateLabelsU3S::KeyType bra_key, ket_key;
+          std::tie(operator_labels_key,rho0,bra_key,ket_key) = biquad_labels.Key();
+
+          // extract operator label groups
+          //
+          // Note: pn-scheme labels still contain dummy isosopin variable, to be ignored.
+          int N0;
+          u3::SU3 x0;
+          HalfInt S0;
+          int g0;
+          std::tie(N0,x0,S0,g0) = operator_labels_key;
+        
+          // extract bra labels
+          int eta1p, eta2p;
+          u3::SU3 xp;
+          HalfInt Sp;
+          std::tie(eta1p,eta2p,xp,Sp) = bra_key;
+
+          // extract ket labels
+          int eta1, eta2;
+          u3::SU3 x;
+          HalfInt S;
+          std::tie(eta1,eta2,x,S) = ket_key;
+
+          // label line
+          output_stream
+            << fmt::format(
+                "{:d.2} {:d.2} {:d.2} {:d.2}   "
+                "{:d.2} {:d.2} {:d.2} {:d.2}   "
+                "{:d.2} {:d.2} {:d.2} {:d.2}   "
+                "{:d.2} {:d.2} {:d.2} {:d.2}   ",
+                eta1p,eta2p,eta1,eta2,
+                1,xp.lambda(),xp.mu(),TwiceValue(Sp),
+                1,x.lambda(),x.mu(),TwiceValue(S),
+                rho0,x0.lambda(),x0.mu(),TwiceValue(S0)
+              )
+            << std::endl;
+
+          // coefficient line
+          output_stream
+            << fmt::format(
+                "{:e} {:e} {:e}",
+                coefficients_pn.pppp,
+                coefficients_pn.nnnn,
+                coefficients_pn.pnnp
+              )
+            << std::endl;
+        }
+  }
 
 
  

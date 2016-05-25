@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "cppformat/format.h"
-#include "u3shell/tensor.h"
+#include "u3shell/tensor_labels.h"
 
 ////////////////////////////////////////////////////////////////
 // main
@@ -37,7 +37,8 @@ int main(int argc, char **argv)
             u3shell::RelativeStateLabelsU3ST(1,1,0),
             u3shell::RelativeStateLabelsU3ST(1,1,0)
           ); // x0,S0,T0,bra,ket 
-      std::cout << unit_tensor_relative.Str() << " N0 " << unit_tensor_relative.N0() << std::endl;
+      std::cout << unit_tensor_relative.Str()
+                << " N0 " << unit_tensor_relative.N0() << std::endl;
 
       // Anna -- Do these label values make sense?
       // Apparently not.  Multiplicity (x,x0,xp) is zero.
@@ -55,7 +56,19 @@ int main(int argc, char **argv)
             u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0),
             u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0)
           ); // x0,S0,T0,rho0,bra,ket 
-      std::cout << unit_tensor_two_body.Str() << " N0 " << unit_tensor_two_body.N0() << std::endl;
+      std::cout << unit_tensor_two_body.Str()
+                << " N0 " << unit_tensor_two_body.N0() << std::endl;
+
+
+      u3shell::TwoBodyUnitTensorLabelsU3S
+        unit_tensor_two_body_pn(
+            u3::SU3(2,2),1,
+            1,
+            u3shell::TwoBodyStateLabelsU3S(1,1,u3::SU3(2,0),1),
+            u3shell::TwoBodyStateLabelsU3S(1,1,u3::SU3(2,0),1)
+          ); // x0,S0,rho0,bra,ket 
+      std::cout << unit_tensor_two_body_pn.Str()
+                << " N0 " << unit_tensor_two_body_pn.N0() << std::endl;
 
 
     }

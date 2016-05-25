@@ -126,6 +126,22 @@ namespace u3shell {
     return os.str();
   }
 
+  TwoBodySectorsU3ST::TwoBodySectorsU3ST(TwoBodySpaceU3ST& space)
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+	{
+          // retrieve subspaces
+          const TwoBodySubspaceU3ST& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const TwoBodySubspaceU3ST& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+          // push sectors (taking unit multiplicity)
+          int multiplicity_index = 1;
+          PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+          
+	}
+  }
+
   TwoBodySectorsU3ST::TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)

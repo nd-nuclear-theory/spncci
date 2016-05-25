@@ -1,5 +1,5 @@
 /****************************************************************
-  two_body_test.cpp
+  two_body_operator_test.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
