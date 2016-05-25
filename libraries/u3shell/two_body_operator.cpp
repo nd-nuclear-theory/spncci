@@ -8,6 +8,8 @@
 
 #include "u3shell/two_body_operator.h"
 
+#include <array>
+
 #include "cppformat/format.h"
 #include "am/am.h"
 #include "sp3rlib/u3.h"
@@ -125,6 +127,10 @@ namespace u3shell {
     for (auto key_value : biquad_coefficients)
       {
 
+        ////////////////////////////////
+        // label extraction
+        ////////////////////////////////
+
         // extract key and value
         u3shell::TwoBodyUnitTensorLabelsU3ST biquad_labels = key_value.first;
         double biquad_coefficient = key_value.second;
@@ -154,32 +160,161 @@ namespace u3shell {
         HalfInt S, T;
         std::tie(eta1,eta2,x,S,T) = ket_key;
 
-        // calculate phase factors
-        int grade = eta1+eta2+ConjugationGrade(x)+int(S);
-        int gradep = eta1p+eta2p+ConjugationGrade(xp)+int(Sp);
+        ////////////////////////////////
+        // determine pn-scheme terms
+        ////////////////////////////////
 
-        // initialize
-        //TODO
+        // like particle terms (pppp & nnnn):
+        //   include_like (bool) : whether or not like-particle biquads are to be included
+        //   norm_like (double) : overall normalization factor for like-particle biquads
+        //   signs_like (std::array<int,2>) : signs (+1,-1) for like-particle biquads
+        //     as {pppp,nnnn}
+        //
+        // like particle terms active if both bra and ket are T=1
+        bool include_like = ((Tp==1)&&(T==1));
+        double norm_like;
+        std::array<int,2> signs_like;
 
-        // assemble biquad labels
-        //u3shell::TwoBodyUnitTensorLabelsU3ST
-        //  biquad_labels(
-        //      x0,S0,T0,
-        //      rho0bar,
-        //      two_body_unit_tensor_labels.bra(),
-        //      two_body_unit_tensor_labels.ket()
-        //    );
-        //TODO
+        if ((Tp==1)&&(T==1)&&(T0==0))
+          {
+            norm_like = 1/sqrt(3);
+            signs_like = {+1,+1};
+          }
+        else if ((Tp==1)&&(T==1)&&(T0==1))
+          {
+            norm_like = 1/sqrt(2);
+            signs_like = {+1,-1};
+          }
+        else if ((Tp==1)&&(T==1)&&(T0==2))
+          {
+            norm_like = 1/sqrt(6);
+            signs_like = {+1,+1};
+          }
 
-        // accumulate coefficient
-        //biquad_coefficients_pn[biquad_labels_pn] += biquad_coefficient_pn;
+        // unlike particle terms (pnnp):
+        //   include_unlike (bool) : whether or not unlike-particle biquads are to be included
+        //   norm_unlike (double) : overall normalization factor for unlike-particle biquads
+        //   signs_unlike (std::array<int,4>) : signs (+1,-1) for unlike-particle biquads
+        //     as {<12|12>, <12|21>, <21|12>, <21|12>}, where recall we label biquads using 
+        //     the label ordering as it appears in the corresponding RME
+        //
+        // unlike particle terms active except in pure isovector (Tp,T,T0)=(1,1,1) special case
+
+        bool include_unlike = !((Tp==1)&&(T==1)&&(T0==1));
+        double norm_unlike;
+        std::array<int,4> signs_unlike;
+
+        if ((Tp==0)&&(T==0)&&(T0==0))
+          {
+            norm_unlike = 1/2;
+            signs_unlike = {-1,+1,+1,-1};
+          }
+        else if ((Tp==1)&&(T==0)&&(T0==1))
+          {
+            norm_unlike = 1/2;
+            signs_unlike = {-1,+1,-1,+1};
+          }
+        else if ((Tp==0)&&(T==1)&&(T0==1))
+          {
+            norm_unlike = 1/2;
+            signs_unlike = {-1,-1,+1,+1};
+          }
+        else if ((Tp==1)&&(T==1)&&(T0==0))
+          {
+            norm_unlike = 1/(2*sqrt(3));
+            signs_unlike = {+1,+1,+1,+1};
+          }
+        else if ((Tp==1)&&(T==1)&&(T0==1))
+          {
+            // pass
+          }
+        else if ((Tp==1)&&(T==1)&&(T0==2))
+          {
+            norm_unlike = 1/(sqrt(2*3));
+            signs_unlike = {-1,-1,-1,-1};
+          }
+
+        ////////////////////////////////
+        // accumulate pn-scheme terms
+        ////////////////////////////////
+
+        // bra/ket labels sans isospin
+        //
+        // including both index orderings for use in unlike-particle terms
+        u3shell::TwoBodyStateLabelsU3S statep12(eta1p,eta2p,xp,Sp);
+        u3shell::TwoBodyStateLabelsU3S statep21(eta2p,eta1p,xp,Sp);
+        u3shell::TwoBodyStateLabelsU3S state12(eta1,eta2,x,S);
+        u3shell::TwoBodyStateLabelsU3S state21(eta2,eta1,x,S);
         
-      }
-    
+        // common working variables
+        u3shell::TwoBodyUnitTensorLabelsU3S biquad_labels_pn;
+        u3shell::CoefficientsPN coefficients_pn;
+
+        // accumulate like-particle terms
+        if (include_like)
+          {
+            biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
+                x0,S0,rho0,statep12,state12
+              );
+            coefficients_pn = u3shell::CoefficientsPN(
+                norm_like*signs_like[0],
+                norm_like*signs_like[1],
+                0
+              );
+            biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
+          }
+
+        // accumulate unlike-particle terms
+        if (include_unlike)
+          {
+
+            // calculate phase factors
+            int grade = eta1+eta2+ConjugationGrade(x)+int(S);
+            int gradep = eta1p+eta2p+ConjugationGrade(xp)+int(Sp);
+
+            // term <12|12>
+            biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
+                x0,S0,rho0,statep12,state12
+              );
+            coefficients_pn = u3shell::CoefficientsPN(
+                0,0,norm_unlike*signs_unlike[0]
+              );
+            biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
+
+            // term <12|21>
+            biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
+                x0,S0,rho0,statep12,state21
+              );
+            coefficients_pn = u3shell::CoefficientsPN(
+                0,0,norm_unlike*signs_unlike[1]*ParitySign(grade)
+              );
+            biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
+
+
+            // term <21|12>
+            biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
+                x0,S0,rho0,statep21,state12
+              );
+            coefficients_pn = u3shell::CoefficientsPN(
+                0,0,norm_unlike*signs_unlike[2]*ParitySign(gradep)
+              );
+            biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
+
+            // term <21|21>
+            biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
+                x0,S0,rho0,statep21,state21
+              );
+            coefficients_pn = u3shell::CoefficientsPN(
+                0,0,norm_unlike*signs_unlike[3]*ParitySign(grade+gradep)
+              );
+            biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
+          }
+
+      } 
   }
   
 
-  void WriteBiquadCoefficientsPNRecoupler(
+  void WriteTwoBodyOperatorRecoupler(
       std::ostream& output_stream,
       const u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
     )
@@ -221,11 +356,11 @@ namespace u3shell {
           // label line
           output_stream
             << fmt::format(
-                "{:d.2} {:d.2} {:d.2} {:d.2}   "
-                "{:d.2} {:d.2} {:d.2} {:d.2}   "
-                "{:d.2} {:d.2} {:d.2} {:d.2}   "
-                "{:d.2} {:d.2} {:d.2} {:d.2}   ",
-                eta1p,eta2p,eta1,eta2,
+                "{:d} {:d} {:d} {:d}   "
+                "{:d} {:d} {:d} {:d}   "
+                "{:d} {:d} {:d} {:d}   "
+                "{:d} {:d} {:d} {:d}   ",
+                eta1p,eta2p,eta2,eta1,
                 1,xp.lambda(),xp.mu(),TwiceValue(Sp),
                 1,x.lambda(),x.mu(),TwiceValue(S),
                 rho0,x0.lambda(),x0.mu(),TwiceValue(S0)

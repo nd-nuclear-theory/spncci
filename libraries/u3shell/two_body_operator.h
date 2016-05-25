@@ -44,6 +44,11 @@ namespace u3shell
       : pppp(0), nnnn(0), pnnp(0)
     {}
 
+    inline CoefficientsPN(double pppp_, double nnnn_, double pnnp_)
+      // Construct from coefficients.
+      : pppp(pppp_), nnnn(nnnn_), pnnp(pnnp_)
+    {}
+
     // arithmetic assignment
     inline CoefficientsPN& operator +=(const CoefficientsPN& b)
     {
@@ -101,15 +106,31 @@ namespace u3shell
                                           );
   // Accumulate biquad coefficients for given two-body unit tensors.
   //
-  // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
-  //   : map giving coefficients on a set of two-body U3ST unit tensors 
-  // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
-  //   : map giving coefficients on a resulting set of two-body U3ST biquads
+  // New coefficients accumulate additively onto any existing coefficients in biquad_coefficients.
   //
-  // Note: The map given as the second parameter, for storing the
-  // output coefficients, need not initially be empty.  It is
-  // permissible to accumulate onto an existing set of coefficients.
-  // Coefficients for the same term will be added.
+  // Biquads are labeled still by the corresponding unit tensor
+  // labels, and recall that all the unit tensor bra and ket labels
+  // are kept in their ket-like (unconjugated) from.  Thus, e.g.,
+  // a unit tensor with unit RME of the form
+  //
+  //   < (eta1p eta2p)^omegap || ... || (eta1 eta2)^omega >
+  //
+  // is labeled by
+  //
+  //   bra: (eta1p eta2p)^omegap  ket : (eta1 eta2)^omega
+  //
+  // These labels thus also label the biquad
+  //
+  //   (a+_eta1p a+_eta2p)^omegap x (a~_eta2 a~_eta1)^omega~
+  //
+  //  Note the "reversed" order of factors in the second (omega~)
+  //  product.
+  //
+  // Arguments:
+  //   two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
+  //     : map giving coefficients on a set of two-body U3ST unit tensors 
+  //   biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
+  //     : map giving coefficients on a resulting set of two-body U3ST biquads
 
   void TransformBiquadToPNScheme(
                                  const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
@@ -132,7 +153,7 @@ namespace u3shell
   // operator file output for recoupler
   ////////////////////////////////////////////////////////////////
 
-  void WriteBiquadCoefficientsPNRecoupler(
+  void WriteTwoBodyOperatorRecoupler(
       std::ostream& output_stream,
       const u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
     );
@@ -146,7 +167,7 @@ namespace u3shell
   //   like-nucleon coefficient should be set to zero.
   //
   //     label line:
-  //       eta1p eta2p eta1 eta2
+  //       eta1p eta2p eta2 eta1
   //         rhop=1 lambdap mup 2Sp
   //         rho=1  lambda  mu  2S
   //         rho0   lambda0 mu0 2S0
@@ -154,6 +175,10 @@ namespace u3shell
   //     coefficient line:
   //       pppp nnnn pnnp
   //
+  //   Note the ordering of eta values, determined by the labeling
+  //   convention discussed in the comments for
+  //   TransformTwoBodyUnitTensorToBiquad.
+
   // Arguments:
   //   output_stream (std::ofstream) : an open text-mode output stream
   //   biquad_coefficients_pn (u3shell::TwoBodyUnitTensorCoefficientsU3SPN)
