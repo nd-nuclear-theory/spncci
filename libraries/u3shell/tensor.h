@@ -115,13 +115,8 @@ namespace u3shell
 
     inline friend std::size_t hash_value(const OperatorLabelsU3ST& v)
     {
-      std::size_t seed = 0;
-      boost::hash_combine(seed,v.N0_);
-      boost::hash_combine(seed,v.x0_);
-      boost::hash_combine(seed,v.S0_);
-      boost::hash_combine(seed,v.T0_);
-      boost::hash_combine(seed,v.g0_);
-      return seed;
+      boost::hash<OperatorLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -232,11 +227,8 @@ namespace u3shell
 
     inline friend std::size_t hash_value(const RelativeStateLabelsU3ST& v)
     {
-      std::size_t seed = 0;
-      boost::hash_combine(seed,v.eta_);
-      boost::hash_combine(seed,v.S_);
-      boost::hash_combine(seed,v.T_);
-      return seed;
+      boost::hash<RelativeStateLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -360,13 +352,8 @@ namespace u3shell
 
     inline friend std::size_t hash_value(const TwoBodyStateLabelsU3ST& v)
     {
-      std::size_t seed = 0;
-      boost::hash_combine(seed,v.eta1_);
-      boost::hash_combine(seed,v.eta2_);
-      boost::hash_combine(seed,v.x_);
-      boost::hash_combine(seed,v.S_);
-      boost::hash_combine(seed,v.T_);
-      return seed;
+      boost::hash<TwoBodyStateLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -484,11 +471,8 @@ namespace u3shell
 
     inline friend std::size_t hash_value(const RelativeUnitTensorLabelsU3ST& v)
     {
-      std::size_t seed = 0;
-      boost::hash_combine(seed,static_cast<OperatorLabelsU3ST>(v));  // hash for base class
-      boost::hash_combine(seed,v.bra());
-      boost::hash_combine(seed,v.ket());
-      return seed;
+      boost::hash<RelativeUnitTensorLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -608,11 +592,8 @@ namespace u3shell
 
     inline friend std::size_t hash_value(const TwoBodyUnitTensorLabelsU3ST& v)
     {
-      std::size_t seed = 0;
-      boost::hash_combine(seed,static_cast<OperatorLabelsU3ST>(v));  // hash for base class
-      boost::hash_combine(seed,v.bra());
-      boost::hash_combine(seed,v.ket());
-      return seed;
+      boost::hash<TwoBodyUnitTensorLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
