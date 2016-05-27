@@ -17,8 +17,6 @@ namespace u3shell {
   //       int Nmax, 
   //       std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
   //       )
-  // // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
-  // // for rp>=r.  To get the other half, use conjugation 
   // {   
   //   #ifdef VERBOSE
   //   std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;

@@ -11,7 +11,7 @@ module_units_cpp-h := tensor_labels relative_operator two_body_operator indexing
 # module_units_f := 
 module_programs_cpp := tensor_labels_test relative_operator_test two_body_operator_test
 module_programs_cpp += indexing_u3st_test moshinsky_test
-module_programs_cpp += two_body_generator
+module_programs_cpp += generator_unit_tensors_tb
 # module_programs_f :=
 # module_generated :=
 

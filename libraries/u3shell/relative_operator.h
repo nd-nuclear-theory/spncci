@@ -34,19 +34,59 @@ namespace u3shell
   // generation of unit tensor label lists
   ////////////////////////////////////////////////////////////////
 
-  // Note: If we define a RelativeSpaceU3ST (or RelativeSectorsU3ST),
+  std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>
+    GenerateRelativeUnitTensorLabelsU3ST(int Nmax);
+  // Generate U3ST-scheme relative unit tensor labels acting within
+  // the relative space of a given Nmax truncation.
+  //
+  // The resulting unit tensor labels are grouped by N0, i.e., the
+  // number of oscillator quanta caried by the operator.  Although N0
+  // may in general vary from -Nmax to +Nmax, only unit tensors with
+  // nonnegative N0 (etap>eta) are considered here.
+  //
+  // Arguments:
+  //   Nmax (int) : maximum oscillator truncation
+  //
+  // Returns:
+  //   (std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>)
+  //   : map from N0 -> vector of relative unit tensor labels
+  //
+  // OR maybe (TBD)...
+  //
+  // Returns:
+  //   (std::vector<std::vector<RelativeUnitTensorLabelsU3ST>>)
+  //   : vector (by N0) of vectors of relative unit tensor labels
+
+
+  // COMMENTS to Anna
+
+  // Comment #1: If we define a RelativeSpaceU3ST (or RelativeSectorsU3ST),
   // that would be a more natural argument than Nmax, and it would
   // take care of much of the iteration.  This is the model I am
-  // following with the two-body unit tensors.
+  // following with the two-body unit tensors.  Not sure how useful it
+  // would be here...
 
+  // Comment #2: Given that the map indices are restricted to
+  // nonnegative values 0, 1, 2, ..., and I believe they run
+  // sequentially, why not just a do a vector (of vectors)?
+  //
+  //  std::vector<std::vector<RelativeUnitTensorLabelsU3ST>>
+  //
+  // Note: Then you just size the vector to Nmax+1 at the beginning,
+  // and all the entries are default constructed as empty vectors.  Or
+  // you push_back vectors for each No one-by-one.
+
+  // OLD COMMENT from .h file (to delete):
+  //
   // // Generates map of RelativeUnitTensorLabelsU3ST for a given Nmax truncation,   
   // // stored in relative_unit_tensor_labels.
   // // Map keys are N0: number of oscillator quanta carried by the operator
   // // values are vectors of RelativeUnitTensorLabelsU3ST with oscillator quanta N0
-  // void GenerateRelativeUnitTensorLabelsU3ST(
-  //       int Nmax, 
-  //       std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-  //       );
+  //
+  // OLD COMMENT from .cpp file (to delete):
+  //
+  // // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
+  // // for rp>=r.  To get the other half, use conjugation 
 
 }  // namespace
 
