@@ -105,7 +105,7 @@ namespace u3shell {
             // assemble biquad labels
             u3shell::TwoBodyUnitTensorLabelsU3ST
               biquad_labels(
-                  x0,S0,T0,
+                  two_body_unit_tensor_labels,  // use OperatorLabelsU3ST base class instance within two_body_unit_tensor_labels
                   rho0bar,
                   two_body_unit_tensor_labels.bra(),
                   two_body_unit_tensor_labels.ket()
@@ -238,6 +238,9 @@ namespace u3shell {
         // accumulate pn-scheme terms
         ////////////////////////////////
 
+        // operator labels sans isospin
+        u3shell::OperatorLabelsU3S operator_labels_u3s(N0,x0,S0,g0);
+
         // bra/ket labels sans isospin
         //
         // including both index orderings for use in unlike-particle terms
@@ -274,7 +277,7 @@ namespace u3shell {
 
             // term <12|12>
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
-                x0,S0,rho0,statep12,state12
+                operator_labels_u3s,rho0,statep12,state12
               );
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,norm_unlike*signs_unlike[0]
@@ -283,7 +286,7 @@ namespace u3shell {
 
             // term <12|21>
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
-                x0,S0,rho0,statep12,state21
+                operator_labels_u3s,rho0,statep12,state21
               );
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,norm_unlike*signs_unlike[1]*ParitySign(grade)
@@ -293,7 +296,7 @@ namespace u3shell {
 
             // term <21|12>
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
-                x0,S0,rho0,statep21,state12
+                operator_labels_u3s,rho0,statep21,state12
               );
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,norm_unlike*signs_unlike[2]*ParitySign(gradep)
@@ -302,7 +305,7 @@ namespace u3shell {
 
             // term <21|21>
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
-                x0,S0,rho0,statep21,state21
+                operator_labels_u3s,rho0,statep21,state21
               );
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,norm_unlike*signs_unlike[3]*ParitySign(grade+gradep)

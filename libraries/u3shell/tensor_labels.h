@@ -9,6 +9,7 @@
   5/15/16 (mac): Created as tensor.h.
   5/25/16 (mac): Rename to tensor_labels.h.  Extract 
     non-isospin-scheme labels.
+  5/27/16 (mac): Restructure operator constuctor definitions.
 
 ****************************************************************/
 
@@ -43,7 +44,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline RelativeStateLabelsU3ST() 
       : eta_(0), S_(0), T_(0)
@@ -122,7 +123,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+    private:
     int eta_;
     HalfInt S_, T_;
   };
@@ -154,7 +155,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline TwoBodyStateLabelsU3ST() 
       : eta1_(0), eta2_(0), S_(0), T_(0)
@@ -244,7 +245,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+    private:
     int eta1_, eta2_;
     u3::SU3 x_;
     HalfInt S_, T_;
@@ -278,7 +279,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline OperatorLabelsU3ST() 
       : N0_(0), S0_(0), T0_(0), g0_(0)
@@ -357,7 +358,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  protected:  // since derived class constructors may need to calculate some of these values
+    protected:  // since derived class constructors may need to calculate some of these values
     int N0_;
     u3::SU3 x0_;
     HalfInt S0_, T0_;
@@ -367,6 +368,18 @@ namespace u3shell
   ////////////////////////////////////////////////////////////////
   // U3ST-scheme relative unit tensor operator labels
   ////////////////////////////////////////////////////////////////
+
+  // Note: The constructor of the daughter class (RelativeUnitTensorLabelsU3ST) must either:
+  //
+  //   (1) set *all* base class members of the base class
+  //   (OperatorLabelsU3ST) with a base class constructor call, e.g.,
+  //   with the base class default copy constructor
+  //   OperatorLabelsU3ST(operator_labels), or
+  //
+  //   (2) set base class members individually in the body of the
+  //   constructor (after default initialization of the base class).
+  //   Piecewise initialization x0_(x0), etc., is not recognized.
+
 
   class RelativeUnitTensorLabelsU3ST
     : public OperatorLabelsU3ST
@@ -384,31 +397,45 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline RelativeUnitTensorLabelsU3ST() 
-      // Default constructor.
-      {}
+    // Default constructor.
+    {}
 
     inline RelativeUnitTensorLabelsU3ST(
-                                        const u3::SU3& x0, HalfInt S0, HalfInt T0,
-                                        const RelativeStateLabelsU3ST& bra,
-                                        const RelativeStateLabelsU3ST& ket
-                                        )
+        const u3::SU3& x0, HalfInt S0, HalfInt T0,
+        const RelativeStateLabelsU3ST& bra,
+        const RelativeStateLabelsU3ST& ket
+      )
       : bra_(bra), ket_(ket)
-    // Construct from labels.
+    // Construct from labels, with operator labels set individually.
+    //
+    // DEPRECATED -- as less cleanly "structured" form
+    //
+    // Redundant operator labels are set from the bra/ket labels.
     {
-      // Note: Must either set all base class members with constructor
-      // call OperatorLabelsU3ST(...) or must set all individually as
-      // below.  Piecewise initialization x0_(x0), etc., is not
-      // recognized.
-
-
-      N0_ = bra_.eta() - ket_.eta();  // the quant carried by the operator must be such that N_bra=N0+N_ket
+      N0_ = bra_.eta() - ket_.eta();
       x0_= x0;
       S0_ = S0;
       T0_ = T0;
-      g0_ = N0_%2;  // or, equivalently, (bra_.g()+ket_.g())%2
+      g0_ = (bra_.g()+ket_.g())%2;  // equivalently, N0_%2
+    }
+
+    inline RelativeUnitTensorLabelsU3ST(
+        const u3shell::OperatorLabelsU3ST operator_labels,
+        const RelativeStateLabelsU3ST& bra,
+        const RelativeStateLabelsU3ST& ket
+      )
+      : OperatorLabelsU3ST(operator_labels), bra_(bra), ket_(ket)
+    // Construct from labels, with operator labels set collectively.
+    //
+    // The redundant (additive) operator labels are verified against
+    // the bra/ket labels through assertions, but the triangularity of
+    // couplings is not verified.
+    {
+      assert(N0_ == bra_.eta() - ket_.eta());
+      assert(g0_ == (bra_.g()+ket_.g())%2);  // equivalently, N0_%2
     }
     
     ////////////////////////////////////////////////////////////////
@@ -473,7 +500,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+    private:
     RelativeStateLabelsU3ST bra_, ket_;
   };
 
@@ -498,7 +525,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline TwoBodyUnitTensorLabelsU3ST() 
       : rho0_(0)
@@ -506,24 +533,40 @@ namespace u3shell
       {}
 
     inline TwoBodyUnitTensorLabelsU3ST(
-                                        const u3::SU3& x0, HalfInt S0, HalfInt T0,
-                                        int rho0,
-                                        const TwoBodyStateLabelsU3ST& bra,
-                                        const TwoBodyStateLabelsU3ST& ket
-                                        )
+        const u3::SU3& x0, HalfInt S0, HalfInt T0,
+        int rho0,
+        const u3shell::TwoBodyStateLabelsU3ST& bra,
+        const u3shell::TwoBodyStateLabelsU3ST& ket
+      )
       : rho0_(rho0), bra_(bra), ket_(ket)
-    // Construct from labels.
+    // Construct from labels, with operator labels set individually.
+    //
+    // DEPRECATED -- as less cleanly "structured" form
+    //
+    // Redundant operator labels are set from the bra/ket labels.
     {
-      // Note: Must either set all base class members with constructor
-      // call OperatorLabelsU3ST(...) or must set all individually as
-      // below.  Piecewise initialization x0_(x0), etc., is not
-      // recognized.
-
       N0_ = bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2();  // combined quanta carried by ket (created) and bra (destroyed)
       x0_= x0;
       S0_ = S0;
       T0_ = T0;
-      g0_ = N0_%2;  // or, equivalently, (bra_.g()+ket_.g())%2
+      g0_ = (bra_.g()+ket_.g())%2;  // equivalently, N0_%2
+    }
+
+    inline TwoBodyUnitTensorLabelsU3ST(
+        const u3shell::OperatorLabelsU3ST operator_labels,
+        int rho0,
+        const u3shell::TwoBodyStateLabelsU3ST& bra,
+        const u3shell::TwoBodyStateLabelsU3ST& ket
+      )
+      : OperatorLabelsU3ST(operator_labels), rho0_(rho0), bra_(bra), ket_(ket)
+    // Construct from labels, with operator labels set collectively.
+    //
+    // The redundant (additive) operator labels are verified against
+    // the bra/ket labels through assertions, but the triangularity of
+    // couplings is not verified.
+    {
+      assert(N0_ == bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2());
+      assert(g0_ == (bra_.g()+ket_.g())%2);  // equivalently, N0_%2
     }
     
     ////////////////////////////////////////////////////////////////
@@ -590,7 +633,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  protected:
+    protected:
     TwoBodyStateLabelsU3ST bra_, ket_;
     int rho0_;
   };
@@ -611,7 +654,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline TwoBodyStateLabelsU3S() 
       : eta1_(0), eta2_(0), S_(0)
@@ -696,7 +739,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+    private:
     int eta1_, eta2_;
     u3::SU3 x_;
     HalfInt S_;
@@ -717,7 +760,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline OperatorLabelsU3S() 
       : N0_(0), S0_(0), g0_(0)
@@ -791,7 +834,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  protected:  // since derived class constructors may need to calculate some of these values
+    protected:  // since derived class constructors may need to calculate some of these values
     int N0_;
     u3::SU3 x0_;
     HalfInt S0_;
@@ -815,7 +858,7 @@ namespace u3shell
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
 
     inline TwoBodyUnitTensorLabelsU3S() 
       : rho0_(0)
@@ -823,18 +866,39 @@ namespace u3shell
       {}
 
     inline TwoBodyUnitTensorLabelsU3S(
-                                        const u3::SU3& x0, HalfInt S0,
-                                        int rho0,
-                                        const TwoBodyStateLabelsU3S& bra,
-                                        const TwoBodyStateLabelsU3S& ket
-                                        )
+        const u3::SU3& x0, HalfInt S0,
+        int rho0,
+        const TwoBodyStateLabelsU3S& bra,
+        const TwoBodyStateLabelsU3S& ket
+      )
       : rho0_(rho0), bra_(bra), ket_(ket)
-    // Construct from labels.
+    // Construct from labels, with operator labels set individually.
+    //
+    // DEPRECATED -- as less cleanly "structured" form
+    //
+    // Redundant operator labels are set from the bra/ket labels.
     {
       N0_ = bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2();  // combined quanta carried by ket (created) and bra (destroyed)
       x0_= x0;
       S0_ = S0;
       g0_ = N0_%2;  // or, equivalently, (bra_.g()+ket_.g())%2
+    }
+
+    inline TwoBodyUnitTensorLabelsU3S(
+        const u3shell::OperatorLabelsU3S operator_labels,
+        int rho0,
+        const u3shell::TwoBodyStateLabelsU3S& bra,
+        const u3shell::TwoBodyStateLabelsU3S& ket
+      )
+      : OperatorLabelsU3S(operator_labels), rho0_(rho0), bra_(bra), ket_(ket)
+    // Construct from labels, with operator labels set collectively.
+    //
+    // The redundant (additive) operator labels are verified against
+    // the bra/ket labels through assertions, but the triangularity of
+    // couplings is not verified.
+    {
+      assert(N0_ == bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2());
+      assert(g0_ == (bra_.g()+ket_.g())%2);  // equivalently, N0_%2
     }
     
     ////////////////////////////////////////////////////////////////
@@ -901,7 +965,7 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-  protected:
+    protected:
     TwoBodyStateLabelsU3S bra_, ket_;
     int rho0_;
   };
