@@ -36,13 +36,13 @@ namespace u3shell
 
   std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>
     GenerateRelativeUnitTensorLabelsU3ST(int Nmax);
-  // Generate U3ST-scheme relative unit tensor labels acting within
+  // Generate labels for U3ST-scheme relative tensors acting within
   // the relative space of a given Nmax truncation.
   //
   // The resulting unit tensor labels are grouped by N0, i.e., the
   // number of oscillator quanta caried by the operator.  Although N0
-  // may in general vary from -Nmax to +Nmax, only unit tensors with
-  // nonnegative N0 (etap>eta) are considered here.
+  // may in general vary from -2*Nmax to +2*Nmax, only unit tensors
+  // with nonnegative N0 (etap>eta) are considered here.
   //
   // Arguments:
   //   Nmax (int) : maximum oscillator truncation
@@ -50,12 +50,6 @@ namespace u3shell
   // Returns:
   //   (std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>)
   //   : map from N0 -> vector of relative unit tensor labels
-  //
-  // OR maybe (TBD)...
-  //
-  // Returns:
-  //   (std::vector<std::vector<RelativeUnitTensorLabelsU3ST>>)
-  //   : vector (by N0) of vectors of relative unit tensor labels
 
 
   // COMMENTS to Anna
@@ -75,6 +69,10 @@ namespace u3shell
   // Note: Then you just size the vector to Nmax+1 at the beginning,
   // and all the entries are default constructed as empty vectors.  Or
   // you push_back vectors for each No one-by-one.
+  //
+  // On the other hand, I realize you might want to keep generality to
+  // possibly store negative N0.  I am actually doing so for the
+  // two-body case, to provide more complete testing.
 
   // OLD COMMENT from .h file (to delete):
   //

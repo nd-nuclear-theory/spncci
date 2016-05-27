@@ -22,10 +22,39 @@
 // two-body unit tensor enumeration
 ////////////////////////////////////////////////////////////////
 
-std::vector<std::vector<TwoBodyUnitTensorLabelsU3ST>>
+std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
+  GenerateTwoBodyUnitTensorLabelsU3ST(
+      const u3shell::TwoBodySectorsU3ST two_body_sectors
+    )
+  // Generate labels for U3ST-scheme two-body unit tensors acting
+  // within the given two-body sectors.
+  //
+  // The resulting unit tensor labels are grouped by N0, i.e., the
+  // number of oscillator quanta caried by the operator.  This N0 will
+  // vary from -2*Nmax to +2*Nmax.
+  //
+  // Arguments:
+  //   Nmax (int) : maximum oscillator truncation
+  //
+  // Returns:
+  //   (std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>)
+  //   : map from N0 -> vector of relative unit tensor labels
+{
 
-  // // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
-  // // for rp>=r.  To get the other half, use conjugation 
+  // iterate over sectors
+  for (int sector_index = 0; sector_index < two_body_sectors.size(); ++sector_index)
+    {
+
+      // extract sector subspaces
+      const u3shell::TwoBodySectorsU3ST::SectorType& sector = two_body_sectors.GetSector(sector_index);
+      const u3shell::TwoBodySectorsU3ST::SubspaceType& bra_subspace = sector.bra_subspace();
+      const u3shell::TwoBodySectorsU3ST::SubspaceType& ket_subspace = sector.ket_subspace();
+
+      //
+
+    }
+
+}
 
 ////////////////////////////////////////////////////////////////
 // main
