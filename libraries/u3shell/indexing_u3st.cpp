@@ -44,7 +44,7 @@ namespace u3shell {
           continue;
 
         // keep surviving states
-        PushStateLabels(StateLabelsType(N1)); 
+        PushStateLabels(StateLabelsType(N1,N2)); 
       }
 
   }

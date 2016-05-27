@@ -25,11 +25,11 @@ namespace u3shell {
      )
   {
 
-    for (auto key_value : relative_unit_tensor_coefficients)
+    for (const auto& key_value : relative_unit_tensor_coefficients)
       {
 
         // extract key and value
-        u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor_labels = key_value.first;
+        const u3shell::RelativeUnitTensorLabelsU3ST& relative_unit_tensor_labels = key_value.first;
         double relative_unit_tensor_coefficient = key_value.second;
 
         // TODO -- or more likely to be replaced by Anna's code
@@ -42,11 +42,11 @@ namespace u3shell {
       u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
     )
   {
-    for (auto key_value : two_body_unit_tensor_coefficients)
+    for (const auto& key_value : two_body_unit_tensor_coefficients)
       {
 
         // extract key and value
-        u3shell::TwoBodyUnitTensorLabelsU3ST two_body_unit_tensor_labels = key_value.first;
+        const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels = key_value.first;
         double two_body_unit_tensor_coefficient = key_value.second;
 
         // extract unit tensor label groups
@@ -124,7 +124,7 @@ namespace u3shell {
       u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
     )
   {
-    for (auto key_value : biquad_coefficients)
+    for (const auto& key_value : biquad_coefficients)
       {
 
         ////////////////////////////////
@@ -132,7 +132,7 @@ namespace u3shell {
         ////////////////////////////////
 
         // extract key and value
-        u3shell::TwoBodyUnitTensorLabelsU3ST biquad_labels = key_value.first;
+        const u3shell::TwoBodyUnitTensorLabelsU3ST& biquad_labels = key_value.first;
         double biquad_coefficient = key_value.second;
 
         // extract unit tensor label groups
@@ -322,12 +322,12 @@ namespace u3shell {
       const u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
     )
   {
-      for (auto key_value : biquad_coefficients_pn)
+      for (const auto& key_value : biquad_coefficients_pn)
         {
 
           // extract unit tensor labels and coefficients
-          auto biquad_labels= key_value.first;
-          auto coefficients_pn = key_value.second;
+          const u3shell::TwoBodyUnitTensorLabelsU3S& biquad_labels= key_value.first;
+          const CoefficientsPN& coefficients_pn = key_value.second;
         
           // extract unit tensor label groups
           u3shell::OperatorLabelsU3S::KeyType operator_labels_key;

@@ -1,5 +1,5 @@
 /****************************************************************
-  two_body_generator.cpp
+  generate_unit_tensors_tb.cpp
 
   Construct files in Tomas's recoupler format for complete set of
   two-body unit tensors, in two-body truncated space.
@@ -11,10 +11,14 @@
 
 ****************************************************************/
 
+#include <algorithm>
 #include <iostream>
+#include <fstream>
 
 #include "cppformat/format.h"
 
+#include "am/am.h"
+#include "sp3rlib/u3coef.h"
 #include "u3shell/indexing_u3st.h"
 #include "u3shell/two_body_operator.h"
 
@@ -22,7 +26,7 @@
 // two-body unit tensor enumeration
 ////////////////////////////////////////////////////////////////
 
-std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
+std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
   GenerateTwoBodyUnitTensorLabelsU3ST(
       const u3shell::TwoBodySectorsU3ST two_body_sectors
     )
@@ -30,8 +34,11 @@ std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
   // within the given two-body sectors.
   //
   // The resulting unit tensor labels are grouped by N0, i.e., the
-  // number of oscillator quanta caried by the operator.  This N0 will
-  // vary from -2*Nmax to +2*Nmax.
+  // number of oscillator quanta caried by the operator, where N0 will
+  // vary from -2*Nmax to +2*Nmax.  This choice of grouping is mainly
+  // dictated by consistency with the treatment of relative unit
+  // tensor labels in spncci, though it also does provide a "neat"
+  // sorting of the labels by N0 for iteration purposes.
   //
   // Arguments:
   //   Nmax (int) : maximum oscillator truncation
@@ -40,6 +47,9 @@ std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
   //   (std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>)
   //   : map from N0 -> vector of relative unit tensor labels
 {
+
+  // define container object
+  std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>> unit_tensor_labels_set_by_N0;
 
   // iterate over sectors
   for (int sector_index = 0; sector_index < two_body_sectors.size(); ++sector_index)
@@ -54,13 +64,13 @@ std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
       const u3shell::TwoBodySectorsU3ST::SubspaceType& ket_subspace = sector.ket_subspace();
 
       // extract bra subspace labels
-      u3::U3 omagap;
+      u3::U3 omegap;
       HalfInt Sp, Tp;
       int gp;
       std::tie(omegap,Sp,Tp,gp) =  bra_subspace.GetSubspaceLabels();
 
       // extract ket subspace labels
-      u3::U3 omaga;
+      u3::U3 omega;
       HalfInt S, T;
       int g;
       std::tie(omega,S,T,g) =  ket_subspace.GetSubspaceLabels();
@@ -78,8 +88,8 @@ std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
         =u3::KroneckerProduct(Conjugate(x),xp);
 
       // U(1) coupling
-      int etap = omegap.N();
-      int eta = omega.N();
+      int etap = int(omegap.N());
+      int eta = int(omega.N());
       int N0 = etap - eta;
 
       // SxT couplings
@@ -98,7 +108,7 @@ std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
         {
           // extract SU(3) labels
           u3::SU3 x0 = x0_rho0max.irrep;
-          int rho0max = x0_rho0max.multiplicity;
+          int rho0max = x0_rho0max.tag;
           
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
             for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
@@ -109,25 +119,39 @@ std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>
                 u3shell::OperatorLabelsU3ST operator_labels(N0,x0,S0,T0,g0);
 
                 // iterate over remaining (nontensorial) labels
-                for (int bra_index = 0; bra_index < bra_space.size(); ++bra_index)
-                  for (int ket_index = 0; ket_index < ket_space.size(); ++ket_index)
+                for (int bra_index = 0; bra_index < bra_subspace.size(); ++bra_index)
+                  for (int ket_index = 0; ket_index < ket_subspace.size(); ++ket_index)
                     // for each <bra|ket> pair
                     {
-                      // extract state labels
+                      // collect state labels
+                      int eta1p, eta2p;
+                      int eta1, eta2;
+                      std::tie(eta1p, eta2p)= bra_subspace.GetStateLabels(bra_index);
+                      std::tie(eta1, eta2)= ket_subspace.GetStateLabels(ket_index);
+                      u3shell::TwoBodyStateLabelsU3ST bra_labels(eta1p,eta2p,xp,Sp,Tp);
+                      u3shell::TwoBodyStateLabelsU3ST ket_labels(eta1,eta2,x,S,T);
 
+                      for (int rho0=1; rho0<=rho0max; ++rho0)
+                        // for each multiplicity index rho0
+                        {
+                          // collect unit tensor labels
+                          u3shell::TwoBodyUnitTensorLabelsU3ST unit_tensor_labels(
+                              operator_labels,
+                              rho0,
+                              bra_labels,ket_labels
+                            );
+
+                          // push unit tensor labels onto appropriate N0 set
+                          unit_tensor_labels_set_by_N0[N0].push_back(unit_tensor_labels);
+                        }
 
                     }
-                    
-                    
-
-                
               }
         }
 
-      // construct unit tensors between these subspaces
-
     }
 
+  return unit_tensor_labels_set_by_N0;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -140,23 +164,76 @@ int main(int argc, char **argv)
   // initialize su3lib
   u3::U3CoefInit();
 
-  // define relevant two-body space
+  // generate list of unit tensor labels
   const int Nmax = 4;
   u3shell::TwoBodySpaceU3ST two_body_space(Nmax);
-
-  // generate list of unit tensors
   u3shell::TwoBodySectorsU3ST two_body_sectors(two_body_space);
-  std::vector<std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>> two_body_unit_tensor_labels;
-  GenerateTwoBodyUnitTensorLabelsU3ST(
-      two_body_sectors,
-      two_body_unit_tensor_labels
-    );
-  //       int Nmax, 
-  //       std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-  //       );
+  std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>> unit_tensor_labels_set_by_N0
+    = GenerateTwoBodyUnitTensorLabelsU3ST(two_body_sectors);
 
+  // flatten list of unit tensor labels
+  std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> unit_tensor_labels_set;
+  for (const auto& key_value : unit_tensor_labels_set_by_N0)
+    {
+      int N0 = key_value.first;
+      const std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>& unit_tensor_labels_set_partial = key_value.second;
+      //std::insert(
+      unit_tensor_labels_set.insert(
+          unit_tensor_labels_set.end(),
+          unit_tensor_labels_set_partial.begin(),
+          unit_tensor_labels_set_partial.end()
+        );
+    }
 
-  // write list of unit tensors
+  // write list of unit tensor labels
+  std::string label_stream_filename = "generate_unit_tensors_tb_labels.dat";
+  std::ofstream label_stream(label_stream_filename);
+  for (int unit_tensor_index=0; unit_tensor_index < unit_tensor_labels_set.size(); ++unit_tensor_index)
+    {
+      // extract unit tensor labels
+      const u3shell::TwoBodyUnitTensorLabelsU3ST& unit_tensor_labels
+        = unit_tensor_labels_set[unit_tensor_index];
+
+      // Note: If want to ouput labels in tabular form, the individual
+      // labels will need to be extracted.  However, this might better
+      // be delegated to a helper function.  In the meantime, we use
+      // TwoBodyUnitTensorLabelsU3ST.Str() for human-readable
+      // formatting.
+      //
+      // // extract unit tensor label groups
+      // u3shell::OperatorLabelsU3ST::KeyType operator_labels_key;
+      // int rho0;
+      // u3shell::TwoBodyStateLabelsU3ST::KeyType bra_key, ket_key;
+      // std::tie(operator_labels_key,rho0,bra_key,ket_key) = unit_tensor_labels.Key();
+      // 
+      // // extract operator label groups
+      // int N0;
+      // u3::SU3 x0;
+      // HalfInt S0,T0;
+      // int g0;
+      // std::tie(N0,x0,S0,T0,g0) = operator_labels_key;
+      //   
+      // // extract bra labels
+      // int eta1p, eta2p;
+      // u3::SU3 xp;
+      // HalfInt Sp, Tp;
+      // std::tie(eta1p,eta2p,xp,Sp,Tp) = bra_key;
+      // 
+      // // extract ket labels
+      // int eta1, eta2;
+      // u3::SU3 x;
+      // HalfInt S, T;
+      // std::tie(eta1,eta2,x,S,T) = ket_key;
+
+      label_stream
+        << fmt::format(
+            "{:06d}  {}",
+            unit_tensor_index,
+            unit_tensor_labels.Str()
+          )
+        << std::endl; 
+    }
+  label_stream.close();
 
   // generate unit tensors
 

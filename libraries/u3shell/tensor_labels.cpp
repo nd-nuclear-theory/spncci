@@ -36,8 +36,8 @@ namespace u3shell {
   {
 
     return fmt::format(
-        "[{} {} {} {}]",
-        x0().Str(),S0(),T0(),g0()
+        "[{:+d}{} {} {} {}]",
+        N0(),x0().Str(),S0(),T0(),g0()
       );
   }
 

@@ -104,7 +104,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySubspaceU3ST
-    : public shell::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int>>
+    : public shell::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int,int>>
     // Subspace class for two-body states of given U(3)xSxT.
     //
     // SubspaceLabelsType (std::tuple): <omega, S, T, g>
@@ -112,11 +112,9 @@ namespace u3shell {
     //   S (int) : spin
     //   T (int) : isospin
     //   g (int) : grade (parity % 2) 
-    // StateLabelsType (std::tuple): <N1>
+    // StateLabelsType (std::tuple): <N1,N2>
     //   N1 (int) : N1
-    //
-    // Note: We must use tuple<int> (as opposed to plain int) to make the two forms 
-    // of the state constructor syntactically distinct.
+    //   N2 (int) : N2 (=N-N1, with N determined by omega) -- redundant label
     {
   public:
 
@@ -170,7 +168,8 @@ namespace u3shell {
 
     // state label accessors
     int N1() const {return std::get<0>(GetStateLabels());}
-    int N2() const {return N()-N1();}
+    int N2() const {return std::get<1>(GetStateLabels());}
+    // equivalently, int N2() const {return N()-N1();}
 
   };
 

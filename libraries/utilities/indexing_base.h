@@ -94,6 +94,10 @@ namespace shell {
   // Template arguments:
   //   tSubspaceLabelsType : tuple for subspace labels, e.g., std::tuple<int,int,int,int,int>
   //   tStateLabelsType : tuple for state labels, e.g., std::tuple<int> 
+  //
+  // Note: Even if only a single integer label is needed, we must use
+  // tuple<int> (as opposed to plain int) to make the two forms of the
+  // state constructor syntactically distinct.
   
   template <typename tSubspaceLabelsType, typename tStateLabelsType> 
     class BaseSubspace
