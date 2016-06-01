@@ -260,8 +260,8 @@ namespace u3shell {
                 x0,S0,rho0,statep12,state12
               );
             coefficients_pn = u3shell::CoefficientsPN(
-                norm_like*signs_like[0],
-                norm_like*signs_like[1],
+                biquad_coefficient*norm_like*signs_like[0],
+                biquad_coefficient*norm_like*signs_like[1],
                 0
               );
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
@@ -280,7 +280,7 @@ namespace u3shell {
                 operator_labels_u3s,rho0,statep12,state12
               );
             coefficients_pn = u3shell::CoefficientsPN(
-                0,0,norm_unlike*signs_unlike[0]
+                0,0,biquad_coefficient*norm_unlike*signs_unlike[0]
               );
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
 
@@ -289,7 +289,7 @@ namespace u3shell {
                 operator_labels_u3s,rho0,statep12,state21
               );
             coefficients_pn = u3shell::CoefficientsPN(
-                0,0,norm_unlike*signs_unlike[1]*ParitySign(grade)
+                0,0,biquad_coefficient*norm_unlike*signs_unlike[1]*ParitySign(grade)
               );
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
 
@@ -299,7 +299,7 @@ namespace u3shell {
                 operator_labels_u3s,rho0,statep21,state12
               );
             coefficients_pn = u3shell::CoefficientsPN(
-                0,0,norm_unlike*signs_unlike[2]*ParitySign(gradep)
+                0,0,biquad_coefficient*norm_unlike*signs_unlike[2]*ParitySign(gradep)
               );
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
 
@@ -308,7 +308,7 @@ namespace u3shell {
                 operator_labels_u3s,rho0,statep21,state21
               );
             coefficients_pn = u3shell::CoefficientsPN(
-                0,0,norm_unlike*signs_unlike[3]*ParitySign(grade+gradep)
+                0,0,biquad_coefficient*norm_unlike*signs_unlike[3]*ParitySign(grade+gradep)
               );
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
           }
