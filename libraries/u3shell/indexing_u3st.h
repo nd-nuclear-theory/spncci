@@ -12,6 +12,7 @@
   5/11/16 (aem,mac): Created, styled after indexing_lsjt.h.
   5/12/16 (aem,mac): Restructure by U(3) subspace.
   5/14/16 (mac): Implement sectors.  Impose canonical ordering on two-body states.
+  5/25/16 (mac): Add "all-to-all" sectors constructors.
 
 ****************************************************************/
 
@@ -22,7 +23,7 @@
 
 #include "utilities/indexing_base.h"
 #include "sp3rlib/u3.h"
-#include "u3shell/tensor.h"
+#include "u3shell/tensor_labels.h"
 
 
 namespace u3shell {
@@ -103,19 +104,18 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySubspaceU3ST
-    : public shell::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int>>
-  // Subspace class for two-body states of given U(3)xSxT.
-  //
-  // SubspaceLabelsType (std::tuple): <omega, S, T, g>
-  //   omega (u3::U3) :  U(3) label
-  //   S (int) : spin
-  //   T (int) : isospin
-  //   g (int) : grade (parity % 2) 
-  // StateLabelsType (std::tuple): <N1>
-  //   N1 (int) : N1
-  // Note: tuple of int (as opposed to plain int) is necessary for the two forms 
-  // of the state constructor to be syntactically distinct.
-  {
+    : public shell::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int,int>>
+    // Subspace class for two-body states of given U(3)xSxT.
+    //
+    // SubspaceLabelsType (std::tuple): <omega, S, T, g>
+    //   omega (u3::U3) :  U(3) label
+    //   S (int) : spin
+    //   T (int) : isospin
+    //   g (int) : grade (parity % 2) 
+    // StateLabelsType (std::tuple): <N1,N2>
+    //   N1 (int) : N1
+    //   N2 (int) : N2 (=N-N1, with N determined by omega) -- redundant label
+    {
   public:
 
     // constructor
@@ -168,7 +168,8 @@ namespace u3shell {
 
     // state label accessors
     int N1() const {return std::get<0>(GetStateLabels());}
-    int N2() const {return N()-N1();}
+    int N2() const {return std::get<1>(GetStateLabels());}
+    // equivalently, int N2() const {return N()-N1();}
 
   };
 
@@ -205,20 +206,35 @@ namespace u3shell {
 
   class TwoBodySectorsU3ST
     : public shell::BaseSectors<TwoBodySpaceU3ST>
+  // U3ST-scheme two-body sectors.
+  //
+  // Sectors are enumerated in lexicographical order by (bra)(ket).
+  // Sectors are included in "both directions", i.e., there is no
+  // asumption of hermiticity or attempt to therefore only store
+  // "half" the sectors.
   {
 
   public:
 
     // constructor
 
-    TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, const OperatorLabelsU3ST& operator_labels);
-
-    // Enumerates sector pairs connected by an operator of given tensorial and parity character.
+    TwoBodySectorsU3ST(TwoBodySpaceU3ST& space);
+    // Enumerate all sector pairs ("all-to-all" sector enumeration).
     //
-    // Sectors are enumerated in lexicographical order by (bra)(ket).
-    // Sectors are included in "both directions", i.e., there is no
-    // asumption of hermiticity or attempt to therefore only store
-    // "half" the sectors.
+    // Since no operator SU(3) is selected, there is no meaning for
+    // multiplicity, and unit multiplicity is assumed.  This is useful
+    // if we *subsequently* wish to iterate over allowed operators on
+    // this sector.
+
+    TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, const OperatorLabelsU3ST& operator_labels);
+    // Enumerate sector pairs connected by an operator of given
+    // tensorial and parity character ("constrained" sector
+    // enumeration).
+    //
+    // Multiplicity is determined based on the given operator SU(3)
+    // character, and sectors with multiplicity indices
+    // 1..multiplicity are defined.  This is useful if we
+    // wish to iterate over allowed sectors for a given operator.
 
   };
 

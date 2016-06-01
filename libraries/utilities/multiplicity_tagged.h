@@ -10,8 +10,8 @@
 
 ****************************************************************/
 
-#ifndef MULTIPLICITT_TAGGED_H_
-#define MULTIPLICITT_TAGGED_H_
+#ifndef MULTIPLICITY_TAGGED_H_
+#define MULTIPLICITY_TAGGED_H_
 
 #include <sstream>
 #include <string>

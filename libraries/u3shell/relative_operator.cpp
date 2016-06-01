@@ -1,16 +1,15 @@
 /****************************************************************
-  tensor.cpp
+  relative_operator.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
 
-#include "u3shell/tensor.h"
-
-#include <sstream>
+#include "u3shell/relative_operator.h"
 
 #include "cppformat/format.h"
+#include "am/am.h"
 
 namespace u3shell {
 
@@ -111,19 +110,6 @@ namespace u3shell {
   std::cout<<"Exiting GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
   #endif
   } //end function
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
  

@@ -1,5 +1,5 @@
 /****************************************************************
-  two_body_test.cpp
+  two_body_operator_test.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -127,6 +127,9 @@ void test_two_body()
             << std::endl;
         }
 
+      // dump operator in recoupler format
+      std::cout << "recoupler format" << std::endl;
+      WriteTwoBodyOperatorRecoupler(std::cout,biquad_coefficients_pn);
 }
 
 
