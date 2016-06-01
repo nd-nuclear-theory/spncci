@@ -265,6 +265,9 @@ namespace u3shell {
                 biquad_coefficient*norm_like*signs_like[1],
                 0
               );
+            // std::cout
+            //   << fmt::format("  like {} {:+e} {:+e}",biquad_labels_pn.Str(),coefficients_pn.pppp,coefficients_pn.nnnn)
+            //   << std::endl;
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
           }
 
@@ -283,6 +286,9 @@ namespace u3shell {
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,biquad_coefficient*norm_unlike*signs_unlike[0]
               );
+            // std::cout
+            //   << fmt::format("  unlike 1212 {} {:+e}",biquad_labels_pn.Str(),coefficients_pn.pnnp)
+            //   << std::endl;    
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
 
             // term <12|21>
@@ -292,6 +298,9 @@ namespace u3shell {
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,biquad_coefficient*norm_unlike*signs_unlike[1]*ParitySign(grade)
               );
+            // std::cout
+            //   << fmt::format("  unlike 1221 {} {:+e}",biquad_labels_pn.Str(),coefficients_pn.pnnp)
+            //   << std::endl;    
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
 
 
@@ -302,6 +311,9 @@ namespace u3shell {
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,biquad_coefficient*norm_unlike*signs_unlike[2]*ParitySign(gradep)
               );
+            // std::cout
+            //   << fmt::format("  unlike 2112 {} {:+e}",biquad_labels_pn.Str(),coefficients_pn.pnnp)
+            //   << std::endl;    
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
 
             // term <21|21>
@@ -311,6 +323,9 @@ namespace u3shell {
             coefficients_pn = u3shell::CoefficientsPN(
                 0,0,biquad_coefficient*norm_unlike*signs_unlike[3]*ParitySign(grade+gradep)
               );
+            // std::cout
+            //   << fmt::format("  unlike 2121 {} {:+e}",biquad_labels_pn.Str(),coefficients_pn.pnnp)
+            //   << std::endl;    
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
           }
 
@@ -374,7 +389,7 @@ namespace u3shell {
           // coefficient line
           output_stream
             << fmt::format(
-                "{:e} {:e} {:e}",
+                "{:+e} {:+e} {:+e}",
                 coefficients_pn.pppp,
                 coefficients_pn.nnnn,
                 coefficients_pn.pnnp

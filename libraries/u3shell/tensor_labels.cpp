@@ -45,7 +45,7 @@ namespace u3shell {
   {
 
     return fmt::format(
-        "U{}({},{})",
+        "Unit{}({},{})",
         OperatorLabelsU3ST::Str(),
         bra().Str(),ket().Str()
       );
@@ -55,7 +55,7 @@ namespace u3shell {
   {
 
     return fmt::format(
-        "U{}{}({},{})",
+        "Unit{}{}({},{})",
         OperatorLabelsU3ST::Str(),
         rho0(),
         bra().Str(),ket().Str()
@@ -75,8 +75,8 @@ namespace u3shell {
   {
 
     return fmt::format(
-        "[{} {} {}]",
-        x0().Str(),S0(),g0()
+        "[{:+d}{} {} {}]",
+        N0(),x0().Str(),S0(),g0()
       );
   }
 
@@ -84,7 +84,7 @@ namespace u3shell {
   {
 
     return fmt::format(
-        "U{}{}({},{})",
+        "Unit{}{}({},{})",
         OperatorLabelsU3S::Str(),
         rho0(),
         bra().Str(),ket().Str()

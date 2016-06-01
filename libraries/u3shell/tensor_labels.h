@@ -52,7 +52,7 @@ namespace u3shell
       {}
     
     inline RelativeStateLabelsU3ST(int eta, HalfInt S, HalfInt T)
-      : eta_(eta), S_(S), T_(S)
+      : eta_(eta), S_(S), T_(T)
     // Construct from labels.
     {}
     
@@ -163,7 +163,7 @@ namespace u3shell
       {}
     
     inline TwoBodyStateLabelsU3ST(int eta1, int eta2, const u3::SU3& x, HalfInt S, HalfInt T)
-      : eta1_(eta1), eta2_(eta2), x_(x), S_(S), T_(S)
+      : eta1_(eta1), eta2_(eta2), x_(x), S_(S), T_(T)
     // Construct from labels.
     {}
     
