@@ -9,6 +9,7 @@
 #include "u3shell/two_body_operator.h"
 
 #include <array>
+#include <cmath>
 
 #include "cppformat/format.h"
 #include "am/am.h"
@@ -194,7 +195,7 @@ namespace u3shell {
         // unlike particle terms (pnnp):
         //   include_unlike (bool) : whether or not unlike-particle biquads are to be included
         //   norm_unlike (double) : overall normalization factor for unlike-particle biquads
-        //   signs_unlike (std::array<int,4>) : signs (+1,-1) for unlike-particle biquads
+        //   signs_unlike (std::array<int,4>) : signs (+1,-1) for unlike-particle biquads <pn|pn>
         //     as {<12|12>, <12|21>, <21|12>, <21|12>}, where recall we label biquads using 
         //     the label ordering as it appears in the corresponding RME
         //
@@ -206,17 +207,17 @@ namespace u3shell {
 
         if ((Tp==0)&&(T==0)&&(T0==0))
           {
-            norm_unlike = 1/2;
+            norm_unlike = 1/2.;
             signs_unlike = {-1,+1,+1,-1};
           }
         else if ((Tp==1)&&(T==0)&&(T0==1))
           {
-            norm_unlike = 1/2;
+            norm_unlike = 1/2.;
             signs_unlike = {-1,+1,-1,+1};
           }
         else if ((Tp==0)&&(T==1)&&(T0==1))
           {
-            norm_unlike = 1/2;
+            norm_unlike = 1/2.;
             signs_unlike = {-1,-1,+1,+1};
           }
         else if ((Tp==1)&&(T==1)&&(T0==0))
@@ -257,7 +258,7 @@ namespace u3shell {
         if (include_like)
           {
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
-                x0,S0,rho0,statep12,state12
+                operator_labels_u3s,rho0,statep12,state12
               );
             coefficients_pn = u3shell::CoefficientsPN(
                 biquad_coefficient*norm_like*signs_like[0],

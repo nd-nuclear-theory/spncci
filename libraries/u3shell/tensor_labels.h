@@ -454,11 +454,6 @@ namespace u3shell
       return ket_;
     }
 
-    inline const u3::SU3& x0() const
-    {
-      return x0_;
-    }
-
     ////////////////////////////////////////////////////////////////
     // key tuple, comparisons, and hashing
     ////////////////////////////////////////////////////////////////
@@ -476,8 +471,6 @@ namespace u3shell
     {
       return FlatKeyType(x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T());
     }
-
-
 
     inline friend bool operator == (const RelativeUnitTensorLabelsU3ST& x1, const RelativeUnitTensorLabelsU3ST& x2)
     {
@@ -536,27 +529,7 @@ namespace u3shell
       : rho0_(0)
       // Default constructor.
       {}
-
-    inline TwoBodyUnitTensorLabelsU3ST(
-        const u3::SU3& x0, HalfInt S0, HalfInt T0,
-        int rho0,
-        const u3shell::TwoBodyStateLabelsU3ST& bra,
-        const u3shell::TwoBodyStateLabelsU3ST& ket
-      )
-      : rho0_(rho0), bra_(bra), ket_(ket)
-    // Construct from labels, with operator labels set individually.
-    //
-    // DEPRECATED -- as less cleanly "structured" form
-    //
-    // Redundant operator labels are set from the bra/ket labels.
-    {
-      N0_ = bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2();  // combined quanta carried by ket (created) and bra (destroyed)
-      x0_= x0;
-      S0_ = S0;
-      T0_ = T0;
-      g0_ = (bra_.g()+ket_.g())%2;  // equivalently, N0_%2
-    }
-
+      
     inline TwoBodyUnitTensorLabelsU3ST(
         const u3shell::OperatorLabelsU3ST operator_labels,
         int rho0,
@@ -638,20 +611,11 @@ namespace u3shell
     // labels
     ////////////////////////////////////////////////////////////////
 
-    protected:
+    private:
     TwoBodyStateLabelsU3ST bra_, ket_;
     int rho0_;
   };
 
-
-  // Generates map of RelativeUnitTensorLabelsU3ST for a given Nmax truncation,   
-  // stored in relative_unit_tensor_labels.
-  // Map keys are N0: number of oscillator quanta carried by the operator
-  // values are vectors of RelativeUnitTensorLabelsU3ST with oscillator quanta N0
-  void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
-        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-        );
 
   ////////////////////////////////////////////////////////////////
   // U3S-scheme two-body state labels
@@ -878,25 +842,6 @@ namespace u3shell
       : rho0_(0)
       // Default constructor.
       {}
-
-    inline TwoBodyUnitTensorLabelsU3S(
-        const u3::SU3& x0, HalfInt S0,
-        int rho0,
-        const TwoBodyStateLabelsU3S& bra,
-        const TwoBodyStateLabelsU3S& ket
-      )
-      : rho0_(rho0), bra_(bra), ket_(ket)
-    // Construct from labels, with operator labels set individually.
-    //
-    // DEPRECATED -- as less cleanly "structured" form
-    //
-    // Redundant operator labels are set from the bra/ket labels.
-    {
-      N0_ = bra_.eta1() + bra_.eta2() - ket_.eta1() - ket.eta2();  // combined quanta carried by ket (created) and bra (destroyed)
-      x0_= x0;
-      S0_ = S0;
-      g0_ = N0_%2;  // or, equivalently, (bra_.g()+ket_.g())%2
-    }
 
     inline TwoBodyUnitTensorLabelsU3S(
         const u3shell::OperatorLabelsU3S operator_labels,

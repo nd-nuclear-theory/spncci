@@ -41,19 +41,19 @@ int main(int argc, char **argv)
   //   ((2,2),1)
 
   // relative U3ST unit tensor: construction from individual operator labels (DEPRECATED)
-  if (true)
-    {
-      std::cout << "relative U3ST: construction from individual operator labels (DEPRECATED)"
-                << std::endl;
-      u3shell::RelativeUnitTensorLabelsU3ST
-        unit_tensor(
-            u3::SU3(1,1),1,0,
-            u3shell::RelativeStateLabelsU3ST(2,1,0),
-            u3shell::RelativeStateLabelsU3ST(2,1,0)
-          ); // x0,S0,T0,bra,ket 
-      std::cout << unit_tensor.Str()
-                << " N0 " << unit_tensor.N0() << std::endl;
-    }
+  // if (true)
+  //   {
+  //     std::cout << "relative U3ST: construction from individual operator labels (DEPRECATED)"
+  //               << std::endl;
+  //     u3shell::RelativeUnitTensorLabelsU3ST
+  //       unit_tensor(
+  //           u3::SU3(1,1),1,0,
+  //           u3shell::RelativeStateLabelsU3ST(2,1,0),
+  //           u3shell::RelativeStateLabelsU3ST(2,1,0)
+  //         ); // x0,S0,T0,bra,ket 
+  //     std::cout << unit_tensor.Str()
+  //               << " N0 " << unit_tensor.N0() << std::endl;
+  //   }
 
   // relative U3ST unit tensor
   if (true)
@@ -73,20 +73,20 @@ int main(int argc, char **argv)
 
 
   // two-body U3ST unit tensor: construction from individual operator labels (DEPRECATED)
-  if (true)
-    {
-      std::cout << "two-body U3ST: construction from individual operator labels (DEPRECATED)"
-                << std::endl;
-      u3shell::TwoBodyUnitTensorLabelsU3ST
-        unit_tensor(
-            u3::SU3(2,2),1,1,
-            1,
-            u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0),
-            u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0)
-          );
-      std::cout << unit_tensor.Str()
-                << " N0 " << unit_tensor.N0() << std::endl;
-    }
+  // if (true)
+  //   {
+  //     std::cout << "two-body U3ST: construction from individual operator labels (DEPRECATED)"
+  //               << std::endl;
+  //     u3shell::TwoBodyUnitTensorLabelsU3ST
+  //       unit_tensor(
+  //           u3::SU3(2,2),1,1,
+  //           1,
+  //           u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0),
+  //           u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(2,0),1,0)
+  //         );
+  //     std::cout << unit_tensor.Str()
+  //               << " N0 " << unit_tensor.N0() << std::endl;
+  //   }
 
   // two-body U3ST unit tensor
   if (true)
@@ -122,21 +122,21 @@ int main(int argc, char **argv)
 
 
   // two-body U3S unit tensor: construction from individual operator labels (DEPRECATED)
-  if (true)
-    {
-      std::cout << "two-body U3S: construction from individual operator labels (DEPRECATED)"
-                << std::endl;
-      u3shell::TwoBodyUnitTensorLabelsU3S
-        unit_tensor_pn(
-            u3::SU3(2,2),1,
-            1,
-            u3shell::TwoBodyStateLabelsU3S(1,1,u3::SU3(2,0),1),
-            u3shell::TwoBodyStateLabelsU3S(1,1,u3::SU3(2,0),1)
-          ); // x0,S0,rho0,bra,ket 
-      std::cout << unit_tensor_pn.Str()
-                << " N0 " << unit_tensor_pn.N0() << std::endl;
+  // if (true)
+  //   {
+  //     std::cout << "two-body U3S: construction from individual operator labels (DEPRECATED)"
+  //               << std::endl;
+  //     u3shell::TwoBodyUnitTensorLabelsU3S
+  //       unit_tensor_pn(
+  //           u3::SU3(2,2),1,
+  //           1,
+  //           u3shell::TwoBodyStateLabelsU3S(1,1,u3::SU3(2,0),1),
+  //           u3shell::TwoBodyStateLabelsU3S(1,1,u3::SU3(2,0),1)
+  //         ); // x0,S0,rho0,bra,ket 
+  //     std::cout << unit_tensor_pn.Str()
+  //               << " N0 " << unit_tensor_pn.N0() << std::endl;
 
-    }
+  //   }
 
   // two-body U3S unit tensor
   if (true)

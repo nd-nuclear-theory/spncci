@@ -52,7 +52,7 @@ void test_two_body()
       // populate operator
       u3shell::TwoBodyUnitTensorLabelsU3ST
         two_body_unit_tensor_labels(
-            u3::SU3(1,1),1,1,  // x0,S0,T0
+            u3shell::OperatorLabelsU3ST(0,u3::SU3(1,1),1,1,0),
             1,  //rho0
             u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(1,1),1,0), // bra
             u3shell::TwoBodyStateLabelsU3ST(1,1,u3::SU3(1,1),1,0)  // ket

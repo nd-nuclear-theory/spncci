@@ -84,7 +84,8 @@ namespace u3shell
      const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
      u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
      );
-  // Accumulate biquad coefficients for given two-body unit tensors.
+  // Accumulate two-body unit tensor coefficients for given linear combination of
+  // relative unit tensors.
   //
   // relative_unit_tensor_coefficients (RelativeUnitTensorCoefficientsU3ST, input)
   //   : map giving coefficients on a set of two-body U3ST unit tensors 
@@ -104,7 +105,8 @@ namespace u3shell
                                           const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
                                           u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
                                           );
-  // Accumulate biquad coefficients for given two-body unit tensors.
+  // Accumulate biquad coefficients for given linear combination of
+  // two-body unit tensors.
   //
   // New coefficients accumulate additively onto any existing coefficients in biquad_coefficients.
   //

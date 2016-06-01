@@ -86,6 +86,19 @@ namespace u3shell
   // // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
   // // for rp>=r.  To get the other half, use conjugation 
 
+
+  // Generates map of RelativeUnitTensorLabelsU3ST for a given Nmax truncation,   
+  // stored in relative_unit_tensor_labels.
+  // Map keys are N0: number of oscillator quanta carried by the operator
+  // values are vectors of RelativeUnitTensorLabelsU3ST with oscillator quanta N0
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        int Nmax, 
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
+        );
+
+
+
+
 }  // namespace
 
 #endif
