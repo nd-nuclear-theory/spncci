@@ -21,7 +21,7 @@
 #include "u3shell/indexing_u3st.h"
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Eigenvalues>  
-#include "u3shell/tensor.h"
+#include "u3shell/tensor_labels.h"
 namespace u3shell
 {
   // double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x);
