@@ -165,7 +165,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
 
   // generate list of unit tensor labels
-  const int Nmax = 4;
+  const int Nmax = 2;
   u3shell::TwoBodySpaceU3ST two_body_space(Nmax);
   u3shell::TwoBodySectorsU3ST two_body_sectors(two_body_space);
   std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>> unit_tensor_labels_set_by_N0
@@ -235,7 +235,111 @@ int main(int argc, char **argv)
     }
   label_stream.close();
 
-  // generate unit tensors
+
+  // output unit tensors for recoupler
+
+  const int max_num_output_files = 100;  // safety limit for number of outputted files
+  bool verbose = true;  // debugging verbosity
+  bool write_output = false;  // generate actual output files for recoupler
+  for (int unit_tensor_index=0; unit_tensor_index < unit_tensor_labels_set.size(); ++unit_tensor_index)
+    {
+
+      // safety short circuit
+      if (unit_tensor_index >= max_num_output_files)
+        break;
+
+      // head iteration (verbose output)
+      if (verbose)
+        {
+          std::cout << std::endl;
+          std::cout << fmt::format("operator {:06d}",unit_tensor_index) << std::endl;
+          std::cout << std::endl;
+        }
+
+      // extract unit tensor labels
+      const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels
+        = unit_tensor_labels_set[unit_tensor_index];
+
+      // declare coefficient containers
+      u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
+      u3shell::TwoBodyUnitTensorCoefficientsU3ST biquad_coefficients;
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN biquad_coefficients_pn;
+
+      // populate operator
+      two_body_unit_tensor_coefficients[two_body_unit_tensor_labels] = 1;
+
+      // dump operator (verbose output)
+      if (verbose)
+        {
+          // dump operator
+          std::cout << "two_body_unit_tensor_coefficients" << std::endl;
+          for (auto key_value : two_body_unit_tensor_coefficients)
+            {
+
+              // extract unit tensor labels and coefficients
+              auto labels= key_value.first;
+              double coefficient = key_value.second;
+        
+              std::cout 
+                << fmt::format(
+                    "  {} {:e}",
+                    labels.Str(),
+                    coefficient
+                  )
+                << std::endl;
+            }
+        }
+
+      // convert to biquads
+      u3shell::TransformTwoBodyUnitTensorToBiquad(
+          two_body_unit_tensor_coefficients,
+          biquad_coefficients
+        );
+
+      // dump operator (verbose output)
+      if (verbose)
+        {
+          std::cout << "biquad_coefficients" << std::endl;
+          for (auto key_value : biquad_coefficients)
+            {
+
+              // extract unit tensor labels and coefficients
+              auto labels= key_value.first;
+              double coefficient = key_value.second;
+        
+              std::cout 
+                << fmt::format(
+                    "  {} {:e}",
+                    labels.Str(),
+                    coefficient
+                  )
+                << std::endl;
+            }
+        }
+
+      // convert to pn scheme
+      u3shell::TransformBiquadToPNScheme(
+          biquad_coefficients,
+          biquad_coefficients_pn
+        );
+
+      // dump operator (verbose output)
+      if (verbose)
+        {
+          std::cout << "biquad_coefficients_pn recoupler output" << std::endl;
+          WriteTwoBodyOperatorRecoupler(std::cout,biquad_coefficients_pn);
+        }
+
+      // dump operator in recoupler format
+      if (write_output)
+        {
+          std::string operator_stream_filename = fmt::format("recoupler_{:06d}.dat",unit_tensor_index);
+          std::ofstream operator_stream(operator_stream_filename);
+          WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
+          operator_stream.close();
+        }
+
+    }
 
   // termination
   return 0;
