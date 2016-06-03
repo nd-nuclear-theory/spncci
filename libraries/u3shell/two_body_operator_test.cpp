@@ -141,6 +141,11 @@ int main(int argc, char **argv)
   test_moshinsky();
   test_two_body();
 
+  u3shell::CoefficientsPN coefficeints(4, 5, 6);
+  std::cout<<fmt::format("initial {} {} {}",coefficeints.pppp,coefficeints.nnnn,coefficeints.pnnp)<<std::endl;
+  
+  coefficeints*4.;
+  std::cout<<fmt::format("multiplied {}  {}  {}", coefficeints.pppp, coefficeints.nnnn, coefficeints.pnnp)<<std::endl;
   // termination
   return 0;
 }

@@ -22,6 +22,8 @@
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Eigenvalues>  
 #include "u3shell/tensor_labels.h"
+#include "u3shell/two_body_operator.h"
+
 namespace u3shell
 {
   // double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x);
@@ -37,15 +39,20 @@ namespace u3shell
   double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w);
   // Overloading Moshinsky to take integers and U3 for total symmetry
 
-  void MoshinskyTransformation(const u3shell::RelativeUnitTensorLabelsU3ST& tensor, int Nmax);
-  // Moshinsky transform of relative unit tensor operator to twobody space.  
+  // u3shell::TwoBodyUnitTensorCoefficientsU3ST 
+  // MoshinskyTransformUnitTensor(const u3shell::RelativeUnitTensorLabelsU3ST& tensor, u3shell::TwoBodySpaceU3ST& space);
+  // // Moshinsky transform of relative unit tensor operator to twobody space and anti-symmeterizes 
+ void MoshinskyTransformUnitTensor(
+        const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
+        double expansion_coef, 
+        u3shell::TwoBodySpaceU3ST& space,
+        u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion
+        );
 
+// Moshinsky Transform operator decomposed in terms of unit tensors to two-body nomralized anti-symmeterized space 
+  u3shell::TwoBodyUnitTensorCoefficientsU3ST 
+    TransformRelativeTensorToTwobodyTensor(const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_exansion, u3shell::TwoBodySpaceU3ST& space);
   
-
-
-
-
-
 } //namespace
 
 #endif 

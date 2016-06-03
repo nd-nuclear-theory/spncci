@@ -162,7 +162,7 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
 int main(int argc, char **argv)
 {
   // configuration 
-  const int max_num_output_files = 1;  // safety limit for number of outputted files
+  const int max_num_output_files = 10;  // safety limit for number of outputted files
   bool verbose = true;  // debugging verbosity
   bool write_output = true;  // generate actual output files for recoupler
 
@@ -368,7 +368,7 @@ int main(int argc, char **argv)
       // dump operator in recoupler format
       if (write_output)
         {
-          std::string operator_stream_filename = fmt::format("recoupler_{:06d}.dat",unit_tensor_index);
+          std::string operator_stream_filename = fmt::format("operator{:06d}.recoupler",unit_tensor_index);
           std::ofstream operator_stream(operator_stream_filename);
           WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
           operator_stream.close();

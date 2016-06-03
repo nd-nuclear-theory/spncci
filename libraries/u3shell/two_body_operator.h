@@ -58,6 +58,15 @@ namespace u3shell
       return *this;
     }
 
+    // scalar multiplications
+    inline CoefficientsPN& operator* (float coef)
+    {
+      pppp = coef*pppp;
+      nnnn = coef*nnnn;
+      pnnp = coef*pnnp;
+      return *this;
+    }
+
     // data
     double pppp, nnnn, pnnp;
   };
