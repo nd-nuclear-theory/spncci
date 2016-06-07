@@ -69,85 +69,60 @@ namespace u3shell
   }
 
 
-  void MoshinskyTransformUnitTensor(
-        const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
-        double expansion_coef, 
-        u3shell::TwoBodySpaceU3ST& space,
-        u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion
-      )
+
+  Eigen::MatrixXd MoshinskyTransform(
+        const u3::SU3& x0, 
+        int etap,
+        int eta,
+        const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
+        const u3shell::TwoBodySubspaceU3ST& ket_subspace, 
+        int rho0)
   {
-          //extract operator labels 
-    int etap=tensor.bra().eta();
-    int eta=tensor.ket().eta();
-    HalfInt S=tensor.ket().S();
-    HalfInt T=tensor.ket().T();
-    HalfInt Sp=tensor.bra().S();
-    HalfInt Tp=tensor.bra().T();
-    u3::SU3 x0(tensor.x0());
+    HalfInt Sp=bra_subspace.S();
+    HalfInt Tp=bra_subspace.T();
+    u3::U3 omegap(bra_subspace.omega());
+    //u3::U3 omegap(sector_labels.bra_subspace().omega());
+    int Np=int(omegap.N());
+    u3::SU3 xp(omegap.SU3());
+
+    HalfInt S=ket_subspace.S();
+    HalfInt T=ket_subspace.T();
+    u3::U3 omega(ket_subspace.omega());
+    int N=int(omega.N()); //for Two-body state, N must be int. A/2=2/2
+    u3::SU3 x(omega.SU3());
+
+
+    // dimension of the subspaces 
+    int dimb=bra_subspace.size();
+    int dimk=ket_subspace.size();
+    Eigen::MatrixXd sector(dimb,dimk);
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Sectors are generated subject to the constraints that 
-    // omega.N()+N0=omegap.N()
-    // omega x x0 -> omegap
-    // S x S0 ->Sp
-    // T x T0 ->Tp
-    u3shell::TwoBodySectorsU3ST sector_labels_list(space,tensor);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Iterate over sectors
-    for (int sector_index=0; sector_index<sector_labels_list.size(); sector_index++)
+    // eta_cm is fixed by unit tensor plus constraints
+    //    (eta,0)x(eta_cm)->omega and eta+eta_cm=N
+    //    (etap,0)x(eta_cm)->omegap and etap+eta_cm=Np
+    //    and eta_cm>0
+    int eta_cm=Np-etap;
+    /// Checking valid value of eta_cm
+    if (
+      eta_cm==(N-eta)
+      &&(eta_cm>=0)
+      &&(u3::OuterMultiplicity(u3::SU3(eta,0),u3::SU3(eta_cm,0),x)!=0)
+      &&(u3::OuterMultiplicity(u3::SU3(etap,0),u3::SU3(eta_cm,0),xp)!=0)
+      )
     {
-      // for a given sector, extract bra and ket subspace information
-      auto sector_labels=sector_labels_list.GetSector(sector_index);
-
-      const u3shell::TwoBodySubspaceU3ST& bra_subspace(sector_labels.bra_subspace());
-      const u3shell::TwoBodySubspaceU3ST& ket_subspace(sector_labels.ket_subspace());
-
-      if ((bra_subspace.S()!=Sp) || (bra_subspace.T()!=Tp) || (ket_subspace.S()!=S) || (ket_subspace.T()!=T))
-        continue;
-
-      u3::U3 omegap(bra_subspace.omega());
-      //u3::U3 omegap(sector_labels.bra_subspace().omega());
-      int Np=int(omegap.N());
-      u3::SU3 xp(omegap.SU3());
-
-      u3::U3 omega(ket_subspace.omega());
-      int N=int(omega.N()); //for Two-body state, N must be int. A/2=2/2
-      u3::SU3 x(omega.SU3());
-
-      int rho0=sector_labels.multiplicity_index();
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      // eta_cm is fixed by unit tensor plus constraints
-      //    (eta,0)x(eta_cm)->omega and eta+eta_cm=N
-      //    (etap,0)x(eta_cm)->omegap and etap+eta_cm=Np
-      //    and eta_cm>0
-      int eta_cm=Np-etap;
-      /// Checking valid value of eta_cm
-      if (
-        eta_cm!=(N-eta)
-        ||(eta_cm<0)
-        ||(u3::OuterMultiplicity(u3::SU3(eta,0),u3::SU3(eta_cm,0),omega.SU3())==0)
-        ||(u3::OuterMultiplicity(u3::SU3(etap,0),u3::SU3(eta_cm,0),omegap.SU3())==0)
-        )
-        continue;
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      // dimension of the subspaces 
-      int dimb=bra_subspace.size();
-      int dimk=ket_subspace.size();
-      // set up two-body sector for given operator,(omegap,Sp,Tp),(omega,S,T), rho0
-      Eigen::MatrixXd sector(dimk,dimb); 
 
+      // // set up two-body sector for given operator,(omegap,Sp,Tp),(omega,S,T), rho0
+      // Eigen::MatrixXd sector(dimk,dimb); 
       Eigen::MatrixXd bra_moshinky_12(dimb,1);
       Eigen::MatrixXd ket_moshinky_12(1,dimk);
       // Changed particles 
       Eigen::MatrixXd bra_moshinky_21(dimb,1);
       Eigen::MatrixXd ket_moshinky_21(1,dimk);
 
-      std::vector<u3shell::TwoBodyStateLabelsU3ST>bra_labels;
-      std::vector<u3shell::TwoBodyStateLabelsU3ST>ket_labels;
-
       //ucoefficient from factoring out center of mass 
-      //the expansion_coef corresponds to the reduce matrix element of the operator in the relative space
-      double relative_coef=(u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0)
-                    *expansion_coef);
+      double relative_coef=(u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0));
 
       // iterate over bra subspace
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,10 +131,6 @@ namespace u3shell
           const u3shell::TwoBodyStateU3ST bra_state(bra_subspace,bra_state_index);
           int eta1p=bra_state.N1();
           int eta2p=bra_state.N2();
-
-          bra_labels.push_back(
-            u3shell::TwoBodyStateLabelsU3ST(eta1p, eta2p, xp, bra_subspace.S(), bra_subspace.T())
-            );
           
           // Phase arising from exchanging particle 1 and particle 2
           bool phase_even=(eta1p+eta2p+u3::ConjugationGrade(xp)+int(Sp+Tp))%2==0;
@@ -192,10 +163,6 @@ namespace u3shell
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
           double coef=1./std::sqrt(2.*(1+KroneckerDelta(eta1,eta2)));
 
-          ket_labels.push_back(
-            u3shell::TwoBodyStateLabelsU3ST(eta1, eta2, omega.SU3(), ket_subspace.S(), ket_subspace.T())
-            );
-
           ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta1, eta2, eta, eta_cm, x);
           ket_moshinky_21(0,ket_state_index)=exchange_phase*coef*MoshinskyCoefficient(eta2, eta1, eta, eta_cm, x);
         }  
@@ -207,21 +174,105 @@ namespace u3shell
         -bra_moshinky_12*ket_moshinky_21
         +bra_moshinky_21*ket_moshinky_21
         );
+    }
+    return sector;
+  }
+
+
+
+  void MoshinskyTransformUnitTensor(
+        const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
+        double expansion_coef, 
+        u3shell::TwoBodySpaceU3ST& space,
+        u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion
+      )
+  {
+          //extract operator labels 
+    int etap=tensor.bra().eta();
+    int eta=tensor.ket().eta();
+    HalfInt S=tensor.ket().S();
+    HalfInt T=tensor.ket().T();
+    HalfInt Sp=tensor.bra().S();
+    HalfInt Tp=tensor.bra().T();
+    u3::SU3 x0(tensor.x0());
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Sectors are generated subject to the constraints that 
+    // omega.N()+N0=omegap.N()
+    // omega x x0 -> omegap
+    // S x S0 ->Sp
+    // T x T0 ->Tp
+    u3shell::TwoBodySectorsU3ST sector_labels_list(space,tensor);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Iterate over sectors
+    for (int sector_index=0; sector_index<sector_labels_list.size(); sector_index++)
+    {
+
+
+      // for a given sector, extract bra and ket subspace information
+      auto sector_labels=sector_labels_list.GetSector(sector_index);
+
+
+      const u3shell::TwoBodySubspaceU3ST& bra_subspace(sector_labels.bra_subspace());
+      const u3shell::TwoBodySubspaceU3ST& ket_subspace(sector_labels.ket_subspace());
+      int rho0=sector_labels.multiplicity_index();
+
+
+      if ((bra_subspace.S()!=Sp) || (bra_subspace.T()!=Tp) || (ket_subspace.S()!=S) || (ket_subspace.T()!=T))
+        continue;
+
+      // dimension of the subspaces 
+      int dimb=bra_subspace.size();
+      int dimk=ket_subspace.size();
+      // set up two-body sector for given operator,(omegap,Sp,Tp),(omega,S,T), rho0
+      Eigen::MatrixXd sector(dimk,dimb);
+
+      // std::vector<u3shell::TwoBodyStateLabelsU3ST>bra_labels;
+      // std::vector<u3shell::TwoBodyStateLabelsU3ST>ket_labels; 
+
+      u3::SU3 x(bra_subspace.omega().SU3());
+      u3::SU3 xp(ket_subspace.omega().SU3());
+      HalfInt Np(bra_subspace.omega().N());
+      HalfInt N(ket_subspace.omega().N());
+
+      int eta_cm=int(Np-etap);
+      /// Checking valid value of eta_cm
+      if (
+        eta_cm!=(N-eta)
+        ||(eta_cm<0)
+        ||(u3::OuterMultiplicity(u3::SU3(eta,0),u3::SU3(eta_cm,0),x)==0)
+        ||(u3::OuterMultiplicity(u3::SU3(etap,0),u3::SU3(eta_cm,0),xp)==0)
+        )
+        continue;
+
+      sector=MoshinskyTransform(x0, etap, eta, bra_subspace, ket_subspace, rho0);
+
       // Accumluating the moshinsky transformed coeffcients 
-      for (int i=0; i<dimb; i++)
-        {
-        for (int j=0; j<dimk; j++)
+      for (int i=0; i<dimb; ++i)
+      {
+        const u3shell::TwoBodyStateU3ST bra_state(bra_subspace,i);
+        int eta1p=bra_state.N1();
+        int eta2p=bra_state.N2();
+
+        u3shell::TwoBodyStateLabelsU3ST bra(eta1p, eta2p, xp, Sp, Tp);
+
+        for (int j=0; j<dimk; ++j)
           {
-            double coefficient=sector(i,j);
-            //std::cout<<coefficient<<"  "<<(coefficient>.00005)<<std::endl;
-            if (fabs(coefficient)>1.0e-10)
-            {
-              TwoBodyUnitTensorLabelsU3ST tboperator(tensor,rho0,bra_labels[i],ket_labels[j]);
-              // std::cout<<"twobody operator  "<<tboperator.Str()<<std::endl;
-              two_body_expansion[tboperator]+=coefficient;                
-            }
+            const u3shell::TwoBodyStateU3ST ket_state(ket_subspace,j);
+            int eta1=ket_state.N1();
+            int eta2=ket_state.N2();
+            u3shell::TwoBodyStateLabelsU3ST ket(eta1, eta2, x, S, T);
+
+            double coefficient=expansion_coef*sector(i,j);      
+            TwoBodyUnitTensorLabelsU3ST tboperator(tensor,rho0,bra,ket);
+            two_body_expansion[tboperator]+=coefficient;                
           }
         }
+      // remove unit tensors with coefficient zero
+      for(auto key_value : two_body_expansion)
+      {
+        if(fabs(key_value.second)<1e-10)
+          two_body_expansion.erase(key_value.first);
+      }
     }
   }
 

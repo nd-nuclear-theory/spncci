@@ -60,4 +60,12 @@ inline int Factorial(int x)
   return gsl_sf_fact(x);
 }
 
+inline int parity(const int i)
+{
+  if( (i%2)==0)
+    return 1;
+  else
+    return -1;
+}
+
 #endif

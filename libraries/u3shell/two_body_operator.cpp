@@ -116,7 +116,6 @@ namespace u3shell {
             biquad_coefficients[biquad_labels] += biquad_coefficient;
             
           }
-
       }
   }
 

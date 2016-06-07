@@ -9,6 +9,7 @@
 ****************************************************************/
 
 #include "u3shell/moshinsky.h"
+#include "u3shell/relative_operator.h"
 
 int main(int argc, char **argv)
 {
@@ -68,5 +69,87 @@ int main(int argc, char **argv)
     std::cout<<labels.Str()<<std::endl
     <<coefficient<<std::endl;
   }
+
+  // Number operator test 
+  std::cout<<std::endl<<"Number operator test "<<std::endl;
+  u3shell::RelativeUnitTensorCoefficientsU3ST number_operator;
+  for (int N=0; N<=Nmax; N++)
+    for (int S=0;S<=1; S++)
+      for (int T=0;T<=1; T++)
+        {
+          u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+          u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+          number_operator[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=u3shell::RelativeNumberOperator(bra,ket);
+        }
+
+  // testing moshinksy transformation 
+  u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);
+  two_body_expansion=u3shell::TransformRelativeTensorToTwobodyTensor(number_operator, space);
+
+  for (auto key_value : two_body_expansion)
+  {
+    // extract unit tensor labels and coefficients
+    auto labels= key_value.first;
+    auto rme = key_value.second;
+    u3::SU3 x0(labels.x0());
+    u3::SU3 xp(labels.ket().x());
+    u3::SU3 x(labels.bra().x());
+    int rho0=labels.rho0();
+
+    HalfInt S0=labels.S0();
+    HalfInt S=labels.ket().S();
+    HalfInt Sp=labels.bra().S();
+    std::tuple<HalfInt,HalfInt,HalfInt> S_tuple(S,S0,Sp);
+    
+    HalfInt T0=labels.T0();
+    HalfInt T=labels.ket().T();
+    HalfInt Tp=labels.bra().T();
+    std::tuple<HalfInt,HalfInt,HalfInt> T_tuple(T,T0,Tp);
+    
+    int g0=labels.g0();
+
+    MultiplicityTagged<int>::vector L_kappa=u3::BranchingSO3(x);
+    MultiplicityTagged<int>::vector L0_kappa0=u3::BranchingSO3(x0);
+    MultiplicityTagged<int>::vector Lp_kappap=u3::BranchingSO3(xp);
+    std::map<
+      std::tuple<
+            std::tuple<int,int,int>,
+            std::tuple<HalfInt,HalfInt,HalfInt>,
+            std::tuple<HalfInt,HalfInt,HalfInt>,
+            int 
+            >,
+      double
+    > L_map;
+
+    for(int k=0; k<L_kappa.size(); k++)
+      {
+        int L=L_kappa[k].irrep;
+        int kappa_max=L_kappa[k].tag;
+        for(int k0=0; k0<L0_kappa0.size(); k0++)
+          {
+            int L0=L0_kappa0[k0].irrep;
+            int kappa0_max=L0_kappa0[k0].tag;
+            for(int kp=0; kp<Lp_kappap.size(); kp++)
+              {
+                int Lp=Lp_kappap[kp].irrep;
+                int kappap_max=Lp_kappap[kp].tag;
+                double branched_coef=0;
+                for(int kappa=1; kappa<=kappa_max; kappa++)
+                  for(int kappa0=1; kappa0<=kappa0_max; kappa0++)
+                    for(int kappap=1; kappap<=kappap_max; kappap++)
+                      {
+                        branched_coef+=u3::W(x, kappa, L, x0, kappa0, L0,xp, kappap, Lp, rho0);
+                      }
+                std::tuple<int,int,int> L_tuple(L,L0,Lp);
+
+                L_map[std::make_tuple(L_tuple,S_tuple,T_tuple,g0)]+=branched_coef*rme;
+              }
+          }
+      }
+
+    std::cout<<labels.Str()<<std::endl
+    <<rme<<std::endl;
+  }
+
 
 }

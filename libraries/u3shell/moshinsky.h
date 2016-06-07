@@ -39,6 +39,15 @@ namespace u3shell
   double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w);
   // Overloading Moshinsky to take integers and U3 for total symmetry
 
+
+  Eigen::MatrixXd MoshinskyTransform(
+        const u3::SU3& x0, 
+        int etap,
+        int eta,
+        const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
+        const u3shell::TwoBodySubspaceU3ST& ket_subspace, 
+        int rho0);
+
   // u3shell::TwoBodyUnitTensorCoefficientsU3ST 
   // MoshinskyTransformUnitTensor(const u3shell::RelativeUnitTensorLabelsU3ST& tensor, u3shell::TwoBodySpaceU3ST& space);
   // // Moshinsky transform of relative unit tensor operator to twobody space and anti-symmeterizes 

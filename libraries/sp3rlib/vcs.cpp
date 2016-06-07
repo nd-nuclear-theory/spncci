@@ -1,14 +1,8 @@
 /****************************************************************
   vcs.cpp                       
 
-  Define vector coherent state methods for Sp(3,R).
-
-  Anna E. McCoy
+  Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
-
-  Created by Anna E. McCoy on 3/9/16.   
- 
-  3/9/16 (aem): Created based on prototype vcs.py.
 
 ****************************************************************/
 #include <omp.h>
@@ -263,7 +257,6 @@ namespace vcs{
                   K_matrix_map[omega_p]=K_matrix_p;
                   // std::cout<<"Kmatrix = "<<K_matrix_p<<std::endl;
                 }
-
           } // end for (i) 
       }//parallel region
       std::cout<<"map size "<<S_matrix_map.size()<<std::endl;

@@ -57,7 +57,30 @@ void test_relative()
 int main(int argc, char **argv)
 {
 
+  u3::U3CoefInit();
   test_relative();
+
+  u3shell::RelativeStateLabelsU3ST bra;
+  u3shell::RelativeStateLabelsU3ST ket;
+
+  bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  std::cout<<"Number operator    "<<u3shell::RelativeNumberOperator(bra,ket)<<std::endl;
+  std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+
+
+  bra=u3shell::RelativeStateLabelsU3ST(4,1,0);
+  ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  std::cout<<"Raising operator   "<<u3shell::RelativeSp3rRaisingOperator(bra,ket)<<std::endl;
+  std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+
+
+  bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  ket=u3shell::RelativeStateLabelsU3ST(4,1,0);
+  std::cout<<"Lowering operator  "<<u3shell::RelativeSp3rLoweringOperator(bra,ket)<<std::endl;
+  std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+
+
 
   // termination
   return 0;
