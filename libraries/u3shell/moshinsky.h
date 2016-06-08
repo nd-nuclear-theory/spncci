@@ -60,7 +60,7 @@ namespace u3shell
 
 // Moshinsky Transform operator decomposed in terms of unit tensors to two-body nomralized anti-symmeterized space 
   u3shell::TwoBodyUnitTensorCoefficientsU3ST 
-    TransformRelativeTensorToTwobodyTensor(const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_exansion, u3shell::TwoBodySpaceU3ST& space);
+    TransformRelativeTensorToTwobodyTensor(const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, u3shell::TwoBodySpaceU3ST& space);
   
 } //namespace
 

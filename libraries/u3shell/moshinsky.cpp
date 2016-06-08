@@ -76,7 +76,8 @@ namespace u3shell
         int eta,
         const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
         const u3shell::TwoBodySubspaceU3ST& ket_subspace, 
-        int rho0)
+        int rho0
+      )
   {
     HalfInt Sp=bra_subspace.S();
     HalfInt Tp=bra_subspace.T();
@@ -117,9 +118,6 @@ namespace u3shell
       // Eigen::MatrixXd sector(dimk,dimb); 
       Eigen::MatrixXd bra_moshinky_12(dimb,1);
       Eigen::MatrixXd ket_moshinky_12(1,dimk);
-      // Changed particles 
-      Eigen::MatrixXd bra_moshinky_21(dimb,1);
-      Eigen::MatrixXd ket_moshinky_21(1,dimk);
 
       //ucoefficient from factoring out center of mass 
       double relative_coef=(u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0));
@@ -137,13 +135,9 @@ namespace u3shell
           int exchange_phase=phase_even?1:-1;
           
           // overall factor for the bra
-          // includes the relative coeffcients of convenience 
-          // the factor of 1/sqrt(2) comes from the anti-symmeterization of the states
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
-          double coef=relative_coef/std::sqrt(2.*(1+KroneckerDelta(eta1p,eta2p)));
-
+          double coef=1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p));
           bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp);
-          bra_moshinky_21(bra_state_index,0)=exchange_phase*coef*MoshinskyCoefficient(eta2p, eta1p, etap, eta_cm, xp);
         } 
 
       // iterate over ket subspace
@@ -154,31 +148,19 @@ namespace u3shell
           int eta1=ket_state.N1();
           int eta2=ket_state.N2();
 
-          // Phase arising from exchanging particle 1 and particle 2
-          bool phase_even=(eta1+eta2+u3::ConjugationGrade(x)+int(S+T))%2==0;
-          int exchange_phase=phase_even?1:-1;
-
           // overall factor for the ket
-          // the factor of 1/sqrt(2) comes from the anti-symmeterization of the states
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
-          double coef=1./std::sqrt(2.*(1+KroneckerDelta(eta1,eta2)));
-
+          double coef=1./std::sqrt(1.+KroneckerDelta(eta1,eta2));
           ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta1, eta2, eta, eta_cm, x);
-          ket_moshinky_21(0,ket_state_index)=exchange_phase*coef*MoshinskyCoefficient(eta2, eta1, eta, eta_cm, x);
         }  
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // summing sector terms over Ncm and antisymmeterizing
       sector=(
-        bra_moshinky_12*ket_moshinky_12
-        -bra_moshinky_21*ket_moshinky_12
-        -bra_moshinky_12*ket_moshinky_21
-        +bra_moshinky_21*ket_moshinky_21
+        2*relative_coef*(bra_moshinky_12*ket_moshinky_12)
         );
     }
     return sector;
   }
-
-
 
   void MoshinskyTransformUnitTensor(
         const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
@@ -202,20 +184,17 @@ namespace u3shell
     // S x S0 ->Sp
     // T x T0 ->Tp
     u3shell::TwoBodySectorsU3ST sector_labels_list(space,tensor);
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Iterate over sectors
     for (int sector_index=0; sector_index<sector_labels_list.size(); sector_index++)
     {
-
-
       // for a given sector, extract bra and ket subspace information
       auto sector_labels=sector_labels_list.GetSector(sector_index);
-
 
       const u3shell::TwoBodySubspaceU3ST& bra_subspace(sector_labels.bra_subspace());
       const u3shell::TwoBodySubspaceU3ST& ket_subspace(sector_labels.ket_subspace());
       int rho0=sector_labels.multiplicity_index();
-
 
       if ((bra_subspace.S()!=Sp) || (bra_subspace.T()!=Tp) || (ket_subspace.S()!=S) || (ket_subspace.T()!=T))
         continue;
@@ -267,6 +246,7 @@ namespace u3shell
             two_body_expansion[tboperator]+=coefficient;                
           }
         }
+
       // remove unit tensors with coefficient zero
       for(auto key_value : two_body_expansion)
       {
@@ -277,12 +257,12 @@ namespace u3shell
   }
 
   u3shell::TwoBodyUnitTensorCoefficientsU3ST 
-  TransformRelativeTensorToTwobodyTensor(const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_exansion, u3shell::TwoBodySpaceU3ST& space)
+  TransformRelativeTensorToTwobodyTensor(const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, u3shell::TwoBodySpaceU3ST& space)
   {    
     //container for acculumating two-body coefficients
     u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_expansion;
 
-    for (auto rel_key_value : relative_unit_tensor_exansion)
+    for (auto rel_key_value : relative_unit_tensor_expansion)
     {
       u3shell::RelativeUnitTensorLabelsU3ST tensor(rel_key_value.first);
       double expansion_coef=rel_key_value.second;

@@ -103,6 +103,10 @@ namespace u3shell
 
   double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
+
+  // define a pointer to a function 
+
+
 }  // namespace
 
 #endif

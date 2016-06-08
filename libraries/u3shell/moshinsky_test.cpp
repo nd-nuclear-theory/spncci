@@ -51,9 +51,12 @@ int main(int argc, char **argv)
     for (int S=0;S<=1; S++)
       for (int T=0;T<=1; T++)
         {
-          u3shell::RelativeStateLabelsU3ST bra(N,S,T);
-          u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
-          identity[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=1;
+          if ((N+S+T)%2==1)
+          {
+            u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+            u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+            identity[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=1;
+          }
         }
 
   // // testing moshinksy transformation 
