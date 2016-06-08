@@ -10,6 +10,9 @@
   T. Dytrych CSU3Master.
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
+
+#include <cassert>
+
 #include "sp3rlib/lsushell_wru3.h"
 
 #ifdef USE_LSU_WRU3

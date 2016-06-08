@@ -9,6 +9,8 @@
 
 #include <omp.h>
 
+#include "sp3rlib/u3coef.h"
+#include "sp3rlib/vcs.h"
 
 #include "spncci/unit_tensor.h"
 

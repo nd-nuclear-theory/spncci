@@ -18,14 +18,13 @@
 
 #include <cassert>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <boost/functional/hash.hpp>
 
 #include "am/halfint.h"
-#include "utilities/utilities.h"
 #include "utilities/multiplicity_tagged.h"
+#include "utilities/utilities.h"
 
 namespace u3 
 {

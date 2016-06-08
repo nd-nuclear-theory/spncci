@@ -15,11 +15,8 @@
 #ifndef SP_BASIS_H_
 #define SP_BASIS_H_
 
-#include <iostream>
-#include <fstream>
 
 #include "am/am.h"  
-#include "utilities/parsing.h"
 #include "sp3rlib/sp3r.h"
 
 

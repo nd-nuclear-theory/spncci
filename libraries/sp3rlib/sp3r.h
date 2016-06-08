@@ -14,15 +14,9 @@
 #ifndef SP3R_H_
 #define SP3R_H_
 
-#include <cassert>
-#include <cmath>
-
 #include <map>
-#include <sstream>
 #include <string>
-#include <utility>
-#include "gsl/gsl_sf.h"  
-
+    
 #include "sp3rlib/u3.h"
 #include "utilities/indexing_base.h"
 

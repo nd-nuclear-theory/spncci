@@ -19,9 +19,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/functional/hash_fwd.hpp>
+#include <eigen3/Eigen/Eigen>
 
 #include "spncci/sp_basis.h"
-#include "sp3rlib/vcs.h"
 #include "sp3rlib/u3.h"
 
 

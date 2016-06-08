@@ -17,10 +17,8 @@
 
 
 #include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Eigenvalues>  
 #include <unordered_map>
-
-#include "sp3rlib/u3coef.h" 
+  
 #include "sp3rlib/sp3r.h"  
   
 

@@ -17,10 +17,8 @@
 #define MOSHINSKY_H_
 
 #include "sp3rlib/u3.h"
-#include "sp3rlib/u3coef.h"
 #include "u3shell/indexing_u3st.h"
 #include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Eigenvalues>  
 #include "u3shell/tensor_labels.h"
 #include "u3shell/two_body_operator.h"
 

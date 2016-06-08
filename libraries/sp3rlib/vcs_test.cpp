@@ -11,6 +11,7 @@
   3/9/16 (aem): Created based on prototype vcs.py.
 
 ****************************************************************/
+#include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h"
 
 

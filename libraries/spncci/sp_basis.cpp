@@ -5,6 +5,11 @@
   University of Notre Dame
 
 ****************************************************************/
+#include <fstream>
+#include <iostream>
+
+#include "utilities/parsing.h"
+
 #include "spncci/sp_basis.h"
 
 

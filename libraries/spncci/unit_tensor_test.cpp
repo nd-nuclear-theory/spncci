@@ -9,9 +9,12 @@
   3/18/16 (aem,mac): Created.
 ****************************************************************/
 #include <cstdio>
-
 #include <sys/resource.h>
+
+#include "sp3rlib/u3coef.h"
+#include "sp3rlib/vcs.h" 
 #include "spncci/unit_tensor.h"
+
 
 spncci::LGIVectorType lgi_vector;
 #ifdef DHASH_UNIT_TENSOR

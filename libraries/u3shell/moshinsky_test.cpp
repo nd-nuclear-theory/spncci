@@ -8,6 +8,7 @@
   5/11/16 (aem,mac): Update namespace.
 ****************************************************************/
 
+#include "sp3rlib/u3coef.h"
 #include "u3shell/moshinsky.h"
 #include "u3shell/relative_operator.h"
 

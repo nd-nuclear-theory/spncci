@@ -19,7 +19,6 @@
 #ifndef U3COEF_H_
 #define U3COEF_H_
 
-#include <cassert>
 #include <unordered_map>
 #include <tuple>
 #include <boost/functional/hash_fwd.hpp>

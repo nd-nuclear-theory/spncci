@@ -5,12 +5,10 @@
   University of Notre Dame
 
 ****************************************************************/
-
-#include "u3shell/relative_operator.h"
-
-#include "cppformat/format.h"
 #include "am/am.h"
+#include "cppformat/format.h"
 #include "sp3rlib/vcs.h"
+#include "u3shell/relative_operator.h"
 
 namespace u3shell {
 

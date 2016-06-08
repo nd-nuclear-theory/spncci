@@ -5,8 +5,13 @@
   University of Notre Dame
 
 ****************************************************************/
-#include <omp.h>
 #include "sp3rlib/vcs.h"
+
+#include <omp.h>
+#include <eigen3/Eigen/Eigenvalues>  
+
+#include "sp3rlib/u3coef.h"   
+
 
 namespace vcs{
   double BosonCreationRME(const u3::U3& np, const u3::U3& n)

@@ -5,10 +5,10 @@
   University of Notre Dame
 
 ****************************************************************/
-
-#include "u3shell/moshinsky.h"
-
 #include <cmath>
+#include "sp3rlib/u3coef.h"
+#include "u3shell/moshinsky.h"
+//#include <eigen3/Eigen/Eigenvalues>  
 
 namespace u3shell
 {
