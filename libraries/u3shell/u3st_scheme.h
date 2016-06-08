@@ -1,5 +1,5 @@
 /****************************************************************
-  indexing_u3st.h
+  u3st_scheme.h
 
   Defines relative, relative-cm, and two-body state indexing in U3ST
   coupling scheme.
@@ -13,11 +13,12 @@
   5/12/16 (aem,mac): Restructure by U(3) subspace.
   5/14/16 (mac): Implement sectors.  Impose canonical ordering on two-body states.
   5/25/16 (mac): Add "all-to-all" sectors constructors.
+  6/8/16 (mac): Rename to u3st_scheme.h.
 
 ****************************************************************/
 
-#ifndef INDEXING_U3ST_H_
-#define INDEXING_U3ST_H_
+#ifndef U3ST_SCHEME_H_
+#define U3ST_SCHEME_H_
 
 #include <string>
 
@@ -87,7 +88,8 @@ namespace u3shell {
   // Here, by the phase contribution from omega, we mean lambda+mu.
   //
   // This basis is for *identical* particle states:
-  //   -- The labels are subject to the antisymmetry constraint (omega+S+T~1).
+  //   -- The labels are subject to the antisymmetry constraint (omega+S+T~1)
+  //      if N1==N2.
   //   -- A canonical (lexicographic) ordering constraint is applied to the 
   //      single-particle quantum numbers.  That is, when
   //      enumerating the basis, the states

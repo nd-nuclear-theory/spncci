@@ -19,7 +19,7 @@
 
 #include "am/am.h"
 #include "sp3rlib/u3coef.h"
-#include "u3shell/indexing_u3st.h"
+#include "u3shell/u3st_scheme.h"
 #include "u3shell/two_body_operator.h"
 
 ////////////////////////////////////////////////////////////////

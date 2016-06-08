@@ -1,12 +1,12 @@
 /****************************************************************
-  indexing_u3st_test.cpp
+  u3st_scheme_test.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
 
-#include "u3shell/indexing_u3st.h"
+#include "u3shell/u3st_scheme.h"
 
 #include "cppformat/format.h"
 

@@ -1,5 +1,5 @@
 /****************************************************************
-  indexing_u3st.cpp
+  u3st_scheme.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -8,9 +8,9 @@
 
 #include <sstream>
 
-#include "cppformat/format.h"
 #include "am/am.h"
-#include "u3shell/indexing_u3st.h"
+#include "cppformat/format.h"
+#include "u3shell/u3st_scheme.h"
 
 namespace u3shell {
 
