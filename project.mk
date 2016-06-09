@@ -22,7 +22,7 @@ modules := libraries/spncci libraries/u3shell libraries/sp3rlib libraries/utilit
 modules += libraries/cppformat
  
 # additional libraries -- cloned as submodules
-modules += libraries/am
+modules += libraries/am libraries/basis
 
 
 #programs
@@ -58,7 +58,7 @@ CPPFLAGS += -DNOHASH_UNIT_TENSOR
 #   precalculation and caching of U coefficients
 CPPFLAGS += -DUSE_U_COEF_CACHE
 #   map vs. hash for space lookup in BaseSpace
-CPPFLAGS += -DINDEXING_BASE_HASH_SPACE
+CPPFLAGS += -DINDEXING_HASH
 
 # debugging mode
 CXXFLAGS += 

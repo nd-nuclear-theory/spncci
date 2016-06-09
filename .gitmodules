@@ -1,3 +1,6 @@
 [submodule "libraries/am"]
 	path = libraries/am
 	url = ../am.git
+[submodule "libraries/basis"]
+	path = libraries/basis
+	url = ../basis

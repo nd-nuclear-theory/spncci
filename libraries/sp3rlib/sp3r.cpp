@@ -5,8 +5,10 @@
   University of Notre Dame
 
 ****************************************************************/
+
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <sstream>
 #include <utility>
 

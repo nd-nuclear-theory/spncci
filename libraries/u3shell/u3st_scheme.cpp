@@ -99,7 +99,7 @@ namespace u3shell {
                 TwoBodySubspaceU3ST subspace(omega,S,T,g);
 			
                 // push subspace if nonempty
-                if (subspace.Dimension()!=0)
+                if (subspace.size()!=0)
                   PushSubspace(subspace);
               }
   }

@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "utilities/indexing_base.h"
+#include "basis/indexing.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
@@ -106,7 +106,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySubspaceU3ST
-    : public shell::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int,int>>
+    : public basis::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int,int>>
     // Subspace class for two-body states of given U(3)xSxT.
     //
     // SubspaceLabelsType (std::tuple): <omega, S, T, g>
@@ -145,7 +145,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodyStateU3ST
-    : public shell::BaseState<TwoBodySubspaceU3ST>
+    : public basis::BaseState<TwoBodySubspaceU3ST>
   // State class for two-body states of given U(3)xSxT.
   {
     
@@ -155,11 +155,11 @@ namespace u3shell {
 
   TwoBodyStateU3ST(const SubspaceType& subspace, int index)
     // Construct state by index.
-    : shell::BaseState<TwoBodySubspaceU3ST>(subspace, index) {}
+    : basis::BaseState<TwoBodySubspaceU3ST>(subspace, index) {}
 
   TwoBodyStateU3ST(const SubspaceType& subspace, const typename SubspaceType::StateLabelsType& state_labels)
     // Construct state by reverse lookup on labels.
-    : shell::BaseState<TwoBodySubspaceU3ST> (subspace, state_labels) {}
+    : basis::BaseState<TwoBodySubspaceU3ST> (subspace, state_labels) {}
 
     // pass-through accessors
     u3::U3 omega() const {return Subspace().omega();}
@@ -180,7 +180,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySpaceU3ST
-    : public shell::BaseSpace<TwoBodySubspaceU3ST>
+    : public basis::BaseSpace<TwoBodySubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
     
@@ -207,7 +207,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySectorsU3ST
-    : public shell::BaseSectors<TwoBodySpaceU3ST>
+    : public basis::BaseSectors<TwoBodySpaceU3ST>
   // U3ST-scheme two-body sectors.
   //
   // Sectors are enumerated in lexicographical order by (bra)(ket).

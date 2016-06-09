@@ -17,8 +17,8 @@
 #include <map>
 #include <string>
     
+#include "basis/indexing.h"
 #include "sp3rlib/u3.h"
-#include "utilities/indexing_base.h"
 
 namespace sp3r 
 {
@@ -71,7 +71,7 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   class U3Subspace
-    : public shell::BaseSubspace< u3::U3 , MultiplicityTagged<u3::U3> >
+    : public basis::BaseSubspace< u3::U3 , MultiplicityTagged<u3::U3> >
     // subspace label type: u3::U3
     // state label type: MultiplicityTagged<u3::U3>
   {
@@ -119,7 +119,7 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   class Sp3RSpace
-    : public shell::BaseSpace<U3Subspace>
+    : public basis::BaseSpace<U3Subspace>
     // subspace type: U3Subspace
   {
     
