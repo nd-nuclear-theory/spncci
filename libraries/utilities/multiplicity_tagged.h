@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
  
+#include <boost/functional/hash.hpp>
 
 template <typename IRREP>
 struct MultiplicityTagged
@@ -30,11 +31,8 @@ struct MultiplicityTagged
 {
 
   ////////////////////////////////////////////////////////////////
-  // typedefs
+  // convenience typedefs
   ////////////////////////////////////////////////////////////////
-
-  // typedef for sort key
-  typedef std::pair<IRREP,int> KeyType;
 
   // convenience typedef for container class
   typedef std::vector<MultiplicityTagged<IRREP> > vector;
@@ -55,12 +53,30 @@ struct MultiplicityTagged
     : irrep(irrep_), tag(tag_) {}
 
   ////////////////////////////////////////////////////////////////
-  // accessors
+  // key tuple, comparisons, and hashing
   ////////////////////////////////////////////////////////////////
+
+  typedef std::pair<IRREP,int> KeyType;
 
   inline KeyType Key() const
   {
     return KeyType(irrep,tag);
+  }
+
+  inline friend bool operator == (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
+  {
+    return x1.Key() == x2.Key();
+  }
+  
+  inline friend bool operator < (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
+  {
+    return x1.Key() < x2.Key();
+  }
+
+  inline friend std::size_t hash_value(const MultiplicityTagged<IRREP>& v)
+  {
+    boost::hash<MultiplicityTagged<IRREP>::KeyType> hasher;
+    return hasher(v.Key());
   }
 
   ////////////////////////////////////////////////////////////////
@@ -101,22 +117,6 @@ std::string MultiplicityTagged<IRREP>::Str() const
 //     ss << "(" << irrep << "," << tag << ")";
 //     return ss.str();
 //   }
-
-////////////////////////////////////////////////////////////////
-// relational operators
-////////////////////////////////////////////////////////////////
-
-template <typename IRREP>
-inline bool operator == (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
-{
-  return x1.Key() == x2.Key();
-}
-
-template <typename IRREP>
-inline bool operator < (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
-{
-  return x1.Key() < x2.Key();
-}
 
 
 #endif

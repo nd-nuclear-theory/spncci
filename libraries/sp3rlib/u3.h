@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/functional/hash.hpp>
+#include "boost/functional/hash.hpp"
 
 #include "am/halfint.h"
 #include "utilities/multiplicity_tagged.h"
@@ -39,17 +39,10 @@ namespace u3
   {
 
     ////////////////////////////////////////////////////////////////
-    // typedefs
-    ////////////////////////////////////////////////////////////////
-
-  public:
-    typedef std::pair<int,int> KeyType;
-
-    ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
@@ -67,12 +60,6 @@ namespace u3
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    inline KeyType Key() const
-    {
-      //assert(false);
-      return KeyType(lambda(),mu());
-    }
-
     inline int lambda() const
     {
       return lambda_;
@@ -84,16 +71,37 @@ namespace u3
     }
 
     ////////////////////////////////////////////////////////////////
-    // hashing
+    // key tuple, comparisons, and hashing
     ////////////////////////////////////////////////////////////////
 
-    static const int label_width = 8;
-    inline friend std::size_t hash_value(const SU3& x)
-    {
-      int packed_labels = (x.lambda_ << label_width) | (x.mu_ << 0);
+    typedef std::pair<int,int> KeyType;
 
-      boost::hash<int> hasher;
-      return hasher(packed_labels);
+    inline KeyType Key() const
+    {
+      return KeyType(lambda(),mu());
+    }
+
+    inline friend bool operator == (const SU3& x1, const SU3& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+
+    inline friend bool operator < (const SU3& x1, const SU3& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    // alternative: if find need to avoid hash combination functions...
+    //
+    //   static const int label_width = 8;
+    //   int packed_labels = (x.lambda_ << label_width) | (x.mu_ << 0);
+    //   boost::hash<int> hasher;
+    //   return hasher(packed_labels);
+
+   inline friend std::size_t hash_value(const SU3& v)
+    {
+      boost::hash<SU3::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -106,7 +114,7 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
    
-  private:
+    private:
 
     // Elliott labels
     int lambda_, mu_;
@@ -116,21 +124,6 @@ namespace u3
     // packed_labels_ = (lambda << label_width) | (mu << 0);
 
   };
-
-
-  ////////////////////////////////////////////////////////////////
-  // relational operators
-  ////////////////////////////////////////////////////////////////
-
-  inline bool operator == (const SU3& x1, const SU3& x2)
-  {
-    return x1.Key() == x2.Key();
-  }
-
-  inline bool operator < (const SU3& x1, const SU3& x2)
-  {
-    return x1.Key() < x2.Key();
-  }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
@@ -178,16 +171,10 @@ namespace u3
   {
 
     ////////////////////////////////////////////////////////////////
-    // typedefs
-    ////////////////////////////////////////////////////////////////
-
-  public:
-    typedef std::pair<HalfInt,u3::SU3> KeyType;
-    // typedef std::tuple<HalfInt,HalfInt,HalfInt> KeyType;
-
-    ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
+
+    public:
 
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
@@ -284,26 +271,47 @@ namespace u3
       return u3::SU3(lambda,mu);
     }
 
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::pair<HalfInt,u3::SU3> KeyType;
+
     inline KeyType Key() const
     {
       return KeyType(N(),SU3());
     }
 
-    ////////////////////////////////////////////////////////////////
-    // hashing
-    ////////////////////////////////////////////////////////////////
-
-    static const int label_width = 12;
-    inline friend std::size_t hash_value(const U3& omega)
+    inline friend bool operator == (const U3& omega1, const U3& omega2)
     {
-      int packed_labels =
-        (TwiceValue(omega.f1_) << 2*label_width)
-        | (TwiceValue(omega.f2_) << label_width)
-        | (TwiceValue(omega.f3_) << 0);
-
-      boost::hash<int> hasher;
-      return hasher(packed_labels);
+      return omega1.Key() == omega2.Key();
     }
+
+    inline friend bool operator < (const U3& omega1, const U3& omega2)
+    {
+      return omega1.Key() < omega2.Key();
+    }
+
+    // Alternative old "manual" combination...
+    //
+    //   static const int label_width = 12;
+    //   inline friend std::size_t hash_value(const U3& omega)
+    //   {
+    //     int packed_labels =
+    //       (TwiceValue(omega.f1_) << 2*label_width)
+    //       | (TwiceValue(omega.f2_) << label_width)
+    //       | (TwiceValue(omega.f3_) << 0);
+    //   
+    //     boost::hash<int> hasher;
+    //     return hasher(packed_labels);
+    //   }
+
+    inline friend std::size_t hash_value(const U3& v)
+    {
+      boost::hash<U3::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
 
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -315,7 +323,7 @@ namespace u3
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+    private:
     // Cartesian labels
     HalfInt f1_, f2_, f3_;
 
@@ -342,19 +350,6 @@ namespace u3
 
   }
 
-  ////////////////////////////////////////////////////////////////
-  // relational operators
-  ////////////////////////////////////////////////////////////////
-
-  inline bool operator == (const U3& omega1, const U3& omega2)
-  {
-    return omega1.Key() == omega2.Key();
-  }
-
-  inline bool operator < (const U3& omega1, const U3& omega2)
-  {
-    return omega1.Key() < omega2.Key();
-  }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
