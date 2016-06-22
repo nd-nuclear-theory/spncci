@@ -26,8 +26,8 @@ modules += libraries/am libraries/basis
 
 
 #programs
-modules += \
-  programs/test 
+modules += programs/interactions
+modules += programs/test 
 
 ################################################################
 # extras -- list of extra files to be included
