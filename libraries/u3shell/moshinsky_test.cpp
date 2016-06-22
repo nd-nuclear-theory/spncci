@@ -20,7 +20,6 @@ int main(int argc, char **argv)
   // Generate a space 
   u3shell::TwoBodySpaceU3ST space(Nmax);
 
-
   std::cout<< "Moshinsky coefficient " <<u3shell::MoshinskyCoefficient(2,2,4,0,u3::SU3(4,0))<<std::endl;
 
 	u3shell::RelativeStateLabelsU3ST bra(2,1,0);
@@ -56,7 +55,9 @@ int main(int argc, char **argv)
           {
             u3shell::RelativeStateLabelsU3ST bra(N,S,T);
             u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+            u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);
             identity[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=1;
+            std::cout<<tensor.Str()<<std::endl;
           }
         }
 
@@ -80,11 +81,12 @@ int main(int argc, char **argv)
   for (int N=0; N<=Nmax; N++)
     for (int S=0;S<=1; S++)
       for (int T=0;T<=1; T++)
-        {
-          u3shell::RelativeStateLabelsU3ST bra(N,S,T);
-          u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
-          number_operator[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=u3shell::RelativeNumberOperator(bra,ket);
-        }
+        if ((N+S+T)%2==1)
+          {
+            u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+            u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+            number_operator[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=u3shell::RelativeNumberOperator(bra,ket);
+          }
 
   // testing moshinksy transformation 
   u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);

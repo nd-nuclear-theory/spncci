@@ -26,7 +26,10 @@ C     ------------------------------------------------------------------
       DIMENSION DON1(81),DON2(81),DON3(81),DEWU3(39732),                
      1DWU3R3(6561),J1TA(13244),J2TA(13244),IEA(13244),DVALU(9,9,9,9)    
       DATA KIMAX1/39732/                                                
-      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,13244,42,9,9,9,9/       
+CAEM  Adjusted limits on lambda+mu+1<NCEX and correspondingly NCE2
+C     to be consistant with changes made in XEWU3 by CB
+C      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,13244,42,9,9,9,9/       
+      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,95284,82,9,9,9,9/             
 C     COMBINATIONS OF THE ABOVE: NCW01=NCW0*NCW1,NCW012=NCW01*NCW02,... 
       DATA NCW01,NCW012,NXALL/81,729,6561/                              
 C     MULTIPLICITY FUNCTION FOR L-VALUES IN (LM,MU) SU3 IRREP           
