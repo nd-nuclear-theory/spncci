@@ -95,6 +95,13 @@ namespace u3shell
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
         );
 
+  // Overload function if we don't need operators sorted by N0
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        int Nmax, 
+        std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels
+        );
+
+
   double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
   double RelativeSp3rRaisingOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);

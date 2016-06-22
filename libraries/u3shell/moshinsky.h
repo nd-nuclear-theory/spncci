@@ -50,7 +50,11 @@ namespace u3shell
   // u3shell::TwoBodyUnitTensorCoefficientsU3ST 
   // MoshinskyTransformUnitTensor(const u3shell::RelativeUnitTensorLabelsU3ST& tensor, u3shell::TwoBodySpaceU3ST& space);
   // // Moshinsky transform of relative unit tensor operator to twobody space and anti-symmeterizes 
- void MoshinskyTransformUnitTensor(
+ 
+  // The transformed coefficients are stored in the two_body_expansion container which is a 
+  // std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double>
+
+  void MoshinskyTransformUnitTensor(
         const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
         double expansion_coef, 
         u3shell::TwoBodySpaceU3ST& space,

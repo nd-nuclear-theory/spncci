@@ -6,6 +6,9 @@
 
 ****************************************************************/
 #include <cmath>
+#include "cppformat/format.h"
+
+
 #include "sp3rlib/u3coef.h"
 #include "u3shell/moshinsky.h"
 //#include <eigen3/Eigen/Eigenvalues>  
@@ -137,6 +140,7 @@ namespace u3shell
           // overall factor for the bra
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
           double coef=1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p));
+          // std::cout<<fmt::format("{} {} {} {} {}  {}", eta1p, eta2p, etap, eta_cm, xp.Str(), MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp))<<std::endl;
           bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp);
         } 
 
@@ -243,6 +247,7 @@ namespace u3shell
 
             double coefficient=expansion_coef*sector(i,j);      
             TwoBodyUnitTensorLabelsU3ST tboperator(tensor,rho0,bra,ket);
+            // std::cout<<tboperator.Str()<<"  "<<etap<<"  "<<eta<<"  "<<expansion_coef<<"  "<<sector(i,j)<<std::endl;
             two_body_expansion[tboperator]+=coefficient;                
           }
         }

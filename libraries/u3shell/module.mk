@@ -6,12 +6,12 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h := 
-module_units_cpp-h := tensor_labels relative_operator two_body_operator u3st_scheme moshinsky
+module_units_cpp-h := tensor_labels relative_operator two_body_operator u3st_scheme moshinsky import_interaction upcoupling
 
 # module_units_f := 
 module_programs_cpp := tensor_labels_test relative_operator_test two_body_operator_test
 module_programs_cpp += u3st_scheme_test moshinsky_test
-module_programs_cpp += generate_unit_tensors_tb
+module_programs_cpp += generate_unit_tensors_tb interaction_test upcoupling_test import_jisp16
 # module_programs_f :=
 # module_generated :=
 

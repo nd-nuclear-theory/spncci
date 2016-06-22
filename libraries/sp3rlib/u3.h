@@ -610,7 +610,7 @@ namespace u3
 
   // branching multiplicity
 
-  int BranchingMultiplicity(const u3::SU3& x, int L);
+  int BranchingMultiplicitySO3(const u3::SU3& x, int L);
   // Calculate branching multiplicity of angular momentum in SU(3) irrep.
   //
   // Ref: e.g., Harvey, ANP 1, 67 (1968).

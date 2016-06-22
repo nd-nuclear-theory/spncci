@@ -380,7 +380,7 @@ namespace u3shell {
                 "{:d} {:d} {:d} {:d}   ",
                 eta1p,eta2p,eta2,eta1,
                 1,xp.lambda(),xp.mu(),TwiceValue(Sp),
-                1,x.lambda(),x.mu(),TwiceValue(S),
+                1,x.mu(),x.lambda(),TwiceValue(S),
                 rho0,x0.lambda(),x0.mu(),TwiceValue(S0)
               )
             << std::endl;
