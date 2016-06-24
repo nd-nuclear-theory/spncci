@@ -368,6 +368,7 @@ int main(int argc, char **argv)
       // dump operator in recoupler format
       if (write_output)
         {
+          std::cout<<fmt::format("{} operator{:06d}",two_body_unit_tensor_labels.Str(),unit_tensor_index)<<std::endl;
           std::string operator_stream_filename = fmt::format("operator{:06d}.recoupler",unit_tensor_index);
           std::ofstream operator_stream(operator_stream_filename);
           WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);

@@ -189,7 +189,7 @@ namespace u3
       : f1_(f1), f2_(f2), f3_(f3)
     // Construct from Cartesian labels [f1,f2,f3].
     {
-      assert(ValidLabels(f1_,f2_,f3_));
+      // assert(ValidLabels(f1_,f2_,f3_));
     }
 
     inline U3(const HalfInt& N_, const u3::SU3& x_);

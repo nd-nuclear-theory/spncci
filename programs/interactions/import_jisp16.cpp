@@ -134,8 +134,8 @@ ImportInteraction_JISP(std::string interaction_file,
           // isospin forced by L+S+T requirement
           int T=(L+S+1)%2;
 
-          basis::RelativeSubspaceLSJT ket_labels(L,S,J,T,g);
-          basis::RelativeSubspaceLSJT bra_labels(Lp,S,J,T,gp);
+          basis::RelativeSubspaceLSJTLabels ket_labels(L,S,J,T,g);
+          basis::RelativeSubspaceLSJTLabels bra_labels(Lp,S,J,T,gp);
           int ket_subspace_index=space.LookUpSubspaceIndex(ket_labels);
           int bra_subspace_index=space.LookUpSubspaceIndex(bra_labels);
           index=sectors.LookUpSectorIndex(bra_subspace_index, ket_subspace_index);
