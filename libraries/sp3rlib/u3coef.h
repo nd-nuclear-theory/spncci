@@ -73,6 +73,19 @@ namespace u3
   // Returns:
   //   (UMultiplicityTuple): tuple of multiplicities (r12_max,r12_3_max,r23_max,r1_23_max)
 
+  typedef std::tuple<int,int,int,int> WMultiplicityTuple;
+  u3::WMultiplicityTuple WMultiplicity(const u3::SU3& x1, int L1, const u3::SU3& x2, int L2,
+                                       const u3::SU3& x3, int L3);
+  // Calculate multiplicities for SU(3) Wigner coefficients.
+  //
+  // Arguments:
+  //   x1, x2,x3 (u3::SU3): SU3 labels for coupling coefficient
+  //   L1,L2, L3 (int): SO(3) labels for coupling coefficient
+  //  
+  // Returns:
+  //   (WMultiplicityTuple): tuple of multiplicities (kappa1_max,kappa2_max,kappa3_max,rho_max)
+
+
   enum class UZMode {kU, kZ};
   double UZ(
            const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
@@ -288,7 +301,7 @@ namespace u3
     // coefficient values
     std::vector<double> coefs_;
 
-  };
+  }; //end UCoefLabels
 
   ////////////////////////////////////////////////////////////////
   // U coefficient caching
@@ -316,6 +329,200 @@ namespace u3
   // Arguments:
   //   cache (UCoefCache): cache to use for U coefficients
   //   x1, ...: standard U coefficient SU(3) and multiplicity labels
+  //
+  // Returns;
+  //   (double): single coefficient value
+
+
+  class WCoefLabels
+  // Class to gather and provide hashing for U coefficient labels
+  {
+  public:
+
+    ////////////////////////////////////////////////////////////////
+    // type definitions
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<u3::SU3,int,u3::SU3,int,u3::SU3,int> KeyType;
+    // tuple of SU(3) and SO(3) labels
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    inline WCoefLabels(const u3::SU3& x1, int L1, const u3::SU3& x2, int L2,
+                      const u3::SU3& x3, int L3)
+      :x1_(x1), L1_(L1),x2_(x2), L2_(L2), x3_(x3),L3_(L3){}
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+ 
+    inline KeyType Key() const
+    {
+      return KeyType(x1_, L2_, x2_, L2_, x3_,  L3_);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // validation
+    ////////////////////////////////////////////////////////////////
+    
+    // inline bool Allowed() const
+    // // Checks if labels satisfy coupling constraints.
+    // {
+    //   int rho_max;
+    //   std::tie(r12_max,r12_3_max,r23_max,r1_23_max) = UMultiplicity(x1_,x2_,x_,x3_,x12_,x23_);
+    //   int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
+    //   return (r_max > 0);
+    // }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+
+    inline friend std::size_t hash_value(WCoefLabels const& wcoef_labels)
+    {
+      // 6 labels all of SU3 type
+      // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
+      // SU3 hash_value defined in sp3rlib/u3.h
+      std::size_t wlab1 = hash_value(wcoef_labels.x1_);
+      std::size_t wlab2 = hash_value(wcoef_labels.x2_);
+      std::size_t wlab3 = hash_value(wcoef_labels.x3_);
+      // std::size_t wlab4 = hash_value(wcoef_labels.L1_);
+      // std::size_t wlab5 = hash_value(wcoef_labels.L2_);
+      // std::size_t wlab6 = hash_value(wcoef_labels.L3_);
+
+      #ifdef NAIVEHASH
+      // naive implementation: sum hashes together
+      std::size_t wlabsum = 0;
+      return wlabsum = wlab1 + wlab2 + wlab3 + wlab4 +wlab5 + wlab6;
+      #endif
+
+      #ifdef BOOSTHASH
+      // smarter implementation: boost::hashcombine
+      std::size_t seed = 0;
+      boost::hash_combine(seed,wlab1);
+      boost::hash_combine(seed,wlab2);
+      boost::hash_combine(seed,wlab3);
+      boost::hash_combine(seed,wcoef_labels.L1_);
+      boost::hash_combine(seed,wcoef_labels.L2_);
+      boost::hash_combine(seed,wcoef_labels.L3_);
+      return seed;
+      #endif
+    }
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+  
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+  private:
+    // Operator labels
+    u3::SU3 x1_, x2_, x3_;
+    int L1_, L2_, L3_;
+  };
+
+  inline bool operator == (const WCoefLabels& coef1, const WCoefLabels& coef2)
+  {
+    return coef1.Key() == coef2.Key();
+  }
+
+  inline bool operator < (const WCoefLabels& coef1, const WCoefLabels& coef2)
+  {
+    return coef1.Key() < coef2.Key();
+  }
+
+  class WCoefBlock
+  // Class to store and retrieve block of U coefficients sharing same
+  // SU(3) labels but with different multiplicity indices
+  //
+  // FUTURE: Can generalize to store blocks of Z coefficients as well,
+  // like function UZ above.
+  {
+  public:
+
+    ////////////////////////////////////////////////////////////////
+    // type definitions
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<int,int,int,int> KeyType;
+    // tuple of multiplicities
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    inline WCoefBlock()
+    : kappa1_max_(0), kappa2_max_(0), kappa3_max_(0),rho_max_(0){}
+    // Construct and store multiplicites and coefficient values
+
+    WCoefBlock(const u3::WCoefLabels& labels);
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    inline KeyType Key() const
+    {
+      return KeyType(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_);
+    }
+ 
+    ////////////////////////////////////////////////////////////////
+    // entry lookup
+    ////////////////////////////////////////////////////////////////
+
+    double GetCoef(int kappa1, int kappa2, int kappa3, int rho) const;
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+  
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+  private:
+    // multiplicities
+    int kappa1_max_,kappa2_max_,kappa3_max_,rho_max_;
+   
+
+    // coefficient values
+    std::vector<double> coefs_;// May need to be changed...
+
+  };
+
+  ////////////////////////////////////////////////////////////////
+  // W coefficient caching
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::unordered_map<
+    u3::WCoefLabels,
+    u3::WCoefBlock,
+    boost::hash<u3::WCoefLabels> > WCoefCache;
+
+  extern bool g_u_cache_enabled;
+  double WCached(
+                 WCoefCache& cache, 
+                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2, 
+                 const u3::SU3& x3, int kappa3, int L3, int rho
+                 );
+  // Cached SU(3) Wigner coupling coefficient for coupling from (1x2)->3. 
+  //
+  // Global:
+  //
+  //   u3::g_u_cache_enabled (bool): mode flag determining whether to
+  //     use caching or calculate on the fly (for debugging and
+  //     profiling)
+  //
+  // Arguments:
+  //   cache (WCoefCache): cache to use for W coefficients
+  //   x1,x2,x3 ...: standard W coefficient SU(3) and multiplicity labels
   //
   // Returns;
   //   (double): single coefficient value
