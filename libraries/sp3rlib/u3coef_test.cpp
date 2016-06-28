@@ -312,7 +312,7 @@ void TestOrthogonalityW(int lm_max)
         }
   }
 
-void TestWSymmetries(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho)
+void TestWSymmetries13(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho)
   {
     MultiplicityTagged<int>::vector branch1=BranchingSO3(x1);
     MultiplicityTagged<int>::vector branch2=BranchingSO3(x2);
@@ -350,6 +350,107 @@ void TestWSymmetries(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, in
       }
   }
 
+void TestWSymmetries(int lm_max)
+{
+for(int l1=0; l1<=lm_max; l1++)
+    for(int m1=0; m1<=lm_max; m1++)
+      {
+        u3::SU3 x1(l1,m1);
+        for(int l2=0; l2<=lm_max; l2++)
+          for(int m2=0; m2<=lm_max; m2++)
+            {
+              u3::SU3 x2(l2,m2);
+              MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
+              for(int i=0; i<product.size(); ++i)
+                {
+                  u3::SU3 x3(product[i].irrep);
+                  int rho_max=product[i].tag;
+                  for(int rho=1; rho<=rho_max; ++rho)
+                    TestWSymmetries13(x1, x2, x3, rho);
+                }
+            }
+      }
+}
+
+void caching_W_test()
+// Test use of caching wrapper for U coefficients
+{
+
+  // generate label set for testing
+  u3::SU3 x1(4,0);
+  u3::SU3 x2(3,2);
+  MultiplicityTagged<u3::SU3>::vector x3_values=u3::KroneckerProduct(x1,x2);
+  std::vector<u3::WCoefLabels> label_set;
+  for(auto it=x3_values.begin(); it!=x3_values.end(); ++it)
+    {
+      u3::SU3 x3(it->irrep);
+      MultiplicityTagged<int>::vector L1_kappa1_values=u3::BranchingSO3(x1);
+      MultiplicityTagged<int>::vector L2_kappa2_values=u3::BranchingSO3(x2);
+      MultiplicityTagged<int>::vector L3_kappa3_values=u3::BranchingSO3(x3);
+      
+      for (auto it1 = L1_kappa1_values.begin(); it1!= L1_kappa1_values.end(); ++it1)
+        for (auto it2 = L2_kappa2_values.begin(); it2!= L2_kappa2_values.end(); ++it2)
+          for (auto it3 = L3_kappa3_values.begin(); it3!= L3_kappa3_values.end(); ++it3)
+            {
+              int L1=it1->irrep;
+              int kappa1_max=it1->tag;
+              int L2=it2->irrep;
+              int kappa2_max=it2->tag;
+              int L3=it3->irrep;
+              int kappa3_max=it3->tag;
+              u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
+              label_set.push_back(labels);
+             }
+    }
+  // cache coefficients
+  std::cout << "Caching coefficients" << std::endl;
+  u3::WCoefCache w_coef_cache;
+  for (const u3::WCoefLabels& labels : label_set)
+    {
+      //if (u_coef_cache.count(labels)>0)
+      //  std::cout << "  duplicate " << labels.Str() << std::endl;
+      if ((w_coef_cache.size()%100)==0)
+        std::cout << "  cache size " << w_coef_cache.size() << "..." << std::endl;
+      w_coef_cache[labels] = u3::WCoefBlock(labels);
+    }
+  std::cout << "  cached " << w_coef_cache.size() << std::endl;
+
+  // retrieve labels and compare with on-the-fly values
+  std::cout << "Checking cached values" << std::endl;
+  for (const u3::WCoefLabels& labels : label_set)
+    {
+      // retrieve labels
+      u3::SU3 x1, x2, x3;
+      int L1,L2,L3;
+      std::tie(x1,L1,x2,L2,x3,L3) = labels.Key();
+
+      // retrieve coefficient block
+      const u3::WCoefBlock& block = w_coef_cache[labels];
+
+      // retrieve multiplicities
+      int rho_max, kappa1_max, kappa2_max, kappa3_max;
+      std::tie(kappa1_max, kappa2_max, kappa3_max, rho_max) = block.Key();
+      // loop over multiplicity indices
+      for(int kappa1=1; kappa1<=kappa1_max; ++kappa1)
+        for(int kappa2=1; kappa2<=kappa2_max; ++kappa2)
+          for(int kappa3=1; kappa3<=kappa3_max; ++kappa3)
+            for(int rho=1; rho<=rho_max; ++rho)
+              {
+                
+                double coef_direct = u3::W(x1,kappa1,L1,x2,kappa2,L2,x3,kappa3,L3,rho);
+                double coef_cached = u3::WCached(w_coef_cache,x1,kappa1,L1,x2,kappa2,L2,x3,kappa3,L3,rho);
+                bool compare_ok = (coef_direct == coef_cached);
+                if (!compare_ok)
+                  std::cout << " " << coef_direct << " " << coef_cached << " " << compare_ok << std::endl;
+              }
+    }
+  std::cout << "Done." << std::endl;
+
+}
+
+
+
+
 
 
 
@@ -380,27 +481,12 @@ int main(int argc, char **argv)
   //caching_test();  
 
   // test symmetries of W coefficients 
-  int lm_max=2;
-
-  for(int l1=0; l1<=lm_max; l1++)
-    for(int m1=0; m1<=lm_max; m1++)
-      {
-        u3::SU3 x1(l1,m1);
-        for(int l2=0; l2<=lm_max; l2++)
-          for(int m2=0; m2<=lm_max; m2++)
-            {
-              u3::SU3 x2(l2,m2);
-              MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
-              for(int i=0; i<product.size(); ++i)
-                {
-                  u3::SU3 x3(product[i].irrep);
-                  int rho_max=product[i].tag;
-                  for(int rho=1; rho<=rho_max; ++rho)
-                    TestWSymmetries(x1, x2, x3, rho);
-                }
-            }
-      }
+  // int lm_max=2;
+  // void TestWSymmetries(lm_max)
+  
   // test orthogonality of W coefficients 
-  TestOrthogonalityW(lm_max);
+  // TestOrthogonalityW(lm_max);
+
+  caching_W_test();
 
 }

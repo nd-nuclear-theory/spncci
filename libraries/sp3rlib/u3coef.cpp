@@ -11,9 +11,13 @@
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
 
+#include <algorithm>
 #include <cassert>
 
+#include "cppformat/format.h"
+
 #include "sp3rlib/lsushell_wru3.h"
+
 
 #ifdef USE_LSU_WRU3
 #define WRU3_FUNCTION u3::lsu::wru3 
@@ -31,8 +35,6 @@ namespace u3
 
   double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int r0)
   {
-    
-
     double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
     memset(w_array,0,sizeof(w_array));
     //su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, r0,1,1,1, w_array);
@@ -42,7 +44,7 @@ namespace u3
     //   su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, rho_max,1,1,1, w_array);
     //   now r0=rho_max;
     su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, 1,1,1,1, w_array);
-    
+
     //Using row-major C to access column-major Fortran array
     return w_array[k3-1][k2-1][k1-1][r0-1];
   }
@@ -58,6 +60,27 @@ namespace u3
     return UMultiplicityTuple(r12_max,r12_3_max,r23_max,r1_23_max);
 
   }
+
+  u3::WMultiplicityTuple WMultiplicity(const u3::SU3& x1, int L1, const u3::SU3& x2, int L2,
+                                       const u3::SU3& x3, int L3)
+  {
+    int rho_max=u3::OuterMultiplicity(x1,x2,x3);
+    int kappa1_max=u3::BranchingMultiplicitySO3(x1,L1);
+    int kappa2_max=u3::BranchingMultiplicitySO3(x2,L2);
+    int kappa3_max=u3::BranchingMultiplicitySO3(x3,L3);
+    return WMultiplicityTuple(kappa1_max, kappa2_max, kappa3_max, rho_max);
+  }
+  // Calculate multiplicities for SU(3) Wigner coefficients.
+  //
+  // Arguments:
+  //   x1, x2,x3 (u3::SU3): SU3 labels for coupling coefficient
+  //   L1,L2, L3 (int): SO(3) labels for coupling coefficient
+  //  
+  // Returns:
+  //   (WMultiplicityTuple): tuple of multiplicities (rho_max,kappa1_max,kappa2_max,kappa3_max)
+
+
+
 
   double UZ(
             const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
@@ -250,5 +273,101 @@ namespace u3
   // UCoefMultiplicities UMultiplicitiesCached(
   //                const u3::UCoefCache& cache, 
   //                )
+
+////////////
+  std::string WCoefLabels::Str() const
+  {
+    std::ostringstream ss;
+
+    ss << "[" << x1_.Str() << L1_ << x2_.Str() << L2_
+       << x3_.Str() << L3_ << "]";
+    return ss.str();
+  }
+  
+  WCoefBlock::WCoefBlock(const u3::WCoefLabels& labels)
+  {
+    // calculate multiplicities
+    u3::SU3 x1,x2,x3;
+    int L1,L2,L3;
+    std::tie(x1,L1,x2,L2,x3,L3) = labels.Key();
+    std::tie(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_) = WMultiplicity(x1,L1,x2,L2,x3,L3);
+
+    double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
+    memset(w_array,0,sizeof(w_array));
+    su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, 1,1,1,1, w_array);
+    int size=rho_max_*kappa1_max_*kappa2_max_*kappa3_max_;
+
+    coefs_.resize(size);
+    // coefs are in column-major Fortran array
+    auto position=coefs_.begin();
+    for(int kappa1=1; kappa1<=kappa1_max_; ++kappa1)
+      for(int kappa2=1; kappa2<=kappa2_max_; ++kappa2)
+        for(int kappa3=1; kappa3<=kappa3_max_; ++kappa3)
+          {
+            auto begin=w_array[kappa3-1][kappa2-1][kappa1-1];
+            auto end=w_array[kappa3-1][kappa2-1][kappa1-1]+rho_max_;
+            std::copy(begin,end,position);
+            position+=rho_max_;
+          }
+
+    //Using row-major C to access column-major Fortran array
+    //return w_array[k3-1][k2-1][k1-1][r0-1];
+  }
+
+
+  double WCoefBlock::GetCoef(int kappa1, int kappa2, int kappa3, int rho) const
+  {
+    // validate multiplicity indices
+    assert(
+           (rho <= rho_max_)
+           &&(kappa1 <= kappa1_max_)
+           &&(kappa2 <= kappa2_max_)
+           &&(kappa3 <= kappa3_max_)
+           );
+    
+    // calculate index into block
+    // equivalent to looking up w_array[k3-1][k2-1][k1-1][r0-1]
+    // build up index, dimension by dimension
+    int index = (kappa3-1);
+    index = index * kappa2_max_ + (kappa2-1);
+    index = index * kappa1_max_ + (kappa1-1);
+    index = index * rho_max_ + (rho-1);
+
+    // retrieve entry
+    double value = coefs_[index];
+
+    return value;
+  }
+
+  bool g_w_cache_enabled = true;
+
+  double WCached(
+                 u3::WCoefCache& cache, 
+                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2, 
+                 const u3::SU3& x3, int kappa3, int L3, int rho 
+                 )
+  {
+    double value;
+    if (g_w_cache_enabled)
+      // retrieve from cache
+      {
+        const u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
+        if (cache.count(labels)==0)
+          {
+            #pragma omp critical
+            cache[labels]=u3::WCoefBlock(labels);
+          }
+        
+        const u3::WCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
+        value = block.GetCoef(kappa1, kappa2, kappa3, rho);
+      }
+    else
+      // calculate on the fly
+      {
+        value = u3::W(x1,kappa1,L1,x2,kappa2,L2,x3,kappa3,L3,rho);
+      }
+
+    return value;
+  }
 
 } // namespace 
