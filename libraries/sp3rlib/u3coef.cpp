@@ -34,7 +34,15 @@ namespace u3
     
 
     double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
-    su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, r0,1,1,1, w_array);
+    memset(w_array,0,sizeof(w_array));
+    //su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, r0,1,1,1, w_array);
+    // arguements in positions 10-13 are dummy variables which are set in code; Will return max value if variable is passed.
+    // that is 
+    //   r0=1;
+    //   su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, rho_max,1,1,1, w_array);
+    //   now r0=rho_max;
+    su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, 1,1,1,1, w_array);
+    
     //Using row-major C to access column-major Fortran array
     return w_array[k3-1][k2-1][k1-1][r0-1];
   }
