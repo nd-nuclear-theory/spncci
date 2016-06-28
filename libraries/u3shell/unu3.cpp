@@ -157,10 +157,15 @@ namespace un
 
   void GenerateAllowedSU3xSU2Irreps(
           const unsigned n, const unsigned A, 
-          const std::vector<SingleParticleState>& single_particle_states,
+          // const std::vector<SingleParticleState>& single_particle_states,
           MultiplicityTagged<u3::U3S>::vector& allowed_irreps
         )
   {
+    // set of sps (Nz, Nx, Ny) for harmonic oscillator shell n
+    // U3Labels; // [0] -> nz ; [1] -> nx ; [2] -> ny
+    std::vector<SingleParticleState> single_particle_states;
+    GenerateSingleParticleStates(n,single_particle_states);
+
     const unsigned N = (n+1)*(n+2)/2;
     if (2*N < A) 
       {
@@ -199,26 +204,62 @@ namespace un
                 //  Calculate multiplicity alpha in irrep of U(N)
                 if (branching_multiplicity) 
                   allowed_irreps.push_back(MultiplicityTagged<u3::U3S>(u3::U3S(w,S),branching_multiplicity)); 
-                   //SU3MULTList.push_back(UN::SU3(usMult, SU3::LM(U3Labels), SU3::MU(U3Labels)));
               }
           }
       }
   }
 
-  void GetAllowedSU3xSU2Irreps(const unsigned n, const unsigned A, MultiplicityTagged<u3::U3S>::vector& allowed_irreps)
+
+  void GenerateAllowedSU3xSU2xSU2TwoBodyIrreps(
+          const unsigned n,
+          MultiplicityTagged<u3::U3ST>::vector& allowed_irreps
+        )
   {
     // set of sps (Nz, Nx, Ny) for harmonic oscillator shell n
-    std::vector<SingleParticleState> single_particle_states;
-    int N = (n + 1) * (n + 2) / 2;
     // U3Labels; // [0] -> nz ; [1] -> nx ; [2] -> ny
-    
-    for (long k = 0; k <= n; k++)
-        for (long nx = k; nx >= 0; nx--)
-        {
-            SingleParticleState sp(n-k,nx,k-nx);
-            single_particle_states.push_back(sp);
-        }
-    GenerateAllowedSU3xSU2Irreps(n, A, single_particle_states, allowed_irreps);
-  }
+    std::vector<SingleParticleState> single_particle_states;
+    GenerateSingleParticleStates(n,single_particle_states);
 
+    const unsigned N = (n+1)*(n+2)/2;
+    if (2*N < 2) 
+      {
+        std::cout << "Error: only " << 2*N << " states available for " << 2 << " particles!" << std::endl;
+        exit(-1);
+      }
+    unsigned branching_multiplicity;
+
+    for (HalfInt S=0; S<=1; ++S)
+      for(HalfInt T=0; T<=1; ++T)  
+        {  
+          std::vector<int> u2_labels(2);
+          if(S==T)
+              u2_labels={2,0};
+          else
+            u2_labels={1,1};
+
+          if (u2_labels[0] > N)
+            continue;
+
+          UNLabels un_labels(N,0);
+          for (size_t i = 0; i < u2_labels[0]; i++)
+              un_labels[i] = (i < u2_labels[1]) ? 2 : 1;
+
+          //  Iterate over U(3) labels and calculate multiplicity Mult (corresponds to
+          //  alpha in [f] alpha (lm mu)S).  if Mult > 0 => add a given SU(3)xSU(2) irrep into SU3xSU2Labels
+          std::map<u3::U3,int>u3_un_multiplicity_map;      
+          un::GenerateU3Labels(un_labels, single_particle_states, u3_un_multiplicity_map);
+          //  iterate over all [N_{z}, N_{x}, N_{y}] labels spanning U(N) irrep 
+          for(auto it=u3_un_multiplicity_map.begin(); it!=u3_un_multiplicity_map.end(); it++)
+            {
+              u3::U3 w(it->first);
+              if (w.Valid()) // this could be U(3) irrep ... let's check it
+                {
+                  branching_multiplicity = UNBranchingMultiplicity(w, u3_un_multiplicity_map);
+                  //  Calculate multiplicity alpha in irrep of U(N)
+                  if (branching_multiplicity) 
+                    allowed_irreps.push_back(MultiplicityTagged<u3::U3ST>(u3::U3ST(w,S,T),branching_multiplicity)); 
+                }
+            }
+        }
+  }
 }//end namespace 
