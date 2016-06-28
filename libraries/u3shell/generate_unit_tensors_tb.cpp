@@ -120,34 +120,38 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
 
                 // iterate over remaining (nontensorial) labels
                 for (int bra_index = 0; bra_index < bra_subspace.size(); ++bra_index)
-                  for (int ket_index = 0; ket_index < ket_subspace.size(); ++ket_index)
-                    // for each <bra|ket> pair
-                    {
-                      // collect state labels
-                      int eta1p, eta2p;
-                      int eta1, eta2;
-                      std::tie(eta1p, eta2p)= bra_subspace.GetStateLabels(bra_index);
-                      std::tie(eta1, eta2)= ket_subspace.GetStateLabels(ket_index);
-                      u3shell::TwoBodyStateLabelsU3ST bra_labels(eta1p,eta2p,xp,Sp,Tp);
-                      u3shell::TwoBodyStateLabelsU3ST ket_labels(eta1,eta2,x,S,T);
+                  {
+                    int eta1p, eta2p;
+                    std::tie(eta1p, eta2p)= bra_subspace.GetStateLabels(bra_index);
+                    if ((eta1p==eta2p)&&(int(u3::ConjugationGrade(xp)+Sp+Tp)%2==0))
+                      continue;
+                    for (int ket_index = 0; ket_index < ket_subspace.size(); ++ket_index)
+                      // for each <bra|ket> pair
+                      {
+                        // collect state labels
+                        int eta1, eta2;
+                        std::tie(eta1, eta2)= ket_subspace.GetStateLabels(ket_index);
+                        if ((eta1==eta2)&&(int(u3::ConjugationGrade(x)+S+T)%2==0))
+                          continue;
 
-                      for (int rho0=1; rho0<=rho0max; ++rho0)
-                        // for each multiplicity index rho0
-                        {
-                          // collect unit tensor labels
-                          u3shell::TwoBodyUnitTensorLabelsU3ST unit_tensor_labels(
-                              operator_labels,
-                              rho0,
-                              bra_labels,ket_labels
-                            );
+                        u3shell::TwoBodyStateLabelsU3ST bra_labels(eta1p,eta2p,xp,Sp,Tp);
+                        u3shell::TwoBodyStateLabelsU3ST ket_labels(eta1,eta2,x,S,T);
 
-                          // push unit tensor labels onto appropriate N0 set
-                          unit_tensor_labels_set_by_N0[N0].push_back(unit_tensor_labels);
-
-                        }
-
-                    }
-              }
+                        for (int rho0=1; rho0<=rho0max; ++rho0)
+                          // for each multiplicity index rho0
+                          { 
+                            // collect unit tensor labels
+                            u3shell::TwoBodyUnitTensorLabelsU3ST unit_tensor_labels(
+                                operator_labels,
+                                rho0,
+                                bra_labels,ket_labels
+                              );
+                            // push unit tensor labels onto appropriate N0 set
+                            unit_tensor_labels_set_by_N0[N0].push_back(unit_tensor_labels);
+                          }
+                      }
+                  }
+            }
         }
 
     }

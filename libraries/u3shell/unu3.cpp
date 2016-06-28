@@ -6,7 +6,7 @@
 
   based heavily on lsu3shell CUNMASTER
 ****************************************************************/
-#include "sp3rlib/un.h"
+#include "u3shell/unu3.h"
 
 #include "cppformat/format.h"
   
