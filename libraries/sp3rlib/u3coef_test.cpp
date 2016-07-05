@@ -377,8 +377,8 @@ void caching_W_test()
 {
 
   // generate label set for testing
-  u3::SU3 x1(4,0);
-  u3::SU3 x2(3,2);
+  u3::SU3 x1(7,8);
+  u3::SU3 x2(6,4);
   MultiplicityTagged<u3::SU3>::vector x3_values=u3::KroneckerProduct(x1,x2);
   std::vector<u3::WCoefLabels> label_set;
   for(auto it=x3_values.begin(); it!=x3_values.end(); ++it)
@@ -409,8 +409,8 @@ void caching_W_test()
     {
       //if (u_coef_cache.count(labels)>0)
       //  std::cout << "  duplicate " << labels.Str() << std::endl;
-      if ((w_coef_cache.size()%100)==0)
-        std::cout << "  cache size " << w_coef_cache.size() << "..." << std::endl;
+      // if ((w_coef_cache.size()%1000)==0)
+      //   std::cout << "  cache size " << w_coef_cache.size() << "..." << std::endl;
       w_coef_cache[labels] = u3::WCoefBlock(labels);
     }
   std::cout << "  cached " << w_coef_cache.size() << std::endl;

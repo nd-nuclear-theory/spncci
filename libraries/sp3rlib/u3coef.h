@@ -477,6 +477,11 @@ namespace u3
 
     double GetCoef(int kappa1, int kappa2, int kappa3, int rho) const;
 
+    inline std::vector<double> GetCoefBlock() const
+    {
+      return coefs_;
+    }
+
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////

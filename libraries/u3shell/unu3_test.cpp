@@ -15,7 +15,7 @@
 
 int main(int argc, char **argv)
 {
-  int n=2;
+  int n=1;
   int A=2;
   MultiplicityTagged<u3::U3S>::vector allowed_irreps;
   un::GenerateAllowedSU3xSU2Irreps(n, A,allowed_irreps);

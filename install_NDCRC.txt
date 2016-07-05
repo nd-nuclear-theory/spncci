@@ -1,0 +1,141 @@
+Installation notes for spncci on ndcrc
+
+  6/29/16 (aem): Created.
+----------------------------------------------------------------
+
+Basic installation
+
+--------
+
+1) Retrieving source
+
+In general 
+	git clone --recursive /afs/crc.nd.edu/group/nuclthy/git/spncci.git
+
+or since most of the changes haven’t been merged to master, including submodules 
+
+	git clone --recursive /afs/crc.nd.edu/group/nuclthy/git/spncci.git --branch devel
+
+Then switch to the desired development branch, e.g.,
+
+  git checkout devel
+
+There are sometimes issues with retrieving the correct commit of the
+am subpackage.  If issues arise...
+
+  cd libraries/am
+  git fetch
+  git merge origin/master
+
+Under newer versions of git, you should instead be able to use...
+
+  git submodule update --remote
+
+You shouldn’t need a password to update submodules but if it does ask you for them,  you may need to reset origin
+	git remote set-url origin /afs/crc.nd.edu/group/nuclthy/git/am.git
+	git remote set-url origin /afs/crc.nd.edu/group/nuclthy/git/basis.git
+
+--------
+
+
+2) Compiler
+
+Make sure the appropriate compiler suite is available.  The full C++11
+functionality is required.  With gcc, version 4.4 is known to
+be "too old".  Current testing is with versions 4.9..5.3.
+
+--------
+
+
+3) config.mk
+
+You will need to set up a config.mk file.  You can set up your own based on config_generic-gcc4.mk or you can simply symbolically link to the config_ndcrc-gcc4.mk which “includes” the generic config file and adds search path entries specific to the NDCRC.  To symbolically link to this config file:
+
+   ln -s config_ndcrc-gcc4.mk config.mk
+
+--------
+
+4) Libraries
+
+Eigen: The Eigen 3 library is required.  Currently it is not available  via a
+module load, so you will need to install it locally. 
+
+Example: assumes you are installing Eigen 3.2.7
+
+   (1) Downloaded the distribution archive for
+   Eigen 3.2.7 (eigen-eigen-b30b87236a1b.tar.gz) in your current working directory...
+
+   (2) Install beneath your home directory, in
+   $HOME/local/opt/eigen-3.2.7
+
+   % tar xvf eigen-eigen-b30b87236a1b.tar.gz
+   % mkdir --parents $HOME/local/opt/eigen-3.2.7/include/eigen3
+   % mv eigen-eigen-b30b87236a1b/Eigen $HOME/local/opt/eigen-3.2.7/include/eigen3/
+   % rm -r eigen-eigen-b30b87236a1b
+
+ Note that no compilation is required.  Eigen is a template
+library and consists entirely of header files.
+
+If you install Eigen 3.2.7 under $HOME/local/opt, then the path to eigen is already defined in config_generic-gcc4.mk.  If you put it somewhere else of download a different distribution of Eigen, then you will need to modify the relevant search_prefix in your own config. mk
+
+If the eigen include files are
+
+     $(HOME)/local/opt/eigen-3.4/include/eigen3/Eigen/{Array,Cholesky,...,Eigen,...}
+
+then the search prefix list should include
+
+     $(HOME)/local/opt/eigen-3.4
+
+Thus, in config.mk, we should have
+
+  # search prefix
+  #
+  #   additional path to search for required include and lib 
+  #   directories
+  #
+
+  search_prefix := $(HOME)/local/opt/eigen-3.2.7
+
+
+--------
+
+5) Modules
+
+At compile time, you may need to load modules to access the above
+compiler versions or libraries.
+
+  As a shortcut on the ND CRC, the current module definitions are
+  maintained in module-load-ndcrc.csh.  This needs to be *sourced*
+  into csh (not run as a script) so that the environment variable
+  definitions provided by these modules are retained:
+
+  source module-load-ndcrc.csh
+
+Ignore warning “ : Command not found.”
+
+To check that the modules are loaded
+	module list 
+
+you should see the appropriate gsl, boost and gcc modules 
+--------
+
+6) Build
+
+  make all (or make all -j8 to go faster)
+
+----------------------------------------------------------------
+
+
+
+installing lsu3shell instructions
+
+Move to directly where you want repository
+
+mkdir lsu3shell
+cd lsu3shell  
+git clone git://git.code.sf.net/p/lsu3shell/code 
+
+ module load ompi/1.10.2-gcc-4.9.2
+ module load boost/1.58
+ module load gsl
+

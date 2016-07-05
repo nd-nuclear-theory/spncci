@@ -297,23 +297,18 @@ namespace u3
     su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, 1,1,1,1, w_array);
     int size=rho_max_*kappa1_max_*kappa2_max_*kappa3_max_;
 
-    coefs_.resize(size);
+    //coefs_.resize(size);
     // coefs are in column-major Fortran array
     auto position=coefs_.begin();
-    for(int kappa1=1; kappa1<=kappa1_max_; ++kappa1)
+    for(int rho=1; rho<=rho_max_; ++rho)
       for(int kappa2=1; kappa2<=kappa2_max_; ++kappa2)
-        for(int kappa3=1; kappa3<=kappa3_max_; ++kappa3)
-          {
-            auto begin=w_array[kappa3-1][kappa2-1][kappa1-1];
-            auto end=w_array[kappa3-1][kappa2-1][kappa1-1]+rho_max_;
-            std::copy(begin,end,position);
-            position+=rho_max_;
-          }
+        for(int kappa1=1; kappa1<=kappa1_max_; ++kappa1)
+          for(int kappa3=1; kappa3<=kappa3_max_; ++kappa3)
+            //Using row-major C to access column-major Fortran array
+            coefs_.push_back(w_array[kappa3-1][kappa2-1][kappa1-1][rho-1]);
 
-    //Using row-major C to access column-major Fortran array
-    //return w_array[k3-1][k2-1][k1-1][r0-1];
+
   }
-
 
   double WCoefBlock::GetCoef(int kappa1, int kappa2, int kappa3, int rho) const
   {
@@ -328,10 +323,10 @@ namespace u3
     // calculate index into block
     // equivalent to looking up w_array[k3-1][k2-1][k1-1][r0-1]
     // build up index, dimension by dimension
-    int index = (kappa3-1);
+    int index = (rho-1);
     index = index * kappa2_max_ + (kappa2-1);
     index = index * kappa1_max_ + (kappa1-1);
-    index = index * rho_max_ + (rho-1);
+    index = index * kappa3_max_ + (kappa3-1);
 
     // retrieve entry
     double value = coefs_[index];
