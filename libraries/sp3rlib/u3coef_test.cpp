@@ -237,7 +237,7 @@ void OrthogonalitySum1(const u3::SU3& x1, const u3::SU3& x2)
                                                     *u3::W(x1,kappa1,L1,x2,kappa2,L2,x,kappa,L,rho);
                       }
                     if(fabs(coef-1)>10e-10)
-                      std::cout<<fmt::format("W({} {} {}; {} {} {}; {})  {}",
+                      std::cout<<fmt::format("test1: W({} {} {}; {} {} {}; {})  {}",
                                              x1.Str(),kappa1,L1,x2.Str(),kappa2,L2,L,coef)
                       <<std::endl;      
                   }
@@ -278,7 +278,9 @@ void OrthogonalitySum2(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, i
                   }
               }
             if(fabs(coef-1)>10e-10)
-              std::cout<<coef<<std::endl;
+              std::cout<<fmt::format("test2: W({}; {}| {} {} {}){}  {}",
+                                     x1.Str(),x2.Str(),x.Str(), kappa,L,rho,coef)
+              <<std::endl;      
           }
       }
 
@@ -298,10 +300,10 @@ void TestOrthogonalityW(int lm_max)
               {
                 u3::SU3 x2(l2,m2);
                 MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
+                // std::cout<<"Testing Orthogonality sum over kappa1,L1, kappa2,L2"<<std::endl;
+                OrthogonalitySum1(x1,x2);
                 for(int i=0; i<product.size(); ++i)
                   {
-                    // std::cout<<"Testing Orthogonality sum over kappa1,L1, kappa2,L2"<<std::endl;
-                    OrthogonalitySum1(x1,x2);
                     u3::SU3 x(product[i].irrep);
                     int rho_max=product[i].tag;
                     // std::cout<<"Testing Orthogonality sum over (lambda,mu)rho kappa"<<std::endl;
@@ -482,6 +484,10 @@ int main(int argc, char **argv)
 
   // test symmetries of W coefficients 
   // int lm_max=2;
+
+  int lm_max=10;
+  TestOrthogonalityW(lm_max);
+
   // void TestWSymmetries(lm_max)
   
   // test orthogonality of W coefficients 
