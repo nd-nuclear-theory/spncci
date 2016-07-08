@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 {
   // initialize su3lib
   u3::U3CoefInit();
-  int Nmax=4;
+  int Nmax=8;
   // Generate a space 
   u3shell::TwoBodySpaceU3ST space(Nmax);
 
@@ -34,7 +34,6 @@ int main(int argc, char **argv)
   std::cout<<std::endl<<"Relative Unit Tensor  "<<unit_tensor_labels.Str()<<std::endl;
   for (auto key_value : unit_tensor_two_body)
   {
-
     // extract unit tensor labels and coefficients
     auto labels= key_value.first;
     auto coefficient = key_value.second;
@@ -57,7 +56,7 @@ int main(int argc, char **argv)
             u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
             u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);
             identity[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=1;
-            std::cout<<tensor.Str()<<std::endl;
+            // std::cout<<tensor.Str()<<std::endl;
           }
         }
 
