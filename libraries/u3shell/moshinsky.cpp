@@ -124,7 +124,6 @@ namespace u3shell
 
       //ucoefficient from factoring out center of mass 
       double relative_coef=(u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0));
-
       // iterate over bra subspace
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       for (int bra_state_index=0; bra_state_index<dimb; ++bra_state_index)
@@ -173,7 +172,7 @@ namespace u3shell
         u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion
       )
   {
-          //extract operator labels 
+    //extract operator labels 
     int etap=tensor.bra().eta();
     int eta=tensor.ket().eta();
     HalfInt S=tensor.ket().S();
@@ -236,7 +235,6 @@ namespace u3shell
         int eta1p=bra_state.N1();
         int eta2p=bra_state.N2();
         u3shell::TwoBodyStateLabelsU3ST bra(eta1p, eta2p, xp, Sp, Tp);
-
         for (int j=0; j<dimk; ++j)
           {
             const u3shell::TwoBodyStateU3ST ket_state(ket_subspace,j);
@@ -247,18 +245,23 @@ namespace u3shell
             double coefficient=expansion_coef*sector(i,j);      
             TwoBodyUnitTensorLabelsU3ST tboperator(operator_labels,rho0,bra,ket);
 
-//check            TwoBodyUnitTensorLabelsU3ST tboperator(tensor,rho0,bra,ket);
-            // std::cout<<tboperator.Str()<<"  "<<etap<<"  "<<eta<<"  "<<expansion_coef<<"  "<<sector(i,j)<<std::endl;
             two_body_expansion[tboperator]+=coefficient;                
           }
-        }
 
+        }
       // remove unit tensors with coefficient zero
+      std::vector<TwoBodyUnitTensorLabelsU3ST> delete_list;
       for(auto key_value : two_body_expansion)
+      // for(auto key_value=two_body_expansion.begin(); key_value!=end; ++key_value)
       {
         if(fabs(key_value.second)<1e-10)
-          two_body_expansion.erase(key_value.first);
+          delete_list.push_back(key_value.first);
       }
+      for(int i=0; i<delete_list.size(); ++i)
+        {
+          auto key=delete_list[i];
+          two_body_expansion.erase(key);
+        }
     }
   }
 
