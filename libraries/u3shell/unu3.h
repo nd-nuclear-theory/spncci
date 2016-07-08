@@ -85,6 +85,7 @@ void GenerateAllowedSU3xSU2Irreps(
         MultiplicityTagged<u3::U3S>::vector& allowed_irreps
       );
 
+// Only generates Two-Body Irreps 
 void GenerateAllowedSU3xSU2xSU2TwoBodyIrreps(
           const unsigned n,
           MultiplicityTagged<u3::U3ST>::vector& allowed_irreps

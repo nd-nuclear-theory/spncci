@@ -20,6 +20,26 @@ int main(int argc, char **argv)
 
 
   ////////////////////////////////////////////////////////////////
+  // Relative state tests
+  ////////////////////////////////////////////////////////////////
+
+  if (true)
+    {
+      // build space
+      int Nmax=8;
+      u3shell::RelativeSpaceU3ST space(Nmax);
+      std::cout << space.Str();
+
+      // dump subspace contents
+      
+      for (int subspace_index=0; subspace_index<space.size(); ++subspace_index)
+        {
+          const u3shell::RelativeSubspaceU3ST& subspace = space.GetSubspace(subspace_index);
+          std::cout << fmt::format("subspace {}",subspace.Str()) << std::endl;          
+        }
+
+    }
+  ////////////////////////////////////////////////////////////////
   // two-body state tests
   ////////////////////////////////////////////////////////////////
 

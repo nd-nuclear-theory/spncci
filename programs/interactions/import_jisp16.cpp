@@ -169,6 +169,7 @@ ImportInteraction_JISP(std::string interaction_file,
 int main(int argc, char **argv)
   {
     int J0=0;
+    int T0=0;
     int g0=0;
     int sector_dim=0;
     std::string interaction_file="data/Vrel_JISP16_bare_Jmax4.hw20";
@@ -178,8 +179,9 @@ int main(int argc, char **argv)
 
     // Nmax set to 5 since Lmax=5;
     int Nmax=5;
-    basis::RelativeSpaceLSJT relative_space(Nmax);
-    basis::RelativeSectorsLSJT relative_sectors(relative_space, J0, g0);
+    int Jmax=4;
+    basis::RelativeSpaceLSJT relative_space(Nmax,Jmax);
+    basis::RelativeSectorsLSJT relative_sectors(relative_space, J0,T0, g0);
 
 
     std::cout<<"importing interaction"<<std::endl;

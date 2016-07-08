@@ -17,8 +17,6 @@ Basic installation
 
   Or, locally on the ND CRC,
 
-  git clone --recursive /afs/crc.nd.edu/group/nuclthy/git/spncci.git
-
 Then switch to the desired development branch, e.g.,
 
   git checkout devel

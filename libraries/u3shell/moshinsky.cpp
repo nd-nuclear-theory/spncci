@@ -181,6 +181,9 @@ namespace u3shell
     HalfInt Sp=tensor.bra().S();
     HalfInt Tp=tensor.bra().T();
     u3::SU3 x0(tensor.x0());
+
+    OperatorLabelsU3ST operator_labels(etap-eta,x0,tensor.S0(), tensor.T0(), tensor.g0());
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sectors are generated subject to the constraints that 
     // omega.N()+N0=omegap.N()
@@ -190,7 +193,7 @@ namespace u3shell
     u3shell::TwoBodySectorsU3ST sector_labels_list(space,tensor);
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Iterate over sectors
+    // Iterate over two-body sectors
     for (int sector_index=0; sector_index<sector_labels_list.size(); sector_index++)
     {
       // for a given sector, extract bra and ket subspace information
@@ -209,11 +212,8 @@ namespace u3shell
       // set up two-body sector for given operator,(omegap,Sp,Tp),(omega,S,T), rho0
       Eigen::MatrixXd sector(dimk,dimb);
 
-      // std::vector<u3shell::TwoBodyStateLabelsU3ST>bra_labels;
-      // std::vector<u3shell::TwoBodyStateLabelsU3ST>ket_labels; 
-
-      u3::SU3 x(bra_subspace.omega().SU3());
-      u3::SU3 xp(ket_subspace.omega().SU3());
+      u3::SU3 xp(bra_subspace.omega().SU3());
+      u3::SU3 x(ket_subspace.omega().SU3());
       HalfInt Np(bra_subspace.omega().N());
       HalfInt N(ket_subspace.omega().N());
 
@@ -235,7 +235,6 @@ namespace u3shell
         const u3shell::TwoBodyStateU3ST bra_state(bra_subspace,i);
         int eta1p=bra_state.N1();
         int eta2p=bra_state.N2();
-
         u3shell::TwoBodyStateLabelsU3ST bra(eta1p, eta2p, xp, Sp, Tp);
 
         for (int j=0; j<dimk; ++j)
@@ -246,7 +245,9 @@ namespace u3shell
             u3shell::TwoBodyStateLabelsU3ST ket(eta1, eta2, x, S, T);
 
             double coefficient=expansion_coef*sector(i,j);      
-            TwoBodyUnitTensorLabelsU3ST tboperator(tensor,rho0,bra,ket);
+            TwoBodyUnitTensorLabelsU3ST tboperator(operator_labels,rho0,bra,ket);
+
+//check            TwoBodyUnitTensorLabelsU3ST tboperator(tensor,rho0,bra,ket);
             // std::cout<<tboperator.Str()<<"  "<<etap<<"  "<<eta<<"  "<<expansion_coef<<"  "<<sector(i,j)<<std::endl;
             two_body_expansion[tboperator]+=coefficient;                
           }

@@ -29,6 +29,168 @@
 
 namespace u3shell {
 
+
+  ////////////////////////////////////////////////////////////////
+  // relative states in U3ST scheme
+  ////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////  
+  //
+  // Labeling
+  //
+  // subspace labels: (N,S,T,g)
+  //   where the SU(3) character of the state is given by omega=(N,(N,0))
+  //
+  // In each case there is only one state in the subspace
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered by:
+  //    -- increasing N 
+  //    -- increasing S (S=0,1)
+  //    -- increasing T (T=0,1)
+  //    -- [g is implied by omega (N~g)] note this is the relative g
+  // and subject to:
+  //   -- N~g
+  // 
+  // Subspaces are pruned to those of nonzero dimension.
+  // Since spaces of interest are those which transform to two-body operators,
+  // we restrict the basis to states which satisfy
+  //    -- N+S+T odd
+  //
+  ////////////////////////////////////////////////////////////////
+  
+  ////////////////////////////////////////////////////////////////
+  // subspace
+  ////////////////////////////////////////////////////////////////
+
+  class RelativeSubspaceU3ST
+    : public basis::BaseSubspace<std::tuple<int,int,int,int>,int>
+    // Subspace class for two-body states of given U(3)xSxT.
+    //
+    // SubspaceLabelsType (std::tuple): <N, S, T>
+    //   N (int) :  U(3) label
+    //   S (int) : spin
+    //   T (int) : isospin
+    //   g (int) : grade (parity % 2) 
+    // StateLabelsType (int): 1 (just a place holder)
+    {
+  public:
+
+    // constructor
+    RelativeSubspaceU3ST (int N, int S, int T, int g);
+
+    // accessors
+    u3::U3 omega() const {return u3::U3(std::get<0>(labels_),0,0);}
+    u3::SU3 SU3() const {return u3::SU3(std::get<0>(labels_),0);}
+    int N() const {return std::get<0>(labels_);}
+    int S() const {return std::get<1>(labels_);}
+    int T() const {return std::get<2>(labels_);}
+    int g() const {return std::get<3>(labels_);}
+    std::tuple<int,int,int,int> Key() const {return labels_;}
+    // diagnostic output
+    std::string Str() const;
+
+  private:
+
+    // validation
+    bool ValidLabels() const;
+
+  };
+
+  // ////////////////////////////////////////////////////////////////
+  // // state
+  // ////////////////////////////////////////////////////////////////
+
+  // class TwoBodyStateU3ST
+  //   : public basis::BaseState<TwoBodySubspaceU3ST>
+  // // State class for two-body states of given U(3)xSxT.
+  // {
+    
+  // public:
+
+  //   // pass-through constructors
+
+  // TwoBodyStateU3ST(const SubspaceType& subspace, int index)
+  //   // Construct state by index.
+  //   : basis::BaseState<TwoBodySubspaceU3ST>(subspace, index) {}
+
+  // TwoBodyStateU3ST(const SubspaceType& subspace, const typename SubspaceType::StateLabelsType& state_labels)
+  //   // Construct state by reverse lookup on labels.
+  //   : basis::BaseState<TwoBodySubspaceU3ST> (subspace, state_labels) {}
+
+  //   // pass-through accessors
+  //   u3::U3 omega() const {return Subspace().omega();}
+  //   int S() const {return Subspace().S();}
+  //   int T() const {return Subspace().T();}
+  //   int g() const {return Subspace().g();}
+  //   int N() const {return Subspace().N();}
+
+  //   // state label accessors
+  //   int N1() const {return std::get<0>(GetStateLabels());}
+  //   int N2() const {return std::get<1>(GetStateLabels());}
+  //   // equivalently, int N2() const {return N()-N1();}
+
+  // };
+
+  ////////////////////////////////////////////////////////////////
+  // space
+  ////////////////////////////////////////////////////////////////
+
+  class RelativeSpaceU3ST
+    : public basis::BaseSpace<RelativeSubspaceU3ST>
+  // Space class for two-body states of given U(3)xSxT.
+  {
+    
+  public:
+
+    // constructor
+    RelativeSpaceU3ST(int Nmax);
+
+    // accessors
+    int Nmax() const {return Nmax_;}
+
+    // diagnostic output
+    std::string Str() const;
+
+  private:
+    // truncation
+    int Nmax_;
+
+  };
+
+
+  ////////////////////////////////////////////////////////////////
+  // sectors
+  ////////////////////////////////////////////////////////////////
+
+  class RelativeSectorsU3ST
+    : public basis::BaseSectors<RelativeSpaceU3ST>
+  // U3ST-scheme relative sectors.
+  //
+  // Sectors are enumerated in lexicographical order by (bra)(ket).
+  {
+
+  public:
+
+    // constructor
+
+    RelativeSectorsU3ST(RelativeSpaceU3ST& space);
+    // Enumerate all sector pairs ("all-to-all" sector enumeration).
+    //
+
+    RelativeSectorsU3ST(RelativeSpaceU3ST& space, const OperatorLabelsU3ST& operator_labels);
+    // Enumerate sector pairs connected by an operator of given
+    // tensorial and parity character ("constrained" sector
+    // enumeration).
+    //
+  };
+
+  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+
   ////////////////////////////////////////////////////////////////
   // two-body states in U3ST scheme
   ////////////////////////////////////////////////////////////////

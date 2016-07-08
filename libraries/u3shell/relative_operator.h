@@ -15,6 +15,7 @@
 #define RELATIVE_OPERATOR_H_
 
 #include "u3shell/tensor_labels.h"
+#include "u3shell/u3st_scheme.h"
 namespace u3shell
 {
 
@@ -32,9 +33,6 @@ namespace u3shell
   ////////////////////////////////////////////////////////////////
   // generation of unit tensor label lists
   ////////////////////////////////////////////////////////////////
-
-  std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>
-    GenerateRelativeUnitTensorLabelsU3ST(int Nmax);
   // Generate labels for U3ST-scheme relative tensors acting within
   // the relative space of a given Nmax truncation.
   //
@@ -51,27 +49,15 @@ namespace u3shell
   //   : map from N0 -> vector of relative unit tensor labels
 
 
-  // COMMENTS to Anna
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        const u3shell::RelativeSpaceU3ST& space,
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
+        );
 
-  // Comment #1: If we define a RelativeSpaceU3ST (or RelativeSectorsU3ST),
-  // that would be a more natural argument than Nmax, and it would
-  // take care of much of the iteration.  This is the model I am
-  // following with the two-body unit tensors.  Not sure how useful it
-  // would be here...
 
-  // Comment #2: Given that the map indices are restricted to
-  // nonnegative values 0, 1, 2, ..., and I believe they run
-  // sequentially, why not just a do a vector (of vectors)?
-  //
-  //  std::vector<std::vector<RelativeUnitTensorLabelsU3ST>>
-  //
-  // Note: Then you just size the vector to Nmax+1 at the beginning,
-  // and all the entries are default constructed as empty vectors.  Or
-  // you push_back vectors for each No one-by-one.
-  //
-  // On the other hand, I realize you might want to keep generality to
-  // possibly store negative N0.  I am actually doing so for the
-  // two-body case, to provide more complete testing.
+  std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>
+    GenerateRelativeUnitTensorLabelsU3ST(int Nmax);
+    // Depreciated version
 
   // OLD COMMENT from .h file (to delete):
   //
@@ -94,6 +80,7 @@ namespace u3shell
         int Nmax, 
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
         );
+  //Depreciated version
 
   // Overload function if we don't need operators sorted by N0
   void GenerateRelativeUnitTensorLabelsU3ST(

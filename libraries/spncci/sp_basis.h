@@ -266,6 +266,10 @@ namespace spncci
   //         for each L
   //           for each J
 
+
+
+
+
   // total dimension counting functions
 
   int TotalU3Subspaces(const LGIVectorType& lgi_vector);

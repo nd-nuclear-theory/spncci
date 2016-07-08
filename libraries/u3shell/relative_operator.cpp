@@ -10,10 +10,38 @@
 #include "am/am.h"
 #include "cppformat/format.h"
 #include "sp3rlib/vcs.h"
-
+#include "u3shell/u3st_scheme.h"
 
 namespace u3shell {
 
+
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        const u3shell::RelativeSpaceU3ST& space,
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
+        )
+  {
+    for(int bra_index=0; bra_index<space.size(); ++bra_index)
+      {
+        int eta, S, T;
+        // const u3shell::RelativeSubspaceU3ST& subspace =space.GetSubspace(ket_index);
+        std::tie(eta,S,T,std::ignore)=space.GetSubspace(bra_index).Key();
+        for(int ket_index=0; ket_index<space.size(); ++ket_index)
+          {
+            int etap,Sp,Tp;
+            std::tie(etap,Sp,Tp,std::ignore)=space.GetSubspace(ket_index).Key();
+            MultiplicityTagged<u3::SU3>::vector x0_list=KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
+            for(int S0=abs(Sp-S); S0<=(Sp+S); ++S0)
+              for(int T0=abs(Tp-T); T0<=(Tp+T); ++T0)
+                for(int i=0; i<x0_list.size(); ++i)
+                  {
+                    u3::SU3 x0=x0_list[i].irrep;
+                    u3shell::RelativeStateLabelsU3ST ket(eta,S,T);
+                    u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp);
+                    relative_unit_tensor_labels[etap-eta].push_back(u3shell::RelativeUnitTensorLabelsU3ST(x0,S0,T0,bra,ket));
+                  }
+          }
+      }
+  }
 
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax, 

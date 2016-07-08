@@ -36,6 +36,16 @@ namespace u3shell
 // To get vector of <L0,k0max>, <L,kmax> and <Lp, Kpmax>
 //   MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r);
 // 
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Upcoupling NLSJT reduced matrix elements to NLST reduced matrix elements and stores them in rme_nlst_map
+  //
+  // args: rme_nlst_map is a map of the NLST reduced matrix elements
+  //       space gives relative space
+  //       sectors indicate sectors corresponding to defined space 
+  //       sector_vector are the input matrix elements for each sector 
+  // 
+
   void UpcouplingNLST(
     const basis::RelativeSpaceLSJT& space,
     const basis::RelativeSectorsLSJT& sectors,
@@ -44,6 +54,12 @@ namespace u3shell
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map
     );
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Upcoupling NLST reduced matrix elements to U3ST reduced matrix elements and stores them in rme_map
+  //
+  // args: rme_nlst_map is a map of the NLST reduced matrix elements
+  //       J0, g0,T0 and Nmax (int) are basis parameters 
+  // 
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
     int J0, int g0, int T0, int Nmax,

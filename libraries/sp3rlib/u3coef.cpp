@@ -68,6 +68,7 @@ namespace u3
     int kappa1_max=u3::BranchingMultiplicitySO3(x1,L1);
     int kappa2_max=u3::BranchingMultiplicitySO3(x2,L2);
     int kappa3_max=u3::BranchingMultiplicitySO3(x3,L3);
+
     return WMultiplicityTuple(kappa1_max, kappa2_max, kappa3_max, rho_max);
   }
   // Calculate multiplicities for SU(3) Wigner coefficients.
@@ -225,9 +226,6 @@ namespace u3
     //
     // build up index, dimension by dimension
     //
-    // equivalent to (but with fewer multiplies and potentially better mult+add structure)
-    //   index=r12+r12_max_*(r12_3-1)+r12_max_*r12_3_max_*(r23-1)+r12_max_*r12_3_max_*r23_max_*(r1_23-1)-1;
-
     int index = (r1_23-1);
     index = index * r23_max_ + (r23-1);
     index = index * r12_3_max_ + (r12_3-1);
@@ -270,11 +268,6 @@ namespace u3
     return value;
   }
 
-  // UCoefMultiplicities UMultiplicitiesCached(
-  //                const u3::UCoefCache& cache, 
-  //                )
-
-////////////
   std::string WCoefLabels::Str() const
   {
     std::ostringstream ss;
@@ -291,7 +284,6 @@ namespace u3
     int L1,L2,L3;
     std::tie(x1,L1,x2,L2,x3,L3) = labels.Key();
     std::tie(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_) = WMultiplicity(x1,L1,x2,L2,x3,L3);
-
     double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
     memset(w_array,0,sizeof(w_array));
     su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, 1,1,1,1, w_array);
@@ -306,12 +298,11 @@ namespace u3
           for(int kappa3=1; kappa3<=kappa3_max_; ++kappa3)
             //Using row-major C to access column-major Fortran array
             coefs_.push_back(w_array[kappa3-1][kappa2-1][kappa1-1][rho-1]);
-
-
   }
 
   double WCoefBlock::GetCoef(int kappa1, int kappa2, int kappa3, int rho) const
   {
+    // std::cout<<fmt::format("{} {} {} {}",kappa1_max_,kappa2_max_,kappa3_max_,rho_max_)<<std::endl;
     // validate multiplicity indices
     assert(
            (rho <= rho_max_)
@@ -347,6 +338,7 @@ namespace u3
       // retrieve from cache
       {
         const u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
+        // std::cout<<fmt::format("{}  {} {} {} {}",labels.Str(),kappa1,kappa2,kappa3,rho)<<std::endl;
         if (cache.count(labels)==0)
           {
             #pragma omp critical
@@ -363,6 +355,15 @@ namespace u3
       }
 
     return value;
+  }
+
+  void WBlockCached(WCoefCache& cache, const u3::WCoefLabels& labels)
+  {
+    if (cache.count(labels)==0)
+      {
+        #pragma omp critical
+        cache[labels]=u3::WCoefBlock(labels);
+      }
   }
 
 } // namespace 

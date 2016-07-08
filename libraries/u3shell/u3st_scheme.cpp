@@ -14,6 +14,139 @@
 
 namespace u3shell {
 
+
+
+  RelativeSubspaceU3ST::RelativeSubspaceU3ST(int N, int S, int T, int g)
+  {
+    // set values
+    labels_ = SubspaceLabelsType(N,S,T,g);
+    // validate subspace labels
+    assert(ValidLabels()); 
+    PushStateLabels(1); 
+  }
+
+  bool RelativeSubspaceU3ST::ValidLabels() const
+  {
+    bool valid = true; 
+    // truncation
+    valid &= (N()+g())%2==0;
+
+    return valid;
+  }
+
+  std::string RelativeSubspaceU3ST::Str() const
+  {
+
+    return fmt::format(
+                       "[{} {} {} {}]",
+                       N(),S(),T(),g()
+                       );
+  }
+
+  RelativeSpaceU3ST::RelativeSpaceU3ST(int Nmax)
+  {
+    // save Nmax
+    Nmax_ = Nmax;
+
+    // for each N in 0..Nmax
+    for (int N=0; N<=Nmax; ++N)
+      // for each S in 0..1
+      for (int S=0; S<=1; ++S)
+        // for each T in 0..1
+        for (int T=0; T<=1; ++T)
+          {
+            // g is fixed by g~N
+            int g = N%2;
+            if((N+S+T)%2==1)
+              {
+                // construct subspace
+                RelativeSubspaceU3ST subspace(N,S,T,g);
+
+                // push subspace if nonempty
+                if (subspace.size()!=0)
+                  PushSubspace(subspace);
+              }
+          }
+  }
+
+
+  std::string RelativeSpaceU3ST::Str() const
+  {
+
+    std::ostringstream os;
+    for (int subspace_index=0; subspace_index<size(); ++subspace_index)
+      {
+  const SubspaceType& subspace = GetSubspace(subspace_index);
+        
+        std::string subspace_string 
+          = fmt::format(
+                        "index {:3} {} size {:3}",
+                        subspace_index,
+                        subspace.Str(),
+                        subspace.size()
+                        );
+                        
+        os << subspace_string << std::endl;
+      }
+    return os.str();
+  }
+
+  RelativeSectorsU3ST::RelativeSectorsU3ST(RelativeSpaceU3ST& space)
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+  {
+          // retrieve subspaces
+          const RelativeSubspaceU3ST& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const RelativeSubspaceU3ST& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+          // push sectors (taking unit multiplicity)
+          int multiplicity_index = 1;
+          PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+          
+  }
+  }
+
+  RelativeSectorsU3ST::RelativeSectorsU3ST(RelativeSpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+  {
+          // retrieve subspaces
+          const RelativeSubspaceU3ST& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const RelativeSubspaceU3ST& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+
+    // verify selection rules
+          bool allowed = true;
+          // U(1)
+          allowed &= (ket_subspace.N() + operator_labels.N0() - bra_subspace.N() == 0);
+          // spin & isosopin
+          allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0(),bra_subspace.S());
+          allowed &= am::AllowedTriangle(ket_subspace.T(),operator_labels.T0(),bra_subspace.T());
+          // parity
+          //MARK?
+          //allowed &= ((ket_subspace.g() + operator_labels.g0() - bra_subspace.g())%2 == 0);
+          // find SU(3) multiplicity and check SU(3) selection
+          int multiplicity = 0;
+          if (allowed)
+            {
+              multiplicity = u3::OuterMultiplicity(ket_subspace.SU3(),operator_labels.x0(),bra_subspace.SU3());
+              allowed &= (multiplicity > 0);
+              // std::cout << fmt::format("{}x{}->{}: {} {}",ket_subspace.omega().SU3().Str(),operator_labels.x0.Str(),bra_subspace.omega().SU3().Str(),multiplicity,allowed)
+              //           << std::endl;
+            }
+
+          // push sectors (tagged by multiplicity)
+    if (allowed)
+            for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+              {
+                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+              }
+  }
+  }
+
+
   TwoBodySubspaceU3ST::TwoBodySubspaceU3ST(u3::U3 omega, int S, int T, int g)
   {
 

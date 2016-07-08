@@ -360,7 +360,7 @@ namespace u3
  
     inline KeyType Key() const
     {
-      return KeyType(x1_, L2_, x2_, L2_, x3_,  L3_);
+      return KeyType(x1_, L1_, x2_, L2_, x3_,  L3_);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -532,7 +532,7 @@ namespace u3
   // Returns;
   //   (double): single coefficient value
 
-
+  void WBlockCached(WCoefCache& cache, const u3::WCoefLabels& labels);
 
 
 } //namespace 
