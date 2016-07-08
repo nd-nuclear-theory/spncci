@@ -193,29 +193,21 @@ namespace u3
       // 6 labels all of SU3 type
       // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
       // SU3 hash_value defined in sp3rlib/u3.h
+      #ifdef NAIVEHASH
+      // naive implementation: sum hashes together
       std::size_t ulab1 = hash_value(ucoef_labels.x1_);
       std::size_t ulab2 = hash_value(ucoef_labels.x2_);
       std::size_t ulab3 = hash_value(ucoef_labels.x_);
       std::size_t ulab4 = hash_value(ucoef_labels.x3_);
       std::size_t ulab5 = hash_value(ucoef_labels.x12_);
       std::size_t ulab6 = hash_value(ucoef_labels.x23_);
-
-      #ifdef NAIVEHASH
-      // naive implementation: sum hashes together
       std::size_t ulabsum = 0;
       return ulabsum = ulab1 + ulab2 + ulab3 + ulab4 +ulab5 + ulab6;
       #endif
 
       #ifdef BOOSTHASH
-      // smarter implementation: boost::hashcombine
-      std::size_t seed = 0;
-      boost::hash_combine(seed,ulab1);
-      boost::hash_combine(seed,ulab2);
-      boost::hash_combine(seed,ulab3);
-      boost::hash_combine(seed,ulab4);
-      boost::hash_combine(seed,ulab5);
-      boost::hash_combine(seed,ulab6);
-      return seed;
+        boost::hash<UCoefLabels::KeyType> hasher;
+        return hasher(ucoef_labels.Key());
       #endif
     }
     ////////////////////////////////////////////////////////////////
@@ -385,29 +377,22 @@ namespace u3
       // 6 labels all of SU3 type
       // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
       // SU3 hash_value defined in sp3rlib/u3.h
-      std::size_t wlab1 = hash_value(wcoef_labels.x1_);
-      std::size_t wlab2 = hash_value(wcoef_labels.x2_);
-      std::size_t wlab3 = hash_value(wcoef_labels.x3_);
-      // std::size_t wlab4 = hash_value(wcoef_labels.L1_);
-      // std::size_t wlab5 = hash_value(wcoef_labels.L2_);
-      // std::size_t wlab6 = hash_value(wcoef_labels.L3_);
 
       #ifdef NAIVEHASH
       // naive implementation: sum hashes together
-      std::size_t wlabsum = 0;
-      return wlabsum = wlab1 + wlab2 + wlab3 + wlab4 +wlab5 + wlab6;
+        std::size_t wlabsum = 0;
+        std::size_t wlab1 = hash_value(wcoef_labels.x1_);
+        std::size_t wlab2 = hash_value(wcoef_labels.x2_);
+        std::size_t wlab3 = hash_value(wcoef_labels.x3_);
+        std::size_t wlab4 = hash_value(wcoef_labels.L1_);
+        std::size_t wlab5 = hash_value(wcoef_labels.L2_);
+        std::size_t wlab6 = hash_value(wcoef_labels.L3_);
+        return wlabsum = wlab1 + wlab2 + wlab3 + wlab4 +wlab5 + wlab6;
       #endif
 
       #ifdef BOOSTHASH
-      // smarter implementation: boost::hashcombine
-      std::size_t seed = 0;
-      boost::hash_combine(seed,wlab1);
-      boost::hash_combine(seed,wlab2);
-      boost::hash_combine(seed,wlab3);
-      boost::hash_combine(seed,wcoef_labels.L1_);
-      boost::hash_combine(seed,wcoef_labels.L2_);
-      boost::hash_combine(seed,wcoef_labels.L3_);
-      return seed;
+        boost::hash<WCoefLabels::KeyType> hasher;
+        return hasher(wcoef_labels.Key());
       #endif
     }
     ////////////////////////////////////////////////////////////////

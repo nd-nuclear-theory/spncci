@@ -26,9 +26,16 @@ namespace u3shell
   // coefficient storage -- two-body
   ////////////////////////////////////////////////////////////////
 
+  // typedef
+  //   std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double>
+  //   TwoBodyUnitTensorCoefficientsU3ST;
   typedef
-    std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double>
-    TwoBodyUnitTensorCoefficientsU3ST;
+    std::unordered_map<
+        u3shell::TwoBodyUnitTensorLabelsU3ST,
+        double,
+        boost::hash<u3shell::TwoBodyUnitTensorLabelsU3ST> 
+      > TwoBodyUnitTensorCoefficientsU3ST;
+
   // Storage of coefficients of two-body unit tensors in U(3)xSxT scheme.
   //
   // Also used to represent coefficients of other similarly-labeled

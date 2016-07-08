@@ -379,8 +379,10 @@ void caching_W_test()
 {
 
   // generate label set for testing
-  u3::SU3 x1(7,8);
-  u3::SU3 x2(6,4);
+  // u3::SU3 x1(7,8);
+  // u3::SU3 x2(6,4);
+  u3::SU3 x1(3,2);
+  u3::SU3 x2(2,2);
   MultiplicityTagged<u3::SU3>::vector x3_values=u3::KroneckerProduct(x1,x2);
   std::vector<u3::WCoefLabels> label_set;
   for(auto it=x3_values.begin(); it!=x3_values.end(); ++it)
@@ -480,13 +482,13 @@ int main(int argc, char **argv)
   // iteration_test();
 
   // test cache storage and retrieval
-  //caching_test();  
+  caching_test();  
 
   // test symmetries of W coefficients 
   // int lm_max=2;
 
   int lm_max=10;
-  TestOrthogonalityW(lm_max);
+  // TestOrthogonalityW(lm_max);
 
   // void TestWSymmetries(lm_max)
   

@@ -74,6 +74,7 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
             }
         }
     }
+
   std::cout<<"summing complete"<<std::endl;
   // sum over omega0 kappa0 rho0
   std::map<TwoBodyBraketU3STBranched,double> rme_u3st_branched;
@@ -88,6 +89,8 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
       std::tie(x0,S0,T0,kappa0,bra_u3st,ket_u3st,rho0)=(it->first);
       u3::SU3 x=ket_u3st.x();
       u3::SU3 xp=bra_u3st.x();
+
+      // std::cout<<fmt::format("({}|| {} {} {} {}||{}){}  {}",bra_u3st.Str(),x0.Str(),S0,T0,kappa0,ket_u3st.Str(),rho0,rme)<<std::endl;
 
       MultiplicityTagged<int>::vector L_branch=u3::BranchingSO3(x);
       MultiplicityTagged<int>::vector Lp_branch=u3::BranchingSO3(xp);
@@ -257,7 +260,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   u3::WCoefCache cache;
   
-  int Nmax=8;
+  int Nmax=10;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
@@ -322,8 +325,12 @@ int main(int argc, char **argv)
   std::vector<Eigen::MatrixXd> sector_vector;
   std::string interaction_file;
   std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double> relative_rme_map; 
+  // interaction_file="NONE";
+  // sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Identity");
+
   interaction_file="NONE";
-  sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Identity");
+  sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Kinetic");
+
   u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
   std::cout<<"upcoupling complete"<<std::endl;
   branchLST(Jmax,J0, g0, T0, twobody_rme_u3st_map, relative_rme_map,cache,  branched_rme_map);

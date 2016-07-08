@@ -23,9 +23,17 @@ namespace u3shell
   // coefficient storage -- relative
   ////////////////////////////////////////////////////////////////
 
+  // typedef
+  //   std::map<u3shell::RelativeUnitTensorLabelsU3ST,double>
+  //   RelativeUnitTensorCoefficientsU3ST;
+
   typedef
-    std::map<u3shell::RelativeUnitTensorLabelsU3ST,double>
-    RelativeUnitTensorCoefficientsU3ST;
+    std::unordered_map<
+      u3shell::RelativeUnitTensorLabelsU3ST,
+      double,
+      boost::hash<u3shell::RelativeUnitTensorLabelsU3ST>
+    >RelativeUnitTensorCoefficientsU3ST;
+
   // Storage of coefficients of relative unit tensors in U(3)xSxT scheme.
 
 
