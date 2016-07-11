@@ -36,12 +36,11 @@ typedef std::tuple<u3::SU3,HalfInt,HalfInt,int,u3shell::TwoBodyStateLabelsU3ST,u
 
 void branchLST(  int Jmax, int J0, int g0, int T0,
   const std::map< TwoBodyBraket,std::map<u3shell::RelativeUnitTensorLabelsU3ST,double> >& twobody_rme_u3st_map,
-  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>& relative_rme_map, 
+  std::map< std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int> ,double >& relative_rme_map, 
   u3::WCoefCache& cache,
   std::map<TwoBodyBraketBranched,double>&branched_rme_map
   )
 {
-
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // iterating over two-body matrix elements 
   u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor;
@@ -70,7 +69,8 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
               std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int> relative_operator(relative_unit_tensor,kappa0);
               if(relative_rme_map.count(relative_operator)==0)
                 continue;
-              operator_rme_u3st_map[relative_operator_labels]+=unit_rme*relative_rme_map[relative_operator];
+              double relative_rme=relative_rme_map[relative_operator];
+              operator_rme_u3st_map[relative_operator_labels]+=unit_rme*relative_rme;
             }
         }
     }
@@ -81,8 +81,9 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
   for(auto it=operator_rme_u3st_map.begin(); it!=operator_rme_u3st_map.end(); ++it)
     {
       double rme=it->second;
-      if ((fabs(rme)<10e-10)||(fabs(rme)>10e10))
+      if (fabs(rme)<10e-10)
         continue;
+
       u3::SU3 x0;
       HalfInt S0,T0;
       int rho0,kappa0;
@@ -131,9 +132,9 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
     {
 
       double rme=it->second;
-      if ((fabs(rme)<10e-10)||(fabs(rme)>10e10))
+      if (fabs(rme)<10e-10)
         continue;
-      // std::cout<<rme<<std::endl;
+
       TwoBodyStateLabelsU3STBranched bra_u3lst,ket_u3lst;
       HalfInt S0,T0,S,T,Sp,Tp;
       u3::SU3 x,xp; 
@@ -144,6 +145,7 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
       std::tie(bra_u3st,kappap,Lp)=ket_u3lst;
       std::tie(ket_u3st,kappa,L)=ket_u3lst;
       // if(fabs(rme)>10e-10)
+      // if(fabs(rme)>10e10)
       //   std::cout<<fmt::format("({} {} {}||V||{} {} {})  {}",
       //     bra_u3st.Str(),kappap, Lp,ket_u3st.Str(),kappa,L,rme)
       //   <<std::endl;
@@ -176,13 +178,6 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
                   if(L2>L1)
                     norm_factor=sqrt(2);
                 }
-              // if((eta1==eta2)&&(L2<L1))
-              //   {
-                  // phase=parity(eta1+eta2+x.lambda()+x.mu()+L1+L2+L+int(S+T));
-                  // int temp=L1;
-                  // L1=L2;
-                  // L2=temp;
-                // }
               double wcoef=WCached(cache,u3::SU3(eta1,0),1,L1,u3::SU3(eta2,0),1,L2,x,kappa,L,1);
               if(fabs(wcoef)<10e-10)
                 continue;
@@ -199,13 +194,7 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
                         if(L2p>L1p)
                           norm_factor_p=sqrt(2);
                       }
-                      //  {
-                      // phase*=parity(eta1p+eta2p+xp.lambda()+xp.mu()+L1p+L2p+Lp+int(Sp+Tp));
-                      // int temp=L1p;
-                      // L1p=L2p;
-                      // L2p=temp;
-                        
-                      //  }
+
                     TwoBodyStateLabelsLSTBranched ket_lst(eta1,L1,eta2,L2,L,S,T);
                     TwoBodyStateLabelsLSTBranched bra_lst(eta1p,L1p,eta2p,L2p,Lp,Sp,Tp);
                     TwoBodyBraketLSTBranched braket_lst(bra_lst,ket_lst,L0,S0,T0);
@@ -223,7 +212,7 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
   for(auto it=rme_lst_branched.begin(); it!=rme_lst_branched.end(); it++)
     {
       double rme_lst=it->second;
-      if ((fabs(rme_lst)<10e-10)||(fabs(rme_lst)>10e10))
+      if (fabs(rme_lst)<10e-10)
         continue;
       TwoBodyStateLabelsLSTBranched bra_lst,ket_lst;
       HalfInt S0,T0,S,T,Sp,Tp;
@@ -254,13 +243,12 @@ void branchLST(  int Jmax, int J0, int g0, int T0,
     }
 }
 
-
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
   u3::WCoefCache cache;
   
-  int Nmax=10;
+  int Nmax=6;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
@@ -326,15 +314,17 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
   std::vector<Eigen::MatrixXd> sector_vector;
   std::string interaction_file;
   std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double> relative_rme_map; 
-  // interaction_file="NONE";
-  // sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Identity");
-
+  
   interaction_file="NONE";
-  sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Kinetic");
+  sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Identity");
+
+  // interaction_file="NONE";
+  // sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Kinetic");
 
   u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
   std::cout<<"upcoupling complete"<<std::endl;
-  branchLST(Jmax,J0, g0, T0, twobody_rme_u3st_map, relative_rme_map,cache,  branched_rme_map);
+
+  branchLST(Jmax,J0, g0, T0, twobody_rme_u3st_map, relative_rme_map, cache,  branched_rme_map);
   for(auto it=branched_rme_map.begin(); it!=branched_rme_map.end(); ++it)
     {
       int N1,N2,N1p,N2p, L1,L2,L1p,L2p,L,Lp;

@@ -194,7 +194,7 @@ ImportInteraction_Kinetic(const basis::RelativeSpaceLSJT& space,const basis::Rel
 
     int npmax=(Nmax-Lp)/2;
     int nmax=(Nmax-L)/2;
-    sector_vector[i]=Eigen::MatrixXd(npmax+1,nmax+1);
+    sector_vector[i]=Eigen::MatrixXd::Constant(nmax+1, nmax+1, 0);
 
     if((Lp==L)&&(Sp==S)&&(Jp==J)&&(Tp==T)&&(gp==g))
       {
@@ -235,7 +235,8 @@ ImportInteraction_Identity(const basis::RelativeSpaceLSJT& space,const basis::Re
     int Tp=bra_subspace.T();
     int gp=bra_subspace.g();
     int nmax=(Nmax-L)/2;
-    sector_vector[i]=Eigen::MatrixXd(nmax+1,nmax+1);
+    sector_vector[i]=Eigen::MatrixXd::Constant(nmax+1, nmax+1, 0);
+    //Eigen::MatrixXd(nmax+1,nmax+1);
     if((Lp==L)&&(Sp==S)&&(Jp==J)&&(Tp==T)&&(gp==g))
       for(int n=0; n<=nmax; ++n)
         sector_vector[i](n,n)=1;

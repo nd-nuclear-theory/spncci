@@ -68,21 +68,27 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,sigma_irrep_map,truncator);
 
-  // Generate Kmatrices 
+  //Generate list of sigma's and count of (sigma,S)
+  //TODO:: AEM make into hashtable.
+  std::map<std::pair<u3::U3,HalfInt>,int> sigma_S_count;
   std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
   for(int l=0; l<lgi_vector.size(); l++)
+    {
       sigma_set.insert(lgi_vector[l].sigma);
-  std::cout<<"hi" <<std::endl;   
+      std::pair<u3::U3,HalfInt> count_key(lgi_vector[l].sigma, lgi_vector[l].S);
+      sigma_S_count[count_key]+=1;
+    }
+  // Generate Kmatrices 
+
   for( const auto& s : sigma_set)
     {
       vcs::MatrixCache K_map;
-//      int Nex=int(s.N()-Nsigma_0);
-//      vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, K_map);
+      // int Nex=int(s.N()-Nsigma_0);
+      // vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, K_map);
       vcs::GenerateKMatrices(sigma_irrep_map[s], K_map);
 
       K_matrix_map[s]=K_map;
     }
-  std::cout<<"bye"<<std::endl;
   // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
   std::vector< std::pair<int,int> > lgi_pair_vector=spncci::GenerateLGIPairs(lgi_vector);
 

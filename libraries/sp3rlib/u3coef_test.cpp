@@ -482,12 +482,12 @@ int main(int argc, char **argv)
   // iteration_test();
 
   // test cache storage and retrieval
-  caching_test();  
+  //caching_test();  
 
   // test symmetries of W coefficients 
   // int lm_max=2;
 
-  int lm_max=10;
+  //int lm_max=10;
   // TestOrthogonalityW(lm_max);
 
   // void TestWSymmetries(lm_max)
@@ -495,6 +495,6 @@ int main(int argc, char **argv)
   // test orthogonality of W coefficients 
   // TestOrthogonalityW(lm_max);
 
-  caching_W_test();
+  //caching_W_test();
 
 }

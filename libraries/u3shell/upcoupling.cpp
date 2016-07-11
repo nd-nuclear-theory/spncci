@@ -114,8 +114,6 @@ namespace u3shell
                 double rme_nlst=sector(np,n);
                 if (fabs(rme_nlst)<=10e-10)
                   continue;
-                if (fabs(rme_nlst>=10e10))
-                  continue;
                 // generate list of allowed x0's from coupling bra and ket
                 MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(bra.x(),u3::Conjugate(ket.x()));
                 for(int i=0; i<x0_set.size(); i++)

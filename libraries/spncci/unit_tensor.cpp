@@ -564,13 +564,8 @@ namespace spncci
 
         // if the matrix has non-zero entries,
         if (temp_matrix.any())
-          {
-            // apply symmtry factors, transpose the matrix and 
-            
-            unit_tensor_u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,coef*temp_matrix.transpose()));
-          }
-        // else
-          // zerocout++;
+          // apply symmtry factors, transpose the matrix and 
+          unit_tensor_u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,coef*temp_matrix.transpose()));
       }
     // otherwise, directly apply the algorithm
     else 
@@ -585,11 +580,9 @@ namespace spncci
                                              unit_tensor_u3_sector
                                              );
       
-    // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
+        // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
         if (temp_matrix.any())
-          {
             unit_tensor_u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,temp_matrix));
-          }
         }
         // std::cout<<"zero count  "<<zerocout<<std::endl;
   #ifdef VERBOSE
