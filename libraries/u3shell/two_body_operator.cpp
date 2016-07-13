@@ -102,7 +102,12 @@ namespace u3shell {
               * recoupling_phase
               * cross_projector_norm_factor
               * biquad_norm_factor;
-            
+
+            std::cout<<fmt::format("{} {} {} {} {}",
+              two_body_unit_tensor_coefficient,ParitySign(cross_projector_grade + biquad_grade),
+              recoupling_phase, cross_projector_norm_factor,
+              biquad_norm_factor)<<std::endl;
+
             // assemble biquad labels
             u3shell::TwoBodyUnitTensorLabelsU3ST
               biquad_labels(
