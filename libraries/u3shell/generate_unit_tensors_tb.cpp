@@ -74,7 +74,10 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
       HalfInt S, T;
       int g;
       std::tie(omega,S,T,g) =  ket_subspace.GetSubspaceLabels();
-
+      if(T!=0)    // REMOVE
+        continue; // REMOVE
+      if(Tp!=0)   // REMOVE
+        continue; // REMOVE
       ////////////////////////////////
       // determine SU(3)xSxT couplings
       ////////////////////////////////
@@ -111,10 +114,11 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
           int rho0max = x0_rho0max.tag;
           
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
-            for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
+            
+            // for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
               // for each SxT
               {
-                
+                HalfInt T0=0; //REMOVE
                 // collect tensorial labels
                 u3shell::OperatorLabelsU3ST operator_labels(N0,x0,S0,T0,g0);
 
