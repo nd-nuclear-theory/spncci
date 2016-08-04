@@ -194,18 +194,19 @@ ImportInteraction_Kinetic(const basis::RelativeSpaceLSJT& space,const basis::Rel
 
     int npmax=(Nmax-Lp)/2;
     int nmax=(Nmax-L)/2;
-    sector_vector[i]=Eigen::MatrixXd::Constant(nmax+1, nmax+1, 0);
+//    sector_vector[i]=Eigen::MatrixXd::Constant(nmax+1, nmax+1, 0);
+    sector_vector[i]=Eigen::MatrixXd::Zero(nmax+1, nmax+1);
 
     if((Lp==L)&&(Sp==S)&&(Jp==J)&&(Tp==T)&&(gp==g))
       {
         for(int n=0; n<=nmax; ++n)
           {
             if((0<=(n-1))&&((n-1)<=npmax))
-              sector_vector[i](n-1,n)=-sqrt(n*(n+L+.5))*10;
+              sector_vector[i](n-1,n)=sqrt(n*(n+L+.5));
             if(n<=npmax)
-              sector_vector[i](n,n)=(2*n+L+1.5)*10;
+              sector_vector[i](n,n)=(2*n+L+1.5);
             if((0<=(n+1))&&((n+1)<=npmax))
-              sector_vector[i](n+1,n)=-sqrt((n+1)*(n+L+1.5))*10;
+              sector_vector[i](n+1,n)=sqrt((n+1)*(n+L+1.5));
           }
       }
   }

@@ -6,6 +6,7 @@
 
   6/15/16 (aem,mac): Created.
 ****************************************************************/
+#include <fstream>
 
 #include "cppformat/format.h"
 
@@ -25,22 +26,24 @@ int main(int argc, char **argv)
 {
   u3::U3CoefInit();
   int Nmax=14;
-  int Jmax=16;
+  int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
 	int T0=0;
   basis::RelativeSpaceLSJT relative_space(Nmax, Jmax);
   basis::RelativeSectorsLSJT relative_sectors(relative_space, J0,T0, g0);
   std::vector<Eigen::MatrixXd> sector_vector;
-  std::string interaction_file;
-  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double> relative_rme_map;
+  u3shell::RelativeRMEsU3ST relative_rme_map;
   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
+  
+  std::string interaction_file;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // JISP16
 	// std::string interaction_file="data/Vrel_JISP16_bare_Jmax4.hw20";
   // std::vector<Eigen::MatrixXd> sector_vector=u3shell::ImportInteraction(interaction_file, space, sectors, "JISP");
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //// Identity test 
+  std::cout<<"Identity test"<<std::endl;
   Jmax=Nmax+2;
   interaction_file="NONE";
   sector_vector=u3shell::ImportInteraction(interaction_file, relative_space, relative_sectors, "Identity");
@@ -49,7 +52,7 @@ int main(int argc, char **argv)
   rme_nlst_map.clear();
   u3shell::UpcouplingNLST(relative_space,relative_sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
   
-  // std::cout<<"UpcouplingNLST"<<std::endl;
+  std::cout<<"UpcouplingNLST"<<std::endl;
   for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end(); ++it)
     {
       int L0, S0, L,S,T, Lp, Sp, Tp;
@@ -58,8 +61,8 @@ int main(int argc, char **argv)
       std::tie(L,S,T)=ket;
       std::tie(Lp,Sp,Tp)=bra;
       Eigen::MatrixXd sectorNLST=it->second;
-      // if(fabs(sectorNLST.sum())>10e-10)
-	     //  std::cout<<fmt::format("{} {} ({},{},{}) ({},{},{})", L0,S0,Lp,Sp,Tp,L,S,T)<<std::endl<<sectorNLST<<std::endl;
+      if(fabs(sectorNLST.sum())>10e-10)
+	      std::cout<<fmt::format("{} {} ({},{},{}) ({},{},{})", L0,S0,Lp,Sp,Tp,L,S,T)<<std::endl<<sectorNLST<<std::endl;
     }
 
   u3shell::Upcoupling(relative_space,relative_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
@@ -70,8 +73,8 @@ int main(int argc, char **argv)
       int kappa0;
       std::tie(labels,kappa0)=it->first;
       double coef=it->second;
-      // if (fabs(coef)>10e-13)
-      //   std::cout<<labels.Str()<<"  "<<kappa0<<std::endl<<it->second<<std::endl<<std::endl;
+      if (fabs(coef)>10e-13)
+        std::cout<<labels.Str()<<"  "<<kappa0<<std::endl<<it->second<<std::endl<<std::endl;
     }
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"Kinetic Energy"<<std::endl;
@@ -101,7 +104,22 @@ int main(int argc, char **argv)
 
   u3shell::Upcoupling(relative_space,relative_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
   // std::cout<<"UpcouplingU3ST"<<std::endl;
-  for (auto it=relative_rme_map.begin(); it!= relative_rme_map.end(); ++it)
+  std::ostringstream os;
+  WriteRelativeOperatorU3ST(os,relative_rme_map);
+  std::ofstream stream;
+  stream.open("Trel_upcouled");
+  stream<<os.str();
+  // std::cout<<os.str();
+  stream.close();
+
+  std::ifstream is("Trel_upcouled");
+  if(!is)
+    std::cout<<"Didn't open"<<std::endl;
+  u3shell::RelativeRMEsU3ST k2_relative_rmes;
+  u3shell::ReadRelativeOperatorU3ST(is, k2_relative_rmes);
+
+
+  for (auto it=k2_relative_rmes.begin(); it!= k2_relative_rmes.end(); ++it)
     {
       u3shell::RelativeUnitTensorLabelsU3ST labels;
       int kappa0;
@@ -112,14 +130,16 @@ int main(int argc, char **argv)
       double coefout=it->second;
       // double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
 
-      if ((fabs(coefout)>10e-10)&&(fabs(coefout)<10e10))
+      if (fabs(coefout)>10e-8)
       {
-        //if((x0==u3::SU3(0,0))||(x0==u3::SU3(2,0)))
         double Trme=RelativeKineticEnergyOperator(brat,kett);
-        std::cout<<labels.Str()<<"  "<<kappa0<<std::endl<<it->second
-			<<"  "
-			<<Trme
-			<<std::endl;     
+        std::cout<<labels.Str()
+        <<"  "<<kappa0
+        <<std::endl
+        <<it->second
+  			<<"  "
+  			<<Trme
+  			<<std::endl;     
       }
 
     }

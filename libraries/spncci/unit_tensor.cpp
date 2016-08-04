@@ -453,7 +453,7 @@ namespace spncci
                         unit_matrix+=coef1*sector_NpN2[unit1_labels];
                       }
                   }
-                // std::cout<< "term1  "<<unit_matrix<<std::endl;
+                // std::cout<< "term 1  "<<unit_matrix<<std::endl;
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // second term 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -488,7 +488,7 @@ namespace spncci
                         unit_matrix+=coef2*sector_NpN2[unit2_labels];
                       }
                   }
-                  // std::cout<<"term1"<<std::endl;
+                  // std::cout<<"term 2"<<std::endl;
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
               } //end rho0p
 
@@ -656,7 +656,6 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
               #ifdef VERBOSE_OMP
               std::cout << "  Saving sectors from thread " << omp_get_thread_num() << std::endl;
               #endif
-
               unit_tensor_rme_map[NpN_pair].insert(u3sector_pairs.begin(),u3sector_pairs.end());
               // sector_count += u3sector_pairs.size();
               // for (int j=0; j<u3sector_pairs.size(); j++)
@@ -676,22 +675,22 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
 }
 
   void GenerateUnitTensorMatrix(
-                                // single particle cutoff, relative particle <= 2*N1b+Nn
-                                int N1b,
-                                // boson number cutoff
-                                int Nmax, 
-                                // a given spncci sector pair given as index pair  from global list lgi_vector 
-                                std::pair<int,int> lgi_pair,
-                                //coefficient cache
-                                u3::UCoefCache u_coef_cache,
-                                // Address to map with list of unit tensor labels with key N0 
-                                std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
-                                // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-                                std::map<
-                                std::pair<int,int>,
-                                spncci::UnitTensorSectorsCache
-                                >& unit_tensor_rme_map
-                                )
+          // single particle cutoff, relative particle <= 2*N1b+Nn
+          int N1b,
+          // boson number cutoff
+          int Nmax, 
+          // a given spncci sector pair given as index pair  from global list lgi_vector 
+          std::pair<int,int> lgi_pair,
+          //coefficient cache
+          u3::UCoefCache u_coef_cache,
+          // Address to map with list of unit tensor labels with key N0 
+          std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
+          // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+          std::map<
+          std::pair<int,int>,
+          spncci::UnitTensorSectorsCache
+          >& unit_tensor_rme_map
+        )
   // Generates all unit tensor matrix matrices between states in the irreps of lgi_pair
   // The unit tensors are stored in the map of a map unit_tensor_rme_map which has key lgi_pair to 
   // a map with key std::pair<Nnp,Nn> and value map(matrix labels for w'w sector, matrix) 
@@ -711,8 +710,8 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
     // Generate list of labels for the unit tensor u(3) sectors of the unit tensor matrices
     // function also generates list of UCoefLabels for all the U coeffients that will be precalculate 
     // and stored in a hash table 
+    
     GenerateUnitTensorU3SectorLabels(N1b,Nmax,lgi_pair,unit_sym_map,unit_tensor_NpN_sector_map);
-
 
     // collect full list of unit tensor U(3) sectors for use in U coefficient caching
     std::vector<spncci::UnitTensorU3Sector> unit_tensor_u3_sector_vector;
@@ -746,6 +745,7 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
           GenerateNpNSector( NpN_pair,lgip,lgi,u_coef_cache,unit_tensor_rme_map,unit_tensor_NpN_sector_map); 
           int num=unit_tensor_rme_map[NpN_pair].size();
           num_unit_tensor_sectors+=num;
+          // std::cout<<Nnp<<"  "<<Nn<<"  "<<"num  "<< num_unit_tensor_sectors<<std::endl;
         } 
     std::cout<<"number of unit tensor sectors "<< num_unit_tensor_sectors<<std::endl;
 
@@ -754,6 +754,40 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
   #endif     
 }  // end function
         
+void RegroupUnitTensorU3SSectors(
+        bool is_new_subsector,
+        const HalfInt& Sp, const HalfInt& S,
+        std::pair<int,int> lgi_pair_index,
+        const std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
+        const std::pair<int,int>& lgi_symmetry_sum,
+        UnitTensorU3SSectorsCache& unit_tensor_u3S_cache
+      )
+{  
+  int subsector_num;
+  for (auto it=unit_tensor_rme_map.begin(); it !=unit_tensor_rme_map.end(); ++it)
+    {
+     const spncci::UnitTensorSectorsCache& unit_tensor_u3_cache(it->second);
+     for (auto i=unit_tensor_u3_cache.begin(); i !=unit_tensor_u3_cache.end(); i++)      
+      {
+        UnitTensorU3SSector sector(Sp,S,i->first);
+        int nup=(i->second).rows();
+        int nu =(i->second).cols();
+        if(is_new_subsector)
+        {
+          int size_row=lgi_symmetry_sum.first*nup;
+          int size_col=lgi_symmetry_sum.second*nu;
+          unit_tensor_u3S_cache[sector].push_back(Eigen::MatrixXd::Zero(size_row,size_col));
+        }  
+        
+        subsector_num=unit_tensor_u3S_cache[sector].size()-1;
+        int row_begin=lgi_pair_index.first*nup;
+        int col_begin=lgi_pair_index.second*nu;
+        unit_tensor_u3S_cache[sector][subsector_num].block(row_begin,col_begin,nup,nu)=i->second;
+        // std::cout<<unit_tensor_u3S_cache[sector][subsector_num]<<std::endl;
+      }
+    }
+}
+
 } // End namespace 
   
           

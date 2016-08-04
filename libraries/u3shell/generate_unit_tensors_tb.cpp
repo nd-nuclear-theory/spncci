@@ -74,9 +74,9 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
       HalfInt S, T;
       int g;
       std::tie(omega,S,T,g) =  ket_subspace.GetSubspaceLabels();
-      if(T!=0)    // REMOVE
+      if(T!=1)    // REMOVE
         continue; // REMOVE
-      if(Tp!=0)   // REMOVE
+      if(Tp!=1)   // REMOVE
         continue; // REMOVE
       ////////////////////////////////
       // determine SU(3)xSxT couplings
@@ -112,9 +112,25 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
           // extract SU(3) labels
           u3::SU3 x0 = x0_rho0max.irrep;
           int rho0max = x0_rho0max.tag;
-          
+          int k=std::min(x0.lambda(),x0.mu());
+          int l=std::max(x0.lambda(),x0.mu());
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
-            
+          {
+           /////////////REMOVE J0=0 restriction
+            if(k==0)
+              {
+                if((l==0)&&(S0!=0))
+                  continue;
+                if((l%2==0)&&(int(S0)%2!=0))
+                  continue;
+                if((l%2==1)&&(S0!=1))
+                  continue;
+              }
+            if(k>2)
+              continue;
+            if((k%2==1)&&(S0==0))
+              continue;
+            /////////////////////////
             // for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
               // for each SxT
               {
@@ -127,7 +143,7 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
                   {
                     int eta1p, eta2p;
                     std::tie(eta1p, eta2p)= bra_subspace.GetStateLabels(bra_index);
-                    if ((eta1p==eta2p)&&(int(u3::ConjugationGrade(xp)+Sp+Tp)%2==0))
+                    if ((eta1p==eta2p))//&&(int(u3::ConjugationGrade(xp)+Sp+Tp)%2==0)) REMOVE
                       continue;
                     for (int ket_index = 0; ket_index < ket_subspace.size(); ++ket_index)
                       // for each <bra|ket> pair
@@ -135,7 +151,7 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
                         // collect state labels
                         int eta1, eta2;
                         std::tie(eta1, eta2)= ket_subspace.GetStateLabels(ket_index);
-                        if ((eta1==eta2)&&(int(u3::ConjugationGrade(x)+S+T)%2==0))
+                        if ((eta1==eta2))//&&(int(u3::ConjugationGrade(x)+S+T)%2==0))REMOVE
                           continue;
 
                         u3shell::TwoBodyStateLabelsU3ST bra_labels(eta1p,eta2p,xp,Sp,Tp);
@@ -156,6 +172,7 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
                       }
                   }
             }
+          }
         }
 
     }

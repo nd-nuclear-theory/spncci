@@ -497,4 +497,42 @@ int main(int argc, char **argv)
 
   //caching_W_test();
 
+  // for(int q1=0; q1<=20; ++q1)
+  //   for(int q2=0; q2<=20; ++q2)
+  //     for(int b=0; b<=20; b++)
+  //       {
+  //         double coef1=U(u3::SU3(q1+q2+b,0),u3::SU3(0,q2+b),u3::SU3(q1+q2,0),u3::SU3(q2,0),u3::SU3(q1,0),1,1,u3::SU3(0,b),1,1);
+  //         double coef2=sqrt(1.*dim(u3::SU3(q1,0))*dim(u3::SU3(b,0))/(dim(u3::SU3(q1+q2,0))*dim(u3::SU3(q2+b,0))));
+  //         if(fabs(coef1-coef2)>10e-10)
+  //           std::cout<<fmt::format( "{} {} {}   {}  {}",q1,q2,b,coef1,coef2)<<std::endl;
+
+  //       }
+
+  // for(int q=0; q<=4; ++q)
+  //   for(int rb=0; rb<=4; ++rb)
+  //     for(int rbp=0; rbp<=4; rbp++)
+  //       {
+  //         if(rb<q)
+  //           continue;
+  //         MultiplicityTagged<u3::SU3>::vector w0_set=KroneckerProduct(u3::SU3(rbp,0),u3::SU3(0,rb));
+  //         MultiplicityTagged<u3::SU3>::vector w0pp_set=KroneckerProduct(u3::SU3(rbp,0),u3::SU3(0,rb-q));
+  //         for(int i=0; i<w0_set.size(); ++i) 
+  //           for(int j=0; j<w0pp_set.size(); ++j)
+  //             {
+  //               u3::SU3 x0=w0_set[i].irrep;
+  //               u3::SU3 x0pp=w0pp_set[j].irrep;
+  //               if(
+  //                 (u3::OuterMultiplicity(x0,u3::SU3(q,0),x0pp)>0)
+  //                 &&(u3::OuterMultiplicity(u3::SU3(0,rb),u3::SU3(q,0),u3::SU3(0,rb-q))>0)
+  //                 )
+  //               {
+  //                 std::cout<<x0.Str()<<"  "<<x0pp.Str()<<std::endl;
+
+  //                 double coef1=U(u3::SU3(rbp,0),u3::SU3(0,rb),x0pp,u3::SU3(q,0),x0,1,1,u3::SU3(0,rb-q),1,1);
+  //                 double coef2=sqrt(1.*dim(u3::SU3(rb-q,0))*dim(x0)/(dim(x0pp)*dim(u3::SU3(rb,0))));
+  //                 if(fabs(coef1-coef2)>10e-10)
+  //                   std::cout<<fmt::format( "{} {} {}   {}  {}",q,rbp,rb,coef1,coef2)<<std::endl;
+  //               }
+  //             }
+  //       }
 }

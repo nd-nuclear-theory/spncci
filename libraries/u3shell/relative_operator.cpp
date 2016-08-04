@@ -20,15 +20,15 @@ namespace u3shell {
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
         )
   {
-    for(int bra_index=0; bra_index<space.size(); ++bra_index)
+    for(int ket_index=0; ket_index<space.size(); ++ket_index)
       {
         int eta, S, T;
         // const u3shell::RelativeSubspaceU3ST& subspace =space.GetSubspace(ket_index);
-        std::tie(eta,S,T,std::ignore)=space.GetSubspace(bra_index).Key();
-        for(int ket_index=0; ket_index<space.size(); ++ket_index)
+        std::tie(eta,S,T,std::ignore)=space.GetSubspace(ket_index).Key();
+        for(int bra_index=0; bra_index<space.size(); ++bra_index)
           {
             int etap,Sp,Tp;
-            std::tie(etap,Sp,Tp,std::ignore)=space.GetSubspace(ket_index).Key();
+            std::tie(etap,Sp,Tp,std::ignore)=space.GetSubspace(bra_index).Key();
             MultiplicityTagged<u3::SU3>::vector x0_list=KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
             for(int S0=abs(Sp-S); S0<=(Sp+S); ++S0)
               for(int T0=abs(Tp-T); T0<=(Tp+T); ++T0)
@@ -99,6 +99,7 @@ namespace u3shell {
     #ifdef VERBOSE
     std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
     #endif
+    int T0_max;
     for(int N0=0; N0<=Nmax; N0+=2)
       {
         for(int Sp=0; Sp<=1; Sp++)
@@ -109,6 +110,8 @@ namespace u3shell {
                   for (int T0=abs(T-Tp); T0<=(T+Tp); T0++)
                     for(int etap=0; etap<=N0+Nmax; etap++)
                       {
+                        if(T0!=0)
+                          continue;
                         //antisymmeterization constraint on ket 
                         if ( (etap+Sp+Tp)%2!=1 )
                           continue;
@@ -127,6 +130,16 @@ namespace u3shell {
                         for(int w=0; w<omega0_set.size(); w++)
                           {
                             u3::SU3 x0(omega0_set[w].irrep);
+                            //Restriction to J0=0 
+                            int L0_min;
+                            if(std::min(x0.lambda(),x0.mu())%2==1)
+                              L0_min=1;
+                            else
+                              L0_min=std::max(x0.lambda(),x0.mu())%2;
+                            
+                            int L0_max=x0.lambda()+x0.mu();
+                            if((L0_max<S0)||(L0_min)>S0)
+                              continue;
                             relative_unit_tensor_labels.push_back(u3shell::RelativeUnitTensorLabelsU3ST(x0,S0,T0,bra,ket));
                             //std::cout<<"unit tensors  "<<spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T).Str()<<std::endl;
                           }
@@ -209,7 +222,40 @@ namespace u3shell {
     if (bra.eta()==(ket.eta()-2))
       rme=-sqrt(1.5)*u3shell::RelativeSp3rLoweringOperator(bra,ket);
 
-    return rme*10;
+    return rme;
   }
+
+  void BrelRelativeUnitTensorExpansion(int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator)
+  {
+    for(int N=0; N<=Nmax; ++N)
+      for(int S=0; S<=1; ++S)
+        for(int T=0; T<=1; ++T)
+          if((N+S+T)%2==1)
+            {
+              int Np=N-2;
+              u3shell::RelativeStateLabelsU3ST bra(Np,S,T);
+              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,2),0,0,bra,ket);
+              double rme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              if (fabs(rme)>10e-10)
+                Brel_operator[relative_unit_tensor]+=rme;
+            }
+  }
+  void NrelRelativeUnitTensorExpansion(int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator)
+  {
+    for (int N=0; N<=Nmax; N++)
+      for (int S=0;S<=1; S++)
+        for (int T=0;T<=1; T++)
+          if ((N+S+T)%2==1)
+            {
+              u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
+              double rme=u3shell::RelativeNumberOperator(bra,ket);
+              if (fabs(rme)>10e-10)
+                Nrel_operator[relative_unit_tensor]+=rme;
+            }
+  }
+
 
 } // namespace

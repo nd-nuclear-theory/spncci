@@ -23,10 +23,13 @@
 
 #include "spncci/sp_basis.h"
 #include "sp3rlib/u3.h"
+#include "u3shell/tensor_labels.h"
 
 
 namespace spncci
 {
+
+  typedef   std::map<std::pair<u3::U3,HalfInt>,int> U3SCount;
 
   ////////////////////////////////////////////////////////////////
   // unit tensor operator labels
@@ -155,6 +158,20 @@ namespace spncci
     return unit1.Key() < unit2.Key();
   }
 
+  //////////////////////////////////////////////////////////////////
+  //  Additional constructors 
+  //////////////////////////////////////////////////////////////////
+  // Constructing UnitTensor from RelativeUnitTensorLabelsU3ST
+  inline spncci::UnitTensor RelativeUnitTensor(const u3shell::RelativeUnitTensorLabelsU3ST& tensor)
+  {
+    u3::SU3 x0;
+    HalfInt S0, T0, Sp, Tp, S, T;
+    int rp,  r;
+    std::tie(x0,S0,T0,rp,Sp,Tp,r,S,T)=tensor.FlatKey();
+    return UnitTensor(x0,S0,T0,rp,Sp,Tp,r,S,T);
+  } 
+
+
   ////////////////////////////////////////////////////////////////
   // unit tensor matrix U(3) sector labels
   ////////////////////////////////////////////////////////////////
@@ -166,8 +183,8 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
 
   public:
-    typedef std::tuple<	u3::U3, u3::U3, spncci::UnitTensor, int> KeyType;
-    // w'S', wS, Unit tensor labels,r0
+    typedef std::tuple< u3::U3, u3::U3, spncci::UnitTensor, int> KeyType;
+    // w', w, Unit tensor labels,r0
 
     ////////////////////////////////////////////////////////////////
     // constructors
@@ -267,30 +284,114 @@ namespace spncci
     typedef std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd > UnitTensorSectorsCache;
   #endif
 
+  ////////////////////////////////////////////////////////////////
+  // unit tensor matrix U(3) sector labels
+  ////////////////////////////////////////////////////////////////
+
+  class UnitTensorU3SSector
+  {
+    ////////////////////////////////////////////////////////////////
+    // typedefs
+    ////////////////////////////////////////////////////////////////
+
+  public:
+    typedef std::tuple<	u3::U3, HalfInt, u3::U3, HalfInt, spncci::UnitTensor, int> KeyType;
+    // w'S', wS, Unit tensor labels,r0
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    // copy constructor: synthesized copy constructor since only data
+    // member needs copying
+
+    // default constructor
+      
+    inline UnitTensorU3SSector() 
+      : rho0_(0) {}
+      
+    // construction from labels
+    inline UnitTensorU3SSector(u3::U3 omegap, HalfInt Sp, u3::U3 omega, HalfInt S, spncci::UnitTensor tensor, int rho0)
+      : omegap_(omegap), Sp_(Sp), omega_(omega), S_(S), tensor_(tensor), rho0_(rho0) {}
+
+    // construction from labels
+    inline UnitTensorU3SSector(HalfInt Sp, HalfInt S, UnitTensorU3Sector sector)
+      : Sp_(Sp), S_(S) 
+      {
+        u3::U3 omegap,omega;
+        spncci::UnitTensor tensor;
+        int rho0;
+        std::tie(omegap,omega,tensor,rho0)=sector.Key();
+        omegap_=omegap;
+        omega_=omega;
+        tensor_=tensor;
+        rho0_=rho0;
+      }
+
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    inline KeyType Key() const
+    {
+      return KeyType(omegap_,Sp_,omega_,S_,tensor_,rho0_);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+
+    inline friend std::size_t hash_value(const UnitTensorU3SSector& sector)
+    {
+
+      boost::hash<UnitTensorU3SSector::KeyType> hasher;
+        return hasher(sector.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+      
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+  private:
+    // Operator labels
+    u3::U3 omegap_,omega_;
+    HalfInt Sp_,S_;
+    spncci::UnitTensor tensor_;
+    int rho0_;
+
+  };
+
+  ////////////////////////////////////////////////////////////////
+  // relational operators
+  ////////////////////////////////////////////////////////////////
+
+  inline bool operator == (const UnitTensorU3SSector& unit1rme, const UnitTensorU3SSector& unit2rme)
+  {
+    return unit1rme.Key() == unit2rme.Key();
+  }
+
+  inline bool operator < (const UnitTensorU3SSector& unit1rme, const UnitTensorU3SSector& unit2rme)
+  {
+    return unit1rme.Key() < unit2rme.Key();
+  }
+
+  typedef std::unordered_map< spncci::UnitTensorU3SSector, std::vector<Eigen::MatrixXd>, boost::hash<spncci::UnitTensorU3SSector> > UnitTensorU3SSectorsCache;
+
+
+
+
+
+
   void GenerateUnitTensors(int Nmax, std::map< int,std::vector<spncci::UnitTensor> >& unit_sym_map);
   // Generates a map containing (key, value) pair (N0, operator_labels) of the unit tensors 
-  //
-  // 
 
-  // inline void TestFunction(  
-  //   // boson number cutoff
-  //   int Nmax, 
-  //   // a given spncci sector pair given as index pair  from global list lgi_vector 
-  //   std::pair<int,int> lgi_pair,
-  //   // Address to map with list of unit tensor labels with key N0 
-  //   std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
-  //   // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
-  //   std:: map< std::pair<int,int>, std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd> >& unit_tensor_rme_map
-  //   )
-  //   {
-  //     U3 sp=lgi_vector[lgi_pair.first].sigma;
-  //     U3 s=lgi_vector[lgi_pair.second].sigma;
-  //     for (int i=0; i<unit_sym_map.size(); i++)
-  //       {
-  //         if (u3::OuterMultiplicity(s.SU3(),unit_sym_map[0][i].x0,sp.SU3())>0)
-  //           std::cout<< unit_tensor_rme_map[lgi_pair][spncci::UnitTensorU3Sector(sp,s,unit_sym_map[0][i],1)]<<std::endl;
-  //       }
-  //   }
 
   void GenerateUnitTensorMatrix(
          int N1b,
@@ -308,6 +409,15 @@ namespace spncci
          UnitTensorSectorsCache
          >& unit_tensor_rme_map
          );
+
+  void RegroupUnitTensorU3SSectors(
+        bool is_new_subsector,
+        const HalfInt& Sp, const HalfInt& S,
+        std::pair<int,int> lgi_pair,
+        const std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
+        const std::pair<int,int>& lgi_symmetry_sum,
+        UnitTensorU3SSectorsCache& unit_tensor_u3S_cache
+      );
 } //namespace 
 
 #endif

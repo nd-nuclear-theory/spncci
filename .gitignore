@@ -3,9 +3,11 @@
 *~
 *.mod
 .DS_Store 
+*.recoupler
 
 # temporary diagnostic output files
 *.out
+
 
 # draconian ignore -- doesn't work?
 #   only track: .mk .h .cpp .F
@@ -22,3 +24,4 @@ libraries/sp3rlib/su3_coupler
 *_test
 *.exe
 *.dSYM
+*.pyc

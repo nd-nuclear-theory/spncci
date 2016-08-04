@@ -123,7 +123,9 @@ namespace u3shell
       Eigen::MatrixXd ket_moshinky_12(1,dimk);
 
       //ucoefficient from factoring out center of mass 
-      double relative_coef=(u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0));
+      double relative_coef=u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0);
+                            // *parity(eta+x.lambda()+x.mu()+etap+xp.lambda()+xp.mu());
+    
       // iterate over bra subspace
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       for (int bra_state_index=0; bra_state_index<dimb; ++bra_state_index)
@@ -140,7 +142,9 @@ namespace u3shell
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
           double coef=1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p));
           // std::cout<<fmt::format("{} {} {} {} {}  {}", eta1p, eta2p, etap, eta_cm, xp.Str(), MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp))<<std::endl;
-          bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp);
+          bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(eta_cm, etap, eta1p, eta2p, xp);
+          // bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient( eta1p, eta2p, etap,eta_cm, xp);
+
         } 
 
       // iterate over ket subspace
@@ -154,7 +158,9 @@ namespace u3shell
           // overall factor for the ket
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
           double coef=1./std::sqrt(1.+KroneckerDelta(eta1,eta2));
-          ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta1, eta2, eta, eta_cm, x);
+          // ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient( eta1, eta2, eta, eta_cm,x);
+          ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta_cm,eta,eta1, eta2,  x);
+
         }  
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // summing sector terms over Ncm and antisymmeterizing
@@ -246,6 +252,8 @@ namespace u3shell
             TwoBodyUnitTensorLabelsU3ST tboperator(operator_labels,rho0,bra,ket);
 
             two_body_expansion[tboperator]+=coefficient;                
+            // if((eta1p==0)&&(eta2p==4)&&(eta1==1)&&(eta2==1))
+            //   std::cout<<operator_labels.Str()<<"  "<<bra.Str()<<"  "<<ket.Str()<<"   "<<two_body_expansion[tboperator]<<std::endl;
           }
 
         }
@@ -254,14 +262,14 @@ namespace u3shell
       for(auto key_value : two_body_expansion)
       // for(auto key_value=two_body_expansion.begin(); key_value!=end; ++key_value)
       {
-        if(fabs(key_value.second)<1e-10)
+        if(fabs(key_value.second)<10e-10)
           delete_list.push_back(key_value.first);
       }
-      for(int i=0; i<delete_list.size(); ++i)
-        {
-          auto key=delete_list[i];
-          two_body_expansion.erase(key);
-        }
+      // for(int i=0; i<delete_list.size(); ++i)
+      //   {
+      //     auto key=delete_list[i];
+      //     two_body_expansion.erase(key);
+      //   }
     }
   }
 

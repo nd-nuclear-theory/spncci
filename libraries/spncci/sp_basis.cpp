@@ -290,23 +290,20 @@ namespace spncci
   std::vector< std::pair<int,int> > GenerateLGIPairs(spncci::LGIVectorType lgi_vector )
   {
     std::vector< std::pair<int,int> >  lgi_pair_vector;
-    for(int i=0; i<lgi_vector.size(); i++)
-      for (int j=0; j<=i; j++)
+    for(int i=0; i<lgi_vector.size(); ++i)
+      for(int j=0; j<lgi_vector.size(); ++j)
+      //for (int j=0; j<=i; j++)
+       // need both sigma', sigma and sigma,sigma' pair so we don't have to compute conjugate unit tensors  
         {
           spncci::LGI lgi1=lgi_vector[i];
           spncci::LGI lgi2=lgi_vector[j];
           if (abs(lgi1.Sp-lgi2.Sp)<=2)
             if (abs(lgi1.Sn-lgi2.Sn)<=2)
               if (abs(lgi1.S-lgi2.S)<=2)
-                {
-                 
                  lgi_pair_vector.push_back(std::pair<int,int>(i,j));
-                }
-
-
         }
 
-     return lgi_pair_vector;
+    return lgi_pair_vector;
   }
 
 

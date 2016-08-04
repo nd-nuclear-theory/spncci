@@ -6,6 +6,9 @@
 
   6/14/16 (aem,mac): Created to import relative jisp16 files.
 ****************************************************************/
+#include <iomanip>
+#include <iostream>
+
 #include "eigen3/Eigen/Eigen" 
 #include "basis/lsjt_scheme.h"
 #include "u3shell/relative_operator.h"
@@ -13,7 +16,7 @@ namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
   typedef std::tuple<int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
-
+  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>RelativeRMEsU3ST;
 // Programs calling these function need to initialize with 
 // U3CoefInit()
 
@@ -63,7 +66,7 @@ namespace u3shell
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
     int J0, int g0, int T0, int Nmax,
-    std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>& rme_map
+    RelativeRMEsU3ST& rme_map
     );
 
   void Upcoupling(    
@@ -71,10 +74,12 @@ namespace u3shell
     const basis::RelativeSectorsLSJT& sectors,
     const std::vector<Eigen::MatrixXd>& sector_vector, 
     int J0, int g0, int T0,int Nmax,
-    std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>& rme_map
+    RelativeRMEsU3ST& rme_map
     );
-  
-  
+
+  void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes);  
+  void ReadRelativeOperatorU3ST(std::istream& is, RelativeRMEsU3ST& relative_rmes);
+
 }
 // 
 

@@ -13,9 +13,13 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/import_interaction.h" 
+#include "u3shell/tensor_labels.h"
+
+double CUTOFF=10e-8;
 
 namespace u3shell
 {
+
 
 
   void UpcouplingNLST(
@@ -46,7 +50,8 @@ namespace u3shell
             {
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
                                 *(2.*Jp+1)*(2.*S0+1)*(2.*L0+1)/(2.*J0+1)/(2.*Sp+1)/(2.*Lp+1);
-              if (so3_coef==0)
+
+              if (fabs(so3_coef)<CUTOFF)
                 continue;
               RelativeSectorNLST key=make_tuple(L0,S0,bra_nlst,ket_nlst);
               if(not rme_nlst_map.count(key))
@@ -60,7 +65,7 @@ namespace u3shell
             }
       }
     // std::cout<<"zero out"<<std::endl;
-    
+    std::vector<RelativeSectorNLST> remove_list;
     for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end();++it)
       {
         int del=1;
@@ -69,23 +74,22 @@ namespace u3shell
         int num_rows=sector_out.rows();
         for (int i=0; i<num_rows; ++i)
           for (int j=0; j<num_cols; ++j)
-            if((fabs(sector_out(i,j))<10e-10)||(fabs(sector_out(i,j)>10e8)))
+            if(fabs(sector_out(i,j))<CUTOFF)
               rme_nlst_map[it->first](i,j)=0.0;
             else
               del=0;
+        
         if(del==1)
-          rme_nlst_map.erase(it->first);
-        // else
-        //   std::cout<<rme_nlst_map[it->first]<<std::endl;
-
-     }
-    // std::cout<<"Exiting"<<std::endl;
+          remove_list.push_back(it->first);
+      }
+    for(int r=0; r<remove_list.size(); ++r)
+      rme_nlst_map.erase(remove_list[r]);
   }
 
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
     int J0, int g0, int T0, int Nmax,
-    std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>& rme_map
+    RelativeRMEsU3ST& rme_map
     )
   {
     u3shell::RelativeSubspaceLabelsNLST bra_nlst,ket_nlst;
@@ -96,6 +100,8 @@ namespace u3shell
         std::tie(L,S,T)=ket_nlst;
         std::tie(Lp,Sp,Tp)=bra_nlst;
         const Eigen::MatrixXd& sector(it->second);
+        // std::cout<<sector<<std::endl<<std::endl;
+
         int nmax=sector.cols()-1;
 
         for (int np=0; np<=nmax; ++np)
@@ -107,12 +113,16 @@ namespace u3shell
             for (int n=0; n<=nmax; ++n)
               {
                 int N=2*n+L;
-                if(Np>Nmax)
+                if(N>Nmax)
                   continue;
                 u3shell::RelativeStateLabelsU3ST ket(N,S,T);
                 //Extract rme
-                double rme_nlst=sector(np,n);
-                if (fabs(rme_nlst)<=10e-10)
+                double rme_nlst;
+                if(np>n)
+                  rme_nlst=sector(n,np);
+                else
+                  rme_nlst=sector(np,n);
+                if (fabs(rme_nlst)<=CUTOFF)//REMOVE
                   continue;
                 // generate list of allowed x0's from coupling bra and ket
                 MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(bra.x(),u3::Conjugate(ket.x()));
@@ -128,9 +138,9 @@ namespace u3shell
                     int kappa0_max=u3::BranchingMultiplicitySO3(x0, L0);
                     for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
                       {
-                        double u3_coef=u3::W(ket.x(), 1,L, x0, kappa0, L0, bra.x(),1,Lp,1)*u3::dim(x0)*(2.*Lp+1)/u3::dim(bra.x())/(2.*L0+1);
+                        double u3_coef=u3::W(ket.x(), 1,L, x0, kappa0, L0, bra.x(),1,Lp,1)*u3::dim(x0)*(2.*Lp+1)/(u3::dim(bra.x())*(2.*L0+1));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int> key(operator_labels,kappa0);
-                        rme_map[key]+=u3_coef*rme_nlst;
+                        rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
                       }
                   }
               }
@@ -138,13 +148,68 @@ namespace u3shell
       }
   }
 
- 
+  void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes)
+    {
+      u3shell::RelativeUnitTensorLabelsU3ST labels;
+      int kappa0, etap,eta;
+      HalfInt Sp,Tp,S,T,S0,T0;
+      u3::SU3 x0;
+      double rme;
+      for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); it++)
+        {
+          std::tie(labels,kappa0)=it->first;
+          std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=labels.FlatKey();
+
+          rme=it->second;
+          if (fabs(rme)<CUTOFF)
+            rme=0.0;
+          const int width=3;
+          const int precision=16;
+          os << std::setprecision(precision);
+          os
+            << " " << std::setw(width) << etap
+            << " " << std::setw(width) << Sp
+            << " " << std::setw(width) << Tp
+            << " " << "  "
+            << " " << std::setw(width) << eta
+            << " " << std::setw(width) << S
+            << " " << std::setw(width) << T
+            << " " << "  "
+            << " " << std::setw(width) << x0.lambda()
+            << " " << std::setw(width) << x0.mu()
+            << " " << std::setw(width) << S0 
+            << " " << std::setw(width) << T0
+            << " " << std::setw(width) << kappa0
+            << " " << "  "
+            << " " << std::showpoint << std::scientific << rme
+            << std::endl;
+        }
+    }
+  void ReadRelativeOperatorU3ST(std::istream& is, RelativeRMEsU3ST& relative_rmes)
+  {
+    int etap,eta,lambda0,mu0,kappa0;
+    int Sp,Tp,S,T,S0,T0;
+    double rme;
+    std::string line;
+    while(std::getline(is,line))
+    {
+      std::istringstream(line)>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>rme;
+      if (fabs(rme)>CUTOFF)
+        {
+          u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp), ket(eta,S,T);
+          RelativeUnitTensorLabelsU3ST unit_tensor(u3::SU3(lambda0,mu0),S0,T0,bra,ket);
+          std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int> key(unit_tensor,kappa0);
+          relative_rmes[key]=rme;
+        }
+    }
+  }
+
   void Upcoupling(    
     const basis::RelativeSpaceLSJT& space,
     const basis::RelativeSectorsLSJT& sectors,
     const std::vector<Eigen::MatrixXd>& sector_vector, 
     int J0, int g0, int T0,int Nmax,
-    std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>& rme_map
+    RelativeRMEsU3ST& rme_map
     )
   {
     std::map<RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
