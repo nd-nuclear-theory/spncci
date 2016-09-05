@@ -11,19 +11,22 @@ project_name := spncci
 
 # libraries
 
-# Caution: Order is important since used also in linking.  Caller must
-# precede callee.
+# Caution: Order of libraries is important since used also in linking.
+# Calling library must precede callee library in listing.  That is,
+# the most "basic" libraries must go last in the list (unless, of
+# course, they are only template libraries, so nobody needs to link to
+# them).
 
-## modules := libraries/UNU3SU3 libraries/SU3NCSMUtils 
-
-modules := libraries/spncci libraries/u3shell libraries/sp3rlib libraries/utilities 
-modules += libraries/su3lib libraries/lsu3shell_io
+modules :=
+modules += libraries/lsu3shell_io libraries/spncci
+modules += libraries/u3shell libraries/sp3rlib  # ordering note: "mid-level" operations
+modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" operations, called by many other libraries
 
 # additional libraries -- imported
 modules += libraries/cppformat
  
 # additional libraries -- cloned as submodules
-modules += libraries/am libraries/basis
+modules += libraries/basis libraries/am
 
 
 #programs
