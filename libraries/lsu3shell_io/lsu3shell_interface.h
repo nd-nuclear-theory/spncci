@@ -18,7 +18,8 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "u3shell/relative_operator.h"
-
+#include "u3shell/tensor_labels.h"
+#include "u3shell/two_body_operator.h"
 
 namespace lsu3shell
 {
@@ -72,7 +73,6 @@ class LSU3Irrep
     
     std::string Str() const;
 
-
 	private:
 		int Nex_;
 		u3::SU3 x_;
@@ -82,13 +82,21 @@ class LSU3Irrep
 typedef std::vector<lsu3shell::LSU3Irrep>	LSU3Vector;
 
 void ReadLSU3Vector(const std::string& filename, LSU3Vector& lsu3basis_vector);
+// reads in lsu3 basis irreps from file and stores them in a vector
 
-void GenerateLSU3ShellOperators(int Nmax, const u3shell::RelativeUnitTensorCoefficientsU3ST&& relative_tensor_expansion, int operator_index);
+void GenerateLSU3ShellOperators(int Nmax, const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion, int operator_index);
+//Generate input files for LSU3shell recoupler for a relative operator
+// Nmax gives the truncation for the space on which the relative unit
+// tensors expansion is defined
+// relative_tensor_expansion is unit tensor expansion of operator
+// operator_index gives index of operator file operator.00000index.recoupler
 
 void GenerateLSU3ShellOperators(int Nmax, const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels);
-	// Generate input files for LSUshell recoupler for all relative 
-	// tensor's which may have non-zero matrix elements between
-	// LGI's. 
+	// Generate input files for LSUshell recoupler for all relative unit tensors 
+	// tensor's which may have non-zero matrix elements between  LGI's. 
+
+void GenerateLSU3ShellOperators(int Nmax, const u3shell::TwoBodyUnitTensorCoefficientsU3ST& twobody_tensor_expansion, int operator_index);
+
 
 void ReadLSU3ShellRMEs(
 				std::ifstream& is,
@@ -97,7 +105,16 @@ void ReadLSU3ShellRMEs(
 				const lsu3shell::LSU3Vector& lsu3shell_vector_ket,
 				std::vector<Eigen::MatrixXd>& matrix_vector
 			);
-
+void GenerateLSU3ShellExpansionLGI(
+		int Nsigma_0,
+		int Nsigma_min,
+		int Nsigma_max, 
+		std::string basis_file, 
+		std::string brel_filename, 
+		std::string nrel_filename,
+		std::string lgi_filename,
+		std::string lgi_expansion_filename
+	);
 
 }
 #endif

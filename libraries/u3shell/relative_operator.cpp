@@ -11,7 +11,8 @@
 #include "cppformat/format.h"
 #include "sp3rlib/vcs.h"
 #include "u3shell/u3st_scheme.h"
-
+#include "u3shell/two_body_operator.h"
+#include "u3shell/moshinsky.h"
 namespace u3shell {
 
 
@@ -148,12 +149,7 @@ namespace u3shell {
   #ifdef VERBOSE
   std::cout<<"Exiting GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
   #endif
-  } //end function
-
-
-
-
- 
+  } //end function 
 
   double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
@@ -172,7 +168,7 @@ namespace u3shell {
     if(
         (bra.S()==ket.S())    // delta on spin
         && (bra.T()==bra.T()) // delta on isospin
-        && (etap-eta==2)      //only connect states with eta+2=etap 
+        && ((etap-eta)==2)      //only connect states with eta+2=etap 
       )
         {
           u3::U3 sigma(HalfInt(eta%2)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
@@ -180,7 +176,6 @@ namespace u3shell {
           u3::U3 omegap(HalfInt(etap)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
           MultiplicityTagged<u3::U3>n_rho(u3::U3(omega.N()-sigma.N(),0,0),1);
           MultiplicityTagged<u3::U3>np_rhop(u3::U3(omegap.N()-sigma.N(),0,0),1);
-
           rme=(sqrt(vcs::Omega(np_rhop.irrep, omegap)-vcs::Omega(n_rho.irrep, omega))
                     *vcs::U3BosonCreationRME(sigma,np_rhop,omegap,sigma,n_rho,omega));
         }
@@ -189,13 +184,17 @@ namespace u3shell {
 
   double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
+
     double rme=0;
     int eta=ket.eta();
     int etap=bra.eta();
+    if((eta==0)||(eta==1))
+      return rme;
+    
     if(
         (bra.S()==ket.S())    // delta on spin
         && (bra.T()==bra.T()) // delta on isospin
-        && (eta-etap==2)      //only connect states with eta+2=etap 
+        && ((eta-etap)==2)      //only connect states with eta+2=etap 
       )
         {
           u3::U3 sigma(HalfInt(eta%2)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
@@ -203,8 +202,7 @@ namespace u3shell {
           u3::U3 omegap(HalfInt(etap)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
           MultiplicityTagged<u3::U3>n_rho(u3::U3(omega.N()-sigma.N(),0,0),1);
           MultiplicityTagged<u3::U3>np_rhop(u3::U3(omegap.N()-sigma.N(),0,0),1);
-          rme=//parity(u3::ConjugationGrade(omegap))//
-              parity(etap-eta)
+          rme=parity(etap-eta)
                     *sqrt(1.*u3::dim(omega)/u3::dim(omegap))
                     *sqrt(vcs::Omega(n_rho.irrep, omega)-vcs::Omega(np_rhop.irrep, omegap))
                     *vcs::U3BosonCreationRME(sigma,n_rho,omega,sigma,np_rhop,omegap);
@@ -224,38 +222,5 @@ namespace u3shell {
 
     return rme;
   }
-
-  void BrelRelativeUnitTensorExpansion(int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator)
-  {
-    for(int N=0; N<=Nmax; ++N)
-      for(int S=0; S<=1; ++S)
-        for(int T=0; T<=1; ++T)
-          if((N+S+T)%2==1)
-            {
-              int Np=N-2;
-              u3shell::RelativeStateLabelsU3ST bra(Np,S,T);
-              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
-              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,2),0,0,bra,ket);
-              double rme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-              if (fabs(rme)>10e-10)
-                Brel_operator[relative_unit_tensor]+=rme;
-            }
-  }
-  void NrelRelativeUnitTensorExpansion(int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator)
-  {
-    for (int N=0; N<=Nmax; N++)
-      for (int S=0;S<=1; S++)
-        for (int T=0;T<=1; T++)
-          if ((N+S+T)%2==1)
-            {
-              u3shell::RelativeStateLabelsU3ST bra(N,S,T);
-              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
-              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
-              double rme=u3shell::RelativeNumberOperator(bra,ket);
-              if (fabs(rme)>10e-10)
-                Nrel_operator[relative_unit_tensor]+=rme;
-            }
-  }
-
 
 } // namespace

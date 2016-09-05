@@ -131,8 +131,8 @@ namespace spncci
     // Extracting LGI labels from pair
     const spncci::LGI& lgip=lgi_vector[lgi_pair.first];
     const spncci::LGI& lgi=lgi_vector[lgi_pair.second];
-    u3::U3 sigmap=lgip.sigma;
-    u3::U3 sigma=lgi.sigma; 
+    u3::U3 sigmap=lgip.sigma();
+    u3::U3 sigma=lgi.sigma(); 
 
     const sp3r::Sp3RSpace& irrepp=lgip.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=lgi.Sp3RSpace();
@@ -150,11 +150,11 @@ namespace spncci
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
         {
-          if((Nnp+lgip.Nex)>Nmax)
+          if((Nnp+lgip.Nex())>Nmax)
             continue;
           int Nn=Nsum-Nnp;
 
-          if ((Nn+lgi.Nex)>Nmax)
+          if ((Nn+lgi.Nex())>Nmax)
             continue; 
 
           std::pair<int,int> NpN_pair(Nnp,Nn);
@@ -164,7 +164,7 @@ namespace spncci
           std::tie (i_min,i_max)=GetNSectorIndices(Nmax, irrep_size, Nn, NPartition);
           std::tie (ip_min,ip_max)=GetNSectorIndices(Nmax, irrepp_size, Nnp, NpPartition);
           // Get set of operator labels for given omega'omega sector
-          std::vector<spncci::UnitTensor>& operator_set=unit_sym_map[abs(lgip.Nex-lgi.Nex+Nnp-Nn)];
+          std::vector<spncci::UnitTensor>& operator_set=unit_sym_map[abs(lgip.Nex()-lgi.Nex()+Nnp-Nn)];
           //  omega' subspace
           for(int ip=ip_min; ip<=ip_max; ip++ )
             {
@@ -174,7 +174,6 @@ namespace spncci
                 {
                   u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
                   
-
                   // Iterating over the operator labels             
                   for (int w=0; w<operator_set.size(); w++)
                     {                     
@@ -183,7 +182,7 @@ namespace spncci
                       std::tie (x0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = unit_tensor.Key();
                       
                       //Checking angular momentum constraint 
-                      if (abs(lgi.S+lgip.S)<S0)
+                      if (abs(lgi.S()+lgip.S())<S0)
                         continue;
                       ///////////////////////////////////////////////////////////////////////////////////////
                       // defining rho0_max for the two cases 
@@ -193,7 +192,7 @@ namespace spncci
 
                       int r1=N_greater?rbp:rb;
                       int r2=N_greater?rb:rbp;
-                      if (r1>(Nn+N1b+lgi.Nex)|| r2>(Nnp+N1b+lgip.Nex))
+                      if (r1>(Nn+N1b+lgi.Nex())|| r2>(Nnp+N1b+lgip.Nex()))
                         continue;
 
                       u3::SU3 lm=N_greater?omegap.SU3():omega.SU3();
@@ -260,8 +259,8 @@ namespace spncci
 
 
 
-    int Nn=int(omega.N()-lgi.sigma.N());
-    int Nnp=int(omegap.N()-lgip.sigma.N());
+    int Nn=int(omega.N()-lgi.sigma().N());
+    int Nnp=int(omegap.N()-lgip.sigma().N());
 
     int dimp=u3_subspacep.size();
     int dim=u3_subspace.size();
@@ -271,8 +270,8 @@ namespace spncci
     std::tie(x0, S0, T0, rbp, Sbp, Tbp, rb, Sb, Tb) = tensor.Key();
 
     // Extracting K matrices for lgi and lgip from the K_matrix_maps 
-    vcs::MatrixCache& K_matrix_map_lgi=K_matrix_map[lgi.sigma];
-    vcs::MatrixCache& K_matrix_map_lgip=K_matrix_map[lgip.sigma];
+    vcs::MatrixCache& K_matrix_map_lgi=K_matrix_map[lgi.sigma()];
+    vcs::MatrixCache& K_matrix_map_lgip=K_matrix_map[lgip.sigma()];
 
     Eigen::MatrixXd Kp=K_matrix_map_lgip[omegap];
     Eigen::MatrixXd K_inv=K_matrix_map_lgi[omega].inverse();
@@ -323,18 +322,17 @@ namespace spncci
                 u3::U3 n1(n1_rho1.irrep);
 
                 if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
-                {
-                  int r12_max, r12_3_max, r23_max, r1_23_max;
-                  std::tie(r12_max,r12_3_max,r23_max,r1_23_max) = UMultiplicity(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),omega1.SU3());
-                  BU(m1,m)=(
-                            vcs::BosonCreationRME(n,n1)
-                            *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma.SU3(),n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
-                            );
-                }
-                else
                   {
-                    BU(m1,m)=0;
+                    int r12_max, r12_3_max, r23_max, r1_23_max;
+                    std::tie(r12_max,r12_3_max,r23_max,r1_23_max)
+                      =UMultiplicity(u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma().SU3(),n.SU3(),omega1.SU3());
+
+                    BU(m1,m)=vcs::BosonCreationRME(n,n1)
+                              *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),lgi.sigma().SU3(),
+                                            n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1);
                   }
+                else
+                  BU(m1,m)=0;
               }	
           }								        
         Eigen::MatrixXd KBUK(dim1,dim);
@@ -351,29 +349,25 @@ namespace spncci
             for (int rho0p=1; rho0p<=rho0p_max; rho0p++)
               {
                 // std::pair<int,int>NpN4_pair(Nnp-2,Nn-2);
+                double 
+                coef3=u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0);
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // third term
                 // sum over omega'', v'' and rho0''
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                double coef3=u3::UCached(u_coef_cache,
-                                   x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-                                   x0p,1,rho0p,omega.SU3(),1,rho0
-                                   );
                 //Initilize 3rd-term-unit-tensor matrix
                 Eigen::MatrixXd unit3_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
 
-                if ( rbp<=(Nnp-2+N1b+lgip.Nex) && rb<=(Nn-2+N1b+lgi.Nex) )
+                if ( rbp<=(Nnp-2+N1b+lgip.Nex()) && rb<=(Nn-2+N1b+lgi.Nex()) )
                   {	
-                   
                     // Summing over omega''
                     for (int wpp=0; wpp<omegapp_set.size(); wpp++)
                       {
-											 
-
                         u3::U3 omegapp(omegapp_set[wpp].irrep);
                         if (not irrepp.ContainsSubspace(omegapp))
                           continue;
-                        spncci::UnitTensorU3Sector unit_tensor_u3_sector_1(omegapp,omega1,spncci::UnitTensor(x0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1);
+                        spncci::UnitTensorU3Sector 
+                          unit_tensor_u3_sector_1(omegapp,omega1,spncci::UnitTensor(x0,S0,T0,rbp,Sbp,Tbp,rb,Sb,Tb),1);
                         if ((sector_NpN4).count(unit_tensor_u3_sector_1)==0)
                           continue;	
                         // omega'' subspace (v'')
@@ -397,9 +391,9 @@ namespace spncci
                                 const int& rhop=np_rhop.tag; 
                                 if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
                                   boson_matrix(vp,vpp)=
-                                    //vcs::U3BosonCreationRME(lgip.sigma, np_rhop, omegap, lgip.sigma, npp_rhopp,omegapp);
+                                    //vcs::U3BosonCreationRME(lgip.sigma(), np_rhop, omegap, lgip.sigma(), npp_rhopp,omegapp);
                                     vcs::BosonCreationRME(np,npp)
-                                    *u3::UCached(u_coef_cache,lgip.sigma.SU3(), npp.SU3(), omegap.SU3(), u3::SU3(2,0), 
+                                    *u3::UCached(u_coef_cache,lgip.sigma().SU3(), npp.SU3(), omegap.SU3(), u3::SU3(2,0), 
                                            omegapp.SU3(), rhopp, 1, np.SU3(), 1, rhop);
 
                                 else
@@ -421,8 +415,7 @@ namespace spncci
                             assert(sector_NpN4.count(unit3_labels)>0);
 
                             unit3pp_matrix+=
-                              u3::UCached(u_coef_cache,u3::SU3(2,0),x0,omegap.SU3(), omega1.SU3(),
-                                    x0p,1,rho0p,omegapp.SU3(),rho0pp, 1)
+                              u3::UCached(u_coef_cache,u3::SU3(2,0),x0,omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omegapp.SU3(),rho0pp, 1)
                               *sector_NpN4[unit3_labels];
 
                           } //end rho0pp
@@ -443,13 +436,11 @@ namespace spncci
                     spncci::UnitTensorU3Sector unit1_labels(omegap,omega1,spncci::UnitTensor(x0p,S0,T0,rbp,Sbp,Tbp,rb-2,Sb,Tb),rho0p);
                     if ( sector_NpN2.count(unit1_labels)!=0)
                       {
-                        double coef1=(
-                                      u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-                                            x0p,1,rho0p,omega.SU3(),1,rho0)
-                                      *u3::UCached(u_coef_cache,u3::SU3(rbp,0),u3::SU3(0,rb),x0p, u3::SU3(2,0), 
-                                             x0,1,1,u3::SU3(0,rb-2),1,1)
-                                      *sqrt(1.*u3::dim(x0p)*Choose(rb,2)/u3::dim(x0))
-                                      );											
+                        double 
+                        coef1=u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(),omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0)
+                              *u3::UCached(u_coef_cache,u3::SU3(rbp,0),u3::SU3(0,rb),x0p, u3::SU3(2,0),x0,1,1,u3::SU3(0,rb-2),1,1)
+                              *sqrt((rb+2)*(rb+1.)*u3::dim(x0p)/(2.*u3::dim(x0)));											
+                        
                         unit_matrix+=coef1*sector_NpN2[unit1_labels];
                       }
                   }
@@ -460,9 +451,9 @@ namespace spncci
                 if (
                     (u3::OuterMultiplicity(u3::SU3(rbp+2,0),u3::SU3(0,rb),x0p)>0)
                     &&
-                    rb<=(omega1.N()-lgi.sigma.N()+N1b)
+                    rb<=(omega1.N()-lgi.sigma().N()+N1b)
                     &&
-                    (rbp+2)<=(omegap.N()-lgip.sigma.N()+N1b)
+                    (rbp+2)<=(omegap.N()-lgip.sigma().N()+N1b)
                     )
                   {
                     spncci::UnitTensorU3Sector unit2_labels(omegap,omega1,spncci::UnitTensor(x0p,S0,T0,rbp+2,Sbp,Tbp,rb,Sb,Tb),rho0p);
@@ -470,20 +461,12 @@ namespace spncci
                     if(sector_NpN2.count(unit2_labels)>0)
                       {
                         coef2=
-                          (-1
-                           *u3::UCached(u_coef_cache,
-                                  x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),
-                                  x0p,1,rho0p,omega.SU3(),1,rho0
-                                  )
-                           *u3::UCached(u_coef_cache,
-                                  u3::SU3(2,0),u3::SU3(rbp,0),x0p, u3::SU3(0,rb), 
-                                  u3::SU3(rbp+2,0),1,1,x0,1,1
-                                  )
-                           *sqrt(
-                                 1.*Choose(rbp+2,2)*u3::dim(x0p)*u3::dim(u3::SU3(rbp,0))
-                                 /(u3::dim(x0)*u3::dim(u3::SU3(rbp+2,0)))
-                                 )
-                           );
+                          -1
+                          *u3::UCached(u_coef_cache,u3::SU3(2,0),u3::SU3(rbp,0),x0p,u3::SU3(0,rb),u3::SU3(rbp+2,0),1,1,x0,1,1)
+                          *u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(),omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0)
+                          *(rbp+2)*(rbp+1) 
+                          *sqrt(u3::dim(x0p)/(2.*(rbp+4)*(rbp+3)*u3::dim(x0)));
+
                         // std::cout<<"unit  "<<unit_matrix<<std::endl<<"sector  "<<sector_NpN2[unit2_labels]<<std::endl;
                         unit_matrix+=coef2*sector_NpN2[unit2_labels];
                       }
@@ -495,7 +478,6 @@ namespace spncci
           } //end sum over w0p
         // summing over n, rho, n1, rho1, v1
         unit_tensor_matrix+=unit_matrix*KBUK;
-
 
       }// end sum over omega1
     assert(unit_tensor_matrix.cols()!=0 && unit_tensor_matrix.rows()!=0);
@@ -733,11 +715,11 @@ void GenerateNpNSector(const std::pair<int,int> NpN_pair,
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nnp=0; Nnp<=std::min(Nsum,Nmax); Nnp+=2)
         {
-          if((Nnp+lgip.Nex)>Nmax)
+          if((Nnp+lgip.Nex())>Nmax)
             continue;
 
           int Nn=Nsum-Nnp;
-          if ((Nn+lgi.Nex)>Nmax)
+          if ((Nn+lgi.Nex())>Nmax)
             continue;
 
           ////////////////////// NSectors///////////////////////////////////////////////////////

@@ -15,6 +15,7 @@
 #define TWO_BODY_OPERATOR_H_
 
 #include <map>
+#include <unordered_map>  
 
 #include "u3shell/tensor_labels.h"
 #include "u3shell/relative_operator.h"
@@ -29,8 +30,7 @@ namespace u3shell
   // typedef
   //   std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double>
   //   TwoBodyUnitTensorCoefficientsU3ST;
-  typedef
-    std::unordered_map<
+  typedef std::unordered_map<
         u3shell::TwoBodyUnitTensorLabelsU3ST,
         double,
         boost::hash<u3shell::TwoBodyUnitTensorLabelsU3ST> 
@@ -95,11 +95,12 @@ namespace u3shell
   // xform for an arbitrary operator, if we take the Moshinsky xform
   // for a single relative unit tensor to be our "basic" calculation
 
-  void TransformRelativeUnitTensorToTwoBodyUnitTensor
-    (
-     const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
-     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
-     );
+  // void TransformRelativeUnitTensorToTwoBodyUnitTensor
+  //   (
+  //    const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
+  //    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
+  //    );
+
   // Accumulate two-body unit tensor coefficients for given linear combination of
   // relative unit tensors.
   //
@@ -118,9 +119,9 @@ namespace u3shell
   ////////////////////////////////////////////////////////////////
 
   void TransformTwoBodyUnitTensorToBiquad(
-                                          const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
-                                          u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
-                                          );
+          const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
+          u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients
+        );
   // Accumulate biquad coefficients for given linear combination of
   // two-body unit tensors.
   //

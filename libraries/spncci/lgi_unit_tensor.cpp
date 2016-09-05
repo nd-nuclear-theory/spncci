@@ -27,19 +27,23 @@ namespace spncci
 
 	void ReadLGISU3Expansion(std::string filename, Eigen::MatrixXd& matrix, std::string type)
 	{
-    int lgi_index, num_nonzero_coefs, lsu3_index, dim;
+    int lgi_index, num_nonzero_coefs, lsu3_index, row,col;
     double coef;
 		std::ifstream is(filename.c_str());
   	if(!is)
     	std::cout<<"Didn't open"<<std::endl;
-    is>>dim;
-    matrix(dim,dim);
+    is>>row>>col;
+    if(type=="ket")
+	    matrix=Eigen::MatrixXd::Zero(row,col);
+		if(type=="bra")
+			matrix=Eigen::MatrixXd::Zero(col,row);
 		while(is)
 			{
 				is>>lgi_index>>num_nonzero_coefs;
 				for(int num=0; num<num_nonzero_coefs; num++)
 					{
 						is>>lsu3_index>>coef;
+
 						if(type=="ket")
 							matrix(lsu3_index,lgi_index)=coef;
 						else if (type=="bra")
@@ -99,7 +103,7 @@ namespace spncci
 						for(int i=0; i<lgi_dimp; ++i)
 							for(int j=0; j<lgi_dim; ++j)
 								{
-									u3::U3 sigmap(lgi_vector[i].sigma), sigma(lgi_vector[j].sigma);
+									u3::U3 sigmap(lgi_vector[i].sigma()), sigma(lgi_vector[j].sigma());
 									std::pair<int,int>lgi_pair(i,j);
 									// spncci::UnitTensor relative_tensor=spncci::RelativeUnitTensor(tensor);
 									spncci::UnitTensorU3Sector key(sigmap,sigma,spncci::RelativeUnitTensor(tensor),rho0);

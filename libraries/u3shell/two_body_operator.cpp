@@ -18,25 +18,16 @@
 
 namespace u3shell {
 
-
-  void TransformRelativeUnitTensorToTwoBodyUnitTensor
-    (
-     const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
-     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
-     )
+  double TwoBodyNumberOperator(
+    const u3shell::TwoBodyStateLabelsU3ST& bra,
+    const u3shell::TwoBodyStateLabelsU3ST& ket
+  )
   {
-
-    for (const auto& key_value : relative_unit_tensor_coefficients)
-      {
-
-        // extract key and value
-        const u3shell::RelativeUnitTensorLabelsU3ST& relative_unit_tensor_labels = key_value.first;
-        double relative_unit_tensor_coefficient = key_value.second;
-
-        // TODO -- or more likely to be replaced by Anna's code
-      }
+    double rme=0;
+    if (bra==ket)
+      rme=(ket.eta1()+ket.eta2());
+    return rme;
   }
-
 
   void TransformTwoBodyUnitTensorToBiquad(
       const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
@@ -45,7 +36,6 @@ namespace u3shell {
   {
     for (const auto& key_value : two_body_unit_tensor_coefficients)
       {
-
         // extract key and value
         const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels = key_value.first;
         double two_body_unit_tensor_coefficient = key_value.second;
@@ -375,30 +365,36 @@ namespace u3shell {
           u3::SU3 x;
           HalfInt S;
           std::tie(eta1,eta2,x,S) = ket_key;
+          if(
+              (fabs(coefficients_pn.pppp)>10e-10)
+              ||(fabs(coefficients_pn.nnnn)>10e-10)
+              ||(fabs(coefficients_pn.pnnp)>10e-10)
+            )
+          {
+            // label line
+            output_stream
+              << fmt::format(
+                  "{:d} {:d} {:d} {:d}   "
+                  "{:d} {:d} {:d} {:d}   "
+                  "{:d} {:d} {:d} {:d}   "
+                  "{:d} {:d} {:d} {:d}   ",
+                  eta1p,eta2p,eta2,eta1,
+                  1,xp.lambda(),xp.mu(),TwiceValue(Sp),
+                  1,x.mu(),x.lambda(),TwiceValue(S),
+                  rho0,x0.lambda(),x0.mu(),TwiceValue(S0)
+                )
+              << std::endl;
 
-          // label line
-          output_stream
-            << fmt::format(
-                "{:d} {:d} {:d} {:d}   "
-                "{:d} {:d} {:d} {:d}   "
-                "{:d} {:d} {:d} {:d}   "
-                "{:d} {:d} {:d} {:d}   ",
-                eta1p,eta2p,eta2,eta1,
-                1,xp.lambda(),xp.mu(),TwiceValue(Sp),
-                1,x.mu(),x.lambda(),TwiceValue(S),
-                rho0,x0.lambda(),x0.mu(),TwiceValue(S0)
-              )
-            << std::endl;
-
-          // coefficient line
-          output_stream
-            << fmt::format(
-                "{:+e} {:+e} {:+e}",
-                coefficients_pn.pppp,
-                coefficients_pn.nnnn,
-                coefficients_pn.pnnp
-              )
-            << std::endl;
+            // coefficient line
+            output_stream
+              << fmt::format(
+                  "{:+e} {:+e} {:+e}",
+                  coefficients_pn.pppp,
+                  coefficients_pn.nnnn,
+                  coefficients_pn.pnnp
+                )
+              << std::endl;
+          }
         }
   }
 

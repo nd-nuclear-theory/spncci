@@ -21,11 +21,11 @@ namespace spncci
     std::ostringstream ss;
 
     ss << "[" 
-       << " " << Nex
-       << " " << sigma.Str()
-       << " (" << Sp
-       << "," << Sn
-       << "," << S
+       << " " << Nex_
+       << " " << sigma_.Str()
+       << " (" << Sp_
+       << "," << Sn_
+       << "," << S_
        << ") " << "]";
     return ss.str();
   }
@@ -37,7 +37,7 @@ namespace spncci
     ss << Str() << std::endl;
     ss << "  " 
       // << " Nn_max " << Nn_max  << " dimension " << dimension
-       << " irrep_ptr " << irrep_ptr
+       << " irrep_ptr " << irrep_ptr_
        << std::endl;
 
     return ss.str();
@@ -103,7 +103,7 @@ namespace spncci
         // retrieve sigma of LGI
         // u3::U3 sigma(it->sigma); // CRYPTIC
         spncci::LGI& lgi = *it;
-        u3::U3 sigma = lgi.sigma;
+        u3::U3 sigma = lgi.sigma();
 
         // find truncation
         //
@@ -220,7 +220,7 @@ namespace spncci
     for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
       {
         const spncci::LGI& lgi = *it;
-        HalfInt S = lgi.S;
+        HalfInt S = lgi.S();
         const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
           {
@@ -257,7 +257,7 @@ namespace spncci
     for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
       {
         const spncci::LGI& lgi = *it;
-        HalfInt S = lgi.S;
+        HalfInt S = lgi.S();
         const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
           {
@@ -297,9 +297,9 @@ namespace spncci
         {
           spncci::LGI lgi1=lgi_vector[i];
           spncci::LGI lgi2=lgi_vector[j];
-          if (abs(lgi1.Sp-lgi2.Sp)<=2)
-            if (abs(lgi1.Sn-lgi2.Sn)<=2)
-              if (abs(lgi1.S-lgi2.S)<=2)
+          if (abs(lgi1.Sp()-lgi2.Sp())<=2)
+            if (abs(lgi1.Sn()-lgi2.Sn())<=2)
+              if (abs(lgi1.S()-lgi2.S())<=2)
                  lgi_pair_vector.push_back(std::pair<int,int>(i,j));
         }
 

@@ -20,7 +20,6 @@ int main(int argc, char **argv)
   // Generate a space 
   u3shell::TwoBodySpaceU3ST space(Nmax);
 
-  std::cout<< "Moshinsky coefficient " <<u3shell::MoshinskyCoefficient(2,2,4,0,u3::SU3(4,0))<<std::endl;
 
 	u3shell::RelativeStateLabelsU3ST bra(2,1,0);
 	u3shell::RelativeStateLabelsU3ST ket(2,1,0);
@@ -30,7 +29,8 @@ int main(int argc, char **argv)
   u3shell::RelativeUnitTensorCoefficientsU3ST unit_tensor;
   unit_tensor[unit_tensor_labels]=1;
 
-  u3shell::TwoBodyUnitTensorCoefficientsU3ST unit_tensor_two_body=u3shell::TransformRelativeTensorToTwobodyTensor(unit_tensor, space);
+  u3shell::TwoBodyUnitTensorCoefficientsU3ST unit_tensor_two_body;
+  u3shell::TransformRelativeTensorToTwobodyTensor(unit_tensor, space,unit_tensor_two_body);
   std::cout<<std::endl<<"Relative Unit Tensor  "<<unit_tensor_labels.Str()<<std::endl;
   for (auto key_value : unit_tensor_two_body)
   {
@@ -38,8 +38,8 @@ int main(int argc, char **argv)
     auto labels= key_value.first;
     auto coefficient = key_value.second;
 
-    std::cout<<labels.Str()<<std::endl
-    <<coefficient<<std::endl;
+    // std::cout<<labels.Str()<<std::endl
+    // <<coefficient<<std::endl;
   }
   // std::cout<<"number of unit tensors"<<unit_tensor_two_body.size()<<std::endl;
 
@@ -62,7 +62,8 @@ int main(int argc, char **argv)
 
   // // testing moshinksy transformation 
   // u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);
-  u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_expansion=u3shell::TransformRelativeTensorToTwobodyTensor(identity, space);
+  u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_expansion;
+  u3shell::TransformRelativeTensorToTwobodyTensor(identity, space,two_body_expansion);
 
   for (auto key_value : two_body_expansion)
   {
@@ -70,26 +71,26 @@ int main(int argc, char **argv)
     auto labels= key_value.first;
     auto coefficient = key_value.second;
 
-    std::cout<<labels.Str()<<std::endl
-    <<coefficient<<std::endl;
+    // std::cout<<labels.Str()<<std::endl
+    // <<coefficient<<std::endl;
   }
 
-  // Number operator test 
-  std::cout<<std::endl<<"Number operator test "<<std::endl;
-  u3shell::RelativeUnitTensorCoefficientsU3ST number_operator;
-  for (int N=0; N<=Nmax; N++)
-    for (int S=0;S<=1; S++)
-      for (int T=0;T<=1; T++)
-        if ((N+S+T)%2==1)
-          {
-            u3shell::RelativeStateLabelsU3ST bra(N,S,T);
-            u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
-            number_operator[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=u3shell::RelativeNumberOperator(bra,ket);
-          }
+  // // Number operator test 
+  // std::cout<<std::endl<<"Number operator test "<<std::endl;
+  // u3shell::RelativeUnitTensorCoefficientsU3ST number_operator;
+  // for (int N=0; N<=Nmax; N++)
+  //   for (int S=0;S<=1; S++)
+  //     for (int T=0;T<=1; T++)
+  //       if ((N+S+T)%2==1)
+  //         {
+  //           u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+  //           u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+  //           number_operator[u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket)]=u3shell::RelativeNumberOperator(bra,ket);
+  //         }
 
   // testing moshinksy transformation 
-  u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);
-  two_body_expansion=u3shell::TransformRelativeTensorToTwobodyTensor(number_operator, space);
+  // u3shell::RelativeUnitTensorLabelsU3ST tensor(u3::SU3(0,0),0,0,bra,ket);
+  // u3shell::TransformRelativeTensorToTwobodyTensor(number_operator, space, two_body_expansion);
 
   for (auto key_value : two_body_expansion)
   {

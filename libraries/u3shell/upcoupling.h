@@ -16,7 +16,7 @@ namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
   typedef std::tuple<int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
-  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double>RelativeRMEsU3ST;
+  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>RelativeRMEsU3ST;
 // Programs calling these function need to initialize with 
 // U3CoefInit()
 
@@ -26,8 +26,8 @@ namespace u3shell
 // Each matrix is indexed by np,n where 2n+L=N and 2n'+L'=N'
 
 // SU(3)XSU(2)xSU(2) reduced matrix elements stored in 
-// (Relative Tensor, k0)
- // std::map<std::pair<RelativeUnitTensorLabelsU3ST,int>,double> rme_map;
+// (Relative Tensor, k0, L0)
+ // std::map<std::pair<RelativeUnitTensorLabelsU3ST,int, int>,double> rme_map;
 
 //Generate list of U3ST operator labels which are given by 
 //	u3shell::GenerateRelativeUnitTensorLabelsU3ST(        

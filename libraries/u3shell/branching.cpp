@@ -101,7 +101,7 @@ void KineticEnergyRMEMAP(
 
 void ContractRMEUnitTensors(int g0, int T0,
   const std::map< TwoBodyBraket,std::map<u3shell::RelativeUnitTensorLabelsU3ST,double> >& twobody_rme_u3st_map,
-  std::map< std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int> ,double >& relative_rme_map, 
+  std::map< std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> ,double >& relative_rme_map, 
   u3::WCoefCache& cache,
   std::map<RelativeOperatorRMEU3ST,double>& operator_rme_u3st_map
   )
@@ -126,21 +126,28 @@ void ContractRMEUnitTensors(int g0, int T0,
           HalfInt S0=relative_unit_tensor.S0();
           HalfInt T0=relative_unit_tensor.T0();
           auto N0=relative_unit_tensor.N0();
+
+          MultiplicityTagged<int>::vector L0_branch=BranchingSO3(x0);
+
           // std::cout<<N0<<std::endl;
           
           double unit_rme=it2->second;
-          
-          for(int kappa0=1; kappa0<=9; ++kappa0)
+          for(auto it:L0_branch)
             {
-              RelativeOperatorRMEU3ST relative_operator_labels(x0,S0,T0,kappa0,bra_u3st,ket_u3st,rho0);
-              std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int> relative_operator(relative_unit_tensor,kappa0);
-              if(relative_rme_map.count(relative_operator)==0)
-                continue;
-              double relative_rme=relative_rme_map[relative_operator];
-              operator_rme_u3st_map[relative_operator_labels]+=unit_rme*relative_rme;
-              // if(N0==-2)
-              //   std::cout<<fmt::format("({}|| {} {} {} {}||{}){}  {}  {}",bra_u3st.Str(),x0.Str(),S0,T0,kappa0,ket_u3st.Str(),rho0,unit_rme,relative_rme)<<std::endl;
+              int L0=it.irrep;
+              int kappa0_max=it.tag;
+              for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
+                {
+                  RelativeOperatorRMEU3ST relative_operator_labels(x0,S0,T0,kappa0,L0,bra_u3st,ket_u3st,rho0);
+                  std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> relative_operator(relative_unit_tensor,kappa0,L0);
+                  if(relative_rme_map.count(relative_operator)==0)
+                    continue;
+                  double relative_rme=relative_rme_map[relative_operator];
+                  operator_rme_u3st_map[relative_operator_labels]+=unit_rme*relative_rme;
+                  // if(N0==-2)
+                  //   std::cout<<fmt::format("({}|| {} {} {} {}||{}){}  {}  {}",bra_u3st.Str(),x0.Str(),S0,T0,kappa0,ket_u3st.Str(),rho0,unit_rme,relative_rme)<<std::endl;
 
+                }
             }
         }
     }
@@ -169,9 +176,9 @@ void branchU3LST(int J0,
       u3::SU3 x=ket_u3st.x();
       u3::SU3 xp=bra_u3st.x();
       int eta1p=bra_u3st.eta1(), eta2p=bra_u3st.eta2(), eta1=ket_u3st.eta1(), eta2=ket_u3st.eta2();
-      if((eta1p==1)&&(eta2p==3)&&(eta1==1)&&(eta2==1))
-        std::cout<<fmt::format("({}|| {} {} {} {}||{}){}  {}",
-            bra_u3st.Str(),x0.Str(),S0,T0,kappa0,ket_u3st.Str(),rho0,rme)<<std::endl;
+      // if((eta1p==1)&&(eta2p==3)&&(eta1==1)&&(eta2==1))
+      //   std::cout<<fmt::format("({}|| {} {} {} {}||{}){}  {}",
+      //       bra_u3st.Str(),x0.Str(),S0,T0,kappa0,ket_u3st.Str(),rho0,rme)<<std::endl;
 
       MultiplicityTagged<int>::vector L_branch=u3::BranchingSO3(x);
       MultiplicityTagged<int>::vector Lp_branch=u3::BranchingSO3(xp);
@@ -201,8 +208,8 @@ void branchU3LST(int J0,
                       TwoBodyStateLabelsU3STBranched bra(bra_u3st,kappap,Lp);
                       TwoBodyBraketU3STBranched braket(bra,ket,L0,S0,T0);
                       rme_u3st_branched[braket]+=wcoef0*rme;
-                      if((eta1p==1)&&(eta2p==3)&&(eta1==1)&&(eta2==1))
-                        std::cout<<fmt::format("    ({} {} {}||{} {} {}|| {} {} {})   {}  {}",bra_u3st.Str(),kappap,Lp,L0,S0, T0,ket_u3st.Str(),kappa,L,wcoef0*rme,rme_u3st_branched[braket])<<std::endl;
+                      // if((eta1p==1)&&(eta2p==3)&&(eta1==1)&&(eta2==1))
+                      //   std::cout<<fmt::format("    ({} {} {}||{} {} {}|| {} {} {})   {}  {}",bra_u3st.Str(),kappap,Lp,L0,S0, T0,ket_u3st.Str(),kappa,L,wcoef0*rme,rme_u3st_branched[braket])<<std::endl;
                     }
               }
         }
@@ -486,7 +493,7 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
   int Nmax_relative=8;
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax_relative, Jmax);
   std::string interaction_file;
-  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double> relative_rme_map; 
+  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double> relative_rme_map; 
   
   //// Identity test
   // basis::RelativeSectorsLSJT relative_lsjt_sectors(relative_lsjt_space, J0,T0, g0);
@@ -494,11 +501,11 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
   // basis::MatrixVector sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Identity");
 
   // Kinetic Energy Test
-  //
+  
   // interaction_file="NONE";
   // basis::MatrixVector sector_vector=u3shell::ImportInteraction(interaction_file, relative_lsjt_space, relative_lsjt_sectors, "Kinetic");
   // u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
-  // // std::cout<<"upcoupling complete"<<std::endl;
+  // std::cout<<"upcoupling complete"<<std::endl;
   // basis::MatrixVector sector_vector;
   // KineticEnergyRMEMAP(relative_u3st_space,relative_rme_map);
 
@@ -508,7 +515,7 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
   //  interaction_file="/Users/annamccoy/projects/shell/libraries/moshinsky/test/symmunit_Nmax04_rel.dat";
   // interaction_file="/Users/annamccoy/projects/shell/libraries/moshinsky/test/ksqr_Nmax04_rel.dat";
 
-  interaction_file="/Users/annamccoy/projects/shell/libraries/moshinsky/test/jisp16_Nmax20_hw20.0_rel.dat";
+  interaction_file="/Users/annamccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
   
   basis::OperatorLabelsJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
@@ -521,38 +528,64 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
       relative_component_sectors,
       relative_component_matrices, 
       true);
+
+
   for(int i=0; i<relative_component_matrices[0].size(); ++i)
-    for(int n=0; n<relative_component_matrices[0][i].size(); ++n)
-      for(int np=0; np<n; ++np)
-        {
-          
-        }
+    {
+      basis::RelativeStateLSJT bra(relative_component_sectors[0].GetSector(i).bra_subspace(),0);
+      basis::RelativeStateLSJT ket(relative_component_sectors[0].GetSector(i).ket_subspace(),0);
+      if (bra.L()==ket.L())
+      {
+        for(int n=0; n<relative_component_matrices[0][i].cols(); ++n)
+          for(int np=0; np<n; ++np)
+            {
+              double rme=relative_component_matrices[0][i](np,n);
+              relative_component_matrices[0][i](n,np)=rme;
+              // std::cout<<rme<<std::endl;
+            }
+      }
+    }
+
+  for(int i=0; i<relative_component_matrices[0].size(); ++i)
+    {
+      basis::RelativeStateLSJT bra(relative_component_sectors[0].GetSector(i).bra_subspace(),0);
+      basis::RelativeStateLSJT ket(relative_component_sectors[0].GetSector(i).ket_subspace(),0);
+
+      std::cout<<fmt::format("{} {} {} {} {}", bra.L(), ket.L(), ket.S(), ket.J(), ket.T())
+      <<std::endl;
+      std::cout<<relative_component_matrices[0][i]<<std::endl;
+    }
+
   const basis::MatrixVector& sector_vector=relative_component_matrices[0];
   const basis::RelativeSectorsLSJT& relative_lsjt_sectors=relative_component_sectors[0];
   u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,20,relative_rme_map);
   std::cout<<"upcoupling complete"<<std::endl;
 
 
-  // for(auto it=relative_rme_map.begin(); it!=relative_rme_map.end(); ++it)
-  // {
-  //   int k; 
-  //   u3shell::RelativeUnitTensorLabelsU3ST tensor; 
-  //   std::tie(tensor,k)=it->first;
-  //   std::cout<<tensor.Str()<<"  "<<it->second<<std::endl;
-  // }
+  for(auto it=relative_rme_map.begin(); it!=relative_rme_map.end(); ++it)
+  {
+    int kappa0,L0; 
+    u3shell::RelativeUnitTensorLabelsU3ST tensor; 
+    std::tie(tensor,kappa0,L0)=it->first;
+    std::cout<<tensor.Str()<<"  "<<it->second<<std::endl;
+  }
 
   std::map<RelativeOperatorRMEU3ST,double> operator_rme_u3st_map;
   ContractRMEUnitTensors(g0,T0,twobody_rme_u3st_map,relative_rme_map,cache,operator_rme_u3st_map);
+  std::cout<<"Contracting complete"<<std::endl;
 
   std::map<TwoBodyBraketU3STBranched,double>rme_u3st_branched;
   branchU3LST(J0,operator_rme_u3st_map,cache,rme_u3st_branched);                      
+  std::cout<<"U3ST branching complete"<<std::endl;
 
   std::map<TwoBodyBraketLSTBranched,double> rme_lst_branched;
   branchLST(rme_u3st_branched,cache,rme_lst_branched);
-
+  std::cout<<"LST branching complete"<<std::endl;
 
   std::map<TwoBodyBraketBranched,double> rme_lsjt_branched;
   branchLSJT(Jmax,J0, rme_lst_branched,rme_lsjt_branched);
+  std::cout<<"LSJT branching complete"<<std::endl; 
+
   // std::cout<<"printing"<<std::endl;
   // for(auto it=rme_lsjt_branched.begin(); it!=rme_lsjt_branched.end(); ++it)
   //   {
@@ -566,14 +599,14 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
   //     std::cout<<fmt::format("([{} {} {} {}] {} {} {} {} ||  ||[{} {} {} {}] {} {} {} {})  {:6}",
   //       N1p,L1p,N2p,L2p,Lp,Sp,Jp,Tp,N1,L1,N2,L2,L,S,J,T,rme)<<std::endl;
   //   }
-//  std::ifstream is("/Users/annamccoy/projects/shell/libraries/moshinsky/test/symmunit_Nmax04_lsjt_NAS.dat");
-   // std::ifstream is("/Users/annamccoy/projects/shell/libraries/moshinsky/test/ksqr_Nmax04_lsjt_NAS.dat");
-  std::ifstream is("/Users/annamccoy/projects/shell/libraries/moshinsky/test/jisp16_Nmax20_hw20.0_lsjt_NAS.dat");
+  // std::ifstream is("/Users/annamccoy/projects/shell/libraries/moshinsky/test/symmunit_Nmax04_lsjt_NAS.dat");
+  // std::ifstream is("/Users/annamccoy/projects/shell/libraries/moshinsky/test/ksqr_Nmax04_lsjt_NAS.dat");
+  // std::ifstream is("/Users/annamccoy/projects/shell/libraries/moshinsky/test/jisp16_Nmax20_hw20.0_lsjt_NAS.dat");
 
   // if(!is)
   //   std::cout<<"Didn't open"<<std::endl;
   // CheckRME(is, rme_lsjt_branched);
-
+  // std::cout<<"Finished checking"<<std::endl;
 
 
   std::map<TwoBodyBraketJJJT,double> branched_rme_jjjt;
@@ -583,36 +616,36 @@ std::cout<< "Nmax "<<Nmax<<std::endl;
   H2FormatLookUp(Nmax, h2_lookup);
 
   
-  // for(auto it=branched_rme_jjjt.begin(); it!=branched_rme_jjjt.end(); ++it)
-  //   {
-  //     int N1,N2,N1p,N2p,L1,L2,L1p,L2p;
-  //     HalfInt J1,J2,J1p,J2p,T,J,Jp,Tp;
-  //     TwoBodyStateLabelsJJJTBranched bra,ket;
-  //     //typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt,HalfInt>
-  //     std::tie(bra,ket)=it->first;
-  //     std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
-  //     std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
+  for(auto it=branched_rme_jjjt.begin(); it!=branched_rme_jjjt.end(); ++it)
+    {
+      int N1,N2,N1p,N2p,L1,L2,L1p,L2p;
+      HalfInt J1,J2,J1p,J2p,T,J,Jp,Tp;
+      TwoBodyStateLabelsJJJTBranched bra,ket;
+      //typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt,HalfInt>
+      std::tie(bra,ket)=it->first;
+      std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
+      std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
 
-  //     // parity even
-  //     if((N1p+N2p)%2==1)
-  //       continue;
+      // parity even
+      if((N1p+N2p)%2==1)
+        continue;
 
-  //     double me=it->second;
-  //     if(fabs(me)>10e-10) 
-  //       if((T==1)&&(J==0))
-  //         {
-  //           int b1=h2_lookup[std::tuple<int,int,HalfInt>(N1p,L1p,J1p)];
-  //           int b2=h2_lookup[std::tuple<int,int,HalfInt>(N2p,L2p,J2p)];
-  //           int k1=h2_lookup[std::tuple<int,int,HalfInt>(N1,L1,J1)];
-  //           int k2=h2_lookup[std::tuple<int,int,HalfInt>(N2,L2,J2)];
-  //           if(b1>k1)
-  //             continue;
-  //           if((b1==k1)&&(b2>k2))
-  //             continue;
-  //           std::cout<<fmt::format("{} {} {} {} {} {}  {}",
-  //             b1,b2,k1,k2,J,T,me)<<std::endl;
-  //           // std::cout<<fmt::format("([{} {} {}; {} {} {}] {} {} ||  ||[{} {} {}; {} {} {}] {} {})  {}",
-  //           //   N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp,N1,L1,J1,N2,L2,J2,J,T,me)<<std::endl;
-  //         }
-  // }
+      double me=it->second;
+      if(fabs(me)>10e-10) 
+        if((T==1)&&(J==0))
+          {
+            int b1=h2_lookup[std::tuple<int,int,HalfInt>(N1p,L1p,J1p)];
+            int b2=h2_lookup[std::tuple<int,int,HalfInt>(N2p,L2p,J2p)];
+            int k1=h2_lookup[std::tuple<int,int,HalfInt>(N1,L1,J1)];
+            int k2=h2_lookup[std::tuple<int,int,HalfInt>(N2,L2,J2)];
+            if(b1>k1)
+              continue;
+            if((b1==k1)&&(b2>k2))
+              continue;
+            std::cout<<fmt::format("{} {} {} {} {} {}  {}",
+              b1,b2,k1,k2,J,T,me)<<std::endl;
+            // std::cout<<fmt::format("([{} {} {}; {} {} {}] {} {} ||  ||[{} {} {}; {} {} {}] {} {})  {}",
+            //   N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp,N1,L1,J1,N2,L2,J2,J,T,me)<<std::endl;
+          }
+  }
 }

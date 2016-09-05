@@ -93,6 +93,7 @@ namespace u3
     int r12_max, r12_3_max, r23_max, r1_23_max;
     std::tie(r12_max,r12_3_max,r23_max,r1_23_max) = UMultiplicity(x1,x2,x,x3,x12,x23);
     int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
+    // std::cout<<fmt::format("{} {} {} {}",r12_max,r12_3_max,r23_max,r1_23_max)<<std::endl;
     assert(r_max > 0);
  
     // compute block of coefficients
@@ -169,13 +170,14 @@ namespace u3
                +r12_max*r34_max*r12_34_max*r13_max*r24_max*(r13_24_max-1)
                );
     int r_max=r12_max*r34_max*r13_max*r24_max*r12_34_max*r13_24_max;
-    double NLM_array[r_max];
+    std::vector<double> NLM_array(r_max);
+    // double NLM_array[r_max];
     //NLM_array.resize(r_max);
     su3lib::wu39lm_(
                     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x12.lambda(), x12.mu(),
                     x3.lambda(), x3.mu(), x4.lambda(), x4.mu(), x34.lambda(), x34.mu(),
                     x13.lambda(), x13.mu(), x24.lambda(), x24.mu(), x.lambda(), x.mu(),
-                    NLM_array,r_max
+                    &NLM_array[0],r_max
                     );    
     return NLM_array[index];
   }

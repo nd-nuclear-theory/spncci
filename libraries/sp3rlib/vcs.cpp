@@ -8,6 +8,8 @@
 #include "sp3rlib/vcs.h"
 
 #include <omp.h>
+
+#include "cppformat/format.h"
 #include <eigen3/Eigen/Eigenvalues>  
 
 #include "sp3rlib/u3coef.h"   
@@ -42,14 +44,16 @@ namespace vcs{
   }
 
   double U3BosonCreationRME(
-                            const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
-                            const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega)
+          const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
+          const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
+          )
   {
     if (sigmap==sigma)
-      return (
-              u3::U(sigma.SU3(), n_rho.irrep.SU3(), omegap.SU3(), u3::SU3(2,0), omega.SU3(),n_rho.tag,1,np_rhop.irrep.SU3(),1,np_rhop.tag)
-              *BosonCreationRME(np_rhop.irrep,n_rho.irrep)
-              );
+      {  
+        double rme= (u3::U(sigma.SU3(), n_rho.irrep.SU3(), omegap.SU3(), u3::SU3(2,0), omega.SU3(),n_rho.tag,1,np_rhop.irrep.SU3(),1,np_rhop.tag)
+              *BosonCreationRME(np_rhop.irrep,n_rho.irrep));
+        return rme;
+      }
     else
       return 0.0;
   }

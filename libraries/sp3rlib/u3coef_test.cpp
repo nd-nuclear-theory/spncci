@@ -535,4 +535,89 @@ int main(int argc, char **argv)
   //               }
   //             }
   //       }
+  int Nmax=3;
+  for(int lambda1=2; lambda1<=2; ++lambda1)
+    for(int mu1=2; mu1<=2; ++mu1)
+      for(int lambda2=0; lambda2<=0; ++lambda2) //For comparison
+        for(int mu2=0; mu2<=0; ++mu2)
+          for(int lambda3=2; lambda3<=2; ++lambda3)
+            for(int mu3=0; mu3<=0; ++mu3)
+              for(int lambda4=0; lambda4<=Nmax; ++lambda4) //restrict to case when coef=1
+                for(int mu4=0; mu4<=0; ++mu4)
+                  {
+                    u3::SU3 x1(lambda1,mu1), x2(lambda2,mu2), x3(lambda3,mu3), x4(lambda4,mu4);
+                    MultiplicityTagged<u3::SU3>::vector x12_set=u3::KroneckerProduct(x1,x2);
+                    MultiplicityTagged<u3::SU3>::vector x34_set=u3::KroneckerProduct(x3,x4);
+                    MultiplicityTagged<u3::SU3>::vector x13_set=u3::KroneckerProduct(x1,x3);
+                    MultiplicityTagged<u3::SU3>::vector x24_set=u3::KroneckerProduct(x2,x4);
+                    for (auto a12 : x12_set)
+                      for(auto a34 : x34_set)
+                        for(auto a13: x13_set)
+                          for(auto a24: x24_set)
+                            {
+                              if (a13.irrep.mu()!=0)
+                                continue;
+                              u3::SU3 x12(a12.irrep), x34(a34.irrep), x13(a13.irrep), x24(a24.irrep);
+                              int rho12_max(a12.tag), rho34_max(a34.tag), rho13_max(a13.tag), rho24_max(a24.tag);
+                              MultiplicityTagged<u3::SU3>::vector x_set=u3::KroneckerProduct(x12,x34);
+                              for(auto a: x_set)
+                                {
+                                  u3::SU3 x(a.irrep);
+                                  int rho12_34_max=a.tag;
+                                  int rho13_24_max=u3::OuterMultiplicity(x13,x24,x);
+                                  for(int rho13_24=1; rho13_24<=rho13_24_max; ++rho13_24)
+                                    for(int rho12_34=1; rho12_34<=rho12_34_max; ++rho12_34)
+                                      for(int rho12=1; rho12<=rho12_max; ++rho12)
+                                        for(int rho34=1; rho34<=rho34_max; ++rho34)
+                                          for(int rho13=1; rho13<=rho13_max; ++rho13)
+                                            for(int rho24=1; rho24<=rho24_max; ++rho24)
+                                              {
+                                                std::cout
+                                                // <<
+                                                // u3::Unitary9LambdaMu(
+                                                //   x1,    x2,    x12,    rho12,
+                                                //   x3,    x4,    x34,    rho34,
+                                                //   x13,   x24,   x,      rho13_24,
+                                                //   rho13, rho24, rho12_34
+                                                //   )
+                                                <<"  "<<fmt::format("{} {} {} {}; {} {} {}; {} {} {},  {}",
+                                                x1.Str(),x3.Str(),x.Str(),x4.Str(),x13.Str(),rho13,1,x34.Str(),rho34,1,  
+                                                u3::U(x1,x3,x,x4,x13,rho13,1,x34,rho34,1))
+                                                <<std::endl;
+                                              }                            
+                                }
+                            }
+                  }
+
+  // u3::SU3 x1(9,3);
+  // u3::SU3 x2(1,2);
+  // u3::SU3 x12(8,3);
+  // u3::SU3 x3(2,1);
+  // u3::SU3 x23(2,2);
+  // u3::SU3 x(8,2);
+
+  u3::SU3 x1(2,2);
+  u3::SU3 x2(2,0);
+  u3::SU3 x12(2,0);
+  u3::SU3 x3(1,0);
+  u3::SU3 x23(3,0);
+  u3::SU3 x(1,1);
+
+  // block access
+  std::cout << "U block test" << std::endl;
+  u3::UCoefLabels labels(x1, x2, x, x3, x12, x23);
+  u3::UCoefBlock block(labels);
+  int r12_max, r12_3_max, r23_max, r1_23_max;
+  std::tie(r12_max, r12_3_max, r23_max, r1_23_max) = block.Key();
+  std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
+  for(int r12=1; r12<=r12_max; ++r12)
+    for(int r12_3=1; r12_3<=r12_3_max; ++r12_3)
+      for(int r23=1; r23<=r23_max; ++r23)
+        for(int r1_23=1; r1_23<=r1_23_max; ++r1_23)
+          std::cout << fmt::format("{} {} {} {}   {}  {}", r12, r12_3,r23, r1_23,block.GetCoef(r12,r12_3,r23,r1_23),
+            u3::U(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23)
+            ) << std::endl;
+          std::cout << std::endl;
+
+
 }

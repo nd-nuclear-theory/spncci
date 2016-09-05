@@ -26,7 +26,7 @@ modules += libraries/am libraries/basis
 
 
 #programs
-modules += programs/interactions
+modules += programs/interactions programs/unit_tensors
 #modules += programs/test 
 
 ################################################################

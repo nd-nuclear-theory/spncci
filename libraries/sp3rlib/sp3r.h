@@ -153,7 +153,7 @@ namespace sp3r
   };
 
   std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax);
-
+  // Returns a list of indices for which each in Nn begins. 
 }  // namespace
 
 #endif

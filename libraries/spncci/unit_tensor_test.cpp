@@ -79,8 +79,8 @@ int main(int argc, char **argv)
   std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
   for(int l=0; l<lgi_vector.size(); l++)
     {
-      sigma_set.insert(lgi_vector[l].sigma);
-      std::pair<u3::U3,HalfInt> count_key(lgi_vector[l].sigma, lgi_vector[l].S);
+      sigma_set.insert(lgi_vector[l].sigma());
+      std::pair<u3::U3,HalfInt> count_key(lgi_vector[l].sigma(), lgi_vector[l].S());
       sigma_S_count[count_key]+=1;
     }
 
@@ -128,8 +128,8 @@ int main(int argc, char **argv)
 
       std::cout <<"LGI pair"<< lgip.Str()<<"  "<<lgi.Str()<<std::endl;
 
-      u3::U3 sigmap=lgip.sigma;  		
-      u3::U3 sigma=lgi.sigma;
+      u3::U3 sigmap=lgip.sigma();  		
+      u3::U3 sigma=lgi.sigma();
 
       spncci::UnitTensorSectorsCache temp_unit_map;
 
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rm's 
       //////////////////////////////////////////////////////////////////////////////////////////////
-      std::pair<int,int> N0_pair(lgip.Nex,lgi.Nex);
+      std::pair<int,int> N0_pair(lgip.Nex(),lgi.Nex());
       for (int j=0; j<unit_sym_map[N0].size(); j++)
         {
           Eigen::MatrixXd temp_matrix(1,1);
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
           int rho0_max=u3::OuterMultiplicity(sigma.SU3(),x0, sigmap.SU3());
           for (int rho0=1; rho0<=rho0_max; rho0++)
             {
-              if (rp<=(N1b+lgip.Nex) && r<=(N1b+lgi.Nex))
+              if (rp<=(N1b+lgip.Nex()) && r<=(N1b+lgi.Nex()))
                 {
                   //std::cout<<unit_tensor.Str()<<std::endl;
                   temp_unit_map[spncci::UnitTensorU3Sector(sigmap,sigma,unit_tensor,rho0)]=temp_matrix;	
@@ -173,21 +173,21 @@ int main(int argc, char **argv)
       std::pair<int,int> lgi_symmetry_sum;
       bool is_new_subsector=false;
       if (
-          (lgi.S!=S_old)
-          ||(lgip.S!=Sp_old)
+          (lgi.S()!=S_old)
+          ||(lgip.S()!=Sp_old)
           ||(not(sigma==sigma_old))
           ||(not(sigmap==sigmap_old))
         )
         {
           
           is_new_subsector=true;
-          S_old=lgi.S;
-          Sp_old=lgip.S;
+          S_old=lgi.S();
+          Sp_old=lgip.S();
           sigma_old=sigma;
           sigmap_old=sigmap;
 
-          std::pair<u3::U3,HalfInt>sigma_S(sigma,lgi.S);
-          std::pair<u3::U3,HalfInt>sigmap_Sp(sigmap,lgip.S);
+          std::pair<u3::U3,HalfInt>sigma_S(sigma,lgi.S());
+          std::pair<u3::U3,HalfInt>sigmap_Sp(sigmap,lgip.S());
           lgi_symmetry_sum={sigma_S_count[sigmap_Sp],sigma_S_count[sigma_S]};
 
           row_shift=lgi_pair.first;
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
       std::cout<<lgi_pair.first-row_shift<<"  "<<lgi_pair.second-col_shift<<std::endl;
       // std::cout<<lgi_pair_index.first<<" "<<lgi_pair_index.second<<std::endl;
       RegroupUnitTensorU3SSectors(
-          is_new_subsector, lgip.S, lgi.S, lgi_pair_index,
+          is_new_subsector, lgip.S(), lgi.S(), lgi_pair_index,
           unit_tensor_rme_map, lgi_symmetry_sum, unit_tensor_u3S_cache
         );
 

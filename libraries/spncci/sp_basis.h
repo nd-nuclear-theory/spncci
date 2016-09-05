@@ -48,24 +48,27 @@ namespace spncci
   // (conceptual or practical) to adding an extra layer of packaging
   // at this stage in the code.
   
-  struct LGI
+  class LGI
   {
+    public:
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
+    // null constructor
+    inline LGI():Nex_(-999){};
 
     inline
-    LGI(int Nex_, const u3::U3& sigma_, const HalfInt& Sp_, const HalfInt& Sn_, const HalfInt& S_)
-      : Nex(Nex_), sigma(sigma_), Sp(Sp_), Sn(Sn_), S(S_), irrep_ptr(NULL) {}
+    LGI(int Nex, const u3::U3& sigma, const HalfInt& Sp, const HalfInt& Sn, const HalfInt& S)
+      : Nex_(Nex), sigma_(sigma), Sp_(Sp), Sn_(Sn), S_(S), irrep_ptr_(NULL) {}
 
     ////////////////////////////////////////////////////////////////
     // initialization
     ////////////////////////////////////////////////////////////////
 
-    void SaveSubspaceInfo(const sp3r::Sp3RSpace& irrep_)
+    void SaveSubspaceInfo(const sp3r::Sp3RSpace& irrep)
     // Save information on Sp3RSpace associated with this LGI's sigma
     // for quick reference, i.e., without requiring a map lookup.
     //
@@ -74,9 +77,18 @@ namespace spncci
     // safely stored elsewhere, e.g., in a sigma_irrep_map, without
     // going "out of scope" and being destroyed.
     {
-      irrep_ptr = &irrep_;
+      irrep_ptr_ = &irrep;
     }
 
+    //////////////////////////////////////////////////////////////
+    //accessors
+    //////////////////////////////////////////////////////////////
+
+    u3::U3 sigma() const {return sigma_;}
+    int Nex() const {return Nex_;}
+    HalfInt S() const {return S_;}
+    HalfInt Sp() const {return Sp_;}
+    HalfInt Sn() const {return Sn_;}
 
     ////////////////////////////////////////////////////////////////
     // retrieval
@@ -84,8 +96,9 @@ namespace spncci
 
     const sp3r::Sp3RSpace& Sp3RSpace() const
     {
-      return *irrep_ptr;
+      return *irrep_ptr_;
     }
+
 
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -94,18 +107,45 @@ namespace spncci
     std::string Str() const;
     std::string DebugString() const;
 
+
+    //////////////////////////////////////////////////////////////
+    //key tuple, comparisons and hashing
+    //////////////////////////////////////////////////////////////
+    typedef std::tuple<int,u3::U3, HalfInt, HalfInt,HalfInt> KeyType;
+    inline KeyType Key() const
+      {
+        return KeyType(Nex_, sigma_, Sp_,Sn_,S_);
+      }
+    inline KeyType ComparisonKey() const
+      {
+        return KeyType(Nex_, sigma_, S_, Sp_, Sn_);
+      }
+
+    inline friend bool operator == (const LGI& state1, const LGI& state2)
+      {
+        return state1.ComparisonKey()==state2.ComparisonKey();
+      }
+    inline friend bool operator < (const LGI& state1, const LGI& state2)
+      {
+        return state1.ComparisonKey()<state2.ComparisonKey();
+      }
+    inline friend std::size_t hash_value(const LGI& v)
+      {
+        boost::hash<LGI::KeyType> hasher;
+        return hasher(v.Key());
+      }
+
     ////////////////////////////////////////////////////////////////
     // data
     ////////////////////////////////////////////////////////////////
-    
+    private:
     // labels
-    int Nex;
-    u3::U3 sigma;
-    HalfInt Sp, Sn, S;
+    int Nex_;
+    u3::U3 sigma_;
+    HalfInt Sp_, Sn_, S_;
 
     // quick-reference information
-  private:
-    const sp3r::Sp3RSpace* irrep_ptr;
+    const sp3r::Sp3RSpace* irrep_ptr_;
   };
 
   ////////////////////////////////////////////////////////////////

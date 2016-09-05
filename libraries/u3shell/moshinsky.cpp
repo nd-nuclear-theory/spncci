@@ -15,63 +15,61 @@
 
 namespace u3shell
 {
-  double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x)
-  // SU(3) Moshinsky Coefficient which is equivalent to a Wigner little d function evaluated at pi/2
-  {
-		
-    HalfInt J(x.lambda(),2);
-    HalfInt Mp(x1.lambda()-x2.lambda(),2);
-    HalfInt M(xr.lambda()-xc.lambda(),2); 
-	
+  // double WignerLittleD(const HalfInt& J, const HalfInt& Mp, const HalfInt& M)
+  //   {
+  //     double moshinsky_coef=0;
+  //     int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
+  //     for(int K=0; K<=Kmax; K++)
+  //     {
+  //       moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),K)*Choose(int(J-M),int(K+Mp-M));
+  //     }
+  //     //note factor of sqrt(2^{2J}) since pow requires integer argument
+      
+  //     moshinsky_coef
+  //       =moshinsky_coef
+  //         *(ParitySign(Mp-M)
+  //         *sqrt(Factorial(int(J+Mp))*Factorial(int(J-Mp))
+  //              /(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
+  //             ));
+  //     return moshinsky_coef;
+  // }
 
+
+   double WignerLittleD(const HalfInt& J, const HalfInt& Mp, const HalfInt& M)
+  {
     double moshinsky_coef=0;
-    int Kmax=std::max(
-                      std::max(int(J+M),int(J-M)),int(J-Mp));
+    int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
 		
     for(int K=0; K<=Kmax; K++)
-      moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);
-    moshinsky_coef=moshinsky_coef*(ParitySign(J-Mp)
-                                   *sqrt(Factorial(int(J+Mp))*Factorial(int(J-Mp))
-                                         /(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
-                                        ));
+      moshinsky_coef+=parity(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);
+    moshinsky_coef
+      *=parity(int(J-Mp))
+      *sqrt(Factorial(int(J+Mp))*Factorial(int(J-Mp))
+           /(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
+          );
     return moshinsky_coef;
   }
 
-  double MoshinskyCoefficient(const u3::U3& w1, const u3::U3& w2, const u3::U3& wr,const u3::U3& wc,const u3::U3& w)
-  //Overleading for U3 arguements 
-  {
-    return MoshinskyCoefficient(w1.SU3(), w2.SU3(), wr.SU3(), wc.SU3(), w.SU3());
-  }
-
-  double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::SU3& x)
+  double MoshinskyCoefficient(int r, int R, int r1, int r2, const u3::SU3& x)
   //Overloading Moshinsky to take integer arguements for two-body and relative-center of mass arguments
   // and SU(3) total symmetry (lambda,mu)
   {
     HalfInt J(x.lambda(),2);
     HalfInt Mp(r1-r2,2);
     HalfInt M(r-R,2) ;
-
-    double moshinsky_coef=0;
-    int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
-
-    for(int K=0; K<=Kmax; K++)
-      moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);		
-			
-    moshinsky_coef=moshinsky_coef*(
-                                   ParitySign(J-Mp)
-                                   *sqrt(Factorial(int(J+Mp))*Factorial(int(J-Mp))
-                                         /(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
-                                         ));
-    return moshinsky_coef;	
+    return WignerLittleD( J, Mp, M);
   }
 
-  double MoshinskyCoefficient(int r1, int r2, int r, int R, const u3::U3& w)
-  // Overloading Moshinsky to take integers and U3 for total symmetry
+  double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x)
+  {    
+    return MoshinskyCoefficient(x1.lambda(),x2.lambda(),xr.lambda(),xc.lambda(),x);
+  }
+
+  double MoshinskyCoefficient(const u3::U3& w1, const u3::U3& w2, const u3::U3& wr,const u3::U3& wc,const u3::U3& w)
+  //Overloading for U3 arguements 
   {
-    return MoshinskyCoefficient(r1, r2, r, R, w.SU3());
+    return MoshinskyCoefficient(w1.SU3().lambda(), w2.SU3().lambda(), wr.SU3().lambda(), wc.SU3().lambda(), w.SU3());
   }
-
-
 
   Eigen::MatrixXd MoshinskyTransform(
         const u3::SU3& x0, 
@@ -79,7 +77,8 @@ namespace u3shell
         int eta,
         const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
         const u3shell::TwoBodySubspaceU3ST& ket_subspace, 
-        int rho0
+        int rho0,
+        std::string normalization
       )
   {
     HalfInt Sp=bra_subspace.S();
@@ -101,6 +100,8 @@ namespace u3shell
     int dimk=ket_subspace.size();
     Eigen::MatrixXd sector(dimb,dimk);
 
+    // normalization
+    bool norm=normalization=="NAS";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // eta_cm is fixed by unit tensor plus constraints
     //    (eta,0)x(eta_cm)->omega and eta+eta_cm=N
@@ -124,7 +125,6 @@ namespace u3shell
 
       //ucoefficient from factoring out center of mass 
       double relative_coef=u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0);
-                            // *parity(eta+x.lambda()+x.mu()+etap+xp.lambda()+xp.mu());
     
       // iterate over bra subspace
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,15 +135,14 @@ namespace u3shell
           int eta2p=bra_state.N2();
           
           // Phase arising from exchanging particle 1 and particle 2
-          bool phase_even=(eta1p+eta2p+u3::ConjugationGrade(xp)+int(Sp+Tp))%2==0;
-          int exchange_phase=phase_even?1:-1;
-          
+          // bool phase_even=(eta1p+eta2p+xp.lambda()+xp.mu()+int(Sp+Tp))%2==0;
+          // bool phase_even=(eta1p+eta2p+u3::ConjugationGrade(xp)+int(Sp+Tp))%2==0;
+          // int exchange_phase=phase_even?1:-1;
           // overall factor for the bra
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
-          double coef=1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p));
-          // std::cout<<fmt::format("{} {} {} {} {}  {}", eta1p, eta2p, etap, eta_cm, xp.Str(), MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp))<<std::endl;
-          bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(eta_cm, etap, eta1p, eta2p, xp);
-          // bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient( eta1p, eta2p, etap,eta_cm, xp);
+          double coef=norm?(1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p))):1;
+          // std::cout<<fmt::format("{} {} {} {} {}  {}", eta_cm, etap,eta1p, eta2p, xp.Str(), MoshinskyCoefficient(eta1p, eta2p, etap, eta_cm, xp))<<std::endl;
+          bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient( eta1p, eta2p, etap, eta_cm, xp);
 
         } 
 
@@ -157,9 +156,8 @@ namespace u3shell
 
           // overall factor for the ket
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
-          double coef=1./std::sqrt(1.+KroneckerDelta(eta1,eta2));
-          // ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient( eta1, eta2, eta, eta_cm,x);
-          ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta_cm,eta,eta1, eta2,  x);
+          double coef=norm?(1./std::sqrt(1.+KroneckerDelta(eta1,eta2))):1;
+          ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta, eta_cm,eta1,eta2,x);
 
         }  
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,12 +169,14 @@ namespace u3shell
     return sector;
   }
 
-  void MoshinskyTransformUnitTensor(
-        const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
-        double expansion_coef, 
-        u3shell::TwoBodySpaceU3ST& space,
-        u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion
-      )
+  void 
+  MoshinskyTransformUnitTensor(
+    const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
+    double expansion_coef, 
+    u3shell::TwoBodySpaceU3ST& space,
+    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
+    std::string normalization
+  )
   {
     //extract operator labels 
     int etap=tensor.bra().eta();
@@ -232,7 +232,7 @@ namespace u3shell
         )
         continue;
 
-      sector=MoshinskyTransform(x0, etap, eta, bra_subspace, ket_subspace, rho0);
+      sector=MoshinskyTransform(x0, etap, eta, bra_subspace, ket_subspace, rho0, normalization);
 
       // Accumluating the moshinsky transformed coeffcients 
       for (int i=0; i<dimb; ++i)
@@ -252,10 +252,7 @@ namespace u3shell
             TwoBodyUnitTensorLabelsU3ST tboperator(operator_labels,rho0,bra,ket);
 
             two_body_expansion[tboperator]+=coefficient;                
-            // if((eta1p==0)&&(eta2p==4)&&(eta1==1)&&(eta2==1))
-            //   std::cout<<operator_labels.Str()<<"  "<<bra.Str()<<"  "<<ket.Str()<<"   "<<two_body_expansion[tboperator]<<std::endl;
-          }
-
+           }
         }
       // remove unit tensors with coefficient zero
       std::vector<TwoBodyUnitTensorLabelsU3ST> delete_list;
@@ -265,27 +262,30 @@ namespace u3shell
         if(fabs(key_value.second)<10e-10)
           delete_list.push_back(key_value.first);
       }
-      // for(int i=0; i<delete_list.size(); ++i)
-      //   {
-      //     auto key=delete_list[i];
-      //     two_body_expansion.erase(key);
-      //   }
+      for(int i=0; i<delete_list.size(); ++i)
+        {
+          auto key=delete_list[i];
+          two_body_expansion.erase(key);
+        }
     }
   }
 
-  u3shell::TwoBodyUnitTensorCoefficientsU3ST 
-  TransformRelativeTensorToTwobodyTensor(const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, u3shell::TwoBodySpaceU3ST& space)
+void TransformRelativeTensorToTwobodyTensor(
+    const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, 
+    u3shell::TwoBodySpaceU3ST& space,
+    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_expansion,
+    std::string normalization
+    )
   {    
-    //container for acculumating two-body coefficients
-    u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_expansion;
-
+    if ((normalization!="NAS")&&(normalization!="AS"))
+      std::cout<<"Incorrect normalization parameter.  Please use 'NAS' or 'AS'."<<std::endl;
     for (auto rel_key_value : relative_unit_tensor_expansion)
     {
       u3shell::RelativeUnitTensorLabelsU3ST tensor(rel_key_value.first);
       double expansion_coef=rel_key_value.second;
 
-      MoshinskyTransformUnitTensor(tensor, expansion_coef, space, two_body_expansion);
+      MoshinskyTransformUnitTensor(tensor, expansion_coef, space, two_body_unit_tensor_expansion, normalization);
     }
-    return two_body_expansion;
   }
+
 } //namespace

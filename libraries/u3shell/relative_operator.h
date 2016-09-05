@@ -15,7 +15,11 @@
 #define RELATIVE_OPERATOR_H_
 
 #include "u3shell/tensor_labels.h"
+#include "u3shell/two_body_operator.h"
 #include "u3shell/u3st_scheme.h"
+#include "u3shell/tensor_labels.h"
+// #include "u3shell/moshinsky.h"
+
 namespace u3shell
 {
 
@@ -104,10 +108,6 @@ namespace u3shell
   double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
   double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
-
-  void BrelRelativeUnitTensorExpansion(int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator);
-  
-  void NrelRelativeUnitTensorExpansion(int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator);
 
 
   // define a pointer to a function 

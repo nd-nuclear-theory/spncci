@@ -29,13 +29,6 @@
 
 namespace spncci
 {
-void GenerateLSU3ShellOperators(
-		int Nmax, 
-		std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels
-		);
-	// Generate input files for LSUshell recoupler for all relative 
-	// unit tensor's which may have non-zero matrix elements between
-	// LGI's. 
 
 void ReadLGISU3Expansion(std::string filename, Eigen::MatrixXd& matrix, std::string type);
 		// Read in LGI Expansion in terms of LSU3shell basis states 
