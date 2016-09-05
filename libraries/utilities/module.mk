@@ -4,7 +4,7 @@ $(eval $(begin-module))
 # unit definitions
 ################################################################
 
-module_units_h := utilities indexing_base multiplicity_tagged
+module_units_h := utilities multiplicity_tagged
 module_units_cpp-h := parsing
 # module_units_f := 
 module_programs_cpp := 
