@@ -16,7 +16,8 @@ project_name := spncci
 
 ## modules := libraries/UNU3SU3 libraries/SU3NCSMUtils 
 
-modules := libraries/spncci libraries/u3shell libraries/sp3rlib libraries/utilities libraries/su3lib libraries/lsu3shell
+modules := libraries/spncci libraries/u3shell libraries/sp3rlib libraries/utilities 
+modules += libraries/su3lib libraries/lsu3shell_io
 
 # additional libraries -- imported
 modules += libraries/cppformat
