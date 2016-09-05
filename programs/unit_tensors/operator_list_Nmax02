@@ -1,0 +1,73 @@
+2  36
+operator000000.recoupler
+Unit[+0(0,0) 0 0 0]([1 0 0],[1 0 0])
+operator000001.recoupler
+Unit[+0(0,0) 0 0 0]([0 0 1],[0 0 1])
+operator000002.recoupler
+Unit[+0(0,0) 0 0 0]([2 0 1],[2 0 1])
+operator000003.recoupler
+Unit[+0(2,2) 0 0 0]([2 0 1],[2 0 1])
+operator000004.recoupler
+Unit[+0(0,0) 0 0 0]([0 1 0],[0 1 0])
+operator000005.recoupler
+Unit[+0(0,0) 0 0 0]([2 1 0],[2 1 0])
+operator000006.recoupler
+Unit[+0(2,2) 0 0 0]([2 1 0],[2 1 0])
+operator000007.recoupler
+Unit[+0(1,1) 1 0 0]([2 1 0],[2 1 0])
+operator000008.recoupler
+Unit[+0(2,2) 1 0 0]([2 1 0],[2 1 0])
+operator000009.recoupler
+Unit[+0(1,1) 2 0 0]([2 1 0],[2 1 0])
+operator000010.recoupler
+Unit[+0(2,2) 2 0 0]([2 1 0],[2 1 0])
+operator000011.recoupler
+Unit[+0(0,0) 0 0 0]([1 1 1],[1 1 1])
+operator000012.recoupler
+Unit[+0(1,1) 1 0 0]([1 1 1],[1 1 1])
+operator000013.recoupler
+Unit[+0(1,1) 2 0 0]([1 1 1],[1 1 1])
+operator000014.recoupler
+Unit[+2(2,0) 0 0 0]([3 0 0],[1 0 0])
+operator000015.recoupler
+Unit[+2(2,0) 0 0 0]([2 0 1],[0 0 1])
+operator000016.recoupler
+Unit[+2(2,0) 0 0 0]([4 0 1],[2 0 1])
+operator000017.recoupler
+Unit[+2(4,2) 0 0 0]([4 0 1],[2 0 1])
+operator000018.recoupler
+Unit[+2(2,0) 0 0 0]([2 1 0],[0 1 0])
+operator000019.recoupler
+Unit[+2(2,0) 0 0 0]([4 1 0],[2 1 0])
+operator000020.recoupler
+Unit[+2(4,2) 0 0 0]([4 1 0],[2 1 0])
+operator000021.recoupler
+Unit[+2(2,0) 1 0 0]([2 1 0],[0 1 0])
+operator000022.recoupler
+Unit[+2(2,0) 1 0 0]([4 1 0],[2 1 0])
+operator000023.recoupler
+Unit[+2(3,1) 1 0 0]([4 1 0],[2 1 0])
+operator000024.recoupler
+Unit[+2(4,2) 1 0 0]([4 1 0],[2 1 0])
+operator000025.recoupler
+Unit[+2(2,0) 2 0 0]([2 1 0],[0 1 0])
+operator000026.recoupler
+Unit[+2(2,0) 2 0 0]([4 1 0],[2 1 0])
+operator000027.recoupler
+Unit[+2(3,1) 2 0 0]([4 1 0],[2 1 0])
+operator000028.recoupler
+Unit[+2(4,2) 2 0 0]([4 1 0],[2 1 0])
+operator000029.recoupler
+Unit[+2(2,0) 0 0 0]([3 1 1],[1 1 1])
+operator000030.recoupler
+Unit[+2(2,0) 1 0 0]([3 1 1],[1 1 1])
+operator000031.recoupler
+Unit[+2(3,1) 1 0 0]([3 1 1],[1 1 1])
+operator000032.recoupler
+Unit[+2(2,0) 2 0 0]([3 1 1],[1 1 1])
+operator000033.recoupler
+Unit[+2(3,1) 2 0 0]([3 1 1],[1 1 1])
+operator000034.recoupler
+Brel [-2(0,2) 0 0 0]
+operator000035.recoupler
+Nrel [0(0,0) 0 0 0]
