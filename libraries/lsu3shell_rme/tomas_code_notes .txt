@@ -1,0 +1,75 @@
+04/27/2016
+Notes by Anna about SU(3) recoupling  and  RME calculation in SU(3) basis
+lsu3shell/bin/
+
+In programs/tomascode/
+
+setenv SU3SHELL_DATA $HOME/projects/lsu3shell/su3shell_data/
+
+OBSELETE
+Converts input files from Anna into format used by SU3Recoupler (increasing shell number ordering)
+1.  run AnnaConvention2SU3Recoupler
+ give file names for  PPNN and PN
+
+	returns output in form used by recoupler 
+	—redirect to file 
+	
+
+Recoupler expects you want to recouple interactions with 
+eta1 eta2 eta3 eta4 rho1=1 lambda1 mu1 2S1  rho2=1 lambda2 mu2 2S2 rho0 lambda0 mu0 2S0
+PP NN PN
+
+from source file SU3InteractionRecoupler.cpp
+
+2. RecoupleSU3Interaction inputfile outputfile
+		—be careful not to overwrite files 
+		— input from step 1
+		—output  outputfile.PPNN and outputfile.PN
+		— Need to have gls and boost/1.58 loaded
+
+3. Create input file for SU3RME bra_model_space, ket_module_space, su3rme.in
+	—first 2 command line args: expects models space for bra then ket (same for both in our case—give twice)
+	—third arg: input filename created for SU3RME
+		— expects first value is irrelevant hbar omega value (integer) 10
+		—second line begins with INT path/file you produced with SU3recoupler
+		—enter files name without .PPNN or .PN
+		e.g. 
+			10
+			INT ./operator0000010
+		
+
+Output
+
+(ip, in) rho lambda mu 2S || O|| (jp,jn) rho lambda mu 2S    rme: 
+
+ip, in, jp, jn is integer assigned to configuration 
+
+there is a code that lists basis labels for index 
+—
+ncsmSU3xSU2BasisLSU3
+—find out labels are obtained. 
+ 
+arg:: name of model space e.g. 8Be_Nmax0.model_space.txt
+—lists all many-body states in basis
+
+[proton config]x[neutron config]
+8Be full model space for 
+Nex=0  [2 2]x[2 2]
+Nex=2  [2 1 1 0]x [1 3 0 0] 
+etc 
+
+AllowedSU3xSU2Lister_main
+—get allowed w S combinations 
+
+
+06/20/2016 email
+
+I realized that there is a really easy and quick fix which makes RecoupleSU3Interaction code to carry out recoupling in an k0-independent way. All one has to do is to replace all calls of SU3::k0max( ...) function with the constant equal to 1. I am attaching the three files that I changed. In order to compile the new version, you have to:
+
+1) place RecoupleSU3Interaction.cpp into programs/upstreams/ directory.
+2) place SU3InteractionRecoupler.cpp and SU3InteractionRecoupler.h into libraries/SU3ME/ directory.
+
+After recompiling LSU3shell, you should have a new version of RecoupleSU3Interaction that does recoupling in k0-independent way.
+
+
+
