@@ -65,19 +65,19 @@ int main(int argc, char **argv)
       std::tie(Lp,Sp,Tp)=bra;
       // std::cout<<fmt::format("{} {} ({},{},{}) ({},{},{})", L0,S0,Lp,Sp,Tp,L,S,T)<<std::endl<<it->second<<std::endl;
     }
-  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int>,double> relative_rme_map;
+  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double> relative_rme_map;
 
   u3shell::Upcoupling(relative_space,relative_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
   // std::cout<<"UpcouplingU3ST"<<std::endl;
   for (auto it=relative_rme_map.begin(); it!= relative_rme_map.end(); ++it)
     {
       u3shell::RelativeUnitTensorLabelsU3ST labels;
-      int kappa0;
-      std::tie(labels,kappa0)=it->first;
+      int kappa0, L0;
+      std::tie(labels,kappa0, L0)=it->first;
       double coef=it->second;
 
       // if (fabs(coef)>10e-13)
-      //   std::cout<<labels.Str()<<"  "<<kappa0<<std::endl<<it->second<<std::endl<<std::endl;
+      //   std::cout<<labels.Str()<<"  "<<kappa0<<"  "<<L0<<std::endl<<it->second<<std::endl<<std::endl;
     }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Generate a RME expansion for all relative unit tensors and store for easy look-up.
@@ -117,15 +117,15 @@ int main(int argc, char **argv)
       u3shell::RelativeUnitTensorLabelsU3ST relative_tensor;
 ///
 ///      
-      int kappa0,g;
-      std::tie(relative_tensor,kappa0)=rit->first;
+      int kappa0,L0,g;
+      std::tie(relative_tensor,kappa0, L0)=rit->first;
       // std::cout<<relative_tensor.Str()<<std::endl;
 
       double relative_rme=rit->second;
       const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_tensors=relative_two_body_expansion_map[relative_tensor];
       u3::SU3 x0(relative_tensor.x0());
       HalfInt S0=relative_tensor.S0();
-      MultiplicityTagged<int>::vector L0_kappa0_max=BranchingSO3(x0);
+      // MultiplicityTagged<int>::vector L0_kappa0_max=BranchingSO3(x0);
 
       for(auto tbit=two_body_tensors.begin(); tbit!=two_body_tensors.end(); ++tbit)
         {
@@ -144,38 +144,32 @@ int main(int argc, char **argv)
           MultiplicityTagged<int>::vector L_kappa_max=BranchingSO3(x);
           MultiplicityTagged<int>::vector Lp_kappap_max=BranchingSO3(xp);
           test_map[two_body_tensor]+=relative_rme*unit_tensor_rme;
-          for(int l0=0; l0<L0_kappa0_max.size(); ++l0)
+          if((L0>(S0+J0))||L0<abs(S0-L0))
+            continue;
+          for(int lp=0; lp<Lp_kappap_max.size(); ++lp)
             {
-              int L0=L0_kappa0_max[l0].irrep;
-              if((L0>(S0+J0))||L0<abs(S0-L0))
-                continue;
-              if(kappa0>L0_kappa0_max[l0].tag)
-                continue;
-              for(int lp=0; lp<Lp_kappap_max.size(); ++lp)
+              int Lp=Lp_kappap_max[lp].irrep;
+              int kappap_max=Lp_kappap_max[lp].tag;
+              for(int l=0; l<L_kappa_max.size(); ++l)
                 {
-                  int Lp=Lp_kappap_max[lp].irrep;
-                  int kappap_max=Lp_kappap_max[lp].tag;
-                  for(int l=0; l<L_kappa_max.size(); ++l)
-                    {
-                      int L=L_kappa_max[l].irrep;
-                      int kappa_max=L_kappa_max[l].tag;
-                      for(int kappap=1; kappap<=kappap_max; ++kappap)
-                        for(int kappa=1; kappa<=kappa_max; ++kappa)
-                          {
-                            double u3coef1=u3::W(x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0);
-                            // std::cout<<u3coef1<<"  "<<relative_rme<<"  "<<unit_tensor_rme<<std::endl;
-                            TwoBodyStateLabelsU3STBranched ket(eta1,eta2,x,kappa,L,S,T);
-                            TwoBodyStateLabelsU3STBranched bra(eta1p,eta2p,xp,kappap,Lp,Sp,Tp);
-                            TwoBodyRMELablesU3STBranched key(x0,kappa0,L0,S0,T0,bra,ket);
-                            // testing 
-                            TwoBodyStateLabelsU3STBranched ket1(1,1,u3::SU3(2,0),1,0,0,1);
-                            TwoBodyRMELablesU3STBranched key1(u3::SU3(0,0),1,0,0,0,ket1,ket1);
-                            // if(key==key1)
-                              // std::cout<<relative_rme<<"  "<<unit_tensor_rme<<"  "<<u3coef1<<std::endl;
-                            // 
-                            two_body_rme_u3st_branched[key]+=relative_rme*unit_tensor_rme*u3coef1;
-                          }
-                    }
+                  int L=L_kappa_max[l].irrep;
+                  int kappa_max=L_kappa_max[l].tag;
+                  for(int kappap=1; kappap<=kappap_max; ++kappap)
+                    for(int kappa=1; kappa<=kappa_max; ++kappa)
+                      {
+                        double u3coef1=u3::W(x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0);
+                        // std::cout<<u3coef1<<"  "<<relative_rme<<"  "<<unit_tensor_rme<<std::endl;
+                        TwoBodyStateLabelsU3STBranched ket(eta1,eta2,x,kappa,L,S,T);
+                        TwoBodyStateLabelsU3STBranched bra(eta1p,eta2p,xp,kappap,Lp,Sp,Tp);
+                        TwoBodyRMELablesU3STBranched key(x0,kappa0,L0,S0,T0,bra,ket);
+                        // testing 
+                        TwoBodyStateLabelsU3STBranched ket1(1,1,u3::SU3(2,0),1,0,0,1);
+                        TwoBodyRMELablesU3STBranched key1(u3::SU3(0,0),1,0,0,0,ket1,ket1);
+                        // if(key==key1)
+                          // std::cout<<relative_rme<<"  "<<unit_tensor_rme<<"  "<<u3coef1<<std::endl;
+                        // 
+                        two_body_rme_u3st_branched[key]+=relative_rme*unit_tensor_rme*u3coef1;
+                      }
                 }
             }
         }

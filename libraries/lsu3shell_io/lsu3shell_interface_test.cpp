@@ -11,7 +11,7 @@
 
 #include "cppformat/format.h"
 
-#include "lsu3shell/lsu3shell_interface.h"
+#include "lsu3shell_io/lsu3shell_interface.h"
 #include "spncci/sp_basis.h"
 #include "spncci/lgi_unit_tensor.h"
 #include "u3shell/moshinsky.h"

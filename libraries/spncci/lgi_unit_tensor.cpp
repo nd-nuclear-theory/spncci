@@ -18,7 +18,7 @@
 #include "u3shell/moshinsky.h"
 #include "u3shell/u3st_scheme.h"
 #include "u3shell/two_body_operator.h"
-#include "lsu3shell/lsu3shell_interface.h"
+#include "lsu3shell_io/lsu3shell_interface.h"
 
 // #include "spncci/unit_tensor.h"
 

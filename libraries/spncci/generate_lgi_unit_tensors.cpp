@@ -11,7 +11,7 @@
 #include "cppformat/format.h"
 
 #include "spncci/lgi_unit_tensor.h"
-#include "lsu3shell/lsu3shell_interface.h"
+#include "lsu3shell_io/lsu3shell_interface.h"
 
 
 int main(int argc, char **argv)
