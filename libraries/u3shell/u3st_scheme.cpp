@@ -6,15 +6,14 @@
 
 ****************************************************************/
 
+#include "u3shell/u3st_scheme.h"
+
 #include <sstream>
 
 #include "am/am.h"
 #include "cppformat/format.h"
-#include "u3shell/u3st_scheme.h"
 
 namespace u3shell {
-
-
 
   RelativeSubspaceU3ST::RelativeSubspaceU3ST(int N, int S, int T, int g)
   {
@@ -38,9 +37,9 @@ namespace u3shell {
   {
 
     return fmt::format(
-                       "[{} {} {} {}]",
-                       N(),S(),T(),g()
-                       );
+        "[{} {} {} {}]",
+        N(),S(),T(),g()
+      );
   }
 
   RelativeSpaceU3ST::RelativeSpaceU3ST(int Nmax)
@@ -76,15 +75,15 @@ namespace u3shell {
     std::ostringstream os;
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
-  const SubspaceType& subspace = GetSubspace(subspace_index);
+        const SubspaceType& subspace = GetSubspace(subspace_index);
         
         std::string subspace_string 
           = fmt::format(
-                        "index {:3} {} size {:3}",
-                        subspace_index,
-                        subspace.Str(),
-                        subspace.size()
-                        );
+              "index {:3} {} size {:3}",
+              subspace_index,
+              subspace.Str(),
+              subspace.size()
+            );
                         
         os << subspace_string << std::endl;
       }
@@ -95,7 +94,7 @@ namespace u3shell {
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
-  {
+        {
           // retrieve subspaces
           const RelativeSubspaceU3ST& bra_subspace = space.GetSubspace(bra_subspace_index);
           const RelativeSubspaceU3ST& ket_subspace = space.GetSubspace(ket_subspace_index);
@@ -104,20 +103,20 @@ namespace u3shell {
           int multiplicity_index = 1;
           PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
           
-  }
+        }
   }
 
   RelativeSectorsU3ST::RelativeSectorsU3ST(RelativeSpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
-  {
+        {
           // retrieve subspaces
           const RelativeSubspaceU3ST& bra_subspace = space.GetSubspace(bra_subspace_index);
           const RelativeSubspaceU3ST& ket_subspace = space.GetSubspace(ket_subspace_index);
 
 
-    // verify selection rules
+          // verify selection rules
           bool allowed = true;
           // U(1)
           allowed &= (ket_subspace.N() + operator_labels.N0() - bra_subspace.N() == 0);
@@ -138,12 +137,12 @@ namespace u3shell {
             }
 
           // push sectors (tagged by multiplicity)
-    if (allowed)
+          if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
                 PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
               }
-  }
+        }
   }
 
 
@@ -195,9 +194,9 @@ namespace u3shell {
   {
 
     return fmt::format(
-                       "[{} {} {} {}]",
-                       omega().Str(),S(),T(),g()
-                       );
+        "[{} {} {} {}]",
+        omega().Str(),S(),T(),g()
+      );
   }
 
   TwoBodySpaceU3ST::TwoBodySpaceU3ST(int Nmax)
@@ -211,7 +210,7 @@ namespace u3shell {
       for (int lambda=0; lambda<=N; ++lambda)
         //for mu in 0..floor(N/2)
         for (int mu=0; mu<=N/2; ++mu)      	
-        // for each S in 0..1
+          // for each S in 0..1
           for (int S=0; S<=1; ++S)
             // for each T in 0..1
             for (int T=0; T<=1; ++T)
@@ -248,11 +247,11 @@ namespace u3shell {
         
         std::string subspace_string 
           = fmt::format(
-                        "index {:3} {} size {:3}",
-                        subspace_index,
-                        subspace.Str(),
-                        subspace.size()
-                        );
+              "index {:3} {} size {:3}",
+              subspace_index,
+              subspace.Str(),
+              subspace.size()
+            );
                         
         os << subspace_string << std::endl;
       }

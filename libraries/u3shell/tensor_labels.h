@@ -8,7 +8,8 @@
 
   5/15/16 (mac): Created as tensor.h.
   5/25/16 (mac): Rename to tensor_labels.h.  Extract 
-    non-isospin-scheme labels.
+    non-isospin-scheme labels as separate class
+    (OperatorLabelsU3S, etc.).
   5/27/16 (mac): Restructure operator constuctor definitions.
 
 ****************************************************************/
@@ -819,20 +820,6 @@ namespace u3shell
     int g0_;
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   ////////////////////////////////////////////////////////////////
   // U3S-scheme two-body unit tensor operator labels
   ////////////////////////////////////////////////////////////////
@@ -840,7 +827,6 @@ namespace u3shell
   class TwoBodyUnitTensorLabelsU3S
     : public OperatorLabelsU3S
   // U(1)xSU(3)xS two-body unit tensor operators labels, for use in pn scheme.
-  //
   //
   // See TwoBodyUnitTensorLabelsU3ST comments for further discussion.
   // Omits isospin labels.

@@ -1,0 +1,194 @@
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+Local installation notes for lsu3shell package on
+
+  University of Notre Dame CRC Linux cluster
+
+For LSU3Shell version:
+
+  commit 6d7c71a4be30891a072679767dfa601bf5fb830c
+  Author: Tomas Dytrych <tdytrych@gmail.com>
+  Date:   Mon Mar 7 15:51:50 2016 +0100
+
+Note that compilation issues are not yet resolved with the more recent
+commit (see e-mail 9/6/16):
+
+  commit cd75d651431f3270748c4d8034413ea7bd32212e
+  Author: Tomas Dytrych <tdytrych@gmail.com>
+  Date:   Thu Aug 25 23:02:17 2016 +0200
+
+History:
+  4/13/16 (mac): First new build in a couple of years, with lots of new
+    modules.
+  9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
+    build, and update config-ndcrc.mk.
+////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
+// Initial directory setup
+////////////////////////////////////////////////////////////////
+
+(1) To clone a clean repository and check out the LSU3develop branch:
+
+  git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell --branch LSU3develop
+
+Or, the long way is to clone, then subsequently check out the branch:
+
+  git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell
+  cd lsu3shell
+  git checkout -b LSU3develop origin/LSU3develop
+
+(2) We ignore the outdated irrelevant config.mk which comes with the
+repository.  Instead, copy in the relevant configuration files and
+make a symlink from config.mk:
+
+  rm config.mk
+  cp ${HOME}/projects/spncci/misc/lsu3shell/config-lsu3shell-*.mk .
+  ln -s config-lsu3shell-ndcrc.mk config.mk
+
+(3) We also want to "upgrade" the makefile to the latest version,
+which can install the library files to a lib directory:
+
+  cp ${HOME}/projects/spncci/makefile .
+
+////////////////////////////////////////////////////////////////
+// Summary of build commands
+////////////////////////////////////////////////////////////////
+
+Once the configuration files are set as described below, the build
+command line sequence is:
+
+  module load ompi/1.10.2-gcc-4.9.2
+  module load boost/1.58
+  module load gsl
+  make install -j 8
+
+////////////////////////////////////////////////////////////////
+// Detailed notes for each library
+////////////////////////////////////////////////////////////////
+
+gcc / ompi / boost
+
+It is necessary to have consistent installations of gcc, ompi (set
+up to use that gcc), and boost (compiled with that gcc).  A consistent
+set of modules was installed for us at the CRC (4/16), making use of:
+
+    gcc 4.9.2
+    ompi 1.10.2
+    boost 1.58
+
+These are loaded with:
+
+  module load ompi/1.10.2-gcc-4.9.2
+  module load boost/1.58
+
+We must be careful to set the corresponding FORTRAN library flags
+in config.mk.  From an ls of /opt/crc/o/openmpi/1.10.2/gcc/4.9.2/lib,
+we find the possibilities
+
+  libmpi_mpifh
+
+A successful build is obtained with
+
+  fortran_libs :=  -lmpi_mpifh -lgfortran
+
+For future reference, we note the module settings:
+
+  module show ompi/1.10.2-gcc-4.9.2
+  -------------------------------------------------------------------
+  /afs/crc.nd.edu/x86_64_linux/Modules/modules/development_tools_and_libraries/ompi/1.10.2-gcc-4.9.2:
+
+  prepend-path     PATH /opt/crc/o/openmpi/1.10.2/gcc/4.9.2/bin 
+  append-path      MANPATH /opt/crc/o/openmpi/1.10.2/gcc/4.9.2/man 
+  prepend-path     LD_LIBRARY_PATH /opt/crc/o/openmpi/1.10.2/gcc/4.9.2/lib 
+  prepend-path     LD_LIBRARY_PATH /opt/crc/o/openmpi/1.10.2/gcc/4.9.2/lib/openmpi 
+  module-whatis    
+
+  The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. 
+  -------------------------------------------------------------------
+
+  module show boost/1.58
+  -------------------------------------------------------------------
+  /afs/crc.nd.edu/x86_64_linux/Modules/modules/development_tools_and_libraries/boost/1.58:
+
+  module           load gcc/4.9.2 
+  module           load python/2.7.8 
+  setenv           BOOST_ROOT /afs/crc.nd.edu/x86_64_linux/b/boost/1.58/gcc/4.9.2/build 
+  prepend-path     PATH /afs/crc.nd.edu/x86_64_linux/b/boost/1.58/gcc/4.9.2/build 
+  prepend-path     LD_LIBRARY_PATH /afs/crc.nd.edu/x86_64_linux/b/boost/1.58/gcc/4.9.2/build/lib 
+  prepend-path     PATH /afs/crc.nd.edu/x86_64_linux/b/bertini/1.5/gcc/4.9.2/openmpi/1.8.8/bin 
+  prepend-path     LD_LIBRARY_PATH /afs/crc.nd.edu/x86_64_linux/b/bertini/1.5/gcc/4.9.2/openmpi/1.8.8/lib 
+  module-whatis    
+
+  Boost provides free peer-reviewed portable C++ source libraries. Boost emphasizes libraries that work well with the C++ Standard Library. Boost libraries are intended to be widely useful, and usable across a broad spectrum of applications.
+
+  Use of high-quality libraries like Boost speeds initial development, results in fewer bugs, reduces reinvention-of-the-wheel, and cuts long-term maintenance costs. And since Boost libraries tend to become de facto or de jure standards, many programmers are already familiar with them. 
+  -------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////
+// GSL
+////////////////////////////////////////////////////////////////
+
+The gsl module defines GSL_DIR as pointing to the base directory.
+Thus, in config.mk, this base directory ${GSL_DIR} should included in
+the search_prefix list.
+
+  module load gsl
+
+////////////////////////////////////////////////////////////////
+// Eigen
+////////////////////////////////////////////////////////////////
+
+Install Eigen manually, as described in general installation
+instructions.  Suggested location
+
+  $(HOME)/local/opt/eigen-3.2.7
+
+That is, you will then have include files located as
+
+  $(HOME)/local/opt/eigen-3.2.7/include/eigen3/Eigen/{Array,Cholesky,...,Eigen,...}
+
+The "standard" convention (e.g., following NERSC's eigen3 mdoule) is
+to tet EIGEN3_DIR to point here and to include ${EIGEN3_DIR} in the
+search_prefix path.  Then include directives would have to be of the
+form
+
+   #include "eigen3/Eigen/Dense"
+
+However, LSU3shell's include directives are of the form
+
+   #include "Eigen/Dense"
+
+so we must instead include $(EIGEN3_DIR)/include/eigen3 in the
+search_dirs_include path.
+
+////////////////////////////////////////////////////////////////
+// Optimized BLAS (MKL or ACML)
+////////////////////////////////////////////////////////////////
+
+The BLAS/LAPACK routines are used for the matrix operations in the
+MFDn eigensolver (libraries/eigensolver_MFDn).
+
+If all we care about is *compiling* lsu3shell for its libraries, and
+we do not actually care about the performance of the eigensolver, we
+can get away with linking to the generic LAPACK:
+
+   LDLIBS += -llapack
+
+This is installed on the CRC for the GNU compilers under
+
+   /afs/crc.nd.edu/x86_64_linux/scilib/lapack/gnu
+
+so we must add this to search_dirs_lib.  See
+http://wiki.crc.nd.edu/wiki/index.php/LAPACK.
+
+Otherwise, if we do care about using a vendor-optimized linear algebra
+library, both ACML (for AMD machines) and MKL (for Intel machines) are
+installed at the ND CRC.  The shared object libraries produce a
+linking error.  Therefore, we must force use of static libraries in
+the su3shell makefile.  The ugly way to do this, in config.mk, is to
+set
+
+  LDLIBS += /afs/crc.nd.edu/x86_64_linux/scilib/acml/current/gfortran/gfortran64/lib/libacml.a
+
