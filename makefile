@@ -294,6 +294,7 @@ search_dirs_include :=
 search_dirs_lib :=
 fortran_libs := 
 fortran_flags :=
+install_prefix := .
 
 HYBRID_MAKE_DIR ?= .
 include $(HYBRID_MAKE_DIR)/config.mk
@@ -302,7 +303,6 @@ include $(HYBRID_MAKE_DIR)/config.mk
 # read in project details
 ################################################################
 
-install_prefix := .
 include project.mk
 
 ################################################################
