@@ -10,6 +10,7 @@
   3/8/16 (aem,mac): Add U3ST structure and rename U3S structure.
   3/9/16 (aem,mac): Add KeyType typedefs.  Extract MultiplicityTagged.
   3/16/16 (aem): Add validity check to U(3) Kronecker product.
+  9/6/16 (mac): Upgrade U3S and U3ST from struct to class with hash function, etc.
 
 ****************************************************************/
 
@@ -23,6 +24,7 @@
 #include "boost/functional/hash.hpp"
 
 #include "am/halfint.h"
+#include "am/am.h"
 #include "utilities/multiplicity_tagged.h"
 #include "utilities/utilities.h"
 
@@ -381,31 +383,24 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-  // TODO (if ever used): upgrade from struct to class and add hash_value
-
-  struct U3S
+  class U3S
   {
-
-    ////////////////////////////////////////////////////////////////
-    // typedefs
-    ////////////////////////////////////////////////////////////////
-
-    typedef std::pair<u3::U3,HalfInt> KeyType;
 
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
+    public:
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
     // default constructor
     inline U3S() 
-      : S(0) {}
+      : S_(0) {}
 
     // construction from (omega,S)
-    inline U3S(const u3::U3& omega_, const HalfInt& S_) 
-      : omega(omega_), S(S_) {}
+    inline U3S(const u3::U3& omega, const HalfInt& S) 
+      : omega_(omega), S_(S) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -413,17 +408,44 @@ namespace u3
 
     inline u3::U3 U3() const
     {
-      return omega;
+      return omega_;
     }
 
     inline u3::SU3 SU3() const
     {
-      return omega.SU3();
+      return omega_.SU3();
     }
+
+    inline HalfInt S() const
+    {
+      return S_;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<u3::U3,HalfInt> KeyType;
 
     inline KeyType Key() const
     {
-      return KeyType(omega,S);
+      return KeyType(omega_,S_);
+    }
+
+    inline friend bool operator == (const U3S& omegaS1, const U3S& omegaS2)
+    {
+      return omegaS1.Key() == omegaS2.Key();
+    }
+
+    inline friend bool operator < (const U3S& omegaS1, const U3S& omegaS2)
+    {
+      return omegaS1.Key() < omegaS2.Key();
+    }
+
+    inline friend std::size_t hash_value(const U3S& v)
+    {
+      boost::hash<U3S::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -435,26 +457,13 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
+    
+    private:
 
-    u3::U3 omega;
-    HalfInt S;
+    u3::U3 omega_;
+    HalfInt S_;
 
   };
-
-
-  ////////////////////////////////////////////////////////////////
-  // relational operators
-  ////////////////////////////////////////////////////////////////
-
-  inline bool operator == (const U3S& omegaS1, const U3S& omegaS2)
-  {
-    return omegaS1.Key() == omegaS2.Key();
-  }
-
-  inline bool operator < (const U3S& omegaS1, const U3S& omegaS2)
-  {
-    return omegaS1.Key() < omegaS2.Key();
-  }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
@@ -465,40 +474,33 @@ namespace u3
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
-    return dim(omegaS.omega)*(TwiceValue(omegaS.S)+1);  // TODO: define dimension function for am?
+    return dim(omegaS.U3())*am::dim(omegaS.S());
   }
 
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
-  // U(3) x SU(2)x SU(2) irrep
+  // U(3) x SU(2) x SU(2) irrep
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
-  // TODO (if ever used): upgrade from struct to class and add hash_value
-
-  struct U3ST
+  class U3ST
   {
-
-    ////////////////////////////////////////////////////////////////
-    // typedefs
-    ////////////////////////////////////////////////////////////////
-
-    typedef std::pair<u3::U3S,HalfInt> KeyType;
 
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
 
+    public:
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
     // default constructor
     inline U3ST() 
-      : S(0), T(0) {}
+      : S_(0), T_(0) {}
 
     // construction from (omega,S,T)
-    inline U3ST(const u3::U3& omega_, const HalfInt& S_, const HalfInt& T_) 
-      : omega(omega_), S(S_), T(T_) {}
+    inline U3ST(const u3::U3& omega, const HalfInt& S, const HalfInt& T)
+      : omega_(omega), S_(S), T_(T) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
@@ -506,17 +508,49 @@ namespace u3
 
     inline u3::U3 U3() const
     {
-      return omega;
+      return omega_;
     }
 
     inline u3::SU3 SU3() const
     {
-      return omega.SU3();
+      return omega_.SU3();
     }
+
+    inline HalfInt S() const
+    {
+      return S_;
+    }
+
+    inline HalfInt T() const
+    {
+      return T_;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<u3::U3,HalfInt,HalfInt> KeyType;
 
     inline KeyType Key() const
     {
-      return KeyType(U3S(omega,S),T);
+      return KeyType(omega_,S_,T_);
+    }
+
+    inline friend bool operator == (const U3ST& omegaST1, const U3ST& omegaST2)
+    {
+      return omegaST1.Key() == omegaST2.Key();
+    }
+
+    inline friend bool operator < (const U3ST& omegaST1, const U3ST& omegaST2)
+    {
+      return omegaST1.Key() < omegaST2.Key();
+    }
+
+    inline friend std::size_t hash_value(const U3ST& v)
+    {
+      boost::hash<U3ST::KeyType> hasher;
+      return hasher(v.Key());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -528,26 +562,13 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
+    
+    private:
 
-    u3::U3 omega;
-    HalfInt S, T;
+    u3::U3 omega_;
+    HalfInt S_,T_;
 
   };
-
-
-  ////////////////////////////////////////////////////////////////
-  // relational operators
-  ////////////////////////////////////////////////////////////////
-
-  inline bool operator == (const U3ST& omegaST1, const U3ST& omegaST2)
-  {
-    return omegaST1.Key() == omegaST2.Key();
-  }
-
-  inline bool operator < (const U3ST& omegaST1, const U3ST& omegaST2)
-  {
-    return omegaST1.Key() < omegaST2.Key();
-  }
 
   ////////////////////////////////////////////////////////////////
   // group theory functions
@@ -558,7 +579,7 @@ namespace u3
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
   {
-    return dim(omegaST.omega)*(TwiceValue(omegaST.S)+1)*(TwiceValue(omegaST.T)+1);  // TODO: define dimension function for am?
+    return dim(omegaST.U3())*am::dim(omegaST.S())*am::dim(omegaST.T());
   }
 
   ////////////////////////////////////////////////////////////////

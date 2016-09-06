@@ -38,7 +38,7 @@ namespace u3
   {
     std::ostringstream ss;
 
-    ss << omega.Str() << "x" << S;
+    ss << omega_.Str() << "x" << S_;
 
     return ss.str();
   }
@@ -47,7 +47,7 @@ namespace u3
   {
     std::ostringstream ss;
 
-    ss << omega.Str() << "x" << S << "x" << T;
+    ss << omega_.Str() << "x" << S_ << "x" << T_;
 
     return ss.str();
   }
