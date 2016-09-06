@@ -21,11 +21,11 @@ namespace spncci
     std::ostringstream ss;
 
     ss << "[" 
-       << " " << Nex_
-       << " " << sigma_.Str()
-       << " (" << Sp_
-       << "," << Sn_
-       << "," << S_
+       << " " << Nex()
+       << " " << U3().Str()
+       << " (" << Sp()
+       << "," << Sn()
+       << "," << S()
        << ") " << "]";
     return ss.str();
   }
@@ -43,7 +43,7 @@ namespace spncci
     return ss.str();
   }
 
-  void GenerateLGIVector(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0)
+  void ReadLGISet(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0)
   {
 
     // open input file
@@ -62,22 +62,25 @@ namespace spncci
         std::istringstream line_stream(line);
 
         // parse line
-        //   Nex lambda mu 2Sp 2Sn 2S count
-        int Nex, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
-        line_stream >> Nex >> twice_Sp >> twice_Sn >> twice_S >> lambda >> mu >> count;
-        //line_stream >> Nex >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S >> count;
+        //   Nex 2N lambda mu 2Sp 2Sn 2S count
+        int Nex, twice_N, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
+        line_stream >> Nex
+                    >> twice_N  >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S
+                    >> count;
         ParsingCheck(line_stream, line_count, line);
 
         // conversions
-        HalfInt Nsigma = Nsigma_0 + Nex;
+        HalfInt Nsigma = HalfInt(twice_N,2);
+        assert(Nsigma == Nsigma_0 + Nex);
         u3::U3 sigma(Nsigma,u3::SU3(lambda,mu));
         HalfInt Sp = HalfInt(twice_Sp,2);
         HalfInt Sn = HalfInt(twice_Sn,2);
         HalfInt S = HalfInt(twice_S,2);
+        u3shell::U3SPN omegaSPN(u3::U3S(sigma,S),Sp,Sn);
       
         // replicate LGI according to count
         for (int i=1; i<=count; ++i)
-          lgi_vector.emplace_back(Nex,sigma,Sp,Sn,S);
+          lgi_vector.emplace_back(omegaSPN,Nex);
       }
 
     // close input file

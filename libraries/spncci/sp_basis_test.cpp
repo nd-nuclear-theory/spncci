@@ -4,8 +4,6 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/10/16 (aem,mac): Created.
-
 ****************************************************************/
 
 #include "spncci/sp_basis.h"
@@ -22,7 +20,7 @@ int main(int argc, char **argv)
   std::string filename = "libraries/spncci/lgi-3-3-2-fql-mini.dat";
   
   spncci::LGIVectorType lgi_vector;
-  spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
+  spncci::ReadLGISet(lgi_vector,filename,Nsigma_0);
 
   std::cout << "LGI vector" << std::endl;
   for (int i=0; i<lgi_vector.size(); ++i)

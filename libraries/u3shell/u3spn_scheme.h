@@ -67,6 +67,11 @@ namespace u3shell {
       return omegaS_.U3();
     }
 
+    inline HalfInt N() const
+    {
+      return omegaS_.U3().N();
+    }
+
     inline u3::SU3 SU3() const
     {
       return omegaS_.SU3();

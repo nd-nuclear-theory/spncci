@@ -232,44 +232,44 @@ void GenerateLSU3ShellOperators(
   // writing to file the Nex=0 LGI's for which the LGI is give by the lsu3shell irrep so the expansion coefficient is 1
   // Currently assuming only one of each symmetry at Nex=0...my need to be adjusted later
   {
-    std::map< spncci::LGI, int> lgi_lsu3shell_map;      
-    int Nex=0;
-    u3::SU3 x; 
-    HalfInt Sp, Sn, S;
-    // for each irrep in lsu3shell basis vector, extract labels and construct 
-    // LGI.  Insert into map with value index of lsu3shell state in lsu3shell basis
-    for(int index=0; index<lsu3basis_vector.size(); index++)
-    {
-      std::tie(Nex, x, Sp, Sn, S)=lsu3basis_vector[index].Key();
-      if(Nex==0)
-        {
-          u3::U3 sigma(Nsigma_0+Nex,x);
-          lgi_lsu3shell_map[spncci::LGI(Nex,sigma,Sp,Sn,S)]=index;
-        }
-      else
-      {
-        Nsigma_begin=index;
-        break;
-      }
-    }
-    // write to file
-    // lsu3_basis_size  number_of_lgis 
-    //  lgi_index  num_nonzero_coefs
-    //    lsu3shell_index coefficient
-    //    lsu3shell_index coefficient
-    //  ... 
-    int lgi_index=0;
-    std::string outstring=fmt::format("{:6d} {:6d}",lsu3basis_vector.size(),lgi_lsu3shell_map.size());
-    os << outstring.c_str()<<std::endl;
-    
-    for(auto it=lgi_lsu3shell_map.begin(); it!=lgi_lsu3shell_map.end(); ++it)
-      {
-        os <<lgi_index<<"  "<<1<<std::endl
-           <<"  "<< it->second <<"  "<<1.0<<std::endl;
-        lgi_vector.push_back(it->first);
-        lgi_index++;
-      }
-  }
+//     std::map< spncci::LGI, int> lgi_lsu3shell_map;      
+//     int Nex=0;
+//     u3::SU3 x; 
+//     HalfInt Sp, Sn, S;
+//     // for each irrep in lsu3shell basis vector, extract labels and construct 
+//     // LGI.  Insert into map with value index of lsu3shell state in lsu3shell basis
+//     for(int index=0; index<lsu3basis_vector.size(); index++)
+//     {
+//       std::tie(Nex, x, Sp, Sn, S)=lsu3basis_vector[index].Key();
+//       if(Nex==0)
+//         {
+//           u3::U3 sigma(Nsigma_0+Nex,x);
+//           lgi_lsu3shell_map[spncci::LGI(Nex,sigma,Sp,Sn,S)]=index;
+//         }
+//       else
+//       {
+//         Nsigma_begin=index;
+//         break;
+//       }
+//     }
+//     // write to file
+//     // lsu3_basis_size  number_of_lgis 
+//     //  lgi_index  num_nonzero_coefs
+//     //    lsu3shell_index coefficient
+//     //    lsu3shell_index coefficient
+//     //  ... 
+//     int lgi_index=0;
+//     std::string outstring=fmt::format("{:6d} {:6d}",lsu3basis_vector.size(),lgi_lsu3shell_map.size());
+//     os << outstring.c_str()<<std::endl;
+//     
+//     for(auto it=lgi_lsu3shell_map.begin(); it!=lgi_lsu3shell_map.end(); ++it)
+//       {
+//         os <<lgi_index<<"  "<<1<<std::endl
+//            <<"  "<< it->second <<"  "<<1.0<<std::endl;
+//         lgi_vector.push_back(it->first);
+//         lgi_index++;
+//       }
+   }
 
   void WriteLSU3ShellExpansionLGI(
         int basis_dim, 
@@ -345,7 +345,7 @@ void GenerateLSU3ShellOperators(
     // in lsu3basis_vector  
     else
       {
-        spncci::GenerateLGIVector(lgi_vector,lgi_filename, Nsigma_0);
+        spncci::ReadLGISet(lgi_vector,lgi_filename, Nsigma_0);
         for(int a=0; a<lsu3basis_vector.size(); ++a)
             if(lsu3basis_vector[a].Nex()==Nsigma_min)
               {
@@ -393,7 +393,8 @@ void GenerateLSU3ShellOperators(
                   // states within subset of the basis.  
                   std::tie(Nex,x,Sp,Sn,S)=lsu3basis_vector[Nsigma_begin+row].Key();
                   u3::U3 sigma (Nex+Nsigma_0,x);
-                  lgi=spncci::LGI(Nex,sigma,Sp,Sn,S);
+                  //lgi=spncci::LGI(Nex,sigma,Sp,Sn,S);
+                  lgi=spncci::LGI(u3shell::U3SPN(u3::U3S(sigma,S),Sp,Sn),Nex);
                   count++;
                 }
             }
