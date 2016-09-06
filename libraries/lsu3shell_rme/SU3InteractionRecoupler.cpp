@@ -1,6 +1,8 @@
 #include <SU3ME/SU3InteractionRecoupler.h>
 //TESTED
+namespace recoupler_nonscalar
 
+{
 struct CNegligible
 {
 	const float eps_;
@@ -1717,3 +1719,5 @@ bool SU3InteractionRecoupler::Insert_adad_aa_Tensor(const char* n1n2n3n4, const 
 	}
 	return ((TransformedTensorsPPNN.size() > 0) || (TransformedTensorsPN.size() > 0));
 }
+
+} //namespace recoupler_nonscalar

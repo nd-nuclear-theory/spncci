@@ -401,5 +401,163 @@ namespace u3shell {
 
  
   ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// two-body unit tensor enumeration
+////////////////////////////////////////////////////////////////
+void
+GenerateTwoBodyUnitTensorLabelsU3ST(
+      int Nmax, 
+      // const u3shell::TwoBodySectorsU3ST two_body_sectors,
+      std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>& unit_tensor_labels_set
+    )
+  // Generate labels for U3ST-scheme two-body unit tensors acting
+  // within the given two-body sectors.
+  //
+  // The resulting unit tensor labels are grouped by N0, i.e., the
+  // number of oscillator quanta caried by the operator, where N0 will
+  // vary from -2*Nmax to +2*Nmax.  This choice of grouping is mainly
+  // dictated by consistency with the treatment of relative unit
+  // tensor labels in spncci, though it also does provide a "neat"
+  // sorting of the labels by N0 for iteration purposes.
+  //
+  // Arguments:
+  //   Nmax (int) : maximum oscillator truncation
+  //
+  // Returns:
+  //   (std::map<int,std::vector<TwoBodyUnitTensorLabelsU3ST>>)
+  //   : map from N0 -> vector of relative unit tensor labels
+{
+
+  // define container object
+    u3shell::TwoBodySpaceU3ST two_body_space(Nmax);
+    u3shell::TwoBodySectorsU3ST two_body_sectors(two_body_space);
+  // iterate over sectors
+  for (int sector_index = 0; sector_index < two_body_sectors.size(); ++sector_index)
+    {
+      ////////////////////////////////
+      // extract labels
+      ////////////////////////////////
+
+      // extract sector subspaces
+      const u3shell::TwoBodySectorsU3ST::SectorType& sector = two_body_sectors.GetSector(sector_index);
+      const u3shell::TwoBodySectorsU3ST::SubspaceType& bra_subspace = sector.bra_subspace();
+      const u3shell::TwoBodySectorsU3ST::SubspaceType& ket_subspace = sector.ket_subspace();
+
+      // extract bra subspace labels
+      u3::U3 omegap;
+      HalfInt Sp, Tp;
+      int gp;
+      std::tie(omegap,Sp,Tp,gp) =  bra_subspace.GetSubspaceLabels();
+
+      // extract ket subspace labels
+      u3::U3 omega;
+      HalfInt S, T;
+      int g;
+      std::tie(omega,S,T,g) =  ket_subspace.GetSubspaceLabels();
+      // if(T!=1)    // REMOVE
+      //   continue; // REMOVE
+      // if(Tp!=1)   // REMOVE
+      //   continue; // REMOVE
+      ////////////////////////////////
+      // determine SU(3)xSxT couplings
+      ////////////////////////////////
+
+      // U(3): operator "destroys" x and "creates" xp
+
+      // SU(3) couplings
+      u3::SU3 xp = omegap.SU3();
+      u3::SU3 x = omega.SU3();
+      MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(Conjugate(x),xp);
+
+      // U(1) coupling
+      int etap = int(omegap.N());
+      int eta = int(omega.N());
+      int N0 = etap - eta;
+
+      // SxT couplings
+      HalfInt::pair S0_range = am::ProductAngularMomentumRange(S,Sp);
+      HalfInt::pair T0_range = am::ProductAngularMomentumRange(T,Tp);
+
+      // parity coupling
+      int g0 = (g+gp)%2;
+      
+      ////////////////////////////////
+      // construct label set
+      ////////////////////////////////
+
+      for (MultiplicityTagged<u3::SU3> x0_rho0max : x0_set)
+        // for each SU(3)
+        {
+          // extract SU(3) labels
+          u3::SU3 x0 = x0_rho0max.irrep;
+          int rho0max = x0_rho0max.tag;
+          int k=std::min(x0.lambda(),x0.mu());
+          int l=std::max(x0.lambda(),x0.mu());
+          for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
+          {
+           // /////////////REMOVE J0=0 restriction
+           //  if(k==0)
+           //    {
+           //      if((l==0)&&(S0!=0))
+           //        continue;
+           //      if((l%2==0)&&(int(S0)%2!=0))
+           //        continue;
+           //      if((l%2==1)&&(S0!=1))
+           //        continue;
+           //    }
+           //  if(k>2)
+           //    continue;
+           //  if((k%2==1)&&(S0==0))
+           //    continue;
+           //  /////////////////////////
+            for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
+              // for each SxT
+              {
+                // HalfInt T0=0; //REMOVE
+                // collect tensorial labels
+                u3shell::OperatorLabelsU3ST operator_labels(N0,x0,S0,T0,g0);
+
+                // iterate over remaining (nontensorial) labels
+                for (int bra_index = 0; bra_index < bra_subspace.size(); ++bra_index)
+                  {
+                    int eta1p, eta2p;
+                    std::tie(eta1p, eta2p)= bra_subspace.GetStateLabels(bra_index);
+                    if(eta1p<2||eta2p<2) //REMOVE
+                    continue;            //REMOVE
+                    for (int ket_index = 0; ket_index < ket_subspace.size(); ++ket_index)
+                      // for each <bra|ket> pair
+                      {
+                        
+                        // collect state labels
+                        int eta1, eta2;
+                        std::tie(eta1, eta2)= ket_subspace.GetStateLabels(ket_index);
+                        // if ((eta1==eta2))//&&(int(u3::ConjugationGrade(x)+S+T)%2==0))REMOVE
+                        //   continue;
+                        if(eta1<2||eta2<2) //REMOVE
+                          continue;       //REMOVE
+                        u3shell::TwoBodyStateLabelsU3ST bra_labels(eta1p,eta2p,xp,Sp,Tp);
+                        u3shell::TwoBodyStateLabelsU3ST ket_labels(eta1,eta2,x,S,T);
+
+                        for (int rho0=1; rho0<=rho0max; ++rho0)
+                          // for each multiplicity index rho0
+                          { 
+                            // collect unit tensor labels
+                            u3shell::TwoBodyUnitTensorLabelsU3ST unit_tensor_labels(
+                                operator_labels,
+                                rho0,
+                                bra_labels,ket_labels
+                              );
+                            // push unit tensor labels onto appropriate N0 set
+                            unit_tensor_labels_set.push_back(unit_tensor_labels);
+                          }
+                      }
+                  }
+            }
+          }
+        }
+
+    }
+}
+
+
 } // namespace

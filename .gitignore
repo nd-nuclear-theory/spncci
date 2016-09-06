@@ -1,4 +1,10 @@
 # general patterns
+## this should cut out all executables.  The only files we want in
+## repository have an extension or start with a dot with the exception
+## of makefile which we have already commited. 
+#!*.*
+
+
 *.[oa]
 *~
 *.mod
@@ -21,6 +27,13 @@ bin/
 # specific executables
 libraries/su3lib/su3genbk
 libraries/sp3rlib/su3_coupler
+libraries/u3shell/branching
+libraries/u3shell/generate_unit_tensors_tb
+programs/unit_tensors/generate_lsu3shell_relative_operators
+programs/unit_tensors/generate_lsu3shell_twobody_tensors
+libraries/spncci/generate_lgi_unit_tensors
+
+
 *_test
 *.exe
 *.dSYM

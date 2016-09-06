@@ -9,6 +9,8 @@
 #include <set>
 #include <cassert>
 
+namespace recoupler_nonscalar
+{
 namespace TENSOR
 {
 	enum Type {PPNN = 0, PN = 1};
@@ -162,4 +164,7 @@ class SU3InteractionRecoupler
 	void RecoupleThreeShellTensor(	char* structure, const TENSOR_LABELS& TensorXY_ZX, const std::vector<double>& Coeffs, std::vector<std::pair<TENSOR_LABELS, std::vector<double> > >& TransformedTensors);
 	void RecoupleFourShellTensor(	char* structure, const TENSOR_LABELS& TensorXY_ZX, const std::vector<double>& Coeffs, std::vector<std::pair<TENSOR_LABELS, std::vector<double> > >& TransformedTensors);
 };
+
+}  //namespace recoupler_nonscalar
+
 #endif 

@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	SU3InteractionRecoupler Recoupler;
+	recoupler_nonscalar::SU3InteractionRecoupler Recoupler;
 	string sInputFileName(argv[1]);
 	string sOutputFileName(argv[2]);
 	std::ifstream inter_file(sInputFileName.c_str());

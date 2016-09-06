@@ -19,6 +19,7 @@
 
 #include "u3shell/tensor_labels.h"
 #include "u3shell/relative_operator.h"
+#include "u3shell/u3st_scheme.h"
 
 namespace u3shell
 {
@@ -202,6 +203,13 @@ namespace u3shell
   //   output_stream (std::ofstream) : an open text-mode output stream
   //   biquad_coefficients_pn (u3shell::TwoBodyUnitTensorCoefficientsU3SPN)
   //     : the biquad coefficients
+
+void
+GenerateTwoBodyUnitTensorLabelsU3ST(
+      int Nmax,
+      std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>& unit_tensor_labels_set
+    );
+  // Generate all two-body unit tensors defined on the space given by two_body_sectors
 
 }  // namespace
 

@@ -7,7 +7,7 @@ $(eval $(begin-module))
 # module_units_h := 
 # module_units_cpp-h := 
 # module_units_f := 
-module_programs_cpp :=generate_lsu3shell_relative_operators
+module_programs_cpp :=generate_lsu3shell_relative_operators generate_lsu3shell_twobody_tensors
 # module_programs_f :=
 # module_generated :=
 

@@ -139,7 +139,7 @@ int main(int argc, char **argv)
       HalfInt S0;
       u3::SU3 x0;
       //////////////////////////////////////////////////////////////////////////////////////////////
-      // Initializing the unit_tensor_rme_map with LGI rm's 
+      // Initializing the unit_tensor_rme_map with LGI rme's 
       //////////////////////////////////////////////////////////////////////////////////////////////
       std::pair<int,int> N0_pair(lgip.Nex(),lgi.Nex());
       for (int j=0; j<unit_sym_map[N0].size(); j++)
