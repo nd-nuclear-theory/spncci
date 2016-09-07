@@ -18,7 +18,7 @@ project_name := spncci
 # them).
 
 modules :=
-modules += libraries/lsu3shell_io libraries/spncci
+modules += libraries/lsu3shell libraries/spncci
 modules += libraries/u3shell libraries/sp3rlib  # ordering note: "mid-level" operations
 modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" operations, called by many other libraries
 
