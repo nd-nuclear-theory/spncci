@@ -24,34 +24,53 @@ int main(int argc, char **argv)
 {
   u3::U3CoefInit();
 
-  int Nsigma_0=6;
+  // setup for test case
+  int Nsigma_0=11;  // 11 for 6Li
 
-  // Reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
-  std::string lsu3_filename="lsu3basis_table.dat";
-  // lsu3_filename="/Users/annamccoy/projects/spncci/data/lgi_set/lsu3_basis.dat";
-  lsu3shell::LSU3BasisTable lsu3basis_table;
-  std::map<u3shell::U3SPN,int> subspace_dimensions;
+  // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
+  std::string lsu3_filename("lsu3basis_table.dat");
+  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::U3SPNBasisProvenance basis_provenance;
+  u3shell::SpaceU3SPN space;
+  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
 
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, lsu3basis_table, subspace_dimensions);
-
-  int dim, start_index;
-  u3shell::U3SPN omegaSPN;
-  for(auto lgi_group : lsu3basis_table)
+  // dump lsu3shell basis information
+  for(const lsu3shell::LSU3BasisGroupData& group : basis_table)
     {
-      std::tie(omegaSPN,dim,start_index)=lgi_group;
-      std::cout<<omegaSPN.Str()<<"  "<<dim<<"  "<<start_index<<std::endl;
+      std::cout
+        << fmt::format(
+            "{:20} dim {:6} start_index {:6}",
+            group.omegaSPN.Str(), group.dim, group.start_index
+          )
+        <<std::endl;
     }
   std::cout<<" "<<std::endl;
-  int dim_tot;
-  for(auto a : subspace_dimensions)
+
+  // dump U3SPN basis subspace info
+  std::cout << "space" << " " << space.size() << std::endl;
+  for (int subspace_index=0; subspace_index<space.size(); ++subspace_index)
     {
-      omegaSPN=a.first;
-      dim_tot=a.second;
-      std::cout<<omegaSPN.Str()<<"  "<<dim_tot<<"  "<<std::endl;
+      const u3shell::SubspaceU3SPN& subspace = space.GetSubspace(subspace_index);
+      std::cout
+        << fmt::format("subspace {} labels {} dim {}",
+                       subspace_index,
+                       subspace.U3SPN().Str(),
+                       subspace.size()
+          )
+        << std::endl;
+      std::cout
+        << fmt::format("provenance dim {}",basis_provenance[subspace_index].size())
+        << std::endl;
+      for (int state_index=0; state_index < subspace.size(); ++state_index)
+        {
+          const lsu3shell::LSU3BasisGroupLabels& basis_group_labels = basis_provenance[subspace_index][state_index];
+          std::cout
+            << fmt::format("  state {} Np {} Nn {}",state_index,basis_group_labels.Np,basis_group_labels.Nn)
+            << std::endl;
+        }
+
     }
 
-  // Constructing the space from subspace_dimensions
-  u3shell::SpaceU3SPN space(subspace_dimensions);
 
 
 

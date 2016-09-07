@@ -186,6 +186,11 @@ namespace u3shell {
     public:
 
     // constructor
+
+    SubspaceU3SPN() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
     SubspaceU3SPN (const u3shell::U3SPN& omegaSPN, int dimension);
 
     // accessors
@@ -215,6 +220,11 @@ namespace u3shell {
   public:
 
     // constructor
+
+    SpaceU3SPN() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
     SpaceU3SPN(const std::map<u3shell::U3SPN,int>& subspace_dimensions);
 
     // diagnostic output
