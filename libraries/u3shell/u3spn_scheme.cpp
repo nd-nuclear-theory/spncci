@@ -61,7 +61,7 @@ namespace u3shell {
       }
   }
   
-  SectorsU3SPN::SectorsU3SPN(SpaceU3SPN& space, const OperatorLabelsU3S& operator_labels,
+  SectorsU3SPN::SectorsU3SPN(const SpaceU3SPN& space, const OperatorLabelsU3S& operator_labels,
                              bool spin_scalar)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)

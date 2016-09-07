@@ -29,7 +29,8 @@ void IterateOverBasisTabularOutput(const lsu3::CncsmSU3xSU2Basis &basis) {
     }
     ip = basis.getProtonIrrepId(ipin_block);
     in = basis.getNeutronIrrepId(ipin_block);
-
+    int Np=basis.nhw_p(ip);
+    int Nn=basis.nhw_n(in);
     int N = basis.nhw_p(ip) + basis.nhw_n(in);
 
     ap_max = basis.getMult_p(ip);
@@ -52,8 +53,8 @@ void IterateOverBasisTabularOutput(const lsu3::CncsmSU3xSU2Basis &basis) {
       int lm = omega_pn.lm;
       int mu = omega_pn.mu;
       int rho0_max = omega_pn.rho;
-      std::cout << N << " " << ip << " " << ap_max << " " << lmp << " " << mup << " " << ssp << " ";
-      std::cout << in << " " << an_max << " " << lmn << " " << mun << " " << ssn << " ";
+      std::cout << ip << " " << ap_max << " " <<Np<<"  "<<lmp << " " << mup << " " << ssp << " ";
+      std::cout << in << " " << an_max << " " <<Nn<<" "<< lmn << " " << mun << " " << ssn << " ";
       std::cout << rho0_max << " " << lm << " " << mu << " " << SS << std::endl;
     }
   }

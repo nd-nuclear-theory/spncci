@@ -67,6 +67,11 @@ namespace u3shell {
       return omegaS_.U3();
     }
 
+    inline HalfInt N() const
+    {
+      return omegaS_.U3().N();
+    }
+
     inline u3::SU3 SU3() const
     {
       return omegaS_.SU3();
@@ -235,7 +240,7 @@ namespace u3shell {
 
     // constructor
 
-    SectorsU3SPN(SpaceU3SPN& space, const OperatorLabelsU3S& operator_labels,
+    SectorsU3SPN(const SpaceU3SPN& space, const OperatorLabelsU3S& operator_labels,
                              bool spin_scalar);
     // Enumerate sector pairs connected by an operator of given
     // tensorial and parity character ("constrained" sector

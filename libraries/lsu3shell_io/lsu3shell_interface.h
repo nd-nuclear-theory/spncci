@@ -20,6 +20,7 @@
 #include "u3shell/relative_operator.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/two_body_operator.h"
+#include "u3shell/u3spn_scheme.h"
 
 namespace lsu3shell
 {
@@ -101,16 +102,16 @@ GenerateLSU3ShellOperators(
 		const u3shell::TwoBodyUnitTensorCoefficientsU3ST& twobody_tensor_expansion,
 		int operator_index
 	);
-
+typedef std::tuple<u3shell::U3SPN,int,int>LSU3BasisGroup;
+typedef std::vector<LSU3BasisGroup> LSU3BasisTable;
 
 void 
-ReadLSU3ShellRMEs(
-	std::ifstream& is,
-	int dimp, int dim, const u3::SU3& x0,
-	const lsu3shell::LSU3Vector& lsu3shell_vector_bra,
-	const lsu3shell::LSU3Vector& lsu3shell_vector_ket,
-	std::vector<Eigen::MatrixXd>& matrix_vector
-);
+ReadLSU3Vector(
+    HalfInt Nsigma_0, 
+    const std::string& filename, 
+    LSU3BasisTable& lsu3_basis_table, 
+    std::map<u3shell::U3SPN,int>& subspace_dimensions
+  );
 
 void GenerateLSU3ShellExpansionLGI(
 		int Nsigma_0,

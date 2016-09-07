@@ -19,6 +19,7 @@
 #include "u3shell/moshinsky.h"
 #include "spncci/sp_basis.h"
 #include "basis/operator.h"
+// #include "u3shell/u3spn_scheme.h"
 
 namespace lsu3shell
 {
@@ -116,46 +117,47 @@ void GenerateLSU3ShellOperators(
     operator_stream.close();
   }
 
-  typedef std::vector<pair<u3shell::U3SPN,int>> LSU3BasisTable;
-
   void 
   ReadLSU3Vector(
-    int, Nsigma_0, 
+    HalfInt Nsigma_0, 
     const std::string& filename, 
     LSU3BasisTable& lsu3_basis_table, 
-    std::map<u3::U3S,int>& subspace_dimensions
+    std::map<u3shell::U3SPN,int>& subspace_dimensions
     )
   {
     std::ifstream basis_stream(filename.c_str());
+    if(not basis_stream)
+      std::cout<<fmt::format("File {} did not open",filename)<<std::endl;
     std::string line;
     while(std::getline(basis_stream,line))
       {
+        if(not std::isdigit(line[0]))
+          continue;
         std::istringstream line_stream(line);
         // alpha_n_max and alpha_p_max correspond multiplicities arising in the coupling of protons among shells and 
         // neutrons among shells. rho0_max is outer multplicity of coupling proton to neutron. 
-        int Nex, twice_Sp, twice_Sn, twice_S, lambda, mu, ip,in,alpha_p_max,alpha_n_max,rho0_max,lambda_p,mu_p,lambda_n,mu_n;
-        line_stream 
-        >> Nex 
-        >>ip>>alpha_p_max >>lambda_p>>mu_p>>twice_Sp 
-        >>in>>alpha_n_max>>lambda_n>>mu_n>>twice_Sn 
+        int Np, Nn, Nex,twice_Sp, twice_Sn, twice_S, lambda, mu, ip,in,alpha_p_max,alpha_n_max,rho0_max,lambda_p,mu_p,lambda_n,mu_n;
+        line_stream
+        >>ip>>alpha_p_max>>Np>>lambda_p>>mu_p>>twice_Sp 
+        >>in>>alpha_n_max>>Nn>>lambda_n>>mu_n>>twice_Sn 
         >>rho0_max>>lambda >> mu>>twice_S;
 
         //conversions
+        Nex=Nn+Np;
         HalfInt Sp=HalfInt(twice_Sp,2);
         HalfInt Sn=HalfInt(twice_Sn,2);
         HalfInt S=HalfInt(twice_S,2);
         u3::SU3 x(lambda,mu);
-
-        int dim=alpha_n_max*alpha_p_max*rho0_max;
+        // std::cout<<fmt::format("Nex {}  Nsigma_0 {}  x {}",Nex, Nsigma_0,x.Str())<<std::endl;
         u3::U3 omega(Nsigma_0+Nex,x);
         u3::U3S omegaS(omega,S);
-        u3::U3SPN omegaSPN(omegaS,Sp,Sn);
+        u3shell::U3SPN omegaSPN(omegaS,Sp,Sn);
 
-        int start_index=subspace_dimensions[omegaSPN]
+        int start_index=subspace_dimensions[omegaSPN];
         int dim=alpha_n_max*alpha_p_max*rho0_max;
         subspace_dimensions[omegaSPN]+=dim;
         
-        std::pair<u3::U3SPN,int> mult_group(omegaSPN,start_index);
+        LSU3BasisGroup mult_group(omegaSPN,dim,start_index);
         lsu3_basis_table.push_back(mult_group);
       } 
     basis_stream.close();
@@ -166,38 +168,144 @@ void GenerateLSU3ShellOperators(
   void 
   ReadLSU3ShellRMEs(
     std::ifstream& is,
-    const LSU3BasisTable& lsu3_basis_table, 
-    MatrixVector& matrix_vector // in operator.h and initial to zero
+    const u3shell::OperatorLabelsU3S& operator_labels,
+    const LSU3BasisTable& lsu3_basis_table,
+    const u3shell::SpaceU3SPN& space, 
+    const u3shell::SectorsU3SPN& sectors,
+    basis::MatrixVector& matrix_vector // in operator.h and initial to zero
   )
-  {
-    // initialize to vector with rho0_max<=2 since it is rare
-    // the rho0_max>2; At the end, vector is reduced to size rho0_max
-    // for the case that rho0_max=1; 
-    matrix_vector.resize(2,Eigen::MatrixXd::Zero(dimp,dim));
-    // matrix_vector.push_back(Eigen::MatrixXd::Zero(dimp,dim));     
-    u3::SU3 x, xp;
-    int i,j;
-    int rho0,rho0_max=1;
+  {    
+    u3shell::U3SPN omegaSPNi, omegaSPNj;
+    int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
     double rme;
+    // u3::SU3 x0(operator_labels.x0());
     while(is)
       {
-        is>>i,j,rme;
-          // xp=lsu3shell_vector_bra[i].x();
-          // x=lsu3shell_vector_ket[j].x();
-          // int rho0_max=u3::OuterMultiplicity(x,x0,xp);
-          if(rho0>rho0_max)
-            {
-              rho0_max=rho0;
-              if (rho0<matrix_vector.size())
-                {
-                  matrix_vector.push_back(Eigen::MatrixXd::Zero(dimp,dim)); 
-                  std::cout<<fmt::format("rho0_max_max={}",rho0)<<std::endl;
-                }
-            }
-        matrix_vector[rho0-1](i,j)=rme;
+        is>>i,j;
+        std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
+        std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
+        int i_space=space.LookUpSubspaceIndex(omegaSPNi);
+        int j_space=space.LookUpSubspaceIndex(omegaSPNj);
+        u3::SU3 xi(omegaSPNi.SU3());
+        u3::SU3 xj(omegaSPNj.SU3());
+        int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
+        for(int gi=0; gi<group_size_i; ++gi)
+          for(int gj=0; gj<group_size_j; ++gj)
+            for(int rho0=1; rho0<=rho0_max; ++rho0)
+              {
+                is>>rme;
+                int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
+                int row_index=start_index_i+gi;
+                int column_index=start_index_j+gj;
+                matrix_vector[sector_index](row_index,column_index)=rme;
+              }
       }
-    matrix_vector.resize(rho0_max);
   }
+
+  void 
+  GenerateBrelNrelMatrix(
+    const std::string& brel_filename,
+    const std::string& nrel_filename,
+    const LSU3BasisTable& lsu3_basis_table,
+    const u3shell::SpaceU3SPN& space, 
+    basis::MatrixVector& matrix_vector 
+    ) 
+  {    
+    u3shell::U3SPN omegaSPNi, omegaSPNj;
+    int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
+    double rme;
+
+    std::ifstream is_brel(brel_filename.c_str());
+    u3shell::OperatorLabelsU3S brel_labels(-2,u3::SU3(0,2),0,0);
+    //generate sectors for brel.
+    u3shell::SectorsU3SPN sectors(space,brel_labels,true);
+    while(is_brel)
+      {
+        is_brel>>i,j;
+        std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
+        std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
+        int i_space=space.LookUpSubspaceIndex(omegaSPNi);
+        int j_space=space.LookUpSubspaceIndex(omegaSPNj);
+        int sector_index=sectors.LookUpSectorIndex(i_space,j_space,1);
+        // construct matrix for both Brel and Nrel
+        matrix_vector[sector_index]=
+            Eigen::MatrixXd::Zero(group_size_i+group_size_j,group_size_j);
+        u3::SU3 xi(omegaSPNi.SU3());
+        u3::SU3 xj(omegaSPNj.SU3());
+
+        assert(u3::OuterMultiplicity(xj,u3::SU3(0,2),xi)==1);
+        for(int gi=0; gi<group_size_i; ++gi)
+          for(int gj=0; gj<group_size_j; ++gj)
+            { 
+              is_brel>>rme;
+              // write Brel to bottom part of matrix
+              int row_index=start_index_j+start_index_i+gi;
+              int column_index=start_index_j+gj;
+              matrix_vector[sector_index](row_index,column_index)=rme;
+            }
+      }
+    is_brel.close();
+    std::ifstream is_nrel(nrel_filename.c_str());
+    // u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
+    HalfInt N=omegaSPNj.N();
+    while(is_nrel)
+      {
+        is_nrel>>i,j;
+        std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
+        std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
+        int i_space=space.LookUpSubspaceIndex(omegaSPNi);
+        int j_space=space.LookUpSubspaceIndex(omegaSPNj);
+        int sector_index=sectors.LookUpSectorIndex(i_space,j_space,1);
+
+        assert(i_space==j_space);
+
+        u3::SU3 xi(omegaSPNi.SU3());
+        u3::SU3 xj(omegaSPNj.SU3());
+        double rme_nrel,rme_n=0;
+        assert(u3::OuterMultiplicity(xj,u3::SU3(0,0),xi)==1);
+        for(int gi=0; gi<group_size_i; ++gi)
+          for(int gj=0; gj<group_size_j; ++gj)
+            { 
+              {
+                is_nrel>>rme_nrel;
+                int row_index=start_index_i+gi;
+                int column_index=start_index_j+gj;
+                if(gi==gj)
+                  {rme_n=double(N);}
+                matrix_vector[sector_index](row_index,column_index)=rme_n-rme_nrel;
+              }
+            }
+      }
+    is_nrel.close();
+    
+  }
+
+  void GenerateNcmMatrix()
+  {}
+
+  void GenerateLSU3ShellExpansionLGI(
+    const LSU3BasisTable& lsu3_basis_table,
+    const u3shell::SpaceU3SPN& space, 
+    const std::string& brel_filename,
+    const std::string& nrel_filename,
+    basis::MatrixVector& lgi_expansion_matrix_vector //size of space 
+  )
+  // Construct Brel and Ncm matrix in lsu3shell basis and 
+  // solve for null space for Nex>2 or 1. 
+  
+  {
+    basis::MatrixVector ncm_matrix_vector;
+    GenerateNcmMatrix();
+    basis::MatrixVector brel_ncm_matrix_vector;
+    GenerateBrelNrelMatrix(brel_filename,nrel_filename,lsu3_basis_table,space, brel_ncm_matrix_vector);
+    int num_brel_sectors=brel_ncm_matrix_vector.size();
+    int start_index=space.size()-num_brel_sectors;
+    for(int i=0; i<=brel_ncm_matrix_vector.size();++i)
+      {
+        lgi_expansion_matrix_vector[i]=brel_ncm_matrix_vector[i].fullPivLu().kernel();
+      }
+  }
+
 
   void 
   WriteLGI(const spncci::LGIVectorType& lgi_vector,   std::ofstream& os)
@@ -219,66 +327,6 @@ void GenerateLSU3ShellOperators(
         <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
       }
   }
-
-  // void 
-  // GenerateBrelNrelMatrix(
-  //     int N_sigma,
-  //     const std::string& brel_filename,
-  //     const std::string& nrel_filename,
-  //     int dim0, int dim2, 
-  //     Eigen::MatrixXd& BNcmMatrix
-  //   )
-  // {   
-  //   int dimp_brel, dim_brel;
-  //   std::ifstream is_brel(brel_filename.c_str());
-  //   is_brel>>dimp_brel>>dim_brel;
-  //   std::vector<Eigen::MatrixXd> brel_matrix_vector
-  //   ReadLSU3ShellRMEs(is_brel,dimp_brel,dim_brel,brel_matrix_vector);
-  //   is_brel.close();
-
-  //   int dimp_nrel,dim_nrel;
-  //   std::ifstream is_nrel(nrel_filename.c_str());
-  //   is_nrel>>dimp_nrel>>dim_nrel;
-  //   assert(dimp_nrel==dimp_brel);
-  //   assert(dim_nrel==dim_brel);
-  //   std::vector<Eigen::MatrixXd> nrel_matrix_vector
-  //   ReadLSU3ShellRMEs(is_nrel,dimp_nrel,dim_nrel,nrel_matrix_vector);
-  //   is_nrel.close();
-
-  // {
-
-  //   // if((dim0+dim2)!=dim)
-  //   //  std::cout<<"brel dimension mismatch"<<std::endl;
-  //   //set up blocks to copy from Brel and Nrel 
-  //   // TODO
-  //   BNcmMatrix=Eigen::MatrixXd::Zero(dimp,dim);
-
-  //   //Read in matrix elements of Brel
-  //   double rme;
-  //   for(int i=0; i<dim0; ++i)
-  //     for(int j=0; j<dim2; ++j)
-  //       {
-  //         is_brel>>rme;
-  //         BNcmMatrix(i,j)=rme;
-  //       }
-  //   is_brel.close();
-  //   //Read in matrix elements of Nrel
-  //   int dim01,dim02;
-  //   std::ifstream is_nrel(nrel_filename.c_str());
-  //   is_nrel>>dim01>>dim02;
-
-  //   //Sanity check
-  //   if((dim01!=dim02)||(dim01!=dim0))
-  //     std::cout<<"dimension miss match between Brel and Nrel"<<std::endl;
-
-  //   for(int i=0; i<dim2; ++i)
-  //     for(int j=0; j<dim2; ++j)
-  //       {
-  //         is_nrel>>rme;
-  //         //Ncm=Ntotal-Nre;;
-  //         BNcmMatrix(dim0+i,j)=N_sigma-rme;
-  //       }
-  // }
 
 
   // void 
@@ -369,105 +417,7 @@ void GenerateLSU3ShellOperators(
     }
 
 
-  // void GenerateLSU3ShellExpansionLGI(
-  //   int Nsigma_0,
-  //   int Nsigma_min,
-  //   int Nsigma_max, 
-  //   std::string basis_file, 
-  //   std::string brel_filename, 
-  //   std::string nrel_filename,
-  //   std::string lgi_filename,
-  //   std::string lgi_expansion_filename
-  // )
-  // // Construct Brel and Ncm matrix in lsu3shell basis and 
-  // // solve for null space 
-  // {
-  //   int Nex;
-  //   u3::SU3 x; 
-  //   HalfInt Sp, Sn, S;
-  //   spncci::LGIVectorType lgi_vector;
-  //   // Nsigma_begin keeps track of where in basis vector irreps with Nex=Nsigma begin
-  //   int Nsigma_begin;
-  //   // read in lsu3shell reduced basis states 
-  //   LSU3Vector lsu3basis_vector;
-  //   lsu3shell::ReadLSU3Vector(basis_file, lsu3basis_vector);
-  //   int basis_dim=lsu3basis_vector.size();
-  //   //if starting at Nsigma=0, use LSU3 irreps to fill out LGIVector for Nsigma=0;
-  //   if(Nsigma_min==0)
-  //     {
-  //       std::ofstream os(lgi_expansion_filename.c_str());
-  //       LGINex0Initialize(Nsigma_0, lsu3basis_vector,lgi_vector, Nsigma_begin,os);
-  //       os.close(); 
-  //       Nsigma_min=2;
-  //     }
-  //   // Otherwise read in already generated LGI's from file and locate starting position
-  //   // in lsu3basis_vector  
-  //   else
-  //     {
-  //       spncci::GenerateLGIVector(lgi_vector,lgi_filename, Nsigma_0);
-  //       for(int a=0; a<lsu3basis_vector.size(); ++a)
-  //           if(lsu3basis_vector[a].Nex()==Nsigma_min)
-  //             {
-  //               Nsigma_begin=a;
-  //               continue;
-  //             }
-  //     }
 
-  //   // For each Nsigma
-  //   for(int Nsigma=Nsigma_min; Nsigma<=Nsigma_max; Nsigma+=2)
-  //   {
-  //     /////////////////////////////////////////////////////////////////////////////////
-  //     // Construct the Brel+Nrel matrix and solve for null space 
-  //     /////////////////////////////////////////////////////////////////////////////////
-  //     // Assumes that Brel and Nrel rme's have already been calculated using SU3RME 
-  //     // for each Nsigma
-  //     // dim2 is the dimension of the Nsigma space
-  //     // dim0 is the dimension of the Nsigma-2 space
-  //     // dim2 and dim0 are read in from file containing Brel operator rme's
-  //     int dim2,dim0;
-  //     Eigen::MatrixXd BNcmMatrix;
-  //     GenerateBrelNrelMatrix(Nsigma,brel_filename, nrel_filename,dim0, dim2, BNcmMatrix);
-  //     //Solve for null space 
-  //     Eigen::MatrixXd BNcm_kernal=BNcmMatrix.fullPivLu().kernel();
-  //     ///////////////////////////////////////////////////////////////////////////////
-  //     //Get list of LGI labels and append to lgi structure 
-  //     // map of LGI's with value vector of pairs of corresponding column in Kernel matrix 
-  //     // and number of non-zero rme's 
-  //     std::map< spncci::LGI, std::vector<std::pair<int,int>> > lgi_lsu3shell_map;     
-  //     int num_column=BNcm_kernal.cols();
-  //     int num_rows=BNcm_kernal.rows();
-  //     // accumulate lgi's in map
-  //     spncci::LGI lgi;
-  //     for(int column=0; column<num_column; column++)
-  //       {
-  //         int count=0;
-  //         for(int row=0; row<num_rows; row++)
-  //           {
-  //             double rme=BNcm_kernal(row,column);
-  //             if(fabs(rme)>10e-8)
-  //               {
-  //                 // Position in lsu3basis_vector is give by the sum of Nsigma_begin, 
-  //                 // which keeps track of where in the vector the Nex=Nsigma subset 
-  //                 // of the lsu3shell basis begin, and row, which indexes which of the
-  //                 // states within subset of the basis.  
-  //                 std::tie(Nex,x,Sp,Sn,S)=lsu3basis_vector[Nsigma_begin+row].Key();
-  //                 u3::U3 sigma (Nex+Nsigma_0,x);
-  //                 lgi=spncci::LGI(Nex,sigma,Sp,Sn,S);
-  //                 count++;
-  //               }
-  //           }
-
-  //         // LGI with same labels are collected in a vector
-  //         lgi_lsu3shell_map[lgi].push_back(std::pair<int,int>(column,count));
-  //       }
-  //   //Write expansion of lgi in lsu3shell basis to file, appending to lgi_expansion_filename
-  //   //and append LGI's to lgi_vector in canonical order   
-  //   WriteLSU3ShellExpansionLGI(basis_dim, lgi_lsu3shell_map,BNcm_kernal, lgi_vector, lgi_expansion_filename);     
-  //   }
-  //   //write LGI's to file
-  //   std::ofstream os(lgi_filename.c_str());
-  //   WriteLGI(lgi_vector,os);
-  // }
 
   void WriteControlFile()
   {

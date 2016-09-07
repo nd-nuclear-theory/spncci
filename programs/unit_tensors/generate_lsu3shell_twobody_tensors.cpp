@@ -60,7 +60,6 @@ int main(int argc, char **argv)
 			twobody_unit_tensor_coefficients[twobody_unit_tensor_labels[i]]=1;
 			lsu3shell::GenerateLSU3ShellOperators(Nmax, twobody_unit_tensor_coefficients,i);
 		}
-
 	control_stream<<fmt::format("  operators {} ",num_unit)<<std::endl;
 	for(int i=0; i<num_unit; ++i)
 		control_stream<<fmt::format("twobody_unit{:06d}",i)<<std::endl;

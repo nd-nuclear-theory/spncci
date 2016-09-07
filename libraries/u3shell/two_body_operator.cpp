@@ -454,10 +454,7 @@ GenerateTwoBodyUnitTensorLabelsU3ST(
       HalfInt S, T;
       int g;
       std::tie(omega,S,T,g) =  ket_subspace.GetSubspaceLabels();
-      // if(T!=1)    // REMOVE
-      //   continue; // REMOVE
-      // if(Tp!=1)   // REMOVE
-      //   continue; // REMOVE
+
       ////////////////////////////////
       // determine SU(3)xSxT couplings
       ////////////////////////////////
@@ -495,25 +492,9 @@ GenerateTwoBodyUnitTensorLabelsU3ST(
           int l=std::max(x0.lambda(),x0.mu());
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
           {
-           // /////////////REMOVE J0=0 restriction
-           //  if(k==0)
-           //    {
-           //      if((l==0)&&(S0!=0))
-           //        continue;
-           //      if((l%2==0)&&(int(S0)%2!=0))
-           //        continue;
-           //      if((l%2==1)&&(S0!=1))
-           //        continue;
-           //    }
-           //  if(k>2)
-           //    continue;
-           //  if((k%2==1)&&(S0==0))
-           //    continue;
-           //  /////////////////////////
             for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
               // for each SxT
               {
-                // HalfInt T0=0; //REMOVE
                 // collect tensorial labels
                 u3shell::OperatorLabelsU3ST operator_labels(N0,x0,S0,T0,g0);
 
@@ -522,19 +503,14 @@ GenerateTwoBodyUnitTensorLabelsU3ST(
                   {
                     int eta1p, eta2p;
                     std::tie(eta1p, eta2p)= bra_subspace.GetStateLabels(bra_index);
-                    if(eta1p<2||eta2p<2) //REMOVE
-                    continue;            //REMOVE
+
                     for (int ket_index = 0; ket_index < ket_subspace.size(); ++ket_index)
                       // for each <bra|ket> pair
-                      {
-                        
+                      {             
                         // collect state labels
                         int eta1, eta2;
                         std::tie(eta1, eta2)= ket_subspace.GetStateLabels(ket_index);
-                        // if ((eta1==eta2))//&&(int(u3::ConjugationGrade(x)+S+T)%2==0))REMOVE
-                        //   continue;
-                        if(eta1<2||eta2<2) //REMOVE
-                          continue;       //REMOVE
+
                         u3shell::TwoBodyStateLabelsU3ST bra_labels(eta1p,eta2p,xp,Sp,Tp);
                         u3shell::TwoBodyStateLabelsU3ST ket_labels(eta1,eta2,x,S,T);
 
