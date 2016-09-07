@@ -6,7 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  9/9/16 (mac): Created.
+  4/9/16 (mac): Created.
+  9/7/16 (aem): Added Trel operator and renamed Nrel to Nintr
 ****************************************************************/
 
 #ifndef UNIT_TENSOR_EXPANSION_H_
@@ -21,12 +22,6 @@
 
 namespace u3shell
 {
-	// void 
-	// NumberOperatorUnitTensorExpansion(
-	//   int Nmin, int Nmax, 
-	//   u3shell::TwoBodyUnitTensorCoefficientsU3ST& N_operator_expansion, 
-	//   int A=2
-	// );
 
 	void 
 	BrelRelativeUnitTensorExpansion(
@@ -48,6 +43,16 @@ namespace u3shell
   	u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator,
   	int A=2
   );
+
+  void 
+  TrelRelativeUnitTensorExpansion(
+    int Nmin,int Nmax,
+    u3shell::RelativeUnitTensorCoefficientsU3ST& Trel_operator,
+    int A=2);
+  // Generates the unit tensor expansion for the K^2 operator
+  // or kinetic energy operator without factor of 1/(2AM),
+  // where M is the nucleon mass. 
+
 
 }
 #endif
