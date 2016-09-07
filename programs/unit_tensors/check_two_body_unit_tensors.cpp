@@ -5,7 +5,7 @@
   values.
 
   Example:
-    check_two_body_unit_tensors 3 3 2 1 22     // 6Li, Nmax02
+    check_two_body_unit_tensors 2 1
 
   Input files:
     lsu3shell_basis.dat -- lsu3shell tabular basis listing file
@@ -31,18 +31,52 @@
 
 
 ////////////////////////////////////////////////////////////////
-// generate test matrix elements
+// generate known matrix elements
 ////////////////////////////////////////////////////////////////
 
   void 
-  GenerateTwo_BodyUnitTensorMatrixVector(      
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
-    );
-  // Generates vector of Ncm Matrix sectors in LSU3shell basis from 
-  // Nrel matrix sectors. 
+  GenerateTwoBodyUnitTensorMatrices(      
+    const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels,
+    const lsu3shell::U3SPNBasisLSU3Labels& basis_provenance,
+    const u3shell::SpaceU3SPN& space,
+    u3shell::SectorsU3SPN& sectors,
+    basis::MatrixVector& matrices
+    )
+  // Generate matrix representation of two-body unit tensor.
+  //
+  // The given space must be a deuteron-like two-body space.
+  {
+    // set up zero initialized operator
+    sectors = u3shell::SectorsU3SPN(space,u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),false);
+    basis::SetOperatorToZero(sectors,matrices);
 
+    // fill in nonzero entries
+    // TODO
+  }
+
+////////////////////////////////////////////////////////////////
+// read matrices
+////////////////////////////////////////////////////////////////
+
+//   void 
+//   ReadTwoBodyUnitTensorMatrices(      
+//     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+//     const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels
+//     const u3shell::SpaceU3SPN& space,
+//     u3shell::SectorsU3SPN& sectors,
+//     basis::MatrixVector& matrices,
+//     )
+//   // Read in matrix representation of two-body unit tensor.
+//   {
+//     sectors = u3shell::SectorsU3SPN(space,two_body_unit_tensor_labels);
+//     lsu3shell::ReadLSU3ShellRMEs(
+//         is,two_body_unit_tensor_labels,lsu3_basis_table,
+//         space,sectors,matrices
+//       );
+// 
+//     is_nrel << 
+// 
+//   }
 
 ////////////////////////////////////////////////////////////////
 // main program
@@ -73,7 +107,7 @@ int main(int argc, char **argv)
   std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> two_body_unit_tensor_labels_list;
   u3shell::GenerateTwoBodyUnitTensorLabelsU3ST(Nmax, two_body_unit_tensor_labels_list);
 
-  // read and construct basis indexing
+  // read lsu3shell basis table and construct basis mapping
   std::string lsu3shell_basis_filename("lsu3shell_basis.dat");
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
@@ -82,15 +116,25 @@ int main(int argc, char **argv)
   
   // iterate over unit tensors
   int num_unit = two_body_unit_tensor_labels_list.size();
-  for(int i=0; i<num_unit; ++i)
+  for(int operator_index=0; operator_index<num_unit; ++operator_index)
     {
       // extract tensor information
       const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels
-        = two_body_unit_tensor_labels_list[i];
+        = two_body_unit_tensor_labels_list[operator_index];
       std::cout
-        << fmt::format("tensor {} labels {}",i,two_body_unit_tensor_labels.Str())
+        << fmt::format("tensor {} labels {}",operator_index,two_body_unit_tensor_labels.Str())
         << std::endl;
 
+      // read computed rmes
+      std::string rme_filename = fmt::format("two_body_unit_{:06d}",operator_index);
+      std::cout << fmt::format("reading {}",rme_filename) << std::endl;
+      u3shell::SectorsU3SPN sectors(space,u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),false);
+      basis::MatrixVector matrices;
+      std::ifstream rme_stream(rme_filename);
+      lsu3shell::ReadLSU3ShellRMEs(
+          rme_stream,u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),basis_table,
+        space,sectors,matrices
+      );
 
     }
 

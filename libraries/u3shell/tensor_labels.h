@@ -11,6 +11,7 @@
     non-isospin-scheme labels as separate class
     (OperatorLabelsU3S, etc.).
   5/27/16 (mac): Restructure operator constuctor definitions.
+  9/7/16 (mac): Add OperatorLabelsU3S conversion from OperatorLabelsU3ST.
 
 ****************************************************************/
 
@@ -750,6 +751,15 @@ namespace u3shell
       : N0_(N0), x0_(x0), S0_(S0), g0_(g0)
     // Construct from labels.
     {}
+
+    inline explicit OperatorLabelsU3S(const OperatorLabelsU3ST& operator_labels_u3st)
+    // Construct from U3ST operator labels, by discarding isospin label.
+    {
+      N0_ = operator_labels_u3st.N0();
+      x0_ = operator_labels_u3st.x0();
+      S0_ = operator_labels_u3st.S0();
+      g0_ = operator_labels_u3st.g0();
+    }
     
     ////////////////////////////////////////////////////////////////
     // accessors
