@@ -30,7 +30,7 @@ int main(int argc, char **argv)
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
   std::string lsu3_filename("lsu3basis_table.dat");
   lsu3shell::LSU3BasisTable basis_table;
-  lsu3shell::U3SPNBasisProvenance basis_provenance;
+  lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
   lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
 

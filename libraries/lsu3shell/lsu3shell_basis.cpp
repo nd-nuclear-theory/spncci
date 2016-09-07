@@ -22,7 +22,7 @@ namespace lsu3shell
       HalfInt Nsigma_0, 
       const std::string& filename, 
       LSU3BasisTable& lsu3_basis_table,
-      U3SPNBasisProvenance& basis_provenance,
+      U3SPNBasisLSU3Labels& basis_provenance,
       u3shell::SpaceU3SPN& space
     )
   {
