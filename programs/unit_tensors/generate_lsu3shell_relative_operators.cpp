@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	//Generate Nrel operator up to Nmax cutoff
 	std::string nrel_file=fmt::format("Nrel_Nmax{:02d}",Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  u3shell::NrelRelativeUnitTensorExpansion(Nmin,Nmax, Nrel_operator);
+  u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax, Nrel_operator);
   lsu3shell::GenerateLSU3ShellOperators(Nmax, Nrel_operator, nrel_file);
 
 	int num_unit=relative_unit_tensor_labels.size();

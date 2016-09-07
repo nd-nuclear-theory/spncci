@@ -36,18 +36,11 @@ namespace u3shell
 	);
   
   void 
-  NrelRelativeUnitTensorExpansion(
+  NintrRelativeUnitTensorExpansion(
   	int Nmin, int Nmax,
   	u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator,
   	int A=2
   );
-
-  // void 
-  // NcmUnitTensorExpansion(
-  // 	int Nmin, int Nmax,
-  // 	u3shell::TwoBodyUnitTensorCoefficientsU3ST& Ncm_operator,
-  // 	int A=2
-  // );
 
   void 
   IdentityRelativeUnitTensorExpansion(
