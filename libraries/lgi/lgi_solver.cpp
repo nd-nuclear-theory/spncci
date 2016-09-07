@@ -20,12 +20,11 @@
 #include "u3shell/moshinsky.h"
 #include "spncci/sp_basis.h"
 #include "basis/operator.h"
-#include "lsu3shell/lsu3shell_rme.h"
 // #include "u3shell/u3spn_scheme.h"
 
 namespace lgi
 {
-  void NcmMatrixVector(      
+  void GenerateNcmMatrixVector(      
     const std::string& nrel_filename,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
@@ -52,7 +51,7 @@ namespace lgi
 
 
   void 
-  GenerateBrelNcmMatrix(
+  GenerateBrelNcmMatrices(
       const std::string& brel_filename,
       const std::string& nrel_filename,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
@@ -89,7 +88,7 @@ namespace lgi
     lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,lsu3_basis_table,space, brel_sectors,brel_matrix_vector);
     
     basis::MatrixVector ncm_matrix_vector;    
-    NcmMatrixVector(nrel_filename,lsu3_basis_table,space, ncm_matrix_vector);
+     GenerateNcmMatrixVector(nrel_filename,lsu3_basis_table,space, ncm_matrix_vector);
     
 
     int rows_begin=0;
@@ -123,7 +122,7 @@ namespace lgi
       }
   }
   
-  void GenerateLSU3ShellLGIExpansion(
+  void GenerateLGIExpansion(
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const std::string& brel_filename,
@@ -134,7 +133,7 @@ namespace lgi
   // solve for null space for Nex>2 or 1. 
   {
     basis::MatrixVector BrelNcm_vector; 
-    GenerateBrelNcmMatrix(brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
+    GenerateBrelNcmMatrices(brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
 
     for(int i=0; i<=BrelNcm_vector.size();++i)
       {
@@ -143,18 +142,15 @@ namespace lgi
   }
 
   void
-  LSU3shellOperatorToSpncci(
+  TransformOperatorToSpBasis(
       u3shell::OperatorLabelsU3S& operator_labels,
       std::string operator_file,
       basis::MatrixVector& spncci_operator_vector
     )
   {
 
+
   }
-
-
-
-
 
 
   // void 
