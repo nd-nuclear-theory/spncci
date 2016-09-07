@@ -19,30 +19,73 @@
 namespace lsu3shell
 {
 
-  // struct LSU3BasisGroup
-  // // Data on a "multiplicity group" within the lsu3shell basis.
-  // //
-  // // Much of the input info is merely for diagnostic purposes on the
-  // // lsu3shell configuration, which does not actually enter into our
-  // // subsequent calculations.
+  struct LSU3BasisGroupLabels
+  // Data on the "multiplicity group" underlying an lsu3shell basis state.
+  //
+  // Fields:
+  //   omegaSPN (u3shell::U3SPN) : U(3) and spin labels
+  //   Np, Nn, Nex (int) : configuration excitation quanta
+  {
+
+    LSU3BasisGroupLabels(
+        const u3shell::U3SPN& omegaSPN_,
+        int Np_, int Nn_, int Nex_
+      )
+    : omegaSPN(omegaSPN_), Np(Np_), Nn(Nn_), Nex(Nex_)
+    {}
+
+    u3shell::U3SPN omegaSPN;
+    int Np, Nn, Nex;
+  };
+
+  typedef std::vector<std::vector<LSU3BasisGroupLabels>> U3SPNBasisProvenance;
+  // Container to hold lsu3shell basis provenance info (entries for each U3SPN
+  // subspace, for each basis state).
+
+  // typedef std::tuple<LSU3BasisGroupLabels,int,int> LSU3BasisTuple;
+  // // Information on single lsu3shell multiplicity group.
   // //
   // // Fields:
   // //   omegaSPN (u3shell::U3SPN) -- U(3) and spin labels
   // //   Nexp, Nexn, Nex (int) -- configuration excitation quanta
   // //   dim -- group size
   // //   start_index -- starting index within U3SPN subspace
-  // {
-  // }
 
-  typedef std::tuple<u3shell::U3SPN,int,int> LSU3BasisGroup;
-  typedef std::vector<LSU3BasisGroup> LSU3BasisTable;
+  struct LSU3BasisGroupData
+    : LSU3BasisGroupLabels
+  // Indexing information for lsu3shell multiplicity group.
+  //
+  // Fields:
+  //   dim : group size
+  //   start_index : starting index within U3SPN subspace
+  {
+    LSU3BasisGroupData (const LSU3BasisGroupLabels& lsu3_basis_group_labels_, int dim_, int start_index_)
+      : LSU3BasisGroupLabels(lsu3_basis_group_labels_), dim(dim_), start_index(start_index_)
+    {}
 
+    int dim;
+    int start_index;
+  };
+
+  typedef std::vector<LSU3BasisGroupData> LSU3BasisTable;
+  // Container to hold basis group information for each basis group.
+
+  
   void ReadLSU3Basis(
       HalfInt Nsigma_0, 
       const std::string& filename, 
-      LSU3BasisTable& lsu3_basis_table, 
-      std::map<u3shell::U3SPN,int>& subspace_dimensions
+      LSU3BasisTable& lsu3_basis_table,
+      U3SPNBasisProvenance& basis_provenance,
+      u3shell::SpaceU3SPN& space
     );
+  // Read lsu3shell basis multiplicity group table and set up
+  // resulting mapping to U3SPN basis.
+  //
+  // Arguments:
+  //   Nsigma_0 (HalfInt) : Base excitation to use in calculating
+  //     total oscillator quanta
+  //   filename (std::string) : Input filename
+  //   ...
 
 
 }

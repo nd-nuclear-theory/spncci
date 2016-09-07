@@ -16,7 +16,6 @@
 
 #include "cppformat/format.h"
 
-
 namespace lsu3shell
 {
   void 
@@ -29,28 +28,39 @@ namespace lsu3shell
       basis::MatrixVector& matrix_vector // in operator.h and initial to zero
     )
   {    
-    u3shell::U3SPN omegaSPNi, omegaSPNj;
     int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
     double rme;
     // u3::SU3 x0(operator_labels.x0());
     while(is)
       {
+        // extract bra/ket lsu3shell basis multiplicity group indices
         is>>i,j;
-        std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
-        std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
-        int i_space=space.LookUpSubspaceIndex(omegaSPNi);
-        int j_space=space.LookUpSubspaceIndex(omegaSPNj);
-        u3::SU3 xi(omegaSPNi.SU3());
-        u3::SU3 xj(omegaSPNj.SU3());
+
+        // retrieve lsu3shell basis multiplicity group information
+        u3shell::U3SPN omegaSPNi, omegaSPNj;
+        // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
+        // std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
+        const LSU3BasisGroupData& group_i = lsu3_basis_table[i];
+        const LSU3BasisGroupData& group_j = lsu3_basis_table[j];
+
+        u3::SU3 xi(group_i.omegaSPN.SU3());
+        u3::SU3 xj(group_j.omegaSPN.SU3());
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
+
+        // extract and store matrix elements
+        int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
+        int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
         for(int gi=0; gi<group_size_i; ++gi)
           for(int gj=0; gj<group_size_j; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
                 is>>rme;
+
+                // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
+                // calculate the sector_index by offsetting from the sector with rho0=1.
                 int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
-                int row_index=start_index_i+gi;
-                int column_index=start_index_j+gj;
+                int row_index=group_i.start_index+gi;
+                int column_index=group_j.start_index+gj;
                 matrix_vector[sector_index](row_index,column_index)=rme;
               }
       }

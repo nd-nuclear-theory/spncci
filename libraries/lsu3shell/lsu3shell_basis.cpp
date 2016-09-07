@@ -18,22 +18,33 @@
 namespace lsu3shell
 {
 
-  void 
-  ReadLSU3Basis(
+  void ReadLSU3Basis(
       HalfInt Nsigma_0, 
       const std::string& filename, 
-      LSU3BasisTable& lsu3_basis_table, 
-      std::map<u3shell::U3SPN,int>& subspace_dimensions
+      LSU3BasisTable& lsu3_basis_table,
+      U3SPNBasisProvenance& basis_provenance,
+      u3shell::SpaceU3SPN& space
     )
   {
+
+    // open basis file
     std::ifstream basis_stream(filename.c_str());
     if(not basis_stream)
       std::cout<<fmt::format("File {} did not open",filename)<<std::endl;
+
+    // set up temporary storage
+    std::map<u3shell::U3SPN,int> subspace_dimensions;
+    std::map<u3shell::U3SPN,std::vector<LSU3BasisGroupLabels>> subspace_provenances;
+
+    // read basis table entries
     std::string line;
     while(std::getline(basis_stream,line))
       {
+        // skip initial header line
         if(not std::isdigit(line[0]))
           continue;
+
+        // parse line
         std::istringstream line_stream(line);
         // alpha_n_max and alpha_p_max correspond multiplicities arising in the coupling of protons among shells and 
         // neutrons among shells. rho0_max is outer multplicity of coupling proton to neutron. 
@@ -43,7 +54,7 @@ namespace lsu3shell
           >>in>>alpha_n_max>>Nn>>lambda_n>>mu_n>>twice_Sn 
           >>rho0_max>>lambda >> mu>>twice_S;
 
-        //conversions
+        // convert parameter data types
         Nex=Nn+Np;
         HalfInt Sp=HalfInt(twice_Sp,2);
         HalfInt Sn=HalfInt(twice_Sn,2);
@@ -54,14 +65,45 @@ namespace lsu3shell
         u3::U3S omegaS(omega,S);
         u3shell::U3SPN omegaSPN(omegaS,Sp,Sn);
 
+        // computing indexing information
         int start_index=subspace_dimensions[omegaSPN];
         int dim=alpha_n_max*alpha_p_max*rho0_max;
         subspace_dimensions[omegaSPN]+=dim;
         
-        LSU3BasisGroup mult_group(omegaSPN,dim,start_index);
+        // store entry
+        LSU3BasisGroupLabels lsu3_basis_group_labels(omegaSPN,Np,Nn,Nex);
+        LSU3BasisGroupData mult_group(lsu3_basis_group_labels,dim,start_index);
         lsu3_basis_table.push_back(mult_group);
-      } 
+
+        // store provenence records
+        std::vector<LSU3BasisGroupLabels>& subspace_provenance_list = subspace_provenances[omegaSPN];
+        for (int i=0; i < dim; ++i)
+          subspace_provenance_list.push_back(lsu3_basis_group_labels);
+      }
+
+    // done with basis file
     basis_stream.close();
+
+    // transfer subspace provenances into vector in canonical subspace order
+    //
+    // We can only do this now that we know all U3SPN labels, so we
+    // know the final subspace indexing within the space.
+    for (auto& omegaSPN_provenance : subspace_provenances)
+      {
+
+        // define aliases for key and value
+        const u3shell::U3SPN& omegaSPN = omegaSPN_provenance.first;
+        const std::vector<LSU3BasisGroupLabels>& subspace_provenance_list = omegaSPN_provenance.second;
+        
+        // re-save provenance data for subspace
+        basis_provenance.push_back(subspace_provenance_list);
+      }
+
+    // construct space
+    space = u3shell::SpaceU3SPN(subspace_dimensions);
+
   }
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 }// end namespace
