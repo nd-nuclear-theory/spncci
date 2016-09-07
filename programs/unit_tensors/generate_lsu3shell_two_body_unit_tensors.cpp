@@ -1,12 +1,12 @@
 /****************************************************************
-  generate_lsu3shell_twobody_tensors.cpp
+  generate_lsu3shell_two_body_unit_tensors.cpp
 
   Generate control and operator files for two-body unit tensors.
 
   Output files:
-    twobody_unit_*.recoupler -- operators in input format for Tomas recoupler
+    two_body_unit_*.recoupler -- operators in input format for Tomas recoupler
     model_space -- model space file
-    twobody_operators.dat -- listing of operator file basenames
+    two_body_operators.dat -- listing of operator file basenames
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -29,7 +29,7 @@
 // Given a nucleus (protons, neutrons)
 // Given Nsigma_0
 // Given a Nmax truncation
-// Generate a list of twobody unit tensors
+// Generate a list of two_body unit tensors
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
@@ -57,18 +57,18 @@ int main(int argc, char **argv)
   model_stream.close();
 
   // generate all relative unit tensors up to Nmax cutoff
-  std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> twobody_unit_tensor_labels;
-  u3shell::GenerateTwoBodyUnitTensorLabelsU3ST(Nmax, twobody_unit_tensor_labels);
-  int num_unit=twobody_unit_tensor_labels.size();
+  std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> two_body_unit_tensor_labels;
+  u3shell::GenerateTwoBodyUnitTensorLabelsU3ST(Nmax, two_body_unit_tensor_labels);
+  int num_unit=two_body_unit_tensor_labels.size();
   for(int i=0; i<num_unit; ++i)
     {
-      u3shell::TwoBodyUnitTensorCoefficientsU3ST twobody_unit_tensor_coefficients;
-      twobody_unit_tensor_coefficients[twobody_unit_tensor_labels[i]]=1;
-      lsu3shell::GenerateLSU3ShellOperator(Nmax, twobody_unit_tensor_coefficients,i);
+      u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
+      two_body_unit_tensor_coefficients[two_body_unit_tensor_labels[i]]=1;
+      lsu3shell::GenerateLSU3ShellOperator(Nmax, two_body_unit_tensor_coefficients,i);
     }
 
   // write operator listing file
-  std::ofstream control_stream("twobody_operators.dat");
+  std::ofstream control_stream("two_body_operators.dat");
   for(int i=0; i<num_unit; ++i)
-    control_stream<<fmt::format("twobody_unit_{:06d}",i)<<std::endl;
+    control_stream<<fmt::format("two_body_unit_{:06d}",i)<<std::endl;
 }
