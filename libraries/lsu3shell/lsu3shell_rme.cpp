@@ -26,13 +26,14 @@ namespace lsu3shell
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector // in operator.h and initial to zero
+      basis::MatrixVector& matrix_vector 
     )
   {    
     u3shell::U3SPN omegaSPNi, omegaSPNj;
     int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
     double rme;
-    // u3::SU3 x0(operator_labels.x0());
+    basis::SetOperatorToZero(sectors,matrix_vector);
+
     while(is)
       {
         is>>i,j;
