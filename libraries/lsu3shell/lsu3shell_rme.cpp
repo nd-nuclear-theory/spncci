@@ -32,10 +32,17 @@ namespace lsu3shell
     double rme;
     basis::SetOperatorToZero(sectors,matrix_vector);
 
-    while(is)
+    std::string line;
+    while(std::getline(is,line))
       {
+
+        // skip initial header line
+        if(not std::isdigit(line[0]))
+          continue;
+
         // extract bra/ket lsu3shell basis multiplicity group indices
-        is>>i,j;
+        std::istringstream line_stream(line);
+        line_stream >> i, j;
 
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
@@ -55,7 +62,7 @@ namespace lsu3shell
           for(int gj=0; gj<group_size_j; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
-                is>>rme;
+                line_stream >> rme;
 
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.

@@ -65,7 +65,11 @@ CPPFLAGS += -DUSE_U_COEF_CACHE
 CPPFLAGS += -DINDEXING_HASH
 
 # debugging mode
-CXXFLAGS += 
+#
+# Define environment variable DEBUG on make command line to enable.
+ifdef DEBUG
+CXXFLAGS += -g
+endif
 
 #for lots of output
 # -DVERBOSE 
