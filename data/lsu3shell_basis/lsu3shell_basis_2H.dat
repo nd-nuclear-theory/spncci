@@ -1,0 +1,14 @@
+Loading definition of the model space from '2H_Nmax2.model_space'
+Number of protons: 1	 Number of neutrons:1	Jcut=255
+Nhw = 0 full subspace
+Nhw = 2 full subspace
+0 1 0  0 0 1 0 1 0 0 0 1 1 0 0 0
+0 1 0  0 0 1 0 1 0 0 0 1 1 0 0 2
+0 1 0  0 0 1 2 1 2 2 0 1 1 2 0 0
+0 1 0  0 0 1 2 1 2 2 0 1 1 2 0 2
+1 1 1  1 0 1 1 1 1 1 0 1 1 0 1 0
+1 1 1  1 0 1 1 1 1 1 0 1 1 2 0 0
+1 1 1  1 0 1 1 1 1 1 0 1 1 0 1 2
+1 1 1  1 0 1 1 1 1 1 0 1 1 2 0 2
+2 1 2  2 0 1 0 1 0 0 0 1 1 2 0 0
+2 1 2  2 0 1 0 1 0 0 0 1 1 2 0 2
