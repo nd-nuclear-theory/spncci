@@ -67,7 +67,7 @@ int main(int argc, char **argv)
   int N1b=2;
 
   // Generate vector of LGI's from input file 
-  spncci::GenerateLGIVector(lgi_vector,filename,Nsigma_0);
+  spncci::ReadLGISet(lgi_vector,filename,Nsigma_0);
   spncci::SigmaIrrepMapType sigma_irrep_map;
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,sigma_irrep_map,truncator);

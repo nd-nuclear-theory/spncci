@@ -18,6 +18,7 @@
 
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
+#include "u3shell/u3spn_scheme.h"  
 
 
 namespace spncci
@@ -34,7 +35,9 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   // Stored for each LGI:
-  //   Nex sigma Sp Sn S
+  //   U3SPN labels -- inherited, so as to inherit accesors, etc.
+  //   Nex -- useful when using LGI in recurrence relation formulas
+  //   pointer to irrep indexing
   //
   // Note: It might be useful to store the running index (0-based) in
   // the LGI as well, so that it can appear in, e.g., the debugging
@@ -49,6 +52,7 @@ namespace spncci
   // at this stage in the code.
   
   class LGI
+    : public u3shell::U3SPN
   {
     public:
     ////////////////////////////////////////////////////////////////
@@ -61,8 +65,10 @@ namespace spncci
     inline LGI():Nex_(-999){};
 
     inline
-    LGI(int Nex, const u3::U3& sigma, const HalfInt& Sp, const HalfInt& Sn, const HalfInt& S)
-      : Nex_(Nex), sigma_(sigma), Sp_(Sp), Sn_(Sn), S_(S), irrep_ptr_(NULL) {}
+      LGI(const u3shell::U3SPN& sigmaSPN, int Nex)
+      : U3SPN(sigmaSPN), Nex_(Nex), irrep_ptr_(NULL)
+    {
+    }
 
     ////////////////////////////////////////////////////////////////
     // initialization
@@ -84,21 +90,15 @@ namespace spncci
     //accessors
     //////////////////////////////////////////////////////////////
 
-    u3::U3 sigma() const {return sigma_;}
-    int Nex() const {return Nex_;}
-    HalfInt S() const {return S_;}
-    HalfInt Sp() const {return Sp_;}
-    HalfInt Sn() const {return Sn_;}
+    // Note: inherits all U3SPN accessors
 
-    ////////////////////////////////////////////////////////////////
-    // retrieval
-    ////////////////////////////////////////////////////////////////
+    int Nex() const {return Nex_;}
+    u3::U3 sigma() const {return U3();}
 
     const sp3r::Sp3RSpace& Sp3RSpace() const
     {
       return *irrep_ptr_;
     }
-
 
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -107,44 +107,34 @@ namespace spncci
     std::string Str() const;
     std::string DebugString() const;
 
-
     //////////////////////////////////////////////////////////////
     //key tuple, comparisons and hashing
     //////////////////////////////////////////////////////////////
-    typedef std::tuple<int,u3::U3, HalfInt, HalfInt,HalfInt> KeyType;
-    inline KeyType Key() const
-      {
-        return KeyType(Nex_, sigma_, Sp_,Sn_,S_);
-      }
-    inline KeyType ComparisonKey() const
-      {
-        return KeyType(Nex_, sigma_, S_, Sp_, Sn_);
-      }
 
-    inline friend bool operator == (const LGI& state1, const LGI& state2)
-      {
-        return state1.ComparisonKey()==state2.ComparisonKey();
-      }
-    inline friend bool operator < (const LGI& state1, const LGI& state2)
-      {
-        return state1.ComparisonKey()<state2.ComparisonKey();
-      }
-    inline friend std::size_t hash_value(const LGI& v)
-      {
-        boost::hash<LGI::KeyType> hasher;
-        return hasher(v.Key());
-      }
+    // basic ordering and hashing functions inherited from U3SPN
+
+    // pseudo-key for std::tie access to LGI properties
+    //
+    // This Key is *not* the key actually used in sorting and hashing,
+    // which is the parent U3SPN type's key.
+
+    typedef std::tuple<int,u3::U3,HalfInt,HalfInt,HalfInt> KeyType;
+
+    inline KeyType Key() const
+    {
+      return KeyType(Nex(),sigma(),Sp(),Sn(),S());
+    }
+
 
     ////////////////////////////////////////////////////////////////
     // data
     ////////////////////////////////////////////////////////////////
     private:
-    // labels
-    int Nex_;
-    u3::U3 sigma_;
-    HalfInt Sp_, Sn_, S_;
+
+    // Note: U3SPN labels are inherited.
 
     // quick-reference information
+    int Nex_;
     const sp3r::Sp3RSpace* irrep_ptr_;
   };
 
@@ -169,7 +159,7 @@ namespace spncci
   // STYLE: maybe LGI::vector would be more consistent
   typedef std::vector<spncci::LGI> LGIVectorType;
 
-  void GenerateLGIVector(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0);
+  void ReadLGISet(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0);
   // Generates vector of LGIs based on LGI input tabulation.
   //
   // Arguments:
@@ -198,7 +188,7 @@ namespace spncci
   class TruncatorInterface
   // Define generic interface for defining truncations by (sigma,S).
   {
-  public:
+    public:
     virtual int Nn_max(const u3::U3& sigma) const
       = 0; //pure virtual
     // Calculate Nn_max to use for given LGI (sigma,S) labels.
@@ -213,7 +203,7 @@ namespace spncci
   class NmaxTruncator 
     : public TruncatorInterface
   {
-  public:
+    public:
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
@@ -232,7 +222,7 @@ namespace spncci
     // truncation information
     ////////////////////////////////////////////////////////////////
     
-  private:
+    private:
     HalfInt Nsigma_0_;
     int Nmax_;
 
@@ -246,10 +236,10 @@ namespace spncci
   typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMapType;
 
   void GenerateSp3RIrreps(
-                          LGIVectorType& lgi_vector,
-                          SigmaIrrepMapType& sigma_irrep_map,
-                          const TruncatorInterface& truncator
-                          );
+      LGIVectorType& lgi_vector,
+      SigmaIrrepMapType& sigma_irrep_map,
+      const TruncatorInterface& truncator
+    );
   // Generate Sp(3,R) irrep branching information required for given set of LGIs.
   //
   // Persistent storage of the Sp3RSpace structures is in
