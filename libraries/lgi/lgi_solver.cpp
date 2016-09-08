@@ -147,7 +147,7 @@ namespace lgi
       std::string operator_file,
       const basis::MatrixVector& lsu3shell_operator_matrices,
       const basis::MatrixVector& basis_transformation_matrices,
-      basis::MatrixVector& spncci_operator_matrices,
+      basis::MatrixVector& spncci_operator_matrices
     )
   {
 
