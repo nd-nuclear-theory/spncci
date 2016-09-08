@@ -62,9 +62,10 @@ namespace lgi
 
   void
   TransformOperatorToSpBasis(
-    u3shell::OperatorLabelsU3S& operator_labels,
-    std::string operator_file,
-    basis::MatrixVector& spncci_operator_vector
+    const u3shell::SectorsU3SPN& sectors,
+    const basis::MatrixVector& basis_transformation_matrices,
+    const basis::MatrixVector& lsu3shell_operator_matrices,
+    basis::MatrixVector& spncci_operator_matrices
   );
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 

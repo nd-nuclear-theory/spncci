@@ -9,6 +9,7 @@
   3/10/16 (aem,mac): Created.
   3/11/16 (aem,mac): Implement basis irrep construction and traversal.
   3/17/16 (aem,mac): Remove superfluous data members from LGI.
+  9/8/16  (aem): Renamed LGI to SpIrrep and moved LGI read function to lgi.h
 
 ****************************************************************/
 
@@ -19,28 +20,28 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "u3shell/u3spn_scheme.h"  
-
+#include "lgi/lgi.h"
 
 namespace spncci
 {
 
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
-  // Sp(3,R) LGI enumeration
+  // Sp(3,R) SpIrrep enumeration
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////
-  // LGI data structure
+  // SpIrrep data structure
   ////////////////////////////////////////////////////////////////
 
-  // Stored for each LGI:
+  // Stored for each SpIrrep:
   //   U3SPN labels -- inherited, so as to inherit accesors, etc.
-  //   Nex -- useful when using LGI in recurrence relation formulas
+  //   Nex -- useful when using SpIrrep in recurrence relation formulas
   //   pointer to irrep indexing
   //
   // Note: It might be useful to store the running index (0-based) in
-  // the LGI as well, so that it can appear in, e.g., the debugging
+  // the SpIrrep as well, so that it can appear in, e.g., the debugging
   // string output.
   //
   // Note: Sp and Sn are spectators for most conceivable calculations
@@ -50,9 +51,10 @@ namespace spncci
   // u3::U3S object, it is not clear that there is any benefit
   // (conceptual or practical) to adding an extra layer of packaging
   // at this stage in the code.
-  
-  class LGI
-    : public u3shell::U3SPN
+
+  // class SpIrrep  
+  class SpIrrep
+    : public lgi::LGI
   {
     public:
     ////////////////////////////////////////////////////////////////
@@ -62,11 +64,12 @@ namespace spncci
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
     // null constructor
-    inline LGI():Nex_(-999){};
-
+    
+    // inline SpIrrep():Nex_(-999){};
+    // inline SpIrrep():{};
     inline
-      LGI(const u3shell::U3SPN& sigmaSPN, int Nex)
-      : U3SPN(sigmaSPN), Nex_(Nex), irrep_ptr_(NULL)
+      SpIrrep(const lgi::LGI& lgi)
+      : LGI(lgi), sp_space_ptr_(NULL)
     {
     }
 
@@ -74,8 +77,8 @@ namespace spncci
     // initialization
     ////////////////////////////////////////////////////////////////
 
-    void SaveSubspaceInfo(const sp3r::Sp3RSpace& irrep)
-    // Save information on Sp3RSpace associated with this LGI's sigma
+    void SaveSubspaceInfo(const sp3r::Sp3RSpace& sp_space)
+    // Save information on Sp3RSpace associated with this SpIrrep's sigma
     // for quick reference, i.e., without requiring a map lookup.
     //
     // Caution: Since only a *reference* to the Sp3RSpace is
@@ -83,7 +86,7 @@ namespace spncci
     // safely stored elsewhere, e.g., in a sigma_irrep_map, without
     // going "out of scope" and being destroyed.
     {
-      irrep_ptr_ = &irrep;
+      sp_space_ptr_ = &sp_space;
     }
 
     //////////////////////////////////////////////////////////////
@@ -92,12 +95,12 @@ namespace spncci
 
     // Note: inherits all U3SPN accessors
 
-    int Nex() const {return Nex_;}
+    // int Nex() const {return Nex_;}
     u3::U3 sigma() const {return U3();}
 
     const sp3r::Sp3RSpace& Sp3RSpace() const
     {
-      return *irrep_ptr_;
+      return *sp_space_ptr_;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -113,7 +116,7 @@ namespace spncci
 
     // basic ordering and hashing functions inherited from U3SPN
 
-    // pseudo-key for std::tie access to LGI properties
+    // pseudo-key for std::tie access to SpIrrep properties
     //
     // This Key is *not* the key actually used in sorting and hashing,
     // which is the parent U3SPN type's key.
@@ -131,45 +134,15 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     private:
 
-    // Note: U3SPN labels are inherited.
+    // Note: LGI labels are inherited.
 
     // quick-reference information
-    int Nex_;
-    const sp3r::Sp3RSpace* irrep_ptr_;
+    const sp3r::Sp3RSpace* sp_space_ptr_;
   };
 
   ////////////////////////////////////////////////////////////////
-  // enumeration of LGI set based on input table
   ////////////////////////////////////////////////////////////////
-
-  // LGI input tabulation format:
-  //
-  //   Nex lambda mu 2Sp 2Sn 2S count
-  //   ...
-  //
-  // Each input table line results in multiple stored LGIs based on
-  // the given count.
-  //
-  // In calculating sigma, we also need Nsigma_0 for this nucleus, since
-  //
-  //   Nsigma = Nsigma_0 + Nex
-
-  // LGI container convenience type
-  //
-  // STYLE: maybe LGI::vector would be more consistent
-  typedef std::vector<spncci::LGI> LGIVectorType;
-
-  void ReadLGISet(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0);
-  // Generates vector of LGIs based on LGI input tabulation.
-  //
-  // Arguments:
-  //   lgi_vector (LGIVectorType) : container for LGI list (OUTPUT)
-  //   filename (string) : filename for LGI table file
-  //   Nsigma_0 (HalfInt) : Nsigma_0 for nucleus
-
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  // Sp(3,R) LGI -> U(3) branching
+  // Sp(3,R) SpIrrep -> U(3) branching
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 
@@ -191,13 +164,13 @@ namespace spncci
     public:
     virtual int Nn_max(const u3::U3& sigma) const
       = 0; //pure virtual
-    // Calculate Nn_max to use for given LGI (sigma,S) labels.
+    // Calculate Nn_max to use for given SpIrrep (sigma,S) labels.
     //
     // Arguments:
-    //   sigmaS (u3::U3S) : (sigma,S) labels of the LGI
+    //   sigmaS (u3::U3S) : (sigma,S) labels of the SpIrrep
     //
     // Returns:
-    //   (int) : the truncation Nn_max to use for this LGI
+    //   (int) : the truncation Nn_max to use for this SpIrrep
   };
 
   class NmaxTruncator 
@@ -233,23 +206,27 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   // Sp(3,R) container convenience type
-  typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMapType;
+  typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMap;
+  typedef std::vector<spncci::SpIrrep> SpIrrepVector;
 
   void GenerateSp3RIrreps(
-      LGIVectorType& lgi_vector,
-      SigmaIrrepMapType& sigma_irrep_map,
-      const TruncatorInterface& truncator
+      const lgi::LGIVector& lgi_vector,
+      const TruncatorInterface& truncator,
+      SpIrrepVector& sp_irrep_vector,
+      SigmaIrrepMap& sigma_irrep_map
     );
   // Generate Sp(3,R) irrep branching information required for given set of LGIs.
   //
   // Persistent storage of the Sp3RSpace structures is in
   // sigma_irrep_map, but all the relevant information for access is
-  // stored directly with the LGI.
+  // stored directly with the SpIrrep.
   //
   // Arguments:
-  //   lgi_vector (LGIVectorType) : vector of LGIs for which we
-  //     must generate branchings (INPUT/OUTPUT)
-  //   sigma_irrep_map (SigmaIrrepMapType) : 
+  //   lgi_vector (LGIVector) : vector of LGIs for which we
+  //     must generate branchings (INPUT)
+  //    sp_irrep_vector(SpIrrepVector) : vector of Sp(3,R)xSU(2) irreps with pointer to 
+  //      SigmaIrrepMap which contains the branched reduced states (OUTPUT)
+  //   sigma_irrep_map (SigmaIrrepMap) : 
   //     mappings from sigma to its irrep indexing (OUTPUT)
   //   truncator (TruncatorInterface) : "truncator" object, which provides a 
   //     function to map each given sigma to its desired Nn_max truncation
@@ -262,13 +239,13 @@ namespace spncci
   //
   // To traverse Sp(3,R) -> U(3) subspaces:
   //
-  //   for each LGI (in lgi_vector)
+  //   for each SpIrrep (in SpIrrep_vector)
   //     follow reference to Sp3RSpace
   //     for each U3Subspace in Sp3RSpace
   //
   // To traverse Sp(3,R) -> U(3) states:
   //
-  //   for each LGI (in lgi_vector)
+  //   for each SpIrrep (in sp_irrep_vector)
   //     follow reference to Sp3RSpace
   //     for each U3Subspace in Sp3RSpace
   //       for each state index
@@ -278,7 +255,7 @@ namespace spncci
   //   A triangularity constraint may be placed on L to restrict only
   //   to those L contributing to a desired final J.
   //
-  //   for each LGI (in lgi_vector)
+  //   for each SpIrrep (in sp_irrep_vector)
   //     follow reference to Sp3RSpace
   //     for each U3Subspace in Sp3RSpace
   //       for each state index
@@ -289,7 +266,7 @@ namespace spncci
   //   A triangularity constraint may be placed on L to restrict only
   //   to those L contributing to a desired final J.
   //
-  //   for each LGI (in lgi_vector)
+  //   for each SpIrrep (in sp_irrep_vector)
   //     follow reference to Sp3RSpace
   //     for each U3Subspace in Sp3RSpace
   //       for each state index
@@ -302,40 +279,40 @@ namespace spncci
 
   // total dimension counting functions
 
-  int TotalU3Subspaces(const LGIVectorType& lgi_vector);
-  // Compute total number of U(3) subspaces from given LGI set.
+  int TotalU3Subspaces(const SpIrrepVector& sp_irrep_vector);
+  // Compute total number of U(3) subspaces from given SpIrrep set.
   //
   // That is, we are counting the number of Sp(3,R) -> U(3) subspaces
   // in the branching, as defined under "Traversal schemes" above, not
   // just the number of distinct final U(3) labels.
 
-  int TotalDimensionU3(const LGIVectorType& lgi_vector);
-  // Compute total number of U(3)xS reduced states from the given LGI
+  int TotalDimensionU3(const SpIrrepVector& sp_irrep_vector);
+  // Compute total number of U(3)xS reduced states from the given SpIrrep
   // set.
 
-  int TotalDimensionU3LS(const LGIVectorType& lgi_vector);
-  // Compute total number of LxS branched states from the given LGI
+  int TotalDimensionU3LS(const SpIrrepVector& sp_irrep_vector);
+  // Compute total number of LxS branched states from the given SpIrrep
   // set.
 
-  int TotalDimensionU3LSJConstrained(const LGIVectorType& lgi_vector, const HalfInt& J);
+  int TotalDimensionU3LSJConstrained(const SpIrrepVector& sp_irrep_vector, const HalfInt& J);
   // Compute total number of LxS->J branched states of a given J, from
-  // the given LGI set.
+  // the given SpIrrep set.
   //
   // From the point of view of counting and enumerating, this is more
   // simply the number of LxS branched states contributing to the
-  // given given J, from the given LGI set.
+  // given given J, from the given SpIrrep set.
 
-  int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector);
+  int TotalDimensionU3LSJAll(const SpIrrepVector& sp_irrep_vector);
   // Compute total number of LxS->J branched states, over all J, from
-  // the given LGI set.
+  // the given SpIrrep set.
   //
   // This is equivalent to the M-space dimension for the universal
   // donor value of M (M=0 or 1/2).
 
 
-  std::vector< std::pair<int,int> > GenerateLGIPairs(spncci::LGIVectorType lgi_vector);
-  // Given a vector of LGI's, apply angular momentum selection rules to return a list 
-  // of LGI pairs which will have non-zero matrix elements between states in their irreps.  
+  std::vector< std::pair<int,int> > GenerateSpIrrepPairs(spncci::SpIrrepVector sp_irrep_vector);
+  // Given a vector of SpIrrep's, apply angular momentum selection rules to return a list 
+  // of SpIrrep pairs which will have non-zero matrix elements between states in their irreps.  
 
   // Selection rules: abs(Si-Sf)<=2 for total spin, neutron spin and proton spin.
   

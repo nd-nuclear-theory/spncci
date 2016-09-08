@@ -22,7 +22,8 @@
 
 #include "lsu3shell/lsu3shell_operator.h"
 #include "spncci/sp_basis.h"
-#include "spncci/lgi_unit_tensor.h"
+// #include "spncci/lgi_unit_tensor.h"
+#include "sp3rlib/u3coef.h"
 #include "u3shell/unit_tensor_expansion.h"
 #include "u3shell/two_body_operator.h"
 

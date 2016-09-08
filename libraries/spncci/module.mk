@@ -4,12 +4,13 @@ $(eval $(begin-module))
 # unit definitions
 ################################################################
 
-module_units_h := 
-module_units_cpp-h := sp_basis unit_tensor
-## module_units_cpp-h += lgi_unit_tensor
+module_units_h :=
+module_units_cpp-h := sp_basis  unit_tensor
+## module_units_cpp-h += 
 
 # module_units_f := 
-module_programs_cpp := sp_basis_test unit_tensor_test generate_lgi_unit_tensors
+module_programs_cpp := sp_basis_test 
+module_programs_cpp+=unit_tensor_test
 
 # module_programs_f :=
 # module_generated :=

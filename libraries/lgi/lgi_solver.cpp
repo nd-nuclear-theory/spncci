@@ -18,7 +18,7 @@
 
 #include "u3shell/two_body_operator.h"
 #include "u3shell/moshinsky.h"
-#include "spncci/sp_basis.h"
+// #include "spncci/sp_basis.h"
 #include "basis/operator.h"
 // #include "u3shell/u3spn_scheme.h"
 
@@ -126,7 +126,8 @@ namespace lgi
       const u3shell::SpaceU3SPN& space, 
       const std::string& brel_filename,
       const std::string& nrel_filename,
-      basis::MatrixVector& lgi_expansion_matrix_vector //size of space 
+      basis::MatrixVector& lgi_expansion_matrix_vector
+      
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and 
   // solve for null space for Nex>2 or 1. 
@@ -138,19 +139,29 @@ namespace lgi
     for(int i=0; i<=BrelNcm_vector.size();++i)
       {
         lgi_expansion_matrix_vector[i]=BrelNcm_vector[i].fullPivLu().kernel();
+
       }
   }
 
   void
   TransformOperatorToSpBasis(
-      u3shell::OperatorLabelsU3S& operator_labels,
-      std::string operator_file,
-      const basis::MatrixVector& lsu3shell_operator_matrices,
+      const u3shell::SectorsU3SPN& sectors,
       const basis::MatrixVector& basis_transformation_matrices,
+      const basis::MatrixVector& lsu3shell_operator_matrices,
       basis::MatrixVector& spncci_operator_matrices
     )
   {
-
+    // for each sector, look up bra and ket subspaces 
+    for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
+      {
+        int i=sectors.GetSector(s).bra_subspace_index();
+        int j=sectors.GetSector(s).ket_subspace_index();
+        // get transformation matrices and transpose bra transformation matrix
+        const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
+        const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
+        // transform operator to spncci basis
+        spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
+      }
   }
 
   // void 

@@ -397,13 +397,13 @@ namespace spncci
          int N1b,
          // boson number cutoff
          int Nmax, 
-         // a given spncci sector pair given as index pair  from global list lgi_vector 
-         std::pair<int,int> lgi_pair,
+         // a given spncci sector pair given as index pair  from global list sp_irrep_vector 
+         std::pair<int,int> sp_irrep_pair,
          //coefficient cache
          u3::UCoefCache u_coef_cache,
          // Address to map with list of unit tensor labels with key N0 
          std::map< int,std::vector<spncci::UnitTensor>>& unit_sym_map,
-         // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key LGI pair
+         // Address to map of map unit tensor matrix elements keyed by unit tensor labels for key SpIrrep pair
          std::map<
          std::pair<int,int>,
          UnitTensorSectorsCache
@@ -413,9 +413,9 @@ namespace spncci
   void RegroupUnitTensorU3SSectors(
         bool is_new_subsector,
         const HalfInt& Sp, const HalfInt& S,
-        std::pair<int,int> lgi_pair,
+        std::pair<int,int> sp_irrep_pair,
         const std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
-        const std::pair<int,int>& lgi_symmetry_sum,
+        const std::pair<int,int>& sp_irrep_symmetry_sum,
         UnitTensorU3SSectorsCache& unit_tensor_u3S_cache
       );
 } //namespace 

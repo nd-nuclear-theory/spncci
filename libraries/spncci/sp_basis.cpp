@@ -16,7 +16,7 @@
 namespace spncci
 {
 
-  std::string LGI::Str() const
+  std::string SpIrrep::Str() const
   {
     std::ostringstream ss;
 
@@ -30,62 +30,20 @@ namespace spncci
     return ss.str();
   }
 
-  std::string LGI::DebugString() const
+  std::string SpIrrep::DebugString() const
   {
     std::ostringstream ss;
 
     ss << Str() << std::endl;
     ss << "  " 
       // << " Nn_max " << Nn_max  << " dimension " << dimension
-       << " irrep_ptr " << irrep_ptr_
+       << " sp_space_ptr " << sp_space_ptr_
        << std::endl;
 
     return ss.str();
   }
 
-  void ReadLGISet(LGIVectorType& lgi_vector, const std::string& lgi_filename, const HalfInt& Nsigma_0)
-  {
 
-    // open input file
-    std::ifstream lgi_stream(lgi_filename.c_str());
-    OpenCheck(bool(lgi_stream),lgi_filename);  // explicit cast to bool required in gcc 5
-
-    // scan input file
-    std::string line;
-    int line_count = 0;
-    while ( std::getline(lgi_stream, line) )
-      {
-        // count line
-        ++line_count;
-
-        // set up for parsing
-        std::istringstream line_stream(line);
-
-        // parse line
-        //   Nex 2N lambda mu 2Sp 2Sn 2S count
-        int Nex, twice_N, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
-        line_stream >> Nex
-                    >> twice_N  >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S
-                    >> count;
-        ParsingCheck(line_stream, line_count, line);
-
-        // conversions
-        HalfInt Nsigma = HalfInt(twice_N,2);
-        assert(Nsigma == Nsigma_0 + Nex);
-        u3::U3 sigma(Nsigma,u3::SU3(lambda,mu));
-        HalfInt Sp = HalfInt(twice_Sp,2);
-        HalfInt Sn = HalfInt(twice_Sn,2);
-        HalfInt S = HalfInt(twice_S,2);
-        u3shell::U3SPN omegaSPN(u3::U3S(sigma,S),Sp,Sn);
-      
-        // replicate LGI according to count
-        for (int i=1; i<=count; ++i)
-          lgi_vector.emplace_back(omegaSPN,Nex);
-      }
-
-    // close input file
-    lgi_stream.close();
-  }
 
   int NmaxTruncator::Nn_max(const u3::U3& sigma) const
   {
@@ -95,18 +53,24 @@ namespace spncci
   }
 
   void GenerateSp3RIrreps(
-                          LGIVectorType& lgi_vector,
-                          SigmaIrrepMapType& sigma_irrep_map,
-                          const TruncatorInterface& truncator
+                          const lgi::LGIVector& lgi_vector,
+                          const TruncatorInterface& truncator,
+                          SpIrrepVector& sp_irrep_vector,
+                          SigmaIrrepMap& sigma_irrep_map
                           )
   {
-    // traverse LGI vector
-    for (auto it = lgi_vector.begin(); it != lgi_vector.end(); ++it)
+    // populate SpIrrep vector with lgi's
+    for(auto lgi :lgi_vector)
+
+        sp_irrep_vector.emplace_back(lgi);
+
+    // traverse SpIrrep vector
+    for (auto it = sp_irrep_vector.begin(); it != sp_irrep_vector.end(); ++it)
       {
         // retrieve sigma of LGI
         // u3::U3 sigma(it->sigma); // CRYPTIC
-        spncci::LGI& lgi = *it;
-        u3::U3 sigma = lgi.sigma();
+        spncci::SpIrrep& sp_irrep = *it;
+        u3::U3 sigma = sp_irrep.sigma();
 
         // find truncation
         //
@@ -143,9 +107,9 @@ namespace spncci
         if (sigma_irrep_map.count(sigma) == 0)
           sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);
           
-        // save info back to LGI
+        // save info back to SpIrrep
         const sp3r::Sp3RSpace& irrep = sigma_irrep_map[sigma];
-        lgi.SaveSubspaceInfo(irrep);
+        sp_irrep.SaveSubspaceInfo(irrep);
 
       }
   }
@@ -154,26 +118,26 @@ namespace spncci
   // iteration over Sp(3,R) -> U(3) subspaces & states
   ////////////////////////////////////////////////////////////////
 
-  int TotalU3Subspaces(const LGIVectorType& lgi_vector)
+  int TotalU3Subspaces(const SpIrrepVector& sp_irrep_vector)
   {
     int subspaces = 0;
-    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
       {
-        const spncci::LGI& lgi = *it;
-        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        const spncci::SpIrrep& sp_irrep = *it;
+        const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         subspaces += irrep.size();
       }
 
     return subspaces;
   }
 
-  int TotalDimensionU3(const LGIVectorType& lgi_vector)
+  int TotalDimensionU3(const SpIrrepVector& sp_irrep_vector)
   {
     int dimension = 0;
-    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
       {
-        const spncci::LGI& lgi = *it;
-        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        const spncci::SpIrrep& sp_irrep = *it;
+        const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace = 0; i_subspace < irrep.size(); ++i_subspace)
           {
             const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
@@ -184,13 +148,13 @@ namespace spncci
     return dimension;
   }
 
-  int TotalDimensionU3LS(const LGIVectorType& lgi_vector)
+  int TotalDimensionU3LS(const SpIrrepVector& sp_irrep_vector)
   {
     int dimension = 0;
-    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
       {
-        const spncci::LGI& lgi = *it;
-        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        const spncci::SpIrrep& sp_irrep = *it;
+        const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
           {
             const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
@@ -217,14 +181,14 @@ namespace spncci
     return dimension;
   }
 
-  int TotalDimensionU3LSJConstrained(const LGIVectorType& lgi_vector, const HalfInt& J)
+  int TotalDimensionU3LSJConstrained(const SpIrrepVector& sp_irrep_vector, const HalfInt& J)
   {
     int dimension = 0;
-    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
       {
-        const spncci::LGI& lgi = *it;
-        HalfInt S = lgi.S();
-        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        const spncci::SpIrrep& sp_irrep = *it;
+        HalfInt S = sp_irrep.S();
+        const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
           {
             const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
@@ -254,14 +218,14 @@ namespace spncci
     return dimension;
   }
 
-  int TotalDimensionU3LSJAll(const LGIVectorType& lgi_vector)
+  int TotalDimensionU3LSJAll(const SpIrrepVector& sp_irrep_vector)
   {
     int dimension = 0;
-    for (auto it=lgi_vector.begin(); it !=lgi_vector.end(); ++it)
+    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
       {
-        const spncci::LGI& lgi = *it;
-        HalfInt S = lgi.S();
-        const sp3r::Sp3RSpace& irrep = lgi.Sp3RSpace();
+        const spncci::SpIrrep& sp_irrep = *it;
+        HalfInt S = sp_irrep.S();
+        const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
           {
             const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
@@ -290,23 +254,23 @@ namespace spncci
     return dimension;
   }
 
-  std::vector< std::pair<int,int> > GenerateLGIPairs(spncci::LGIVectorType lgi_vector )
+  std::vector< std::pair<int,int> > GenerateSpIrrepPairs(spncci::SpIrrepVector sp_irrep_vector )
   {
-    std::vector< std::pair<int,int> >  lgi_pair_vector;
-    for(int i=0; i<lgi_vector.size(); ++i)
-      for(int j=0; j<lgi_vector.size(); ++j)
+    std::vector< std::pair<int,int> >  sp_irrep_pair_vector;
+    for(int i=0; i<sp_irrep_vector.size(); ++i)
+      for(int j=0; j<sp_irrep_vector.size(); ++j)
       //for (int j=0; j<=i; j++)
        // need both sigma', sigma and sigma,sigma' pair so we don't have to compute conjugate unit tensors  
         {
-          spncci::LGI lgi1=lgi_vector[i];
-          spncci::LGI lgi2=lgi_vector[j];
-          if (abs(lgi1.Sp()-lgi2.Sp())<=2)
-            if (abs(lgi1.Sn()-lgi2.Sn())<=2)
-              if (abs(lgi1.S()-lgi2.S())<=2)
-                 lgi_pair_vector.push_back(std::pair<int,int>(i,j));
+          spncci::SpIrrep sp_irrep1=sp_irrep_vector[i];
+          spncci::SpIrrep sp_irrep2=sp_irrep_vector[j];
+          if (abs(sp_irrep1.Sp()-sp_irrep2.Sp())<=2)
+            if (abs(sp_irrep1.Sn()-sp_irrep2.Sn())<=2)
+              if (abs(sp_irrep1.S()-sp_irrep2.S())<=2)
+                 sp_irrep_pair_vector.push_back(std::pair<int,int>(i,j));
         }
 
-    return lgi_pair_vector;
+    return sp_irrep_pair_vector;
   }
 
 
