@@ -120,11 +120,11 @@ namespace lsu3shell
           for (int ket_index=0; ket_index<sector.ket_subspace().size(); ++ket_index)
             {
               // retrieve matrix elements
-              double me1 = matrices1[sector_index](bra_index,ket_index);
-              double me2 = matrices2[sector_index](bra_index,ket_index);
+              double rme1 = matrices1[sector_index](bra_index,ket_index);
+              double rme2 = matrices2[sector_index](bra_index,ket_index);
 
               // compare matrix elements
-              double residual = std::abs(me2-me1);
+              double residual = std::abs(rme2-rme1);
               ++entries_compared;
               max_residual = std::max(max_residual,residual);
               total_sqr_residual += sqr(residual);
@@ -136,9 +136,9 @@ namespace lsu3shell
                 {
                 log_stream
                   << fmt::format(
-                      "  FAIL: {}:({},{}) me1 {:e} me2 {:e} residual {:e}",
+                      "  FAIL: {}:({},{}) rme1 {:e} rme2 {:e} residual {:e}",
                       sector_index,bra_index,ket_index,
-                      me1,me2,residual
+                      rme1,rme2,residual
                     )
                   << std::endl;
                 const lsu3shell::LSU3BasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];

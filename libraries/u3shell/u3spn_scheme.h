@@ -14,6 +14,7 @@
   University of Notre Dame
 
   9/6/16 (mac): Created, based on a subset of u3st_scheme and u3::U3S.
+  9/8/16 (mac): Add default constructors.
 
 ****************************************************************/
 
@@ -195,7 +196,8 @@ namespace u3shell {
 
     // accessors
     u3shell::U3SPN U3SPN() const {return labels_;}
-    u3::U3 omega() const {return U3SPN().U3();}
+    u3::U3S U3S() const {return U3SPN().U3S();}
+    u3::U3 U3() const {return U3SPN().U3();}
     u3::SU3 SU3() const {return U3SPN().SU3();}
     HalfInt N() const {return U3SPN().U3().N();}
     HalfInt S() const {return U3SPN().S();}
@@ -249,6 +251,10 @@ namespace u3shell {
   public:
 
     // constructor
+
+    SectorsU3SPN() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
 
     SectorsU3SPN(const SpaceU3SPN& space, const OperatorLabelsU3S& operator_labels,
                              bool spin_scalar);
