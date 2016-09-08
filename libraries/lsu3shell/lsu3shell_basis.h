@@ -19,23 +19,28 @@
 namespace lsu3shell
 {
 
+  ////////////////////////////////////////////////////////////////
+  // data structures for lsu3shell basis labels
+  ////////////////////////////////////////////////////////////////
+
   struct LSU3BasisGroupLabels
   // Data on the "multiplicity group" underlying an lsu3shell basis state.
   //
   // Fields:
   //   omegaSPN (u3shell::U3SPN) : U(3) and spin labels
+  //   ip, in (int) : configuration indices
   //   Np, Nn, Nex (int) : configuration excitation quanta
   {
 
     LSU3BasisGroupLabels(
         const u3shell::U3SPN& omegaSPN_,
-        int Np_, int Nn_, int Nex_
+        int ip_, int in_, int Np_, int Nn_, int Nex_
       )
-    : omegaSPN(omegaSPN_), Np(Np_), Nn(Nn_), Nex(Nex_)
+    : omegaSPN(omegaSPN_), ip(ip_), in(in_), Np(Np_), Nn(Nn_), Nex(Nex_)
     {}
 
     u3shell::U3SPN omegaSPN;
-    int Np, Nn, Nex;
+    int ip, in, Np, Nn, Nex;
   };
 
   typedef std::vector<std::vector<LSU3BasisGroupLabels>> U3SPNBasisLSU3Labels;
@@ -61,6 +66,9 @@ namespace lsu3shell
   typedef std::vector<LSU3BasisGroupData> LSU3BasisTable;
   // Container to hold basis group information for each basis group.
 
+  ////////////////////////////////////////////////////////////////
+  // lsu3shell basis input
+  ////////////////////////////////////////////////////////////////
   
   void ReadLSU3Basis(
       HalfInt Nsigma_0, 

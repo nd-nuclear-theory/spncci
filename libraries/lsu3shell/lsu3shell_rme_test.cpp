@@ -20,35 +20,53 @@
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
-  std::string op_filename="/Users/annamccoy/projects/spncci/data/lsu3shell_basis/Nrel2.dat";
+  std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
   u3shell::OperatorLabelsU3S op_labels(0,u3::SU3(0,0),0,0);
   bool scalar_op=true;
   // setup for test case
   int Nsigma_0=3;  // 11 for 6Li, 3 for 2H
 
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
-  std::string lsu3_filename("/Users/annamccoy/projects/spncci/data/lsu3shell_basis/lsu3shell_basis_2H.dat");
+  std::string lsu3_filename("../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat");
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
   lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   std::cout<<"Read Basis complete"<<std::endl;
   u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
-  basis::MatrixVector matrix_vector;
+  basis::MatrixVector matrices;
 
   std::ifstream is(op_filename.c_str());
   if(!is)
     std::cout<<"file didn't open"<<std::endl;
-  lsu3shell::ReadLSU3ShellRMEs(is,op_labels,basis_table,space, sectors,matrix_vector);
+  lsu3shell::ReadLSU3ShellRMEs(is,op_labels,basis_table,space, sectors,matrices);
   is.close();
 
-  for(int i=0; i<matrix_vector.size(); ++i)
+  for(int i=0; i<matrices.size(); ++i)
   {
-    // if(fabs(matrix_vector[i].sum())>10e-13)
-      std::cout<<matrix_vector[i]<<std::endl;
+    // if(fabs(matrices[i].sum())>10e-13)
+      std::cout<<matrices[i]<<std::endl;
       std::cout<<"  "<<std::endl;
-      Eigen::VectorXcd eigs=matrix_vector[i].eigenvalues();
+      Eigen::VectorXcd eigs=matrices[i].eigenvalues();
       std::cout<<eigs<<std::endl<<std::endl;
-
   }
+
+  // test matrix comparison
+  //
+  // This is just a self-comparison, with one entry skewed...
+  basis::MatrixVector matrices_mod = matrices;
+  matrices_mod[0](0,0) += 3.14159;
+  double epsilon = 1e-8;
+  CompareLSU3ShellRMEs(
+      std::cout,
+      basis_provenance,
+      space, 
+      sectors,
+      matrices,
+      matrices_mod,
+      epsilon,
+      true  // verbose
+    );
+
+
 }
