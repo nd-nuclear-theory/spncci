@@ -20,6 +20,7 @@
 #include "u3shell/moshinsky.h"
 // #include "spncci/sp_basis.h"
 #include "basis/operator.h"
+#include "lgi/lgi.h"
 // #include "u3shell/u3spn_scheme.h"
 
 namespace lgi
@@ -122,16 +123,17 @@ namespace lgi
   }
   
   void GenerateLGIExpansion(
+      int Nsigma_0,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const std::string& brel_filename,
       const std::string& nrel_filename,
       basis::MatrixVector& lgi_expansion_matrix_vector
+      // lgi::LGIVector lgi_vector
       
     )
-  // Construct Brel and Ncm matrix in lsu3shell basis and 
-  // solve for null space for Nex>2 or 1. 
-  // columns are expansion coefficients for each lgi.
+  // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
+  // Columns of kernel are expansion coefficients for each lgi.
   {
     basis::MatrixVector BrelNcm_vector; 
     GenerateBrelNcmMatrices(brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
@@ -139,6 +141,7 @@ namespace lgi
     for(int i=0; i<=BrelNcm_vector.size();++i)
       {
         lgi_expansion_matrix_vector[i]=BrelNcm_vector[i].fullPivLu().kernel();
+        const u3shell::SubspaceU3SPN& subspace=space.GetSubspace(i);
 
       }
   }
