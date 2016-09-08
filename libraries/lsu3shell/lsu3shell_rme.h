@@ -8,13 +8,14 @@
 
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
+  9/8/16 (mac): Add operator RME comparison function.
 ****************************************************************/
 
 #ifndef LSU3SHELL_RME_H_
 #define LSU3SHELL_RME_H_
 
 #include "boost/functional/hash_fwd.hpp"
-#include "eigen3/Eigen/Eigen"
+#include "eigen3/Eigen/Dense"
 
 #include "am/am.h"  
 #include "basis/operator.h"
@@ -34,6 +35,25 @@ namespace lsu3shell
       const u3shell::SectorsU3SPN& sectors,
       basis::MatrixVector& matrix_vector // in operator.h and initial to zero
     );
+
+  bool 
+  CompareLSU3ShellRMEs(
+      std::ostream& log_stream,
+      const U3SPNBasisLSU3Labels& basis_provenance,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::SectorsU3SPN& sectors,
+      const basis::MatrixVector& matrices1,
+      const basis::MatrixVector& matrices2,
+      double tolerance,
+      bool verbose
+    );
+  // Make diagnostic comparison report
+  //
+  // Arguments:
+  //   ...
+  //
+  // Returns:
+  //   (bool) : comparison OK
 
 
 }
