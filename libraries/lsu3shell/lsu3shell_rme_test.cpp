@@ -20,14 +20,14 @@
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
-  std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H-Nmax02-Nrel.dat";
+  std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
   u3shell::OperatorLabelsU3S op_labels(0,u3::SU3(0,0),0,0);
   bool scalar_op=true;
   // setup for test case
   int Nsigma_0=3;  // 11 for 6Li, 3 for 2H
 
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
-  std::string lsu3_filename("../../data/lsu3shell/lsu3shell_basis_2H-Nmax02.dat");
+  std::string lsu3_filename("../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat");
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
@@ -56,6 +56,7 @@ int main(int argc, char **argv)
   // This is just a self-comparison, with one entry skewed...
   basis::MatrixVector matrices_mod = matrices;
   matrices_mod[0](0,0) += 3.14159;
+  double epsilon = 1e-8;
   CompareLSU3ShellRMEs(
       std::cout,
       basis_provenance,
@@ -63,8 +64,8 @@ int main(int argc, char **argv)
       sectors,
       matrices,
       matrices_mod,
-      1e-8,
-      true
+      epsilon,
+      true  // verbose
     );
 
 
