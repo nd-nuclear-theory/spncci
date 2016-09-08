@@ -28,10 +28,9 @@ namespace lsu3shell
       basis::MatrixVector& matrix_vector 
     )
   {    
-    int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
+    int i,j;
     double rme;
     basis::SetOperatorToZero(sectors,matrix_vector);
-
     std::string line;
     while(std::getline(is,line))
       {
@@ -42,8 +41,8 @@ namespace lsu3shell
 
         // extract bra/ket lsu3shell basis multiplicity group indices
         std::istringstream line_stream(line);
-        line_stream >> i, j;
-
+        line_stream >> i >> j;
+        std::cout<<i<<" "<<j<<std::endl;
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
@@ -58,17 +57,21 @@ namespace lsu3shell
         // extract and store matrix elements
         int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
         int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
-        for(int gi=0; gi<group_size_i; ++gi)
-          for(int gj=0; gj<group_size_j; ++gj)
+        for(int gi=0; gi<group_i.dim; ++gi)
+          for(int gj=0; gj<group_j.dim; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
                 line_stream >> rme;
-
+                // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
                 int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
+                // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
+                  // sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
+                  // matrix_vector[sector_index].cols(),rme)<<std::endl;
+
                 matrix_vector[sector_index](row_index,column_index)=rme;
               }
       }

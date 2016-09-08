@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
   if(argc<4)
     {
-      std::cout<<"Syntax: Protons Neutrons Nmin Nmax "<<std::endl;
+      std::cout<<"Syntax: Protons Neutrons Nmax Nstep"<<std::endl;
       std::exit(1);
     }
   int Z=std::stoi(argv[1]);
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
   //Generate Nrel operator up to Nmax cutoff
   std::string nrel_file=fmt::format("Nrel_Nmax{:02d}",Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax, Nrel_operator);
+  u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax, Nrel_operator,Z+N);
   lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nrel_file);
 
   int num_unit=relative_unit_tensor_labels.size();

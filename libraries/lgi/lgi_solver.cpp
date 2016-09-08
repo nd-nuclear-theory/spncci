@@ -89,7 +89,6 @@ namespace lgi
     
     basis::MatrixVector ncm_matrix_vector;    
      GenerateNcmMatrixVector(nrel_filename,lsu3_basis_table,space, ncm_matrix_vector);
-    
 
     int rows_begin=0;
     // for each subspace, construct the BrelNcm matrix and store in vector
@@ -131,6 +130,7 @@ namespace lgi
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and 
   // solve for null space for Nex>2 or 1. 
+  // columns are expansion coefficients for each lgi.
   {
     basis::MatrixVector BrelNcm_vector; 
     GenerateBrelNcmMatrices(brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
@@ -145,13 +145,13 @@ namespace lgi
   TransformOperatorToSpBasis(
       u3shell::OperatorLabelsU3S& operator_labels,
       std::string operator_file,
-      basis::MatrixVector& spncci_operator_vector
+      const basis::MatrixVector& lsu3shell_operator_matrices,
+      const basis::MatrixVector& basis_transformation_matrices,
+      basis::MatrixVector& spncci_operator_matrices,
     )
   {
 
-
   }
-
 
   // void 
   // WriteLGI(const spncci::LGIVectorType& lgi_vector,   std::ofstream& os)

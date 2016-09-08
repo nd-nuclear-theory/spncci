@@ -75,7 +75,7 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax, u3shell::RelativeUnitTe
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
               double rme=u3shell::RelativeNumberOperator(bra,ket);
               if (fabs(rme)>10e-10)
-                Nrel_operator[relative_unit_tensor]+=2*N/A;
+                Nrel_operator[relative_unit_tensor]+=2.*N/A;
             }
   }
 
