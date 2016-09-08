@@ -51,8 +51,149 @@
     sectors = u3shell::SectorsU3SPN(space,u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),false);
     basis::SetOperatorToZero(sectors,matrices);
 
-    // fill in nonzero entries
-    // TODO
+    // unpack unit tensor labels
+    //
+    // Notation: b = "bar", p = "prime"
+
+    u3shell::OperatorLabelsU3ST::KeyType tensor_labels;
+    int rho0;
+    u3shell::TwoBodyStateLabelsU3ST::KeyType bra_labels, ket_labels;
+
+    std::tie(tensor_labels,rho0,bra_labels,ket_labels)
+      = two_body_unit_tensor_labels.Key();
+
+    int N0; u3::SU3 x0; HalfInt S0, T0; int g0;
+    std::tie(N0,x0,S0,T0,g0)
+      = tensor_labels;
+
+    int eta1bp, eta2bp; u3::SU3 xbp; HalfInt Sbp, Tbp;
+    std::tie(eta1bp,eta2bp,xbp,Sbp,Tbp) = ket_labels;
+    HalfInt Nbp = eta1bp+eta2bp+3;  // U(1) label includes zero-point
+    u3::U3S omegaSbp = u3::U3S(u3::U3(Nbp,xbp),Sbp);
+    int gbp = (eta1bp+eta2bp) % 2;
+
+    int eta1b, eta2b; u3::SU3 xb; HalfInt Sb, Tb;
+    std::tie(eta1b,eta2b,xb,Sb,Tb) = ket_labels;
+    HalfInt Nb = eta1b+eta2b+3;  // U(1) label includes zero-point
+    u3::U3S omegaSb = u3::U3S(u3::U3(Nb,xb),Sb);
+    int gb = (eta1b+eta2b) % 2;
+
+
+    // iterate over sectors
+    for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
+      {
+        // retrieve sector
+        const u3shell::SectorsU3SPN::SectorType& sector = sectors.GetSector(sector_index);
+        const int rho0p = sector.multiplicity_index();
+
+        // short-circuit -- check sector symmetry labels
+        //
+        // Do they match those for the nonzero matrix element of the
+        // unit tensor?
+        //
+        // Note: Can ignore bra/ket Sp & Sn labels (trivial on
+        // deuteron) and U(3) N labels
+        bool matches = true;
+        matches &= (rho0p == rho0);
+        matches &= (sector.bra_subspace().U3S() == omegaSbp);
+        matches &= (sector.ket_subspace().U3S() == omegaSb);
+        if (!matches)
+          continue;
+
+        // iterate over matrix elements
+        for (int bra_index=0; bra_index<sector.bra_subspace().size(); ++bra_index)
+          for (int ket_index=0; ket_index<sector.ket_subspace().size(); ++ket_index)
+            {
+
+              // retrieve state shell labels
+              const lsu3shell::LSU3BasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];
+              const lsu3shell::LSU3BasisGroupLabels& ket_labels = basis_provenance[sector.ket_subspace_index()][ket_index];
+              int eta1p = bra_labels.Np;
+              int eta2p = bra_labels.Nn;
+              int eta1 = ket_labels.Np;
+              int eta2 = ket_labels.Nn;
+
+              // canonicalize labels
+              //
+              //   for comparison with U3ST scheme unit "source matrix
+              //   element" labels
+              //
+              // U3ST two-body state interchange phase factor is
+              //
+              //   ~ 1+g+omega+S+T
+              //
+              // Though our target matrix element is not isospin
+              // scheme, we need to anticipate the swap on the
+              // isospin-scheme source matrix element from which we
+              // are calculating it.
+
+              double canonicalization_phase = +1;
+              if (eta1p > eta2p)
+                {
+                  canonicalization_phase *= ParitySign(1+gbp+ConjugationGrade(xbp)+Sbp+Tbp);
+                  std::swap(eta1p,eta2p);
+                }
+              if (eta1 > eta2)
+                {
+                  canonicalization_phase *= ParitySign(1+gb+ConjugationGrade(xb)+Sb+Tb);
+                  std::swap(eta1,eta2);
+                }
+
+              // short circuit -- check target rme labels for match with unit tensor source rme
+              bool eta_matches = (
+                  (std::pair<int,int>(eta1p,eta2p) == std::pair<int,int>(eta1bp,eta2bp))
+                  && (std::pair<int,int>(eta1,eta2) == std::pair<int,int>(eta1b,eta2b))
+                );
+              if (!eta_matches)
+                continue;
+
+              // calculate rme
+
+              // calculate isospin Clebsch-Gordan coefficient
+              //
+              // adapted from shell project moshinsky_xform.cpp
+
+              // static const double kPPCoefficients[] = {+1,+sqrt(1/2.),+sqrt(1/10.)};
+              // static const double kNNCoefficients[] = {+1,-sqrt(1/2.),+sqrt(1/10.)};
+              static const double kPNCoefficients11[] = {+1,0,-sqrt(2./5.)};
+              static const double kPNCoefficient10 = 1.;
+              static const double kPNCoefficient01 = -sqrt(1/3.);
+              static const double kPNCoefficient00 = 1.;
+
+              double isospin_coefficient;
+              int Tp = int(Tbp);
+              int T = int(Tb);
+              if ((Tp==1)&&(T==1))
+                isospin_coefficient = kPNCoefficients11[int(T0)];
+              else if ((Tp==0)&&(T==1))
+                isospin_coefficient = kPNCoefficient01;
+              else if ((Tp==1)&&(T==0))
+                isospin_coefficient = kPNCoefficient10;
+              else if ((Tp==0)&&(T==0))
+                isospin_coefficient = kPNCoefficient00;
+
+              // calculate antisymmetry normalization factors
+              //
+              // Includes overall factor of 1/2, as in shell project
+              // moshinsky_xform.cpp.
+
+              double pn_normalization_factor = 0.5;
+              if (eta1p==eta2p)
+                pn_normalization_factor *= sqrt(2.);
+              if (eta1==eta2)
+                pn_normalization_factor *= sqrt(2.);
+
+              // combine factors
+              //
+              // RME relations are given on "SU(3) omegaST <->
+              // omegaSpn scheme" notes page 4
+              double rme = pn_normalization_factor * canonicalization_phase;
+              
+              // save matrix element
+              matrices[sector_index](bra_index,ket_index) = rme;
+            }
+      }
+
   }
 
 ////////////////////////////////////////////////////////////////
@@ -130,13 +271,30 @@ int main(int argc, char **argv)
       std::string rme_filename = fmt::format("two_body_unit_{:06d}",operator_index);
       std::cout << fmt::format("reading {}",rme_filename) << std::endl;
       u3shell::SectorsU3SPN sectors(space,u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),false);
-      basis::MatrixVector matrices;
+      basis::MatrixVector matrices_input;
       std::ifstream rme_stream(rme_filename);
       lsu3shell::ReadLSU3ShellRMEs(
-          rme_stream,u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),basis_table,
-        space,sectors,matrices
+          rme_stream,
+          u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),basis_table,
+          space,sectors,matrices_input
       );
 
+
+      u3shell::SectorsU3SPN sectors_dummy;  // duplicates sectors established above
+      basis::MatrixVector matrices_reference;
+      GenerateTwoBodyUnitTensorMatrices(      
+          two_body_unit_tensor_labels,basis_provenance,
+          space,sectors,matrices_reference
+        );
+
+      // compare RMEs
+      double epsilon = 1e-8;
+      CompareLSU3ShellRMEs(
+          std::cout,
+          basis_provenance,
+          space,sectors,matrices_input,matrices_reference,
+          epsilon,true
+        );
     }
 
 }
