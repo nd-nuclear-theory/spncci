@@ -71,13 +71,13 @@ namespace lsu3shell
         subspace_dimensions[omegaSPN]+=dim;
         
         // store entry
-        LSU3BasisGroupLabels lsu3_basis_group_labels(omegaSPN,Np,Nn,Nex);
+        LSU3BasisGroupLabels lsu3_basis_group_labels(omegaSPN,ip,in,Np,Nn,Nex);
         LSU3BasisGroupData mult_group(lsu3_basis_group_labels,dim,start_index);
         lsu3_basis_table.push_back(mult_group);
 
         // store provenence records
         std::vector<LSU3BasisGroupLabels>& subspace_provenance_list = subspace_provenances[omegaSPN];
-        for (int i=0; i < dim; ++i)
+        for (int multiplicity_index=0; multiplicity_index < dim; ++multiplicity_index)
           subspace_provenance_list.push_back(lsu3_basis_group_labels);
       }
 

@@ -9,6 +9,7 @@
 #include "lsu3shell/lsu3shell_rme.h"
 
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -76,6 +77,97 @@ namespace lsu3shell
               }
       }
   }
+
+  bool 
+  CompareLSU3ShellRMEs(
+      std::ostream& log_stream,
+      const U3SPNBasisLSU3Labels& basis_provenance,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::SectorsU3SPN& sectors,
+      const basis::MatrixVector& matrices1,
+      const basis::MatrixVector& matrices2,
+      double tolerance,
+      bool verbose
+    )
+  {  
+
+    // initialize statistics
+    int entries_compared = 0;
+    double max_residual = 0.;
+    double total_sqr_residual = 0.;
+    bool success = true;
+
+    // iterate over sectors
+    for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
+      {
+
+        // retrieve sector
+        const u3shell::SectorsU3SPN::SectorType& sector = sectors.GetSector(sector_index);
+        if (verbose)
+          log_stream
+            << fmt::format(
+                "sector {} bra {} ket {} dim {}x{}",
+                sector_index,
+                sector.bra_subspace().Str(),
+                sector.ket_subspace().Str(),
+                sector.bra_subspace().size(),
+                sector.ket_subspace().size()
+              )
+            << std::endl;
+
+        // iterate over matrix elements
+        for (int bra_index=0; bra_index<sector.bra_subspace().size(); ++bra_index)
+          for (int ket_index=0; ket_index<sector.ket_subspace().size(); ++ket_index)
+            {
+              // retrieve matrix elements
+              double me1 = matrices1[sector_index](bra_index,ket_index);
+              double me2 = matrices2[sector_index](bra_index,ket_index);
+
+              // compare matrix elements
+              double residual = std::abs(me2-me1);
+              ++entries_compared;
+              max_residual = std::max(max_residual,residual);
+              total_sqr_residual += sqr(residual);
+              bool entries_agree = (residual <= tolerance);
+              success &= entries_agree;
+
+              // write entry diagnostics
+              if (!entries_agree)
+                {
+                log_stream
+                  << fmt::format(
+                      "  FAIL: {}:({},{}) me1 {:e} me2 {:e} residual {:e}",
+                      sector_index,bra_index,ket_index,
+                      me1,me2,residual
+                    )
+                  << std::endl;
+                const lsu3shell::LSU3BasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];
+                const lsu3shell::LSU3BasisGroupLabels& ket_labels = basis_provenance[sector.ket_subspace_index()][ket_index];
+                log_stream
+                  << fmt::format(
+                      "  bra ip {} in {} Np {} Nn {} ; ket ip {} in {} Np {} Nn {}",
+                      bra_labels.ip,bra_labels.in,bra_labels.Np,bra_labels.Nn,
+                      ket_labels.ip,ket_labels.in,ket_labels.Np,ket_labels.Nn
+                    )
+                  << std::endl;
+                }
+            }
+      }
+
+    // generate global diagnostics
+    double rms_residual = std::sqrt(total_sqr_residual/entries_compared);
+    log_stream
+      << fmt::format(
+          "entries {} rms_residual {:e} max_residual {:e} total_sqr_residual {:e}",
+          entries_compared,rms_residual,max_residual,total_sqr_residual
+        )
+      << std::endl;
+        
+
+    return success;
+  }
+
+
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
