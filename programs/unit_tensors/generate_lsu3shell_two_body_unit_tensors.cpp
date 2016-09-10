@@ -5,7 +5,7 @@
 
   Output files:
     two_body_unit_*.recoupler -- operators in input format for Tomas recoupler
-    model_space -- model space file
+    model_space.dat -- model space file
     two_body_operators.dat -- listing of operator file basenames
 
   Anna E. McCoy and Mark A. Caprio
@@ -13,6 +13,7 @@
 
   8/8/16 (aem,mac): Created.
   9/7/16 (mac): Remove header from operator list.
+  9/10/16 (mac): Update filenames.
 ****************************************************************/
 
 #include <fstream>
@@ -27,11 +28,11 @@
 #include "u3shell/unit_tensor_expansion.h"
 #include "u3shell/two_body_operator.h"
 
+int main(int argc, char **argv)
 // Given a nucleus (protons, neutrons)
 // Given Nsigma_0
 // Given a Nmax truncation
 // Generate a list of two_body unit tensors
-int main(int argc, char **argv)
 {
   u3::U3CoefInit();
 
@@ -46,12 +47,12 @@ int main(int argc, char **argv)
   int Nmax=std::stoi(argv[3]);
   // will be either 1 or 2; 
   int Nstep=std::stoi(argv[4]);
-  assert(Nstep<=2);
+  assert((1<=Nstep)&&(Nstep<=2));
 
   // set up unit tensor model space space
   int Nmin=Nmax%Nstep;
   // std::string model_space=fmt::format("model_space.{}_{}_Nmax{}",Z,N,Nmax);
-  std::ofstream model_stream("model_space");
+  std::ofstream model_stream("model_space.dat");
   model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;
   for(int Nex=Nmin; Nex<=Nmax; Nex+=2)
     model_stream<<Nex<<"  "<<-1<<std::endl;
