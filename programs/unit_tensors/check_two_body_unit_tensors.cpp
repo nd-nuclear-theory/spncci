@@ -4,8 +4,11 @@
   Read in RMEs for two body tensors and check against expected
   values.
 
+  Syntax:
+    check_two_body_unit_tensors Z=1 N=1 Nmax Nstep 2*Nsigma_0=6
+
   Example:
-    check_two_body_unit_tensors 2 1
+    check_two_body_unit_tensors 1 1 0 1 6
 
   Input files:
     lsu3shell_basis.dat -- lsu3shell tabular basis listing file
@@ -197,30 +200,6 @@
   }
 
 ////////////////////////////////////////////////////////////////
-// read matrices
-////////////////////////////////////////////////////////////////
-
-//   void 
-//   ReadTwoBodyUnitTensorMatrices(      
-//     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-//     const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels
-//     const u3shell::SpaceU3SPN& space,
-//     u3shell::SectorsU3SPN& sectors,
-//     basis::MatrixVector& matrices,
-//     )
-//   // Read in matrix representation of two-body unit tensor.
-//   {
-//     sectors = u3shell::SectorsU3SPN(space,two_body_unit_tensor_labels);
-//     lsu3shell::ReadLSU3ShellRMEs(
-//         is,two_body_unit_tensor_labels,lsu3_basis_table,
-//         space,sectors,matrices
-//       );
-// 
-//     is_nrel << 
-// 
-//   }
-
-////////////////////////////////////////////////////////////////
 // main program
 ////////////////////////////////////////////////////////////////
 
@@ -235,14 +214,16 @@ int main(int argc, char **argv)
       std::exit(EXIT_FAILURE);
     }
   int Z=std::stoi(argv[1]);
+  assert(Z==1);
   int N=std::stoi(argv[2]);
+  assert(N==1);
   int Nmax=std::stoi(argv[3]);
   // will be either 1 or 2; 
   int Nstep=std::stoi(argv[4]);
-  assert(Nstep>=1);
-  assert(Nstep<=2);
+  assert((1<=Nstep)&&(Nstep<=2));
   int Nmin=Nmax%Nstep;
   int two_Nsigma_0=std::stoi(argv[5]);
+  assert(two_Nsigma_0==2*3);  // deuteron Nsigma_0 = 2*(3/2) = 3
   HalfInt Nsigma_0 = HalfInt(two_Nsigma_0,2);
 
   // generate list of relative unit tensors up to Nmax cutoff
@@ -279,7 +260,7 @@ int main(int argc, char **argv)
           space,sectors,matrices_input
       );
 
-
+      // calculate reference RMEs
       u3shell::SectorsU3SPN sectors_dummy;  // duplicates sectors established above
       basis::MatrixVector matrices_reference;
       GenerateTwoBodyUnitTensorMatrices(      
