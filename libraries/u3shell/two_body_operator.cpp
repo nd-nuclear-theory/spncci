@@ -15,6 +15,7 @@
 #include "am/am.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
+#include "u3shell/unu3.h" 
 
 namespace u3shell {
 
@@ -137,10 +138,9 @@ namespace u3shell {
         std::tie(operator_labels_key,rho0,bra_key,ket_key) = biquad_labels.Key();
 
         // extract operator label groups
-        int N0;
+        int N0, g0;
         u3::SU3 x0;
         HalfInt S0,T0;
-        int g0;
         std::tie(N0,x0,S0,T0,g0) = operator_labels_key;
         
         // extract bra labels
@@ -167,6 +167,22 @@ namespace u3shell {
         //
         // like particle terms active if both bra and ket are T=1
         bool include_like = ((Tp==1)&&(T==1));
+        // If like particles and particles in same shell, must check if U(3)xSU(2) symmetry
+        // is allowed
+        bool like_allowed=true;
+        if(include_like&&(eta1==eta2))
+          {
+            un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_ket;
+            un::GenerateAllowedSU3xSU2Irreps(eta1,2,single_shell_allowed_irreps_ket);
+            if(not single_shell_allowed_irreps_ket.count(u3::U3S(u3::U3(2*eta1,x),S)))
+              like_allowed=false;
+
+            un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_bra;
+            un::GenerateAllowedSU3xSU2Irreps(eta1p,2,single_shell_allowed_irreps_bra);
+            if(not single_shell_allowed_irreps_bra.count(u3::U3S(u3::U3(2*eta1p,xp),Sp)))
+              like_allowed=false;
+          }
+
         double norm_like;
         std::array<int,2> signs_like;
 
@@ -249,7 +265,7 @@ namespace u3shell {
         u3shell::CoefficientsPN coefficients_pn;
 
         // accumulate like-particle terms
-        if (include_like)
+        if (include_like&&like_allowed)
           {
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
                 operator_labels_u3s,rho0,statep12,state12
