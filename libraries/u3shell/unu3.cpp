@@ -154,11 +154,11 @@ namespace un
       return multiplicity;
   }
 
-
+  
   void GenerateAllowedSU3xSU2Irreps(
           const unsigned n, const unsigned A, 
           // const std::vector<SingleParticleState>& single_particle_states,
-          MultiplicityTagged<u3::U3S>::vector& allowed_irreps
+          SingleShellAllowedU3SIrreps& allowed_irreps
         )
   {
     // set of sps (Nz, Nx, Ny) for harmonic oscillator shell n
@@ -203,7 +203,9 @@ namespace un
                 branching_multiplicity = UNBranchingMultiplicity(w, u3_un_multiplicity_map);
                 //  Calculate multiplicity alpha in irrep of U(N)
                 if (branching_multiplicity) 
-                  allowed_irreps.push_back(MultiplicityTagged<u3::U3S>(u3::U3S(w,S),branching_multiplicity)); 
+                  allowed_irreps[u3::U3S(w,S)]=branching_multiplicity; 
+                  // allowed_irreps.push_back(MultiplicityTagged<u3::U3S>(u3::U3S(w,S),branching_multiplicity)); 
+
               }
           }
       }

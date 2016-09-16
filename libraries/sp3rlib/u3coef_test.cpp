@@ -573,13 +573,13 @@ int main(int argc, char **argv)
                                             for(int rho24=1; rho24<=rho24_max; ++rho24)
                                               {
                                                 std::cout
-                                                // <<
-                                                // u3::Unitary9LambdaMu(
-                                                //   x1,    x2,    x12,    rho12,
-                                                //   x3,    x4,    x34,    rho34,
-                                                //   x13,   x24,   x,      rho13_24,
-                                                //   rho13, rho24, rho12_34
-                                                //   )
+                                                <<
+                                                u3::Unitary9LambdaMu(
+                                                  x1,    x2,    x12,    rho12,
+                                                  x3,    x4,    x34,    rho34,
+                                                  x13,   x24,   x,      rho13_24,
+                                                  rho13, rho24, rho12_34
+                                                  )
                                                 <<"  "<<fmt::format("{} {} {} {}; {} {} {}; {} {} {},  {}",
                                                 x1.Str(),x3.Str(),x.Str(),x4.Str(),x13.Str(),rho13,1,x34.Str(),rho34,1,  
                                                 u3::U(x1,x3,x,x4,x13,rho13,1,x34,rho34,1))

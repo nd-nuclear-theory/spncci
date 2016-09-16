@@ -24,6 +24,7 @@
 #include "u3shell/two_body_operator.h"
 #include "u3shell/u3spn_scheme.h"
 #include "lsu3shell/lsu3shell_rme.h"
+#include "lgi/lgi.h"
 
 
 namespace lgi

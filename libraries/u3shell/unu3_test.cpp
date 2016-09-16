@@ -5,7 +5,6 @@
   University of Notre Dame
 
   3/10/16 (aem,mac): Created.
-
 ****************************************************************/
 
 #include "u3shell/unu3.h"
@@ -15,15 +14,24 @@
 
 int main(int argc, char **argv)
 {
-  int n=1;
-  int A=2;
-  MultiplicityTagged<u3::U3S>::vector allowed_irreps;
+  if(argc<2)
+  {
+    std::cout<<"Syntax: A shell_num"<<std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+  // single particle cutoff
+  // int n=1;
+  // int A=2;
+  int A=std::stoi(argv[1]);
+  int n=std::stoi(argv[2]);
+
+  un::SingleShellAllowedU3SIrreps allowed_irreps;
   un::GenerateAllowedSU3xSU2Irreps(n, A,allowed_irreps);
 
-  for(int i=0; i<allowed_irreps.size(); ++i)
+  for(auto i=allowed_irreps.begin(); i!=allowed_irreps.end(); ++i)
     {
-      u3::U3S state=allowed_irreps[i].irrep;
-      int multiplicity=allowed_irreps[i].tag;
+      u3::U3S state=i->first;
+      int multiplicity=i->second;
       std::cout<<fmt::format("{} {}", state.Str(),multiplicity)<<std::endl;
     }
 
