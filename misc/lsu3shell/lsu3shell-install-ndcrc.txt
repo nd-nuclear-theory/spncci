@@ -16,7 +16,7 @@ History:
     modules.
   9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
     commit, and update config-ndcrc.mk.
-  9/16/16 (mac): Update to 9/15 commit.
+  9/16/16 (mac): Update to 9/15 commit.  Remove instruction to update makefile.
  
 ////////////////////////////////////////////////////////////////
 
@@ -41,11 +41,6 @@ make a symlink from config.mk:
   rm config.mk
   cp ${HOME}/projects/spncci/misc/lsu3shell/config-lsu3shell-*.mk .
   ln -s config-lsu3shell-ndcrc.mk config.mk
-
-(3) We also want to "upgrade" the makefile to the latest version,
-which can install the library files to a lib directory:
-
-  cp ${HOME}/projects/spncci/makefile .
 
 ////////////////////////////////////////////////////////////////
 // Summary of build commands
