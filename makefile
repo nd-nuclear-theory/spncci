@@ -13,9 +13,9 @@
 # 5/02/11 (tdyt): Launch prepare_install_directory script during install.
 # 11/5/11 (mac): Add installation script hook install_script.
 # 7/4/13 (mac): Dereference symlinks when creating distribution tarball.
-# 9/5/16 (mac):
+# 9/16/16 (mac):
 #   - Add defaults for config.mk variables.
-#   - Rewrite "make install" to also install libraries.
+#   - Add "make install_lib" to optionally also install libraries.
 ################################################################
 
 ################################################################
@@ -606,7 +606,7 @@ install_include: ${sources_h}
 	@echo Installing includes to $(install_dir_include)...
 	@echo WARNING: not yet supported
 ##	install -D ${sources_h} --target-directory=$(install_dir_lib)
-	@ $(foreach source,$(sources_h),echo $(source); )
+##	@ $(foreach source,$(sources_h),echo $(source); )
 
 
 .PHONY: install_lib
@@ -614,9 +614,9 @@ install_lib: libraries
 	@echo Installing libraries to $(install_dir_lib)...
 	install -D $(archives) --target-directory=$(install_dir_lib) --mode=u=rw,go=r
 
-
 .PHONY: install
-install: install_bin install_include install_lib
+##install: install_bin install_include install_lib
+install: install_bin
 	$(install_script) 
 
 
