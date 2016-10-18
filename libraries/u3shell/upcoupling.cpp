@@ -127,7 +127,7 @@ namespace u3shell
         std::tie(L,S,T)=ket_nlst;
         std::tie(Lp,Sp,Tp)=bra_nlst;
         const Eigen::MatrixXd& sector(it->second);
-        std::cout<<sector<<std::endl<<std::endl;
+        // std::cout<<sector<<std::endl<<std::endl;
         int nmax=sector.cols()-1;
 
         for (int np=0; np<=nmax; ++np)

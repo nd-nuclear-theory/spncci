@@ -8,7 +8,7 @@
 
   5/15/16 (mac): Created.
   5/18/16 (mac): Rough in interface.
-
+  9/15/16 (aem): Added antisymmetry constraint on U(3)xSU(2) biquads
 ****************************************************************/
 
 #ifndef TWO_BODY_OPERATOR_H_

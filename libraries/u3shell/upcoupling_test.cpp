@@ -27,6 +27,8 @@ void IdentityTest(
   int Nmax, int Jmax, int J0, int T0, int g0,
   u3shell::RelativeRMEsU3ST& relative_rme_map
  )
+// Checking up coupling using identity function found in ImportInteraction
+// Needs to be updated to use shell identity file
 {
   std::cout<<"Identity test"<<std::endl;
 
@@ -73,6 +75,8 @@ KineticCheck(
   int Nmax, int Jmax, int J0, int T0, int g0,
   u3shell::RelativeRMEsU3ST& relative_rme_map
   )
+// Checking upcoupling using kinetic energy (k^2) using function in import_interaction
+// Function given analytically 
 {
   std::cout<<"Kinetic Energy"<<std::endl;
   basis::RelativeSpaceLSJT relative_space(Nmax, Jmax);
@@ -130,13 +134,14 @@ JISPCheck(
   int Nmax, int Jmax, int J0, int T0, int g0,
   std::string interaction_file,
   std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>& relative_rme_map
-
 )
+// Checking upcoupling for jisp16 interaction 
 {  basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   basis::OperatorLabelsJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
   std::array<basis::MatrixVector,3> relative_component_matrices;
   
+  //  Read in operator from file
   basis::ReadRelativeOperatorLSJT(
     interaction_file,relative_lsjt_space,operator_labels,
     relative_component_sectors,relative_component_matrices, true
@@ -150,14 +155,15 @@ JISPCheck(
   //     std::cout<<relative_component_matrices[0][i]<<std::endl;
   //  }
 
+  // Interaction is stored in a matrix vector where each component is a different isosopin, i.e. 0:T=0, 1:T=1, 2:T=2; 
   const basis::MatrixVector& sector_vector=relative_component_matrices[0];
   const basis::RelativeSectorsLSJT& relative_lsjt_sectors=relative_component_sectors[0];
   u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
   std::cout<<"upcoupling complete"<<std::endl;
 }
 
+// typedefs for going from Relative to Relative-Center-of-Mass
 typedef std::tuple<int,int,u3::SU3,HalfInt, HalfInt> RelativeCMU3STLabels;
-
 typedef std::tuple<u3::SU3,HalfInt, HalfInt,int, int,RelativeCMU3STLabels, RelativeCMU3STLabels,int> RelativeCMU3STBraket;
 typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt> RelativeCMLSTLabels;
 typedef std::tuple<int,HalfInt,HalfInt,RelativeCMLSTLabels,RelativeCMLSTLabels> RelativeCMLSTBraket;
@@ -166,6 +172,7 @@ void
 RelativeToCMU3ST(int Nmax,  
   const std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>& relative_rme_map,
   std::map<RelativeCMU3STBraket,double>& relative_cm_u3st_map)
+// Coupling on center of mass at U(3) level
 {
   int N0, etap,eta,eta_cm, kappa0,L0;
   HalfInt S0,T0,Sp,Tp,S,T;
@@ -182,7 +189,7 @@ RelativeToCMU3ST(int Nmax,
       u3::SU3 xr(eta,0);
       u3::SU3 xrp(etap,0);
       double rme=it->second;
-      std::cout<<fmt::format("{} {} {}  {}",tensor.Str(),kappa0,L0,rme)<<std::endl;
+      // std::cout<<fmt::format("{} {} {}  {}",tensor.Str(),kappa0,L0,rme)<<std::endl;
 
       // for(eta_cm=0; eta_cm<=Nmax;eta_cm++)
       for(eta_cm=0; eta_cm<=2;eta_cm++)
@@ -220,6 +227,7 @@ CMBranchLST(int Nmax,
   const std::map<RelativeCMU3STBraket,double>& relative_cm_u3st_map,
   std::map<RelativeCMLSTBraket,double>& relative_cm_lst_map
   )
+// Branching from U(3)xSU(2) RelxCM to SO(3)xSU(2) RelxCM
 {
   int N0, etap,eta,eta_cm, kappa0, L0;
   HalfInt S0,T0,Sp,Tp,S,T;
@@ -293,6 +301,7 @@ CMBranchLSJT(
     int Nmax,int J0, const std::map<RelativeCMLSTBraket,double>& relative_cm_lst_map,
     std::map<RelativeCMLSJTBraket,double>& relative_cm_lsjt_map
  )
+// Branching from SO(3)xSU(2) RelxCM to SU(2) RelxCM
 {
   int eta,etap,eta_cm, Lr,L_cm,Lrp,L,Lp,L0;
   HalfInt Sp,Tp,S0,T0,S,T;
@@ -318,11 +327,80 @@ CMBranchLSJT(
 
 }
 
+void 
+UpcoupleCMU3ST(
+  std::map<RelativeCMLSTBraket,double> rel_cm_lst_map,
+  std::map<RelativeCMU3STBraket,double>& rel_cm_u3st_map
+  )
+{
+  int Nrp,Lrp,Ncm,Lcm,Nr,Lr,Lp,L,L0;
+  HalfInt Sp,Tp,S,T,S0,T0;
+  RelativeCMLSTLabels bra_cm,ket_cm;
+  for(auto it=rel_cm_lst_map.begin(); it!=rel_cm_lst_map.end(); ++it)
+    {
+      std::tie(L0,S0,T0,bra_cm,ket_cm)=it->first;
+      double rme=it->second;
+      std::tie(Nrp,Lrp,Ncm,Lcm,Lp,Sp,Tp)=bra_cm;
+      std::tie(Nr,Lr,Ncm,Lcm,L,S,T)=ket_cm;
+      MultiplicityTagged<u3::SU3>::vector  x_set=u3::KroneckerProduct(u3::SU3(Nr,0),u3::SU3(Ncm,0));
+      MultiplicityTagged<u3::SU3>::vector  xp_set=u3::KroneckerProduct(u3::SU3(Nrp,0),u3::SU3(Ncm,0));
+      for(int i=0; i<x_set.size(); ++i)
+        {
+          u3::SU3 x=x_set[i].irrep;
+          int kappa_max=u3::BranchingMultiplicitySO3(x,L);
+          for(int ip=0; ip<xp_set.size(); ++ip)
+            {
+              u3::SU3 xp=xp_set[ip].irrep;
+              MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(xp,u3::Conjugate(x));
+              int kappap_max=u3::BranchingMultiplicitySO3(xp,Lp); 
+              for(int kappa=1; kappa<=kappa_max; ++kappa)
+                for(int kappap=1; kappap<=kappap_max; ++kappap)
+                  {
+                    for(int i0=0; i0<x0_set.size();  i0++)
+                      {
+                        u3::SU3 x0=x0_set[i0].irrep;
+                        // std::cout<<"xp= "<<xp.Str()<<"x= "<<x.Str()<<"x_tilde= "<<u3::Conjugate(x).Str()<<"x0= "<<x0.Str()<<std::endl;
+                        int rho0_max=u3::OuterMultiplicity(x,x0,xp);
+                        int kappa0_max=u3::BranchingMultiplicitySO3(x0,L0);
+                        for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
+                          for(int rho0=1; rho0<=rho0_max; ++rho0)
+                              {
+                                RelativeCMU3STLabels bra(Nrp,Ncm,xp,Sp,Tp);
+                                RelativeCMU3STLabels ket(Nr,Ncm,x,S,T);
+                                RelativeCMU3STBraket braket_u3st(x0,S0,T0,kappa0,L0,bra,ket,rho0);
+                                
+                                rel_cm_u3st_map[braket_u3st]
+                                +=u3::dim(x0)*am::dim(Lp)/u3::dim(xp)/am::dim(L0)
+                                  *u3::W(u3::SU3(Nrp,0),1,Lrp,u3::SU3(Ncm,0),1,Lcm,xp,kappap,Lp,1)
+                                  *u3::W(u3::SU3(Nr,0),1,Lr,u3::SU3(Ncm,0),1,Lcm,x,kappa,L,1)
+                                  *u3::W(x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
+                                  *rme;
+
+                              }
+                      }
+                  }
+            }
+        }
+
+      // RelativeCMU3STBraket braket_u3st;
+
+      // std::tie(x0,S0,T0,kappa0,L0,bra,ket,rho0)=it->first;
+      // double rme=it->second;
+      // std::tie(etap,eta_cm,xp,Sp,Tp)=bra;
+      // std::tie(eta, eta_cm,x,S,T)=ket;
+
+
+    }
+
+}
+
+
 void
 RelativeToCMLST(
   int Nmax,int T0,
   const std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
   std::map<RelativeCMLSTBraket,double>& rel_cm_lst_map)
+// Coupling on center of mass as SO(3) level
 {
     // Convert to LST CM space
   u3shell::RelativeSubspaceLabelsNLST bra_nlst,ket_nlst;
@@ -352,7 +430,7 @@ RelativeToCMLST(
               double rme_nlst=sector(np,n);
               if(fabs(rme_nlst)<10e-10)
                 continue;
-              std::cout<<fmt::format("{} {}  {} {} {} {}  {} {} {} {}  {}",L0,S0,Nrp,Lrp,Sp,Tp,Nr,Lr,S,T,rme_nlst)<<std::endl;
+              std::cout<<fmt::format("({} {} {} {} || {} {} ||   {} {} {} {})     {}",Nrp,Lrp,Sp,Tp,L0,S0,Nr,Lr,S,T,rme_nlst)<<std::endl;
               for(int Ncm=0; Ncm<=Nmax; ++Ncm)
                 for(int Lcm=Ncm%2; Lcm<=Ncm; Lcm+=2)
                   {
@@ -367,7 +445,7 @@ RelativeToCMLST(
                           RelativeCMLSTLabels ket_cm(Nr,Lr,Ncm,Lcm,L,S,T);
                           RelativeCMLSTBraket braket_cm(L0,S0,T0,bra_cm,ket_cm);
                           rel_cm_lst_map[braket_cm]=am::Unitary9J(L0,0,L0,Lr,Lcm,L,Lrp,Lcm,Lp)*rme_nlst;
-                          std::cout<<fmt::format("   {} {}  {} {}  {}", Ncm, Lcm, Lp,L,rel_cm_lst_map[braket_cm])<<std::endl;
+                          std::cout<<fmt::format("   {} {}   {} {}  {}", Ncm, Lcm, Lp,L,rel_cm_lst_map[braket_cm])<<std::endl;
                         }
                   }
             }
@@ -413,8 +491,8 @@ int main(int argc, char **argv)
   int g0=0;
 	int T0=0;
 
-  u3shell::RelativeRMEsU3ST id_relative_rme_map;
-  IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
+  // u3shell::RelativeRMEsU3ST id_relative_rme_map;
+  // IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
 
   // u3shell::RelativeRMEsU3ST ke_relative_rme_map;
   // KineticCheck(Nmax,Jmax,J0,T0,g0,ke_relative_rme_map);
@@ -422,11 +500,10 @@ int main(int argc, char **argv)
   // ReadWriteCheck(ke_relative_rme_map,filename);
 
   // std::string interaction_file="/Users/annamccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
-  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/symmunit_Nmax04_rel.dat";
 
-  std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double> relative_rme_map; 
-  JISPCheck(Nmax, 3, J0, T0, g0,interaction_file, relative_rme_map);
-  std::map<RelativeCMLSTBraket,double> relative_cm_lst_map;
+  // std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double> relative_rme_map; 
+  // JISPCheck(Nmax, 3, J0, T0, g0,interaction_file, relative_rme_map);
+  // std::map<RelativeCMLSTBraket,double> relative_cm_lst_map;
 
   // CMBranchLST(2, relative_rme_map,relative_cm_lst_map);
   // int eta,etap,eta_cm, Lr,L_cm,Lrp,L,Lp,L0;
@@ -467,32 +544,39 @@ int main(int argc, char **argv)
   //     }
   //   }
 
+  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/symmunit_Nmax04_rel.dat";
+
+  // Defining containers for reading in interaction
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   basis::OperatorLabelsJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
   std::array<basis::MatrixVector,3> relative_component_matrices;
-  
+  //Read interaction and store sector information in relative_component_sectors
+  // and matrix elements in relative_component_matrices
   basis::ReadRelativeOperatorLSJT(
     interaction_file,relative_lsjt_space,operator_labels,
     relative_component_sectors,relative_component_matrices, true
     );
 
+  // Extract out T0=0 sectors and matrix elements
   const basis::MatrixVector& sector_vector=relative_component_matrices[0];
   const basis::RelativeSectorsLSJT& relative_lsjt_sectors=relative_component_sectors[0];
-  std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
 
+  //upcouple to LST
+  std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
   u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
   std::cout<<"UpcouplingNLST complete"<<std::endl;
 
-  // Convert to LST CM space
+  // Convert to LST-CM space
   std::map<RelativeCMLSTBraket,double> rel_cm_lst_map;
   RelativeToCMLST(Nmax,T0, rme_nlst_map, rel_cm_lst_map);
 
+  // Branch back down to JT-CM
   std::map<RelativeCMLSJTBraket,double> rel_cm_lsjt_map;
   CMBranchLSJT(Nmax, J0, rel_cm_lst_map,rel_cm_lsjt_map);
-  std::cout<<"finished branching"<<std::endl;
+  std::cout<<"Branching LST to LSJT"<<std::endl;
 
-  // Compare.
+  // Compare Upcoupled+branched to JT combined with CM.
   RelativeCMLSTLabels bra_cm_lst, ket_cm_lst;
   int Lcm, Ncm, L, Lp, Nr,Nrp,Lr,Lrp,L0;
   HalfInt T00,S,T,Sp,Tp,S0,J,Jp; 
@@ -504,17 +588,29 @@ int main(int argc, char **argv)
       std::tie(Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp)=bra_j;
       double rme_j=it->second;
       if(fabs(rme_j)>10e-10)  
-        std::cout<<fmt::format("{} {} {} {} {} {} {} {} {}  {} {} {} {} {} {} {} {} {}   {}",
+        std::cout<<fmt::format("[{} {} {} {}] {} {} {} {} {}  [{} {} {} {}] {} {} {} {} {}   {}",
         Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp, (Nrp+Ncm)%2,Nr,Lr,Ncm,Lcm,L,S,J,T,(Nr+Ncm)%2,rme_j)
         <<std::endl;
     }
+  std::cout<<"  "<<std::endl;
+  // Upcouple to U(3) level
   std::map<RelativeCMLSTBraket,double> relative_cm_lst_map_2;
-
   u3shell::RelativeRMEsU3ST rme_map;
+  std::cout<<"Upcoupling to U3ST"<<std::endl;
   u3shell::UpcouplingU3ST(rme_nlst_map,J0,g0, T0, Nmax, rme_map);
+  for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
+    {
+      u3shell::RelativeUnitTensorLabelsU3ST op_labels;
+      int kappa0,L0;
+      std::tie(op_labels, kappa0,L0)=it->first;
+      double rme=it->second;
+      std::cout<<fmt::format("{} {} {}   {}",op_labels.Str(), kappa0,L0,rme)<<std::endl;
+    }
 
+  // Convert to RelxCM at U(3) level
   std::map<RelativeCMU3STBraket,double> relative_cm_u3st_map;
   RelativeToCMU3ST(Nmax,rme_map,relative_cm_u3st_map);
+  // print U(3) RelxCM rmes
   RelativeCMU3STLabels bra_u3,ket_u3;
   u3::SU3 x0,x,xp;
   int rho0, kappa0;
@@ -524,16 +620,17 @@ int main(int argc, char **argv)
       double rme_u3=it->second;
       std::tie(Nr,Ncm,x,S,T)=ket_u3;
       std::tie(Nrp,Ncm,xp,Sp,Tp)=bra_u3;
-      std::cout<<fmt::format("{} {} {} {} {} {}  {} {} {} {} {}  {} {} {} {} {}   {}",
-        x0.Str(),S0, T0, kappa0, L0, rho0, Nrp,Ncm,xp.Str(),Sp,Tp,Nr,Ncm,x.Str(),S,T,rme_u3)
+      std::cout<<fmt::format("{} {} {} {} {} {}  {} {} {} {} {}  {} {} {} {} {}   {:10f} {:10f}",
+        x0.Str(),S0, T0, kappa0, L0, rho0, Nrp,Ncm,xp.Str(),Sp,Tp,Nr,Ncm,x.Str(),S,T,rme_u3,rme_u3/u3::U(x0,u3::SU3(Nr,0),xp,u3::SU3(Ncm,0),u3::SU3(Nrp,0),1,1,x,1,rho0) )
       <<std::endl;
     }
-
+  // Branch from U(3) RelxCM to SO(3) RelxCM
   CMBranchLST(Nmax, relative_cm_u3st_map,relative_cm_lst_map_2);
   int eta,etap,eta_cm,L_cm;
   // HalfInt Sp,Tp,S0,T00,S,T;
   RelativeCMLSTLabels bra,ket;
-  std::cout<<"branching"<<std::endl;
+  // Print branched rme's and labels 
+  std::cout<<"Branching from U3ST to LST"<<std::endl;
   for(auto it=relative_cm_lst_map_2.begin(); it!=relative_cm_lst_map_2.end(); ++it)
     {
       if(fabs(it->second)>10e-10)
@@ -547,44 +644,81 @@ int main(int argc, char **argv)
         }
     }
 
-
-  std::map<RelativeCMLSJTBraket,double> rel_cm_lsjt_map_2;
-  CMBranchLSJT(Nmax, J0, relative_cm_lst_map_2,rel_cm_lsjt_map_2);
-  std::cout<<"finished branching"<<std::endl;
-
-  // Compare.
-  // RelativeCMLSTLabels bra_cm_lst, ket_cm_lst;
-  // int Lcm, Ncm, L, Lp, Nr,Nrp,Lr,Lrp,L0;
-  // HalfInt T00,S,T,Sp,Tp,S0,J,Jp; 
-  // RelativeCMLSJTLabels bra_j, ket_j;
-  for(auto it=rel_cm_lsjt_map_2.begin(); it!=rel_cm_lsjt_map_2.end(); ++it)
+  std::map<RelativeCMU3STBraket,double> rel_cm_u3st_map;
+  std::cout<<"Upcoupled from CM-LST"<<std::endl;
+  UpcoupleCMU3ST(rel_cm_lst_map,rel_cm_u3st_map);
+  for(auto it=rel_cm_u3st_map.begin(); it!=rel_cm_u3st_map.end(); ++it)
     {
-      std::tie(J0,T00,bra_j,ket_j)=it->first;
-      std::tie(Nr,Lr,Ncm,Lcm,L,S,J,T)=ket_j;
-      std::tie(Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp)=bra_j;
-      double rme_j=it->second;
-      if(fabs(rme_j)>10e-10)  
-        std::cout<<fmt::format("{} {} {} {} {} {} {} {} {}  {} {} {} {} {} {} {} {} {}   {}",
-        Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp, (Nrp+Ncm)%2,Nr,Lr,Ncm,Lcm,L,S,J,T,(Nr+Ncm)%2,rme_j)
+      std::tie(x0,S0,T00,kappa0, L0,bra_u3,ket_u3,rho0)=it->first;
+      double rme_u3=it->second;
+      std::tie(Nr,Ncm,x,S,T)=ket_u3;
+      std::tie(Nrp,Ncm,xp,Sp,Tp)=bra_u3;
+      if(fabs(rme_u3)>10e-8)
+        std::cout<<fmt::format("{} {} {} {} {} {}  {} {} {} {} {}  {} {} {} {} {}   {:10f}",
+          x0.Str(),S0, T0, kappa0, L0, rho0, Nrp,Ncm,xp.Str(),Sp,Tp,Nr,Ncm,x.Str(),S,T,rme_u3)
         <<std::endl;
     }
 
+  std::cout<<"Rebranching"<<std::endl;
+  std::map<RelativeCMLSTBraket,double> relative_cm_lst_map_3;
 
-  std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(0,3),1,1,u3::SU3(0,0),1,0,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(0,3),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(2,0),1,0,u3::SU3(1,0),1,1,u3::SU3(3,0),1,1,1)<<std::endl;
+  CMBranchLST(Nmax, rel_cm_u3st_map,relative_cm_lst_map_3);
+  for(auto it=relative_cm_lst_map_3.begin(); it!=relative_cm_lst_map_3.end(); ++it)
+    {
+      if(fabs(it->second)>10e-10)
+        {
+          std::tie(L0,S0,T00,bra,ket)=it->first;
+          std::tie(etap,Lrp,eta_cm,L_cm,Lp,Sp,Tp)=bra;
+          std::tie(eta,Lr,eta_cm,L_cm,L,S,T)=ket;
+          std::cout<<fmt::format("({} {} {} {}; {} {} {}|| {} {} {} || {} {} {} {}; {} {} {})  {}",
+                  etap,Lrp,eta_cm,L_cm,Lp,Sp,Tp,L0,S0,T00, eta, Lr,eta_cm,L_cm,L,S,T,it->second)
+          <<std::endl;
+        }
+    }
 
-  std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(0,3),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(2,0),1,0,u3::SU3(1,0),1,1,u3::SU3(1,1),1,1,1)<<std::endl;
-  std::cout<<std::endl;
-  std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(2,2),1,0,u3::SU3(3,0),1,1,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(0,0),1,0,u3::SU3(3,0),1,1,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(0,0),1,0,u3::SU3(1,1),1,1,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,u3::SU3(1,1),1,1,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,u3::SU3(3,0),1,1,1)<<std::endl;
-  std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(2,2),1,0,u3::SU3(1,1),1,1,1)<<std::endl;
+
+  // // Branch to LSJT RelxCM
+  // std::map<RelativeCMLSJTBraket,double> rel_cm_lsjt_map_2;
+  // CMBranchLSJT(Nmax, J0, relative_cm_lst_map_2,rel_cm_lsjt_map_2);
+  // std::cout<<"Branching from U3ST to LSJT"<<std::endl;
+
+  // // Compare with shell moshisnky transform.
+  // // RelativeCMLSTLabels bra_cm_lst, ket_cm_lst;
+  // // int Lcm, Ncm, L, Lp, Nr,Nrp,Lr,Lrp,L0;
+  // // HalfInt T00,S,T,Sp,Tp,S0,J,Jp; 
+  // // RelativeCMLSJTLabels bra_j, ket_j;
+  // for(auto it=rel_cm_lsjt_map_2.begin(); it!=rel_cm_lsjt_map_2.end(); ++it)
+  //   {
+  //     std::tie(J0,T00,bra_j,ket_j)=it->first;
+  //     std::tie(Nr,Lr,Ncm,Lcm,L,S,J,T)=ket_j;
+  //     std::tie(Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp)=bra_j;
+  //     double rme_j=it->second;
+  //     if(fabs(rme_j)>10e-10)  
+  //       std::cout<<fmt::format("{} {} {} {} {} {} {} {} {}  {} {} {} {} {} {} {} {} {}   {}",
+  //       Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp, (Nrp+Ncm)%2,Nr,Lr,Ncm,Lcm,L,S,J,T,(Nr+Ncm)%2,rme_j)
+  //       <<std::endl;
+  //   }
+
+  // For checking couling coefficients used in coupling on center of mass
+  //  (lambda,mu),kappa, L
+  std::cout<<u3::W(u3::SU3(2,0),1,0,u3::SU3(2,2),1,0,u3::SU3(2,0),1,0,1)<<std::endl;
+  // all (lambda,mu) rho
+  std::cout<<u3::U(u3::SU3(2,2),u3::SU3(2,0),u3::SU3(2,1),u3::SU3(2,0),u3::SU3(2,0),1,1,u3::SU3(0,2),1,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(0,3),1,1,u3::SU3(0,0),1,0,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(0,3),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(2,0),1,0,u3::SU3(1,0),1,1,u3::SU3(3,0),1,1,1)<<std::endl;
+
+  // std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(0,3),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(2,0),1,0,u3::SU3(1,0),1,1,u3::SU3(1,1),1,1,1)<<std::endl;
+  // std::cout<<std::endl;
+  // std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(2,2),1,0,u3::SU3(3,0),1,1,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(0,0),1,0,u3::SU3(3,0),1,1,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(0,0),1,0,u3::SU3(1,1),1,1,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,u3::SU3(1,1),1,1,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(1,1),1,1,u3::SU3(2,2),1,0,u3::SU3(3,0),1,1,1)<<std::endl;
+  // std::cout<<u3::W(u3::SU3(3,0),1,1,u3::SU3(2,2),1,0,u3::SU3(1,1),1,1,1)<<std::endl;
 
 
 
