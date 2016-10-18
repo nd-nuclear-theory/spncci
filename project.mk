@@ -17,7 +17,6 @@ project_name := spncci
 # course, they are only template libraries, so nobody needs to link to
 # them).
 
-modules :=
 modules += libraries/lsu3shell libraries/spncci libraries/lgi
 modules += libraries/u3shell libraries/sp3rlib  # ordering note: "mid-level" operations
 modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" operations, called by many other libraries
@@ -30,7 +29,7 @@ modules += libraries/basis libraries/am
 
 
 #programs
-modules += programs/interactions programs/unit_tensors
+modules += programs/interactions programs/unit_tensors programs/su3calc
 #modules += programs/test 
 
 ################################################################

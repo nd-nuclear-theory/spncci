@@ -21,7 +21,7 @@ search_dirs_lib :=
 #
 # e.g., you would set to /usr/local to do a systemwide installation.
 # This is analagous to the --prefix= option of autoconf installations.
-install_prefix := install
+install_prefix := $(current-dir)
 
 ################################################################
 # C++ compiler-specific configuration
@@ -32,7 +32,7 @@ CXX := mpicxx
 #CXX := icpc
 
 # langage standard
-CXXFLAGS += -std=c++11 -fopenmp -DCPP0X_STD_TR1
+CXXFLAGS += -std=c++14 -fopenmp -DCPP0X_STD_TR1
 
 # avoid gcc 5 warnings on Eigen library
 CXXFLAGS += -Wno-deprecated-declarations

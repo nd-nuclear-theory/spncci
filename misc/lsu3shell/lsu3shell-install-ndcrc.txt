@@ -7,22 +7,17 @@ Local installation notes for lsu3shell package on
 
 For LSU3Shell version:
 
-  commit 6d7c71a4be30891a072679767dfa601bf5fb830c
+  commit de8ba2c873869f66397c71b05683bfb11efaa616
   Author: Tomas Dytrych <tdytrych@gmail.com>
-  Date:   Mon Mar 7 15:51:50 2016 +0100
-
-Note that compilation issues are not yet resolved with the more recent
-commit (see e-mail 9/6/16):
-
-  commit cd75d651431f3270748c4d8034413ea7bd32212e
-  Author: Tomas Dytrych <tdytrych@gmail.com>
-  Date:   Thu Aug 25 23:02:17 2016 +0200
+  Date:   Thu Sep 15 11:20:58 2016 +0200
 
 History:
   4/13/16 (mac): First new build in a couple of years, with lots of new
     modules.
   9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
-    build, and update config-ndcrc.mk.
+    commit, and update config-ndcrc.mk.
+  9/16/16 (mac): Update to 9/15 commit.  Remove instruction to update makefile.
+ 
 ////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
@@ -46,11 +41,6 @@ make a symlink from config.mk:
   rm config.mk
   cp ${HOME}/projects/spncci/misc/lsu3shell/config-lsu3shell-*.mk .
   ln -s config-lsu3shell-ndcrc.mk config.mk
-
-(3) We also want to "upgrade" the makefile to the latest version,
-which can install the library files to a lib directory:
-
-  cp ${HOME}/projects/spncci/makefile .
 
 ////////////////////////////////////////////////////////////////
 // Summary of build commands
