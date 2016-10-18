@@ -3,16 +3,17 @@
 
   SU(3) coupling coefficient wrappers for Akiyama and Draayer su3lib.
 
-  u3coef recquires initilization of the coeffcients by calling the function 
-  u3::U3CoefInit() at the start of main
-
+  Warning: The underlying su3lib library must be initialized by
+  calling the function u3::U3CoefInit(), before any su3lib functions
+  can be called.  If you get out "nan" values for U(3) coefficients,
+  you probably forgot to do this.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/10/16 (aem,mac): Created based on prototype u3.py and 
-  T. Dytrych CSU3Master.
-
+  3/10/16 (aem,mac): Created based on prototype u3.py and T. Dytrych
+    CSU3Master.
+  10/17/16 (mac): Add comment on W.
 
 ****************************************************************/
 
@@ -60,6 +61,15 @@ namespace u3
   // Compute SU(3) reduced coupling coefficient, referred to as Wigner coefficient 
   //
   // Provides wrapper for su3lib function wu3r3w_
+  //
+  // Arguments:
+  //   x1, x2, x3 (u3::SU3): SU3 labels for coupling coefficient
+  //   k1, k2, k3 (int): SU(3)-SO(3) branching multiplicity labels for coupling coefficient
+  //   L1, L2, L3 (int): SO(3) labels for coupling coefficient
+  //   r0 (int): outer multiplicity label on coupling coefficient
+  //
+  // Returns:
+  //   (double): value of coefficient
 
 
   typedef std::tuple<int,int,int,int> UMultiplicityTuple;
