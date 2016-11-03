@@ -14,7 +14,7 @@
 #include <algorithm>
 
 #include "cppformat/format.h"
-#include "u3shell/moshinsky.h"
+#include "moshinsky/moshinsky.h"
 
 
 namespace lsu3shell

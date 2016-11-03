@@ -15,7 +15,7 @@
 #include "am/am.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
-#include "u3shell/moshinsky.h"
+#include "moshinsky/moshinsky.h"
 
 namespace u3shell
 {

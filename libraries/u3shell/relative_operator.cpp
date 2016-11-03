@@ -12,7 +12,7 @@
 #include "sp3rlib/vcs.h"
 #include "u3shell/u3st_scheme.h"
 #include "u3shell/two_body_operator.h"
-#include "u3shell/moshinsky.h"
+#include "moshinsky/moshinsky.h"
 namespace u3shell {
 
 

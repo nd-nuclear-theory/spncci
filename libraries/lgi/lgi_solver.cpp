@@ -17,7 +17,7 @@
 #include "cppformat/format.h"
 
 #include "u3shell/two_body_operator.h"
-#include "u3shell/moshinsky.h"
+#include "moshinsky/moshinsky.h"
 // #include "spncci/sp_basis.h"
 #include "basis/operator.h"
 #include "lgi/lgi.h"

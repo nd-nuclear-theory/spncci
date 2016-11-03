@@ -15,7 +15,7 @@
 #include "u3shell/import_interaction.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/two_body_operator.h"
-#include "u3shell/moshinsky.h"
+#include "moshinsky/moshinsky.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/upcoupling.h"
 #include "u3shell/u3st_scheme.h"
