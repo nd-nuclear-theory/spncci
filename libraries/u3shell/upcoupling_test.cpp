@@ -191,8 +191,8 @@ RelativeToCMU3ST(int Nmax,
       double rme=it->second;
       // std::cout<<fmt::format("{} {} {}  {}",tensor.Str(),kappa0,L0,rme)<<std::endl;
 
-      // for(eta_cm=0; eta_cm<=Nmax;eta_cm++)
-      for(eta_cm=0; eta_cm<=2;eta_cm++)
+      for(eta_cm=0; eta_cm<=Nmax;eta_cm++)
+      // for(eta_cm=0; eta_cm<=2;eta_cm++)
         {
           u3::SU3 x_cm(eta_cm,0);
           MultiplicityTagged<u3::SU3>::vector x_set=u3::KroneckerProduct(xr,x_cm);
@@ -240,6 +240,8 @@ CMBranchLST(int Nmax,
       u3::SU3 x,xp;
       std::tie(x0,S0,T0,kappa0,L0,bra,ket,rho0)=it->first;
       double rme=it->second;
+      if(fabs(rme)<10e-10)
+        continue;
       std::tie(etap,eta_cm,xp,Sp,Tp)=bra;
       std::tie(eta, eta_cm,x,S,T)=ket;
       
@@ -259,20 +261,22 @@ CMBranchLST(int Nmax,
             {
               int L=l.irrep;
               int kappa_max=l.tag;
+              // std::cout<<etap%2<<"  "<<etap<<"  "<<eta%2<<eta<<"  "<<std::endl;
               for(int kappap=1; kappap<=kappap_max; ++kappap)
                 for(int kappa=1; kappa<=kappa_max; ++kappa)
                   for(int Lrp=etap%2; Lrp<=etap; Lrp+=2)
+                    
                     for(int Lr=eta%2; Lr<=eta; Lr+=2)  
                       for(int L_cm=eta_cm%2; L_cm<=eta_cm; L_cm+=2)
                         {     
-                          if((abs(Lr-L_cm)>L)||((Lr+L_cm)<L))
+                          if((abs(Lr-L_cm)>L)||((Lr+L_cm)<L)) //am::triangular
                             continue;
                           if((abs(Lrp-L_cm)>Lp)||((Lrp+L_cm)<Lp))
                             continue;
                           RelativeCMLSTLabels bra(etap,Lrp,eta_cm,L_cm,Lp,Sp,Tp);
                           RelativeCMLSTLabels ket(eta,Lr,eta_cm,L_cm,L,S,T);
-                          if (bra>ket)
-                            continue;
+                          // if (bra>ket)
+                          //   continue;
                           RelativeCMLSTBraket braket(L0,S0,T0,bra,ket);
                           int n=(eta-Lr)/2, np=(etap-Lrp)/2;
                           double rme_lst=rme*u3::W(xrp,1,Lrp,x_cm,1,L_cm,xp,kappap,Lp,1)
@@ -285,9 +289,11 @@ CMBranchLST(int Nmax,
                           int c4=parity(n+np);
                           // std::cout<<fmt::format("{} {} {} {}",c1,c2,c3,c4)<<std::endl;
                           relative_cm_lst_map[braket]+=rme_lst;
-                          // std::cout<<fmt::format("{} {} {}  {} {} {}  {}  {}  {}", Lrp,L_cm,Lp,Lr,L_cm,L,rme, rme_lst,relative_cm_lst_map[braket])
+                          // std::cout<<fmt::format(" hi {} {} {}  {} {} {}  {}  {}  {}", 
+                          //   Lrp,L_cm,Lp,Lr,L_cm,L,rme, rme_lst,relative_cm_lst_map[braket])
                           // <<std::endl;
                         }
+                    
             }
         }
     }
@@ -371,6 +377,9 @@ UpcoupleCMU3ST(
                                 
                                 rel_cm_u3st_map[braket_u3st]
                                 +=u3::dim(x0)*am::dim(Lp)/u3::dim(xp)/am::dim(L0)
+                                  // /(u3::dim(u3::SU3(Ncm,0))*am::dim(Lrp)/u3::dim(u3::SU3(Nrp,0))/am::dim(Lcm))
+                                  // /(u3::dim(u3::SU3(Ncm,0))*am::dim(Lr)/u3::dim(u3::SU3(Nr,0))/am::dim(Lcm))
+                                  // *u3::dim(x)*am::dim(Lr)/u3::dim(u3::SU3(Nr,0))/am::dim(L)
                                   *u3::W(u3::SU3(Nrp,0),1,Lrp,u3::SU3(Ncm,0),1,Lcm,xp,kappap,Lp,1)
                                   *u3::W(u3::SU3(Nr,0),1,Lr,u3::SU3(Ncm,0),1,Lcm,x,kappa,L,1)
                                   *u3::W(x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
@@ -544,7 +553,8 @@ int main(int argc, char **argv)
   //     }
   //   }
 
-  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/symmunit_Nmax04_rel.dat";
+  // std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/symmunit_Nmax04_rel.dat";
+  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/ksqr_Nmax04_rel.dat";
 
   // Defining containers for reading in interaction
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
@@ -597,7 +607,7 @@ int main(int argc, char **argv)
   std::map<RelativeCMLSTBraket,double> relative_cm_lst_map_2;
   u3shell::RelativeRMEsU3ST rme_map;
   std::cout<<"Upcoupling to U3ST"<<std::endl;
-  u3shell::UpcouplingU3ST(rme_nlst_map,J0,g0, T0, Nmax, rme_map);
+  u3shell::UpcouplingU3ST(rme_nlst_map, T0, Nmax, rme_map);
   for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
     {
       u3shell::RelativeUnitTensorLabelsU3ST op_labels;

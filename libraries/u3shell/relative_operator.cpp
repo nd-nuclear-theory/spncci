@@ -48,6 +48,7 @@ namespace u3shell {
         int Nmax, 
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
         )
+  // Depreciated version
   {   
     #ifdef VERBOSE
     std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
@@ -101,7 +102,7 @@ namespace u3shell {
     std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
     #endif
     int T0_max;
-    for(int N0=0; N0<=Nmax; N0+=2)
+    for(int N0=-Nmax; N0<=Nmax; N0+=2)
       {
         for(int Sp=0; Sp<=1; Sp++)
           for(int Tp=0; Tp<=1; Tp++)
@@ -109,7 +110,7 @@ namespace u3shell {
               for (int T=0; T<=1; T++)
                 for (int S0=abs(S-Sp); S0<=(S+Sp); S0++)
                   for (int T0=abs(T-Tp); T0<=(T+Tp); T0++)
-                    for(int etap=0; etap<=N0+Nmax; etap++)
+                    for(int etap=0; etap<=Nmax; etap++)
                       {
                         if(T0!=0)
                           continue;
@@ -118,6 +119,8 @@ namespace u3shell {
                           continue;
                         
                         int eta=etap-N0;
+                        if((eta<0)||(eta>Nmax))
+                          continue;
                         //antisymmeterization constraint on bra 
                         if ( (eta+S+T)%2!=1)
                           continue;

@@ -22,6 +22,15 @@ namespace u3shell {
       );
   }
 
+    std::string RelativeCMStateLabelsU3ST::Str() const
+  {
+
+    return fmt::format(
+        "[[{} {}]{} {} {}]",
+        eta_r(),eta_cm(),x().Str(),S(),T()
+      );
+  }
+
   std::string TwoBodyStateLabelsU3ST::Str() const
   {
 
@@ -40,6 +49,17 @@ namespace u3shell {
       );
   }
 
+  std::string RelativeIndexedTensorLabelsU3ST::Str() const
+  {
+
+    return fmt::format(
+        "{}:{} {}",
+        OperatorLabelsU3ST::Str(),
+        kappa0(),L0()
+      );
+  }
+
+
   std::string RelativeUnitTensorLabelsU3ST::Str() const
   {
 
@@ -50,6 +70,16 @@ namespace u3shell {
       );
   }
  
+  std::string RelativeCMUnitTensorLabelsU3ST::Str() const
+  {
+
+    return fmt::format(
+        "Unit{}{}({},{})",
+        OperatorLabelsU3ST::Str(),rho0(),
+        bra().Str(),ket().Str()
+      );
+  }
+
   std::string TwoBodyUnitTensorLabelsU3ST::Str() const
   {
 

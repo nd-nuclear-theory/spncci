@@ -12,6 +12,7 @@
 #include "cppformat/format.h"
 
 #include "am/halfint.h"
+#include "am/wigner_gsl.h"
 #include "utilities/utilities.h"
 #include "utilities/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
@@ -454,8 +455,55 @@ void caching_W_test()
 
 
 
+double 
+UTest(
+  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
+  const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
+  )
+{
+  double sum=0;
+  MultiplicityTagged<int>::vector L1_set=u3::BranchingSO3(x1);
+  MultiplicityTagged<int>::vector L2_set=u3::BranchingSO3(x2);
+  MultiplicityTagged<int>::vector L3_set=u3::BranchingSO3(x3);
+  MultiplicityTagged<int>::vector L12_set=u3::BranchingSO3(x12);
+  MultiplicityTagged<int>::vector L23_set=u3::BranchingSO3(x23);
+  MultiplicityTagged<int>::vector L_set=u3::BranchingSO3(x);
+  for(int i1=0; i1<L1_set.size(); ++i1)
+    for(int i2=0; i2<L2_set.size(); ++i2)
+      for(int i3=0; i3<L3_set.size(); ++i3)
+        for(int i12=0; i12<L12_set.size(); ++i12)
+          for(int i23=0; i23<L23_set.size(); ++i23)
+            // for(int i=0; i<L_set.size(); ++i)
+              {
+                int L1=L1_set[i1].irrep;
+                int kappa1_max=L1_set[i1].tag;
+                int L2=L2_set[i2].irrep;
+                int kappa2_max=L2_set[i2].tag;
+                int L3=L3_set[i3].irrep;
+                int kappa3_max=L3_set[i3].tag;
+                int L12=L12_set[i12].irrep;
+                int kappa12_max=L12_set[i12].tag;
+                int L23=L23_set[i23].irrep;
+                int kappa23_max=L23_set[i23].tag;
+                int L=L_set[0].irrep;
+                for(int kappa1=1; kappa1<=kappa1_max; ++kappa1)
+                  for(int kappa2=1; kappa2<=kappa2_max; ++kappa2)
+                    for(int kappa3=1; kappa3<=kappa3_max; ++kappa3)
+                      for(int kappa12=1; kappa12<=kappa12_max; ++kappa12)
+                        for(int kappa23=1; kappa23<=kappa23_max; ++kappa23)
+                            {
+                              sum
+                              +=u3::W(x1,kappa1,L1,x2,kappa2,L2,x12,kappa12,L12,r12)
+                              *u3::W(x12, kappa12,L12,x3,kappa3,L3,x,1,L,r12_3)
+                              *u3::W(x2,kappa2,L2,x3,kappa3,L3,x23,kappa23,L23,r23)
+                              *u3::W(x1,kappa1,L1,x23,kappa23,L23,x,1,L,r1_23)
+                              *am::Unitary6J(L1,L2,L12,L3,L,L23);
+                            }
 
 
+              }
+  return sum;
+}
 
 
 
@@ -463,6 +511,18 @@ int main(int argc, char **argv)
 {
   // initialize su3lib
   u3::U3CoefInit();
+
+  // U coefficient test--comparison with escher formula for U in terms of SU(3)\supset SO(3) coupling coefficients
+  u3::SU3 x1(2,2);
+  u3::SU3 x2(2,0);
+  u3::SU3 x(2,1);
+  u3::SU3 x3(2,0);
+  u3::SU3 x12(2,0); 
+  u3::SU3 x23(0,2);
+  std::cout<<u3::U(x1, x2, x,x3,x12, 1,1,x23,1,1)<<std::endl; 
+  std::cout<<UTest(x1, x2, x,x3,x12, 1,1,x23,1,1)<<std::endl;
+  
+
 
   // W coefficient test--comparison with prototype
   // u3::SU3 x1(8,5);
@@ -535,89 +595,89 @@ int main(int argc, char **argv)
   //               }
   //             }
   //       }
-  int Nmax=3;
-  for(int lambda1=2; lambda1<=2; ++lambda1)
-    for(int mu1=2; mu1<=2; ++mu1)
-      for(int lambda2=0; lambda2<=0; ++lambda2) //For comparison
-        for(int mu2=0; mu2<=0; ++mu2)
-          for(int lambda3=2; lambda3<=2; ++lambda3)
-            for(int mu3=0; mu3<=0; ++mu3)
-              for(int lambda4=0; lambda4<=Nmax; ++lambda4) //restrict to case when coef=1
-                for(int mu4=0; mu4<=0; ++mu4)
-                  {
-                    u3::SU3 x1(lambda1,mu1), x2(lambda2,mu2), x3(lambda3,mu3), x4(lambda4,mu4);
-                    MultiplicityTagged<u3::SU3>::vector x12_set=u3::KroneckerProduct(x1,x2);
-                    MultiplicityTagged<u3::SU3>::vector x34_set=u3::KroneckerProduct(x3,x4);
-                    MultiplicityTagged<u3::SU3>::vector x13_set=u3::KroneckerProduct(x1,x3);
-                    MultiplicityTagged<u3::SU3>::vector x24_set=u3::KroneckerProduct(x2,x4);
-                    for (auto a12 : x12_set)
-                      for(auto a34 : x34_set)
-                        for(auto a13: x13_set)
-                          for(auto a24: x24_set)
-                            {
-                              if (a13.irrep.mu()!=0)
-                                continue;
-                              u3::SU3 x12(a12.irrep), x34(a34.irrep), x13(a13.irrep), x24(a24.irrep);
-                              int rho12_max(a12.tag), rho34_max(a34.tag), rho13_max(a13.tag), rho24_max(a24.tag);
-                              MultiplicityTagged<u3::SU3>::vector x_set=u3::KroneckerProduct(x12,x34);
-                              for(auto a: x_set)
-                                {
-                                  u3::SU3 x(a.irrep);
-                                  int rho12_34_max=a.tag;
-                                  int rho13_24_max=u3::OuterMultiplicity(x13,x24,x);
-                                  for(int rho13_24=1; rho13_24<=rho13_24_max; ++rho13_24)
-                                    for(int rho12_34=1; rho12_34<=rho12_34_max; ++rho12_34)
-                                      for(int rho12=1; rho12<=rho12_max; ++rho12)
-                                        for(int rho34=1; rho34<=rho34_max; ++rho34)
-                                          for(int rho13=1; rho13<=rho13_max; ++rho13)
-                                            for(int rho24=1; rho24<=rho24_max; ++rho24)
-                                              {
-                                                std::cout
-                                                <<
-                                                u3::Unitary9LambdaMu(
-                                                  x1,    x2,    x12,    rho12,
-                                                  x3,    x4,    x34,    rho34,
-                                                  x13,   x24,   x,      rho13_24,
-                                                  rho13, rho24, rho12_34
-                                                  )
-                                                <<"  "<<fmt::format("{} {} {} {}; {} {} {}; {} {} {},  {}",
-                                                x1.Str(),x3.Str(),x.Str(),x4.Str(),x13.Str(),rho13,1,x34.Str(),rho34,1,  
-                                                u3::U(x1,x3,x,x4,x13,rho13,1,x34,rho34,1))
-                                                <<std::endl;
-                                              }                            
-                                }
-                            }
-                  }
+  // int Nmax=3;
+  // for(int lambda1=2; lambda1<=2; ++lambda1)
+  //   for(int mu1=2; mu1<=2; ++mu1)
+  //     for(int lambda2=0; lambda2<=0; ++lambda2) //For comparison
+  //       for(int mu2=0; mu2<=0; ++mu2)
+  //         for(int lambda3=2; lambda3<=2; ++lambda3)
+  //           for(int mu3=0; mu3<=0; ++mu3)
+  //             for(int lambda4=0; lambda4<=Nmax; ++lambda4) //restrict to case when coef=1
+  //               for(int mu4=0; mu4<=0; ++mu4)
+  //                 {
+  //                   u3::SU3 x1(lambda1,mu1), x2(lambda2,mu2), x3(lambda3,mu3), x4(lambda4,mu4);
+  //                   MultiplicityTagged<u3::SU3>::vector x12_set=u3::KroneckerProduct(x1,x2);
+  //                   MultiplicityTagged<u3::SU3>::vector x34_set=u3::KroneckerProduct(x3,x4);
+  //                   MultiplicityTagged<u3::SU3>::vector x13_set=u3::KroneckerProduct(x1,x3);
+  //                   MultiplicityTagged<u3::SU3>::vector x24_set=u3::KroneckerProduct(x2,x4);
+  //                   for (auto a12 : x12_set)
+  //                     for(auto a34 : x34_set)
+  //                       for(auto a13: x13_set)
+  //                         for(auto a24: x24_set)
+  //                           {
+  //                             if (a13.irrep.mu()!=0)
+  //                               continue;
+  //                             u3::SU3 x12(a12.irrep), x34(a34.irrep), x13(a13.irrep), x24(a24.irrep);
+  //                             int rho12_max(a12.tag), rho34_max(a34.tag), rho13_max(a13.tag), rho24_max(a24.tag);
+  //                             MultiplicityTagged<u3::SU3>::vector x_set=u3::KroneckerProduct(x12,x34);
+  //                             for(auto a: x_set)
+  //                               {
+  //                                 u3::SU3 x(a.irrep);
+  //                                 int rho12_34_max=a.tag;
+  //                                 int rho13_24_max=u3::OuterMultiplicity(x13,x24,x);
+  //                                 for(int rho13_24=1; rho13_24<=rho13_24_max; ++rho13_24)
+  //                                   for(int rho12_34=1; rho12_34<=rho12_34_max; ++rho12_34)
+  //                                     for(int rho12=1; rho12<=rho12_max; ++rho12)
+  //                                       for(int rho34=1; rho34<=rho34_max; ++rho34)
+  //                                         for(int rho13=1; rho13<=rho13_max; ++rho13)
+  //                                           for(int rho24=1; rho24<=rho24_max; ++rho24)
+  //                                             {
+  //                                               std::cout
+  //                                               <<
+  //                                               u3::Unitary9LambdaMu(
+  //                                                 x1,    x2,    x12,    rho12,
+  //                                                 x3,    x4,    x34,    rho34,
+  //                                                 x13,   x24,   x,      rho13_24,
+  //                                                 rho13, rho24, rho12_34
+  //                                                 )
+  //                                               <<"  "<<fmt::format("{} {} {} {}; {} {} {}; {} {} {},  {}",
+  //                                               x1.Str(),x3.Str(),x.Str(),x4.Str(),x13.Str(),rho13,1,x34.Str(),rho34,1,  
+  //                                               u3::U(x1,x3,x,x4,x13,rho13,1,x34,rho34,1))
+  //                                               <<std::endl;
+  //                                             }                            
+  //                               }
+  //                           }
+  //                 }
 
-  // u3::SU3 x1(9,3);
-  // u3::SU3 x2(1,2);
-  // u3::SU3 x12(8,3);
-  // u3::SU3 x3(2,1);
-  // u3::SU3 x23(2,2);
-  // u3::SU3 x(8,2);
+  // // u3::SU3 x1(9,3);
+  // // u3::SU3 x2(1,2);
+  // // u3::SU3 x12(8,3);
+  // // u3::SU3 x3(2,1);
+  // // u3::SU3 x23(2,2);
+  // // u3::SU3 x(8,2);
 
-  u3::SU3 x1(2,2);
-  u3::SU3 x2(2,0);
-  u3::SU3 x12(2,0);
-  u3::SU3 x3(1,0);
-  u3::SU3 x23(3,0);
-  u3::SU3 x(1,1);
+  // u3::SU3 x1(2,2);
+  // u3::SU3 x2(2,0);
+  // u3::SU3 x12(2,0);
+  // u3::SU3 x3(1,0);
+  // u3::SU3 x23(3,0);
+  // u3::SU3 x(1,1);
 
-  // block access
-  std::cout << "U block test" << std::endl;
-  u3::UCoefLabels labels(x1, x2, x, x3, x12, x23);
-  u3::UCoefBlock block(labels);
-  int r12_max, r12_3_max, r23_max, r1_23_max;
-  std::tie(r12_max, r12_3_max, r23_max, r1_23_max) = block.Key();
-  std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
-  for(int r12=1; r12<=r12_max; ++r12)
-    for(int r12_3=1; r12_3<=r12_3_max; ++r12_3)
-      for(int r23=1; r23<=r23_max; ++r23)
-        for(int r1_23=1; r1_23<=r1_23_max; ++r1_23)
-          std::cout << fmt::format("{} {} {} {}   {}  {}", r12, r12_3,r23, r1_23,block.GetCoef(r12,r12_3,r23,r1_23),
-            u3::U(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23)
-            ) << std::endl;
-          std::cout << std::endl;
+  // // block access
+  // std::cout << "U block test" << std::endl;
+  // u3::UCoefLabels labels(x1, x2, x, x3, x12, x23);
+  // u3::UCoefBlock block(labels);
+  // int r12_max, r12_3_max, r23_max, r1_23_max;
+  // std::tie(r12_max, r12_3_max, r23_max, r1_23_max) = block.Key();
+  // std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
+  // for(int r12=1; r12<=r12_max; ++r12)
+  //   for(int r12_3=1; r12_3<=r12_3_max; ++r12_3)
+  //     for(int r23=1; r23<=r23_max; ++r23)
+  //       for(int r1_23=1; r1_23<=r1_23_max; ++r1_23)
+  //         std::cout << fmt::format("{} {} {} {}   {}  {}", r12, r12_3,r23, r1_23,block.GetCoef(r12,r12_3,r23,r1_23),
+  //           u3::U(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23)
+  //           ) << std::endl;
+  //         std::cout << std::endl;
 
 
 }

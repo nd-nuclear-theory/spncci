@@ -44,20 +44,19 @@ namespace u3shell
         // For now we assume T==Tp for all operators.  If this is not the case, then need to change
         // symmetry relations 
         assert(T==Tp);
-        if((T0<abs(T-Tp))||(T0>(T+Tp)))
-          continue;
+        // if((T0<abs(T-Tp))||(T0>(T+Tp)))
+        //   continue;
         bool diagonal_sector=(bra_lsjt==ket_lsjt);
         if(diagonal_sector)
           {
             int nmax=sector.cols()-1;
             for(int n=0; n<=nmax; ++n)
-              for(int np=1; np<n; ++np)
+              for(int np=0; np<n; ++np)
                 {
                   double rme=sector(np,n);
                   sector(n,np)=rme;
                 }
           }
-
         for (int S0=0; S0<=2; ++S0)  
           for (int L0=abs(S0-J0); L0<=(S0+J0); ++L0)
             {
@@ -92,30 +91,30 @@ namespace u3shell
             }
       }
     // std::cout<<"zero out"<<std::endl;
-    std::vector<RelativeSectorNLST> remove_list;
-    for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end();++it)
-      {
-        int del=1;
-        Eigen::MatrixXd& sector_out(it->second);
-        int num_cols=sector_out.cols();
-        int num_rows=sector_out.rows();
-        for (int i=0; i<num_rows; ++i)
-          for (int j=0; j<num_cols; ++j)
-            if(fabs(sector_out(i,j))<CUTOFF)
-              rme_nlst_map[it->first](i,j)=0.0;
-            else
-              del=0;
+    // std::vector<RelativeSectorNLST> remove_list;
+    // for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end();++it)
+    //   {
+    //     int del=1;
+    //     Eigen::MatrixXd& sector_out(it->second);
+    //     int num_cols=sector_out.cols();
+    //     int num_rows=sector_out.rows();
+    //     for (int i=0; i<num_rows; ++i)
+    //       for (int j=0; j<num_cols; ++j)
+    //         if(fabs(sector_out(i,j))<CUTOFF)
+    //           rme_nlst_map[it->first](i,j)=0.0;
+    //         else
+    //           del=0;
         
-        if(del==1)
-          remove_list.push_back(it->first);
-      }
-    for(int r=0; r<remove_list.size(); ++r)
-      rme_nlst_map.erase(remove_list[r]);
+    //     if(del==1)
+    //       remove_list.push_back(it->first);
+    //   }
+    // for(int r=0; r<remove_list.size(); ++r)
+    //   rme_nlst_map.erase(remove_list[r]);
   }
 
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
-    int J0, int g0, int T0, int Nmax,
+    int T0, int Nmax,
     RelativeRMEsU3ST& rme_map
     )
   {
@@ -127,10 +126,10 @@ namespace u3shell
         std::tie(L,S,T)=ket_nlst;
         std::tie(Lp,Sp,Tp)=bra_nlst;
         const Eigen::MatrixXd& sector(it->second);
-        // std::cout<<sector<<std::endl<<std::endl;
         int nmax=sector.cols()-1;
+        int npmax=sector.rows()-1;
 
-        for (int np=0; np<=nmax; ++np)
+        for (int np=0; np<=npmax; ++np)
           {
             int Np=2*np+Lp;
             if(Np>Nmax)
@@ -215,6 +214,7 @@ namespace u3shell
     int Sp,Tp,S,T,S0,T0;
     double rme;
     std::string line;
+
     while(std::getline(is,line))
     {
       std::istringstream(line)>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
@@ -238,6 +238,6 @@ namespace u3shell
   {
     std::map<RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
     u3shell::UpcouplingNLST(space,sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
-    u3shell::UpcouplingU3ST(rme_nlst_map,J0,g0,T0,Nmax,rme_map);
+    u3shell::UpcouplingU3ST(rme_nlst_map,T0,Nmax,rme_map);
   }
 }//end namespace

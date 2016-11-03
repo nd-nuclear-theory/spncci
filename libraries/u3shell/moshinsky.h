@@ -71,6 +71,18 @@ namespace u3shell
     std::string normalization="NAS"
   );
 
+  void
+  MoshinskyTransformUnitTensor(
+    const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
+    std::map<u3shell::RelativeCMUnitTensorLabelsU3ST,double>& unit_relative_cm_expansion,
+    u3shell::TwoBodySpaceU3ST& space,
+    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
+    std::string normalization="NAS"
+  );
+
+
+
+
 // Moshinsky Transform operator decomposed in terms of unit tensors to two-body nomralized anti-symmeterized space 
   
   void

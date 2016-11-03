@@ -65,7 +65,7 @@ namespace u3shell
   // 
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
-    int J0, int g0, int T0, int Nmax,
+    int T0, int Nmax,
     RelativeRMEsU3ST& rme_map
     );
 

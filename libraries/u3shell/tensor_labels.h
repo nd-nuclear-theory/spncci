@@ -131,6 +131,123 @@ namespace u3shell
   };
 
   ////////////////////////////////////////////////////////////////
+  // U3ST-scheme relative x CM state labels
+  ////////////////////////////////////////////////////////////////
+
+  class RelativeCMStateLabelsU3ST
+  // U(1)xSU(3)xSxT relative x CM state labels
+  //
+  // Stored labels:
+  //   eta_r (int) : relative quanta
+  //   eta_cm (int) : relative quanta
+  //   x (u3::SU3) : SU3 symmetry arising from (eta_r,0)x(eta_cm,0)
+  //   S (HalfInt) : spin (HalfInt for consistency, although value will always be integer)
+  //   T (HalfInt) : isospin (HalfInt for consistency, although value will always be integer)
+  //
+  // Note: The SU(3) label (eta,0) is *not* explicitly stored but is
+  // available through the accessor x().
+  //
+  // Note: The parity grade is *not* explicitly stored but is
+  // available through the accessor g().
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    public:
+
+    inline RelativeCMStateLabelsU3ST() 
+      : eta_r_(0),eta_cm_(0), S_(0), T_(0)
+      // Default constructor.
+      {}
+    
+    inline RelativeCMStateLabelsU3ST(int eta_r, int eta_cm, u3::SU3 x, HalfInt S, HalfInt T)
+      : eta_r_(eta_r), eta_cm_(eta_cm), x_(x), S_(S), T_(T)
+    // Construct from labels.
+    {}
+    
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    inline int eta_r() const
+    {
+      return eta_r_;
+    }
+
+    inline int eta_cm() const
+    {
+      return eta_cm_;
+    }
+
+    inline u3::SU3 x() const
+    {
+      return x_;
+    }
+
+    inline HalfInt S() const
+    {
+      return S_;
+    }
+
+    inline HalfInt T() const
+    {
+      return T_;
+    }
+
+    inline int N() const
+    {
+      return eta_cm_+eta_r_;
+    }
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<int,int,u3::SU3,HalfInt,HalfInt> KeyType;
+    // eta, S, T
+
+    inline KeyType Key() const
+    {
+      return KeyType(eta_r_,eta_cm_,x_,S_,T_);
+    }
+
+    inline friend bool operator == (const RelativeCMStateLabelsU3ST& x1, const RelativeCMStateLabelsU3ST& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+    
+    inline friend bool operator < (const RelativeCMStateLabelsU3ST& x1, const RelativeCMStateLabelsU3ST& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    inline friend std::size_t hash_value(const RelativeCMStateLabelsU3ST& v)
+    {
+      boost::hash<RelativeCMStateLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    private:
+    int eta_r_, eta_cm_;
+    u3::SU3 x_;
+    HalfInt S_, T_;
+  };
+  ////////
+
+
+
+  ////////////////////////////////////////////////////////////////
   // U3ST-scheme two-body state labels
   ////////////////////////////////////////////////////////////////
 
@@ -383,6 +500,110 @@ namespace u3shell
   //   Piecewise initialization x0_(x0), etc., is not recognized.
 
 
+  class RelativeIndexedTensorLabelsU3ST
+    : public OperatorLabelsU3ST
+  // U(1)xSU(3)xSxT relative tensor operators labels
+  //
+  // Stored labels:
+  //   (OperatorLabelsU3ST) : tensor operator labels (N0,x0,S0,T0,g0)
+  //   index labels of operator : kappa0, L0
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    public:
+
+    inline RelativeIndexedTensorLabelsU3ST() 
+    // RelativeTensorLabelsU3STTagged
+    // Default constructor.
+    : kappa0_(0), L0_(0)
+    {}
+
+    inline RelativeIndexedTensorLabelsU3ST(int N0,
+        const u3::SU3& x0, HalfInt S0, HalfInt T0,
+        int kappa0, int L0
+      )
+      : OperatorLabelsU3ST(N0,x0,S0,T0,N0%2), kappa0_(kappa0), L0_(L0)
+    // Construct from labels, with operator labels set individually.
+    {}
+
+    inline RelativeIndexedTensorLabelsU3ST(
+        const u3shell::OperatorLabelsU3ST operator_labels,
+        int kappa0, int L0       
+      )
+      : OperatorLabelsU3ST(operator_labels), kappa0_(kappa0), L0_(L0)
+    // Construct from labels, with operator labels set collectively.
+    {}
+    
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    // Note: OperatorLabelsU3ST accessors N0(), ..., are inherited
+    inline int kappa0() const 
+    {
+      return kappa0_;
+    }
+
+    inline int L0() const
+    {
+      return L0_;
+    }
+    inline u3shell::OperatorLabelsU3ST operator_labels() const
+    {
+      return OperatorLabelsU3ST(N0(),x0(),S0(),T0(),g0());
+    }
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<OperatorLabelsU3ST::KeyType,int, int> KeyType;
+    // operator, bra, ket
+
+    inline KeyType Key() const
+    {
+      return KeyType(OperatorLabelsU3ST::Key(),kappa0(),L0());
+    }
+
+    typedef std::tuple<int,u3::SU3,HalfInt,HalfInt,int,int> FlatKeyType;
+    inline FlatKeyType FlatKey() const
+    {
+      return FlatKeyType(N0_,x0_,S0_,T0_,kappa0_,L0_);
+    }
+
+    inline friend bool operator == (const RelativeIndexedTensorLabelsU3ST& x1, const RelativeIndexedTensorLabelsU3ST& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+    
+    inline friend bool operator < (const RelativeIndexedTensorLabelsU3ST& x1, const RelativeIndexedTensorLabelsU3ST& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    inline friend std::size_t hash_value(const RelativeIndexedTensorLabelsU3ST& v)
+    {
+      boost::hash<RelativeIndexedTensorLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    private:
+      int kappa0_,L0_;
+  };
+
+
   class RelativeUnitTensorLabelsU3ST
     : public OperatorLabelsU3ST
   // U(1)xSU(3)xSxT relative unit tensor operators labels where unit tensor is defined by <bra|U|ket>=1
@@ -503,6 +724,147 @@ namespace u3shell
     private:
     RelativeStateLabelsU3ST bra_, ket_;
   };
+
+
+
+
+
+
+
+  class RelativeCMUnitTensorLabelsU3ST
+    : public OperatorLabelsU3ST
+  // U(1)xSU(3)xSxT relative unit tensor operators labels where unit tensor is defined by <bra|U|ket>=1
+  //
+  // Stored labels:
+  //   (OperatorLabelsU3ST) : tensor operator labels (N0,x0,S0,T0,g0)
+  //   bra, ket (RelativeStateLabelsU3ST) : bra and ket labels (eta,S,T)
+  //
+  // Note: Bra labels are always treated as ket-like, i.e., retrieving
+  // the bra's SU(3) labels will give ket-like labels.
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    public:
+
+    inline RelativeCMUnitTensorLabelsU3ST() 
+    // Default constructor.
+    : rho0_(0)
+    {}
+
+    inline RelativeCMUnitTensorLabelsU3ST(
+        const u3::SU3& x0, HalfInt S0, HalfInt T0,
+        int rho0,
+        const RelativeCMStateLabelsU3ST& bra,
+        const RelativeCMStateLabelsU3ST& ket
+      )
+      : bra_(bra), ket_(ket), rho0_(rho0)
+    // Construct from labels, with operator labels set individually.
+    //
+    // DEPRECATED -- as less cleanly "structured" form
+    //
+    // Redundant operator labels are set from the bra/ket labels.
+    {
+      N0_ = bra_.N() - ket_.N();
+      x0_= x0;
+      S0_ = S0;
+      T0_ = T0;
+      g0_ = N0_%2;
+    }
+
+    inline RelativeCMUnitTensorLabelsU3ST(
+        const u3shell::OperatorLabelsU3ST operator_labels,
+        int rho0,
+        const RelativeCMStateLabelsU3ST& bra,
+        const RelativeCMStateLabelsU3ST& ket
+      )
+      : OperatorLabelsU3ST(operator_labels), bra_(bra), ket_(ket), rho0_(rho0)
+    // Construct from labels, with operator labels set collectively.
+    //
+    // The redundant (additive) operator labels are verified against
+    // the bra/ket labels through assertions, but the triangularity of
+    // couplings is not verified.
+    {
+      assert(N0_ == bra_.N() - ket_.N());
+      // assert(g0_ == (bra_.g()+ket_.g())%2);  // equivalently, N0_%2
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    // Note: OperatorLabelsU3ST accessors N0(), ..., are inherited
+
+    inline const RelativeCMStateLabelsU3ST& bra() const
+    {
+      return bra_;
+    }
+
+    inline const RelativeCMStateLabelsU3ST& ket() const
+    {
+      return ket_;
+    }
+    inline int rho0() const
+    {
+      return rho0_;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<OperatorLabelsU3ST::KeyType,int,RelativeCMStateLabelsU3ST::KeyType,RelativeCMStateLabelsU3ST::KeyType> KeyType;
+    // operator, bra, ket
+
+    inline KeyType Key() const
+    {
+      return KeyType(OperatorLabelsU3ST::Key(),rho0(),bra().Key(),ket().Key());
+    }
+
+    // typedef std::tuple<u3::SU3,HalfInt,HalfInt,int,HalfInt,HalfInt,int,HalfInt,HalfInt> FlatKeyType;
+    // inline FlatKeyType FlatKey() const
+    // {
+    //   return FlatKeyType(x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T());
+    // }
+
+    inline friend bool operator == (const RelativeCMUnitTensorLabelsU3ST& x1, const RelativeCMUnitTensorLabelsU3ST& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+    
+    inline friend bool operator < (const RelativeCMUnitTensorLabelsU3ST& x1, const RelativeCMUnitTensorLabelsU3ST& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    inline friend std::size_t hash_value(const RelativeCMUnitTensorLabelsU3ST& v)
+    {
+      boost::hash<RelativeCMUnitTensorLabelsU3ST::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    private:
+    RelativeCMStateLabelsU3ST bra_, ket_;
+    int rho0_;
+  };
+
+
+
+
+
+
 
   ////////////////////////////////////////////////////////////////
   // U3ST-scheme two-body unit tensor operator labels
