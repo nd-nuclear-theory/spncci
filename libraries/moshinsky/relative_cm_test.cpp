@@ -474,7 +474,7 @@ int main(int argc, char **argv)
  		}
 
 	// For comparison with Mark
-  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/symmunit_Nmax04_rel.dat";
+  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/moshinsky/test/symmunit_Nmax04_rel.dat";
 
  	int T0_min=0, T0_max=0,  g0=0, T0=0;
  	std::ofstream os(interaction_file.c_str());
@@ -525,7 +525,7 @@ int main(int argc, char **argv)
 	CMBranchLSJT(Nmax,int(J0), rel_cm_lst_map,relative_cm_lsjt_map);
 
 	
-  std::string rel_cm_file="/Users/annamccoy/projects/spncci/libraries/u3shell/test/symmunit_Nmax04_rcmlsjt.dat";
+  std::string rel_cm_file="/Users/annamccoy/projects/spncci/libraries/moshinsky/test/symmunit_Nmax04_rcmlsjt.dat";
   std::ifstream is(rel_cm_file.c_str());
 
 	std::map<RelativeCMLSJTBraket,double> relative_cm_lsjt_map_2;
