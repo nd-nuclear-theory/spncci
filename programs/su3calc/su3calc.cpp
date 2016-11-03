@@ -40,6 +40,16 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
+void DoHelp()
+{
+  std::cout << "Syntax:" << std::endl;
+  std::cout << "  KroneckerProduct lambda1 mu1 lambda2 mu2" << std::endl;
+  std::cout << "  W lambda1 mu1 kappa1 L1 lambda2 mu2 kappa2 L2 lambda3 mu3 kappa3 L3 rho0" << std::endl;
+  std::cout << "  U lambda1 mu1 lambda2 mu2 lambda mu lambda3 mu3 lambda12 mu12 rho12 rho12_3 lambda23 mu23 rho23 rho1_23" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Enter \"help\" for this help message." << std::endl;
+  std::cout << "Enter \"exit\" to exit." << std::endl;
+}
 void DoKroneckerProduct(int lambda1, int mu1, int lambda2, int mu2)
 {
   // label
@@ -105,6 +115,13 @@ int main(int argc, char **argv)
   // initialize su3lib
   u3::U3CoefInit();
 
+  // initial output
+  std::cout << "su3calc" << std::endl;
+  std::cout << std::endl;
+  DoHelp();
+  std::cout << std::endl;
+
+
   // process user input lines
   std::string line;
   int line_count = 0;
@@ -120,19 +137,18 @@ int main(int argc, char **argv)
       std::string keyword;
       line_stream >> keyword;
 
-      // terminate on blank line
-      if (keyword=="")
+      // terminate on "exit"
+      if ((keyword=="exit") || (keyword=="bye") || (keyword==":q!"))
         break;
 
-      // skip hash comment line
-      if (keyword=="#")
+      // skip blank line or hash comment line
+      if ((keyword=="") || (keyword=="#"))
         continue;
 
       // select action based on keyword
       if (keyword=="help")
         {
-          std::cout << "KroneckerProduct lambda1 mu1 lambda2 mu2" << std::endl;
-          std::cout << "W lambda1 mu1 kappa1 L1 lambda2 mu2 kappa2 L2 lambda3 mu3 kappa3 L3 rho0" << std::endl;
+          DoHelp();
         }
       else if (keyword=="KroneckerProduct")
         {
