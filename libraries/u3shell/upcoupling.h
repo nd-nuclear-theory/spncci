@@ -12,6 +12,7 @@
 #include "eigen3/Eigen/Eigen" 
 #include "basis/lsjt_scheme.h"
 #include "u3shell/relative_operator.h"
+#include "sp3rlib/u3coef.h"
 namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
@@ -66,16 +67,41 @@ namespace u3shell
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
     int T0, int Nmax,
+    u3::WCoefCache& w_cache,
     RelativeRMEsU3ST& rme_map
     );
+
+  // If no cache is passed as an arguemnt, creates cache for use in calculations
+  inline void UpcouplingU3ST(
+    std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
+    int T0, int Nmax,
+    RelativeRMEsU3ST& rme_map
+    )
+    {
+      u3::WCoefCache w_cache;
+      UpcouplingU3ST(rme_nlst_map,T0, Nmax,w_cache,rme_map);
+    }
 
   void Upcoupling(    
     const basis::RelativeSpaceLSJT& space,
     const basis::RelativeSectorsLSJT& sectors,
     const std::vector<Eigen::MatrixXd>& sector_vector, 
+    u3::WCoefCache& w_cache,
     int J0, int g0, int T0,int Nmax,
     RelativeRMEsU3ST& rme_map
     );
+
+  inline void Upcoupling(    
+    const basis::RelativeSpaceLSJT& space,
+    const basis::RelativeSectorsLSJT& sectors,
+    const std::vector<Eigen::MatrixXd>& sector_vector, 
+    int J0, int g0, int T0,int Nmax,
+    RelativeRMEsU3ST& rme_map
+    )
+  {
+    u3::WCoefCache w_cache;
+    Upcoupling(space,sectors, sector_vector, w_cache,J0, g0, T0, Nmax,rme_map);
+  }
 
   void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes);  
   void ReadRelativeOperatorU3ST(std::istream& is, RelativeRMEsU3ST& relative_rmes);

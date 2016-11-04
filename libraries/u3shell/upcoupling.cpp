@@ -11,7 +11,6 @@
 #include "am/wigner_gsl.h"
 #include "cppformat/format.h"
 #include "sp3rlib/u3.h"
-#include "sp3rlib/u3coef.h"
 #include "u3shell/import_interaction.h" 
 #include "u3shell/tensor_labels.h"
 
@@ -115,6 +114,7 @@ namespace u3shell
   void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
     int T0, int Nmax,
+    u3::WCoefCache& w_cache,
     RelativeRMEsU3ST& rme_map
     )
   {
@@ -159,7 +159,7 @@ namespace u3shell
                     int kappa0_max=u3::BranchingMultiplicitySO3(x0, L0);
                     for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
                       {
-                        double u3_coef=u3::W(ket.x(), 1,L, x0, kappa0, L0, bra.x(),1,Lp,1)
+                        double u3_coef=u3::WCached(w_cache,ket.x(), 1,L, x0, kappa0, L0, bra.x(),1,Lp,1)
                                       *u3::dim(x0)*(2.*Lp+1)/(u3::dim(bra.x())*(2.*L0+1));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(operator_labels,kappa0,L0);
                         rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
@@ -231,13 +231,14 @@ namespace u3shell
   void Upcoupling(    
     const basis::RelativeSpaceLSJT& space,
     const basis::RelativeSectorsLSJT& sectors,
-    const std::vector<Eigen::MatrixXd>& sector_vector, 
+    const std::vector<Eigen::MatrixXd>& sector_vector,
+    u3::WCoefCache& w_cache, 
     int J0, int g0, int T0,int Nmax,
     RelativeRMEsU3ST& rme_map
     )
   {
     std::map<RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
     u3shell::UpcouplingNLST(space,sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
-    u3shell::UpcouplingU3ST(rme_nlst_map,T0,Nmax,rme_map);
+    u3shell::UpcouplingU3ST(rme_nlst_map,T0,Nmax,w_cache,rme_map);
   }
 }//end namespace

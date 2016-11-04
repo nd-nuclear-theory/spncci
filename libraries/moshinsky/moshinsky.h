@@ -10,7 +10,7 @@
   3/8/16 (aem,mac): Add U3ST structure and rename U3S structure.
   3/9/16 (aem,mac): Add KeyType typedefs.  Extract MultiplicityTagged.
   5/11/16 (aem,mac): Move to u3shell namespace.
-
+  11/4/16 (aem): Factored out
 ****************************************************************/
 
 #ifndef MOSHINSKY_H_
@@ -25,16 +25,10 @@
 
 namespace u3shell
 {
-  // double MoshinskyCoefficient(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& xr,const u3::SU3& xc,const u3::SU3& x);
-  // SU(3) Moshinsky Coefficient which is equivalent to a Wigner little d function evaluated at pi/2
-
-  // double MoshinskyCoefficient(const u3::U3& w1, const u3::U3& w2, const u3::U3& wr,const u3::U3& wc,const u3::U3& w);
-  //Overleading for U3 arguements 
-
   double 
   MoshinskyCoefficient(int r, int R, int r1, int r2, const u3::SU3& x);
-  //Overloading Moshinsky to take integer arguements for two-body and relative-center of mass arguments
-  // and SU(3) total symmetry (lambda,mu)
+  //Computes and returns the SU(3) moshinsky transformation
+
 
   inline double 
   MoshinskyCoefficient(int r, int R, int r1, int r2, const u3::U3& w)
@@ -46,21 +40,30 @@ namespace u3shell
 
   Eigen::MatrixXd 
   MoshinskyTransform(
-    const u3::SU3& x0, 
-    int etap,
-    int eta,
+    const u3::SU3& x0, int etap,int eta,
     const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
     const u3shell::TwoBodySubspaceU3ST& ket_subspace, 
     int rho0,
     std::string normalization="NAS"
   );
-
-  // u3shell::TwoBodyUnitTensorCoefficientsU3ST 
-  // MoshinskyTransformUnitTensor(const u3shell::RelativeUnitTensorLabelsU3ST& tensor, u3shell::TwoBodySpaceU3ST& space);
-  // // Moshinsky transform of relative unit tensor operator to twobody space and anti-symmeterizes 
- 
-  // The transformed coefficients are stored in the two_body_expansion container which is a 
-  // std::map<u3shell::TwoBodyUnitTensorLabelsU3ST,double>
+  // Generate the moshinsky transformation of unit matrix element of relative_cm unit tensor 
+  // with SU(3) character x0 and relative oscillator quanta etap and eta. Returns transformed
+  // matrix elements as a matrix.
+  //
+  // The cm oscillator quanta is fixed by conservation of oscillator quanta.  Each two-body
+  // subspace has fixed total number of oscillator quanta.  
+  //
+  // Arguments:
+  //  x0 (input) : SU(3) character of unit tensor
+  //  etap (input) : number of relative oscillator quanta in bra source  subspace
+  //  eta (input) : number of relative ocillator quanta in ket source subspace
+  //  bra_subspace (input) : bra target subspace
+  //  ket_subspace (input) : ket target subspace
+  //  rho0 (input) : indexing outermultiplicity of coupling of SU(3) character of 
+  //        ket_subspace and x0 to SU(3) character of bra_subspace 
+  //  normalization (optional input) : if "NAS" then target RME's are normalized  
+  //        anti-symmetrized, if "AS" then target RME's and anti-symmetrized but 
+  //        not normalized.  Default is "NAS"   
 
   void 
   MoshinskyTransformUnitTensor(
@@ -70,21 +73,51 @@ namespace u3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
     std::string normalization="NAS"
   );
+  // Generates expansion  of a relative unit tensor (tensor) in terms of two-body unit
+  // tensors and stores them in two_body_expansion. 
+  //
+  // The transformation from relative to relative-cm basis is carried out internally at 
+  // at U(3) level. 
+  //
+  // Arguments:
+  //  tensor (input) : tensorial properties of relative unit tensor
+  //  expansion_coef (input) : coefficient by which the relative unit tensor is multiplied. 
+  //                           If considering a single unit tensor, expansion_coef=1.0;
+  //  space (input) : source space
+  //  two_body_expansion (output) : Container for expansion coefficients and corresponding
+  //                                two-body unit tensor labels. 
+  //  normalization (optional input) : if "NAS" then target RME's are normalized  
+  //        anti-symmetrized, if "AS" then target RME's and anti-symmetrized but 
+  //        not normalized.  Default is "NAS"
 
   void
   MoshinskyTransformUnitTensor(
     const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
-    std::map<u3shell::RelativeCMUnitTensorLabelsU3ST,double>& unit_relative_cm_expansion,
+    RelativeCMUnitTensorCache& unit_relative_cm_expansion,
     u3shell::TwoBodySpaceU3ST& space,
     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
     std::string normalization="NAS"
   );
+  // Generates expansion  of a relative unit tensor (tensor) in terms of two-body unit
+  // tensors and stores them in two_body_expansion. 
+  // 
+  //
+  // Arguments:
+  //  tensor (input) : tensorial properties of relative unit tensor
+  //  unit_relative_cm_expansion (input): expansion of relative unit tensor in terms of 
+  //       relative-cm unit tensors.  Can be obained using 
+  //       u3shell::RelativeUnitTensorToRelativeCMUnitTensorU3ST() in relative_cm_xform.h
+  //  expansion_coef (input) : coefficient by which the relative unit tensor is multiplied. 
+  //       If considering a single unit tensor, expansion_coef=1.0;
+  //  space (input) : source space
+  //  two_body_expansion (output) : Container for expansion coefficients and corresponding
+  //       two-body unit tensor labels. 
+  //  normalization (optional input) : if "NAS" then target RME's are normalized  
+  //        anti-symmetrized, if "AS" then target RME's and anti-symmetrized but 
+  //        not normalized.  Default is "NAS"
 
 
 
-
-// Moshinsky Transform operator decomposed in terms of unit tensors to two-body nomralized anti-symmeterized space 
-  
   void
   TransformRelativeTensorToTwobodyTensor(
     const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, 
@@ -92,7 +125,12 @@ namespace u3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_expansion, 
     std::string normalization="NAS"
   );
-  
+  // Moshinsky Transform operator decomposed in terms of unit tensors to 
+  // two-body nomralized anti-symmeterized space 
+  // 
+  //  normalization (optional input) : if "NAS" then target RME's are normalized  
+  //        anti-symmetrized, if "AS" then target RME's and anti-symmetrized but 
+  //        not normalized.  Default is "NAS"
 } //namespace
 
 #endif 

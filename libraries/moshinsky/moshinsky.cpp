@@ -15,27 +15,7 @@
 
 namespace u3shell
 {
-  // double WignerLittleD(const HalfInt& J, const HalfInt& Mp, const HalfInt& M)
-  //   {
-  //     double moshinsky_coef=0;
-  //     int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
-  //     for(int K=0; K<=Kmax; K++)
-  //     {
-  //       moshinsky_coef=moshinsky_coef+ParitySign(K)*Choose(int(J+M),K)*Choose(int(J-M),int(K+Mp-M));
-  //     }
-  //     //note factor of sqrt(2^{2J}) since pow requires integer argument
-      
-  //     moshinsky_coef
-  //       =moshinsky_coef
-  //         *(ParitySign(Mp-M)
-  //         *sqrt(Factorial(int(J+Mp))*Factorial(int(J-Mp))
-  //              /(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
-  //             ));
-  //     return moshinsky_coef;
-  // }
-
-
-   double WignerLittleD(const HalfInt& J, const HalfInt& Mp, const HalfInt& M)
+  double WignerLittleD(const HalfInt& J, const HalfInt& Mp, const HalfInt& M)
   {
     double moshinsky_coef=0;
     int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
@@ -71,29 +51,28 @@ namespace u3shell
     return MoshinskyCoefficient(w1.SU3().lambda(), w2.SU3().lambda(), wr.SU3().lambda(), wc.SU3().lambda(), w.SU3());
   }
 
-  Eigen::MatrixXd MoshinskyTransform(
-        const u3::SU3& x0, 
-        int etap,
-        int eta,
+  Eigen::MatrixXd 
+  MoshinskyTransform(
+        const u3::SU3& x0, int etap, int eta,
         const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
         const u3shell::TwoBodySubspaceU3ST& ket_subspace, 
         int rho0,
         std::string normalization
       )
   {
+    assert((normalization=="NAS")||(normalization=="AS"));
     HalfInt Sp=bra_subspace.S();
     HalfInt Tp=bra_subspace.T();
     u3::U3 omegap(bra_subspace.omega());
-    //u3::U3 omegap(sector_labels.bra_subspace().omega());
     int Np=int(omegap.N());
     u3::SU3 xp(omegap.SU3());
 
     HalfInt S=ket_subspace.S();
     HalfInt T=ket_subspace.T();
     u3::U3 omega(ket_subspace.omega());
-    int N=int(omega.N()); //for Two-body state, N must be int. A/2=2/2
+    //for Two-body state, N must be int. A/2=2/2
+    int N=int(omega.N()); 
     u3::SU3 x(omega.SU3());
-
 
     // dimension of the subspaces 
     int dimb=bra_subspace.size();
@@ -117,15 +96,11 @@ namespace u3shell
       )
     {
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
       // // set up two-body sector for given operator,(omegap,Sp,Tp),(omega,S,T), rho0
       // Eigen::MatrixXd sector(dimk,dimb); 
       Eigen::MatrixXd bra_moshinky_12(dimb,1);
       Eigen::MatrixXd ket_moshinky_12(1,dimk);
 
-      //ucoefficient from factoring out center of mass 
-      // double relative_coef=u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0);
-      double relative_coef=1; //REMOVE Moving multiplication to later for testing purposes
       // iterate over bra subspace
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       for (int bra_state_index=0; bra_state_index<dimb; ++bra_state_index)
@@ -164,7 +139,7 @@ namespace u3shell
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // summing sector terms over Ncm and antisymmeterizing
       sector=(
-        2*relative_coef*(bra_moshinky_12*ket_moshinky_12)
+        2*(bra_moshinky_12*ket_moshinky_12)
         );
     }
     return sector;
@@ -212,8 +187,6 @@ MoshinskyTransformTensor(
 
             double rme=coef*sector(i,j);      
             TwoBodyUnitTensorLabelsU3ST tboperator(operator_labels,rho0,bra,ket);
-            // TwoBodyUnitTensorLabelsU3ST tboperator(etap-eta,x0,S0,T0,rho0,bra,ket);
-
             two_body_expansion[tboperator]+=rme;                
            }
         }
@@ -229,11 +202,7 @@ MoshinskyTransformTensor(
           auto key=delete_list[i];
           two_body_expansion.erase(key);
         }
-
 }
-
-
-
 
   void 
   MoshinskyTransformUnitTensor(
@@ -291,26 +260,25 @@ MoshinskyTransformTensor(
         ||(u3::OuterMultiplicity(u3::SU3(etap,0),u3::SU3(eta_cm,0),xp)==0)
         )
         continue;
-      
+
       // Adding in center of mass
       double cm_coef=u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0);
       ///////////////////////////////////////////////////////////////////////////////////////
-      
       MoshinskyTransformTensor(operator_labels,etap, eta, bra_subspace, ket_subspace, rho0, 
         normalization, expansion_coef*cm_coef,two_body_expansion);
-
     }
   }
 
-/// Working on
+
 void 
   MoshinskyTransformUnitTensor(
     const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
-    std::map<u3shell::RelativeCMUnitTensorLabelsU3ST,double>& unit_relative_cm_expansion,
+    u3shell::RelativeCMUnitTensorCache& unit_relative_cm_expansion,
     u3shell::TwoBodySpaceU3ST& space,
     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
     std::string normalization
   )
+
   {
     //extract operator labels 
     int etap=tensor.bra().eta();
@@ -324,7 +292,6 @@ void
     HalfInt T0(tensor.T0());
 
     u3shell::OperatorLabelsU3ST operator_labels(etap-eta,x0,tensor.S0(), tensor.T0(), tensor.g0());
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sectors are generated subject to the constraints that 
     // omega.N()+N0=omegap.N()
@@ -332,14 +299,13 @@ void
     // S x S0 ->Sp
     // T x T0 ->Tp
     u3shell::TwoBodySectorsU3ST sector_labels_list(space,tensor);
-    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Iterate over two-body sectors
+    // For each two-body sector, moshinsky transform the relative-cm matrix element
+    // and accumulate values in container two_body_expansion.
     for (int sector_index=0; sector_index<sector_labels_list.size(); sector_index++)
     {
       // for a given sector, extract bra and ket subspace information
       auto sector_labels=sector_labels_list.GetSector(sector_index);
-
       const u3shell::TwoBodySubspaceU3ST& bra_subspace(sector_labels.bra_subspace());
       const u3shell::TwoBodySubspaceU3ST& ket_subspace(sector_labels.ket_subspace());
       int rho0=sector_labels.multiplicity_index();
@@ -358,7 +324,6 @@ void
       u3shell::RelativeCMStateLabelsU3ST ket(eta,eta_cm,x,S,T);
       u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st(x0,S0,T0,rho0,bra,ket);
       
-
       if(unit_relative_cm_expansion.count(braket_u3st)==0)
         continue;
 
@@ -370,11 +335,8 @@ void
       
       MoshinskyTransformTensor(operator_labels,etap, eta, bra_subspace, ket_subspace, rho0, 
         normalization, rel_cm_coef,two_body_expansion);
-
     }
   }
-
-
 
 void TransformRelativeTensorToTwobodyTensor(
     const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, 

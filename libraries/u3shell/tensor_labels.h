@@ -18,6 +18,8 @@
 #ifndef TENSOR_LABELS_H_
 #define TENSOR_LABELS_H_
 
+#include <unordered_map>
+
 #include "sp3rlib/u3.h"
 
 namespace u3shell
@@ -860,10 +862,11 @@ namespace u3shell
     int rho0_;
   };
 
-
-
-
-
+  typedef std::unordered_map<
+            u3shell::RelativeCMUnitTensorLabelsU3ST,
+            double,
+            boost::hash<u3shell::RelativeCMUnitTensorLabelsU3ST>
+          > RelativeCMUnitTensorCache;
 
 
   ////////////////////////////////////////////////////////////////
