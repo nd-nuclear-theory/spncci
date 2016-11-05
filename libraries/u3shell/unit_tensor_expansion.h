@@ -19,6 +19,7 @@
 #include "u3shell/tensor_labels.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/two_body_operator.h"
+#include "moshinsky/moshinsky_xform.h"
 
 namespace u3shell
 {
@@ -26,10 +27,11 @@ namespace u3shell
 	void 
 	BrelRelativeUnitTensorExpansion(
 		int Nmin, int Nmax,
-		u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator,
+    u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator,
 		int A=2
 	);
-  
+  // kappa0 and L0 index labels are just dummy labels since we aren't branching
+
   void 
   NintrRelativeUnitTensorExpansion(
   	int Nmin, int Nmax,

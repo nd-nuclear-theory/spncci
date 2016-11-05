@@ -8,7 +8,7 @@
   						        transformation.
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
-#include "moshinsky/moshinsky.h"
+#include "moshinsky/moshinsky_xform.h"
 #include "u3shell/relative_operator.h"
 
 int main(int argc, char **argv)

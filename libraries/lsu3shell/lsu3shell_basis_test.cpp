@@ -14,7 +14,7 @@
 #include "sp3rlib/u3coef.h"
 #include "spncci/sp_basis.h"
 // #include "spncci/lgi_unit_tensor.h"
-#include "moshinsky/moshinsky.h"
+#include "moshinsky/moshinsky_xform.h"
 #include "u3shell/two_body_operator.h"
 #include "u3shell/unit_tensor_expansion.h"
 

@@ -17,18 +17,24 @@
 #include "u3shell/relative_operator.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/two_body_operator.h"
+#include "moshinsky/relative_cm_xform.h" 
 
 namespace lsu3shell
 {
+  void
+  GenerateLSU3ShellOperator(
+      int Nmax, 
+      const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
+      u3shell::RelativeCMExpansion& unit_relative_cm_map,
+      std::string filename
+    );
 
-  void GenerateLSU3ShellOperator(int Nmax, const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion, std::string filename);
-  //Generate input files for LSU3shell recoupler for a relative operator
-  // Nmax gives the truncation for the space on which the relative unit
-  // tensors expansion is defined
-  // relative_tensor_expansion is unit tensor expansion of operator
-  // operator_index gives index of operator file operator.00000index.recoupler
-
-  void GenerateLSU3ShellOperator(int Nmax, const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels);
+  void
+  GenerateLSU3ShellOperator(
+      int Nmax, 
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels,
+      u3shell::RelativeCMExpansion& unit_relative_cm_map
+    );
   // Generate input files for LSUshell recoupler for all relative unit tensors 
   // tensor's which may have non-zero matrix elements between  LGI's. 
 

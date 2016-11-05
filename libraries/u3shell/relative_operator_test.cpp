@@ -5,8 +5,8 @@
   University of Notre Dame
 
 ****************************************************************/
-
 #include <iostream>
+#include <vector>
 
 #include "cppformat/format.h"
 #include "sp3rlib/u3coef.h"
@@ -59,6 +59,25 @@ int main(int argc, char **argv)
 
   u3::U3CoefInit();
   test_relative();
+
+  int Nmax=2;
+  u3shell::RelativeSpaceU3ST space(Nmax);
+  std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> relative_unit_tensor_labels;
+
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST( space, relative_unit_tensor_labels);
+  for(auto it=relative_unit_tensor_labels.begin(); it!=relative_unit_tensor_labels.end(); ++it)
+    {
+      std::cout<<it->first<<std::endl;
+      std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_vec=it->second;
+      for(auto tensor : unit_vec)
+        std::cout<<tensor.Str()<<std::endl;
+    }
+
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+  std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
+  for(auto tensor : relative_unit_tensors)
+    std::cout<<tensor.Str()<<std::endl;
 
   u3shell::RelativeStateLabelsU3ST bra;
   u3shell::RelativeStateLabelsU3ST ket;

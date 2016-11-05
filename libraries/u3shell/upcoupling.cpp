@@ -8,10 +8,10 @@
 ****************************************************************/
 #include "u3shell/upcoupling.h"
 
-#include "am/wigner_gsl.h"
 #include "cppformat/format.h"
-#include "sp3rlib/u3.h"
-#include "u3shell/import_interaction.h" 
+
+#include "am/wigner_gsl.h"
+// #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
 double CUTOFF=10e-8;
@@ -170,6 +170,83 @@ namespace u3shell
       }
   }
 
+  // If no cache is passed as an arguemnt, creates cache for use in calculations
+  void UpcouplingU3ST(
+    std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
+    int T0, int Nmax,
+    RelativeRMEsU3ST& rme_map
+    )
+    {
+      u3::WCoefCache w_cache;
+      UpcouplingU3ST(rme_nlst_map,T0, Nmax,w_cache,rme_map);
+    }
+
+  void UpcoupleCMU3ST(
+    std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
+    u3::WCoefCache& w_cache,
+    RelativeCMUnitTensorCache& rel_cm_u3st_map
+    )
+  {
+    int Nrp,Lrp,Ncm,Lcm,Nr,Lr,Lp,L,L0;
+    HalfInt Sp,Tp,S,T,S0,T0;
+    RelativeCMStateLabelsNLST bra_cm,ket_cm;
+    for(auto it=rel_cm_lst_map.begin(); it!=rel_cm_lst_map.end(); ++it)
+      {
+        std::tie(L0,S0,T0,bra_cm,ket_cm)=it->first;
+        double rme=it->second;
+        std::tie(Nrp,Lrp,Ncm,Lcm,Lp,Sp,Tp)=bra_cm;
+        std::tie(Nr,Lr,Ncm,Lcm,L,S,T)=ket_cm;
+
+        MultiplicityTagged<u3::SU3>::vector  x_set=u3::KroneckerProduct(u3::SU3(Nr,0),u3::SU3(Ncm,0));
+        MultiplicityTagged<u3::SU3>::vector  xp_set=u3::KroneckerProduct(u3::SU3(Nrp,0),u3::SU3(Ncm,0));
+        for(int i=0; i<x_set.size(); ++i)
+          {
+            u3::SU3 x=x_set[i].irrep;
+            int kappa_max=u3::BranchingMultiplicitySO3(x,L);
+            for(int ip=0; ip<xp_set.size(); ++ip)
+              {
+                u3::SU3 xp=xp_set[ip].irrep;
+                MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(xp,u3::Conjugate(x));
+                int kappap_max=u3::BranchingMultiplicitySO3(xp,Lp); 
+                for(int kappa=1; kappa<=kappa_max; ++kappa)
+                  for(int kappap=1; kappap<=kappap_max; ++kappap)
+                    {
+                      for(int i0=0; i0<x0_set.size();  i0++)
+                        {
+                          u3::SU3 x0=x0_set[i0].irrep;
+                          int rho0_max=u3::OuterMultiplicity(x,x0,xp);
+                          int kappa0_max=u3::BranchingMultiplicitySO3(x0,L0);
+                          u3shell::RelativeCMStateLabelsU3ST bra(Nrp,Ncm,xp,Sp,Tp);
+                          u3shell::RelativeCMStateLabelsU3ST ket(Nr,Ncm,x,S,T);
+
+                          for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
+                            for(int rho0=1; rho0<=rho0_max; ++rho0)
+                                {
+                                  u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st(x0,S0,T0,rho0,bra,ket); 
+                                  rel_cm_u3st_map[braket_u3st]
+                                    +=am::dim(Lp)/u3::dim(xp)
+                                  //u3::dim(x0)*am::dim(Lp)/u3::dim(xp)/am::dim(L0)
+                                    *u3::WCached(w_cache,u3::SU3(Nrp,0),1,Lrp,u3::SU3(Ncm,0),1,Lcm,xp,kappap,Lp,1)
+                                    *u3::WCached(w_cache,u3::SU3(Nr,0),1,Lr,u3::SU3(Ncm,0),1,Lcm,x,kappa,L,1)
+                                    *u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
+                                    *rme;
+                                }
+                        }
+                    }
+              }
+          }
+      }
+  }
+
+  void UpcoupleCMU3ST(
+    std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
+    RelativeCMUnitTensorCache& rel_cm_u3st_map
+    )
+    {
+      u3::WCoefCache w_cache;
+      UpcoupleCMU3ST(rel_cm_lst_map, w_cache,rel_cm_u3st_map);
+    }
+
   void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes)
     {
       u3shell::RelativeUnitTensorLabelsU3ST labels;
@@ -241,4 +318,39 @@ namespace u3shell
     u3shell::UpcouplingNLST(space,sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
     u3shell::UpcouplingU3ST(rme_nlst_map,T0,Nmax,w_cache,rme_map);
   }
+
+  void Upcoupling(    
+    const basis::RelativeSpaceLSJT& space,
+    const basis::RelativeSectorsLSJT& sectors,
+    const std::vector<Eigen::MatrixXd>& sector_vector, 
+    int J0, int g0, int T0,int Nmax,
+    RelativeRMEsU3ST& rme_map
+    )
+  {
+    u3::WCoefCache w_cache;
+    Upcoupling(space,sectors, sector_vector, w_cache,J0, g0, T0, Nmax,rme_map);
+  }
+
+  void GetInteractionMatrix(
+    std::string interaction_file, 
+    basis::RelativeSpaceLSJT& relative_lsjt_space,
+    basis::RelativeSectorsLSJT& relative_lsjt_sectors,
+    basis::MatrixVector& sector_vector
+  )
+  {
+    basis::OperatorLabelsJT operator_labels;
+    std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
+    std::array<basis::MatrixVector,3> relative_component_matrices;
+    //Read interaction and store sector information in relative_component_sectors
+    // and matrix elements in relative_component_matrices
+    basis::ReadRelativeOperatorLSJT(
+      interaction_file,relative_lsjt_space,operator_labels,
+      relative_component_sectors,relative_component_matrices, true
+      );
+
+    // Extract out T0=0 sectors and matrix elements
+    sector_vector=relative_component_matrices[0];
+    relative_lsjt_sectors=relative_component_sectors[0];
+  }
+
 }//end namespace

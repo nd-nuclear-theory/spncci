@@ -18,9 +18,8 @@
 #include "u3shell/import_interaction.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/two_body_operator.h"
-#include "moshinsky/moshinsky.h"
+#include "moshinsky/moshinsky_xform.h"
 #include "u3shell/tensor_labels.h"
-#include "u3shell/upcoupling.h"
 #include "moshinsky/relative_cm_xform.h"
 
 namespace u3shell
@@ -57,13 +56,11 @@ namespace u3shell
       }
   }
 
-  typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt> RelativeCMStateLabelsNLST;
-  typedef std::tuple<int,HalfInt,HalfInt,RelativeCMStateLabelsNLST,RelativeCMStateLabelsNLST> RelativeCMBraketNLST;
 
   void RelativeToCMLST(
     int Nmax, 
     const std::map<RelativeBraketNLST,double>& branched_rel_unit_tensors,
-    std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map)
+    std::map<u3shell::RelativeCMBraketNLST,double>& rel_cm_lst_map)
   // Coupling on center of mass as SO(3) level
   {
     for(auto it=branched_rel_unit_tensors.begin(); it!=branched_rel_unit_tensors.end(); ++it)
@@ -82,73 +79,15 @@ namespace u3shell
             for(int Lp=abs(Lrp-Lcm); Lp<=(Lrp+Lcm); ++Lp)
               for(int L=abs(Lr-Lcm); L<=(Lr+Lcm); ++L)
                   {
-                    RelativeCMStateLabelsNLST bra_rel_cm(Np,Lrp,Ncm,Lcm,Lp,Sp,Tp);
-                    RelativeCMStateLabelsNLST ket_rel_cm(N,Lr,Ncm,Lcm,L,S,T);
-                    RelativeCMBraketNLST braket_rel_cm(L0,S0,T0,bra_rel_cm,ket_rel_cm);
+                    u3shell::RelativeCMStateLabelsNLST bra_rel_cm(Np,Lrp,Ncm,Lcm,Lp,Sp,Tp);
+                    u3shell::RelativeCMStateLabelsNLST ket_rel_cm(N,Lr,Ncm,Lcm,L,S,T);
+                    u3shell::RelativeCMBraketNLST braket_rel_cm(L0,S0,T0,bra_rel_cm,ket_rel_cm);
                     rel_cm_lst_map[braket_rel_cm]
                       =am::Unitary9J(L0,0,L0,Lr,Lcm,L,Lrp,Lcm,Lp)
                       *parity(Lr+Lrp+L+Lp)*rme_rel;
                   }
       }
   }
-
-  void UpcoupleCMU3ST(
-    std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
-    u3::WCoefCache& w_cache,
-    RelativeCMUnitTensorCache& rel_cm_u3st_map
-    )
-  {
-    int Nrp,Lrp,Ncm,Lcm,Nr,Lr,Lp,L,L0;
-    HalfInt Sp,Tp,S,T,S0,T0;
-    RelativeCMStateLabelsNLST bra_cm,ket_cm;
-    for(auto it=rel_cm_lst_map.begin(); it!=rel_cm_lst_map.end(); ++it)
-      {
-        std::tie(L0,S0,T0,bra_cm,ket_cm)=it->first;
-        double rme=it->second;
-        std::tie(Nrp,Lrp,Ncm,Lcm,Lp,Sp,Tp)=bra_cm;
-        std::tie(Nr,Lr,Ncm,Lcm,L,S,T)=ket_cm;
-
-        MultiplicityTagged<u3::SU3>::vector  x_set=u3::KroneckerProduct(u3::SU3(Nr,0),u3::SU3(Ncm,0));
-        MultiplicityTagged<u3::SU3>::vector  xp_set=u3::KroneckerProduct(u3::SU3(Nrp,0),u3::SU3(Ncm,0));
-        for(int i=0; i<x_set.size(); ++i)
-          {
-            u3::SU3 x=x_set[i].irrep;
-            int kappa_max=u3::BranchingMultiplicitySO3(x,L);
-            for(int ip=0; ip<xp_set.size(); ++ip)
-              {
-                u3::SU3 xp=xp_set[ip].irrep;
-                MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(xp,u3::Conjugate(x));
-                int kappap_max=u3::BranchingMultiplicitySO3(xp,Lp); 
-                for(int kappa=1; kappa<=kappa_max; ++kappa)
-                  for(int kappap=1; kappap<=kappap_max; ++kappap)
-                    {
-                      for(int i0=0; i0<x0_set.size();  i0++)
-                        {
-                          u3::SU3 x0=x0_set[i0].irrep;
-                          int rho0_max=u3::OuterMultiplicity(x,x0,xp);
-                          int kappa0_max=u3::BranchingMultiplicitySO3(x0,L0);
-                          u3shell::RelativeCMStateLabelsU3ST bra(Nrp,Ncm,xp,Sp,Tp);
-                          u3shell::RelativeCMStateLabelsU3ST ket(Nr,Ncm,x,S,T);
-
-                          for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
-                            for(int rho0=1; rho0<=rho0_max; ++rho0)
-                                {
-                                  u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st(x0,S0,T0,rho0,bra,ket); 
-                                  rel_cm_u3st_map[braket_u3st]
-                                    +=am::dim(Lp)/u3::dim(xp)
-                                  //u3::dim(x0)*am::dim(Lp)/u3::dim(xp)/am::dim(L0)
-                                    *u3::WCached(w_cache,u3::SU3(Nrp,0),1,Lrp,u3::SU3(Ncm,0),1,Lcm,xp,kappap,Lp,1)
-                                    *u3::WCached(w_cache,u3::SU3(Nr,0),1,Lr,u3::SU3(Ncm,0),1,Lcm,x,kappa,L,1)
-                                    *u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
-                                    *rme;
-                                }
-                        }
-                    }
-              }
-          }
-      }
-  }
-
 
   void RelativeToCMU3ST(int Nmax,  
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
@@ -206,11 +145,11 @@ namespace u3shell
         std::map<RelativeBraketNLST,double> branched_rel_unit_tensors;
         BranchNLST(tensor,w_cache,branched_rel_unit_tensors);
 
-        std::map<RelativeCMBraketNLST,double> rel_cm_lst_map;
+        std::map<u3shell::RelativeCMBraketNLST,double> rel_cm_lst_map;
         RelativeToCMLST(Nmax, branched_rel_unit_tensors,rel_cm_lst_map);
         
         RelativeCMUnitTensorCache rel_cm_u3st_map;
-        UpcoupleCMU3ST(rel_cm_lst_map,w_cache,rel_cm_u3st_map);
+        u3shell::UpcoupleCMU3ST(rel_cm_lst_map,w_cache,rel_cm_u3st_map);
 
         unit_relative_cm_map[tensor]=rel_cm_u3st_map;
       }

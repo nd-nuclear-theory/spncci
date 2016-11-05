@@ -11,13 +11,22 @@
 
 #include "eigen3/Eigen/Eigen" 
 #include "basis/lsjt_scheme.h"
+#include "basis/lsjt_operator.h"
 #include "u3shell/relative_operator.h"
 #include "sp3rlib/u3coef.h"
+
 namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
   typedef std::tuple<int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
   typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>RelativeRMEsU3ST;
+
+  typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt> RelativeCMStateLabelsNLST;  
+  typedef std::tuple<int,HalfInt,HalfInt,RelativeCMStateLabelsNLST,RelativeCMStateLabelsNLST> RelativeCMBraketNLST;
+  typedef std::unordered_map<u3shell::RelativeUnitTensorLabelsU3ST,RelativeCMUnitTensorCache,
+                  boost::hash<u3shell::RelativeUnitTensorLabelsU3ST>
+                  >RelativeCMExpansion;
+
 // Programs calling these function need to initialize with 
 // U3CoefInit()
 
@@ -72,15 +81,11 @@ namespace u3shell
     );
 
   // If no cache is passed as an arguemnt, creates cache for use in calculations
-  inline void UpcouplingU3ST(
+  void UpcouplingU3ST(
     std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
     int T0, int Nmax,
     RelativeRMEsU3ST& rme_map
-    )
-    {
-      u3::WCoefCache w_cache;
-      UpcouplingU3ST(rme_nlst_map,T0, Nmax,w_cache,rme_map);
-    }
+    );
 
   void Upcoupling(    
     const basis::RelativeSpaceLSJT& space,
@@ -91,17 +96,34 @@ namespace u3shell
     RelativeRMEsU3ST& rme_map
     );
 
-  inline void Upcoupling(    
+  void Upcoupling(    
     const basis::RelativeSpaceLSJT& space,
     const basis::RelativeSectorsLSJT& sectors,
     const std::vector<Eigen::MatrixXd>& sector_vector, 
     int J0, int g0, int T0,int Nmax,
     RelativeRMEsU3ST& rme_map
-    )
-  {
-    u3::WCoefCache w_cache;
-    Upcoupling(space,sectors, sector_vector, w_cache,J0, g0, T0, Nmax,rme_map);
-  }
+    );
+
+  void UpcoupleCMU3ST(
+    std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
+    u3::WCoefCache& w_cache,
+    RelativeCMUnitTensorCache& rel_cm_u3st_map
+    );
+    // upcouples LST rme's to U3ST rme's
+
+  void UpcoupleCMU3ST(
+    std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
+    RelativeCMUnitTensorCache& rel_cm_u3st_map
+    );
+    // Overloading function.  Provides W coefficient cache is not provided
+    // on input.  
+
+  void GetInteractionMatrix(
+    std::string interaction_file, 
+    basis::RelativeSpaceLSJT& relative_lsjt_space,
+    basis::RelativeSectorsLSJT& relative_lsjt_sectors,
+    basis::MatrixVector& sector_vector
+  );
 
   void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes);  
   void ReadRelativeOperatorU3ST(std::istream& is, RelativeRMEsU3ST& relative_rmes);

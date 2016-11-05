@@ -18,17 +18,30 @@
 
 #include "eigen3/Eigen/Eigen"
 
-#include "sp3rlib/u3.h"
+// #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/two_body_operator.h"
 #include "u3shell/u3st_scheme.h"
+#include "moshinsky/relative_cm_xform.h"
 
 namespace u3shell
 {
+
+  typedef std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> 
+            IndexedRelativeUnitTensorLabelsU3ST;
+  typedef std::tuple<u3shell::TwoBodyUnitTensorLabelsU3ST, int, int>
+            IndexTwoBodyTensorLabelsU3ST;
+  typedef std::map<IndexTwoBodyTensorLabelsU3ST,double>IndexedTwoBodyTensorRMEsU3ST;
+  typedef  std::unordered_map<u3shell::RelativeUnitTensorLabelsU3ST, 
+                            u3shell::TwoBodyUnitTensorCoefficientsU3ST,
+                            boost::hash<u3shell::RelativeUnitTensorLabelsU3ST>
+                          > TwoBodyExpansionMap;
+  typedef std::map<u3shell::IndexedRelativeUnitTensorLabelsU3ST,double> 
+            IndexedRelativeUnitTensorCoefficientsU3ST;
+
   double 
   MoshinskyCoefficient(int r, int R, int r1, int r2, const u3::SU3& x);
   //Computes and returns the SU(3) moshinsky transformation
-
 
   inline double 
   MoshinskyCoefficient(int r, int R, int r1, int r2, const u3::U3& w)
@@ -96,7 +109,8 @@ namespace u3shell
     RelativeCMUnitTensorCache& unit_relative_cm_expansion,
     u3shell::TwoBodySpaceU3ST& space,
     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
-    std::string normalization="NAS"
+    std::string normalization="NAS",
+    double expansion_coef=1.0
   );
   // Generates expansion  of a relative unit tensor (tensor) in terms of two-body unit
   // tensors and stores them in two_body_expansion. 
@@ -118,19 +132,53 @@ namespace u3shell
 
 
 
-  void
-  TransformRelativeTensorToTwobodyTensor(
-    const RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, 
+  void TransformRelativeTensorToTwobodyTensor(
+    const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_expansion, 
+    u3shell::RelativeCMExpansion& unit_relative_cm_expansion,
     u3shell::TwoBodySpaceU3ST& space,
-    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_expansion, 
+    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_expansion,
     std::string normalization="NAS"
+    );
+
+
+void RelativeUnitTensorToTwobodyU3ST(int Nmax,  
+  const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
+  u3shell::RelativeCMExpansion& unit_relative_cm_map,
+  TwoBodyExpansionMap& two_body_expansion_vector,
+  std::string normalization="AS"
   );
   // Moshinsky Transform operator decomposed in terms of unit tensors to 
   // two-body nomralized anti-symmeterized space 
   // 
-  //  normalization (optional input) : if "NAS" then target RME's are normalized  
+  // 
+  // Arguments:
+  //    relative_unit_tensors (input) : vector of unit tensors
+  //    unit_relative_cm_map (input) : expansion of unit tensors in vector in terms of 
+  //        relative-cm unit tensors
+  //    two_body_expansion_vector (output)
+  //    normalization (optional input) : if "NAS" then target RME's are normalized  
   //        anti-symmetrized, if "AS" then target RME's and anti-symmetrized but 
   //        not normalized.  Default is "NAS"
+
+  
+  
+
+void
+ConvertRelativeTensorToTwoBodyTensor(int Nmax,
+  std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
+  u3shell::RelativeCMExpansion& unit_relative_cm_map,
+  IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
+  std::string normalization="AS"
+  );
+
+void 
+ConvertRelativeTensorToTwoBodyTensor(int Nmax,
+  std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
+  IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
+  std::string normalization="AS"
+  );
+
 } //namespace
 
 #endif 
