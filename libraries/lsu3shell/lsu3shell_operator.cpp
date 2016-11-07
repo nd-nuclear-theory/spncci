@@ -24,7 +24,6 @@ namespace lsu3shell
   GenerateLSU3ShellOperator(
       int Nmax, 
       const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
-      u3shell::RelativeCMExpansion& unit_relative_cm_map,
       std::string filename
     )
   {
@@ -36,7 +35,6 @@ namespace lsu3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
     u3shell::TransformRelativeTensorToTwobodyTensor(
         relative_tensor_expansion,
-        unit_relative_cm_map,
         twobody_space,
         two_body_unit_tensor_coefficients,
         "NAS"   
@@ -58,8 +56,7 @@ namespace lsu3shell
   void
   GenerateLSU3ShellOperator(
       int Nmax, 
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels,
-      u3shell::RelativeCMExpansion& unit_relative_cm_map
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels
     )
   {
     u3shell::TwoBodySpaceU3ST  twobody_space(Nmax);
@@ -71,30 +68,9 @@ namespace lsu3shell
         u3shell::TwoBodyUnitTensorCoefficientsU3ST biquad_coefficients;
         u3shell::TwoBodyUnitTensorCoefficientsU3SPN biquad_coefficients_pn;
         
-        // Fill out RelativeCMExpansion
-        // std::cout<<"Relative to CM"<<std::endl;
-        u3shell::RelativeUnitTensorToRelativeCMUnitTensorU3ST(Nmax,relative_tensor_labels,unit_relative_cm_map);
-        // for(auto it=unit_relative_cm_map.begin(); it!=unit_relative_cm_map.end(); ++it)
-        //   {
-        //     u3shell::RelativeUnitTensorLabelsU3ST tensor=it->first;
-        //     u3shell::RelativeCMUnitTensorCache expansion=it->second;
-        //     std::cout<<tensor.Str()<<std::endl;
-
-        //     for(auto it2=expansion.begin(); it2!=expansion.end(); ++it2)
-        //       {
-                
-        //         u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st=it2->first;
-        //         double coef=it2->second;
-        //         if(fabs(coef)>10e-8)
-        //           std::cout<<"  "<<braket_u3st.Str()<<"  "<<coef<<std::endl;
-        //       }
-        //   }
-
         // Moshinsky transform unit tensors to two-body operators 
-        // std::cout<<"Moshinsky transform"<<std::endl;
-        MoshinskyTransformUnitTensor(
-          tensor,unit_relative_cm_map[tensor], 
-          twobody_space,two_body_unit_tensor_coefficients, "NAS");
+        MoshinskyTransformTensor(tensor, twobody_space, 
+          two_body_unit_tensor_coefficients, "NAS");
         
         // convert to biquads
         u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);

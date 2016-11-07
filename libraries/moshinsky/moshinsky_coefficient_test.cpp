@@ -129,24 +129,8 @@ void BranchTest(int Nmax, const std::string& filename)
 int main(int argc, char **argv)
 {
 	u3::U3CoefInit();
-	// CompairisonTests(6);
-	// SymmetryTests(20);
+	CompairisonTests(6);
+	SymmetryTests(20);
 	std::string filename="/Users/annamccoy/projects/spncci/data/moshinsky_bracket_table_Nmax6.out";
-	// BranchTest(6,filename);
-
-	// checking so3 coupling rule
-	// int Smax=10;
-	// for(int S=0; S<=Smax; ++S)
-	// 	for(int Sp=0; Sp<=Smax; ++Sp)
-	// 		for(int S0=abs(S-Sp); S0<=(S+Sp); ++S0)
-	// 			{
-	// 				double coef1=am::Unitary9J(S0,0,S0,S,0,S,Sp,0,Sp);
-	// 				// double coef2=Hat(Sp)/(1.*Hat(S0)*Hat(S));
-	// 				if (fabs(coef1-1)>10e-10)
-	// 					std::cout<<fmt::format("{} {} {}  {}",S,S0,Sp,coef1)<<std::endl;
-	// 			}
-
-
-
-
+	BranchTest(6,filename);
 }

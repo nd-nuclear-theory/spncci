@@ -58,19 +58,19 @@ int main(int argc, char **argv)
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensor_labels);
 
   u3shell::RelativeCMExpansion unit_relative_cm_map;
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels, unit_relative_cm_map);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels);
 
   // Generate Brel operator up to Nmax cutoff
   std::string brel_file=fmt::format("Brel_Nmax{:02d}",Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax, Brel_operator);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Brel_operator,unit_relative_cm_map, brel_file);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Brel_operator, brel_file);
 
   //Generate Nrel operator up to Nmax cutoff
   std::string nrel_file=fmt::format("Nrel_Nmax{:02d}",Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax, Nrel_operator,N+Z);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator,unit_relative_cm_map, nrel_file);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nrel_file);
 
   int num_unit=relative_unit_tensor_labels.size();
   // number of relative operators including Brel and Nrel

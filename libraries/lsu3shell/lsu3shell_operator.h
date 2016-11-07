@@ -25,15 +25,13 @@ namespace lsu3shell
   GenerateLSU3ShellOperator(
       int Nmax, 
       const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
-      u3shell::RelativeCMExpansion& unit_relative_cm_map,
       std::string filename
     );
 
   void
   GenerateLSU3ShellOperator(
       int Nmax, 
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels,
-      u3shell::RelativeCMExpansion& unit_relative_cm_map
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels
     );
   // Generate input files for LSUshell recoupler for all relative unit tensors 
   // tensor's which may have non-zero matrix elements between  LGI's. 

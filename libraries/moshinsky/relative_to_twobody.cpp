@@ -304,8 +304,8 @@ int main(int argc, char **argv)
   PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
-  // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
+  // std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
+  std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   basis::RelativeSectorsLSJT relative_lsjt_sectors;
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   basis::MatrixVector sector_vector;
@@ -371,7 +371,7 @@ int main(int argc, char **argv)
   // double trme;
   // std::string line;
   std::map<std::tuple<int,int,int,int,int,int>,double> test_map_jj;
-  std::string file_jj="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/libraries/moshinsky/test/JISP16-tb-6-20.dat";
+  std::string file_jj="test/JISP16-tb-6-20.dat";
 
   std::ifstream stream_jj(file_jj.c_str());
   while(std::getline(stream_jj,line))
