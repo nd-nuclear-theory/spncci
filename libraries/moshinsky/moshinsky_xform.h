@@ -147,6 +147,14 @@ void RelativeUnitTensorToTwobodyU3ST(int Nmax,
   TwoBodyExpansionMap& two_body_expansion_vector,
   std::string normalization="AS"
   );
+
+void
+RelativeUnitTensorToTwobodyU3ST(int Nmax,  
+  const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
+  TwoBodyExpansionMap& two_body_expansion_vector,
+  std::string normalization="AS"
+  );
+
   // Moshinsky Transform operator decomposed in terms of unit tensors to 
   // two-body nomralized anti-symmeterized space 
   // 
@@ -167,7 +175,6 @@ void
 ConvertRelativeTensorToTwoBodyTensor(int Nmax,
   std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
-  u3shell::RelativeCMExpansion& unit_relative_cm_map,
   IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
   std::string normalization="AS"
   );

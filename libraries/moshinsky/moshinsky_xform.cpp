@@ -261,7 +261,7 @@ MoshinskyTransformTensor(
         continue;
 
       // Adding in center of mass
-      double cm_coef=u3::U(x0,u3::SU3(eta,0),xp,u3::SU3(eta_cm,0),u3::SU3(etap,0),1,1,x,1,rho0);
+      double cm_coef=u3::Z(u3::SU3(eta_cm,0), u3::SU3(eta,0), xp,x0,x,1,rho0,u3::SU3(etap,0),1,1);
       ///////////////////////////////////////////////////////////////////////////////////////
       MoshinskyTransformTensor(operator_labels,etap, eta, bra_subspace, ket_subspace, rho0, 
         normalization, expansion_coef*cm_coef,two_body_expansion);
@@ -352,7 +352,7 @@ void TransformRelativeTensorToTwobodyTensor(
       u3shell::RelativeUnitTensorLabelsU3ST tensor(rel_key_value.first);
       double expansion_coef=rel_key_value.second;
 
-      MoshinskyTransformUnitTensor(tensor, unit_relative_cm_expansion[tensor], space, two_body_unit_tensor_expansion, normalization,expansion_coef);
+      MoshinskyTransformUnitTensor(tensor, expansion_coef,space, two_body_unit_tensor_expansion, normalization);
     }
   }
 
@@ -376,7 +376,8 @@ void RelativeUnitTensorToTwobodyU3ST(int Nmax,
 void
 RelativeUnitTensorToTwobodyU3ST(int Nmax,  
   const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
-  TwoBodyExpansionMap& two_body_expansion_vector
+  TwoBodyExpansionMap& two_body_expansion_vector,
+  std::string normalization
   )
 // Via U(3) coupling to center of mass 
 {
@@ -385,7 +386,7 @@ RelativeUnitTensorToTwobodyU3ST(int Nmax,
     {
       u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_expansion;
       double expansion_coef=1.0;
-      u3shell::MoshinskyTransformUnitTensor( tensor, expansion_coef,space,two_body_expansion, "AS");
+      u3shell::MoshinskyTransformUnitTensor( tensor, expansion_coef,space,two_body_expansion, normalization);
       two_body_expansion_vector[tensor]=two_body_expansion;
     }
 }
@@ -422,13 +423,12 @@ void
 ConvertRelativeTensorToTwoBodyTensor(int Nmax,
   std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
-  u3shell::RelativeCMExpansion& unit_relative_cm_map,
   IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
   std::string normalization
   )
 {
   TwoBodyExpansionMap two_body_expansion_map;
-  RelativeUnitTensorToTwobodyU3ST(Nmax, relative_unit_tensors,unit_relative_cm_map,two_body_expansion_map,normalization);
+  RelativeUnitTensorToTwobodyU3ST(Nmax, relative_unit_tensors,two_body_expansion_map,normalization);
 
   ContractRelativeAndTwoBodyUnitTensorRME(relative_rmes,two_body_expansion_map,indexed_two_body_rmes);
 }
@@ -442,15 +442,9 @@ ConvertRelativeTensorToTwoBodyTensor(int Nmax,
 {
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
-
-  u3shell::RelativeCMExpansion unit_relative_cm_map;
-  u3shell::RelativeUnitTensorToRelativeCMUnitTensorU3ST(
-    Nmax,relative_unit_tensors,
-    unit_relative_cm_map);
   
-  ConvertRelativeTensorToTwoBodyTensor(
-    Nmax,relative_rmes,relative_unit_tensors,unit_relative_cm_map,
-    indexed_two_body_rmes,normalization);
+  ConvertRelativeTensorToTwoBodyTensor(Nmax,relative_rmes,relative_unit_tensors,
+              indexed_two_body_rmes,normalization);
 }
 
 } //namespace
