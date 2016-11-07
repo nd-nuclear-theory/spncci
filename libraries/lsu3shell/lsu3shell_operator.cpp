@@ -8,7 +8,6 @@
 
 #include "lsu3shell/lsu3shell_operator.h"
 
-
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -39,15 +38,11 @@ namespace lsu3shell
         two_body_unit_tensor_coefficients,
         "NAS"   
       );
-    // for(auto it=two_body_unit_tensor_coefficients.begin(); it!=two_body_unit_tensor_coefficients.end(); ++it)
-    //   std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
     // convert to biquads
     u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
     // convert to pn scheme
     u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
     
-    // std::string operator_stream_filename = fmt::format("operator{:06d}.recoupler",operator_index);
-    // std::ofstream operator_stream(operator_stream_filename);
     std::ofstream operator_stream(filename);
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
     operator_stream.close();
@@ -76,14 +71,12 @@ namespace lsu3shell
         u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
         // convert biquads to pn scheme
         u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
-        // std::cout<<fmt::format("{} operator{:06d}",relative_unit_tensor_labels.Str(),i)<<std::endl;
         std::string operator_stream_filename = fmt::format("relative_unit_{:06d}.recoupler",i);
         std::ofstream operator_stream(operator_stream_filename);
         WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
         operator_stream.close();
         ++i;
       }
-    // std::cout<<"Exiting"<<std::endl;
   }
 
   void GenerateLSU3ShellOperator(
@@ -100,7 +93,6 @@ namespace lsu3shell
     u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
     std::string operator_stream_filename =fmt::format("twobody_unit_{:06d}.recoupler",operator_index);
     std::ofstream operator_stream(operator_stream_filename);
-    // std::cout<<"hi "<<operator_stream_filename<<std::endl;
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
     operator_stream.close();
   }

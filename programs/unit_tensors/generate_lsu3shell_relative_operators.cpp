@@ -5,6 +5,7 @@
   University of Notre Dame
 
   8/8/16 (aem,mac): Created.
+  11/7/16 (aem): Updated documentation.
 ****************************************************************/
 #include <fstream>
 #include <ostream>  
@@ -15,12 +16,29 @@
 #include "spncci/sp_basis.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unit_tensor_expansion.h"
-// Given a nucleus (protons, neutrons)
-// Given Nsigma_0
-// Given a Nmax truncation
-// Generate a list of unit tensors
-// Generate Brel
-// Generate Nrel
+
+// For a given nucleus, Nmax and N_step, generates input files for LSU3Shell 
+// RecoupleSU3Interaction which recouples operators into format
+// required by SU3RME. Input files include 
+// 
+// Control file (operators.dat) giving
+//   The model space file name
+//   "operators" number of operators
+//   List of front part of operator file names, e.g. if file name is 
+//      "unit000001.recoupler", then "unit000001" is given in file. 
+//
+// Operator files include:
+//    All unit tensors defined on  relative space truncated by Nmax
+//    Brel
+//    Nintr (proportional to Nrel)
+//
+// Commandline inputs are Z N Nmax Nstep
+//  Z : number of protons
+//  N : number of neutrons
+//  Nmax : max number of oscillator quant in relative basis
+//  Nstep : indicates if all or only same parity spaces are included
+//          in model space.  Can only take values of 1 or 2. 
+
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();

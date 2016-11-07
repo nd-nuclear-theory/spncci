@@ -91,10 +91,7 @@ namespace u3shell
     std::string normalization="AS"
   );
   // Generates expansion  of a relative unit tensor (tensor) in terms of two-body unit
-  // tensors and stores them in two_body_expansion. 
-  //
-  // The transformation from relative to relative-cm basis is carried out internally at 
-  // at U(3) level. 
+  // tensors and stores them in two_body_expansion.  
   //
   // Arguments:
   //  tensor (input) : tensorial properties of relative unit tensor
@@ -115,38 +112,10 @@ namespace u3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
     std::string normalization="AS"
   )
+  // Overload for use when tensor is unit tensor.
   {
     MoshinskyTransformTensor(tensor,1.0,space,two_body_expansion,normalization);
   }
-
-  // void
-  // MoshinskyTransformUnitTensor(
-  //   const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
-  //   RelativeCMUnitTensorCache& unit_relative_cm_expansion,
-  //   u3shell::TwoBodySpaceU3ST& space,
-  //   u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
-  //   std::string normalization="AS",
-  //   double expansion_coef=1.0
-  // );
-  // Generates expansion  of a relative unit tensor (tensor) in terms of two-body unit
-  // tensors and stores them in two_body_expansion. 
-  // 
-  //
-  // Arguments:
-  //  tensor (input) : tensorial properties of relative unit tensor
-  //  unit_relative_cm_expansion (input): expansion of relative unit tensor in terms of 
-  //       relative-cm unit tensors.  Can be obained using 
-  //       u3shell::RelativeUnitTensorToRelativeCMUnitTensorU3ST() in relative_cm_xform.h
-  //  expansion_coef (input) : coefficient by which the relative unit tensor is multiplied. 
-  //       If considering a single unit tensor, expansion_coef=1.0;
-  //  space (input) : source space
-  //  two_body_expansion (output) : Container for expansion coefficients and corresponding
-  //       two-body unit tensor labels. 
-  //  normalization (optional input) : if "NAS" then target RME's are normalized  
-  //        anti-symmetrized, if "AS" then target RME's and anti-symmetrized but 
-  //        not normalized.  Default is "NAS"
-
-
 
   void 
   TransformRelativeTensorToTwobodyTensor(
@@ -158,7 +127,6 @@ namespace u3shell
 
   // Moshinsky Transform operator decomposed in terms of unit tensors to 
   // two-body nomralized anti-symmeterized space 
-  // 
   // 
   // Arguments:
   //    relative_unit_tensors (input) : vector of unit tensors

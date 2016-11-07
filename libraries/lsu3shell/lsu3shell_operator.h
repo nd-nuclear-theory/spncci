@@ -8,7 +8,6 @@
 
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
-
 ****************************************************************/
 
 #ifndef LSU3SHELL_OPERATOR_H_
@@ -27,6 +26,9 @@ namespace lsu3shell
       const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
       std::string filename
     );
+  // Generates input files for LSU3Shell RecoupleSU3Interaction
+  //
+  // Arguments:
 
   void
   GenerateLSU3ShellOperator(

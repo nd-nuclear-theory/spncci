@@ -182,7 +182,6 @@ int main(int argc, char **argv)
           ||(not(sigmap==sigmap_old))
         )
         {
-          
           is_new_subsector=true;
           S_old=sp_irrep.S();
           Sp_old=sp_irrepp.S();
@@ -206,7 +205,6 @@ int main(int argc, char **argv)
           is_new_subsector, sp_irrepp.S(), sp_irrep.S(), sp_irrep_pair_index,
           unit_tensor_rme_map, sp_irrep_symmetry_sum, unit_tensor_u3S_cache
         );
-
     }
 
     for(auto it=unit_tensor_u3S_cache.begin(); it!=unit_tensor_u3S_cache.end(); ++it)
