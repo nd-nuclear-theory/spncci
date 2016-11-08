@@ -8,7 +8,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "utilities/parsing.h"
+#include "mcutils/parsing.h"
 
 #include "spncci/sp_basis.h"
 

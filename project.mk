@@ -25,7 +25,7 @@ modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" op
 modules += libraries/cppformat
  
 # additional libraries -- cloned as submodules
-modules += libraries/basis libraries/am
+modules += libraries/basis libraries/am libraries/mcutils  # ordering note: mcutils is called by basis
 
 
 #programs
