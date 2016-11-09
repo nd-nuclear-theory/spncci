@@ -30,7 +30,7 @@
 namespace lgi
 {
   void 
-  GenerateNcmMatrixVector(      
+  GenerateNcmMatrixVector(HalfInt Nsigma_0,     
     const std::string& nrel_filename,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
@@ -40,7 +40,7 @@ namespace lgi
   // Nrel matrix sectors. 
 
   void 
-  GenerateBrelNcmMatrices(
+  GenerateBrelNcmMatrices(HalfInt Nsigma_0,
       const std::string& brel_filename,
       const std::string& nrel_filename,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
@@ -51,7 +51,7 @@ namespace lgi
   // stores them in BrelNcm_vector
 
   void 
-  GenerateLGIExpansion(
+  GenerateLGIExpansion(HalfInt Nsigma_0,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
     const std::string& brel_filename,
