@@ -12,47 +12,45 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-//#include <functional>
 
 #include "cppformat/format.h"
 
 #include "u3shell/two_body_operator.h"
-#include "u3shell/moshinsky.h"
-// #include "spncci/sp_basis.h"
+#include "moshinsky/moshinsky_xform.h"
+#include "lsu3shell/lsu3shell_basis.h"
 #include "basis/operator.h"
 #include "lgi/lgi.h"
-// #include "u3shell/u3spn_scheme.h"
 
 namespace lgi
 {
-  void GenerateNcmMatrixVector(      
+  void GenerateNcmMatrixVector(
+    HalfInt Nsigma_0,      
     const std::string& nrel_filename,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
     basis::MatrixVector& matrix_vector 
   )
   {
-
     std::ifstream is_nrel(nrel_filename.c_str());
     basis::MatrixVector nrel_matrix_vector;
     u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
     u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(is_nrel,nrel_labels,lsu3_basis_table,space, nrel_sectors,nrel_matrix_vector);
-
-    basis::MatrixVector ncm_matrix_vector;
-
+    if(matrix_vector.size()!=nrel_matrix_vector.size())
+      matrix_vector.resize(nrel_matrix_vector.size());
     for(int i=0; i<nrel_matrix_vector.size(); ++i)
     {
       auto subspace=space.GetSubspace(i);
-      HalfInt N=subspace.N();
+      HalfInt N=subspace.N()-Nsigma_0;
       int dim=subspace.size();
+      std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
       matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
     }
   }
 
-
   void 
   GenerateBrelNcmMatrices(
+      HalfInt Nsigma_0,
       const std::string& brel_filename,
       const std::string& nrel_filename,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
@@ -67,7 +65,17 @@ namespace lgi
     u3shell::OperatorLabelsU3S brel_labels(-2,u3::SU3(0,2),0,0);
     //generate sectors for brel.
     u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
-    // subspace_sectors is map of vector of (dimension of Brel+Ncm matrix, index for Ncm, indices of relevant N-2 subspace)
+
+    std::ifstream is_brel(brel_filename.c_str());
+    // std::cout<<"Reading in Brel"<<std::endl;
+    basis::MatrixVector brel_matrix_vector(space.size());
+    lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,lsu3_basis_table,space, brel_sectors,brel_matrix_vector);
+    // std::cout<<"Reading in Nrel"<<std::endl;
+    basis::MatrixVector ncm_matrix_vector(space.size());    
+     GenerateNcmMatrixVector(Nsigma_0,nrel_filename,lsu3_basis_table,space, ncm_matrix_vector);
+
+    // subspace_sectors is map of vector of (dimension of Brel+Ncm matrix, 
+    // indices of relevant N-2 subspace)
     std::map<int,std::vector<int>> subspace_sectors;
     for(int j=0; j<space.size(); ++j)
       {
@@ -79,19 +87,12 @@ namespace lgi
       {
         int i=brel_sectors.GetSector(s).bra_subspace_index();
         int j=brel_sectors.GetSector(s).ket_subspace_index();
-        subspace_sectors[j].push_back(i); 
+        subspace_sectors[j].push_back(i);
+        //increment size of matrix 
         int sub_dim=space.GetSubspace(i).size();
         subspace_sectors[j][0]+=sub_dim;
       }
 
-    std::ifstream is_brel(brel_filename.c_str());
-    basis::MatrixVector brel_matrix_vector;
-    lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,lsu3_basis_table,space, brel_sectors,brel_matrix_vector);
-    
-    basis::MatrixVector ncm_matrix_vector;    
-     GenerateNcmMatrixVector(nrel_filename,lsu3_basis_table,space, ncm_matrix_vector);
-
-    int rows_begin=0;
     // for each subspace, construct the BrelNcm matrix and store in vector
     for(int j=0; j<space.size(); ++j)
       {
@@ -99,15 +100,19 @@ namespace lgi
         int rows_total=subspace_sectors[j][0];
         auto subspace=space.GetSubspace(j);
         int columns=subspace.size();
-
+        std::cout<<"BrelNcm initialized"<<std::endl;
         BrelNcm_vector[j]=Eigen::MatrixXd::Zero(rows_total,columns);
+        std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
         //Ncm block is square so rows=columns
         int rows=columns;
         // Because Ncm is SU(3) scalar, subspace index should equal sector index;
+        std::cout<<"Adding in Ncm"<<std::endl;
         BrelNcm_vector[j].block(0,0,rows,columns)=ncm_matrix_vector[j];
+        std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
         // increment location in full matrix
-        rows_begin+=columns;
+        int rows_begin=columns;
         // Fill in Brel sectors 
+
         for(int k=1; k<subspace_sectors[j].size(); ++k)
           {
             // subspace index for bra
@@ -117,13 +122,19 @@ namespace lgi
             // index of sector in vector
             int sector_index=brel_sectors.LookUpSectorIndex(i,j,1);
             // filling in sector
+            // std::cout<<rows_begin<<"  "<<rows<<"  "<<columns<<"   "<<brel_matrix_vector[sector_index]<<std::endl;
+            // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+            std::cout<<"Adding Brel "<<k<<" of "<<subspace_sectors[j].size()-1<<std::endl;
             BrelNcm_vector[j].block(rows_begin,0,rows,columns)=brel_matrix_vector[sector_index];
+            std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+
+            rows_begin+=rows;
           }
       }
   }
   
   void GenerateLGIExpansion(
-      int Nsigma_0,
+      HalfInt Nsigma_0,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const std::string& brel_filename,
@@ -135,12 +146,16 @@ namespace lgi
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   {
-    basis::MatrixVector BrelNcm_vector; 
-    GenerateBrelNcmMatrices(brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
+    basis::MatrixVector BrelNcm_vector(space.size()); 
+    GenerateBrelNcmMatrices(Nsigma_0,brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
 
-    for(int i=0; i<=BrelNcm_vector.size();++i)
+    for(int i=0; i<BrelNcm_vector.size();++i)
       {
+        std::cout<<"Null space"<<std::endl;
+        if(BrelNcm_vector[i].cols()==1)
+          continue;
         lgi_expansion_matrix_vector[i]=BrelNcm_vector[i].fullPivLu().kernel();
+        std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
         const u3shell::SubspaceU3SPN& subspace=space.GetSubspace(i);
 
       }

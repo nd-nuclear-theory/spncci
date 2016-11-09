@@ -15,12 +15,12 @@
 #include "am/am.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
-#include "u3shell/moshinsky.h"
 
 namespace u3shell
 {
 
-  void BrelRelativeUnitTensorExpansion(int Nmin, int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator, int A)
+  void BrelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
+        u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator, int A)
   {
     for(int N=Nmin; N<=Nmax; N+=2)
       for(int S=0; S<=1; ++S)
@@ -41,7 +41,8 @@ namespace u3shell
             }
   }
 
-void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Arel_operator, int A)
+void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
+      u3shell::RelativeUnitTensorCoefficientsU3ST& Arel_operator, int A)
   {
     for(int N=Nmin; N<=Nmax; N+=2)
       for(int S=0; S<=1; ++S)
@@ -63,7 +64,8 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax, u3shell::RelativeUnitTe
   }
 
 
-  void NintrRelativeUnitTensorExpansion(int Nmin, int Nmax, u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator, int A)
+  void NintrRelativeUnitTensorExpansion(int Nmin, int Nmax, 
+        u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator, int A)
   {
     for (int N=Nmin; N<=Nmax; N++)
       for (int S=0;S<=1; S++)

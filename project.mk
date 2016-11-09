@@ -17,8 +17,8 @@ project_name := spncci
 # course, they are only template libraries, so nobody needs to link to
 # them).
 
-modules += libraries/lsu3shell libraries/spncci libraries/lgi
-modules += libraries/u3shell libraries/sp3rlib  # ordering note: "mid-level" operations
+modules += libraries/spncci libraries/lgi libraries/lsu3shell 
+modules += libraries/moshinsky libraries/u3shell libraries/sp3rlib  # ordering note: "mid-level" operations
 modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" operations, called by many other libraries
 
 # additional libraries -- imported

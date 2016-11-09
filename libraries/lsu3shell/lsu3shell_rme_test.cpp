@@ -7,14 +7,10 @@
   7/5/16 (aem,mac): Created.
 ****************************************************************/
 #include "lsu3shell/lsu3shell_rme.h"
-
 #include <fstream>
 #include <ostream>  
-#include "sp3rlib/u3coef.h"
 #include "cppformat/format.h"
-
-// #include <Eigen/Eigenvalues>
-
+#include "sp3rlib/u3coef.h"
 
 
 int main(int argc, char **argv)
@@ -36,6 +32,7 @@ int main(int argc, char **argv)
   u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
   basis::MatrixVector matrices;
 
+  // reading in operator rme's obtained form SU3RME
   std::ifstream is(op_filename.c_str());
   if(!is)
     std::cout<<"file didn't open"<<std::endl;

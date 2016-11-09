@@ -174,12 +174,14 @@ namespace u3shell {
           {
             un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_ket;
             un::GenerateAllowedSU3xSU2Irreps(eta1,2,single_shell_allowed_irreps_ket);
-            if(not single_shell_allowed_irreps_ket.count(u3::U3S(u3::U3(2*eta1,x),S)))
+            if(not single_shell_allowed_irreps_ket.count(u3::U3S(u3::U3(2*eta1+3,x),S)))
               like_allowed=false;
-
+          }
+        if(include_like&&(eta1p==eta2p))
+          {
             un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_bra;
             un::GenerateAllowedSU3xSU2Irreps(eta1p,2,single_shell_allowed_irreps_bra);
-            if(not single_shell_allowed_irreps_bra.count(u3::U3S(u3::U3(2*eta1p,xp),Sp)))
+            if(not single_shell_allowed_irreps_bra.count(u3::U3S(u3::U3(2*eta1p+3,xp),Sp)))
               like_allowed=false;
           }
 

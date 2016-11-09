@@ -32,6 +32,13 @@ libraries/u3shell/generate_unit_tensors_tb
 programs/unit_tensors/generate_lsu3shell_relative_operators
 programs/unit_tensors/generate_lsu3shell_twobody_tensors
 libraries/spncci/generate_lgi_unit_tensors
+programs/interactions/import_jisp16
+programs/su3calc/su3_coupler
+programs/su3calc/su3calc
+programs/unit_tensors/check_two_body_unit_tensors
+programs/unit_tensors/generate_lsu3shell_two_body_unit_tensors
+libraries/u3shell/relative_to_twobody
+libraries/u3shell/moshinsky_unitarity
 
 
 *_test

@@ -6,4 +6,4 @@
 	url = ../basis
 [submodule "libraries/mcutils"]
 	path = libraries/mcutils
-	url = file:///cygdrive/c/work/projects/mcutils.git
+	url = ../mcutils

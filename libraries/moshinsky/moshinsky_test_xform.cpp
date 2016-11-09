@@ -8,8 +8,8 @@
   5/11/16 (aem,mac): Update namespace.
 ****************************************************************/
 
+#include "moshinsky/moshinsky.h"
 #include "sp3rlib/u3coef.h"
-#include "u3shell/moshinsky.h"
 #include "u3shell/relative_operator.h"
 
 int main(int argc, char **argv)

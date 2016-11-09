@@ -1,4 +1,6 @@
 /****************************************************************
+OBSELETE
+
   import_jisp16.cpp
                                   
   Anna E. McCoy and Mark A. Caprio
