@@ -43,20 +43,16 @@ search_dirs_lib :=
 # This is analagous to the --prefix= option of autoconf installations.
 install_prefix := install
 
+
 ################################################################
 # C++ compiler-specific configuration
 ################################################################
 
 # C++ compiler
-CXX := g++
+CXX := icpc
 
 # langage standard
-CXXFLAGS += -std=c++11 -fopenmp
-
-# avoid gcc 5 warnings on Eigen library
-CXXFLAGS += -Wno-deprecated-declarations
-# avoid gcc 6 warnings on Eigen library
-## CXXFLAGS += -Wno-ignored-attributes
+CXXFLAGS += -std=c++11 -qopenmp
 
 ################################################################
 # FORTRAN compiler-specific configuration
@@ -68,9 +64,9 @@ CXXFLAGS += -Wno-deprecated-declarations
 #   for GCC 4.x: gfortran
 #   for Intel: ifort
 
-FC := gfortran
+FC := ifort
 
-FFLAGS += -fopenmp -frecursive
+FFLAGS += -qopenmp -frecursive
 
 ################################################################
 # C++/FORTRAN linking 
@@ -84,7 +80,7 @@ FFLAGS += -fopenmp -frecursive
 #   for GCC 4.x gfortran: -lgfortran
 #   for Intel ifort: -lifport -lifcore -limf
 
-fortran_libs := -lgfortran
+fortran_libs := -lifport -lifcore -limf
 
 # FORTRAN linking flags (added to LDFLAGS)
 # Not yet needed but provided as hook.
