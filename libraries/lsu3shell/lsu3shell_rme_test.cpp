@@ -54,15 +54,23 @@ int main(int argc, char **argv)
   lgi::GenerateNcmMatrixVector(Nsigma_0,op_filename,basis_table,space,ncm_matrices);
   for(int i=0; i<ncm_matrices.size(); ++i)
   {
+    // if (matrices[i].rows()<2)
+    // continue;
     // if(fabs(matrices[i].sum())>10e-13)
-      // std::cout<<matrices[i]<<std::endl;
+      std::cout<<fmt::format("Matrix {}",i) << std::endl;
+      std::cout<<matrices[i]<<std::endl;
       std::cout<<"eigenvalues"<<std::endl;
 
       Eigen::VectorXcd eigs=ncm_matrices[i].eigenvalues();
       for(int j=0; j<eigs.size(); ++j)  
         std::cout<<eigs(j).real()<<std::endl;
 
-      Eigen::MatrixXd null=ncm_matrices[i].fullPivLu().kernel();
+      std::cout<<"Doing decomp..." << std::endl;
+      Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(ncm_matrices[i]);
+      lu_decomp.setThreshold(1e-6);
+      std::cout << "Rank: "<<lu_decomp.rank()<<std::endl;
+      std::cout<<"Doing kernel..." << std::endl;
+      Eigen::MatrixXd null=lu_decomp.kernel();
       std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
   }
 
