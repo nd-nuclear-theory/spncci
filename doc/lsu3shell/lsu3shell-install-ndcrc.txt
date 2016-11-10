@@ -17,7 +17,8 @@ History:
   9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
     commit, and update config-ndcrc.mk.
   9/16/16 (mac): Update to 9/15 commit.  Remove instruction to update makefile.
- 
+  11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
+
 ////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
@@ -181,4 +182,20 @@ the su3shell makefile.  The ugly way to do this, in config.mk, is to
 set
 
   LDLIBS += /afs/crc.nd.edu/x86_64_linux/scilib/acml/current/gfortran/gfortran64/lib/libacml.a
+
+----------------------------------------------------------------
+
+11/8/16 (mac): These were Anna's notes from install_NDCRC.txt:
+
+installing lsu3shell instructions
+
+Move to directly where you want repository
+
+mkdir lsu3shell
+cd lsu3shell  
+git clone git://git.code.sf.net/p/lsu3shell/code 
+
+ module load ompi/1.10.2-gcc-4.9.2
+ module load boost/1.58
+ module load gsl
 

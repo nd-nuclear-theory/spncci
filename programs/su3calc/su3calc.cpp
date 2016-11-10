@@ -1,10 +1,11 @@
 /****************************************************************
-  .cpp
+  su3calc.cpp
 
   Calculate and output product of two SU(3) irreps.
 
-  Test input:
-    KroneckerProduct 1 1 1 1
+  Examples:
+
+    >>> KroneckerProduct 1 1 1 1
     (1,1) x (1,1):
       ((0,0),1)
       ((0,3),1)
@@ -12,14 +13,14 @@
       ((2,2),1)
       ((3,0),1)
 
-    W 2 0 1 0 0 0 1 0 2 0 1 0 1
+    >>> W 2 0 1 0 0 0 1 0 2 0 1 0 1
     (2,0) 1 0 x (0,0) 1 0 -> (0,0) 1 0 1
   
-    U 0 0 2 0 2 0 0 0 2 0 1 1 2 0 1 1
+    >>> U 0 0 2 0 2 0 0 0 2 0 1 1 2 0 1 1
     U[(0,0),(2,0),(2,0),(0,0),(2,0),1,1,(2,0),1,1
     +1.00000000
 
-    U 2 2 2 0 2 1 2 0 2 0 1 1 0 2 1 1
+    >>> U 2 2 2 0 2 1 2 0 2 0 1 1 0 2 1 1
     U[(2,2),(2,0),(2,1),(2,0),(2,0),1,1,(0,2),1,1
     +0.36514837
 
@@ -36,9 +37,13 @@
 #include <string>
 
 #include "cppformat/format.h"
-#include "utilities/parsing.h"
+#include "mcutils/parsing.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
+
+////////////////////////////////////////////////////////////////
+// control code for each interactive keyword option 
+////////////////////////////////////////////////////////////////
 
 void DoHelp()
 {
@@ -109,6 +114,10 @@ void DoU(
   std::cout << fmt::format("{:+.8f}",value) << std::endl;
 }
 
+////////////////////////////////////////////////////////////////
+// main program
+////////////////////////////////////////////////////////////////
+
 int main(int argc, char **argv)
 {
 
@@ -138,7 +147,7 @@ int main(int argc, char **argv)
       line_stream >> keyword;
 
       // terminate on "exit"
-      if ((keyword=="exit") || (keyword=="bye") || (keyword==":q!"))
+      if ((keyword=="exit") || (keyword=="exit()") || (keyword=="bye") || (keyword==":q!"))
         break;
 
       // skip blank line or hash comment line

@@ -49,14 +49,10 @@ install_prefix := install
 ################################################################
 
 # C++ compiler
-CXX := g++
+CXX := icpc
 
 # langage standard
-CXXFLAGS += -std=c++11 -fopenmp
-
-# avoid gcc 5 warnings on Eigen library
-CXXFLAGS += -Wno-deprecated-declarations
-
+CXXFLAGS += -std=c++11 -qopenmp
 
 ################################################################
 # FORTRAN compiler-specific configuration
@@ -67,9 +63,10 @@ CXXFLAGS += -Wno-deprecated-declarations
 #   for GCC 3.x: f77
 #   for GCC 4.x: gfortran
 #   for Intel: ifort
-FC := gfortran
 
-FFLAGS += -fopenmp -frecursive
+FC := ifort
+
+FFLAGS += -qopenmp -frecursive
 
 ################################################################
 # C++/FORTRAN linking 
@@ -82,8 +79,10 @@ FFLAGS += -fopenmp -frecursive
 #   for GCC 3.x f77: -lg2c
 #   for GCC 4.x gfortran: -lgfortran
 #   for Intel ifort: -lifport -lifcore -limf
-fortran_libs := -lgfortran
+
+fortran_libs := -lifport -lifcore -limf
 
 # FORTRAN linking flags (added to LDFLAGS)
 # Not yet needed but provided as hook.
+
 fortran_flags :=
