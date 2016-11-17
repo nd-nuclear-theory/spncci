@@ -91,7 +91,7 @@ namespace lsu3shell
     u3shell::TransformTwoBodyUnitTensorToBiquad(twobody_tensor_expansion,biquad_coefficients);
     // convert to pn scheme
     u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
-    std::string operator_stream_filename =fmt::format("twobody_unit_{:06d}.recoupler",operator_index);
+    std::string operator_stream_filename =fmt::format("two_body_unit_{:06d}.recoupler",operator_index);
     std::ofstream operator_stream(operator_stream_filename);
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
     operator_stream.close();
