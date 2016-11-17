@@ -15,9 +15,11 @@
   Department of Physics, University of Notre Dame
 
   9/10/16 (mac): Created.
+  11/17/16 (mac): Fix up path construction for executables.
 
 """
 
+import os
 import sys
 import utils
 
@@ -26,10 +28,13 @@ import utils
 ################################################################
 
 # executable files
-generate_lsu3shell_two_body_unit_tensors_executable = "../generate_lsu3shell_two_body_unit_tensors"
-recoupler_executable = "RecoupleSU3Interaction"
-su3rme_executable = "SU3RME"
-check_two_body_unit_tensors_executable = "../check_two_body_unit_tensors"
+projects_root = os.path.join(os.environ["HOME"],"projects")
+# ... from lsu3shell
+recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Interaction")
+su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","RecoupleSU3Interaction")
+# ... from spncci
+generate_lsu3shell_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_two_body_unit_tensors")
+check_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","check_two_body_unit_tensors")
 
 # data files
 model_space_filename = "model_space.dat"
