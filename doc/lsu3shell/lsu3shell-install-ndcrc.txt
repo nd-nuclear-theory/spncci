@@ -1,31 +1,25 @@
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-
 Local installation notes for lsu3shell package on
 
   University of Notre Dame CRC Linux cluster
-
-For LSU3Shell version:
-
-  commit de8ba2c873869f66397c71b05683bfb11efaa616
-  Author: Tomas Dytrych <tdytrych@gmail.com>
-  Date:   Thu Sep 15 11:20:58 2016 +0200
 
 History:
   4/13/16 (mac): First new build in a couple of years, with lots of new
     modules.
   9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
     commit, and update config-ndcrc.mk.
-  9/16/16 (mac): Update to 9/15 commit.  Remove instruction to update makefile.
+  9/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
+    to update makefile.
   11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
+  11/17/16 (mac): Update to lsu3shell 11/13/16 commit (56981f) and
+    current spncci config files (93ec11).
 
 ////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////
-// Initial directory setup
+// Installation and build instructions
 ////////////////////////////////////////////////////////////////
 
-(1) To clone a clean repository and check out the LSU3develop branch:
+(1) Cloning
+
+To clone a clean repository and check out the LSU3develop branch:
 
   git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell --branch LSU3develop
 
@@ -35,31 +29,40 @@ Or, the long way is to clone, then subsequently check out the branch:
   cd lsu3shell
   git checkout -b LSU3develop origin/LSU3develop
 
-(2) We ignore the outdated irrelevant config.mk which comes with the
-repository.  Instead, copy in the relevant configuration files and
-make a symlink from config.mk:
+(2) Config files
+
+We ignore the outdated irrelevant config.mk which comes with the
+repository.  Instead, make symlinks to the relevant configuration
+files:
 
   rm config.mk
-  cp ${HOME}/projects/spncci/misc/lsu3shell/config-lsu3shell-*.mk .
-  ln -s config-lsu3shell-ndcrc.mk config.mk
+  ln -s ${HOME}/projects/spncci/doc/lsu3shell/config-lsu3shell-gnu.mk config-lsu3shell-gnu.mk
+  ln -s ${HOME}/projects/spncci/doc/lsu3shell/config-lsu3shell-gnu-ndcrc.mk config.mk
 
-////////////////////////////////////////////////////////////////
-// Summary of build commands
-////////////////////////////////////////////////////////////////
+(3) Summary of build commands
 
 Once the configuration files are set as described below, the build
 command line sequence is:
 
+  source ~/projects/spncci/config/module-load-ndcrc.csh
+  # setenv EIGEN3_DIR /afs/crc.nd.edu/group/nuclthy/opt/eigen-3.2.10
+  # module load gcc/4.9.2
+  # module load gsl
+  # module load boost/1.58
   module load ompi/1.10.2-gcc-4.9.2
-  module load boost/1.58
-  module load gsl
   make install -j 8
 
 ////////////////////////////////////////////////////////////////
-// Detailed notes for each library
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+// Detailed notes on setup
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-gcc / ompi / boost
+////////////////////////////////////////////////////////////////
+// gcc / ompi / boost
+////////////////////////////////////////////////////////////////
 
 It is necessary to have consistent installations of gcc, ompi (set
 up to use that gcc), and boost (compiled with that gcc).  A consistent
@@ -132,27 +135,25 @@ the search_prefix list.
 ////////////////////////////////////////////////////////////////
 
 Install Eigen manually, as described in general installation
-instructions.  Suggested location
+instructions for shell/spncci.
 
-  $(HOME)/local/opt/eigen-3.2.7
+   setenv EIGEN3_DIR /afs/crc.nd.edu/group/nuclthy/opt/eigen-3.2.10
 
-That is, you will then have include files located as
-
-  $(HOME)/local/opt/eigen-3.2.7/include/eigen3/Eigen/{Array,Cholesky,...,Eigen,...}
-
-The "standard" convention (e.g., following NERSC's eigen3 mdoule) is
-to tet EIGEN3_DIR to point here and to include ${EIGEN3_DIR} in the
+How this is used in the config.mk: The "standard" convention, which we
+use in the shell/spncci projects (following the convention set by
+NERSC's eigen3 mdoule) would be to simply include ${EIGEN3_DIR} in the
 search_prefix path.  Then include directives would have to be of the
 form
 
    #include "eigen3/Eigen/Dense"
 
-However, LSU3shell's include directives are of the form
+However, in the LSU3shell code, the include directives are of the form
 
    #include "Eigen/Dense"
 
-so we must instead include $(EIGEN3_DIR)/include/eigen3 in the
-search_dirs_include path.
+To get these to work, we must instead make use of the
+search_dirs_include path, and put $(EIGEN3_DIR)/include/eigen3 in this
+path.
 
 ////////////////////////////////////////////////////////////////
 // Optimized BLAS (MKL or ACML)
@@ -185,17 +186,8 @@ set
 
 ----------------------------------------------------------------
 
-11/8/16 (mac): These were Anna's notes from install_NDCRC.txt:
+Notes:
 
-installing lsu3shell instructions
+11/17/16 (mac): Builds okay but get library version warnings (on crcfe01)
 
-Move to directly where you want repository
-
-mkdir lsu3shell
-cd lsu3shell  
-git clone git://git.code.sf.net/p/lsu3shell/code 
-
- module load ompi/1.10.2-gcc-4.9.2
- module load boost/1.58
- module load gsl
-
+   /usr/bin/ld: warning: libmpi.so.1, needed by /afs/crc.nd.edu/x86_64_linux/b/boost/1.58/gcc/4.9.2/build/lib/libboost_mpi.so, may conflict with libmpi.so.12
