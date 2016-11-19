@@ -30,8 +30,8 @@ import utils
 # executable files
 projects_root = os.path.join(os.environ["HOME"],"projects")
 # ... from lsu3shell
-recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Interaction")
-su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","RecoupleSU3Interaction")
+recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
+su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME")
 # ... from spncci
 generate_lsu3shell_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_two_body_unit_tensors")
 check_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","check_two_body_unit_tensors")

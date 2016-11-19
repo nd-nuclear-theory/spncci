@@ -6,10 +6,10 @@ $(eval $(begin-module))
 
 module_units_h := 
 ##module_units_cpp-h := 
-module_units_cpp-h := lgi_solver lgi
+module_units_cpp-h :=lgi lgi_solver 
 
 # module_units_f := 
-module_programs_cpp := 
+module_programs_cpp := get_lgi_expansion
 
 # module_programs_f :=
 # module_generated :=

@@ -5,24 +5,32 @@
   University of Notre Dame
 
 ****************************************************************/
-
-#include "lgi/lgi_solver.h"
-
-
 #include <fstream>
-#include <iostream>
-#include <algorithm>
-
-#include "cppformat/format.h"
-
-#include "u3shell/two_body_operator.h"
-#include "moshinsky/moshinsky_xform.h"
-#include "lsu3shell/lsu3shell_basis.h"
-#include "basis/operator.h"
-#include "lgi/lgi.h"
+#include "lgi/lgi_solver.h"
 
 namespace lgi
 {
+  void 
+  WriteLGI(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
+  {
+    int Nex;
+    u3::U3 sigma;
+    HalfInt Sp,Sn,S;
+    // std::unordered_map<lgi::LGI,int,boost::hash<lgi::LGI>> lgi_counter;
+    std::map<lgi::LGI,int> lgi_counter;
+    for(auto a:lgi_vector)
+        lgi_counter[a]+=1;
+    for(auto it=lgi_counter.begin(); it!=lgi_counter.end(); ++it)
+      {
+        std::tie(Nex,sigma,Sp,Sn,S)=(it->first).Key();
+        int count=it->second;
+        os
+          <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
+          <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
+      }
+  	}
+
+
   void GenerateNcmMatrixVector(
     HalfInt Nsigma_0,      
     const std::string& nrel_filename,
@@ -47,7 +55,6 @@ namespace lgi
       matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
     }
   }
-
   void 
   GenerateBrelNcmMatrices(
       HalfInt Nsigma_0,
@@ -132,7 +139,6 @@ namespace lgi
           }
       }
   }
-  
   void GenerateLGIExpansion(
       HalfInt Nsigma_0,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
@@ -146,21 +152,29 @@ namespace lgi
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   {
+    double threshold=10e-6;
     basis::MatrixVector BrelNcm_vector(space.size()); 
     GenerateBrelNcmMatrices(Nsigma_0,brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
-
+    Eigen::MatrixXd null;
     for(int i=0; i<BrelNcm_vector.size();++i)
       {
         std::cout<<"Null space"<<std::endl;
-        if(BrelNcm_vector[i].cols()==1)
-          continue;
-        lgi_expansion_matrix_vector[i]=BrelNcm_vector[i].fullPivLu().kernel();
+        if(BrelNcm_vector[i].cols()<2)
+          {
+            if(fabs(BrelNcm_vector[i](0,0))<threshold)
+              null=Eigen::MatrixXd::Identity(1,1);
+          }
+        else
+          {
+            Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(BrelNcm_vector[i]);
+            lu_decomp.setThreshold(threshold);
+            null=lu_decomp.kernel();
+          }
+        lgi_expansion_matrix_vector[i]=null;
         std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
-        const u3shell::SubspaceU3SPN& subspace=space.GetSubspace(i);
 
       }
   }
-
   void
   TransformOperatorToSpBasis(
       const u3shell::SectorsU3SPN& sectors,
@@ -182,116 +196,6 @@ namespace lgi
       }
   }
 
-  // void 
-  // WriteLGI(const spncci::LGIVectorType& lgi_vector,   std::ofstream& os)
-  // {
-  //   int Nex;
-  //   u3::U3 sigma;
-  //   HalfInt Sp,Sn,S;
-  //   std::unordered_map<spncci::LGI,int,boost::hash<spncci::LGI>> lgi_counter;
-  //   for(auto a:lgi_vector)
-  //     {
-  //       lgi_counter[a]+=1;
-  //     }
-  //   for(auto b:lgi_vector)
-  //     {
-  //       std::tie(Nex,sigma,Sp,Sn,S)=b.Key();
-  //       int count=lgi_counter[b];
-  //       os
-  //         <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
-  //         <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
-  //     }
-  // }
 
-  // void 
-  // LGINex0Initialize(
-  //     int Nsigma_0, 
-  //     const LSU3BasisTable& lsu3basis_vector, 
-  //     spncci::LGIVectorType& lgi_vector, 
-  //     int& Nsigma_begin, std::ofstream& os
-  //   )
-  // // writing to file the Nex=0 LGI's for which the LGI is give by the lsu3shell irrep so the expansion coefficient is 1
-  // // Currently assuming only one of each symmetry at Nex=0...my need to be adjusted later
-  // {
-  //   //     std::map< spncci::LGI, int> lgi_lsu3shell_map;      
-  //   //     int Nex=0;
-  //   //     u3::SU3 x; 
-  //   //     HalfInt Sp, Sn, S;
-  //   //     // for each irrep in lsu3shell basis vector, extract labels and construct 
-  //   //     // LGI.  Insert into map with value index of lsu3shell state in lsu3shell basis
-  //   //     for(int index=0; index<lsu3basis_vector.size(); index++)
-  //   //     {
-  //   //       std::tie(Nex, x, Sp, Sn, S)=lsu3basis_vector[index].Key();
-  //   //       if(Nex==0)
-  //   //         {
-  //   //           u3::U3 sigma(Nsigma_0+Nex,x);
-  //   //           lgi_lsu3shell_map[spncci::LGI(Nex,sigma,Sp,Sn,S)]=index;
-  //   //         }
-  //   //       else
-  //   //       {
-  //   //         Nsigma_begin=index;
-  //   //         break;
-  //   //       }
-  //   //     }
-  //   //     // write to file
-  //   //     // lsu3_basis_size  number_of_lgis 
-  //   //     //  lgi_index  num_nonzero_coefs
-  //   //     //    lsu3shell_index coefficient
-  //   //     //    lsu3shell_index coefficient
-  //   //     //  ... 
-  //   //     int lgi_index=0;
-  //   //     std::string outstring=fmt::format("{:6d} {:6d}",lsu3basis_vector.size(),lgi_lsu3shell_map.size());
-  //   //     os << outstring.c_str()<<std::endl;
-  //   //     
-  //   //     for(auto it=lgi_lsu3shell_map.begin(); it!=lgi_lsu3shell_map.end(); ++it)
-  //   //       {
-  //   //         os <<lgi_index<<"  "<<1<<std::endl
-  //   //            <<"  "<< it->second <<"  "<<1.0<<std::endl;
-  //   //         lgi_vector.push_back(it->first);
-  //   //         lgi_index++;
-  //   //       }
-  // }
 
-  // void WriteLSU3ShellExpansionLGI(
-  //     int basis_dim, 
-  //     const std::map< spncci::LGI, std::vector<std::pair<int,int>> >& lgi_lsu3shell_map,
-  //     const Eigen::MatrixXd& BNcm_kernal,
-  //     spncci::LGIVectorType& lgi_vector,
-  //     std::string lgi_expansion_filename
-  //   )
-  // {
-  //   int lgi_index;
-  //   int num_rows=BNcm_kernal.rows();
-  //   int lsu3_start_index;
-  //   std::fstream s(lgi_expansion_filename.c_str());
-  //   s.seekp(0,std::ios::beg);
-  //   s>>lgi_index>>lsu3_start_index;
-  //   s.seekp(0,std::ios::end);
-  //   int column, count;
-  //   for(auto it=lgi_lsu3shell_map.begin(); it!=lgi_lsu3shell_map.end(); ++it)
-  //     {
-  //       std::vector<std::pair<int,int>> column_count_vector=it->second;
-  //       for(int i=0; i<column_count_vector.size(); ++i)
-  //         {
-  //           std::tie(column,count)=column_count_vector[i];
-  //           s<<lgi_index<<"  "<<count<<std::endl;
-  //           for(int row=0; row<num_rows; row++)
-  //             {
-  //               double rme=BNcm_kernal(row,column);
-  //               if(fabs(rme)>10e-8)
-  //                 s<<"  "<<(lsu3_start_index+row)<<"  "<<rme;
-  //             } 
-  //           lgi_vector.push_back(it->first);
-  //           lgi_index++;
-  //         }
-  //     }
-  //   s.seekp(0,std::ios::beg);
-  //   s.write(fmt::format("{:6d} {:6d}",lgi_index,basis_dim).c_str(),13);
-  //   s.close();
-  // }
-
-  // void WriteControlFile()
-  // {
-
-  // }
 }// end namespace

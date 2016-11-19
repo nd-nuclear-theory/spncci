@@ -1,25 +1,27 @@
 /****************************************************************
-  lsu3shell_rme_test.cpp
+  lgi_solver.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  7/5/16 (aem,mac): Created.
 ****************************************************************/
-#include "lsu3shell/lsu3shell_rme.h"
 #include <fstream>
-#include <ostream>  
+#include <iostream>
+#include <eigen3/Eigen/LU>
+
 #include "cppformat/format.h"
 #include "sp3rlib/u3coef.h"
+
+#include "lsu3shell/lsu3shell_basis.h"
 #include "lgi/lgi_solver.h"
-#include <eigen3/Eigen/LU>
+#include "lsu3shell/lsu3shell_rme.h"
+
+
 
 int main(int argc, char **argv)
 {
-  u3::U3CoefInit();
-  std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
-  u3shell::OperatorLabelsU3S op_labels(0,u3::SU3(0,0),0,0);
-  bool scalar_op=true;
+	u3::U3CoefInit();
+
   // setup for test case
   int Nsigma_0=3;  // 11 for 6Li, 3 for 2H
 
@@ -28,12 +30,23 @@ int main(int argc, char **argv)
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
+  // Filling out basis_table, basis_provenance and space;
   lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   std::cout<<"Read Basis complete"<<std::endl;
-  u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
-  basis::MatrixVector matrices;
 
-  // reading in operator rme's obtained form SU3RME
+ // Operator information
+  std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
+  // u3shell::OperatorLabelsU3S op_labels(0,u3::SU3(0,0),0,0);
+  // bool scalar_op=true;
+  // // Set up sector for operator
+  // u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
+  
+	basis::MatrixVector lgi_expansion_matrix_vector
+  lgi::GenerateLGIExpansion(Nsigma_0,basis_table,space,brel_filename, 
+  													nrel_filename,lgi_expansion_matrix_vector);
+
+   // reading in operator rme's obtained form SU3RME
+  basis::MatrixVector matrices;
   std::ifstream is(op_filename.c_str());
   if(!is)
     std::cout<<"file didn't open"<<std::endl;
@@ -73,23 +86,5 @@ int main(int argc, char **argv)
       Eigen::MatrixXd null=lu_decomp.kernel();
       std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
   }
-
-  // test matrix comparison
-  //
-  // // This is just a self-comparison, with one entry skewed...
-  // basis::MatrixVector matrices_mod = matrices;
-  // matrices_mod[0](0,0) += 3.14159;
-  // double epsilon = 1e-8;
-  // CompareLSU3ShellRMEs(
-  //     std::cout,
-  //     basis_provenance,
-  //     space, 
-  //     sectors,
-  //     matrices,
-  //     matrices_mod,
-  //     epsilon,
-  //     true  // verbose
-  //   );
-
 
 }
