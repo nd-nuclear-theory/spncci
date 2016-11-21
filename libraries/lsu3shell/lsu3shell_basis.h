@@ -85,7 +85,8 @@ namespace lsu3shell
   //     total oscillator quanta
   //   filename (std::string) : Input filename
   //   ...
-
+  //   space (output) : lsu3shell basis space 
+  //   basis_provenance (output) : look up table between 
 
 }
 #endif
