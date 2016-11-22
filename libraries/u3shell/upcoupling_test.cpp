@@ -112,7 +112,7 @@ KineticCheck()
       std::tie(op_labels, kappa0,L0)=it->first;
       double rme=it->second;
       double check=u3shell::RelativeKineticEnergyOperator(op_labels.bra(), op_labels.ket());
-      if(fabs(rme)>10e-10)
+      if(fabs(rme)>10e-13)
         std::cout<<fmt::format("{} {} {}   {}   {}",op_labels.Str(), kappa0,L0,rme,check)<<std::endl;
     }
 }
@@ -141,7 +141,7 @@ ReadWriteCheck(
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
-  int Nmax=4;
+  int Nmax=10;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;

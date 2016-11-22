@@ -14,7 +14,7 @@
 // #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
-double CUTOFF=10e-8;
+double CUTOFF=10e-13;
 
 namespace u3shell
 {

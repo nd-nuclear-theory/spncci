@@ -35,15 +35,13 @@ namespace lsu3shell
     std::string line;
     while(std::getline(is,line))
       {
-
         // skip initial header line
         if(not std::isdigit(line[0]))
           continue;
-
         // extract bra/ket lsu3shell basis multiplicity group indices
         std::istringstream line_stream(line);
         line_stream >> i >> j;
-        std::cout<<i<<" "<<j<<std::endl;
+        // std::cout<<i<<" "<<j<<std::endl;
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
@@ -53,8 +51,9 @@ namespace lsu3shell
 
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
+        // std::cout<<fmt::format("{}  {}  {}", xj.Str(), operator_labels.x0().Str(),xi.Str())<<std::endl;
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
-
+        // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
         // extract and store matrix elements
         int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
         int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
@@ -62,6 +61,7 @@ namespace lsu3shell
           for(int gj=0; gj<group_j.dim; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
+                // std::cout<<"getting rme"<<std::endl;
                 line_stream >> rme;
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 

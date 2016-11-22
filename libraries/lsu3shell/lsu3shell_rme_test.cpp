@@ -51,7 +51,8 @@ int main(int argc, char **argv)
         std::cout<<eigs(j).real()<<std::endl;
   }
   basis::MatrixVector ncm_matrices;
-  lgi::GenerateNcmMatrixVector(Nsigma_0,op_filename,basis_table,space,ncm_matrices);
+  std::ifstream is_nrel(op_filename.c_str());
+  lgi::GenerateNcmMatrixVector(Nsigma_0,is_nrel,basis_table,space,ncm_matrices);
   for(int i=0; i<ncm_matrices.size(); ++i)
   {
       if (matrices[i].rows()<2)
