@@ -54,7 +54,7 @@ void BranchTwoBodyNLST(
 
       u3shell::IndexTwoBodyTensorLabelsU3ST indexed_two_body_tensor=it->first;
       double rme_u3st=it->second;
-      if(fabs(rme_u3st)<10e-10)
+      if(fabs(rme_u3st)<10e-13)
         continue;
       std::tie(tensor_u3st,kappa0,L0)=indexed_two_body_tensor;
       u3::SU3 x0=tensor_u3st.x0();
@@ -123,7 +123,7 @@ void BranchTwoBodyLSJT( int Jmax, int J0,
   for(auto it=two_body_rme_lst.begin(); it!=two_body_rme_lst.end(); it++)
     {
       double rme_lst=it->second;
-      if (fabs(rme_lst)<10e-10)
+      if (fabs(rme_lst)<10e-13)
         continue;
       TwoBodyStateLabelsLST bra_lst,ket_lst;
       HalfInt S0,T0,S,T,Sp,Tp;
@@ -224,7 +224,7 @@ void PrintTwoBodyMatrixElementsJJJT(const std::map<TwoBodyBraketJJJT,double>& tw
       HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
       std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
       std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
-      if(fabs(rme)>10e-10)
+      if(fabs(rme)>10e-13)
         std::cout<<fmt::format("{} {} {} {} {} {} {} {}   {} {} {} {} {} {} {} {}   {}",
           N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp,N1,L1,J1,N2,L2,J2,J,T,rme)<<std::endl;
     }
@@ -237,7 +237,7 @@ void PrintTwoBodyIndexedRMEU3ST(const u3shell::IndexedTwoBodyTensorRMEsU3ST& two
         u3shell::TwoBodyUnitTensorLabelsU3ST tb_tensor;
         std::tie(tb_tensor,kappa0,L0)=it->first;
         double rme=it->second;
-        if(fabs(rme)>10e-10)
+        if(fabs(rme)>10e-13)
           std::cout<<fmt::format("{} {} {}   {}",tb_tensor.Str(), kappa0,L0,rme)<<std::endl;
       }
 }
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   u3::WCoefCache w_cache;
 
-  int Nmax=6; 
+  int Nmax=4; 
   int Jmax=4; 
   int J0=0;
       
@@ -412,12 +412,12 @@ int main(int argc, char **argv)
       int a2p=h2_lookup[lookup2p];
       if(a1p>a2p)
         continue;
-      if (fabs(rme)>10e-10) 
+      if (fabs(rme)>10e-13) 
         {
           std::tuple<int,int,int,int,int,int> key(a1p,a2p,a1,a2,TwiceValue(J),22);
           double trme=test_map_jj[key];
-          if(fabs(rme-trme)>10e-6)
-            std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   22   {:12f}  {:12f}   {:12f}", 
+          if(fabs(rme-trme)>10e-8)
+            std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   22   {:15.13f}  {:15.13f}   {:15.13f}", 
               a1p,a2p,a1,a2,TwiceValue(J),rme,trme, fabs(rme-trme))<<std::endl;
         }
     }
