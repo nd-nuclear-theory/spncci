@@ -215,7 +215,7 @@ C     write(6,9000) ie2,j2t,m2t,k2,l2,m2,icount, 2, dt2a(ka2)
       DO 125 KR0=1,KR0MAX                                               
       KR0123=KR0+KA123P                                                 
       KR0IND=KR0+INDP                                                   
-  125 DWU3R3(KR0123)=DWU3R3(KR0123)+DEWU3(KR0IND)*DS1A(KA123)           
+  125 DWU3R3(KR0123)=DWU3R3(KR0123)+DEWU3(KR0IND)*DS1A(KA123)
   130 CONTINUE                                                          
       KA3P=-N012                                                        
       KA3Q=-N3                                                          
@@ -240,7 +240,7 @@ C     write(6,9000) ie2,j2t,m2t,k2,l2,m2,icount, 2, dt2a(ka2)
       KASP=KASP+N012                                                    
       KASKA3=KAS+KA3Q                                                   
       KR012S=KR012+KASP                                                 
-  135 DS=DS+DON3(KASKA3)*DWU3R3(KR012S)                                 
+  135 DS=DS+DON3(KASKA3)*DWU3R3(KR012S)
   140 DWU3R3(KR0123)=DS                                                 
 C     write(6,*) ' icount ', icount
       RETURN                                                            

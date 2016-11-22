@@ -4,6 +4,7 @@ C     ORTHONORMALIZATION COEFFICIENTS FOR THE U3R3 TRANSFORMATION
 C     ------------------------------------------------------------------
 C     UPDATE/MOD: (LSU,05-83)  J.P.DRAAYER        EXTENDED PRECISION    
 C                 (ND,11-11)   M.A.CAPRIO         DOUBLE/QUAD SWITCHABLE
+C                 (ND,11-22)   A.E.MCCOY          QUAD FLAG FOR GNU
 C                                                                       
 C     REFERENCES--J.P.DRAAYER AND Y.AKIYAMA, J.MATH.PHYS.14(1973)1904   
 C                 J.P.DRAAYER, NUCL.PHYS.A129(1969)647-665              
@@ -16,6 +17,8 @@ C     ------------------------------------------------------------------
 #if defined(SU3DBL)
       IMPLICIT REAL*8(Q)
 #elif defined(SU3QUAD)
+      IMPLICIT REAL*16(Q)
+#elif defined(SU3QUAD_GNU)
       IMPLICIT REAL*16(Q)                                     
 #endif
       DIMENSION DONMAT(1),QONMAT(81)                                    
@@ -104,6 +107,8 @@ C     ------------------------------------------------------------------
   135 QONMAT(KKAKKA)=DSQRT(1.D0/QHOLD)                                  
 #elif defined(SU3QUAD)
   135 QONMAT(KKAKKA)=QSQRT(1.D0/QHOLD)                                  
+#elif defined(SU3QUAD_GNU)
+  135 QONMAT(KKAKKA)=SQRT(1.D0/QHOLD)                                  
 #endif
       KKAQ=-N                                                           
       DO 150 KKA=1,KAPMAX                                               
