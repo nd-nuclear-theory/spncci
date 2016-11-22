@@ -25,7 +25,7 @@ namespace lgi
 
   void 
   GenerateNcmMatrixVector(HalfInt Nsigma_0,     
-    const std::string& nrel_filename,
+    std::ifstream& is_nrel,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
     basis::MatrixVector& matrix_vector 
@@ -35,8 +35,8 @@ namespace lgi
 
   void 
   GenerateBrelNcmMatrices(HalfInt Nsigma_0,
-      const std::string& brel_filename,
-      const std::string& nrel_filename,
+      std::ifstream& is_brel,
+      std::ifstream& is_nrel,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       basis::MatrixVector& BrelNcm_vector 
@@ -48,8 +48,8 @@ namespace lgi
   GenerateLGIExpansion(HalfInt Nsigma_0,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
-    const std::string& brel_filename,
-    const std::string& nrel_filename,
+    std::ifstream& is_brel,
+    std::ifstream& is_nrel,
     basis::MatrixVector& lgi_expansion_matrix_vector  
   );
   // Generates the LGI Expansion in terms of lsu3shell SU(3)xSU(2) 

@@ -33,13 +33,16 @@ namespace lgi
 
   void GenerateNcmMatrixVector(
     HalfInt Nsigma_0,      
-    const std::string& nrel_filename,
+    // const std::string& nrel_filename,
+    std::ifstream& is_nrel,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
     basis::MatrixVector& matrix_vector 
   )
   {
-    std::ifstream is_nrel(nrel_filename.c_str());
+    // std::ifstream is_nrel(nrel_filename.c_str());
+    assert(is_nrel.is_open());
+
     basis::MatrixVector nrel_matrix_vector;
     u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
     u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
@@ -50,16 +53,20 @@ namespace lgi
     {
       auto subspace=space.GetSubspace(i);
       HalfInt N=subspace.N()-Nsigma_0;
+      std::cout<<N<<std::endl<<nrel_matrix_vector[i]<<std::endl;
       int dim=subspace.size();
-      std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
+      // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
+      // std::cout<<"nrel"<<std::endl<<nrel_matrix_vector[i]<<std::endl;
       matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
     }
   }
   void 
   GenerateBrelNcmMatrices(
       HalfInt Nsigma_0,
-      const std::string& brel_filename,
-      const std::string& nrel_filename,
+      std::ifstream& is_brel,
+      std::ifstream& is_nrel,
+      // const std::string& brel_filename,
+      // const std::string& nrel_filename,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       basis::MatrixVector& BrelNcm_vector 
@@ -73,13 +80,13 @@ namespace lgi
     //generate sectors for brel.
     u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
 
-    std::ifstream is_brel(brel_filename.c_str());
-    // std::cout<<"Reading in Brel"<<std::endl;
+    // std::ifstream is_brel(brel_filename.c_str());
+    std::cout<<"Reading in Brel"<<std::endl;
     basis::MatrixVector brel_matrix_vector(space.size());
     lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,lsu3_basis_table,space, brel_sectors,brel_matrix_vector);
-    // std::cout<<"Reading in Nrel"<<std::endl;
+    std::cout<<"Generating Ncm"<<std::endl;
     basis::MatrixVector ncm_matrix_vector(space.size());    
-     GenerateNcmMatrixVector(Nsigma_0,nrel_filename,lsu3_basis_table,space, ncm_matrix_vector);
+     GenerateNcmMatrixVector(Nsigma_0,is_nrel,lsu3_basis_table,space, ncm_matrix_vector);
 
     // subspace_sectors is map of vector of (dimension of Brel+Ncm matrix, 
     // indices of relevant N-2 subspace)
@@ -107,15 +114,16 @@ namespace lgi
         int rows_total=subspace_sectors[j][0];
         auto subspace=space.GetSubspace(j);
         int columns=subspace.size();
-        std::cout<<"BrelNcm initialized"<<std::endl;
+        // std::cout<<"BrelNcm initialized"<<std::endl;
         BrelNcm_vector[j]=Eigen::MatrixXd::Zero(rows_total,columns);
-        std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+        // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
         //Ncm block is square so rows=columns
         int rows=columns;
         // Because Ncm is SU(3) scalar, subspace index should equal sector index;
-        std::cout<<"Adding in Ncm"<<std::endl;
+        // std::cout<<"Adding in Ncm"<<std::endl;
         BrelNcm_vector[j].block(0,0,rows,columns)=ncm_matrix_vector[j];
-        std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+        // std::cout<<ncm_matrix_vector[j]<<std::endl;
+        // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
         // increment location in full matrix
         int rows_begin=columns;
         // Fill in Brel sectors 
@@ -131,9 +139,9 @@ namespace lgi
             // filling in sector
             // std::cout<<rows_begin<<"  "<<rows<<"  "<<columns<<"   "<<brel_matrix_vector[sector_index]<<std::endl;
             // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
-            std::cout<<"Adding Brel "<<k<<" of "<<subspace_sectors[j].size()-1<<std::endl;
+            // std::cout<<"Adding Brel "<<k<<" of "<<subspace_sectors[j].size()-1<<std::endl;
             BrelNcm_vector[j].block(rows_begin,0,rows,columns)=brel_matrix_vector[sector_index];
-            std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+            // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
 
             rows_begin+=rows;
           }
@@ -143,8 +151,10 @@ namespace lgi
       HalfInt Nsigma_0,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
-      const std::string& brel_filename,
-      const std::string& nrel_filename,
+      std::ifstream& is_brel,
+      std::ifstream& is_nrel,
+      // const std::string& brel_filename,
+      // const std::string& nrel_filename,
       basis::MatrixVector& lgi_expansion_matrix_vector
       // lgi::LGIVector lgi_vector
       
@@ -153,16 +163,19 @@ namespace lgi
   // Columns of kernel are expansion coefficients for each lgi.
   {
     double threshold=10e-6;
-    basis::MatrixVector BrelNcm_vector(space.size()); 
-    GenerateBrelNcmMatrices(Nsigma_0,brel_filename,nrel_filename,lsu3_basis_table, space, BrelNcm_vector);
+    basis::MatrixVector BrelNcm_vector(space.size());
+    GenerateBrelNcmMatrices(Nsigma_0,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);
     Eigen::MatrixXd null;
     for(int i=0; i<BrelNcm_vector.size();++i)
       {
         std::cout<<"Null space"<<std::endl;
+        std::cout<<BrelNcm_vector[i]<<std::endl<<std::endl;
         if(BrelNcm_vector[i].cols()<2)
           {
             if(fabs(BrelNcm_vector[i](0,0))<threshold)
               null=Eigen::MatrixXd::Identity(1,1);
+            else
+              null=Eigen::MatrixXd::Zero(1,1);
           }
         else
           {
@@ -171,7 +184,8 @@ namespace lgi
             null=lu_decomp.kernel();
           }
         lgi_expansion_matrix_vector[i]=null;
-        std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
+        std::cout<<null<<std::endl;
+        // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
 
       }
   }
