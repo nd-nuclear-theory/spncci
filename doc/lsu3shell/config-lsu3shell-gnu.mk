@@ -43,6 +43,9 @@ CXXFLAGS += -Wno-shift-count-overflow
 # C++ compiler optimization and debugging
 CXXFLAGS += -DNDEBUG -O3 #-Wall -W
 #CXXFLAGS += -cxx=icpc -std=c++0x -shared-intel -DCPP0X_STD_TR1 -DMPICH_IGNORE_CXX_SEEK -openmp -O3
+ifdef DEBUG
+  CXXFLAGS += -g
+endif
 
 # parallel C++ compiler (DEPRECATED)
 #   used in module.mk files as
@@ -82,8 +85,10 @@ FC := mpif77
 #FC := mpif90
 
 # FORTRAN compiler optimization and debugging
-FFLAGS += -O3 
-#FFLAGS += -g
+FFLAGS += -O3
+ifdef DEBUG
+  FFLAGS += -g
+endif
 
 ################################################################
 # C++/FORTRAN linking 
