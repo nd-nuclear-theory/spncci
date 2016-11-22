@@ -35,56 +35,14 @@ int main(int argc, char **argv)
   std::cout<<"Read Basis complete"<<std::endl;
 
  // Operator information
-  std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
+  std::string nrel_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
+  std::string brel_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Brel.dat";
   // u3shell::OperatorLabelsU3S op_labels(0,u3::SU3(0,0),0,0);
   // bool scalar_op=true;
   // // Set up sector for operator
   // u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
   
-	basis::MatrixVector lgi_expansion_matrix_vector
+	basis::MatrixVector lgi_expansion_matrix_vector;
   lgi::GenerateLGIExpansion(Nsigma_0,basis_table,space,brel_filename, 
   													nrel_filename,lgi_expansion_matrix_vector);
-
-   // reading in operator rme's obtained form SU3RME
-  basis::MatrixVector matrices;
-  std::ifstream is(op_filename.c_str());
-  if(!is)
-    std::cout<<"file didn't open"<<std::endl;
-  lsu3shell::ReadLSU3ShellRMEs(is,op_labels,basis_table,space, sectors,matrices);
-  is.close();
-
-  for(int i=0; i<matrices.size(); ++i)
-  {
-    // if(fabs(matrices[i].sum())>10e-13)
-      // std::cout<<matrices[i]<<std::endl;
-      std::cout<<"eigenvalues"<<std::endl;
-
-      Eigen::VectorXcd eigs=matrices[i].eigenvalues();
-      for(int j=0; j<eigs.size(); ++j)  
-        std::cout<<eigs(j).real()<<std::endl;
-  }
-  basis::MatrixVector ncm_matrices;
-  lgi::GenerateNcmMatrixVector(Nsigma_0,op_filename,basis_table,space,ncm_matrices);
-  for(int i=0; i<ncm_matrices.size(); ++i)
-  {
-      if (matrices[i].rows()<2)
-      continue;
-    // if(fabs(matrices[i].sum())>10e-13)
-      std::cout<<fmt::format("Matrix {}",i) << std::endl;
-      std::cout<<matrices[i]<<std::endl;
-      std::cout<<"eigenvalues"<<std::endl;
-
-      Eigen::VectorXcd eigs=ncm_matrices[i].eigenvalues();
-      for(int j=0; j<eigs.size(); ++j)  
-        std::cout<<eigs(j).real()<<std::endl;
-
-      std::cout<<"Doing decomp..." << std::endl;
-      Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(ncm_matrices[i]);
-      lu_decomp.setThreshold(1e-6);
-      std::cout << "Rank: "<<lu_decomp.rank()<<std::endl;
-      std::cout<<"Doing kernel..." << std::endl;
-      Eigen::MatrixXd null=lu_decomp.kernel();
-      std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
-  }
-
 }
