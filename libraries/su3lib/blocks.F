@@ -31,6 +31,8 @@ C     ------------------------------------------------------------------
 #if defined(SU3DBL)
       IMPLICIT REAL*8(Q)
 #elif defined(SU3QUAD)
+      IMPLICIT REAL*16(Q)
+#elif defined(SU3QUAD_GNU)
       IMPLICIT REAL*16(Q)                                     
 #endif
       COMMON/BKDB/DBINO(8385),DBINV(8385),DTWOS(-128:128)               
@@ -54,6 +56,8 @@ C
 20          QGEN=DFLOAT(I+1-K)/DFLOAT(K)*QGEN                           
 #elif defined(SU3QUAD)
 20          QGEN=QFLOAT(I+1-K)/QFLOAT(K)*QGEN                           
+#elif defined(SU3QUAD_GNU)
+20          QGEN=REAL(I+1-K,16)/REAL(K,16)*QGEN                           
 #endif
 C                                                                       
 30       QBINO(I*(I+1)/2+J+1)=QGEN                                      

@@ -14,6 +14,7 @@ C                 (LSU,03-90)  J.P.DRAAYER        REVISED BT LABELING
 C                 (LSU,07-91)  J.P.DRAAYER        CONVERTED BT TO WST   
 C                 (UoT,07-95)  C.BAHRI            COMMON BLOCK FOR WST
 C                 (ND,11-11)   M.A.CAPRIO         DOUBLE/QUAD SWITCHABLE
+C                 (ND,11-22)   A.E.MCCOY          QUAD FLAG FOR GNU
 C                                                                       
 C     REFERENCES--J.P.DRAAYER AND Y.AKIYAMA, J.MATH.PHYS.14(1973)1904   
 C                 J.P.DRAAYER, NUCL.PHYS.A129(1969)647-665              
@@ -23,6 +24,8 @@ C     ------------------------------------------------------------------
 #if defined(SU3DBL)
       IMPLICIT REAL*8(Q)
 #elif defined(SU3QUAD)
+      IMPLICIT REAL*16(Q)
+#elif defined(SU3QUAD_GNU)
       IMPLICIT REAL*16(Q)                                     
 #endif
 C                                                                       

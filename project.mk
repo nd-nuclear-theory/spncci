@@ -77,7 +77,11 @@ endif
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
 #   Note: quad precision requires ifort compiler
 
-FFLAGS += -DSU3DBL
+#FFLAGS += -DSU3DBL
+# quad precision for ifort
+# FFLAGS += -DSU3QUAD
+# quad precision for gnu gfortran
+FFLAGS += -DSU3QUAD_GNU
 
 # BOOST -- lsu3shell flags
 ## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
