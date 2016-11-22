@@ -121,6 +121,7 @@ def calculate_rmes(two_body_operator_basename_list):
         command_line = [
             su3rme_executable,
             model_space_filename,
+            model_space_filename,
             load_filename
         ]
         utils.call(command_line)
