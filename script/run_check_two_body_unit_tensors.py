@@ -116,12 +116,14 @@ def calculate_rmes(two_body_operator_basename_list):
         ]
         load_filename = "{}.load".format(basename)
         utils.write_input(load_filename,input_lines,silent=False)
-    
+        print("load_file finished")
         # call SU3RME
         command_line = [
             su3rme_executable,
             model_space_filename,
-            load_filename
+            model_space_filename,
+            load_filename#,
+           # basename
         ]
         utils.call(command_line)
 
