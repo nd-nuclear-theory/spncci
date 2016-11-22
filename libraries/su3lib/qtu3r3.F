@@ -10,6 +10,7 @@ C                 (LSU,01-83)  J.P.DRAAYER        EXTENDED PRECISION
 C                 (LSU,03-83)  J.P.DRAAYER        SPACE SAVING MEASURE  
 C                 (LSU,10-89)  J.P.DRAAYER        VS FORTRAN UPGRADE    
 C                 (ND,11-11)   M.A.CAPRIO         DOUBLE/QUAD SWITCHABLE
+C                 (ND,11-22)   A.E.MCCOY          QUAD FLAG FOR GNU
 C                                                                       
 C     REFERENCES--J.P.DRAAYER AND Y.AKIYAMA, J.MATH.PHYS.14(1973)1904   
 C                 J.P.DRAAYER, NUCL.PHYS.A129(1969)647-665              
@@ -20,6 +21,8 @@ C     ------------------------------------------------------------------
       IMPLICIT REAL*8(Q)
 #elif defined(SU3QUAD)
       IMPLICIT REAL*16(Q)                                     
+#elif defined(SU3QUAD_GNU)
+      IMPLICIT REAL*16(Q)
 #endif
 C                                                                       
       COMMON/BKQB/QBINO(18721),QBINV(18721),QTWOS(-192:192)             
@@ -75,6 +78,8 @@ C
      1    DSQRT(QBINO(ND(LAM,IPB))*QBINO(ND(MU,IQB))*                   
 #elif defined(SU3QUAD)
      1    QSQRT(QBINO(ND(LAM,IPB))*QBINO(ND(MU,IQB))*                   
+#elif defined(SU3QUAD_GNU)
+     1    SQRT(QBINO(ND(LAM,IPB))*QBINO(ND(MU,IQB))*                   
 #endif
      2    QBINO(ND(LAM+MU+1,IQB))*QBINV(ND(IPB+MU+1,IQB))*              
      3    QBINV(ND(JBT,IRB))*QBINO(ND(IS,IX))*QBINV(ND(IS,IY)))         
