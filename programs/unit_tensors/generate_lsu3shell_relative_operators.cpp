@@ -95,7 +95,7 @@ int main(int argc, char **argv)
   int num_ops=num_unit+2;
   control_stream<<fmt::format("  operators {} ",num_ops)<<std::endl;
   for(int i=0; i<num_unit; ++i)
-    control_stream<<fmt::format("unit{:06d}",i)<<std::endl;
+    control_stream<<fmt::format("relative_unit_{:06d}",i)<<std::endl;
 
   control_stream<<brel_file<<std::endl;
   control_stream<<nintr_file<<std::endl;
