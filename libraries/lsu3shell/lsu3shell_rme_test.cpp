@@ -14,6 +14,7 @@
 #include "lgi/lgi_solver.h"
 #include <eigen3/Eigen/LU>
 
+extern double zero_threshold;
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
@@ -42,7 +43,7 @@ int main(int argc, char **argv)
 
   for(int i=0; i<matrices.size(); ++i)
   {
-    // if(fabs(matrices[i].sum())>10e-13)
+    // if(fabs(matrices[i].sum())>zero_threshold)
       std::cout<<matrices[i]<<std::endl<<std::endl;
       // std::cout<<"eigenvalues"<<std::endl<<std::endl;
 
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
   // {
   //     if (matrices[i].rows()<2)
   //     continue;
-  //   // if(fabs(matrices[i].sum())>10e-13)
+  //   // if(fabs(matrices[i].sum())>zero_threshold)
   //     std::cout<<fmt::format("Matrix {}",i) << std::endl;
   //     std::cout<<matrices[i]<<std::endl;
   //     std::cout<<"eigenvalues"<<std::endl;

@@ -486,6 +486,136 @@ namespace u3shell
     int g0_;
   };
 
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // U3S-scheme generic tensor operator labels
+  ////////////////////////////////////////////////////////////////
+
+  class OperatorLabelsU3S
+  // U(1)xSU(3)xS operators labels
+  //
+  // For use in selection rules for enumerating operator sectors.
+  // Meant also for use as base class for other, more complicated
+  // operator labels.
+  //
+  // Note: The U(1)xSU(3) labels do *not* in general constitute a
+  // valid U(3) label and thus cannot be stored in a u3::U3.  E.g.,
+  // operators carrying N0=0 but an SU(3) irrep other than (0,0) are
+  // perfectly well possible.
+  //
+  // Stored labels:
+  //   N0 (int) : oscillator quanta
+  //   x0 (u3::SU3) : SU(3) labels
+  //   S0 (HalfInt) : spin (HalfInt for consistency, although value will always be integer)
+  //   g0 (int) : parity grade (0 or 1)
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    public:
+
+    inline OperatorLabelsU3S() 
+      : N0_(0), S0_(0), g0_(0)
+      // Default constructor.
+      {}
+
+    inline OperatorLabelsU3S(int N0, const u3::SU3& x0, HalfInt S0, int g0)
+      : N0_(N0), x0_(x0), S0_(S0), g0_(g0)
+    // Construct from labels.
+    {}
+    
+    inline OperatorLabelsU3S(int N0, const u3::SU3& x0, HalfInt S0)
+      : N0_(N0), x0_(x0), S0_(S0)
+    // Construct from labels.
+    {
+      g0_=N0%2;
+    }
+
+    inline OperatorLabelsU3S(const u3shell::OperatorLabelsU3ST& tensor)
+    // Construct from U3ST opertator, for use in converting between PN and isospin
+    // formalism and relative to many-body calculations 
+      {
+        N0_=tensor.N0(); 
+        x0_=tensor.x0(); 
+        S0_=tensor.S0();
+        g0_=tensor.g0();
+      }
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    inline int N0() const
+    {
+      return N0_;
+    }
+
+    inline u3::SU3 x0() const
+    {
+      return x0_;
+    }
+
+    inline HalfInt S0() const
+    {
+      return S0_;
+    }
+
+    inline int g0() const
+    {
+      return g0_;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<int,u3::SU3,HalfInt,int> KeyType;
+    // N0, x0, S0, T0, g0
+
+    inline KeyType Key() const
+    {
+      return KeyType(N0_,x0_,S0_,g0_);
+    }
+
+    inline friend bool operator == (const OperatorLabelsU3S& x1, const OperatorLabelsU3S& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+    
+    inline friend bool operator < (const OperatorLabelsU3S& x1, const OperatorLabelsU3S& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    inline friend std::size_t hash_value(const OperatorLabelsU3S& v)
+    {
+      boost::hash<OperatorLabelsU3S::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    protected:  // since derived class constructors may need to calculate some of these values
+    int N0_;
+    u3::SU3 x0_;
+    HalfInt S0_;
+    int g0_;
+  };
+
+  typedef std::tuple<u3shell::OperatorLabelsU3S,int,int> IndexedOperatorLabelsU3S;
+
+
   ////////////////////////////////////////////////////////////////
   // U3ST-scheme relative unit tensor operator labels
   ////////////////////////////////////////////////////////////////
@@ -679,6 +809,10 @@ namespace u3shell
       return ket_;
     }
 
+    inline const OperatorLabelsU3ST operator_labels()
+      {
+        return OperatorLabelsU3ST(N0_,x0_,S0_,T0_,g0_);
+      }
     ////////////////////////////////////////////////////////////////
     // key tuple, comparisons, and hashing
     ////////////////////////////////////////////////////////////////
@@ -1088,111 +1222,6 @@ namespace u3shell
     int eta1_, eta2_;
     u3::SU3 x_;
     HalfInt S_;
-  };
-
-  ////////////////////////////////////////////////////////////////
-  // U3S-scheme generic tensor operator labels
-  ////////////////////////////////////////////////////////////////
-
-  class OperatorLabelsU3S
-  // U(1)xSU(3)xS operators labels, for use in pn scheme.
-  //
-  // See OperatorLabelsU3ST comments for further discussion.  Omits
-  // isospin labels.
-  {
-
-    ////////////////////////////////////////////////////////////////
-    // constructors
-    ////////////////////////////////////////////////////////////////
-
-    public:
-
-    inline OperatorLabelsU3S() 
-      : N0_(0), S0_(0), g0_(0)
-      // Default constructor.
-      {}
-
-    inline OperatorLabelsU3S(int N0, const u3::SU3& x0, HalfInt S0, int g0)
-      : N0_(N0), x0_(x0), S0_(S0), g0_(g0)
-    // Construct from labels.
-    {}
-
-    inline explicit OperatorLabelsU3S(const OperatorLabelsU3ST& operator_labels_u3st)
-    // Construct from U3ST operator labels, by discarding isospin label.
-    {
-      N0_ = operator_labels_u3st.N0();
-      x0_ = operator_labels_u3st.x0();
-      S0_ = operator_labels_u3st.S0();
-      g0_ = operator_labels_u3st.g0();
-    }
-    
-    ////////////////////////////////////////////////////////////////
-    // accessors
-    ////////////////////////////////////////////////////////////////
-
-    inline int N0() const
-    {
-      return N0_;
-    }
-
-    inline u3::SU3 x0() const
-    {
-      return x0_;
-    }
-
-    inline HalfInt S0() const
-    {
-      return S0_;
-    }
-
-    inline int g0() const
-    {
-      return g0_;
-    }
-
-    ////////////////////////////////////////////////////////////////
-    // key tuple, comparisons, and hashing
-    ////////////////////////////////////////////////////////////////
-
-    typedef std::tuple<int,u3::SU3,HalfInt,int> KeyType;
-    // N0, x0, S0, g0
-
-    inline KeyType Key() const
-    {
-      return KeyType(N0_,x0_,S0_,g0_);
-    }
-
-    inline friend bool operator == (const OperatorLabelsU3S& x1, const OperatorLabelsU3S& x2)
-    {
-      return x1.Key() == x2.Key();
-    }
-    
-    inline friend bool operator < (const OperatorLabelsU3S& x1, const OperatorLabelsU3S& x2)
-    {
-      return x1.Key() < x2.Key();
-    }
-
-    inline friend std::size_t hash_value(const OperatorLabelsU3S& v)
-    {
-      boost::hash<OperatorLabelsU3S::KeyType> hasher;
-      return hasher(v.Key());
-    }
-
-    ////////////////////////////////////////////////////////////////
-    // string conversion
-    ////////////////////////////////////////////////////////////////
-    
-    std::string Str() const;
-
-    ////////////////////////////////////////////////////////////////
-    // labels
-    ////////////////////////////////////////////////////////////////
-
-    protected:  // since derived class constructors may need to calculate some of these values
-    int N0_;
-    u3::SU3 x0_;
-    HalfInt S0_;
-    int g0_;
   };
 
   ////////////////////////////////////////////////////////////////

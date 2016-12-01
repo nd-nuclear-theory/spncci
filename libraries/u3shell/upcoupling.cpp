@@ -14,7 +14,7 @@
 // #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
-double CUTOFF=10e-13;
+extern double zero_threshold;
 
 namespace u3shell
 {
@@ -63,7 +63,7 @@ namespace u3shell
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
                                 *(2.*Jp+1)*(2.*S0+1)*(2.*L0+1)/(2.*J0+1)/(2.*Sp+1)/(2.*Lp+1);
               
-              if (fabs(so3_coef)<CUTOFF)
+              if (fabs(so3_coef)<zero_threshold)
                 continue;
 
               double so3_coef_conj=0;
@@ -99,7 +99,7 @@ namespace u3shell
     //     int num_rows=sector_out.rows();
     //     for (int i=0; i<num_rows; ++i)
     //       for (int j=0; j<num_cols; ++j)
-    //         if(fabs(sector_out(i,j))<CUTOFF)
+    //         if(fabs(sector_out(i,j))<zero_threshold)
     //           rme_nlst_map[it->first](i,j)=0.0;
     //         else
     //           del=0;
@@ -143,7 +143,7 @@ namespace u3shell
                 u3shell::RelativeStateLabelsU3ST ket(N,S,T);
                 //Extract rme
                 double rme_nlst=sector(np,n);
-                if (fabs(rme_nlst)<=CUTOFF)//REMOVE
+                if (fabs(rme_nlst)<=zero_threshold)//REMOVE
                   continue;
                 // generate list of allowed x0's from coupling bra and ket
                 MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(bra.x(),u3::Conjugate(ket.x()));
@@ -260,7 +260,7 @@ namespace u3shell
           std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=labels.FlatKey();
 
           rme=it->second;
-          if (fabs(rme)<CUTOFF)
+          if (fabs(rme)<zero_threshold)
             rme=0.0;
           const int width=3;
           const int precision=16;
@@ -295,7 +295,7 @@ namespace u3shell
     while(std::getline(is,line))
     {
       std::istringstream(line)>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
-      if (fabs(rme)>CUTOFF)
+      if (fabs(rme)>zero_threshold)
         {
           u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp), ket(eta,S,T);
           RelativeUnitTensorLabelsU3ST unit_tensor(u3::SU3(lambda0,mu0),S0,T0,bra,ket);

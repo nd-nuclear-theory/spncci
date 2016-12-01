@@ -54,7 +54,7 @@ int main(int argc, char **argv)
   int Nmax=std::stoi(argv[3]);
   // will be either 1 or 2; 
   int Nstep=std::stoi(argv[4]);
-  assert(Nstep<=2);
+  assert((Nstep==2)||(Nstep==1));
   int Nmin=Nmax%Nstep;
   // Set up unit tensor model space space
   std::string model_space=fmt::format("model_space.{}_{}_Nmax{}",Z,N,Nmax);

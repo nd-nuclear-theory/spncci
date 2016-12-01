@@ -23,7 +23,6 @@ config.mk
 
 bin/
 
-
 # specific executables
 libraries/su3lib/su3genbk
 libraries/sp3rlib/su3_coupler
@@ -39,8 +38,17 @@ programs/unit_tensors/check_two_body_unit_tensors
 programs/unit_tensors/generate_lsu3shell_two_body_unit_tensors
 libraries/u3shell/relative_to_twobody
 libraries/u3shell/moshinsky_unitarity
+libraries/moshinsky/Trel_upcouled
+libraries/moshinsky/moshinsky_unitarity
+libraries/lgi/get_lgi_expansion
+libraries/moshinsky/moshinsky_unitarity
+libraries/moshinsky/relative_to_twobody
 
+# specific files and folders 
+libraries/su3lib/wu3r3w_test.F
+libraries/moshinsky/test/
 
+*old*
 *_test
 *.exe
 *.dSYM

@@ -359,8 +359,7 @@ namespace u3shell {
 
     return fmt::format(
         "[{} {} {} {}]",
-        omega().Str(),S(),T(),g()
-      );
+        omega().Str(),S(),T(),g());
   }
 
   TwoBodySpaceU3ST::TwoBodySpaceU3ST(int Nmax)

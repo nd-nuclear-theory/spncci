@@ -27,7 +27,6 @@ std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
 #endif
 
 
-
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
@@ -53,7 +52,6 @@ int main(int argc, char **argv)
   #endif
   std::cout << "u3::g_u_cache_enabled " << u3::g_u_cache_enabled << std::endl;
 
-
   // parse arguments
   if (argc<2)
     {
@@ -75,7 +73,8 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
   // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
-  std::vector< std::pair<int,int> > sp_irrep_pair_vector=spncci::GenerateSpIrrepPairs(sp_irrep_vector);
+  std::vector< std::pair<int,int> > sp_irrep_pair_vector
+    =spncci::GenerateSpIrrepPairs(sp_irrep_vector);
 
   //Generate list of sigma's and count of (sigma,S)
   spncci::U3SCount sigma_S_count;
@@ -167,7 +166,10 @@ int main(int argc, char **argv)
 
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each SpIrrep
-      spncci::GenerateUnitTensorMatrix(N1b, Nmax, sp_irrep_pair, u_coef_cache, unit_sym_map,sp_irrep_unit_tensor_rme_map[sp_irrep_pair] );
+      spncci::GenerateUnitTensorMatrix(
+          N1b,Nmax,sp_irrep_pair,u_coef_cache,unit_sym_map,
+          sp_irrep_unit_tensor_rme_map[sp_irrep_pair]
+          );
       // for (auto it=sp_irrep_unit_tensor_rme_map[sp_irrep_pair].begin(); it !=sp_irrep_unit_tensor_rme_map[sp_irrep_pair].end(); ++it)
       // 	for (auto i=sp_irrep_unit_tensor_rme_map[sp_irrep_pair][it->first].begin(); i !=sp_irrep_unit_tensor_rme_map[sp_irrep_pair][it->first].end(); i++)
       // 			std::cout <<(i->first).Str()<<"  "<<i->second<<std::endl;

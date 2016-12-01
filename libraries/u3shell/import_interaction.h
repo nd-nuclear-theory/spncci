@@ -5,6 +5,7 @@
   University of Notre Dame
 
   6/14/16 (aem,mac): Created to import relative jisp16 files.
+  Depreciated
 ****************************************************************/
 #include <iostream>
 #include "eigen3/Eigen/Eigen"  

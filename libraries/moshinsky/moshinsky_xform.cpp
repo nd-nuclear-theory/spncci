@@ -8,10 +8,10 @@
 #include <cmath>
 #include "cppformat/format.h"
 
-
 #include "sp3rlib/u3coef.h"
 #include "moshinsky/moshinsky_xform.h"
-//#include <eigen3/Eigen/Eigenvalues>  
+
+extern double zero_threshold;
 
 namespace u3shell
 {
@@ -220,7 +220,7 @@ namespace u3shell
       std::vector<TwoBodyUnitTensorLabelsU3ST> delete_list;
       for(auto key_value : two_body_expansion)
       {
-        if(fabs(key_value.second)<10e-13)
+        if(fabs(key_value.second)<zero_threshold)
           delete_list.push_back(key_value.first);
       }
       for(int i=0; i<delete_list.size(); ++i)

@@ -32,6 +32,7 @@ namespace lsu3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3SPN biquad_coefficients_pn;
     //moshinsky transform and accumulate coefficients
     u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
+// CHECK THIS FIRST
     u3shell::TransformRelativeTensorToTwobodyTensor(
         relative_tensor_expansion,
         twobody_space,

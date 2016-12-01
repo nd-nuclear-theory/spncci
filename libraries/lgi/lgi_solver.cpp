@@ -114,16 +114,16 @@ namespace lgi
         int rows_total=subspace_sectors[j][0];
         auto subspace=space.GetSubspace(j);
         int columns=subspace.size();
-        // std::cout<<"BrelNcm initialized"<<std::endl;
+        std::cout<<"BrelNcm initialized"<<std::endl;
         BrelNcm_vector[j]=Eigen::MatrixXd::Zero(rows_total,columns);
-        // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+        std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
         //Ncm block is square so rows=columns
         int rows=columns;
         // Because Ncm is SU(3) scalar, subspace index should equal sector index;
-        // std::cout<<"Adding in Ncm"<<std::endl;
+        std::cout<<"Adding in Ncm"<<std::endl;
         BrelNcm_vector[j].block(0,0,rows,columns)=ncm_matrix_vector[j];
         // std::cout<<ncm_matrix_vector[j]<<std::endl;
-        // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+        std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
         // increment location in full matrix
         int rows_begin=columns;
         // Fill in Brel sectors 
@@ -139,9 +139,11 @@ namespace lgi
             // filling in sector
             // std::cout<<rows_begin<<"  "<<rows<<"  "<<columns<<"   "<<brel_matrix_vector[sector_index]<<std::endl;
             // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
-            // std::cout<<"Adding Brel "<<k<<" of "<<subspace_sectors[j].size()-1<<std::endl;
+            std::cout<<"Adding Brel "<<k<<" of "<<subspace_sectors[j].size()-1<<std::endl;
             BrelNcm_vector[j].block(rows_begin,0,rows,columns)=brel_matrix_vector[sector_index];
-            // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
+            std::cout<<"Brel"<<std::endl;
+            std::cout<<brel_matrix_vector[sector_index]<<std::endl<<std::endl;
+            std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
 
             rows_begin+=rows;
           }

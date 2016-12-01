@@ -18,6 +18,8 @@
 #include "u3shell/relative_operator.h"
 #include "am/wigner_gsl.h"
 
+extern double zero_threshold;
+
 void CompairisonTests(int Nmax)
 	{
 		for (int N=0; N<=Nmax; ++N)
@@ -54,7 +56,7 @@ void SymmetryTests(int Nmax)
 									{
 										double mb1=u3shell::MoshinskyCoefficient(Nr,Ncm,N1,N2,x);
 										double mb2=parity(Nr+N1+N2+x.lambda()+x.mu())*u3shell::MoshinskyCoefficient(Nr,Ncm,N2,N1,x);
-										if(fabs(mb1-mb2)>10e-10)
+										if(fabs(mb1-mb2)>zero_threshold)
 											std::cout<<fmt::format("({} {}; {} | {} {}; {})  {}  {}",Nr,Ncm,x.Str(),N1,N2,x.Str(),mb1,mb2)<<std::endl;
 									}
 							}
@@ -121,7 +123,7 @@ void BranchTest(int Nmax, const std::string& filename)
 			int n1=(N1-L1)/2;
 			int n2=(N2-L1)/2;
 			double rme_check=moshisky_check[it->first];
-			if(fabs(rme_check-it->second)>10e-10)
+			if(fabs(rme_check-it->second)>zero_threshold)
 				std::cout<<fmt::format("{} {} {} {} {} {} {} {} {}  {} {}", Nr,Lr,Ncm,Lcm,N1,L1,N2,L2,L, it->second, rme_check)<<std::endl;
 		}
 }
