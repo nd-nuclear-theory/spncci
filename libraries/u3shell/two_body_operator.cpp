@@ -17,6 +17,8 @@
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unu3.h" 
 
+double zero_threshold=10e-13;
+
 namespace u3shell {
 
   double TwoBodyNumberOperator(
@@ -384,9 +386,9 @@ namespace u3shell {
           HalfInt S;
           std::tie(eta1,eta2,x,S) = ket_key;
           if(
-              (fabs(coefficients_pn.pppp)>10e-10)
-              ||(fabs(coefficients_pn.nnnn)>10e-10)
-              ||(fabs(coefficients_pn.pnnp)>10e-10)
+              (fabs(coefficients_pn.pppp)>zero_threshold)
+              ||(fabs(coefficients_pn.nnnn)>zero_threshold)
+              ||(fabs(coefficients_pn.pnnp)>zero_threshold)
             )
           {
             // label line
@@ -508,6 +510,10 @@ GenerateTwoBodyUnitTensorLabelsU3ST(
           int rho0max = x0_rho0max.tag;
           int k=std::min(x0.lambda(),x0.mu());
           int l=std::max(x0.lambda(),x0.mu());
+          // TODO : REMOVE WHEN J0 Requirement in SU3RME fixed. 
+          MultiplicityTagged::vector L0_vector=u3::BranchingSO3Constrained(x0, S0_range);
+          if (L0_vector.size()==0)
+            continue;
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
           {
             for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
