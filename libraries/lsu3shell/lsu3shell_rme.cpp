@@ -124,11 +124,12 @@ namespace lsu3shell
               double rme2 = matrices2[sector_index](bra_index,ket_index);
 
               // compare matrix elements
-              double residual = std::abs(rme2-rme1);
+              double residual = std::fabs(rme2-rme1);
               ++entries_compared;
               max_residual = std::max(max_residual,residual);
               total_sqr_residual += sqr(residual);
               bool entries_agree = (residual <= tolerance);
+              // std::cout<<std::endl<<fmt::format("residual {}  tolerance {}  bool {}", residual,tolerance,entries_agree)<<std::endl<<std::endl;
               success &= entries_agree;
 
               // write entry diagnostics
@@ -161,7 +162,7 @@ namespace lsu3shell
           "entries {} rms_residual {:e} max_residual {:e} total_sqr_residual {:e}",
           entries_compared,rms_residual,max_residual,total_sqr_residual
         )
-      << std::endl;
+      << std::endl<<std::endl;
         
 
     return success;

@@ -32,6 +32,7 @@ projects_root = os.path.join(os.environ["HOME"],"projects")
 # ... from lsu3shell
 recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
 su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME")
+su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
 generate_lsu3shell_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_two_body_unit_tensors")
 check_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","check_two_body_unit_tensors")
@@ -50,6 +51,11 @@ twice_Nsigma_0 = 6  # twice_Nsigma_0=6 for two-body system
 ################################################################
 # create unit tensor operators
 ################################################################
+def generate_basis_table():
+    """Create basis table 
+    """
+    command_line=[su3basis_executable,model_space_filename,"lsu3shell_basis.dat"]
+    utils.call(command_line)
 
 def generate_unit_tensors():
     """ Create recoupler input files.
@@ -122,8 +128,8 @@ def calculate_rmes(two_body_operator_basename_list):
             su3rme_executable,
             model_space_filename,
             model_space_filename,
-            load_filename#,
-           # basename
+            load_filename,
+            basename
         ]
         utils.call(command_line)
 
@@ -156,4 +162,5 @@ generate_unit_tensors()
 two_body_operator_basename_list = read_unit_tensor_list()
 recouple_unit_tensors(two_body_operator_basename_list)
 calculate_rmes(two_body_operator_basename_list)
+generate_basis_table()
 check_rmes()

@@ -510,6 +510,11 @@ GenerateTwoBodyUnitTensorLabelsU3ST(
           int l=std::max(x0.lambda(),x0.mu());
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
           {
+          // TODO : REMOVE WHEN J0 Requirement in SU3RME fixed. 
+            MultiplicityTagged<int>::vector L0_vector=u3::BranchingSO3Constrained(x0, HalfInt::pair(S0,S0));
+            if (L0_vector.size()==0)
+              continue;
+
             for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
               // for each SxT
               {

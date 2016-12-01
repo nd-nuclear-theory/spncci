@@ -107,5 +107,4 @@ int main(int argc, char **argv)
  //      std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
  //  }
 
->>>>>>> 621b2898f17a7ae5dacccd161f55ce2b40a9c049
 }
