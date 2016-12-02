@@ -4,6 +4,7 @@
   University of Notre Dame
 
   12/1/16 (aem): Created.
+  12/2/16 (aem): Added bool for U(N)->U(3) restriction when A=2
 ****************************************************************/
 #include <fstream>
 #include <ostream>  
@@ -18,12 +19,20 @@
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
-  int Z=3, N=3, Nmax=2;
+  int Z=std::stoi(argv[1]);
+  int N=std::stoi(argv[2]);
+  int Nmax=std::stoi(argv[3]);
+
+  bool un_u3_restrict=false;
+  if((N+Z)==2)
+    un_u3_restrict=true;
+  
+
   u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
   u3shell::IdentityRelativeUnitTensorExpansion(0, Nmax, identity_operator, N+Z);
 
   std::string identity_file=fmt::format("Identity_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, identity_operator, identity_file);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, identity_operator, identity_file,un_u3_restrict);
 
 
   //Generate Nintr operator up to Nmax cutoff
@@ -34,5 +43,5 @@ int main(int argc, char **argv)
   	{
   		std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
   	}
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nintr_file);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nintr_file, un_u3_restrict);
 }
