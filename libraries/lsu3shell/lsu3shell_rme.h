@@ -62,5 +62,22 @@ namespace lsu3shell
   //   (bool) : comparison OK
 
 
+  void GenerateNcmMatrixVector(
+    int A,      
+    std::ifstream& is_nrel,
+    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+    const u3shell::SpaceU3SPN& space, 
+    basis::MatrixVector& matrix_vector 
+  );
+  // Generates the Ncm matrix elements from Nrel matrix elements
+  // and stores them in a vector of lsu3shell basis sectors
+  //
+  // Arguments:
+  //  A (input) : atomic mass number
+  //  is_nrel (input) : stream from file containing Nrel rmes
+  //  lsu3_basis_table (input) : table of lsu3shell basis states
+  //  space (input) : space defined by lsu3shell basis
+  //  matrix_vector (output) : container for Ncm matrix sectors.
+
 }
 #endif

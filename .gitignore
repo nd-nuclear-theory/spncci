@@ -14,7 +14,7 @@
 # temporary diagnostic output files
 *.out
 
-
+*.o*
 # draconian ignore -- doesn't work?
 #   only track: .mk .h .cpp .F
 ## !*.{mk,h,cpp,F}
@@ -53,3 +53,4 @@ libraries/moshinsky/test/
 *.exe
 *.dSYM
 *.pyc
+

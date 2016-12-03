@@ -29,12 +29,14 @@ int main(int argc, char **argv)
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
+  // Populate, basis_table, basis_provenance and space. 
   lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   std::cout<<"Read Basis complete"<<std::endl;
+  // Generate sectors
   u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
-  basis::MatrixVector matrices;
-
+  
   // reading in operator rme's obtained form SU3RME
+  basis::MatrixVector matrices;
   std::ifstream is(op_filename.c_str());
   if(!is)
     std::cout<<"file didn't open"<<std::endl;
@@ -51,47 +53,50 @@ int main(int argc, char **argv)
       // for(int j=0; j<eigs.size(); ++j)  
       //   std::cout<<eigs(j).real()<<std::endl;
   }
+  // Generate Ncm matrix from Nrel
   basis::MatrixVector ncm_matrices;
   std::ifstream is_nrel(op_filename.c_str());
-  lgi::GenerateNcmMatrixVector(Nsigma_0,is_nrel,basis_table,space,ncm_matrices);
-  // for(int i=0; i<ncm_matrices.size(); ++i)
-  // {
-  //     if (matrices[i].rows()<2)
-  //     continue;
-  //   // if(fabs(matrices[i].sum())>zero_threshold)
-  //     std::cout<<fmt::format("Matrix {}",i) << std::endl;
-  //     std::cout<<matrices[i]<<std::endl;
-  //     std::cout<<"eigenvalues"<<std::endl;
+  lsu3shell::GenerateNcmMatrixVector(Nsigma_0,is_nrel,basis_table,space,ncm_matrices);
 
-  //     Eigen::VectorXcd eigs=ncm_matrices[i].eigenvalues();
-  //     for(int j=0; j<eigs.size(); ++j)  
-  //       std::cout<<eigs(j).real()<<std::endl;
+  
+  for(int i=0; i<ncm_matrices.size(); ++i)
+  {
+      if (matrices[i].rows()<2)
+      continue;
+    // if(fabs(matrices[i].sum())>zero_threshold)
+      std::cout<<fmt::format("Matrix {}",i) << std::endl;
+      std::cout<<matrices[i]<<std::endl;
+      std::cout<<"eigenvalues"<<std::endl;
 
-  //     std::cout<<"Doing decomp..." << std::endl;
-  //     Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(ncm_matrices[i]);
-  //     lu_decomp.setThreshold(1e-6);
-  //     std::cout << "Rank: "<<lu_decomp.rank()<<std::endl;
-  //     std::cout<<"Doing kernel..." << std::endl;
-  //     Eigen::MatrixXd null=lu_decomp.kernel();
-  //     std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
-  // }
+      Eigen::VectorXcd eigs=ncm_matrices[i].eigenvalues();
+      for(int j=0; j<eigs.size(); ++j)  
+        std::cout<<eigs(j).real()<<std::endl;
+
+      std::cout<<"Doing decomp..." << std::endl;
+      Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(ncm_matrices[i]);
+      lu_decomp.setThreshold(1e-6);
+      std::cout << "Rank: "<<lu_decomp.rank()<<std::endl;
+      std::cout<<"Doing kernel..." << std::endl;
+      Eigen::MatrixXd null=lu_decomp.kernel();
+      std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
+  }
 
   // test matrix comparison
-  //
-  // // This is just a self-comparison, with one entry skewed...
-  // basis::MatrixVector matrices_mod = matrices;
-  // matrices_mod[0](0,0) += 3.14159;
-  // double epsilon = 1e-8;
-  // CompareLSU3ShellRMEs(
-  //     std::cout,
-  //     basis_provenance,
-  //     space, 
-  //     sectors,
-  //     matrices,
-  //     matrices_mod,
-  //     epsilon,
-  //     true  // verbose
-  //   );
+  
+  // This is just a self-comparison, with one entry skewed...
+  basis::MatrixVector matrices_mod = matrices;
+  matrices_mod[0](0,0) += 3.14159;
+  double epsilon = 1e-8;
+  CompareLSU3ShellRMEs(
+      std::cout,
+      basis_provenance,
+      space, 
+      sectors,
+      matrices,
+      matrices_mod,
+      epsilon,
+      true  // verbose
+    );
 
 
 }
