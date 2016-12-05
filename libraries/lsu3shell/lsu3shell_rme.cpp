@@ -19,6 +19,7 @@
 
 namespace lsu3shell
 {
+  //TODO Need to account for rho multiplicity in bra and ket. 
   void 
   ReadLSU3ShellRMEs(
       std::ifstream& is,
@@ -72,7 +73,6 @@ namespace lsu3shell
                 // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
                   // sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
                   // matrix_vector[sector_index].cols(),rme)<<std::endl;
-
                 matrix_vector[sector_index](row_index,column_index)=rme;
               }
       }

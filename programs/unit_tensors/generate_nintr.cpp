@@ -35,13 +35,19 @@ int main(int argc, char **argv)
   std::string identity_file=fmt::format("Identity_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
   lsu3shell::GenerateLSU3ShellOperator(Nmax, identity_operator, identity_file,un_u3_restrict);
 
-  //Generate Nintr operator up to Nmax cutoff
-  std::string nintr_file=fmt::format("Nintr_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  //Generate Nrel operator up to Nmax cutoff
+  std::string nrel_file=fmt::format("Nrel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NintrRelativeUnitTensorExpansion(0,Nmax, Nrel_operator,N+Z);
   // for(auto it=Nrel_operator.begin(); it!=Nrel_operator.end(); ++it)
   // 	{
   // 		std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
   // 	}
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nintr_file, un_u3_restrict);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nrel_file, un_u3_restrict);
+
+  //Generate Nintr operator up to Nmax cutoff
+  std::string brel_file=fmt::format("Brel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
+  u3shell::BrelRelativeUnitTensorExpansion(0,Nmax, Brel_operator);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Brel_operator, brel_file, un_u3_restrict);
 }

@@ -79,5 +79,14 @@ namespace lgi
   );
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 
+  void WriteLGILabels(
+      HalfInt Nsigma_0,
+      const u3shell::SpaceU3SPN& space, 
+      const basis::MatrixVector& lgi_expansion_matrix_vector,
+      std::ofstream& os 
+      );
+  // Write LGI labels to file with count
+  // Nex twice_N lambda mu twice_Sp twice_Sn twice_S count
+
 }
 #endif
