@@ -6,6 +6,7 @@
 
   8/8/16 (aem,mac): Created.
   11/7/16 (aem): Updated documentation.
+  12/2/16 (aem): Added bool for U(N)->U(3) restriciton on ops
 ****************************************************************/
 #include <fstream>
 #include <ostream>  
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
   assert((Nstep==2)||(Nstep==1));
   int Nmin=Nmax%Nstep;
   // Set up unit tensor model space space
-  std::string model_space=fmt::format("model_space.{}_{}_Nmax{:02d}",Z,N,Nmax);
+  std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
   std::ofstream model_stream(model_space);
   model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;
   for(int Nex=Nmin; Nex<=Nmax; Nex+=2)
@@ -74,21 +75,21 @@ int main(int argc, char **argv)
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensor_labels);
-
-  u3shell::RelativeCMExpansion unit_relative_cm_map;
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,true);
 
   // Generate Brel operator up to Nmax cutoff
-  std::string brel_file=fmt::format("Brel_Nmax{:02d}",Nmax);
+  std::string brel_file_name_base=fmt::format("Brel_Nmax{:02d}",Nmax);
+  std::string brel_file_name=fmt::format("{}.recoupler",brel_file_name_base);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax, Brel_operator);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Brel_operator, brel_file);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Brel_operator, brel_file_name, true);
 
   //Generate Nintr operator up to Nmax cutoff
-  std::string nintr_file=fmt::format("Nintr_{:02d}_Nmax{:02d}",N+Z,Nmax);
+  std::string nintr_file_name_base=fmt::format("Nintr_{:02d}_Nmax{:02d}",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax, Nrel_operator,N+Z);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nintr_file);
+  std::string nintr_file_name=fmt::format("{}.recoupler",nintr_file_name_base);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nintr_file_name,true);
 
   int num_unit=relative_unit_tensor_labels.size();
   // number of relative operators including Brel and Nintr
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
   for(int i=0; i<num_unit; ++i)
     control_stream<<fmt::format("relative_unit_{:06d}",i)<<std::endl;
 
-  control_stream<<brel_file<<std::endl;
-  control_stream<<nintr_file<<std::endl;
+  control_stream<<brel_file_name_base<<std::endl;
+  control_stream<<nintr_file_name_base<<std::endl;
   control_stream.close();
 }

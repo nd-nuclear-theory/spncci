@@ -14,6 +14,8 @@
   8/8/16 (aem,mac): Created.
   9/7/16 (mac): Remove header from operator list.
   9/10/16 (mac): Update filenames.
+  12/2/16 (aem): Added bool argument for restricting on U(N)->U(3)
+                branching
 ****************************************************************/
 
 #include <fstream>
@@ -23,7 +25,6 @@
 
 #include "lsu3shell/lsu3shell_operator.h"
 #include "spncci/sp_basis.h"
-// #include "spncci/lgi_unit_tensor.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unit_tensor_expansion.h"
 #include "u3shell/two_body_operator.h"
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
     {
       u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
       two_body_unit_tensor_coefficients[two_body_unit_tensor_labels[i]]=1;
-      lsu3shell::GenerateLSU3ShellOperator(Nmax, two_body_unit_tensor_coefficients,i);
+      lsu3shell::GenerateLSU3ShellOperator(Nmax, two_body_unit_tensor_coefficients,i,true);
     }
 
   // write operator listing file

@@ -31,42 +31,42 @@ namespace lgi
   	}
 
 
-  void GenerateNcmMatrixVector(
-    HalfInt Nsigma_0,      
-    // const std::string& nrel_filename,
-    std::ifstream& is_nrel,
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
-  )
-  {
-    // std::ifstream is_nrel(nrel_filename.c_str());
-    assert(is_nrel.is_open());
+  // void GenerateNcmMatrixVector(
+  //   int A,      
+  //   // const std::string& nrel_filename,
+  //   std::ifstream& is_nrel,
+  //   const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+  //   const u3shell::SpaceU3SPN& space, 
+  //   basis::MatrixVector& matrix_vector 
+  // )
+  // {
+  //   assert(is_nrel.is_open());
+  //   // Readin Nrel matrix elements and populate sectors
+  //   basis::MatrixVector nrel_matrix_vector;
+  //   u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
+  //   u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
+  //   lsu3shell::ReadLSU3ShellRMEs(is_nrel,nrel_labels,lsu3_basis_table,space, nrel_sectors,nrel_matrix_vector);
+  //   // Resize vector is if necessary
+  //   if(matrix_vector.size()!=nrel_matrix_vector.size())
+  //     matrix_vector.resize(nrel_matrix_vector.size());
+  //   // Iterate over Nrel subspaces and populate Ncm sectors in matrix_vector
+  //   for(int i=0; i<nrel_matrix_vector.size(); ++i)
+  //     {
+  //       auto subspace=space.GetSubspace(i);
+  //       HalfInt N=subspace.N()-3.*A/2;
+  //       std::cout<<N<<std::endl<<nrel_matrix_vector[i]<<std::endl;
+  //       int dim=subspace.size();
+  //       // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
+  //       // std::cout<<"nrel"<<std::endl<<nrel_matrix_vector[i]<<std::endl;
+  //       matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
+  //     }
+  // }
 
-    basis::MatrixVector nrel_matrix_vector;
-    u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
-    u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
-    lsu3shell::ReadLSU3ShellRMEs(is_nrel,nrel_labels,lsu3_basis_table,space, nrel_sectors,nrel_matrix_vector);
-    if(matrix_vector.size()!=nrel_matrix_vector.size())
-      matrix_vector.resize(nrel_matrix_vector.size());
-    for(int i=0; i<nrel_matrix_vector.size(); ++i)
-    {
-      auto subspace=space.GetSubspace(i);
-      HalfInt N=subspace.N()-Nsigma_0;
-      std::cout<<N<<std::endl<<nrel_matrix_vector[i]<<std::endl;
-      int dim=subspace.size();
-      // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
-      // std::cout<<"nrel"<<std::endl<<nrel_matrix_vector[i]<<std::endl;
-      matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
-    }
-  }
   void 
   GenerateBrelNcmMatrices(
-      HalfInt Nsigma_0,
+      int A,
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
-      // const std::string& brel_filename,
-      // const std::string& nrel_filename,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       basis::MatrixVector& BrelNcm_vector 
@@ -80,13 +80,12 @@ namespace lgi
     //generate sectors for brel.
     u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
 
-    // std::ifstream is_brel(brel_filename.c_str());
     std::cout<<"Reading in Brel"<<std::endl;
     basis::MatrixVector brel_matrix_vector(space.size());
     lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,lsu3_basis_table,space, brel_sectors,brel_matrix_vector);
     std::cout<<"Generating Ncm"<<std::endl;
     basis::MatrixVector ncm_matrix_vector(space.size());    
-     GenerateNcmMatrixVector(Nsigma_0,is_nrel,lsu3_basis_table,space, ncm_matrix_vector);
+    lsu3shell::GenerateNcmMatrixVector(A,is_nrel,lsu3_basis_table,space, ncm_matrix_vector);
 
     // subspace_sectors is map of vector of (dimension of Brel+Ncm matrix, 
     // indices of relevant N-2 subspace)
@@ -150,23 +149,19 @@ namespace lgi
       }
   }
   void GenerateLGIExpansion(
-      HalfInt Nsigma_0,
+      int A,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
-      // const std::string& brel_filename,
-      // const std::string& nrel_filename,
-      basis::MatrixVector& lgi_expansion_matrix_vector
-      // lgi::LGIVector lgi_vector
-      
+      basis::MatrixVector& lgi_expansion_matrix_vector      
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   {
     double threshold=10e-6;
     basis::MatrixVector BrelNcm_vector(space.size());
-    GenerateBrelNcmMatrices(Nsigma_0,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);
+    GenerateBrelNcmMatrices(A,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);
     Eigen::MatrixXd null;
     for(int i=0; i<BrelNcm_vector.size();++i)
       {

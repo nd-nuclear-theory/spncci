@@ -118,9 +118,9 @@ fortran_flags :=
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
 #   Note: quad precision requires ifort compiler
 
-FFLAGS += -DSU3DBL
+##FFLAGS += -DSU3DBL
 ##FFLAGS += -DSU3QUAD
-
+FFLAGS += -DSU3QUAD_GNU
 # machine-specific numerical library
 # Gnu Scientific library
 LDLIBS += -lgsl 

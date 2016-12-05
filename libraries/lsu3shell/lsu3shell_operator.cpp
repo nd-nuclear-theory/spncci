@@ -23,7 +23,8 @@ namespace lsu3shell
   GenerateLSU3ShellOperator(
       int Nmax, 
       const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
-      std::string filename
+      std::string filename,
+      bool un_u3_restrict
     )
   {
     u3shell::TwoBodySpaceU3ST  twobody_space(Nmax);
@@ -47,18 +48,8 @@ namespace lsu3shell
     // convert to biquads
     u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
     // convert to pn scheme
-    std::cout<<"Biquads"<<std::endl;
-    for(auto key_value : biquad_coefficients)
-      {
-        std::cout<<key_value.first.Str()<<" "<<key_value.second<<std::endl;
-      }
-    std::cout<<"Biquads PN"<<std::endl;
-    u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
-    for(auto key_value :biquad_coefficients_pn)
-      {
-        std::cout<<key_value.first.Str()<<"  "<<key_value.second.pnnp<<std::endl;
-      }
-
+    u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn,un_u3_restrict);
+    
     std::ofstream operator_stream(filename);
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
     operator_stream.close();
@@ -67,7 +58,8 @@ namespace lsu3shell
   void
   GenerateLSU3ShellOperator(
       int Nmax, 
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels,
+      bool un_u3_restrict
     )
   {
     u3shell::TwoBodySpaceU3ST  twobody_space(Nmax);
@@ -86,7 +78,7 @@ namespace lsu3shell
         // convert to biquads
         u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
         // convert biquads to pn scheme
-        u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
+        u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn,un_u3_restrict);
         std::string operator_stream_filename = fmt::format("relative_unit_{:06d}.recoupler",i);
         std::ofstream operator_stream(operator_stream_filename);
         WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
@@ -98,7 +90,9 @@ namespace lsu3shell
   void GenerateLSU3ShellOperator(
       int Nmax, 
       const u3shell::TwoBodyUnitTensorCoefficientsU3ST& twobody_tensor_expansion,
-      int operator_index)
+      int operator_index,
+      bool un_u3_restrict
+      )
   {
     u3shell::TwoBodySpaceU3ST  twobody_space(Nmax);
     // declare coefficient containers
@@ -106,7 +100,7 @@ namespace lsu3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3SPN biquad_coefficients_pn;
     u3shell::TransformTwoBodyUnitTensorToBiquad(twobody_tensor_expansion,biquad_coefficients);
     // convert to pn scheme
-    u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
+    u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn,un_u3_restrict);
     std::string operator_stream_filename =fmt::format("two_body_unit_{:06d}.recoupler",operator_index);
     std::ofstream operator_stream(operator_stream_filename);
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);

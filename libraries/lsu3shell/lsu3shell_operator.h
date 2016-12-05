@@ -8,6 +8,7 @@
 
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
+  12/2/16 (aem): Added bool for U(N)->U(3) restriction on operators
 ****************************************************************/
 
 #ifndef LSU3SHELL_OPERATOR_H_
@@ -24,7 +25,8 @@ namespace lsu3shell
   GenerateLSU3ShellOperator(
       int Nmax, 
       const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
-      std::string filename
+      std::string filename,
+      bool un_u3_restrict=false
     );
   // Generates input files for LSU3Shell RecoupleSU3Interaction
   //
@@ -33,7 +35,8 @@ namespace lsu3shell
   void
   GenerateLSU3ShellOperator(
       int Nmax, 
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels,
+      bool un_u3_restrict=false  
     );
   // Generate input files for LSUshell recoupler for all relative unit tensors 
   // tensor's which may have non-zero matrix elements between  LGI's. 
@@ -42,7 +45,8 @@ namespace lsu3shell
     GenerateLSU3ShellOperator(
         int Nmax, 
         const u3shell::TwoBodyUnitTensorCoefficientsU3ST& twobody_tensor_expansion,
-        int operator_index
+        int operator_index,
+        bool un_u3_restrict=false
       );
 
 }

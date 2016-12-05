@@ -9,6 +9,7 @@
   5/15/16 (mac): Created.
   5/18/16 (mac): Rough in interface.
   9/15/16 (aem): Added antisymmetry constraint on U(3)xSU(2) biquads
+  12/2/16 (aem): Added flag for U(N)->U(3) restriction on biquads
 ****************************************************************/
 
 #ifndef TWO_BODY_OPERATOR_H_
@@ -89,33 +90,6 @@ namespace u3shell
   // objects, in particular, biquads.
 
   ////////////////////////////////////////////////////////////////
-  // transformation from relative to two-body unit tensors
-  ////////////////////////////////////////////////////////////////
-
-  // TODO integrate with or replace with Anna's Moshinsky work -- this is the Moshinsky
-  // xform for an arbitrary operator, if we take the Moshinsky xform
-  // for a single relative unit tensor to be our "basic" calculation
-
-  // void TransformRelativeUnitTensorToTwoBodyUnitTensor
-  //   (
-  //    const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_unit_tensor_coefficients,
-  //    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients
-  //    );
-
-  // Accumulate two-body unit tensor coefficients for given linear combination of
-  // relative unit tensors.
-  //
-  // relative_unit_tensor_coefficients (RelativeUnitTensorCoefficientsU3ST, input)
-  //   : map giving coefficients on a set of two-body U3ST unit tensors 
-  // two_body_unit_tensor_coefficients (TwoBodyUnitTensorCoefficientsU3ST, input)
-  //   : map giving coefficients on a resulting set of two-body U3ST unit tensors 
-  //
-  // Note: The map given as the second parameter, for storing the
-  // output coefficients, need not initially be empty.  It is
-  // permissible to accumulate onto an existing set of coefficients.
-  // Coefficients for the same term will be added.
-
-  ////////////////////////////////////////////////////////////////
   // transformation from two-body unit tensors to biquads
   ////////////////////////////////////////////////////////////////
 
@@ -154,7 +128,8 @@ namespace u3shell
 
   void TransformBiquadToPNScheme(
                                  const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
-                                 u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+                                 u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn,
+                                 bool un_u3_restrict=false
                                  );
   // Accumulate biquad coefficients for given two-body unit tensors.
   //
@@ -162,7 +137,6 @@ namespace u3shell
   //   : map giving coefficients on a set of two-body U3ST biquads
   // biquad_coefficients (TwoBodyUnitTensorCoefficientsU3ST, output)
   //   : map giving coefficients on a resulting set of two-body U3SPN biquads
-  //
   // Note: The map given as the second parameter, for storing the
   // output coefficients, need not initially be empty.  It is
   // permissible to accumulate onto an existing set of coefficients.

@@ -168,8 +168,46 @@ namespace lsu3shell
     return success;
   }
 
+  void GenerateNcmMatrixVector(
+    int A,      
+    std::ifstream& is_nrel,
+    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+    const u3shell::SpaceU3SPN& space, 
+    basis::MatrixVector& matrix_vector 
+  )
+  {
+    assert(is_nrel.is_open());
+
+    // Read in Nrel matrix elements and populate sectors
+    u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
+    basis::MatrixVector nrel_matrix_vector;
+    u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
+    lsu3shell::ReadLSU3ShellRMEs(
+        is_nrel,nrel_labels,lsu3_basis_table,space, 
+        nrel_sectors,nrel_matrix_vector
+      );
+
+    // Resize vector
+    matrix_vector.resize(nrel_matrix_vector.size());
+
+    // Iterate over Nrel subspaces and populate Ncm sectors in matrix_vector
+    for(int i=0; i<nrel_matrix_vector.size(); ++i)
+      {
+        auto subspace=space.GetSubspace(i);
+        // eigenvalue of N is given by total number of oscilator quanta minus
+        // the zero point energy boson 3A/2. 
+        HalfInt N=subspace.N()-3.*A/2;
+        // std::cout<<N<<std::endl<<nrel_matrix_vector[i]<<std::endl;
+        int dim=subspace.size();
+        // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
+        // std::cout<<"nrel"<<std::endl<<nrel_matrix_vector[i]<<std::endl;
+    
+        // Ncm=N-Nrel
+        matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
+      }
+  }
 
 
-////////////////////////////////////////////////////////////////
+
 ////////////////////////////////////////////////////////////////
 }// end namespace
