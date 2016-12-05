@@ -18,6 +18,7 @@
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
+
   int Z=std::stoi(argv[1]);
   int N=std::stoi(argv[2]);
   int Nmax=std::stoi(argv[3]);
@@ -28,7 +29,6 @@ int main(int argc, char **argv)
   if(((N==2)&&(Z==0))||((N==0)&&(Z==2)))
     un_u3_restrict=true;
   
-
   u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
   u3shell::IdentityRelativeUnitTensorExpansion(0, Nmax, identity_operator, N+Z);
 
