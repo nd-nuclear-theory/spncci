@@ -39,11 +39,26 @@ namespace lsu3shell
         two_body_unit_tensor_coefficients,
         "NAS"   
       );
+    std::cout<<"TransformRelativeTensorToTwobodyTensor"<<std::endl;
+    for(auto it=two_body_unit_tensor_coefficients.begin(); it!=two_body_unit_tensor_coefficients.end(); ++it)
+    {
+      std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
+    }
     // convert to biquads
     u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
     // convert to pn scheme
+    std::cout<<"Biquads"<<std::endl;
+    for(auto key_value : biquad_coefficients)
+      {
+        std::cout<<key_value.first.Str()<<" "<<key_value.second<<std::endl;
+      }
+    std::cout<<"Biquads PN"<<std::endl;
     u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn);
-    
+    for(auto key_value :biquad_coefficients_pn)
+      {
+        std::cout<<key_value.first.Str()<<"  "<<key_value.second.pnnp<<std::endl;
+      }
+
     std::ofstream operator_stream(filename);
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
     operator_stream.close();

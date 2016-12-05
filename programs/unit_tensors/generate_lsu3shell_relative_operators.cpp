@@ -67,9 +67,9 @@ int main(int argc, char **argv)
   //begin control file
   // first give specifications for unit tensors, then Brel and Nrel
   std::ofstream control_stream("relative_operators.dat");
-  control_stream
-    <<model_space
-    <<std::endl;
+  // control_stream
+  //   <<model_space
+  //   <<std::endl;
 
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
@@ -92,8 +92,8 @@ int main(int argc, char **argv)
 
   int num_unit=relative_unit_tensor_labels.size();
   // number of relative operators including Brel and Nintr
-  int num_ops=num_unit+2;
-  control_stream<<fmt::format("  operators {} ",num_ops)<<std::endl;
+  // int num_ops=num_unit+2;
+  // control_stream<<fmt::format("  operators {} ",num_ops)<<std::endl;
   for(int i=0; i<num_unit; ++i)
     control_stream<<fmt::format("relative_unit_{:06d}",i)<<std::endl;
 

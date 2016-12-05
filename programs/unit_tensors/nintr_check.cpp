@@ -17,8 +17,11 @@
 
 int main(int argc, char **argv)
 {
+  int Z=std::stoi(argv[1]);
+  int N=std::stoi(argv[2]);
+  int Nmax=std::stoi(argv[3]);
+
   u3::U3CoefInit();
-  int Z=3, N=3, Nmax=2;
   u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
   u3shell::IdentityRelativeUnitTensorExpansion(0, Nmax, identity_operator, N+Z);
 
