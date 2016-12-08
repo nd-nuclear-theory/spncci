@@ -15,26 +15,6 @@ extern double zero_threshold;
 
 namespace lgi
 {
-  void 
-  WriteLGI(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
-  {
-    int Nex;
-    u3::U3 sigma;
-    HalfInt Sp,Sn,S;
-    // std::unordered_map<lgi::LGI,int,boost::hash<lgi::LGI>> lgi_counter;
-    std::map<lgi::LGI,int> lgi_counter;
-    for(auto a:lgi_vector)
-        lgi_counter[a]+=1;
-    for(auto it=lgi_counter.begin(); it!=lgi_counter.end(); ++it)
-      {
-        std::tie(Nex,sigma,Sp,Sn,S)=(it->first).Key();
-        int count=it->second;
-        os
-          <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
-          <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
-      }
-  	}
-
 
   void 
   GenerateBrelNcmMatrices(
@@ -50,7 +30,7 @@ namespace lgi
     int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
     double rme;
 
-    u3shell::OperatorLabelsU3S brel_labels(-2,u3::SU3(0,2),0,0);
+    u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
     //generate sectors for brel.
     u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
 
@@ -195,30 +175,69 @@ namespace lgi
       return true;
     }
 
-  void WriteLGILabels(
+  // void WriteLGILabels(
+  //     HalfInt Nsigma_0,
+  //     const u3shell::SpaceU3SPN& space, 
+  //     const basis::MatrixVector& lgi_expansion_matrix_vector,
+  //     std::ofstream& os 
+  //     )
+  //   {
+  //     std::cout<<"Writing to file"<<std::endl;
+  //     // For each space, if corresponding null space has non-zero vectors, write to file 
+  //     for(int i=0; i<space.size(); ++i)
+  //       {
+  //         const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
+  //         // std::cout<<matrix<<std::endl;
+  //         if(CheckIfZeroMatrix(matrix))
+  //           continue;
+  //         u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+  //         int Nex=int(labels.N()-Nsigma_0);
+  //         int count=matrix.cols();
+  //         os << fmt::format("{}  {}  {}  {}  {}  {}  {}  {}",
+  //           Nex,TwiceValue(labels.N()),labels.SU3().lambda(),labels.SU3().mu(),
+  //           TwiceValue(labels.Sp()), TwiceValue(labels.Sn()),TwiceValue(labels.S()),count)
+  //         <<std::endl;
+  //       }
+  //   }     
+
+  void GetLGILabels(
       HalfInt Nsigma_0,
       const u3shell::SpaceU3SPN& space, 
       const basis::MatrixVector& lgi_expansion_matrix_vector,
-      std::ofstream& os 
+      lgi::LGIVector& lgi_vector
       )
     {
-      std::cout<<"Writing to file"<<std::endl;
       // For each space, if corresponding null space has non-zero vectors, write to file 
       for(int i=0; i<space.size(); ++i)
         {
           const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
-          // std::cout<<matrix<<std::endl;
           if(CheckIfZeroMatrix(matrix))
             continue;
           u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
           int Nex=int(labels.N()-Nsigma_0);
           int count=matrix.cols();
-          os << fmt::format("{}  {}  {}  {}  {}  {}  {}  {}",
-            Nex,TwiceValue(labels.N()),labels.SU3().lambda(),labels.SU3().mu(),
-            TwiceValue(labels.Sp()), TwiceValue(labels.Sn()),TwiceValue(labels.S()),count)
-          <<std::endl;
+          // for(int i=1; i<=count; ++i)
+          lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
         }
     }     
+
+  void 
+  WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
+  {
+    int Nex;
+    u3::U3 sigma;
+    HalfInt Sp,Sn,S;
+    // std::unordered_map<lgi::LGI,int,boost::hash<lgi::LGI>> lgi_counter;
+    for(auto lgi_count : lgi_vector)
+      {
+        std::tie(Nex,sigma,Sp,Sn,S)=lgi_count.irrep.Key();
+        int count=lgi_count.tag;
+        os
+          <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
+          <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
+      }
+    }
+
 
 
 }// end namespace

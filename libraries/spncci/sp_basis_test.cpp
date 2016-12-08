@@ -38,7 +38,8 @@ int main(int argc, char **argv)
 
   std::cout << "SpIrrep vector reprise" << std::endl;
   for (int i=0; i<sp_irrep_vector.size(); ++i)
-    std::cout << i << " " << sp_irrep_vector[i].DebugString();
+    std::cout << i << " " << sp_irrep_vector[i].irrep.DebugString()
+              <<"  "<<sp_irrep_vector[i].tag;
 
   // examine irreps
   std::cout << "irreps (by sigma)" << std::endl;

@@ -19,11 +19,11 @@ int main(int argc, char **argv)
 {
   u3::U3CoefInit();
   std::string op_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nmax02_Nrel.dat";
-  u3shell::OperatorLabelsU3S op_labels(0,u3::SU3(0,0),0,0);
+  u3shell::OperatorLabelsU3ST op_labels(0,u3::SU3(0,0),0,0,0);
   bool scalar_op=true;
   // setup for test case
   int Nsigma_0=3;  // 11 for 6Li, 3 for 2H
-
+  int A=2;
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
   std::string lsu3_filename("../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat");
   lsu3shell::LSU3BasisTable basis_table;
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   // Generate Ncm matrix from Nrel
   basis::MatrixVector ncm_matrices;
   std::ifstream is_nrel(op_filename.c_str());
-  lsu3shell::GenerateNcmMatrixVector(Nsigma_0,is_nrel,basis_table,space,ncm_matrices);
+  lsu3shell::GenerateNcmMatrixVector(A,is_nrel,basis_table,space,ncm_matrices);
 
   
   for(int i=0; i<ncm_matrices.size(); ++i)

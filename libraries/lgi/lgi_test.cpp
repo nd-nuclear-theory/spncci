@@ -23,6 +23,6 @@ int main(int argc, char **argv)
 	std::cout<<"lgi's from lgi_test.dat"<<std::endl;
 	ReadLGISet(lgi_vector, filename);
 	for(auto lgi : lgi_vector)
-		std::cout<<lgi.Str()<<std::endl;
+		std::cout<<lgi.irrep.Str()<<"  "<<lgi.tag<<std::endl;
 	
 }

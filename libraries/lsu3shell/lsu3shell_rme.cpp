@@ -23,7 +23,7 @@ namespace lsu3shell
   void 
   ReadLSU3ShellRMEs(
       std::ifstream& is,
-      const u3shell::OperatorLabelsU3S& operator_labels,
+      const u3shell::OperatorLabelsU3ST& operator_labels,
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,
@@ -179,7 +179,7 @@ namespace lsu3shell
     assert(is_nrel.is_open());
 
     // Read in Nrel matrix elements and populate sectors
-    u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
+    u3shell::OperatorLabelsU3ST nrel_labels(0,u3::SU3(0,0),0,0,0);
     basis::MatrixVector nrel_matrix_vector;
     u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(

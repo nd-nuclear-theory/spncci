@@ -53,23 +53,22 @@ namespace spncci
   }
 
   void GenerateSp3RIrreps(
-                          const lgi::LGIVector& lgi_vector,
-                          const TruncatorInterface& truncator,
-                          SpIrrepVector& sp_irrep_vector,
-                          SigmaIrrepMap& sigma_irrep_map
-                          )
+        const lgi::LGIVector& lgi_vector,
+        const TruncatorInterface& truncator,
+        SpIrrepVector& sp_irrep_vector,
+        SigmaIrrepMap& sigma_irrep_map
+        )
   {
     // populate SpIrrep vector with lgi's
-    for(auto lgi :lgi_vector)
-
-        sp_irrep_vector.emplace_back(lgi);
+    for(auto lgi_tag :lgi_vector)
+        sp_irrep_vector.emplace_back(lgi_tag.irrep, lgi_tag.tag);
 
     // traverse SpIrrep vector
-    for (auto it = sp_irrep_vector.begin(); it != sp_irrep_vector.end(); ++it)
+    for (auto sp_irrep_tag :sp_irrep_vector)
       {
         // retrieve sigma of LGI
         // u3::U3 sigma(it->sigma); // CRYPTIC
-        spncci::SpIrrep& sp_irrep = *it;
+        spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
         u3::U3 sigma = sp_irrep.sigma();
 
         // find truncation
@@ -121,11 +120,11 @@ namespace spncci
   int TotalU3Subspaces(const SpIrrepVector& sp_irrep_vector)
   {
     int subspaces = 0;
-    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
+    for (auto sp_irrep_tag : sp_irrep_vector)
       {
-        const spncci::SpIrrep& sp_irrep = *it;
+        const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
         const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
-        subspaces += irrep.size();
+        subspaces += sp_irrep_tag.tag*irrep.size();
       }
 
     return subspaces;
@@ -134,14 +133,14 @@ namespace spncci
   int TotalDimensionU3(const SpIrrepVector& sp_irrep_vector)
   {
     int dimension = 0;
-    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
+    for (auto sp_irrep_tag : sp_irrep_vector)
       {
-        const spncci::SpIrrep& sp_irrep = *it;
+        const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
         const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace = 0; i_subspace < irrep.size(); ++i_subspace)
           {
             const sp3r::U3Subspace& u3_subspace = irrep.GetSubspace(i_subspace);
-            dimension += u3_subspace.size();
+            dimension += sp_irrep_tag.tag*u3_subspace.size();
           }
       }
 
@@ -151,9 +150,9 @@ namespace spncci
   int TotalDimensionU3LS(const SpIrrepVector& sp_irrep_vector)
   {
     int dimension = 0;
-    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
+    for (auto sp_irrep_tag : sp_irrep_vector)
       {
-        const spncci::SpIrrep& sp_irrep = *it;
+        const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
         const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
           {
@@ -174,7 +173,7 @@ namespace spncci
             // At LS-coupled level, the dimension contribution is the
             // product of the number of U(3) reduced states and their
             // L substates.
-            dimension += u3_subspace.size()*L_dimension;
+            dimension += sp_irrep_tag.tag*u3_subspace.size()*L_dimension;
           }
       }
 
@@ -184,9 +183,9 @@ namespace spncci
   int TotalDimensionU3LSJConstrained(const SpIrrepVector& sp_irrep_vector, const HalfInt& J)
   {
     int dimension = 0;
-    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
+    for (auto sp_irrep_tag : sp_irrep_vector)
       {
-        const spncci::SpIrrep& sp_irrep = *it;
+        const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
         HalfInt S = sp_irrep.S();
         const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
@@ -211,7 +210,7 @@ namespace spncci
             // At LS-coupled level, the dimension contribution is the
             // product of the number of U(3) reduced states and their
             // L substates.
-            dimension += u3_subspace.size()*L_dimension;
+            dimension += sp_irrep_tag.tag*u3_subspace.size()*L_dimension;
 
           }
       }
@@ -221,9 +220,9 @@ namespace spncci
   int TotalDimensionU3LSJAll(const SpIrrepVector& sp_irrep_vector)
   {
     int dimension = 0;
-    for (auto it=sp_irrep_vector.begin(); it !=sp_irrep_vector.end(); ++it)
+    for (auto sp_irrep_tag : sp_irrep_vector)
       {
-        const spncci::SpIrrep& sp_irrep = *it;
+        const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
         HalfInt S = sp_irrep.S();
         const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         for (int i_subspace=0; i_subspace < irrep.size(); ++i_subspace)
@@ -246,7 +245,7 @@ namespace spncci
                 //
                 // At J-coupled level, the dimension contribution of this L is the
                 // product of the L multiplicity with the number of J values.
-                dimension += L_multiplicity*J_values;
+                dimension += sp_irrep_tag.tag*L_multiplicity*J_values;
               }
           }
       }
@@ -259,10 +258,10 @@ namespace spncci
   {
     std::vector< std::pair<int,int> >  sp_irrep_pair_vector;
     for(int i=0; i<sp_irrep_vector.size(); ++i)
-      for(int j=0; j<=i; ++j)
+      for(int j=0; j<sp_irrep_vector.size(); ++j)
         {
-          spncci::SpIrrep sp_irrep1=sp_irrep_vector[i];
-          spncci::SpIrrep sp_irrep2=sp_irrep_vector[j];
+          spncci::SpIrrep sp_irrep1=sp_irrep_vector[i].irrep;
+          spncci::SpIrrep sp_irrep2=sp_irrep_vector[j].irrep;
           if (abs(sp_irrep1.Sp()-sp_irrep2.Sp())<=2)
             if (abs(sp_irrep1.Sn()-sp_irrep2.Sn())<=2)
               if (abs(sp_irrep1.S()-sp_irrep2.S())<=2)
@@ -278,7 +277,7 @@ namespace spncci
     // iterate over U(3)xSU(2) irreps
     for(int i=0; i< sp_irrep_vector.size(); ++i)
       {
-        auto irrep=sp_irrep_vector[i];
+        auto irrep=sp_irrep_vector[i].irrep;
         // extract U(3) spaces labeled by omega
         const sp3r::Sp3RSpace& space=irrep.Sp3RSpace();
         // if space contains omega and S
@@ -286,7 +285,7 @@ namespace spncci
         {
           //Construct subspace
           //dim is nu_max
-          int dim=space.LookUpSubspace(omegaS.U3()).size();
+          int dim=sp_irrep_vector[i].tag*space.LookUpSubspace(omegaS.U3()).size();
           PushStateLabels(StateLabelsType(i,irrep.sigma(),dim,index));
           // increment index 
           index+=dim;
@@ -309,8 +308,9 @@ namespace spncci
   SpaceU3S::SpaceU3S(SpIrrepVector& sp_irrep_vector)
   {
     // iterate over U(3)xSU(2) irreps
-    for(auto irrep : sp_irrep_vector)
+    for(auto irrep_tag : sp_irrep_vector)
       {
+        const SpIrrep& irrep=irrep_tag.irrep;
         HalfInt S(irrep.S());
         // iterate through omega space
         const sp3r::Sp3RSpace& space=irrep.Sp3RSpace();        

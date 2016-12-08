@@ -29,7 +29,7 @@ namespace lsu3shell
   void 
   ReadLSU3ShellRMEs(
       std::ifstream& is,
-      const u3shell::OperatorLabelsU3S& operator_labels,
+      const u3shell::OperatorLabelsU3ST& operator_labels,
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,

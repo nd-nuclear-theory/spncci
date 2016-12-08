@@ -25,84 +25,6 @@ namespace u3shell {
       return false;
     }
 
-
-  void GenerateRelativeUnitTensorLabelsU3ST(
-        const u3shell::RelativeSpaceU3ST& space,
-        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-        )
-  {
-    for(int ket_index=0; ket_index<space.size(); ++ket_index)
-      {
-        int eta, S, T;
-        // const u3shell::RelativeSubspaceU3ST& subspace =space.GetSubspace(ket_index);
-        std::tie(eta,S,T,std::ignore)=space.GetSubspace(ket_index).Key();
-        for(int bra_index=0; bra_index<space.size(); ++bra_index)
-          {
-            int etap,Sp,Tp;
-            std::tie(etap,Sp,Tp,std::ignore)=space.GetSubspace(bra_index).Key();
-            MultiplicityTagged<u3::SU3>::vector x0_list=KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
-            for(int S0=abs(Sp-S); S0<=(Sp+S); ++S0)
-              for(int T0=abs(Tp-T); T0<=(Tp+T); ++T0)
-                for(int i=0; i<x0_list.size(); ++i)
-                  {
-                    u3::SU3 x0=x0_list[i].irrep;
-                    u3shell::RelativeStateLabelsU3ST ket(eta,S,T);
-                    u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp);
-                    relative_unit_tensor_labels[etap-eta].push_back(u3shell::RelativeUnitTensorLabelsU3ST(x0,S0,T0,bra,ket));
-                  }
-          }
-      }
-  }
-
-  void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
-        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-        )
-  // Depreciated version
-  {   
-    #ifdef VERBOSE
-    std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
-    #endif
-    for(int N0=0; N0<=Nmax; N0+=2)
-      {
-        std::vector<RelativeUnitTensorLabelsU3ST> sym_vec;
-        for(int Sp=0; Sp<=1; Sp++)
-          for(int Tp=0; Tp<=1; Tp++)
-            for(int S=0; S<=1; S++)
-              for (int T=0; T<=1; T++)
-                for (int S0=abs(S-Sp); S0<=(S+Sp); S0++)
-                  for (int T0=abs(T-Tp); T0<=(T+Tp); T0++)
-                    for(int etap=0; etap<=N0+Nmax; etap++)
-                      {
-                        //antisymmeterization constraint on ket 
-                        if ( (etap+Sp+Tp)%2!=1 )
-                          continue;
-                        
-                        int eta=etap-N0;
-                        //antisymmeterization constraint on bra 
-                        if ( (eta+S+T)%2!=1)
-                          continue;
-
-                        u3shell::RelativeStateLabelsU3ST ket(eta,S,T);
-                        u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp);
-
-                        MultiplicityTagged<u3::SU3>::vector omega0_set
-                          =u3::KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
-
-                        for(int w=0; w<omega0_set.size(); w++)
-                          {
-                            u3::SU3 x0(omega0_set[w].irrep);
-                            sym_vec.push_back(u3shell::RelativeUnitTensorLabelsU3ST(x0,S0,T0,bra,ket));
-                            //std::cout<<"unit tensors  "<<spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T).Str()<<std::endl;
-                          }
-                      }       
-        relative_unit_tensor_labels[N0]=sym_vec;
-      }
-  #ifdef VERBOSE
-  std::cout<<"Exiting GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
-  #endif
-  } //end function
-
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax, 
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
@@ -114,6 +36,11 @@ namespace u3shell {
     #ifdef VERBOSE
     std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
     #endif
+    
+    bool restrict_J0=true;
+    if(J0==-1)
+      restrict_J0=false;
+
     int N0_min=restrict_positive_N0?0:-Nmax;
     for(int N0=-Nmax; N0<=Nmax; N0+=2)
       {
@@ -124,37 +51,57 @@ namespace u3shell {
                 for (int S0=abs(S-Sp); S0<=(S+Sp); S0++)
                   for(int etap=0; etap<=Nmax; etap++)
                     {
+                      int T0_min=(T0==-1)?T0_min:abs(Tp-T);
+                      int T0_max=(T0==-1)?T0_max:(Tp+T);
+                      for(T0=T0_min; T0<=T0_max; ++T0)
+                      {
+                        //antisymmeterization constraint on ket 
+                        if ( (etap+Sp+Tp)%2!=1 )
+                          continue;  
+                        int eta=etap-N0;
+                        if((eta<0)||(eta>Nmax))
+                          continue;
+                        //antisymmeterization constraint on bra 
+                        if ( (eta+S+T)%2!=1)
+                          continue;
 
-                      //antisymmeterization constraint on ket 
-                      if ( (etap+Sp+Tp)%2!=1 )
-                        continue;  
-                      int eta=etap-N0;
-                      if((eta<0)||(eta>Nmax))
-                        continue;
-                      //antisymmeterization constraint on bra 
-                      if ( (eta+S+T)%2!=1)
-                        continue;
+                        u3shell::RelativeStateLabelsU3ST ket(eta,S,T);
+                        u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp);
+                        MultiplicityTagged<u3::SU3>::vector omega0_set
+                          =u3::KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
 
-                      u3shell::RelativeStateLabelsU3ST ket(eta,S,T);
-                      u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp);
-
-                      MultiplicityTagged<u3::SU3>::vector omega0_set
-                        =u3::KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
-
-                      for(int w=0; w<omega0_set.size(); w++)
-                        {
-                          u3::SU3 x0(omega0_set[w].irrep);
-                          //Restriction to J0=0 
-                          if(J0Allowed(x0,S0,J0))
-                            relative_unit_tensor_labels.push_back(u3shell::RelativeUnitTensorLabelsU3ST(x0,S0,T0,bra,ket));
-                          //std::cout<<"unit tensors  "<<spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T).Str()<<std::endl;
-                        }
+                        for(int w=0; w<omega0_set.size(); w++)
+                          {
+                            u3::SU3 x0(omega0_set[w].irrep);
+                            // If restrict on J0 and J0 allowed or not restricted
+                            if((restrict_J0 && J0Allowed(x0,S0,J0)) || (not restrict_J0))
+                                relative_unit_tensor_labels.emplace_back(x0,S0,T0,bra,ket);
+                            
+                            //std::cout<<"unit tensors  "<<spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T).Str()<<std::endl;
+                          }
+                      }
                     }       
       }
   #ifdef VERBOSE
   std::cout<<"Exiting GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
   #endif
   } //end function 
+
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        int Nmax, 
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels,
+        int J0,
+        int T0,
+        bool restrict_positive_N0
+      )
+  {
+    std::vector<RelativeUnitTensorLabelsU3ST> temp_vector;
+    GenerateRelativeUnitTensorLabelsU3ST(Nmax, temp_vector,J0,T0,restrict_positive_N0);
+    for (auto tensor : temp_vector)
+      relative_unit_tensor_labels[tensor.N0()].push_back(tensor);
+  }
+
+
 
   double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {

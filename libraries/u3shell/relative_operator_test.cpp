@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   u3shell::RelativeSpaceU3ST space(Nmax);
   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> relative_unit_tensor_labels;
 
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST( space, relative_unit_tensor_labels);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensor_labels);
   for(auto it=relative_unit_tensor_labels.begin(); it!=relative_unit_tensor_labels.end(); ++it)
     {
       std::cout<<it->first<<std::endl;

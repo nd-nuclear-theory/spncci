@@ -52,11 +52,11 @@ int main(int argc, char **argv)
   basis::MatrixVector ncm_matrix_vector;
   lsu3shell::GenerateNcmMatrixVector(A, is_nrel,basis_table,space, ncm_matrix_vector);
   
-  u3shell::OperatorLabelsU3S brel_labels(-2,u3::SU3(0,2),0,0);
+  u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
   //generate sectors for brel.
   u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
   basis::MatrixVector brel_matrix_vector(space.size());
-  lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space, brel_sectors,brel_matrix_vector);
+  // lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space, brel_sectors,brel_matrix_vector);
 
   basis::MatrixVector lgi_expansion_matrix_vector(space.size());
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
       std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
   }
 
-  // u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
+  // u3shell::OperatorLabelsU3ST nrel_labels(0,u3::SU3(0,0),0,0,0);
   // //generate sectors for brel.
   // u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
   // basis::MatrixVector nrel_matrix_vector(space.size());

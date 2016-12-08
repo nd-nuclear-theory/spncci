@@ -256,7 +256,7 @@ int main(int argc, char **argv)
       std::ifstream rme_stream(rme_filename);
       lsu3shell::ReadLSU3ShellRMEs(
           rme_stream,
-          u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),basis_table,
+          u3shell::OperatorLabelsU3ST(two_body_unit_tensor_labels),basis_table,
           space,sectors,matrices_input
       );
 

@@ -58,6 +58,8 @@ int main(int argc, char **argv)
   assert((Nstep==2)||(Nstep==1));
   int Nmin=Nmax%Nstep;
   int A=N+Z;
+  int T0=0;
+  int J0=0;
   // Set up unit tensor model space space
   std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
   std::ofstream model_stream(model_space);
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
 
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensor_labels);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,relative_unit_tensor_labels,J0,T0,false);
   lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,true);
 
   // Generate Brel operator up to Nmax cutoff

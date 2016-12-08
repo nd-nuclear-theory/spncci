@@ -16,26 +16,15 @@
 #include "sp3rlib/vcs.h" 
 #include "spncci/unit_tensor.h"
 
-// TODO::Move out of global space 
-spncci::SpIrrepVector sp_irrep_vector;
-
-
-#ifdef DHASH_UNIT_TENSOR
- std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3> >  K_matrix_map;
-#else
-std::map< u3::U3,vcs::MatrixCache > K_matrix_map;
-#endif
-
 
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
 
-  //Final container for unit tensors rme's
-  spncci::UnitTensorU3SSectorsCache unit_tensor_u3S_cache;
   //unit tensor cache 
   u3::UCoefCache u_coef_cache;
-
+  std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3> >  k_matrix_map;
+  spncci::SpIrrepVector sp_irrep_vector;
   // general diagnostics
   // stack size
   {
@@ -63,7 +52,7 @@ int main(int argc, char **argv)
 
   // For generating the lgi_vector, using Li-6 as example;
   HalfInt Nsigma_0 = HalfInt(11,1);
-  int N1b=2;
+  int N1b=1;
 
   // Generate vector of LGI's from input file 
   lgi::LGIVector lgi_vector;
@@ -77,23 +66,23 @@ int main(int argc, char **argv)
     =spncci::GenerateSpIrrepPairs(sp_irrep_vector);
 
   //Generate list of sigma's and count of (sigma,S)
-  spncci::U3SCount sigma_S_count;
+  // spncci::U3SCount sigma_S_count;
   std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
   for(int l=0; l<sp_irrep_vector.size(); l++)
     {
-      sigma_set.insert(sp_irrep_vector[l].sigma());
-      std::pair<u3::U3,HalfInt> count_key(sp_irrep_vector[l].sigma(), sp_irrep_vector[l].S());
-      sigma_S_count[count_key]+=1;
+      sigma_set.insert(sp_irrep_vector[l].irrep.sigma());
+  //     std::pair<u3::U3,HalfInt> count_key(sp_irrep_vector[l].sigma(), sp_irrep_vector[l].S());
+  //     sigma_S_count[count_key]+=1;
     }
 
-  for(auto it=sigma_S_count.begin(); it!=sigma_S_count.end(); ++it)
-    {
-      u3::U3 s;
-      HalfInt SS;
-      std::tie(s,SS)=it->first;
-      int count=it->second;
-      std::cout<<"sigma S pairs "<<s.Str()<<"  "<<SS<<"  "<<count<<std::endl;
-    }
+  // for(auto it=sigma_S_count.begin(); it!=sigma_S_count.end(); ++it)
+  //   {
+  //     u3::U3 s;
+  //     HalfInt SS;
+  //     std::tie(s,SS)=it->first;
+  //     int count=it->second;
+  //     std::cout<<"sigma S pairs "<<s.Str()<<"  "<<SS<<"  "<<count<<std::endl;
+  //   }
   /////////////////////////////////////////////////////////////////////////////////////  
   // Generate Kmatrices 
   for( const auto& s : sigma_set)
@@ -103,12 +92,14 @@ int main(int argc, char **argv)
       // vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, K_map);
       vcs::GenerateKMatrices(sigma_irrep_map[s], K_map);
 
-      K_matrix_map[s]=K_map;
+      k_matrix_map[s]=K_map;
     }
 
   // generate map that stores unit tensor labels keyed by N0
-  std::map< int, std::vector<spncci::UnitTensor> > unit_sym_map;
-  spncci::GenerateUnitTensors(Nmax,unit_sym_map);
+  std::map< int, std::vector<u3shell::RelativeUnitTensorLabelsU3ST> > unit_sym_map;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, unit_sym_map, 0, 0, true);
+
+  // spncci::GenerateUnitTensors(Nmax,unit_sym_map);
 
   //initializing map that will store map containing unit tensors.  Outer map is keyed SpIrrep pair. 
   // inner map is keyed by unit tensor matrix element labels of type UnitTensorRME
@@ -125,8 +116,8 @@ int main(int argc, char **argv)
   for (int i=0; i<sp_irrep_pair_vector.size(); i++)
     {
       std::pair<int,int> sp_irrep_pair=sp_irrep_pair_vector[i];
-      spncci::SpIrrep sp_irrepp=sp_irrep_vector[sp_irrep_pair.first];
-      spncci::SpIrrep sp_irrep=sp_irrep_vector[sp_irrep_pair.second];
+      spncci::SpIrrep sp_irrepp=sp_irrep_vector[sp_irrep_pair.first].irrep;
+      spncci::SpIrrep sp_irrep=sp_irrep_vector[sp_irrep_pair.second].irrep;
 
       std::cout <<"SpIrrep pair"<< sp_irrepp.Str()<<"  "<<sp_irrep.Str()<<std::endl;
 
@@ -137,20 +128,22 @@ int main(int argc, char **argv)
 
       // operator boson number between two lgi's
       int N0=int(sigmap.N()-sigma.N());
-      int rp,r;
-      HalfInt S0;
-      u3::SU3 x0;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Initializing the unit_tensor_rme_map with LGI rme's 
       //////////////////////////////////////////////////////////////////////////////////////////////
-      std::pair<int,int> N0_pair(sp_irrepp.Nex(),sp_irrep.Nex());
+      // std::pair<int,int> N0_pair(sp_irrepp.Nex(),sp_irrep.Nex());
+      std::pair<int,int> N0_pair(0,0);
       for (int j=0; j<unit_sym_map[N0].size(); j++)
         {
           Eigen::MatrixXd temp_matrix(1,1);
           temp_matrix(0,0)=1;
 					
-          spncci::UnitTensor unit_tensor=unit_sym_map[N0][j];
-          std::tie (x0, S0, std::ignore, rp, std::ignore, std::ignore, r, std::ignore,std::ignore)=unit_tensor.Key();
+          u3shell::RelativeUnitTensorLabelsU3ST unit_tensor=unit_sym_map[N0][j];
+          u3::SU3 x0=unit_tensor.x0();
+          HalfInt S0=unit_tensor.S0();
+          int rp=unit_tensor.bra().eta();
+          int r=unit_tensor.ket().eta();
+          
           int rho0_max=u3::OuterMultiplicity(sigma.SU3(),x0, sigmap.SU3());
           for (int rho0=1; rho0<=rho0_max; rho0++)
             {
@@ -166,64 +159,15 @@ int main(int argc, char **argv)
 
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each SpIrrep
+      std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
+      GenerateUnitTensorU3SectorLabels(
+        N1b,Nmax,sp_irrep_pair,sp_irrep_vector,
+        unit_sym_map,unit_tensor_NpN_sector_map);
+
       spncci::GenerateUnitTensorMatrix(
-          N1b,Nmax,sp_irrep_pair,u_coef_cache,unit_sym_map,
-          sp_irrep_unit_tensor_rme_map[sp_irrep_pair]
-          );
-      // for (auto it=sp_irrep_unit_tensor_rme_map[sp_irrep_pair].begin(); it !=sp_irrep_unit_tensor_rme_map[sp_irrep_pair].end(); ++it)
-      // 	for (auto i=sp_irrep_unit_tensor_rme_map[sp_irrep_pair][it->first].begin(); i !=sp_irrep_unit_tensor_rme_map[sp_irrep_pair][it->first].end(); i++)
-      // 			std::cout <<(i->first).Str()<<"  "<<i->second<<std::endl;
-
-      int row_shift, col_shift;
-      std::pair<int,int> sp_irrep_symmetry_sum;
-      bool is_new_subsector=false;
-      if (
-          (sp_irrep.S()!=S_old)
-          ||(sp_irrepp.S()!=Sp_old)
-          ||(not(sigma==sigma_old))
-          ||(not(sigmap==sigmap_old))
-        )
-        {
-          is_new_subsector=true;
-          S_old=sp_irrep.S();
-          Sp_old=sp_irrepp.S();
-          sigma_old=sigma;
-          sigmap_old=sigmap;
-
-          std::pair<u3::U3,HalfInt>sigma_S(sigma,sp_irrep.S());
-          std::pair<u3::U3,HalfInt>sigmap_Sp(sigmap,sp_irrepp.S());
-          sp_irrep_symmetry_sum={sigma_S_count[sigmap_Sp],sigma_S_count[sigma_S]};
-
-          row_shift=sp_irrep_pair.first;
-          col_shift=sp_irrep_pair.second;
-        }
-        
-      const std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map=sp_irrep_unit_tensor_rme_map[sp_irrep_pair];
-      std::pair<int,int> sp_irrep_pair_index(sp_irrep_pair.first-row_shift,sp_irrep_pair.second-col_shift);
-
-      std::cout<<sp_irrep_pair.first-row_shift<<"  "<<sp_irrep_pair.second-col_shift<<std::endl;
-      // std::cout<<sp_irrep_pair_index.first<<" "<<sp_irrep_pair_index.second<<std::endl;
-      RegroupUnitTensorU3SSectors(
-          is_new_subsector, sp_irrepp.S(), sp_irrep.S(), sp_irrep_pair_index,
-          unit_tensor_rme_map, sp_irrep_symmetry_sum, unit_tensor_u3S_cache
-        );
-    }
-
-    for(auto it=unit_tensor_u3S_cache.begin(); it!=unit_tensor_u3S_cache.end(); ++it)
-      {
-        spncci::UnitTensor tensor;
-        u3::U3 omegap,omega;
-        int rho0;
-        HalfInt S,Sp;
-        spncci::UnitTensorU3SSector sector_u3S=it->first;
-        std::tie(omegap,Sp,omega, S, tensor, rho0)=sector_u3S.Key();
-        std::cout<<omegap.Str()<<" "<<Sp<<"  "<<omega.Str()<<"  "<<S<<"  "<<tensor.Str()<<"  "<<rho0<<std::endl;
-
-        std::vector<Eigen::MatrixXd> vector(it->second);
-        std::cout<<"vector size  "<<vector.size()<<std::endl;
-        std::cout<<vector[0]<<std::endl;
-      }
-
+        N1b,Nmax,sp_irrep_pair,sp_irrep_vector,u_coef_cache,k_matrix_map,
+        unit_tensor_NpN_sector_map,sp_irrep_unit_tensor_rme_map[sp_irrep_pair]);
+  }
   std::cout<<"all done"<<std::endl;
 }
 // end main 

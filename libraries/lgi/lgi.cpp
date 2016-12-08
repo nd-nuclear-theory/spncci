@@ -66,8 +66,7 @@ namespace lgi
         u3shell::U3SPN omegaSPN(u3::U3S(sigma,S),Sp,Sn);
       
         // replicate LGI according to count
-        for (int i=1; i<=count; ++i)
-          lgi_vector.emplace_back(omegaSPN,Nex);
+        lgi_vector.emplace_back(lgi::LGI(omegaSPN,Nex),count);
       }
 
     // close input file

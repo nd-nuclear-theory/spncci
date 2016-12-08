@@ -7,8 +7,8 @@
   University of Notre Dame
 
   5/25/16 (mac): Created with code from two_body_operator and
-    tensor_labels.
-
+                 tensor_labels.
+  12/6/16 (aem): Added optional parameters to GenerateRelativeUnitTensors
 ****************************************************************/
 
 #ifndef RELATIVE_OPERATOR_H_
@@ -43,34 +43,10 @@ namespace u3shell
   // generation of unit tensor label lists
   ///////////////////////////////////////////////////////////////
   void GenerateRelativeUnitTensorLabelsU3ST(
-        const u3shell::RelativeSpaceU3ST& space,
-        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-        );
-  // Generate labels for U3ST-scheme relative tensors acting within
-  // the relative space of a given Nmax truncation.
-  //
-  // The resulting unit tensor labels are grouped by N0, i.e., the
-  // number of oscillator quanta caried by the operator.  
-  //
-  // Arguments:
-  //   space (input) : space on which the unit tensors are represented
-  //   relative_unit_tensor_labels (output) : container for unit tensor labels grouped by N0
-
-  std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>
-    GenerateRelativeUnitTensorLabelsU3ST(int Nmax);
-    // Depreciated version
-
-  void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
-        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels
-        );
-  //Depreciated version
-
-  void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax, 
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
-        int J0=0,
-        int T0=0,
+        int J0=-1,
+        int T0=-1,
         bool restrict_positive_N0=false
         );
 
@@ -90,9 +66,22 @@ namespace u3shell
   //  Arguments:
   //    space (input) : space on which the unit tensors are represented
   //    relative_unit_tensor_labels (output) : container for unit tensor labels grouped by N0
-  //    J0 (optional) : Angular momentum of operator. If not value provided, set to 0. 
-  //    T0 (optional) : Isospin componenet of operator
+  //    J0 (optional) : Angular momentum of operator. If default value of -1, operators are not
+  //                    restricted to those which can branch to J0. 
+  //    T0 (optional) : Isospin componenet of operator.  If default value of -1, then T0 takes
+  //                    all values that satisfy triangularity constraint. 
   //    bool (optional) : if true restricts, N0 or operator to positive values only
+
+
+  void GenerateRelativeUnitTensorLabelsU3ST(
+        int Nmax, 
+        std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels,
+        int J0=-1,
+        int T0=-1,
+        bool restrict_positive_N0=false
+      );
+  // Overload of above function where container is map with unit tensors sorted by N0. 
+
 
   double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 

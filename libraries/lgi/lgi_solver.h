@@ -20,9 +20,6 @@
 
 namespace lgi
 {
-  void
-  WriteLGI(const lgi::LGIVector& lgi_vector,   std::ofstream& os);
-
   void 
   GenerateNcmMatrixVector(
     int A,     
@@ -79,14 +76,20 @@ namespace lgi
   );
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 
-  void WriteLGILabels(
+  void GetLGILabels(
       HalfInt Nsigma_0,
       const u3shell::SpaceU3SPN& space, 
       const basis::MatrixVector& lgi_expansion_matrix_vector,
-      std::ofstream& os 
+      lgi::LGIVector& lgi_vector
       );
-  // Write LGI labels to file with count
-  // Nex twice_N lambda mu twice_Sp twice_Sn twice_S count
+  // Accumlate LGI labels with counts into lgi_vector
+  // For each count, Nex twice_N lambda mu twice_Sp twice_Sn twice_S
+  // is added to vector.
+
+
+  void
+  WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os);
+
 
 }
 #endif

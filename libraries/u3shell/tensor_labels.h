@@ -12,7 +12,8 @@
     (OperatorLabelsU3S, etc.).
   5/27/16 (mac): Restructure operator constuctor definitions.
   9/7/16 (mac): Add OperatorLabelsU3S conversion from OperatorLabelsU3ST.
-
+  12/6/16 (aem) : Add Conjugation functions for OperatorLabelsU3ST and 
+                  RelativeUnitTensorLabelsU3ST.
 ****************************************************************/
 
 #ifndef TENSOR_LABELS_H_
@@ -486,7 +487,16 @@ namespace u3shell
     int g0_;
   };
 
-
+  inline u3shell::OperatorLabelsU3ST Conjugate( const u3shell::OperatorLabelsU3ST& operator_labels)
+    {
+      return OperatorLabelsU3ST(
+        -1*operator_labels.N0(),
+        u3::Conjugate(operator_labels.x0()),
+        operator_labels.S0(),
+        operator_labels.T0(),
+        operator_labels.g0()
+        );
+    }
 
 
   ////////////////////////////////////////////////////////////////
@@ -862,7 +872,10 @@ namespace u3shell
   };
 
 
-
+  inline RelativeUnitTensorLabelsU3ST Conjugate(RelativeUnitTensorLabelsU3ST& tensor)
+  {
+    return RelativeUnitTensorLabelsU3ST(Conjugate(tensor.operator_labels()),tensor.ket(),tensor.bra());
+  }
 
 
 

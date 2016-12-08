@@ -45,8 +45,8 @@ int main(int argc, char **argv)
 	is.close();
 
   // Construct sectors 
-  u3shell::OperatorLabelsU3S operator1(N1,u3::SU3(lambda1,mu1),S1,T1);
-  u3shell::OperatorLabelsU3S operator2(N2,u3::SU3(lambda2,mu2),S2,T2);
+  u3shell::OperatorLabelsU3ST operator1(N1,u3::SU3(lambda1,mu1),S1,T1,N1%2);
+  u3shell::OperatorLabelsU3ST operator2(N2,u3::SU3(lambda2,mu2),S2,T2,N1%2);
   assert(operator1==operator2);
 
   u3shell::SectorsU3SPN sectors(space,operator1,true);

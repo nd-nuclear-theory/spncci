@@ -10,7 +10,9 @@
   3/11/16 (aem,mac): Implement basis irrep construction and traversal.
   3/17/16 (aem,mac): Remove superfluous data members from LGI.
   9/8/16  (aem): Renamed LGI to SpIrrep and moved LGI read function to lgi.h
-
+  12/5/16 (aem): Changed SpIrrepVector from vector of SpIrreps to 
+                 vector of MultiplicityTagged SpIrreps where tag is 
+                 number of times sigma Sp Sn S occur in basis.
 ****************************************************************/
 
 #ifndef SP_BASIS_H_
@@ -209,7 +211,7 @@ namespace spncci
 
   // Sp(3,R) container convenience type
   typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMap;
-  typedef std::vector<spncci::SpIrrep> SpIrrepVector;
+  typedef MultiplicityTagged<spncci::SpIrrep>::vector SpIrrepVector;
 
   void GenerateSp3RIrreps(
       const lgi::LGIVector& lgi_vector,
@@ -311,7 +313,7 @@ namespace spncci
   std::vector< std::pair<int,int> > GenerateSpIrrepPairs(spncci::SpIrrepVector sp_irrep_vector);
   // Given a vector of SpIrrep's, apply angular momentum selection rules to return a list 
   // of SpIrrep pairs which will have non-zero matrix elements between states in their irreps.  
-  // Only compute upper triangle sectors, i.e., gamma'<=gamma
+  // Mapping is all to all. 
   //
   // Selection rules: abs(Si-Sf)<=2 for total spin, neutron spin and proton spin.
   
