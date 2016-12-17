@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   //generate sectors for brel.
   u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
   basis::MatrixVector brel_matrix_vector(space.size());
-  // lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space, brel_sectors,brel_matrix_vector);
+  lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space, brel_sectors,brel_matrix_vector);
 
   basis::MatrixVector lgi_expansion_matrix_vector(space.size());
 

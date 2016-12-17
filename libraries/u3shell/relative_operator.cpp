@@ -42,7 +42,7 @@ namespace u3shell {
       restrict_J0=false;
 
     int N0_min=restrict_positive_N0?0:-Nmax;
-    for(int N0=-Nmax; N0<=Nmax; N0+=2)
+    for(int N0=N0_min; N0<=Nmax; N0+=2)
       {
         for(int Sp=0; Sp<=1; Sp++)
           for(int Tp=0; Tp<=1; Tp++)

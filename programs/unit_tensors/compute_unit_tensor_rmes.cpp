@@ -90,8 +90,10 @@ int main(int argc, char **argv)
 
   // Labels of relative unit tensors computed between LGI's
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> LGI_unit_tensor_labels;  
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max, LGI_unit_tensor_labels);
+  std::cout<<"Nsigma0_ex_max "<<Nsigma0_ex_max<<std::endl;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max, LGI_unit_tensor_labels,-1,0,true);
   // For each operator, transform from lsu3shell basis to spncci basis
+  std::cout<<"Number of unit tensors "<<LGI_unit_tensor_labels.size()<<std::endl;
   for(int i=0; i<LGI_unit_tensor_labels.size(); ++i)
     {
       //Get unit tensor labels
@@ -107,19 +109,25 @@ int main(int argc, char **argv)
           std::cout<<fmt::format("relative_unit_{:06d} not found",i)<<std::endl;
           continue;
         }
-      // Read in operator from file  
-      basis::MatrixVector lsu3shell_operator_matrices;
+      // Read in operator from file
+      std::cout<<fmt::format("Transforming relative_unit_{:06d}",i)<<std::endl;
+      std::cout<< LGI_unit_tensor_labels[i].Str()<<std::endl;
+
+      std::cout<<"  Reading in rmes"<<std::endl;
+      basis::MatrixVector lsu3shell_operator_matrices(sectors.size());
       lsu3shell::ReadLSU3ShellRMEs(
         is_operator,operator_labels, basis_table,space, 
         sectors,lsu3shell_operator_matrices
         );
       // Basis transformation for each sector
+      std::cout<<"  Transforming"<<std::endl;
       basis::MatrixVector spncci_operator_matrices;
       lgi::TransformOperatorToSpBasis(
         sectors,lgi_expansion_matrix_vector,
         lsu3shell_operator_matrices,spncci_operator_matrices
         );
       // Populate unit tensor map with sectors
+      std::cout<<"Populating lgi sectors"<<std::endl;
       std::pair<int,int> N0_pair(0,0);
       for(int s=0; s<sectors.size(); ++s)
         {
@@ -135,6 +143,10 @@ int main(int argc, char **argv)
         }
     }
 
+  for(auto it=sp_irrep_unit_tensor_rme_map.begin(); it!=sp_irrep_unit_tensor_rme_map.end(); ++it)
+    {
+      std::cout<<"Irreps "<<it->first.first<<" and "<<it->first.second<<std::endl;
+    }
   //////////////////////////////////////////////////////////////////////////////////////////
   //Precomputing Kmatrices 
   //////////////////////////////////////////////////////////////////////////////////////////

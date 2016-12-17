@@ -154,6 +154,7 @@ namespace spncci
      // SpIrrep pair sector 
     const spncci::SpIrrep& sp_irrepp,
     const spncci::SpIrrep& sp_irrep,
+    const std::pair<int,int>& lgi_mult,
      // vector of addresses to relevant Np,N sectors of unit tensor matrix
      spncci::UnitTensorSectorsCache& sector_NpN2,
      spncci::UnitTensorSectorsCache& sector_NpN4,
@@ -174,6 +175,8 @@ namespace spncci
     u3shell::RelativeUnitTensorLabelsU3ST tensor;
     int rho0;
     std::tie(omegap,omega,tensor,rho0) = unit_labels.Key();
+    int multp=lgi_mult.first;
+    int mult=lgi_mult.second;
 
     const sp3r::Sp3RSpace& irrepp=sp_irrepp.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=sp_irrep.Sp3RSpace();
@@ -211,7 +214,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  Calculate unit tensor matrix
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    Eigen::MatrixXd unit_tensor_matrix=Eigen::MatrixXd::Zero(dimp,dim);
+    Eigen::MatrixXd unit_tensor_matrix=Eigen::MatrixXd::Zero(dimp*multp,dim*mult);
 
     // summing over omega1
     for (auto omega1_tagged : omega1_set)
@@ -226,7 +229,8 @@ namespace spncci
         // Look up K1 matrix (dim v1, v1)
         Eigen::MatrixXd K1=K_matrix_map_sp_irrep[omega1];
         // Initializing unit tensor matrix with dim. v' v1
-        Eigen::MatrixXd unit_matrix= Eigen::MatrixXd::Zero(dimp,dim1);
+        Eigen::MatrixXd unit_matrix
+          =Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Matrix of B*U coefs with dim v1 and v
@@ -253,6 +257,7 @@ namespace spncci
           }								        
         Eigen::MatrixXd KBUK(dim1,dim);
         KBUK.noalias()=K1*BU*K_inv;
+
         // std::cout<<"KBUK "<<KBUK<<std::endl;
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         //summing over x0'
@@ -273,7 +278,7 @@ namespace spncci
                 // sum over omega'', v'' and rho0''
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 //Initilize 3rd-term-unit-tensor matrix
-                Eigen::MatrixXd unit3_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
+                Eigen::MatrixXd unit3_matrix=Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
 
                 // Summing over omega''
                 for ( auto omegapp_tagged : omegapp_set)
@@ -322,7 +327,9 @@ namespace spncci
                       } //end vpp
 
                     //std::cout<<"boson matrix "<<boson_matrix<<std::endl;
-                    Eigen::MatrixXd unit3pp_matrix=Eigen::MatrixXd::Zero(dimpp,dim1);
+                    Eigen::MatrixXd A=Kp*boson_matrix*Kpp_inv;
+                    // Unit tensor matrix 
+                    Eigen::MatrixXd unit3pp_matrix=Eigen::MatrixXd::Zero(dimpp*multp,dim1*mult);
                     int rho0pp_max=u3::OuterMultiplicity(omega1.SU3(),x0,omegapp.SU3());
                     // Summing over rho0''
                     for(int rho0pp=1; rho0pp<=rho0pp_max; ++rho0pp)
@@ -340,8 +347,21 @@ namespace spncci
                         assert(sector_NpN4.count(unit3_labels)>0);
                         unit3pp_matrix+=coef3*sector_NpN4[unit3_labels];
                       } //end rho0pp
-                    // matrix product (v',v')*(v',v'')*(v'',v1)
-                    unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
+                    // matrix product (v',v'')*(v'',v1)
+
+                    for(int i=0; i<multp; ++i)
+                      for(int j=0; j<mult; ++j)
+                        {
+                          // Get target indices 
+                          int it=i*dimp;
+                          int jt=j*dim1;
+                          // Get source indices
+                          int is=i*dimpp;
+                          int js=j*dim1;
+
+                          unit3_matrix.block(it,jt,dimp,dim1)+=A*unit3pp_matrix.block(is,js,dimpp,dim1);
+                        }
+                        // unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
                   } // end omegapp
                 // std::cout<<"unit3_matrix "<<unit3_matrix<<std::endl;
                 unit_matrix+=unit3_matrix;
@@ -366,9 +386,9 @@ namespace spncci
                   // zero initialize unit1_matrix depending on N0 sign
                   Eigen::MatrixXd unit1_matrix;
                   if(N0_negative)
-                    unit1_matrix=Eigen::MatrixXd::Zero(dim1,dimp);
+                    unit1_matrix=Eigen::MatrixXd::Zero(dim1*mult,dimp*multp);
                   else
-                    unit1_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
+                    unit1_matrix=Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
 
                   // summing over rho0bp and accumulating sectors in unit1_matrix. 
                   for(int rho0bp=1; rho0bp<=rho0p_max; ++rho0bp)
@@ -411,9 +431,9 @@ namespace spncci
                     // zero initialize unit1_matrix depending on N0 sign
                     Eigen::MatrixXd unit2_matrix;
                     if(N0_negative)
-                      unit2_matrix=Eigen::MatrixXd::Zero(dim1,dimp);
+                      unit2_matrix=Eigen::MatrixXd::Zero(dim1*mult,dimp*multp);
                     else
-                      unit2_matrix=Eigen::MatrixXd::Zero(dimp,dim1);
+                      unit2_matrix=Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
                
                     for(int rho0bp=1; rho0bp<=rho0p_max; ++rho0bp)
                       {
@@ -456,7 +476,8 @@ namespace spncci
       std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
       const spncci::UnitTensorU3Sector& unit_tensor_u3_sector, 
       const spncci::SpIrrep& sp_irrepp,
-      const spncci::SpIrrep& sp_irrep,                                 
+      const spncci::SpIrrep& sp_irrep,
+      const  std::pair<int,int>& lgi_multiplicities,                                 
       // Eigen doesn't like const 
       spncci::UnitTensorSectorsCache& sector_NpN2,
       spncci::UnitTensorSectorsCache& sector_NpN4,
@@ -494,8 +515,8 @@ namespace spncci
         //  corresponding to omega and omega'
         // Note: 
         temp_matrix=spncci::UnitTensorMatrix(
-                      u_coef_cache,k_matrix_map,sp_irrep,sp_irrepp,sector_NpN2,
-                      sector_NpN4,unit_tensor_calc_u3_sector
+                      u_coef_cache,k_matrix_map,sp_irrep,sp_irrepp,lgi_multiplicities,
+                      sector_NpN2,sector_NpN4,unit_tensor_calc_u3_sector
                       );
         // Conjugation phase        
         double coef=ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap))
@@ -511,7 +532,7 @@ namespace spncci
         //  Call UnitTensorMatrix function to calculate the Unit Tensor sub matrix for the v'v 
         //  corresponding to omega' and omega
         temp_matrix=spncci::UnitTensorMatrix(
-                      u_coef_cache,k_matrix_map,sp_irrepp,sp_irrep,
+                      u_coef_cache,k_matrix_map,sp_irrepp,sp_irrep, lgi_multiplicities,
                       sector_NpN2,sector_NpN4,unit_tensor_u3_sector
                       );
       
@@ -532,6 +553,7 @@ GenerateNpNSector(
   const std::pair<int,int> NpN_pair, 
   const spncci::SpIrrep& sp_irrepp,
   const spncci::SpIrrep& sp_irrep,
+  const std::pair<int,int>& lgi_multiplicities,
   u3::UCoefCache& u_coef_cache,
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
   std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
@@ -576,6 +598,7 @@ GenerateNpNSector(
         GenerateUnitTensorU3Sector(
           u_coef_cache, k_matrix_map,
           unit_tensor_u3_sector, sp_irrepp, sp_irrep,
+          lgi_multiplicities,
           sector_NpN2, sector_NpN4, Nn_zero, u3sector_pairs
          );
       }
@@ -627,6 +650,10 @@ GenerateNpNSector(
     const spncci::SpIrrep& sp_irrep=sp_irrep_vector[sp_irrep_pair.second].irrep;
     const sp3r::Sp3RSpace& irrepp=sp_irrepp.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=sp_irrep.Sp3RSpace();
+    std::pair<int,int> lgi_multiplicities(
+      sp_irrep_vector[sp_irrep_pair.first].tag,
+      sp_irrep_vector[sp_irrep_pair.second].tag
+      );
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Looping over NpN subspaces 
@@ -649,7 +676,8 @@ GenerateNpNSector(
           //////////////////////////////////////////////////////////////////////////////    
           std::pair<int,int> NpN_pair(Nnp,Nn);              
           GenerateNpNSector(
-            NpN_pair,sp_irrepp,sp_irrep,u_coef_cache, k_matrix_map,
+            NpN_pair,sp_irrepp,sp_irrep,lgi_multiplicities,
+            u_coef_cache, k_matrix_map,
             unit_tensor_rme_map,unit_tensor_NpN_sector_map
             ); 
           // diagnostic output

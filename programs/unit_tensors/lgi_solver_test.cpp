@@ -14,12 +14,26 @@
 #include "lsu3shell/lsu3shell_basis.h"
 #include "u3shell/unit_tensor_expansion.h"
 
+
+int CountBasisIrreps(const u3shell::SpaceU3SPN& space)
+{
+  int count=0;
+  for(int i=0; i<space.size(); ++i)
+    {
+      u3shell::SubspaceU3SPN subspace(space.GetSubspace(i));
+      count+=subspace.size();
+    }
+  return count;
+}
+
 void NullSpaceCheck(
   const u3shell::SpaceU3SPN& space, 
   basis::MatrixVector& ncm_matrices)
 {  
   Eigen::MatrixXd null;
-  for(int i=0; i< space.size(); ++i)
+  int total_null=0;
+  int total_rank=0;
+  for(int i=0; i<ncm_matrices.size(); ++i)
   // for(auto matrix : ncm_matrices)
     {
       Eigen::MatrixXd& matrix=ncm_matrices[i];
@@ -35,13 +49,15 @@ void NullSpaceCheck(
           {
             null=Eigen::MatrixXd::Identity(1,1);
             std::cout << "Rank : "<<0<<std::endl;
-            std::cout << "CMF : "<<1<<std::endl<<std::endl;
+            std::cout << "null : "<<1<<std::endl<<std::endl;
+            ++total_null;
           }
           else
           { 
             null=Eigen::MatrixXd::Zero(1,1);
             std::cout << "Rank : "<<1<<std::endl;
-            std::cout << "CMF : "<<0<<std::endl<<std::endl;
+            std::cout << "null : "<<0<<std::endl<<std::endl;
+            ++total_rank;
           }
         }
       else
@@ -52,6 +68,9 @@ void NullSpaceCheck(
           std::cout << "null : "<<size-lu_decomp.rank()<<std::endl<<std::endl;
           //  std::cout<<"Doing kernel..." << std::endl;
           null=lu_decomp.kernel();
+          total_null+=size-lu_decomp.rank();
+          total_rank+=lu_decomp.rank();
+
         }
       Eigen::MatrixXd zeros=matrix*null;
       double sum=0;
@@ -65,9 +84,11 @@ void NullSpaceCheck(
             if(fabs(zeros(n,m))>fabs(max))
               max=zeros(n,m);
           }
-      std::cout<<"Average error: "<<sum/count<<"  Max error: "<<max<<std::endl;
+      std::cout<<"Average error : "<<sum/count<<"  Max error : "<<max<<std::endl;
       // std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
     }
+  std::cout<<std::endl<<"Number of Sectors : "<<ncm_matrices.size()<<"   Number of space : "<<space.size()<<std::endl;
+  std::cout<<"Total rank : "<<total_rank<<"   Total null : "<<total_null<<std::endl<<std::endl;
 }
 
 
@@ -92,17 +113,19 @@ int main(int argc, char **argv)
   std::ifstream is_nrel(nrel_filename.c_str());
 
   lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
-  std::cout<<"LSU3Shell basis  "<<std::endl;
-
+  int num_states=CountBasisIrreps(space);
+  std::cout<<"LSU3Shell basis  states : "<<num_states<<std::endl;
+  
   basis::MatrixVector ncm_matrices;
   std::cout<<"Ncm_matrices"<<std::endl;
   lsu3shell::GenerateNcmMatrixVector(A,is_nrel,basis_table,space,ncm_matrices);
   NullSpaceCheck(space,ncm_matrices);
 
-  std::cout<<"Brel_matrices"<<std::endl;
-  basis::MatrixVector brel_matrices;
+  std::cout<<std::endl<<"Brel_matrices"<<std::endl;
+  
   u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
   u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
+  basis::MatrixVector brel_matrices(brel_sectors.size());
   lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space,brel_sectors,brel_matrices);
   NullSpaceCheck(space,brel_matrices);
 
