@@ -51,8 +51,8 @@ namespace u3shell {
                 for (int S0=abs(S-Sp); S0<=(S+Sp); S0++)
                   for(int etap=0; etap<=Nmax; etap++)
                     {
-                      int T0_min=(T0==-1)?T0_min:abs(Tp-T);
-                      int T0_max=(T0==-1)?T0_max:(Tp+T);
+                      int T0_min=(T0==-1)?abs(Tp-T):T0;
+                      int T0_max=(T0==-1)?(Tp+T):T0;
                       for(T0=T0_min; T0<=T0_max; ++T0)
                       {
                         //antisymmeterization constraint on ket 

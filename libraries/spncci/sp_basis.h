@@ -560,7 +560,7 @@ namespace spncci
   void GetSectorsU3S(
     const spncci::SpaceU3S& space, 
     const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
-    SectorLabelsU3SCache& u3s_sectors
+    std::vector<spncci::SectorLabelsU3S>& sector_vector
     );
   // Generates a cache of SectorLabelsU3S from operator labels given in 
   // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled

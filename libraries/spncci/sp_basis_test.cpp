@@ -53,6 +53,24 @@ int main(int argc, char **argv)
     }
   std::cout << "********************************" << std::endl;
 
+
+  // examine irreps by calling reference to irreps from vector
+  std::cout << "irreps (by lgi)" << std::endl;
+  for (auto sp_irrep_tag : sp_irrep_vector)
+    {
+      std::cout<<"Get irrep"<<std::endl;
+      const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
+      std::cout<<"Get subspace"<<std::endl;
+      const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
+      std::cout<<"Debug"<<std::endl;
+      std::cout << irrep.DebugString();
+      std::cout << std::endl;
+    }
+  std::cout << "********************************" << std::endl;
+
+
+
+
   ////////////////////////////////////////////////////////////////
   // indicate dimensions
   ////////////////////////////////////////////////////////////////
@@ -69,9 +87,9 @@ int main(int argc, char **argv)
   // indicate dimensions
   ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
-  // Regroup test state tests
+  // Regroup state tests
   ////////////////////////////////////////////////////////////////
-  if (false)
+  if (true)
     {
       std::cout<<"Regroup test"<<std::endl;
       // build space
@@ -116,18 +134,19 @@ int main(int argc, char **argv)
         // std::cout<<"tensor "<<operator_labels.Str()<<" "<<kappa0<<"  "<<L0<<std::endl;
         tensor_labels.push_back(u3shell::IndexedOperatorLabelsU3S(operator_labels,kappa0,L0));
       }
-    spncci::GetSectorsU3S(space,tensor_labels,u3s_sectors);
-    std::cout<<"number of sectors "<<u3s_sectors.size()<<std::endl;
+
+    std::vector<spncci::SectorLabelsU3S> sector_vector;
+
+    spncci::GetSectorsU3S(space,tensor_labels,sector_vector);
+    std::cout<<"number of sectors "<<sector_vector.size()<<std::endl;
     int i=0;
-    for(auto it=u3s_sectors.begin(); it!=u3s_sectors.end(); ++it)
+    for(auto sector : sector_vector)
       {
         if (i<10)
         {
-          spncci::SectorLabelsU3S sector(it->first);
-          int index=it->second;
           u3::U3S omegaS_bra=space.GetSubspace(sector.bra_index()).GetSubspaceLabels();
           u3::U3S omegaS_ket=space.GetSubspace(sector.ket_index()).GetSubspaceLabels();
-          std::cout<<fmt::format(" {}   {}",sector.Str(),index)<<std::endl;
+          std::cout<<fmt::format(" {}",sector.Str())<<std::endl;
           std::cout<<"  "<<omegaS_bra.Str()<<"  "<< omegaS_ket.Str()<<std::endl;
         }
         ++i;

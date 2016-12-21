@@ -21,6 +21,7 @@
 #include "sp3rlib/vcs.h" 
 #include "spncci/unit_tensor.h"
 #include "u3shell/relative_operator.h"
+#include "u3shell/upcoupling.h"
 
 int main(int argc, char **argv)
 {
@@ -55,7 +56,7 @@ int main(int argc, char **argv)
   std:: map< 
     std::pair<int,int>, 
     std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >
-    > sp_irrep_unit_tensor_rme_map;
+    > unit_tensor_sector_cache;
 
   //////////////////////////////////////////////////////////////////////////////////////////
   // Get LGI's and populate sector map with LGI rme's
@@ -84,9 +85,6 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   // Generating sp3r irreps
   spncci::GenerateSp3RIrreps(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
-  // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
-  std::vector< std::pair<int,int> > sp_irrep_pair_vector
-    =spncci::GenerateSpIrrepPairs(sp_irrep_vector);
 
   // Labels of relative unit tensors computed between LGI's
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> LGI_unit_tensor_labels;  
@@ -94,6 +92,7 @@ int main(int argc, char **argv)
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max, LGI_unit_tensor_labels,-1,0,true);
   // For each operator, transform from lsu3shell basis to spncci basis
   std::cout<<"Number of unit tensors "<<LGI_unit_tensor_labels.size()<<std::endl;
+  
   for(int i=0; i<LGI_unit_tensor_labels.size(); ++i)
     {
       //Get unit tensor labels
@@ -138,15 +137,16 @@ int main(int argc, char **argv)
           u3::U3 sigmap=sp_irrep_vector[i].irrep.sigma();
           u3::U3 sigma=sp_irrep_vector[j].irrep.sigma();
           spncci::UnitTensorU3Sector u3_sector(sigmap,sigma,unit_tensor,rho0);
-          sp_irrep_unit_tensor_rme_map[sp_irrep_pair][N0_pair][u3_sector]
+          unit_tensor_sector_cache[sp_irrep_pair][N0_pair][u3_sector]
               =lsu3shell_operator_matrices[s];
         }
     }
 
-  for(auto it=sp_irrep_unit_tensor_rme_map.begin(); it!=sp_irrep_unit_tensor_rme_map.end(); ++it)
+  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
     {
       std::cout<<"Irreps "<<it->first.first<<" and "<<it->first.second<<std::endl;
     }
+
   //////////////////////////////////////////////////////////////////////////////////////////
   //Precomputing Kmatrices 
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -165,15 +165,38 @@ int main(int argc, char **argv)
     }
 
   //////////////////////////////////////////////////////////////////////////////////////////
-  // Setting up unit tensors 
+  // Computing unit tensor sectors
   //////////////////////////////////////////////////////////////////////////////////////////
   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, unit_tensor_labels, J0, T0, true);
-  // int N1b=2;
 
   // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
-  // GenerateUnitTensorU3SectorLabels(
-  //   N1b,Nmax,sp_irrep_pair,sp_irrep_vector,
-  //   unit_sym_map,unit_tensor_NpN_sector_map);
+  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
+  {
+    
+    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
+      unit_tensor_NpN_sector_map;
+
+    // std::cout<<"Getting sector labes"<<std::endl;
+    spncci::GenerateUnitTensorU3SectorLabels(
+      N1b,Nmax,it->first,sp_irrep_vector,
+      unit_tensor_labels,unit_tensor_NpN_sector_map);
+
+    spncci::GenerateUnitTensorMatrix(
+      N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
+      unit_tensor_NpN_sector_map,unit_tensor_sector_cache[it->first]);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Getting interaction
+  //////////////////////////////////////////////////////////////////////////////////////////
+  //TODO make input 
+  std::string interaction_file="/Users/annamccoy/projects/spncci/data/trel_SU3_Nmax06.dat";
+  std::ifstream interaction_stream(interaction_file.c_str());
+  assert(interaction_stream);
+  
+  u3shell::RelativeRMEsU3ST interaction_rme_cache;
+  u3shell::ReadRelativeOperatorU3ST(interaction_stream, interaction_rme_cache);
+
 
 }

@@ -64,8 +64,9 @@ namespace spncci
         sp_irrep_vector.emplace_back(lgi_tag.irrep, lgi_tag.tag);
 
     // traverse SpIrrep vector
-    for (auto sp_irrep_tag :sp_irrep_vector)
+    for (int i=0; i<sp_irrep_vector.size(); ++i)
       {
+        MultiplicityTagged<spncci::SpIrrep>& sp_irrep_tag=sp_irrep_vector[i];
         // retrieve sigma of LGI
         // u3::U3 sigma(it->sigma); // CRYPTIC
         spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
@@ -109,7 +110,6 @@ namespace spncci
         // save info back to SpIrrep
         const sp3r::Sp3RSpace& irrep = sigma_irrep_map[sigma];
         sp_irrep.SaveSubspaceInfo(irrep);
-
       }
   }
 
@@ -284,7 +284,8 @@ namespace spncci
         if(space.ContainsSubspace(omegaS.U3()) && irrep.S()==omegaS.S())
         {
           //Construct subspace
-          //dim is nu_max
+          //dim is nu_max*gamma_max (size up subspace)
+          // index is starting index in sector matrix
           int dim=sp_irrep_vector[i].tag*space.LookUpSubspace(omegaS.U3()).size();
           PushStateLabels(StateLabelsType(i,irrep.sigma(),dim,index));
           // increment index 
@@ -343,10 +344,11 @@ namespace spncci
   void GetSectorsU3S(
     const spncci::SpaceU3S& space, 
     const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
-    SectorLabelsU3SCache& u3s_sectors
+    std::vector<spncci::SectorLabelsU3S>& sector_vector
     )
   {
     int u3s_sector_vector_index=0;
+    SectorLabelsU3SCache u3s_sectors;
     for(auto tensor_labels:relative_tensor_labels)
       for(int j=0; j<space.size(); ++j)
         for(int i=0; i<=j; ++i)
@@ -373,6 +375,9 @@ namespace spncci
                   }
               }
           }
+    sector_vector.resize(u3s_sectors.size());
+    for(auto it=u3s_sectors.begin(); it!=u3s_sectors.end(); ++it)
+      sector_vector[it->second]=it->first;
   }
 
   SubspaceLS::SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space)

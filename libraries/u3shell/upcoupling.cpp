@@ -168,6 +168,15 @@ namespace u3shell
               }
           }
       }
+    // // Removing zeros 
+    // std::vector<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>> remove_list;
+    // for(auto it=rme_map.begin(); it!=rme_map.end(); it++)
+    //   {
+    //     if(fabs(it->second)<zero_threshold)
+    //       remove_list.push_back(it->first);
+    //   }
+    // for(auto tensor : remove_list)
+    //   rme_map.erase(tensor);
   }
 
   // If no cache is passed as an arguemnt, creates cache for use in calculations
@@ -180,6 +189,8 @@ namespace u3shell
       u3::WCoefCache w_cache;
       UpcouplingU3ST(rme_nlst_map,T0, Nmax,w_cache,rme_map);
     }
+
+
 
   void UpcoupleCMU3ST(
     std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
@@ -304,6 +315,30 @@ namespace u3shell
         }
     }
   }
+
+  typedef std::unordered_map<RelativeUnitTensorLabelsU3ST,std::tuple<int,int,double>,boost::hash<RelativeUnitTensorLabelsU3ST>>
+    InteractionCache;
+
+ void ReadRelativeOperatorU3ST(std::istream& is, InteractionCache& relative_rmes)
+  {
+    int etap,eta,lambda0,mu0,kappa0, L0;
+    int Sp,Tp,S,T,S0,T0;
+    double rme;
+    std::string line;
+
+    while(std::getline(is,line))
+    {
+      std::istringstream(line)>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
+      if (fabs(rme)>zero_threshold)
+        {
+          u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp), ket(eta,S,T);
+          RelativeUnitTensorLabelsU3ST key(u3::SU3(lambda0,mu0),S0,T0,bra,ket);
+          std::tuple<int,int,double> value(kappa0,L0,rme);
+          relative_rmes[key]=value;
+        }
+    }
+  }
+
 
   void Upcoupling(    
     const basis::RelativeSpaceLSJT& space,
