@@ -10,6 +10,9 @@
 
 #include "sp3rlib/u3coef.h"
 #include "moshinsky/moshinsky_xform.h"
+
+extern double zero_threshold;
+
 namespace u3shell
 {
 void
@@ -60,7 +63,7 @@ MoshinskyTransformTensor(
       std::vector<TwoBodyUnitTensorLabelsU3ST> delete_list;
       for(auto key_value : two_body_expansion)
       {
-        if(fabs(key_value.second)<10e-10)
+        if(fabs(key_value.second)<zero_threshold)
           delete_list.push_back(key_value.first);
       }
       for(int i=0; i<delete_list.size(); ++i)
@@ -129,7 +132,7 @@ void
 
       // Adding in center of mass
       expansion_coef=expansion_coef*unit_relative_cm_expansion[braket_u3st];
-      if(fabs(expansion_coef)<10e-8)
+      if(fabs(expansion_coef)<zero_threshold)
         continue;
       ///////////////////////////////////////////////////////////////////////////////////////
       

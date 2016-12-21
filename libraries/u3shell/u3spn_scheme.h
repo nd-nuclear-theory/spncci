@@ -54,6 +54,13 @@ namespace u3shell {
     inline U3SPN(const u3::U3S& omegaS, const HalfInt& Sp, const HalfInt& Sn) 
       : omegaS_(omegaS), Sp_(Sp), Sn_(Sn) {}
 
+    // alternative construction
+    inline U3SPN(const u3::U3& omega, const HalfInt& Sp, const HalfInt& Sn, const HalfInt& S) 
+      : Sp_(Sp), Sn_(Sn) 
+      {
+        omegaS_=u3::U3S(omega,S); 
+      }
+
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////

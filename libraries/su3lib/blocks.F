@@ -14,6 +14,7 @@ C                 (LSU,10-89)  J.P.DRAAYER        BINOMIAL INVERSES
 C                 (LSU,11-89)  J.P.DRAAYER        POWERS OF TWO ARRAY   
 C                 (ND,11-11)   M.A.CAPRIO         DOUBLE/QUAD SWITCHABLE
 C                 (LSU,11-11)  T. DYTRYCH         MERGE WITH SU3GENBK
+C                 (ND,11-22)   A.E.MCCOY          QUAD FLAG FOR GNU
 C                                                                       
 C     BKDB--BINOMIAL (BINO) COEFFICIENTS (EXPANDED 6-76,8-81,1-83)      
 C           SCALE: BINO(I,J)=DBINO(I*(I+1)/2+J+1)                       

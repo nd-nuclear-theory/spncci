@@ -10,16 +10,20 @@
   3/11/16 (aem,mac): Implement basis irrep construction and traversal.
   3/17/16 (aem,mac): Remove superfluous data members from LGI.
   9/8/16  (aem): Renamed LGI to SpIrrep and moved LGI read function to lgi.h
-
+  12/5/16 (aem): Changed SpIrrepVector from vector of SpIrreps to 
+                 vector of MultiplicityTagged SpIrreps where tag is 
+                 number of times sigma Sp Sn S occur in basis.
 ****************************************************************/
 
 #ifndef SP_BASIS_H_
 #define SP_BASIS_H_
 
-
+#include <unordered_map>
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
+#include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
+#include "u3shell/upcoupling.h"
 #include "lgi/lgi.h"
 
 namespace spncci
@@ -207,7 +211,7 @@ namespace spncci
 
   // Sp(3,R) container convenience type
   typedef std::map<u3::U3,sp3r::Sp3RSpace> SigmaIrrepMap;
-  typedef std::vector<spncci::SpIrrep> SpIrrepVector;
+  typedef MultiplicityTagged<spncci::SpIrrep>::vector SpIrrepVector;
 
   void GenerateSp3RIrreps(
       const lgi::LGIVector& lgi_vector,
@@ -273,10 +277,6 @@ namespace spncci
   //         for each L
   //           for each J
 
-
-
-
-
   // total dimension counting functions
 
   int TotalU3Subspaces(const SpIrrepVector& sp_irrep_vector);
@@ -313,9 +313,380 @@ namespace spncci
   std::vector< std::pair<int,int> > GenerateSpIrrepPairs(spncci::SpIrrepVector sp_irrep_vector);
   // Given a vector of SpIrrep's, apply angular momentum selection rules to return a list 
   // of SpIrrep pairs which will have non-zero matrix elements between states in their irreps.  
-
+  // Mapping is all to all. 
+  //
   // Selection rules: abs(Si-Sf)<=2 for total spin, neutron spin and proton spin.
   
+
+  ////////////////////////////////////////////////////////////////
+  // basis indexing in U3S scheme for spncci basis branching
+  ////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////  
+  //
+  // Labeling
+  //
+  // subspace labels: (omega,S) = U3S
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // States
+  //
+  // States are indexed by a tuple of numbers [gamma,sigmaS,dim,index]
+  // where gamma which corresponds to the index of the lgi in lgi_vector.
+  // dim=nu_max is symplectic multiplicity of omega in the lgi
+  // index is the position of the nu=0 state for the given lgi in the 
+  // subspace list of states labeld by gamma(sigma,Sp,Sn), nu. 
+  //
+  // However, we keep track of the subspace dimension.  The subspace
+  // dimensions must be provided to the constructor via a mapping U3S
+  // -> dimension.  Then we must explicitly set the dimension_ member
+  // variable (inherited from BaseSubspace).
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered lexicographically by
+  // (omega,S).
+  // 
+  ////////////////////////////////////////////////////////////////
+  // subspace
+  ////////////////////////////////////////////////////////////////
+
+  class SubspaceU3S
+    : public basis::BaseSubspace<u3::U3S,std::tuple<int,u3::U3,int,int>>
+  // Subspace class for two-body states of given U(3)xS.
+  //
+  // SubspaceLabelsType (u3shell::U3S): (omega,S)
+  // StateLabelsType (std::tuple<int,int,int>): (gamma, dim, index)
+  {
+    public:
+
+    // constructor
+    SubspaceU3S() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SubspaceU3S (const u3::U3S& omegaS,const SpIrrepVector& sp_irrep_vector);
+
+    // accessors
+    u3::U3S omegaS() const {return labels_;}
+    u3::U3 omega() const {return omegaS().U3();}
+    u3::SU3 x() const {return omegaS().SU3();}
+    HalfInt N() const {return omegaS().U3().N();}
+    HalfInt S() const {return omegaS().S();}
+    int sector_dim() const {return sector_size_;}
+    // diagnostic output
+    std::string Str() const;
+
+    private:
+      int sector_size_;
+  };
+  ////////////////////////////////////////////////////////////////
+  // state
+  ////////////////////////////////////////////////////////////////
+
+  class StateU3S
+    : public basis::BaseState<SubspaceU3S>
+  // State class for two-body states of given U(3)xSxT.
+  {
+    
+  public:
+    // pass-through constructors
+  
+  StateU3S(const SubspaceType& subspace, int index)
+    // Construct state by index.
+    : basis::BaseState<SubspaceU3S>(subspace, index) {}
+
+  StateU3S(
+    const SubspaceType& subspace,
+    const typename SubspaceType::StateLabelsType& state_labels
+    )
+    // Construct state by reverse lookup on labels.
+    : basis::BaseState<SubspaceU3S> (subspace, state_labels) 
+    {}
+
+    // pass-through accessors
+    u3::U3S omegaS() const {return Subspace().omegaS();}
+    u3::U3 omega() const {return Subspace().omega();}
+    HalfInt S() const {return Subspace().S();}
+    HalfInt N() const {return Subspace().N();}
+
+    // state label accessors
+    int gamma() const {return std::get<0>(GetStateLabels());} 
+    u3::U3 sigma() const {return std::get<1>(GetStateLabels());}
+
+    int sector_dim() const {return std::get<2>(GetStateLabels());}
+    int index() const {return std::get<3>(GetStateLabels());}
+
+    std::string Str() const;
+  private:
+ 
+  };
+
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // space
+  ////////////////////////////////////////////////////////////////
+
+  class SpaceU3S
+    : public basis::BaseSpace<SubspaceU3S>
+  // Space class for two-body states of given U(3)xS.
+  {
+    
+  public:
+
+    // constructor
+    SpaceU3S() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SpaceU3S(SpIrrepVector& sp_irrep_vector);
+
+    // diagnostic output
+    std::string Str() const;
+
+  private:
+    int dimension_;
+  };
+
+
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // Sector
+  // Enumerates upper triangle sectors omegaS'<=omegaS
+  ////////////////////////////////////////////////////////////////
+  class SectorLabelsU3S
+  {
+  public:
+// Need N0,x0,S0,kappa0,L0, rho0
+    typedef std::tuple<int,int,u3shell::OperatorLabelsU3S,int,int,int> KeyType;
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+    //default constructor
+    inline SectorLabelsU3S()
+    :rho0_(0), kappa0_(0), L0_(0){}
+
+    // construction from labels
+    inline 
+    SectorLabelsU3S(
+      int bra_index, int ket_index, 
+      const u3shell::OperatorLabelsU3S& tensor_labels,
+      int kappa0, int L0, int rho0
+      )
+    : bra_index_( bra_index), ket_index_(ket_index), tensor_labels_(tensor_labels),kappa0_(kappa0), L0_(L0), rho0_(rho0)
+    {}
+
+    inline
+    SectorLabelsU3S(
+      int bra_index, int ket_index, 
+      const u3shell::IndexedOperatorLabelsU3S& tensor_labels,
+      int rho0
+      )
+    : bra_index_( bra_index), ket_index_(ket_index), rho0_(rho0)
+    {
+      std::tie(tensor_labels_,kappa0_,L0_)=tensor_labels; 
+    }
+
+    inline 
+    SectorLabelsU3S(
+      int bra_index, int ket_index, 
+      const u3shell::OperatorLabelsU3ST& tensor_labels,
+      int kappa0, int L0, int rho0
+      )
+    : bra_index_( bra_index), ket_index_(ket_index),kappa0_(kappa0), L0_(L0), rho0_(rho0)
+    {
+      tensor_labels_=u3shell::OperatorLabelsU3S(tensor_labels);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+    int bra_index() const {return bra_index_;}
+    int ket_index() const {return ket_index_;}
+    u3shell::OperatorLabelsU3S 
+      operator_labels() const {return tensor_labels_;}
+    int N0() const {return tensor_labels_.N0();}
+    u3::SU3 x0() const {return tensor_labels_.x0();}
+    HalfInt S0() const {return tensor_labels_.S0();}
+    int L0() const {return L0_;}
+    int kappa0() const {return kappa0_;}
+    int rho0() const {return rho0_;}
+
+    inline KeyType Key() const
+    {
+      return KeyType(bra_index_,ket_index_,tensor_labels_,kappa0_,L0_,rho0_);
+    }
+
+    inline friend bool operator == (const SectorLabelsU3S& sector1, const SectorLabelsU3S& sector2)
+    {
+      return sector1.Key() == sector2.Key();
+    }
+
+    inline friend bool operator < (const SectorLabelsU3S& sector1, const SectorLabelsU3S& sector2)
+    {
+      return sector1.Key() < sector2.Key();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+
+    inline friend std::size_t hash_value(const SectorLabelsU3S& sector)
+    {
+      boost::hash<SectorLabelsU3S::KeyType> hasher;
+      return hasher(sector.Key());
+    }
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+
+    std::string Str() const;
+
+  private:
+    int bra_index_, ket_index_, kappa0_, L0_,rho0_;
+    u3shell::OperatorLabelsU3S tensor_labels_;
+  };
+
+
+  typedef std::unordered_map<spncci::SectorLabelsU3S,int,boost::hash<spncci::SectorLabelsU3S>> SectorLabelsU3SCache;
+
+  void GetSectorsU3S(
+    const spncci::SpaceU3S& space, 
+    const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
+    std::vector<spncci::SectorLabelsU3S>& sector_vector
+    );
+  // Generates a cache of SectorLabelsU3S from operator labels given in 
+  // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
+  // by (N0,x0,S0,kappa0,L0). 
+  // 
+  // space (input) : space used to define sectors
+  // relative_tensor_rmes (input) : container of rme labels keys and rme values
+  //                                RelativeRMEsU3ST defined in upcoupling.h
+  // u3_sectors (output) : container with SectorLabelsU3S keys and index values
+
+  ////////////////////////////////////////////////////////////////
+  // basis indexing in LS scheme for spncci basis branching
+  ////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////  
+  //
+  // Labeling
+  //
+  // subspace labels: (L,S) = LS
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // States
+  //
+  // States are indexed by a tuple of numbers [omegaS, index]
+  // omegaS correspond to subspace in SpaceU3S
+  // index is starting position in sector matrix 
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered lexicographically by
+  // (L,S).
+  // 
+  ////////////////////////////////////////////////////////////////
+  // subspace
+  ////////////////////////////////////////////////////////////////
+
+  class SubspaceLS
+    : public basis::BaseSubspace<std::tuple<int,HalfInt>,std::tuple<u3::U3,int,int>>
+  // Subspace class for two-body states of given SO(3)xS.
+  //
+  {
+    public:
+
+    // constructor
+
+    SubspaceLS() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space);
+
+    // accessors
+    HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
+    int L() const{return std::get<0>(GetSubspaceLabels());}
+    int sector_dim() const {return sector_size_;}
+    // diagnostic output
+    std::string Str() const;
+
+    private:
+      int sector_size_;
+  };
+  ////////////////////////////////////////////////////////////////
+  // state
+  ////////////////////////////////////////////////////////////////
+
+  class StateLS
+    : public basis::BaseState<SubspaceLS>
+  // State class for two-body states of given U(3)xSxT.
+  {
+    
+  public:
+    // pass-through constructors
+  
+  StateLS(const SubspaceType& subspace, int index)
+    // Construct state by index.
+    : basis::BaseState<SubspaceLS>(subspace, index) {}
+
+  StateLS(
+    const SubspaceType& subspace,
+    const typename SubspaceType::StateLabelsType& state_labels
+    )
+    // Construct state by reverse lookup on labels.
+    : basis::BaseState<SubspaceLS> (subspace, state_labels) 
+    {}
+
+    // pass-through accessors
+    HalfInt S() const {return Subspace().S();}
+    int L() const {return Subspace().L();}
+    // state label accessors
+    u3::U3 omega() const {return std::get<0>(GetStateLabels());}
+    int kappa_max() const {return std::get<1>(GetStateLabels());}
+    int index() const {return std::get<2>(GetStateLabels());}
+    std::string Str() const;
+  private:
+ 
+  };
+
+  ////////////////////////////////////////////////////////////////
+  // space
+  ////////////////////////////////////////////////////////////////
+
+  class SpaceLS
+    : public basis::BaseSpace<SubspaceLS>
+  // Space class for two-body states of given U(3)xS.
+  {
+    
+  public:
+
+    // constructor
+
+    SpaceLS() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SpaceLS(const SpaceU3S& u3s_space, HalfInt J);
+
+    // diagnostic output
+    std::string Str() const;
+
+  private:
+    int dimension_;
+  };
+
 
 
 }  // namespace

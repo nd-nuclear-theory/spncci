@@ -19,6 +19,8 @@
 #include "u3shell/upcoupling.h"
 #include "moshinsky/relative_cm_xform.h"
 
+extern double zero_threshold;
+
 typedef std::tuple<int,int,HalfInt,HalfInt, HalfInt> RelativeStateLabelsNLSJT;
 typedef std::tuple<RelativeStateLabelsNLSJT,RelativeStateLabelsNLSJT>RelativeBraketNLSJT;
 
@@ -71,7 +73,7 @@ CMBranchLSJT(
   u3shell::RelativeCMStateLabelsNLST bra,ket;
   for(auto it=rel_cm_lst_map.begin(); it!=rel_cm_lst_map.end(); ++it)
     {
-      if(fabs(it->second)>10e-10)
+      if(fabs(it->second)>zero_threshold)
         {
           std::tie(L0,S0,T0,bra,ket)=it->first;
           std::tie(etap,Lrp,eta_cm,L_cm,Lp,Sp,Tp)=bra;
@@ -213,7 +215,7 @@ ReadRelativeCMOperatorNLSJT(std::istream& is,
 			>>Nr>>Lr>>Ncm>>Lcm>>L>>S>>J>>T>>g>>rme;
 
 
-			if(fabs(rme)>10e-8)
+			if(fabs(rme)>zero_threshold)
 				{
 					// std::cout<<fmt::format(" {} {} {} {} {} {} {} {}  {} {} {} {} {} {} {} {}  {} ",
 					// 	Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp,Nr,Lr,Ncm,Lcm,L,S,J,T,rme)<<std::endl;
@@ -339,7 +341,7 @@ int main(int argc, char **argv)
       int kappa0,L0;
       std::tie(op_labels, kappa0,L0)=it->first;
       double rme=it->second;
-      if(fabs(rme)>10e-10)
+      if(fabs(rme)>zero_threshold)
         std::cout<<fmt::format("{} {} {}   {}",op_labels.Str(), kappa0,L0,rme)<<std::endl;
     }
 
@@ -376,7 +378,7 @@ int main(int argc, char **argv)
 		if((Nrp+Ncm)>Nmax)
 			continue;
 		double rme2=relative_cm_lsjt_map_2[it->first];
-		if(fabs(rme)>10e-8)
+		if(fabs(rme)>zero_threshold)
 			std::cout<<fmt::format("{} {} {} {} {} {} {} {}   {} {} {} {} {} {} {} {}   {:12f} {:12f} {:12f}",
 			Nrp,Lrp,Ncm,Lcm,Lp,Sp,Jp,Tp,Nr,Lr,Ncm,Lcm,L,S,J,T,rme,rme2,fabs(rme-rme2))<<std::endl;
 
@@ -403,7 +405,7 @@ int main(int argc, char **argv)
           
           u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st=it2->first;
           double coef=it2->second;
-          if(fabs(coef)>10e-8)
+          if(fabs(coef)>zero_threshold)
             std::cout<<"  "<<braket_u3st.Str()<<"  "<<coef<<std::endl;
       }
     }
@@ -417,7 +419,7 @@ int main(int argc, char **argv)
       
   //     u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st=it2->first;
   //     double coef=it2->second;
-  //     // if(fabs(coef)>10e-8)
+  //     // if(fabs(coef)>zero_threshold)
   //       std::cout<<"  "<<braket_u3st.Str()<<"  "<<coef<<std::endl;
   // }
 

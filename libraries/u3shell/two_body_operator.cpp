@@ -17,18 +17,20 @@
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unu3.h" 
 
+double zero_threshold=10e-13;
+
 namespace u3shell {
 
-  double TwoBodyNumberOperator(
-    const u3shell::TwoBodyStateLabelsU3ST& bra,
-    const u3shell::TwoBodyStateLabelsU3ST& ket
-  )
-  {
-    double rme=0;
-    if (bra==ket)
-      rme=(ket.eta1()+ket.eta2());
-    return rme;
-  }
+  // double TwoBodyNumberOperator(
+  //   const u3shell::TwoBodyStateLabelsU3ST& bra,
+  //   const u3shell::TwoBodyStateLabelsU3ST& ket
+  // )
+  // {
+  //   double rme=0;
+  //   if (bra==ket)
+  //     rme=(ket.eta1()+ket.eta2());
+  //   return rme;
+  // }
 
   void TransformTwoBodyUnitTensorToBiquad(
       const u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_unit_tensor_coefficients,
@@ -117,7 +119,8 @@ namespace u3shell {
 
   void TransformBiquadToPNScheme(
       const u3shell::TwoBodyUnitTensorCoefficientsU3ST& biquad_coefficients,
-      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn,
+      bool un_u3_restrict
     )
   {
     for (const auto& key_value : biquad_coefficients)
@@ -170,19 +173,24 @@ namespace u3shell {
         // If like particles and particles in same shell, must check if U(3)xSU(2) symmetry
         // is allowed
         bool like_allowed=true;
-        if(include_like&&(eta1==eta2))
+        // If computing matrix elements on a two-body space, need to restrict to two-body operators corresponding
+        // to states which can exist.  Else, turn off. 
+        if(un_u3_restrict)
           {
-            un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_ket;
-            un::GenerateAllowedSU3xSU2Irreps(eta1,2,single_shell_allowed_irreps_ket);
-            if(not single_shell_allowed_irreps_ket.count(u3::U3S(u3::U3(2*eta1+3,x),S)))
-              like_allowed=false;
-          }
-        if(include_like&&(eta1p==eta2p))
-          {
-            un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_bra;
-            un::GenerateAllowedSU3xSU2Irreps(eta1p,2,single_shell_allowed_irreps_bra);
-            if(not single_shell_allowed_irreps_bra.count(u3::U3S(u3::U3(2*eta1p+3,xp),Sp)))
-              like_allowed=false;
+            if(include_like&&(eta1==eta2))
+              {
+                un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_ket;
+                un::GenerateAllowedSU3xSU2Irreps(eta1,2,single_shell_allowed_irreps_ket);
+                if(not single_shell_allowed_irreps_ket.count(u3::U3S(u3::U3(2*eta1+3,x),S)))
+                  like_allowed=false;
+              }
+            if(include_like&&(eta1p==eta2p))
+              {
+                un::SingleShellAllowedU3SIrreps single_shell_allowed_irreps_bra;
+                un::GenerateAllowedSU3xSU2Irreps(eta1p,2,single_shell_allowed_irreps_bra);
+                if(not single_shell_allowed_irreps_bra.count(u3::U3S(u3::U3(2*eta1p+3,xp),Sp)))
+                  like_allowed=false;
+              }
           }
 
         double norm_like;
@@ -212,7 +220,10 @@ namespace u3shell {
         //     the label ordering as it appears in the corresponding RME
         //
         // unlike particle terms active except in pure isovector (Tp,T,T0)=(1,1,1) special case
-
+        //
+        // signs come from combination of signs on SU(2) coupling coefficients and conjugation
+        // phase on <TM|. 
+        //
         bool include_unlike = !((Tp==1)&&(T==1)&&(T0==1));
         double norm_unlike;
         std::array<int,4> signs_unlike;
@@ -286,7 +297,6 @@ namespace u3shell {
         // accumulate unlike-particle terms
         if (include_unlike)
           {
-
             // calculate phase factors
             int grade = eta1+eta2+ConjugationGrade(x)+int(S);
             int gradep = eta1p+eta2p+ConjugationGrade(xp)+int(Sp);
@@ -314,7 +324,6 @@ namespace u3shell {
             //   << fmt::format("  unlike 1221 {} {:+e}",biquad_labels_pn.Str(),coefficients_pn.pnnp)
             //   << std::endl;    
             biquad_coefficients_pn[biquad_labels_pn] += coefficients_pn;
-
 
             // term <21|12>
             biquad_labels_pn = u3shell::TwoBodyUnitTensorLabelsU3S(
@@ -352,7 +361,6 @@ namespace u3shell {
   {
       for (const auto& key_value : biquad_coefficients_pn)
         {
-
           // extract unit tensor labels and coefficients
           const u3shell::TwoBodyUnitTensorLabelsU3S& biquad_labels= key_value.first;
           const CoefficientsPN& coefficients_pn = key_value.second;
@@ -384,9 +392,9 @@ namespace u3shell {
           HalfInt S;
           std::tie(eta1,eta2,x,S) = ket_key;
           if(
-              (fabs(coefficients_pn.pppp)>10e-10)
-              ||(fabs(coefficients_pn.nnnn)>10e-10)
-              ||(fabs(coefficients_pn.pnnp)>10e-10)
+              (fabs(coefficients_pn.pppp)>zero_threshold)
+              ||(fabs(coefficients_pn.nnnn)>zero_threshold)
+              ||(fabs(coefficients_pn.pnnp)>zero_threshold)
             )
           {
             // label line
@@ -416,9 +424,6 @@ namespace u3shell {
         }
   }
 
-
- 
-  ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 // two-body unit tensor enumeration
 ////////////////////////////////////////////////////////////////
@@ -508,8 +513,17 @@ GenerateTwoBodyUnitTensorLabelsU3ST(
           int rho0max = x0_rho0max.tag;
           int k=std::min(x0.lambda(),x0.mu());
           int l=std::max(x0.lambda(),x0.mu());
+          // // TODO : REMOVE WHEN J0 Requirement in SU3RME fixed. 
+          // MultiplicityTagged<int>::vector L0_vector=u3::BranchingSO3Constrained(x0, S0_range);
+          // if (L0_vector.size()==0)
+          //   continue;
           for (HalfInt S0=S0_range.first; S0 <= S0_range.second; ++S0)
           {
+          // // TODO : REMOVE WHEN J0 Requirement in SU3RME fixed. 
+          //   MultiplicityTagged<int>::vector L0_vector=u3::BranchingSO3Constrained(x0, HalfInt::pair(S0,S0));
+          //   if (L0_vector.size()==0)
+          //     continue;
+
             for (HalfInt T0=T0_range.first; T0 <= T0_range.second; ++T0)
               // for each SxT
               {

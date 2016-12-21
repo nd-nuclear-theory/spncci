@@ -16,6 +16,9 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
+// currently defined in two_body_operators.cpp
+extern double zero_threshold;
+
 namespace u3shell
 {
 
@@ -36,7 +39,7 @@ namespace u3shell
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,2),0,0,bra,ket);
               double rme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-              if (fabs(rme)>10e-10)
+              if (fabs(rme)>zero_threshold)
                 Brel_operator[relative_unit_tensor]+=rme;
             }
   }
@@ -58,7 +61,7 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(2,0),0,0,bra,ket);
               double rme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
-              if (fabs(rme)>10e-10)
+              if (fabs(rme)>zero_threshold)
                 Arel_operator[relative_unit_tensor]+=rme;
             }
   }
@@ -76,8 +79,8 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
               double rme=u3shell::RelativeNumberOperator(bra,ket);
-              if (fabs(rme)>10e-10)
-                Nrel_operator[relative_unit_tensor]+=2.*N/A;
+              if (fabs(rme)>zero_threshold)
+                Nrel_operator[relative_unit_tensor]+=(2.*N)/A;
             }
   }
 
@@ -114,7 +117,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
           double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-          if (fabs(Brme)>10e-10)
+          if (fabs(Brme)>zero_threshold)
             Trel_operator[relative_unit_tensor]+=Brme;
 
           Np=N;
@@ -124,7 +127,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket);
           double Nrme=N+3/2.;
-          if (fabs(Nrme)>10e-10)
+          if (fabs(Nrme)>zero_threshold)
             Trel_operator[relative_unit_tensor]+=Nrme;
 
           Np=N+2;
@@ -134,7 +137,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
           double Arme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-          if (fabs(Arme)>10e-10)
+          if (fabs(Arme)>zero_threshold)
             Trel_operator[relative_unit_tensor]+=Arme;
         }
 

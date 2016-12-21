@@ -79,8 +79,6 @@ void iteration_test()
 
   // label set
   std::vector<u3::UCoefLabels> label_set;
-
-
   u3::SU3 x1(10,0);
   u3::SU3 x2(8,5);
   u3::SU3 x3(5,8);
@@ -289,15 +287,15 @@ void OrthogonalitySum2(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, i
   }
 
 
-void TestOrthogonalityW(int lm_max)
+void TestOrthogonalityW(int lm_min, int lm_max, int mu_min, int mu_max)
   {
 
-    for(int l1=0; l1<=lm_max; l1++)
-      for(int m1=0; m1<=lm_max; m1++)
+    for(int l1=lm_min; l1<=lm_max; l1++)
+      for(int m1=mu_min; m1<=mu_max; m1++)
         {
           u3::SU3 x1(l1,m1);
-          for(int l2=0; l2<=lm_max; l2++)
-            for(int m2=0; m2<=lm_max; m2++)
+          for(int l2=lm_min; l2<=lm_max; l2++)
+            for(int m2=mu_min; m2<=mu_max; m2++)
               {
                 u3::SU3 x2(l2,m2);
                 MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
@@ -512,50 +510,51 @@ int main(int argc, char **argv)
   // initialize su3lib
   u3::U3CoefInit();
 
-  // U coefficient test--comparison with escher formula for U in terms of SU(3)\supset SO(3) coupling coefficients
-  u3::SU3 x1(2,2);
-  u3::SU3 x2(2,0);
-  u3::SU3 x(2,1);
-  u3::SU3 x3(2,0);
-  u3::SU3 x12(2,0); 
-  u3::SU3 x23(0,2);
-  std::cout<<u3::U(x1, x2, x,x3,x12, 1,1,x23,1,1)<<std::endl; 
-  std::cout<<UTest(x1, x2, x,x3,x12, 1,1,x23,1,1)<<std::endl;
+  // // U coefficient test--comparison with escher formula for U in terms of SU(3)\supset SO(3) coupling coefficients
+  // u3::SU3 x1(2,2);
+  // u3::SU3 x2(2,0);
+  // u3::SU3 x(2,1);
+  // u3::SU3 x3(2,0);
+  // u3::SU3 x12(2,0); 
+  // u3::SU3 x23(0,2);
+  // std::cout<<u3::U(x1, x2, x,x3,x12, 1,1,x23,1,1)<<std::endl; 
+  // std::cout<<UTest(x1, x2, x,x3,x12, 1,1,x23,1,1)<<std::endl;
   
-
-
   // W coefficient test--comparison with prototype
-  // u3::SU3 x1(8,5);
-  // u3::SU3 x2(4,4);
-  // u3::SU3 x(8,5);
-  // int kappa1=2, kappa2=2, kappa=1;
-  // int L1=3, L2=2, L=2;
-  // int rho=2;
-
-  // basic tests
+  u3::SU3 x1(4,2);
+  u3::SU3 x2(4,1);
+  u3::SU3 x(9,1);
+  int kappa1=2, kappa2=2, kappa=1;
+  int L1=5, L2=5, L=10;
+  int rho=1;
+  std::cout<<"W test "<<std::endl;
+  std::cout<<"coef= "<<u3::W(x1,kappa1,L1,x2,kappa2,L2,x,kappa,L,rho)<<std::endl;
+  // // basic tests
   // basic_test();
 
-  // test of block storage
+  // // test of block storage
   // block_test();
   
-  // test of hash key
-  // iteration_test();
+  // // // test of hash key
+  // // iteration_test();
 
-  // test cache storage and retrieval
-  //caching_test();  
+  // // test cache storage and retrieval
+  // caching_test();  
 
-  // test symmetries of W coefficients 
-  // int lm_max=2;
+  //test symmetries of W coefficients 
+  int lm_max=4;
+  int lm_min=2;
+  int mu_min=0;
+  int mu_max=2;
 
-  //int lm_max=10;
-  // TestOrthogonalityW(lm_max);
-
-  // void TestWSymmetries(lm_max)
+  // Test prints out coefficients that fail the test.  
+  // Test expected for fail in cases where for x2, lambda=mu.
+  // TestWSymmetries(lm_max);
   
-  // test orthogonality of W coefficients 
-  // TestOrthogonalityW(lm_max);
+  //test orthogonality of W coefficients 
+  TestOrthogonalityW(lm_min,lm_max, mu_min,mu_max);
 
-  //caching_W_test();
+  // caching_W_test();
 
   // for(int q1=0; q1<=20; ++q1)
   //   for(int q2=0; q2<=20; ++q2)

@@ -28,7 +28,9 @@ int main(int argc, char **argv)
   int Nsigma_0=11;  // 11 for 6Li
 
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
-  std::string lsu3_filename("lsu3basis_table.dat");
+  // std::string lsu3_filename("lsu3basis_table.dat");
+  std::string lsu3_filename("basis_table.dat");
+
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;

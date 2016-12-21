@@ -49,6 +49,16 @@ namespace u3shell {
       );
   }
 
+  std::string OperatorLabelsU3S::Str() const
+  {
+
+    return fmt::format(
+        "[{:+d}{} {} {}]",
+        N0(),x0().Str(),S0(),g0()
+      );
+  }
+
+
   std::string RelativeIndexedTensorLabelsU3ST::Str() const
   {
 
@@ -97,15 +107,6 @@ namespace u3shell {
     return fmt::format(
         "[[{},{}]{} {}]",
         eta1(),eta2(),x().Str(),S()
-      );
-  }
-
-  std::string OperatorLabelsU3S::Str() const
-  {
-
-    return fmt::format(
-        "[{:+d}{} {} {}]",
-        N0(),x0().Str(),S0(),g0()
       );
   }
 

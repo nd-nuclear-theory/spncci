@@ -36,6 +36,7 @@ namespace u3
   double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int r0)
   {
     double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
+    // Zero initialize
     memset(w_array,0,sizeof(w_array));
     //su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, r0,1,1,1, w_array);
     // arguements in positions 10-13 are dummy variables which are set in code; Will return max value if variable is passed.
@@ -287,6 +288,7 @@ namespace u3
     std::tie(x1,L1,x2,L2,x3,L3) = labels.Key();
     std::tie(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_) = WMultiplicity(x1,L1,x2,L2,x3,L3);
     double w_array[su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K][su3lib::MAX_K];
+    // zero initialize array
     memset(w_array,0,sizeof(w_array));
     su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, 1,1,1,1, w_array);
     int size=rho_max_*kappa1_max_*kappa2_max_*kappa3_max_;

@@ -16,17 +16,24 @@
 #include "lgi/lgi_solver.h"
 #include "lsu3shell/lsu3shell_rme.h"
 
-
+extern double zero_threshold;
 
 int main(int argc, char **argv)
 {
-	u3::U3CoefInit();
+	std::cout<<"Need overhall"<<std::endl;
+  u3::U3CoefInit();
+  int A=std::stoi(argv[1]);
+  int Nsigma_0=std::stoi(argv[2]);
+  std::string nrel_filename=argv[3];
+  std::string brel_filename=argv[4];
+  std::string basis_filename=argv[5];
 
-  // setup for test case
-  int Nsigma_0= 3; // 11 for 6Li, 3 for 2H
+  if(argc<5)
+    std::cout<<"Syntax : A  Nsigma_0  <nrel>  <brel>  <basis>"<<std::endl;  
 
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
-  std::string lsu3_filename("../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat");
+  // e.g. "../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat"
+  std::string lsu3_filename(basis_filename.c_str());
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
@@ -35,35 +42,73 @@ int main(int argc, char **argv)
   std::cout<<"Read Basis complete"<<std::endl;
 
  // Operator information
-  std::string nrel_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nrel_Nmax02.rme";
-  std::string brel_filename="../../data/lsu3shell/lsu3shell_rme_2H_Brel_Nmax02.rme";
-	basis::MatrixVector lgi_expansion_matrix_vector(space.size());
-  basis::MatrixVector nrel_matrix_vector;
+  // std::string nrel_filename="../../data/lsu3shell/lsu3shell_rme_2H_Nrel_Nmax02.rme";
+  // std::string brel_filename="../../data/lsu3shell/lsu3shell_rme_2H_Brel_Nmax02.rme";
   std::ifstream is_nrel(nrel_filename.c_str());
   std::ifstream is_brel(brel_filename.c_str());
   assert(is_nrel.is_open());
   assert(is_brel.is_open());
-  // lgi::GenerateNcmMatrixVector(Nsigma_0, is_nrel,basis_table,space, nrel_matrix_vector);
+
+  basis::MatrixVector ncm_matrix_vector;
+  lsu3shell::GenerateNcmMatrixVector(A, is_nrel,basis_table,space, ncm_matrix_vector);
   
-  // u3shell::OperatorLabelsU3S brel_labels(-2,u3::SU3(0,2),0,0);
+  u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
   //generate sectors for brel.
-  // u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
-  // basis::MatrixVector brel_matrix_vector(space.size());
-  // lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space, brel_sectors,brel_matrix_vector);
+  u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
+  basis::MatrixVector brel_matrix_vector(space.size());
+  lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space, brel_sectors,brel_matrix_vector);
+
+  basis::MatrixVector lgi_expansion_matrix_vector(space.size());
+
+  for(int i=0; i<brel_matrix_vector.size(); ++i)
+  {
+      std::cout<<brel_sectors.GetSector(i).ket_subspace().labels().Str()<<std::endl;
+      std::cout<<"Matrix"<<std::endl;
+      std::cout<<brel_matrix_vector[i]<<std::endl;
+      Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(brel_matrix_vector[i]);
+      lu_decomp.setThreshold(1e-6);
+      std::cout << "Rank: "<<lu_decomp.rank()<<std::endl;
+      std::cout<<"Doing kernel..." << std::endl;
+      Eigen::MatrixXd null=lu_decomp.kernel();
+      std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
+  }
+
+  // u3shell::OperatorLabelsU3ST nrel_labels(0,u3::SU3(0,0),0,0,0);
+  // //generate sectors for brel.
+  // u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
+  // basis::MatrixVector nrel_matrix_vector(space.size());
+  // lsu3shell::ReadLSU3ShellRMEs(is_nrel,nrel_labels,basis_table,space, nrel_sectors,
+  //   nrel_matrix_vector);
+
+  // for(int i=0; i<nrel_matrix_vector.size(); ++i)
+  // {
+  //     std::cout<<nrel_sectors.GetSector(i).ket_subspace().labels().Str()<<std::endl;
+  //     std::cout<<"Matrix"<<std::endl;
+  //     std::cout<<nrel_matrix_vector[i]<<std::endl;
+  //     if(nrel_matrix_vector[i].cols()<2)
+  //       continue;
+  //     Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(nrel_matrix_vector[i]);
+  //     lu_decomp.setThreshold(1e-6);
+  //     std::cout << "Rank: "<<lu_decomp.rank()<<std::endl;
+  //     std::cout<<"Doing kernel..." << std::endl;
+  //     Eigen::MatrixXd null=lu_decomp.kernel();
+  //     std::cout<<"null space"<<std::endl<<null<<std::endl<<std::endl;
+  // }
+
 
 
   // basis::MatrixVector BrelNcm_vector(space.size()); 
   // lgi::GenerateBrelNcmMatrices(Nsigma_0,is_brel,is_nrel,basis_table,space, BrelNcm_vector);
 
 
-  lgi::GenerateLGIExpansion(Nsigma_0,basis_table,space,is_brel,
-  													is_nrel,lgi_expansion_matrix_vector);
-  std::cout<<"expansions"<<std::endl;
-  for(auto matrix : lgi_expansion_matrix_vector)
-    std::cout<<matrix<<std::endl<<std::endl;
+  // lgi::GenerateLGIExpansion(Nsigma_0,basis_table,space,is_brel,
+  // 													is_nrel,lgi_expansion_matrix_vector);
+  // std::cout<<"expansions"<<std::endl;
+  // for(auto matrix : lgi_expansion_matrix_vector)
+  //   std::cout<<matrix<<std::endl<<std::endl;
 
-  is_brel.close();
-  is_nrel.close();
+  // is_brel.close();
+  // is_nrel.close();
 
  //   // reading in operator rme's obtained form SU3RME
  //  basis::MatrixVector matrices;
@@ -75,7 +120,7 @@ int main(int argc, char **argv)
 
  //  for(int i=0; i<matrices.size(); ++i)
  //  {
- //    // if(fabs(matrices[i].sum())>10e-13)
+ //    // if(fabs(matrices[i].sum())>zero_threshold)
  //      // std::cout<<matrices[i]<<std::endl;
  //      std::cout<<"eigenvalues"<<std::endl;
 
@@ -89,7 +134,7 @@ int main(int argc, char **argv)
  //  {
  //      if (matrices[i].rows()<2)
  //      continue;
- //    // if(fabs(matrices[i].sum())>10e-13)
+ //    // if(fabs(matrices[i].sum())>zero_threshold)
  //      std::cout<<fmt::format("Matrix {}",i) << std::endl;
  //      std::cout<<matrices[i]<<std::endl;
  //      std::cout<<"eigenvalues"<<std::endl;

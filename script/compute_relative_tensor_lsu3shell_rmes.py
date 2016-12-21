@@ -1,9 +1,10 @@
-"""run_check_two_body_unit_tensors.py
+"""compute_relative_tensors_lsu3shell_rmes.py
 
-  Run check suite on two_body_unit tensor generation.
+  Calculate each of the relative unit tensors and 
+  Brel and Nintr used for obtaining LGI expansion
 
   Arguments:
-    Nstep Nmax
+    Z N twice_Nsigma_0 Nmax Nstep
 
   Note: Requires utils subpackage from mcscript.  This should be
   restructured to load it from within the mcscript package once the
@@ -11,12 +12,10 @@
 
   Language: Python 3
 
-  M. A. Caprio
+  A. E. McCoy
   Department of Physics, University of Notre Dame
 
-  9/10/16 (mac): Created.
-  11/17/16 (mac): Fix up path construction for executables.
-
+  12/1/16 (aem): Created.
 """
 
 import os
@@ -34,19 +33,14 @@ recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstre
 su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME")
 su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
-generate_lsu3shell_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_two_body_unit_tensors")
-check_two_body_unit_tensors_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","check_two_body_unit_tensors")
-
-# data files
-model_space_filename = "model_space.dat"
-two_body_operator_filename = "two_body_operators.dat"
+generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 
 # run parameters
-Z = 1  # need Z=1 for pn tbmes
-N = 1  # need N=1 for pn tbmes
+Z = 1  # now read from command line below
+N = 1  # now read from command line below
 Nmax = 0  # now read from command line below
 Nstep = 0  # now read from command line below
-twice_Nsigma_0 = 6  # twice_Nsigma_0=6 for two-body system
+twice_Nsigma_0 = 6  #now read from command line below
 
 ################################################################
 # create unit tensor operators
@@ -57,13 +51,13 @@ def generate_basis_table():
     command_line=[su3basis_executable,model_space_filename,"lsu3shell_basis.dat"]
     utils.call(command_line)
 
-def generate_unit_tensors():
+def generate_relative_operators():
     """ Create recoupler input files.
     """
 
     # call generate_lsu3shell_two_body_unit_tensors
     command_line = [
-        generate_lsu3shell_two_body_unit_tensors_executable,
+        generate_lsu3shell_relative_operators_executable,
         str(Z),
         str(N),
         str(Nmax),
@@ -79,23 +73,23 @@ def read_unit_tensor_list():
     """
 
     # read list of unit tensors
-    two_body_operator_stream = open(two_body_operator_filename,mode="rt")
-    two_body_operator_basename_list = [
+    relative_operator_stream = open(relative_operator_filename,mode="rt")
+    relative_operator_basename_list = [
         line.strip()  # remove trailing newline
-        for line in two_body_operator_stream
+        for line in relative_operator_stream
     ]
-    two_body_operator_stream.close()
-    return two_body_operator_basename_list
+    relative_operator_stream.close()
+    return relative_operator_basename_list
 
-def recouple_unit_tensors(two_body_operator_basename_list):
-    """ Invoke lsu3shell recoupler code on unit tensors.
+def recouple_operators(relative_operator_basename_list):
+    """ Invoke lsu3shell recoupler code on operators.
 
     Arguments:
-        two_body_operator_basename_list (list) : list of unit tensor names
+        relative_operator_basename_list (list) : list of operator names
     """
 
     # iterate over unit tensors
-    for basename in two_body_operator_basename_list:
+    for basename in relative_operator_basename_list:
 
         # call recoupler
         command_line = [
@@ -105,15 +99,15 @@ def recouple_unit_tensors(two_body_operator_basename_list):
         ]
         utils.call(command_line)
 
-def calculate_rmes(two_body_operator_basename_list):
+def calculate_rmes(relative_operator_basename_list):
     """ Invoke lsu3shell SU3RME code to calculate rmes.
 
     Arguments:
-        two_body_operator_basename_list (list) : list of unit tensor names
+        relative_operator_basename_list (list) : list of operator file names
     """
 
     # iterate over unit tensors
-    for basename in two_body_operator_basename_list:
+    for basename in relative_operator_basename_list:
 
         # generate load file
         input_lines = [
@@ -121,6 +115,7 @@ def calculate_rmes(two_body_operator_basename_list):
             "INT {}".format(basename)
         ]
         load_filename = "{}.load".format(basename)
+        rme_filename="{}.rme".format(basename)
         utils.write_input(load_filename,input_lines,silent=False)
         print("load_file finished")
         # call SU3RME
@@ -129,25 +124,9 @@ def calculate_rmes(two_body_operator_basename_list):
             model_space_filename,
             model_space_filename,
             load_filename,
-            basename
+            rme_filename
         ]
         utils.call(command_line)
-
-def check_rmes():
-    """ Check rmes.
-    """
-
-    # call check_two_body_unit_tensors
-    command_line = [
-        check_two_body_unit_tensors_executable,
-        str(Z),
-        str(N),
-        str(Nmax),
-        str(Nstep),
-        str(twice_Nsigma_0)
-    ]
-    utils.call(command_line)
-
 
 
 ################################################################
@@ -155,12 +134,18 @@ def check_rmes():
 ################################################################
 
 # command line parameters
-Nmax = int(sys.argv[1])
-Nstep = int(sys.argv[2])
+Z=int(sys.argv[1])
+N=int(sys.argv[2])
+twice_Nsigma_0=int(sys.argv[3])
+Nmax = int(sys.argv[4])
+Nstep = int(sys.argv[5])
 
-generate_unit_tensors()
-two_body_operator_basename_list = read_unit_tensor_list()
-recouple_unit_tensors(two_body_operator_basename_list)
-calculate_rmes(two_body_operator_basename_list)
+# data files
+model_space_filename = "model_space_{}_{}_Nmax{:02d}.dat".format(Z, N,Nmax)
+relative_operator_filename = "relative_operators.dat"
+
+generate_relative_operators()
+relative_operator_basename_list = read_unit_tensor_list()
+recouple_operators(relative_operator_basename_list)
+calculate_rmes(relative_operator_basename_list)
 generate_basis_table()
-check_rmes()

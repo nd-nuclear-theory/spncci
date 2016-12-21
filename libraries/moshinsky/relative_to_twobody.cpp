@@ -21,6 +21,7 @@
 #include "u3shell/tensor_labels.h"
 #include "u3shell/upcoupling.h"
 
+extern double zero_threshold;
 
 typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt,HalfInt> TwoBodyStateLabelsLSJT;
 typedef std::pair<TwoBodyStateLabelsLSJT,TwoBodyStateLabelsLSJT>TwoBodyBraketLSJT;
@@ -54,7 +55,7 @@ void BranchTwoBodyNLST(
 
       u3shell::IndexTwoBodyTensorLabelsU3ST indexed_two_body_tensor=it->first;
       double rme_u3st=it->second;
-      if(fabs(rme_u3st)<10e-10)
+      if(fabs(rme_u3st)<zero_threshold)
         continue;
       std::tie(tensor_u3st,kappa0,L0)=indexed_two_body_tensor;
       u3::SU3 x0=tensor_u3st.x0();
@@ -123,7 +124,7 @@ void BranchTwoBodyLSJT( int Jmax, int J0,
   for(auto it=two_body_rme_lst.begin(); it!=two_body_rme_lst.end(); it++)
     {
       double rme_lst=it->second;
-      if (fabs(rme_lst)<10e-10)
+      if (fabs(rme_lst)<zero_threshold)
         continue;
       TwoBodyStateLabelsLST bra_lst,ket_lst;
       HalfInt S0,T0,S,T,Sp,Tp;
@@ -224,7 +225,7 @@ void PrintTwoBodyMatrixElementsJJJT(const std::map<TwoBodyBraketJJJT,double>& tw
       HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
       std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
       std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
-      if(fabs(rme)>10e-10)
+      if(fabs(rme)>zero_threshold)
         std::cout<<fmt::format("{} {} {} {} {} {} {} {}   {} {} {} {} {} {} {} {}   {}",
           N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp,N1,L1,J1,N2,L2,J2,J,T,rme)<<std::endl;
     }
@@ -237,7 +238,7 @@ void PrintTwoBodyIndexedRMEU3ST(const u3shell::IndexedTwoBodyTensorRMEsU3ST& two
         u3shell::TwoBodyUnitTensorLabelsU3ST tb_tensor;
         std::tie(tb_tensor,kappa0,L0)=it->first;
         double rme=it->second;
-        if(fabs(rme)>10e-10)
+        if(fabs(rme)>zero_threshold)
           std::cout<<fmt::format("{} {} {}   {}",tb_tensor.Str(), kappa0,L0,rme)<<std::endl;
       }
 }
@@ -247,8 +248,9 @@ int main(int argc, char **argv)
 {
   u3::U3CoefInit();
   u3::WCoefCache w_cache;
+  zero_threshold=1e-6;
 
-  int Nmax=6; 
+  int Nmax=4; 
   int Jmax=4; 
   int J0=0;
       
@@ -292,7 +294,7 @@ int main(int argc, char **argv)
   //     HalfInt Sp,Tp,S,T;
   //     std::tie(N1,L1,N2,L2,L,S,T)=ket;
   //     std::tie(N1p,L1p,N2p,L2p,Lp,Sp,Tp)=bra;
-  //     if(fabs(rme)>10e-10)
+  //     if(fabs(rme)>zero_threshold)
   //     std::cout<<fmt::format("{} {} {} {} {} {} {} || {} {} {} || {} {} {} {} {} {} {}   {}",
   //       N1p,L1p,N2p,L2p,Lp,Sp,Tp,L0,S0,T0,N1,L1,N2,L2,L,S,T,rme)<<std::endl;
   //   }
@@ -348,9 +350,9 @@ int main(int argc, char **argv)
   //     continue;
   //   if((N1+N2)>Nmax)
   //     continue;
-  //   if(fabs(trme)<10e-10)
+  //   if(fabs(trme)<zero_threshold)
   //     continue;
-  //   if(fabs(trme-rme)>10e-10)
+  //   if(fabs(trme-rme)>zero_threshold)
   //     std::cout<<fmt::format("[{} {} {} {}] {} {} {} {} | |[{} {} {} {}] {} {} {} {} {:12f} {:12f}",
   //       N1p,L1p,N2p,L2p,Lp,Sp,Jp,Tp,N1,L1,N2,L2,L,S,J,T,test_map[key],rme
   //       )<<std::endl;
@@ -412,12 +414,12 @@ int main(int argc, char **argv)
       int a2p=h2_lookup[lookup2p];
       if(a1p>a2p)
         continue;
-      if (fabs(rme)>10e-10) 
+      if (fabs(rme)>zero_threshold) 
         {
           std::tuple<int,int,int,int,int,int> key(a1p,a2p,a1,a2,TwiceValue(J),22);
           double trme=test_map_jj[key];
-          if(fabs(rme-trme)>10e-6)
-            std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   22   {:12f}  {:12f}   {:12f}", 
+          if(fabs(rme-trme)>zero_threshold)
+            std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   22   {:15.13f}  {:15.13f}   {:15.13f}", 
               a1p,a2p,a1,a2,TwiceValue(J),rme,trme, fabs(rme-trme))<<std::endl;
         }
     }

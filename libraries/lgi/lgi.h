@@ -120,7 +120,7 @@ namespace lgi
   // LGI container convenience type
   //
   // STYLE: maybe LGI::vector would be more consistent
-  typedef std::vector<lgi::LGI> LGIVector;
+  typedef MultiplicityTagged<lgi::LGI>::vector LGIVector;
 
   void ReadLGISet(LGIVector& lgi_vector, const std::string& lgi_filename);
 

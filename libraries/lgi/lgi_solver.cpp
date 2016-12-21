@@ -6,67 +6,21 @@
 
 ****************************************************************/
 #include <fstream>
+
+#include "cppformat/format.h"
+
 #include "lgi/lgi_solver.h"
+
+extern double zero_threshold;
 
 namespace lgi
 {
-  void 
-  WriteLGI(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
-  {
-    int Nex;
-    u3::U3 sigma;
-    HalfInt Sp,Sn,S;
-    // std::unordered_map<lgi::LGI,int,boost::hash<lgi::LGI>> lgi_counter;
-    std::map<lgi::LGI,int> lgi_counter;
-    for(auto a:lgi_vector)
-        lgi_counter[a]+=1;
-    for(auto it=lgi_counter.begin(); it!=lgi_counter.end(); ++it)
-      {
-        std::tie(Nex,sigma,Sp,Sn,S)=(it->first).Key();
-        int count=it->second;
-        os
-          <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
-          <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
-      }
-  	}
 
-
-  void GenerateNcmMatrixVector(
-    HalfInt Nsigma_0,      
-    // const std::string& nrel_filename,
-    std::ifstream& is_nrel,
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
-  )
-  {
-    // std::ifstream is_nrel(nrel_filename.c_str());
-    assert(is_nrel.is_open());
-
-    basis::MatrixVector nrel_matrix_vector;
-    u3shell::OperatorLabelsU3S nrel_labels(0,u3::SU3(0,0),0,0);
-    u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
-    lsu3shell::ReadLSU3ShellRMEs(is_nrel,nrel_labels,lsu3_basis_table,space, nrel_sectors,nrel_matrix_vector);
-    if(matrix_vector.size()!=nrel_matrix_vector.size())
-      matrix_vector.resize(nrel_matrix_vector.size());
-    for(int i=0; i<nrel_matrix_vector.size(); ++i)
-    {
-      auto subspace=space.GetSubspace(i);
-      HalfInt N=subspace.N()-Nsigma_0;
-      std::cout<<N<<std::endl<<nrel_matrix_vector[i]<<std::endl;
-      int dim=subspace.size();
-      // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
-      // std::cout<<"nrel"<<std::endl<<nrel_matrix_vector[i]<<std::endl;
-      matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
-    }
-  }
   void 
   GenerateBrelNcmMatrices(
-      HalfInt Nsigma_0,
+      int A,
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
-      // const std::string& brel_filename,
-      // const std::string& nrel_filename,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       basis::MatrixVector& BrelNcm_vector 
@@ -76,27 +30,30 @@ namespace lgi
     int i,j, start_index_i, start_index_j, group_size_i, group_size_j;
     double rme;
 
-    u3shell::OperatorLabelsU3S brel_labels(-2,u3::SU3(0,2),0,0);
+    u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
     //generate sectors for brel.
     u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
 
-    // std::ifstream is_brel(brel_filename.c_str());
-    std::cout<<"Reading in Brel"<<std::endl;
+    // std::cout<<"Reading in Brel"<<std::endl;
     basis::MatrixVector brel_matrix_vector(space.size());
     lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,lsu3_basis_table,space, brel_sectors,brel_matrix_vector);
-    std::cout<<"Generating Ncm"<<std::endl;
+    // std::cout<<"Generating Ncm"<<std::endl;
     basis::MatrixVector ncm_matrix_vector(space.size());    
-     GenerateNcmMatrixVector(Nsigma_0,is_nrel,lsu3_basis_table,space, ncm_matrix_vector);
+    lsu3shell::GenerateNcmMatrixVector(A,is_nrel,lsu3_basis_table,space, ncm_matrix_vector);
 
-    // subspace_sectors is map of vector of (dimension of Brel+Ncm matrix, 
-    // indices of relevant N-2 subspace)
+    // subspace_sectors is map of vectors of 
+    // (dimension of Brel+Ncm matrix, indices of relevant N-2 subspace)
+    //
+    // Filling out subspace_sectors for Ncm. 
+    // Note Ncm scalar so Ncm sectors are square.
     std::map<int,std::vector<int>> subspace_sectors;
     for(int j=0; j<space.size(); ++j)
       {
         int sub_dim=space.GetSubspace(j).size();
         subspace_sectors[j].push_back(sub_dim);
       }
-
+    // Filling out subspace_sectors for Brel
+    // Total dimension is accumulated
     for(int s=0; s<brel_sectors.size(); ++s)
       {
         int i=brel_sectors.GetSector(s).bra_subspace_index();
@@ -137,39 +94,33 @@ namespace lgi
             // index of sector in vector
             int sector_index=brel_sectors.LookUpSectorIndex(i,j,1);
             // filling in sector
-            // std::cout<<rows_begin<<"  "<<rows<<"  "<<columns<<"   "<<brel_matrix_vector[sector_index]<<std::endl;
-            // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
             // std::cout<<"Adding Brel "<<k<<" of "<<subspace_sectors[j].size()-1<<std::endl;
             BrelNcm_vector[j].block(rows_begin,0,rows,columns)=brel_matrix_vector[sector_index];
+            // std::cout<<brel_matrix_vector[sector_index]<<std::endl<<std::endl;
             // std::cout<<BrelNcm_vector[j]<<std::endl<<std::endl;
-
             rows_begin+=rows;
           }
       }
   }
   void GenerateLGIExpansion(
-      HalfInt Nsigma_0,
+      int A,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
-      // const std::string& brel_filename,
-      // const std::string& nrel_filename,
-      basis::MatrixVector& lgi_expansion_matrix_vector
-      // lgi::LGIVector lgi_vector
-      
+      basis::MatrixVector& lgi_expansion_matrix_vector      
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   {
     double threshold=10e-6;
     basis::MatrixVector BrelNcm_vector(space.size());
-    GenerateBrelNcmMatrices(Nsigma_0,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);
+    GenerateBrelNcmMatrices(A,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);
     Eigen::MatrixXd null;
     for(int i=0; i<BrelNcm_vector.size();++i)
       {
-        std::cout<<"Null space"<<std::endl;
-        std::cout<<BrelNcm_vector[i]<<std::endl<<std::endl;
+        // std::cout<<"Null space of "<<std::endl;
+        // std::cout<<BrelNcm_vector[i]<<std::endl<<std::endl;
         if(BrelNcm_vector[i].cols()<2)
           {
             if(fabs(BrelNcm_vector[i](0,0))<threshold)
@@ -184,7 +135,7 @@ namespace lgi
             null=lu_decomp.kernel();
           }
         lgi_expansion_matrix_vector[i]=null;
-        std::cout<<null<<std::endl;
+        // std::cout<<null<<std::endl;
         // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
 
       }
@@ -198,6 +149,7 @@ namespace lgi
     )
   {
     // for each sector, look up bra and ket subspaces 
+    spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
         int i=sectors.GetSector(s).bra_subspace_index();
@@ -209,6 +161,82 @@ namespace lgi
         spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
       }
   }
+
+  bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix)
+    {
+      int rows=matrix.rows();
+      int cols=matrix.cols();
+      for(int j=0; j<cols; ++j)
+        for(int i=0; i<rows; ++i)
+          {
+            if(fabs(matrix(i,j))>zero_threshold)
+                return false;
+          }
+      return true;
+    }
+
+  // void WriteLGILabels(
+  //     HalfInt Nsigma_0,
+  //     const u3shell::SpaceU3SPN& space, 
+  //     const basis::MatrixVector& lgi_expansion_matrix_vector,
+  //     std::ofstream& os 
+  //     )
+  //   {
+  //     std::cout<<"Writing to file"<<std::endl;
+  //     // For each space, if corresponding null space has non-zero vectors, write to file 
+  //     for(int i=0; i<space.size(); ++i)
+  //       {
+  //         const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
+  //         // std::cout<<matrix<<std::endl;
+  //         if(CheckIfZeroMatrix(matrix))
+  //           continue;
+  //         u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+  //         int Nex=int(labels.N()-Nsigma_0);
+  //         int count=matrix.cols();
+  //         os << fmt::format("{}  {}  {}  {}  {}  {}  {}  {}",
+  //           Nex,TwiceValue(labels.N()),labels.SU3().lambda(),labels.SU3().mu(),
+  //           TwiceValue(labels.Sp()), TwiceValue(labels.Sn()),TwiceValue(labels.S()),count)
+  //         <<std::endl;
+  //       }
+  //   }     
+
+  void GetLGILabels(
+      HalfInt Nsigma_0,
+      const u3shell::SpaceU3SPN& space, 
+      const basis::MatrixVector& lgi_expansion_matrix_vector,
+      lgi::LGIVector& lgi_vector
+      )
+    {
+      // For each space, if corresponding null space has non-zero vectors, write to file 
+      for(int i=0; i<space.size(); ++i)
+        {
+          const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
+          if(CheckIfZeroMatrix(matrix))
+            continue;
+          u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+          int Nex=int(labels.N()-Nsigma_0);
+          int count=matrix.cols();
+          // for(int i=1; i<=count; ++i)
+          lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
+        }
+    }     
+
+  void 
+  WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
+  {
+    int Nex;
+    u3::U3 sigma;
+    HalfInt Sp,Sn,S;
+    // std::unordered_map<lgi::LGI,int,boost::hash<lgi::LGI>> lgi_counter;
+    for(auto lgi_count : lgi_vector)
+      {
+        std::tie(Nex,sigma,Sp,Sn,S)=lgi_count.irrep.Key();
+        int count=lgi_count.tag;
+        os
+          <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
+          <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
+      }
+    }
 
 
 

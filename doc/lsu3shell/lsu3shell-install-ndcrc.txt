@@ -191,3 +191,5 @@ Notes:
 11/17/16 (mac): Builds okay but get library version warnings (on crcfe01)
 
    /usr/bin/ld: warning: libmpi.so.1, needed by /afs/crc.nd.edu/x86_64_linux/b/boost/1.58/gcc/4.9.2/build/lib/libboost_mpi.so, may conflict with libmpi.so.12
+
+11/22/16 (aem): Need to set environment variable SU3SHELL_DATA to path to file where the densities etc. can be written to. 

@@ -190,7 +190,7 @@
               //
               // RME relations are given on "SU(3) omegaST <->
               // omegaSpn scheme" notes page 4
-              double rme = pn_normalization_factor * canonicalization_phase;
+              double rme = pn_normalization_factor * canonicalization_phase*isospin_coefficient;
               
               // save matrix element
               matrices[sector_index](bra_index,ket_index) = rme;
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
       std::ifstream rme_stream(rme_filename);
       lsu3shell::ReadLSU3ShellRMEs(
           rme_stream,
-          u3shell::OperatorLabelsU3S(two_body_unit_tensor_labels),basis_table,
+          u3shell::OperatorLabelsU3ST(two_body_unit_tensor_labels),basis_table,
           space,sectors,matrices_input
       );
 
@@ -269,8 +269,8 @@ int main(int argc, char **argv)
         );
 
       // compare RMEs
-      double epsilon = 1e-8;
-      CompareLSU3ShellRMEs(
+      double epsilon = 1e-6;
+      lsu3shell::CompareLSU3ShellRMEs(
           std::cout,
           basis_provenance,
           space,sectors,matrices_input,matrices_reference,

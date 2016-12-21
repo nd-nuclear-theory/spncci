@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "mcutils/parsing.h"
+#include "cppformat/format.h"
 
 
 namespace lgi
@@ -54,9 +55,9 @@ namespace lgi
                     >> twice_N  >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S
                     >> count;
         ParsingCheck(line_stream, line_count, line);
-
         // conversions
         HalfInt Nsigma = HalfInt(twice_N,2);
+        std::cout<<fmt::format("{} {} {}", Nsigma, lambda,mu)<<std::endl;
         // assert(Nsigma == Nsigma_0 + Nex);
         u3::U3 sigma(Nsigma,u3::SU3(lambda,mu));
         HalfInt Sp = HalfInt(twice_Sp,2);
@@ -65,8 +66,7 @@ namespace lgi
         u3shell::U3SPN omegaSPN(u3::U3S(sigma,S),Sp,Sn);
       
         // replicate LGI according to count
-        for (int i=1; i<=count; ++i)
-          lgi_vector.emplace_back(omegaSPN,Nex);
+        lgi_vector.emplace_back(lgi::LGI(omegaSPN,Nex),count);
       }
 
     // close input file

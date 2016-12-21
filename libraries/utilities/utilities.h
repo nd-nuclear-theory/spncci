@@ -16,6 +16,10 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 #include "gsl/gsl_sf.h"
+#include "eigen3/Eigen/Eigen"
+
+// extern double zero_threshold;
+
 
 // ONLYIF(cond,x) evaluates and returns x only if cond is true
 #define ONLYIF(cond,x) ( (cond) ? (x) : 0)    
@@ -67,5 +71,21 @@ inline int parity(const int i)
   else
     return -1;
 }
+
+
+inline bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix, double zero_threshold=0)
+    {
+      int rows=matrix.rows();
+      int cols=matrix.cols();
+      for(int j=0; j<cols; ++j)
+        for(int i=0; i<rows; ++i)
+          {
+            if(fabs(matrix(i,j))>zero_threshold)
+                return false;
+          }
+      return true;
+    }
+
+
 
 #endif
