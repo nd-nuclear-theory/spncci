@@ -258,7 +258,7 @@ namespace spncci
   {
     std::vector< std::pair<int,int> >  sp_irrep_pair_vector;
     for(int i=0; i<sp_irrep_vector.size(); ++i)
-      for(int j=0; j<sp_irrep_vector.size(); ++j)
+      for(int j=0; j<=i; ++j)
         {
           spncci::SpIrrep sp_irrep1=sp_irrep_vector[i].irrep;
           spncci::SpIrrep sp_irrep2=sp_irrep_vector[j].irrep;

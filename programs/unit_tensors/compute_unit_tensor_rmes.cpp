@@ -184,7 +184,9 @@ int main(int argc, char **argv)
 
     spncci::GenerateUnitTensorMatrix(
       N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
-      unit_tensor_NpN_sector_map,unit_tensor_sector_cache[it->first]);
+      // unit_tensor_NpN_sector_map,
+      unit_tensor_labels,
+      unit_tensor_sector_cache[it->first]);
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
