@@ -13,6 +13,10 @@ Installation instructions: shell and spncci projects
   - Overhaul and clearly mark cluster-specific instructions.
   - Merge in notes from install_NDCRC.txt, created 6/29/16 (aem).
 + 11/13/16 (mac): Update shell h2mixer example.
++ 12/22/16 (mac):
+  - Rename NERSC config files from "...-craype.mk" to
+    "...-nersc.mk".
+  - Add NDCRC config files.
 
 ----------------------------------------------------------------
 
@@ -138,19 +142,30 @@ Installation instructions: shell and spncci projects
   For HPC systems with more specialized compiler invocations, you can
   probably "wrap" one of these generic config files as in include
   file, then overriding a few variable settings.  See
-  config/config-gnu-craype.mk as an example.
+  config/config-gnu-nersc.mk as an example.
 
-  || @NDCRC: Use the generic config files.
-
-  || @NERSC: For compiling under gcc:
+  || @NDCRC: For compiling under gcc:
   || 
-  || % ln -s config/config-gnu-craype.mk config.mk
+  || % ln -s config/config-gnu-ndcrc.mk config.mk
   || 
   || For compiling under intel:
   || 
-  || % ln -s config/config-intel-craype.mk config.mk
+  || % ln -s config/config-intel-ndcrc.mk config.mk
+  ||
+  || Actually, the generic config gnu or intel config files would work
+  || just fine at the NDCRC, but it is good to have the framework in
+  || place to easily add flags specific to the NDCRC, e.g.,
+  || architecture optimizations.
+
+  || @NERSC: For compiling under gcc:
   || 
-  || It is important to use these "...-craype.mk" config files, since
+  || % ln -s config/config-gnu-nersc.mk config.mk
+  || 
+  || For compiling under intel:
+  || 
+  || % ln -s config/config-intel-nersc.mk config.mk
+  || 
+  || It is important to use these "...-nersc.mk" config files, since
   || they configure make to invoke the correct Cray Programming
   || Environment compiler wrapper "CC" to generate optimized executables
   || for the compute nodes and to link to the correct libraries.
@@ -314,3 +329,6 @@ compiler?  Chokes on std::vector<Eigen::MatrixXd>.
   gsl/1.16 
   m2032/opt/eigen-3.2.10
 
+12/22/16 (mac): @NDCRC: We will include the ompi module in
+module-load-ndcrc, even though not currently needed, both convenience
+when compiling LSU3shell and for future MPI support.

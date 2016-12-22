@@ -57,20 +57,6 @@ MPICXX := mpicxx
 # FORTRAN compiler-specific configuration
 ################################################################
 
-# FORTRAN compiler 
-# Example values:
-#   for GCC 3.x: f77
-#   for GCC 4.x: gfortran
-#   for Intel: ifort
-FC := gfortran
-
-FFLAGS += -fopenmp -frecursive
-
-
-################################################################
-# FORTRAN compiler-specific configuration
-################################################################
-
 # FORTRAN compiler
 # Example values:
 #   for GCC 3.x: f77
@@ -83,6 +69,9 @@ FC := mpif77
 #FC := mpif77 -f77=/sw/bin/gfortran
 #FC := mpif77 -f77=gfortran -m64 -frecursive #frecursive needed for multithread safe su3lib
 #FC := mpif90
+
+# FORTRAN compiler flags
+FFLAGS += -fopenmp -frecursive
 
 # FORTRAN compiler optimization and debugging
 FFLAGS += -O3

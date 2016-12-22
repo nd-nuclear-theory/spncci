@@ -1,61 +1,121 @@
-Local installation notes for lsu3shell package on
+Installation instructions for lsu3shell package for use with spncci
 
-  University of Notre Dame CRC Linux cluster
-
-History:
-  4/13/16 (mac): First new build in a couple of years, with lots of new
-    modules.
-  9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
++ 4/13/16 (mac): Written for use with University of Notre Dame CRC
+    Linux cluster. First new build in a couple of years, with lots of
+    new modules.
++ 9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
     commit, and update config-ndcrc.mk.
-  9/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
++ 9/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
     to update makefile.
-  11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
-  11/17/16 (mac): Update to lsu3shell 11/13/16 commit (56981f) and
++ 11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
++ 11/17/16 (mac): Update to lsu3shell 11/13/16 commit (56981f) and
     current spncci config files (93ec11).
++ 12/22/16 (mac): Revise to serve as generic instructions across clusters,
+  following shell/spncci project install.txt.
+
+----------------------------------------------------------------
+
+The compiler and library dependences for LSU3shell are similar to
+those for the shell/spncci projects, so please refer to the discussion
+in the install.txt file found under the shell/spncci project.
+Additional dependences here for LSU3shell are: use of ompi and use of
+a LAPACK-like library (e.g., MKL or ACML).
+
+1) Retrieving source
+
+  Change to the directory where you want the repository to be installed,
+  e.g.,
+
+  % cd ~/projects
+
+  To clone a clean repository and check out the LSU3develop branch:
+  
+  % git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell --branch LSU3develop
+  
+  If you forget to check out the LSU3develop branch when you first do
+  this checkout, you can go back and do:
+
+  % git checkout -b LSU3develop origin/LSU3develop
+
+  Then change your working directory (cd) to the project directory for
+  all the following steps.
+
+1') Further optional repository configuration
+  
+  Optionally (for local development work at ND), set up access to the ND
+  CRC repository:
+  
+  % git remote add ndcrc ssh://<netid>@crcfe01.crc.nd.edu/afs/crc.nd.edu/group/nuclthy/git/lsu3shell.git
+  
+  Optionally (for maintainers with push permission at SourceForge only),
+  set up the correct URL for pushing changes:
+  
+  % git remote set-url origin --push ssh://<userid>@git.code.sf.net/p/lsu3shell/code
+
+2') Config files
+
+  You need to create a symbolic link "config.mk" to point to the
+  correct configuration file.  
+
+  However, beware that an outdated irrelevant "config.mk" file comes
+  with the repository.  We need to delete this and then create a
+  symbolic link "config.mk" to point to the correct configuration
+  file, taken from spncci/doc/lsu3shell/config.
+
+  || @NDCRC: For compiling under gcc:
+  || 
+  ||   % rm config.mk
+  ||   % ln -s ${HOME}/projects/spncci/doc/lsu3shell/config
+  ||   % ln -s config/config-gnu-ndcrc.mk config.mk
+
+  || @NERSC: For compiling under gcc:
+  || 
+  ||   % rm config.mk
+  ||   % ln -s ${HOME}/projects/spncci/doc/lsu3shell/config
+  ||   % ln -s config/config-gnu-nersc.mk config.mk
+
+  Note: Some, but perhaps not all, of these system-specific wrapper
+  files will actually be symlinks to the system-specific wrapper files
+  in spncci/config.
+
+3) Build
+
+  It is first necessary to carry out the module load or setenv
+  commands needed to access the various libraries, as described in
+  the shell/spncci install.txt.
+
+  Recall that, as a shortcut, it is convenient to collect all the
+  above module loads and setenv commands into a single file, which can
+  be sourced before attempting a build:
+
+  % source ~/projects/spncci/config/module-load-<my_system>.csh
+
+  || @NDCRC:
+  || 
+  || % source config/module-load-ndcrc.csh
+
+  || @NERSRC:
+  || 
+  || % source config/module-load-nersc.csh
+
+  Note: Some, but perhaps not all, of these system-specific module
+  load scripts will actually be symlinks to the module load scripts in
+  spncci/config.
+
+  Once the configuration files are set as described below, the build
+  command line sequence is:
+
+  % make install -j 8
+
+  || @NERSC: We need to keep binaries for different architectures
+  || separate.  The files will be installed to
+  || install/$(CRAY_CPU_TARGET)/bin, e.g., install/haswell/bin or
+  || install/mic-knl/bin.
 
 ////////////////////////////////////////////////////////////////
-// Installation and build instructions
-////////////////////////////////////////////////////////////////
-
-(1) Cloning
-
-To clone a clean repository and check out the LSU3develop branch:
-
-  git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell --branch LSU3develop
-
-Or, the long way is to clone, then subsequently check out the branch:
-
-  git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell
-  cd lsu3shell
-  git checkout -b LSU3develop origin/LSU3develop
-
-(2) Config files
-
-We ignore the outdated irrelevant config.mk which comes with the
-repository.  Instead, make symlinks to the relevant configuration
-files:
-
-  rm config.mk
-  ln -s ${HOME}/projects/spncci/doc/lsu3shell/config-lsu3shell-gnu.mk config-lsu3shell-gnu.mk
-  ln -s ${HOME}/projects/spncci/doc/lsu3shell/config-lsu3shell-gnu-ndcrc.mk config.mk
-
-(3) Summary of build commands
-
-Once the configuration files are set as described below, the build
-command line sequence is:
-
-  source ~/projects/spncci/config/module-load-ndcrc.csh
-  # setenv EIGEN3_DIR /afs/crc.nd.edu/group/nuclthy/opt/eigen-3.2.10
-  # module load gcc/4.9.2
-  # module load gsl
-  # module load boost/1.58
-  module load ompi/1.10.2-gcc-4.9.2
-  make install -j 8
-
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-// Detailed notes on setup
+// Detailed notes on setup at NDCRC
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
