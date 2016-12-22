@@ -14,7 +14,7 @@ C                 (LSU,10-89)  J.P.DRAAYER        BINOMIAL INVERSES
 C                 (LSU,11-89)  J.P.DRAAYER        POWERS OF TWO ARRAY   
 C                 (ND,11-11)   M.A.CAPRIO         DOUBLE/QUAD SWITCHABLE
 C                 (LSU,11-11)  T. DYTRYCH         MERGE WITH SU3GENBK
-C                 (ND,11-22)   A.E.MCCOY          QUAD FLAG FOR GNU
+C                 (ND,11-22)   A.E.MCCOY          ADDED FLAG SU3QUAD_GNU
 C                                                                       
 C     BKDB--BINOMIAL (BINO) COEFFICIENTS (EXPANDED 6-76,8-81,1-83)      
 C           SCALE: BINO(I,J)=DBINO(I*(I+1)/2+J+1)                       
@@ -31,10 +31,8 @@ C     ------------------------------------------------------------------
       IMPLICIT REAL*8(D)
 #if defined(SU3DBL)
       IMPLICIT REAL*8(Q)
-#elif defined(SU3QUAD)
+#elif (defined(SU3QUAD) || defined(SU3QUAD_GNU))
       IMPLICIT REAL*16(Q)
-#elif defined(SU3QUAD_GNU)
-      IMPLICIT REAL*16(Q)                                     
 #endif
       COMMON/BKDB/DBINO(8385),DBINV(8385),DTWOS(-128:128)               
       COMMON/BKQB/QBINO(18721),QBINV(18721),QTWOS(-192:192)             
