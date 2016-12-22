@@ -16,14 +16,7 @@
 
 #include "cppformat/format.h"
 
-#include "sp3rlib/lsushell_wru3.h"
-
-
-#ifdef USE_LSU_WRU3
-#define WRU3_FUNCTION u3::lsu::wru3 
-#else
 #define WRU3_FUNCTION su3lib::wru3optimized_
-#endif
 
 namespace u3
 {
