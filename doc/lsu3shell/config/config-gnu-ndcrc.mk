@@ -3,4 +3,5 @@
 
 include config/config-gnu.mk
 
+fortran_libs :=  -lmpi_mpifh -lgfortran
 LDLIBS += /afs/crc.nd.edu/x86_64_linux/scilib/acml/current/gfortran/gfortran64/lib/libacml.a
