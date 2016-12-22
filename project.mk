@@ -70,6 +70,9 @@ ifdef DEBUG
 CXXFLAGS += -g
 endif
 
+# optimiation mode
+CXXFLAGS += -O3
+
 #for lots of output
 # -DVERBOSE 
 
@@ -82,6 +85,9 @@ endif
 # FFLAGS += -DSU3QUAD
 # quad precision for gnu gfortran
 FFLAGS += -DSU3QUAD_GNU
+
+# lambda+mu<82 instead of <42
+FFLAGS += -DLM82
 
 # BOOST -- lsu3shell flags
 ## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono

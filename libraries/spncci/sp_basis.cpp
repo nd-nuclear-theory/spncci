@@ -338,7 +338,7 @@ namespace spncci
 
   std::string SectorLabelsU3S::Str() const
   {
-    return fmt::format("( {} |{} {} {} : {} {}| {}){}", bra_index(), N0(), x0().Str(),S0(),kappa0(),L0(),ket_index(),rho0());
+    return fmt::format("( {} {}  {}{} {} : {} {}  {}", bra_index(),ket_index(), N0(), x0().Str(),S0(),kappa0(),L0(),rho0());
   }
 
   void GetSectorsU3S(
