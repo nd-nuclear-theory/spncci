@@ -9,8 +9,9 @@
   3/15/16 (aem,mac): Created.
   4/14/16 (aem): Added Np,N sector look ups and changed iteration order
   4/20/16 (aem): Defined GenerateUnitTensorU3SectorLabels function and 
-               changed interation in UnitTensorMatrixGenerator
+                 changed interation in UnitTensorMatrixGenerator
   12/7/16 (aem): Overhall of unit tensor rme calculation
+  12/21/16 (aem): Factored out conjugate sector calculation
 ****************************************************************/
 
 #ifndef UNIT_TENSOR_H_
@@ -157,9 +158,11 @@ GenerateUnitTensorMatrix(
   const spncci::SpIrrepVector& sp_irrep_vector,
   u3::UCoefCache u_coef_cache,
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
-  // std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-  std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
-  std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
+  std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
+  std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >>& 
+    sp_irrep_unit_tensor_rme_map
+  // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
+  // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
   );
   // Uses recurrance method to compute rme's of unit tensors in unit_tensor_labels_map
   // and stores rme's in unit_tensor_rme_map. 

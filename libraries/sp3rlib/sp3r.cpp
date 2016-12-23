@@ -174,7 +174,7 @@
 	// Note: Creation followed by push_back means U3Subspace is
 	// *copied* into vector.  
 	//
-	// Option 1: Eefine a lightweight
+	// Option 1: Define a lightweight
 	// constructor for U3Subspace, which just saves omega.  Push
 	// the (empty) subspace into the Sp3RSpace.  Then use an Init
 	// method to actually populate the subspace.  This runs up

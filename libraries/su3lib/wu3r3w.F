@@ -10,7 +10,8 @@ C             03/90  FUNCTION MULTU3 REPLACED BY SUBROUTINE U3MULT
 C             12/91  UPDATED ... WST (C.BAHRI) ... YU3R3W --> WU3R3W    
 C             07/95  COMMON BLOCK FOR WST ARRAYS (C. BAHRI)
 C             08/11  REMOVE BINARY TREE (T. DYTRYCH)
-C             03/16  CHANGE LIMITS ON LAMBDA+MU<42 TO <82 (A.E.MCCOY)
+C             03/16  ADDED FLAG LM82 FOR CHANGING LIMITS ON LAMBDA+MU<42 
+C                    TO <82 (A.E.MCCOY)
 C     ------------------------------------------------------------------
 C     PROGRAM TO GENERATE U3R3 WIGNER COEFFICIENTS                      
 C          NOTE:  IF THE ROUTINES IN THE SU3 PACKAGE ARE MODIFIED,      
@@ -27,8 +28,13 @@ C     ------------------------------------------------------------------
       DIMENSION DON1(81),DON2(81),DON3(81),DEWU3(39732),                
      1DWU3R3(6561),J1TA(13244),J2TA(13244),IEA(13244),DVALU(9,9,9,9)    
       DATA KIMAX1/39732/                                                
-CAEM      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,13244,42,9,9,9,9/       
-      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,95284,82,9,9,9,9/             
+C SUPPORT FOR LARGE LAMBDA+MU REQUIRES C. BAHRI MOD IN XEWU3.F ON 4/97
+#if defined(LM82)
+      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,95284,82,9,9,9,9/
+#else
+      DATA NCE1,NCE2,NCEX,NCW0,NCW1,NCW2,NCW3/9,13244,42,9,9,9,9/       
+#endif
+
 C     COMBINATIONS OF THE ABOVE: NCW01=NCW0*NCW1,NCW012=NCW01*NCW02,... 
       DATA NCW01,NCW012,NXALL/81,729,6561/                              
 C     MULTIPLICITY FUNCTION FOR L-VALUES IN (LM,MU) SU3 IRREP           

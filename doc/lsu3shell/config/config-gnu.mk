@@ -50,22 +50,9 @@ endif
 # parallel C++ compiler (DEPRECATED)
 #   used in module.mk files as
 #   program program.o: CXX := $(MPICXX)
-#MPICXX := mpicxx -cxx=$(CXX)
-MPICXX := mpicxx 
-
-################################################################
-# FORTRAN compiler-specific configuration
-################################################################
-
-# FORTRAN compiler 
-# Example values:
-#   for GCC 3.x: f77
-#   for GCC 4.x: gfortran
-#   for Intel: ifort
-FC := gfortran
-
-FFLAGS += -fopenmp -frecursive
-
+##MPICXX := mpicxx -cxx=$(CXX)
+##MPICXX := mpicxx
+MPICXX := $(CXX)
 
 ################################################################
 # FORTRAN compiler-specific configuration
@@ -84,6 +71,9 @@ FC := mpif77
 #FC := mpif77 -f77=gfortran -m64 -frecursive #frecursive needed for multithread safe su3lib
 #FC := mpif90
 
+# FORTRAN compiler flags
+FFLAGS += -fopenmp -frecursive
+
 # FORTRAN compiler optimization and debugging
 FFLAGS += -O3
 ifdef DEBUG
@@ -101,7 +91,11 @@ endif
 #   for GCC 3.x f77: -lg2c
 #   for GCC 4.x gfortran: -lgfortran
 #   for Intel ifort: -lifport -lifcore -limf
-fortran_libs :=  -lmpi_mpifh -lgfortran
+# A parallel fortran library might or might not be necessary, e.g.,
+# not at NERSC, but with GCC 4.x and OpenMPI on the NDCRC:
+#   -lmpi_mpifh -lgfortran
+
+fortran_libs := -lgfortran
 #fortran_libs += -lifport -lifcore -limf
 
 # FORTRAN linking flags (added to LDFLAGS)
@@ -118,9 +112,9 @@ fortran_flags :=
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
 #   Note: quad precision requires ifort compiler
 
-##FFLAGS += -DSU3DBL
+FFLAGS += -DSU3DBL
 ##FFLAGS += -DSU3QUAD
-FFLAGS += -DSU3QUAD_GNU
+##FFLAGS += -DSU3QUAD_GNU
 # machine-specific numerical library
 # Gnu Scientific library
 LDLIBS += -lgsl 

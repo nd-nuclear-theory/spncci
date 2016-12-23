@@ -52,8 +52,6 @@ CPPFLAGS += -DHAVE_INLINE
 CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
 
 # program algorithm choices
-#   C++ or FORTRAN wru3optimized
-CPPFLAGS += -DNO_USE_LSU_WRU3 
 #   hash function
 CPPFLAGS += -DBOOSTHASH
 #   map vs. hash unit tensor sectors 
@@ -70,6 +68,9 @@ ifdef DEBUG
 CXXFLAGS += -g
 endif
 
+# optimiation mode
+CXXFLAGS += -O3
+
 #for lots of output
 # -DVERBOSE 
 
@@ -77,11 +78,15 @@ endif
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
 #   Note: quad precision requires ifort compiler
 
-#FFLAGS += -DSU3DBL
+# double precision
+# FFLAGS += -DSU3DBL
 # quad precision for ifort
 # FFLAGS += -DSU3QUAD
 # quad precision for gnu gfortran
 FFLAGS += -DSU3QUAD_GNU
+
+# lambda+mu<82 instead of <42
+FFLAGS += -DLM82
 
 # BOOST -- lsu3shell flags
 ## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono

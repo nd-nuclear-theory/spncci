@@ -102,6 +102,7 @@ namespace lgi
           }
       }
   }
+  //TODO: combine with GetLGILabels
   void GenerateLGIExpansion(
       int A,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
@@ -137,7 +138,6 @@ namespace lgi
         lgi_expansion_matrix_vector[i]=null;
         // std::cout<<null<<std::endl;
         // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
-
       }
   }
   void
@@ -237,7 +237,5 @@ namespace lgi
           <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
       }
     }
-
-
 
 }// end namespace

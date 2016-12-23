@@ -129,7 +129,6 @@ int main(int argc, char **argv)
   lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space,brel_sectors,brel_matrices);
   NullSpaceCheck(space,brel_matrices);
 
-
   // basis::MatrixVector matrix_vector(space.size());
   basis::MatrixVector lgi_expansion_matrix_vector(space.size());
   // lgi::GenerateNcmMatrixVector(Nsigma_0,nrel_filename, basis_table, space, matrix_vector);

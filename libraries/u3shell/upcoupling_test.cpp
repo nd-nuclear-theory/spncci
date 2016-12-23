@@ -24,6 +24,8 @@
 #include "u3shell/upcoupling.h"
 #include "u3shell/u3st_scheme.h"
 
+double zero_threshold=10e-6;
+
 // typedefs for going from Relative to Relative-Center-of-Mass
 typedef std::tuple<int,int,u3::SU3,HalfInt, HalfInt> RelativeCMU3STLabels;
 typedef std::tuple<u3::SU3,HalfInt, HalfInt,int, int,RelativeCMU3STLabels, RelativeCMU3STLabels,int> RelativeCMU3STBraket;
@@ -79,12 +81,12 @@ void IdentityTest(
 }
 
 void
-KineticCheck()
+KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
 // Checking upcoupling using kinetic energy (k^2) using function in import_interaction
 // Function given analytically 
 {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  int Nmax=6;
+  int Nmax=20;
   int Jmax=4;
   int J0=0;
   int T0=0;
@@ -102,7 +104,7 @@ KineticCheck()
   u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
 
   // Upcouple to U(3) level
-  u3shell::RelativeRMEsU3ST rme_map;
+  // u3shell::RelativeRMEsU3ST rme_map;
   std::cout<<"Upcoupling to U3ST"<<std::endl;
   u3shell::UpcouplingU3ST(rme_nlst_map, T0, Nmax, rme_map);
   for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
@@ -112,7 +114,7 @@ KineticCheck()
       std::tie(op_labels, kappa0,L0)=it->first;
       double rme=it->second;
       double check=u3shell::RelativeKineticEnergyOperator(op_labels.bra(), op_labels.ket());
-      if(fabs(rme)>10e-13)
+      if(fabs(rme)>zero_threshold)
         std::cout<<fmt::format("{} {} {}   {}   {}",op_labels.Str(), kappa0,L0,rme,check)<<std::endl;
     }
 }
@@ -128,30 +130,57 @@ ReadWriteCheck(
     std::ofstream stream;
     stream.open(filename.c_str());
     stream<<os.str();
-    // std::cout<<os.str();
+    std::cout<<os.str();
     stream.close();
 
     std::ifstream is(filename.c_str());
     if(!is)
       std::cout<<"Didn't open"<<std::endl;
-    u3shell::RelativeRMEsU3ST k2_relative_rmes;
-    u3shell::ReadRelativeOperatorU3ST(is, k2_relative_rmes);
+    u3shell::RelativeRMEsU3ST relative_rmes2;
+    u3shell::ReadRelativeOperatorU3ST(is, relative_rmes2);
+    for(auto it=relative_rmes2.begin(); it!=relative_rmes2.end(); ++it)
+      {
+        int kappa0,L0;
+        u3shell::RelativeUnitTensorLabelsU3ST tensor;
+        std::tie(tensor,kappa0,L0)=it->first;
+        if(not relative_rme_map.count(it->first))
+        {
+          std::cout<<fmt::format("[{} {} {}] {} not in write map", tensor.Str(),kappa0,L0,it->second)<<std::endl;
+          continue;
+        }
+        if(fabs(relative_rme_map[it->first]-relative_rmes2[it->first])<zero_threshold)
+          std::cout<<fmt::format("[{} {} {}]", tensor.Str(),kappa0,L0)
+          <<"  "<<relative_rme_map[it->first]
+          <<"  "<<relative_rmes2[it->first]
+          <<"  "<<fabs(relative_rme_map[it->first]-relative_rmes2[it->first])
+          <<std::endl;
+      }
+    for(auto it=relative_rme_map.begin(); it!=relative_rme_map.end(); ++it)
+      {
+        if(not relative_rmes2.count(it->first))
+        {
+          int kappa0,L0;
+          u3shell::RelativeUnitTensorLabelsU3ST tensor;
+          std::tie(tensor,kappa0,L0)=it->first;
+          std::cout<<fmt::format("[{} {} {}] {} not in read map", tensor.Str(),kappa0,L0,it->second)<<std::endl;
+        }
+        
+      }
   }
 
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
-  int Nmax=10;
+  int Nmax=16;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
 	int T0=0;
-
   u3shell::RelativeRMEsU3ST id_relative_rme_map;
   IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
 
   u3shell::RelativeRMEsU3ST ke_relative_rme_map;
-  KineticCheck();
+  KineticCheck(ke_relative_rme_map);
 
   std::string filename="Trel_upcouled";
   ReadWriteCheck(ke_relative_rme_map,filename);

@@ -29,7 +29,7 @@ namespace u3shell {
         int Nmax, 
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
         int J0,
-        int T0,
+        int T00,
         bool restrict_positive_N0
         )
   {   
@@ -41,20 +41,25 @@ namespace u3shell {
     if(J0==-1)
       restrict_J0=false;
 
-    int N0_min=restrict_positive_N0?0:-Nmax;
+    int N0_min=restrict_positive_N0?0:-1*Nmax;
     for(int N0=N0_min; N0<=Nmax; N0+=2)
       {
+        // std::cout<<" N0="<<N0<<std::endl;
         for(int Sp=0; Sp<=1; Sp++)
           for(int Tp=0; Tp<=1; Tp++)
             for(int S=0; S<=1; S++)
-              for (int T=abs(Tp-T0); T<=std::min(Tp+T0,1); T++)
+              for (int T=0; T<=1; T++)
                 for (int S0=abs(S-Sp); S0<=(S+Sp); S0++)
                   for(int etap=0; etap<=Nmax; etap++)
                     {
-                      int T0_min=(T0==-1)?T0_min:abs(Tp-T);
-                      int T0_max=(T0==-1)?T0_max:(Tp+T);
-                      for(T0=T0_min; T0<=T0_max; ++T0)
+                      // std::cout<<"hi"<<std::endl;
+                      int T0_min=(T00==-1)?abs(Tp-T):T00;
+                      int T0_max=(T00==-1)?(Tp+T):T00;
+                      // std::cout<<T0_min<<"  "<<T0_max<<std::endl;
+                      for(int T0=T0_min; T0<=T0_max; ++T0)
                       {
+                        if(not am::AllowedTriangle(T,Tp,T0))
+                          continue;
                         //antisymmeterization constraint on ket 
                         if ( (etap+Sp+Tp)%2!=1 )
                           continue;  
@@ -69,7 +74,7 @@ namespace u3shell {
                         u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp);
                         MultiplicityTagged<u3::SU3>::vector omega0_set
                           =u3::KroneckerProduct(u3::SU3(etap,0),u3::SU3(0,eta));
-
+                        // std::cout<<fmt::format("{} {} {}   {} {} {}",etap,Sp,Tp,eta,S,T)<<std::endl;
                         for(int w=0; w<omega0_set.size(); w++)
                           {
                             u3::SU3 x0(omega0_set[w].irrep);
@@ -98,7 +103,10 @@ namespace u3shell {
     std::vector<RelativeUnitTensorLabelsU3ST> temp_vector;
     GenerateRelativeUnitTensorLabelsU3ST(Nmax, temp_vector,J0,T0,restrict_positive_N0);
     for (auto tensor : temp_vector)
+    {
+      // std::cout<<"tensor "<<tensor.Str()<<std::endl;
       relative_unit_tensor_labels[tensor.N0()].push_back(tensor);
+    }
   }
 
 
