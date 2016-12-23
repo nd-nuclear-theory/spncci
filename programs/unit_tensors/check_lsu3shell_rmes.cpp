@@ -21,6 +21,8 @@ int main(int argc, char **argv)
 {
   double zero_threshold=10e-8;
   double tolerance=1e-5;
+  if(argc<5)
+    std::cout<<" syntax: A Nsigma_0 <basis table> <operator load file>"<<std::endl;
 
 	int A=std::stoi(argv[1]);
   int Nsigma_0=std::stoi(argv[2]);
@@ -72,6 +74,6 @@ int main(int argc, char **argv)
   std::ofstream log_stream(log_file.c_str());
   
   std::cout<<"Comparing operators"<<std::endl;
-  lsu3shell::CompareLSU3ShellRMEs(log_stream, basis_provenance,space,sectors,matrices1,matrices2,tolerance,true);
+  lsu3shell::CompareLSU3ShellRMEs(log_stream, basis_provenance,space,sectors,matrices2,matrices1,tolerance,true);
 
 }

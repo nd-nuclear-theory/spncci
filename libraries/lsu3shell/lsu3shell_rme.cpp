@@ -42,7 +42,7 @@ namespace lsu3shell
         // extract bra/ket lsu3shell basis multiplicity group indices
         std::istringstream line_stream(line);
         line_stream >> i >> j;
-        std::cout<<i<<" "<<j<<std::endl;
+        // std::cout<<i<<" "<<j<<std::endl;
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
@@ -52,7 +52,7 @@ namespace lsu3shell
 
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
-        std::cout<<fmt::format("{}  {}  {}", xj.Str(), operator_labels.x0().Str(),xi.Str())<<std::endl;
+        // std::cout<<fmt::format("{}  {}  {}", xj.Str(), operator_labels.x0().Str(),xi.Str())<<std::endl;
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
         // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
         // extract and store matrix elements
@@ -73,7 +73,7 @@ namespace lsu3shell
                 // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
                   // sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
                   // matrix_vector[sector_index].cols(),rme)<<std::endl;
-                std::cout<<"sector index "<<sector_index<<std::endl;
+                // std::cout<<"sector index "<<sector_index<<std::endl;
                 matrix_vector[sector_index](row_index,column_index)=rme;
               }
       }

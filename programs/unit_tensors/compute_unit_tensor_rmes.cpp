@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   // parse arguments
   if (argc<8)
     {
-      std::cout << "Syntax: lgi_file_name Nmax" << std::endl;
+      std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1B Nmax <basis filename> <nrel filename> <brel filename>" << std::endl;
       std::exit(1);
     }
   int A = std::stoi(argv[1]); 

@@ -70,7 +70,7 @@
       = tensor_labels;
 
     int eta1bp, eta2bp; u3::SU3 xbp; HalfInt Sbp, Tbp;
-    std::tie(eta1bp,eta2bp,xbp,Sbp,Tbp) = ket_labels;
+    std::tie(eta1bp,eta2bp,xbp,Sbp,Tbp) = bra_labels;
     HalfInt Nbp = eta1bp+eta2bp+3;  // U(1) label includes zero-point
     u3::U3S omegaSbp = u3::U3S(u3::U3(Nbp,xbp),Sbp);
     int gbp = (eta1bp+eta2bp) % 2;
