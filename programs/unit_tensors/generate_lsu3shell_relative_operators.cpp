@@ -61,6 +61,9 @@ int main(int argc, char **argv)
   int A=N+Z;
   int T0=0;
   int J0=0;
+  bool un_u3_restrict=false;
+  if( (N==0) || (Z==0) )
+    un_u3_restrict=true;
   // Set up unit tensor model space space
   std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
   std::ofstream model_stream(model_space);
@@ -79,21 +82,21 @@ int main(int argc, char **argv)
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,relative_unit_tensor_labels,-1,T0,true);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,true);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,un_u3_restrict);
 
   // Generate Brel operator up to Nmax cutoff
-  std::string brel_file_name_base=fmt::format("Brel_Nmax{:02d}",Nmax);
+  std::string brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",Nmax);
   std::string brel_file_name=fmt::format("{}.recoupler",brel_file_name_base);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,2*(Nmax+N1B), Brel_operator);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Brel_operator, brel_file_name, true);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Brel_operator, brel_file_name, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
   std::string nintr_file_name_base=fmt::format("Nintr_{:02d}_Nmax{:02d}",A,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NintrRelativeUnitTensorExpansion(Nmin,2*(Nmax+N1B), Nrel_operator,A);
   std::string nintr_file_name=fmt::format("{}.recoupler",nintr_file_name_base);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Nrel_operator, nintr_file_name,true);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Nrel_operator, nintr_file_name,un_u3_restrict);
 
   int num_unit=relative_unit_tensor_labels.size();
   // number of relative operators including Brel and Nintr

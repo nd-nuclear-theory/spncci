@@ -94,8 +94,9 @@ a LAPACK-like library (e.g., MKL or ACML).
   || 
   || % source config/module-load-ndcrc.csh
 
-  || @NERSRC:
+  || @NERSC: To compile under gnu...
   || 
+  || % module swap PrgEnv-intel PrgEnv-gnu
   || % source config/module-load-nersc.csh
 
   Note: Some, but perhaps not all, of these system-specific module

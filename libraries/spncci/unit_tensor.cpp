@@ -75,6 +75,7 @@ namespace spncci
     int Nnp_max=conj_sector?0:Nmax;
 
     // Loop over Nnp+Nn starting from 2, (Nnp+Nn=0 accounted for elsewhere)
+    std::cout<<"Loop over omega subspaces"<<std::endl;
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nnp=0; Nnp<=std::min(Nsum,Nnp_max); Nnp+=2)
         {
@@ -101,6 +102,7 @@ namespace spncci
           std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& N0_operator_set
             =unit_tensor_labels_map[N0];
           // iterate over omega' subspace
+          std::cout<<"loop through subspaces"<<std::endl;
           for(int ip=ip_min; ip<=ip_max; ip++ )
             {
               u3::U3 omegap=irrepp.GetSubspace(ip).GetSubspaceLabels();    

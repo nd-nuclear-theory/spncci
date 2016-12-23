@@ -4,7 +4,7 @@
   Brel and Nintr used for obtaining LGI expansion
 
   Arguments:
-    Z N twice_Nsigma_0 Nmax Nstep
+    Z N twice_Nsigma_0 Nmax Nstep N1B
 
   Note: Requires utils subpackage from mcscript.  This should be
   restructured to load it from within the mcscript package once the
@@ -61,7 +61,8 @@ def generate_relative_operators():
         str(Z),
         str(N),
         str(Nmax),
-        str(Nstep)
+        str(Nstep),
+        str(N1B)
     ]
     utils.call(command_line)
 
@@ -128,7 +129,6 @@ def calculate_rmes(relative_operator_basename_list):
         ]
         utils.call(command_line)
 
-
 ################################################################
 # main program
 ################################################################
@@ -139,6 +139,7 @@ N=int(sys.argv[2])
 twice_Nsigma_0=int(sys.argv[3])
 Nmax = int(sys.argv[4])
 Nstep = int(sys.argv[5])
+N1B = int(sys.argv[6])
 
 # data files
 model_space_filename = "model_space_{}_{}_Nmax{:02d}.dat".format(Z, N,Nmax)
