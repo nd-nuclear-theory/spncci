@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,relative_unit_tensor_labels,-1,T0,true);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,relative_unit_tensor_labels,-1,T0,false);
   lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,un_u3_restrict);
 
   // Generate Brel operator up to Nmax cutoff

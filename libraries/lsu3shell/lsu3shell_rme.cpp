@@ -17,6 +17,8 @@
 
 #include "cppformat/format.h"
 
+extern double zero_threshold;
+
 namespace lsu3shell
 {
   //TODO Need to account for rho multiplicity in bra and ket. 
@@ -42,7 +44,7 @@ namespace lsu3shell
         // extract bra/ket lsu3shell basis multiplicity group indices
         std::istringstream line_stream(line);
         line_stream >> i >> j;
-        // std::cout<<i<<" "<<j<<std::endl;
+        std::cout<<i<<" "<<j<<std::endl;
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
@@ -64,16 +66,19 @@ namespace lsu3shell
               {
                 // std::cout<<"getting rme"<<std::endl;
                 line_stream >> rme;
+                if(fabs(rme)<zero_threshold)
+                  continue;
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
                 int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
-                // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
-                  // sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
-                  // matrix_vector[sector_index].cols(),rme)<<std::endl;
+                std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
+                  sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
+                  matrix_vector[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
+              
                 matrix_vector[sector_index](row_index,column_index)=rme;
               }
       }
