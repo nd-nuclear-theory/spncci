@@ -86,7 +86,7 @@ CXXFLAGS += -O3
 FFLAGS += -DSU3QUAD_GNU
 
 # lambda+mu<82 instead of <42
-FFLAGS += -DLM82
+FFLAGS += -DSU3LM82
 
 # BOOST -- lsu3shell flags
 ## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
