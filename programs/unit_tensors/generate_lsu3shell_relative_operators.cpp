@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
   if(argc<4)
     {
-      std::cout<<"Syntax: Protons Neutrons Nmax Nstep"<<std::endl;
+      std::cout<<"Syntax: Protons Neutrons Nmax Nstep N1B"<<std::endl;
       std::exit(1);
     }
   int Z=std::stoi(argv[1]);
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,un_u3_restrict);
 
   // Generate Brel operator up to Nmax cutoff
-  std::string brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",Nmax);
+  std::string brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",A,Nmax);
   std::string brel_file_name=fmt::format("{}.recoupler",brel_file_name_base);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,2*(Nmax+N1B), Brel_operator);
