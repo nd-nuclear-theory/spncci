@@ -49,7 +49,7 @@ LDLIBS += -lgslcblas
 CPPFLAGS += -DHAVE_INLINE
 
 # verbosity level
-CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
+CPPFLAGS += -DVERBOSE -DNOVERBOSE_OMP
 
 # program algorithm choices
 #   hash function

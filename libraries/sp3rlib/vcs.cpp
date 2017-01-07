@@ -8,10 +8,8 @@
 #include "sp3rlib/vcs.h"
 
 #include <omp.h>
-
 #include "cppformat/format.h"
 #include <eigen3/Eigen/Eigenvalues>  
-
 #include "sp3rlib/u3coef.h"   
 
 
@@ -50,8 +48,10 @@ namespace vcs{
   {
     if (sigmap==sigma)
       {  
-        double rme= (u3::U(sigma.SU3(), n_rho.irrep.SU3(), omegap.SU3(), u3::SU3(2,0), omega.SU3(),n_rho.tag,1,np_rhop.irrep.SU3(),1,np_rhop.tag)
-              *BosonCreationRME(np_rhop.irrep,n_rho.irrep));
+        double rme=ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
+                    *u3::U(u3::SU3(2,0),n_rho.irrep.SU3(),omegap.SU3(),sigma.SU3(),np_rhop.irrep.SU3(),1,np_rhop.tag,omega.SU3(),n_rho.tag,1)
+                    // *u3::U(sigma.SU3(), n_rho.irrep.SU3(), omegap.SU3(), u3::SU3(2,0), omega.SU3(),n_rho.tag,1,np_rhop.irrep.SU3(),1,np_rhop.tag)
+                    *BosonCreationRME(np_rhop.irrep,n_rho.irrep);
         return rme;
       }
     else
@@ -81,10 +81,8 @@ namespace vcs{
         // general case 
         else 
           {
-          
             MultiplicityTagged<u3::U3>::vector omega_set=KroneckerProduct(omega_p, u3::U3(0,0,-2));
             // sum over omega 
-          
             for (int w=0; w<omega_set.size(); w++)
               {
                 u3::U3 omega(omega_set[w].irrep);
@@ -137,18 +135,14 @@ namespace vcs{
                       }                  
                   }
                 S_matrix_p+=coef1_matrix*S_matrix_map[omega]*coef2_matrix;
-
-
               }
             //calculate K matrix 
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen_system(S_matrix_p);
             K_matrix_p=eigen_system.operatorSqrt();
             //std::cout<<omega_p.Str()<<K_matrix_p<<std::endl;
-
           }
         S_matrix_map[omega_p]=S_matrix_p;
         K_matrix_map[omega_p]=K_matrix_p;
-    
       } // end for (i)  
   }
 
@@ -189,10 +183,8 @@ namespace vcs{
               {
                 MultiplicityTagged<u3::U3>::vector omega_set=KroneckerProduct(omega_p, u3::U3(0,0,-2));
                 // sum over omega 
-              
                 for (int w=0; w<omega_set.size(); w++)
                   {
-                    
                     u3::U3 omega(omega_set[w].irrep);
                     if (not irrep.ContainsSubspace(omega))
                       continue;

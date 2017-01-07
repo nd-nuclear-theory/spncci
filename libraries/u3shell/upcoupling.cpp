@@ -8,10 +8,10 @@
 ****************************************************************/
 #include "u3shell/upcoupling.h"
 
-#include "cppformat/format.h"
+#include <unordered_set>
 
+#include "cppformat/format.h"
 #include "am/wigner_gsl.h"
-// #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
 extern double zero_threshold;
@@ -387,5 +387,29 @@ namespace u3shell
     sector_vector=relative_component_matrices[0];
     relative_lsjt_sectors=relative_component_sectors[0];
   }
+
+
+  void 
+  GetInteractionTensorsU3S(
+      const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
+      std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
+    )
+    {
+      // Get list of operators for U3S sector construction
+      std::unordered_set<u3shell::IndexedOperatorLabelsU3S,boost::hash<u3shell::IndexedOperatorLabelsU3S>>
+          temp_operator_u3s_list;
+      for(auto it=interaction_rme_cache.begin(); it!=interaction_rme_cache.end(); ++it)
+        {
+          int kappa0,L0;
+          u3shell::RelativeUnitTensorLabelsU3ST tensor_u3st;
+          std::tie(tensor_u3st,kappa0,L0)=it->first;
+          assert(kappa0!=0);
+          u3shell::OperatorLabelsU3S operator_labels_u3s(tensor_u3st.operator_labels());
+          temp_operator_u3s_list.emplace(operator_labels_u3s,kappa0,L0);
+        }
+
+      for(auto tensor : temp_operator_u3s_list)
+        operator_u3s_list.push_back(tensor);
+    }
 
 }//end namespace

@@ -143,13 +143,28 @@ namespace u3shell
   // Coefficients for the same term will be added.
 
 
+  void 
+  RegroupBiquadsForRecoupler(
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn,
+      std::map<u3shell::TwoBodyUnitTensorLabelsU3S,std::vector<CoefficientsPN>>&
+          biquad_coefficients_pn_recoupler
+      );
+  // Regroup biquad coefficients by same operator labels but differing rho0
+  // for writing to file for recoupler
+  //
+  // Arguments:
+  //   biquad_coefficients (input)
+  //     : map giving coefficients on a set of two-body U3SPN biquads
+  //  biquad_coefficients_pn_recoupler (output)
+  //    : map giving vector of coefficients on a set of two-body U3SPN biquads
+  // 
+
   ////////////////////////////////////////////////////////////////
   // operator file output for recoupler
   ////////////////////////////////////////////////////////////////
-
   void WriteTwoBodyOperatorRecoupler(
       std::ostream& output_stream,
-      const u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
     );
   // Write two-body operator pn-scheme biquad coefficients in format
   // expected by TD's recoupler.

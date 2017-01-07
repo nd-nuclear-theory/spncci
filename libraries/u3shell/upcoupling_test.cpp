@@ -24,7 +24,7 @@
 #include "u3shell/upcoupling.h"
 #include "u3shell/u3st_scheme.h"
 
-double zero_threshold=10e-6;
+double zero_threshold=1e-6;
 
 // typedefs for going from Relative to Relative-Center-of-Mass
 typedef std::tuple<int,int,u3::SU3,HalfInt, HalfInt> RelativeCMU3STLabels;
@@ -62,7 +62,7 @@ void IdentityTest(
       std::tie(L,S,T)=ket;
       std::tie(Lp,Sp,Tp)=bra;
       Eigen::MatrixXd sectorNLST=it->second;
-      if(fabs(sectorNLST.sum())>10e-10)
+      if(fabs(sectorNLST.sum())>zero_threshold)
         std::cout<<fmt::format("{} {} ({},{},{}) ({},{},{})", L0,S0,Lp,Sp,Tp,L,S,T)
         <<std::endl<<sectorNLST<<std::endl;
     }
@@ -75,7 +75,7 @@ void IdentityTest(
       int kappa0, L0;
       std::tie(labels,kappa0,L0)=it->first;
       double coef=it->second;
-      if (fabs(coef)>10e-13)
+      if (fabs(coef)>zero_threshold)
         std::cout<<labels.Str()<<"  "<<kappa0<<"  "<<L0<<std::endl<<it->second<<std::endl<<std::endl;
     }
 }
@@ -170,6 +170,7 @@ ReadWriteCheck(
 
 int main(int argc, char **argv)
 {
+  // double zero_threshold=10e-6;
   u3::U3CoefInit();
   int Nmax=16;
   int Jmax=Nmax+2;
@@ -184,4 +185,9 @@ int main(int argc, char **argv)
 
   std::string filename="Trel_upcouled";
   ReadWriteCheck(ke_relative_rme_map,filename);
+
+  std::string id_filename="Id_upcouled";
+  std::ofstream os(id_filename.c_str());
+  u3shell::WriteRelativeOperatorU3ST(os,id_relative_rme_map);
+  os.close();
 }

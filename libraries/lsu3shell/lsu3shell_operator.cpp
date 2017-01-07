@@ -41,10 +41,10 @@ namespace lsu3shell
         "NAS"   
       );
     std::cout<<"TransformRelativeTensorToTwobodyTensor"<<std::endl;
-    for(auto it=two_body_unit_tensor_coefficients.begin(); it!=two_body_unit_tensor_coefficients.end(); ++it)
-    {
-      std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
-    }
+    // for(auto it=two_body_unit_tensor_coefficients.begin(); it!=two_body_unit_tensor_coefficients.end(); ++it)
+    // {
+    //   std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
+    // }
     // convert to biquads
     u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
     // convert to pn scheme

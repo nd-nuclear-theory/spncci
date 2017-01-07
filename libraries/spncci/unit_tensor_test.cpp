@@ -229,7 +229,7 @@ int main(int argc, char **argv)
       std::tie(tensor_u3st,kappa0,L0)=it->first;
       u3shell::OperatorLabelsU3S operator_labels_u3s(tensor_u3st.operator_labels());
       temp_operator_u3s_list.emplace(operator_labels_u3s,kappa0,L0);
-      std::cout<<"operator labels "<<operator_labels_u3s.Str()<<"  "<<kappa0<<"  "<<L0<<std::endl;
+      // std::cout<<"operator labels "<<operator_labels_u3s.Str()<<"  "<<kappa0<<"  "<<L0<<std::endl;
     }
   std::vector<u3shell::IndexedOperatorLabelsU3S> operator_u3s_list(temp_operator_u3s_list.size());
   for(auto tensor : temp_operator_u3s_list)
