@@ -119,7 +119,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
           double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
           if (fabs(Brme)>zero_threshold)
-            Trel_operator[relative_unit_tensor]+=Brme;
+            Trel_operator[relative_unit_tensor]+=-sqrt(1.5)*Brme;
 
           // Hrel term
           Np=N;
@@ -141,7 +141,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
           double Arme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
           if (fabs(Arme)>zero_threshold)
-            Trel_operator[relative_unit_tensor]+=Arme;
+            Trel_operator[relative_unit_tensor]+=-sqrt(1.5)*Arme;
         }
 
 }

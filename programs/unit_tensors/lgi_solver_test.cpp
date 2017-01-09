@@ -198,9 +198,9 @@ int main(int argc, char **argv)
       basis::MatrixVector spncci_operator_matrices;
       // std::cout<<"reading in"<<std::endl;
       lsu3shell::ReadLSU3ShellRMEs(is_operator,operator_labels, basis_table,space, sectors,lsu3shell_operator_matrices);
-      // for(auto matrix : lsu3shell_operator_matrices)
-      //   std::cout<<matrix<<std::endl<<std::endl;
-      // std::cout<<"transforming"<<std::endl;
+      for(auto matrix : lsu3shell_operator_matrices)
+        std::cout<<matrix<<std::endl<<std::endl;
+      std::cout<<"transforming"<<std::endl;
       lgi::TransformOperatorToSpBasis(sectors,lgi_expansion_matrix_vector,lsu3shell_operator_matrices,spncci_operator_matrices);
       // for(auto matrix : spncci_operator_matrices)
       //   std::cout<<matrix<<std::endl<<std::endl;

@@ -115,7 +115,6 @@ namespace u3shell {
   {
     double rme=0;
     if (bra==ket)
-      // 1.5 from the 3/2 zero point energy for a single particle
       rme=ket.eta();
     return rme;
   }
@@ -174,7 +173,8 @@ namespace u3shell {
   {
     double rme=0;
     if (bra.eta()==ket.eta())
-      rme=u3shell::RelativeNumberOperator(bra,ket);
+      // 1.5 from the 3/2 zero point energy for a single particle
+      rme=u3shell::RelativeNumberOperator(bra,ket)+1.5;
     if (bra.eta()==(ket.eta()+2))
       rme=-sqrt(1.5)*u3shell::RelativeSp3rRaisingOperator(bra,ket);
     if (bra.eta()==(ket.eta()-2))
