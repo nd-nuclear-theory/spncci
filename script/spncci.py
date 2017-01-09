@@ -133,6 +133,8 @@ def calculate_rmes(relative_operator_basename_list):
         relative_operator_basename_list (list) : list of operator file names
     """
 
+    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nmax:02d}.dat".format(**task)
+
     # iterate over unit tensors
     for basename in relative_operator_basename_list:
 
@@ -143,7 +145,7 @@ def calculate_rmes(relative_operator_basename_list):
         ]
         load_filename = "{}.load".format(basename)
         rme_filename="{}.rme".format(basename)
-        mcscript.utils.write_input(load_filename,input_lines,silent=False)
+        mcscript.utils.write_input(load_filename,input_lines,verbose=True)
         print("load_file finished")
         # call SU3RME
         command_line = [
