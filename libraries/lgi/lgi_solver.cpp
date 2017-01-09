@@ -139,6 +139,23 @@ namespace lgi
         // std::cout<<null<<std::endl;
         // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
       }
+    // Normalizing columns 
+    for(auto& matrix :lgi_expansion_matrix_vector)
+      {
+        for(int j=0; j<matrix.cols(); ++j)
+          {
+            double sum_squared=0;
+            for(int i=0; i<matrix.rows(); ++i)
+              {
+                double rme=matrix(i,j);
+                if(fabs(rme)>zero_threshold)
+                  sum_squared+=rme*rme;
+              }
+            if(fabs(sum_squared)<zero_threshold)
+              continue;
+            matrix.block(0,j,matrix.rows(),1)*=1./sqrt(sum_squared);
+          }
+      }
   }
   void
   TransformOperatorToSpBasis(

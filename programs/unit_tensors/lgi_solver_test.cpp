@@ -117,15 +117,18 @@ void NullSpaceCheck(
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
+  double zero_threshold=1e-6;
 
-  if(argc<4)
-    std::cout<<"Syntax : A twice_Nsigma_0 <basis> <nrel> <brel>"<<std::endl;
+  if(argc<8)
+    std::cout<<"Syntax : A  twice_Nsigma_0  Nmax  N1B  <basis>  <nrel>  <brel>"<<std::endl;
   int A=std::stoi(argv[1]);
   int twice_Nsigma_0=std::stoi(argv[2]);
   HalfInt Nsigma_0=HalfInt(twice_Nsigma_0,2);
-  std::string lsu3_filename = argv[3];
-  std::string nrel_filename = argv[4];
-  std::string brel_filename = argv[5];
+  int Nmax=std::stoi(argv[3]);
+  int N1B=std::stoi(argv[4]);
+  std::string lsu3_filename = argv[5];
+  std::string nrel_filename = argv[6];
+  std::string brel_filename = argv[7];
   
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
@@ -172,7 +175,7 @@ int main(int argc, char **argv)
   os.close();
 
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(2, relative_unit_tensor_labels,-1,0,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B, relative_unit_tensor_labels,-1,0,false);
 
   u3shell::OperatorLabelsU3ST id_labels(0,u3::SU3(0,0),0,0,0);
   u3shell::SectorsU3SPN id_sectors(space,id_labels,false);
@@ -207,7 +210,7 @@ int main(int argc, char **argv)
       if(operator_labels==id_labels)
         {
           assert(sectors.size()==id_sectors.size());
-          std::cout<<" id sum"<<std::endl;
+          // std::cout<<" id sum"<<std::endl;
           for(int i=0; i<sectors.size(); ++i)
             {
               // std::cout<<id_lsu3shell[i]<<"  "<<lsu3shell_operator_matrices[i]<<std::endl;
@@ -216,11 +219,14 @@ int main(int argc, char **argv)
             }
         }
     }
-    std::cout<<"lsu3shell"<<std::endl;
-    for(auto lsu3_matrix : id_lsu3shell)
-      std::cout<<lsu3_matrix<<std::endl<<std::endl;
+    // std::cout<<"lsu3shell identity check"<<std::endl;
+    // for(auto lsu3_matrix : id_lsu3shell)
+    //   std::cout<<lsu3_matrix<<std::endl<<std::endl;
 
-    // std::cout<<"spncci"<<std::endl;
-    // for(auto sp_matrix : id_spncci)
-    //   std::cout<<sp_matrix<<std::endl<<std::endl;
+    lgi::TransformOperatorToSpBasis(id_sectors,lgi_expansion_matrix_vector,id_lsu3shell,id_spncci);
+
+
+    std::cout<<"spncci"<<std::endl;
+    for(auto sp_matrix : id_spncci)
+      std::cout<<sp_matrix<<std::endl<<std::endl;
 }

@@ -81,22 +81,22 @@ int main(int argc, char **argv)
 
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,relative_unit_tensor_labels,-1,T0,false);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, relative_unit_tensor_labels,un_u3_restrict);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B,relative_unit_tensor_labels,-1,T0,false);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, relative_unit_tensor_labels,un_u3_restrict);
 
   // Generate Brel operator up to Nmax cutoff
   std::string brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",A,Nmax);
   std::string brel_file_name=fmt::format("{}.recoupler",brel_file_name_base);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Brel_operator, brel_file_name, un_u3_restrict);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file_name, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
   std::string nintr_file_name_base=fmt::format("Nrel_{:02d}_Nmax{:02d}",A,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Nrel_operator,A);
   std::string nintr_file_name=fmt::format("{}.recoupler",nintr_file_name_base);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Nrel_operator, nintr_file_name,un_u3_restrict);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Nrel_operator, nintr_file_name,un_u3_restrict);
 
   int num_unit=relative_unit_tensor_labels.size();
   // number of relative operators including Brel and Nintr

@@ -81,10 +81,10 @@ FFLAGS += -fopenmp -frecursive
 # Example values, depending on the compiler you are using to compile
 # the FORTRAN objects:
 #   for GCC 3.x f77: -lg2c
-#   for GCC 4.x gfortran: -lgfortran
+#   for GCC 4.x gfortran: -lgfortran -lquadmath
 #   for Intel ifort: -lifport -lifcore -limf
 
-fortran_libs := -lgfortran
+fortran_libs := -lgfortran -lquadmath
 
 # FORTRAN linking flags (added to LDFLAGS)
 # Not yet needed but provided as hook.

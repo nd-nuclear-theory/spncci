@@ -80,8 +80,16 @@ namespace lsu3shell
                 //   matrix_vector[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
                 matrix_vector[sector_index](row_index,column_index)=rme;
+                // std::cout<<matrix_vector[sector_index]<<std::endl;
               }
+    // std::cout<<"finished reading in "<<std::endl;
+    // for(int i=0; i<matrix_vector.size(); ++i)
+    //   std::cout<<matrix_vector[i]<<std::endl;
+        
       }
+    // std::cout<<"finished reading in "<<std::endl;
+    // for(int i=0; i<matrix_vector.size(); ++i)
+    //   std::cout<<matrix_vector[i]<<std::endl;
   }
 
   bool 

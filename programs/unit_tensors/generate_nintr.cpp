@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   int N=std::stoi(argv[2]);
   int Nmax=std::stoi(argv[3]);
 
-  assert(Nmax>=(N+Z));
+  // assert(Nmax>=(N+Z));
 
   bool un_u3_restrict=false;
   if(((N==2)&&(Z==0))||((N==0)&&(Z==2)))
