@@ -7,6 +7,7 @@
   University of Notre Dame
 
   12/3/16 (aem): Created.  Based on unit_tensor_test.cpp
+  1/6/17 (aem) : Added contraction of unit tensors and interaction
 ****************************************************************/
 #include <cstdio>
 #include <fstream>
@@ -23,13 +24,120 @@
 #include "u3shell/relative_operator.h"
 #include "u3shell/upcoupling.h"
 
+
+namespace spncci
+{
+  typedef std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >
+                      > LGIUnitTensorSectorCache;
+
+  void 
+  Contracting(int Nmax, int N1b,
+              const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
+              const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
+              const spncci::SpaceU3S& space,
+              LGIUnitTensorSectorCache& unit_tensor_sector_cache,
+              basis::MatrixVector& matrix_vector
+              )
+  // Args:
+  //  Nmax (input) : Basis truncation parameter
+  //  N1b (input) : Basis single particle cutoff for Nmax=0
+  //  sector_labels_vector (input) : vector of sector labels 
+  //  interaction_rme_cache (input) : Container holding interaction rme's keyed
+  //     by RelativeUnitTensorU3ST labels
+  //  space (input) : space of omegaS subspaces
+  //  unit_tensor_sector_cache (input) : nested container holding unit tensor rmes
+  //  matrix_vector (output) : vector of U3S sectors indexed by U3S labels and kappa0,L0
+  {
+    // Contracting interaction matrix elements with unit tensor matrix elements
+    std::cout<<"contracting"<<std::endl;
+    // Initial sectors to zero matrices
+     matrix_vector.resize(sector_labels_vector.size());
+    for(int s=0; s<matrix_vector.size(); ++s)
+    {
+      const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
+      const spncci::SubspaceU3S& ket_subspace=space.GetSubspace(sector.ket_index());
+      const spncci::SubspaceU3S& bra_subspace=space.GetSubspace(sector.bra_index());
+      int sector_dim_bra=bra_subspace.sector_dim();
+      int sector_dim_ket=ket_subspace.sector_dim();
+      matrix_vector[s]=Eigen::MatrixXd::Zero(sector_dim_bra,sector_dim_ket);
+    }
+
+    // iterate over interaction get unit tensor,kappa0,L0
+    // iterate over sectors, get i,j, omega'S', rho0, omegaS->Nn etc. 
+    // get corresponding unit tensor sector   
+    for(auto it=interaction_rme_cache.begin(); it!=interaction_rme_cache.end(); ++it)
+      {
+        // Extract labels 
+        int kappa0,L0;
+        u3shell::RelativeUnitTensorLabelsU3ST tensor_u3st;
+        std::tie(tensor_u3st,kappa0,L0)=it->first;
+        double interaction_rme=it->second;
+        //Check that unit tensor has rme between states in Nmax truncated basis
+        int rp=tensor_u3st.bra().eta();
+        int r=tensor_u3st.ket().eta();
+        if((r>Nmax+2*N1b)||(rp>Nmax+2*N1b))
+          continue;
+        // Iterate over U3 sectors and find target sectors
+        for(int s=0; s<sector_labels_vector.size(); ++s)
+        {
+          const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
+          
+          // Checking if sector is target sector
+          bool allowed=sector.operator_labels()==u3shell::OperatorLabelsU3S(tensor_u3st.operator_labels());
+          allowed&=sector.kappa0()==kappa0;
+          allowed&=(sector.L0()==L0);
+          if(not allowed)
+              continue;
+          
+          //get subspace labels
+          const spncci::SubspaceU3S& ket_subspace=space.GetSubspace(sector.ket_index());
+          const spncci::SubspaceU3S& bra_subspace=space.GetSubspace(sector.bra_index());
+          const u3::U3& omegap=bra_subspace.GetSubspaceLabels().U3();
+          const u3::U3& omega=ket_subspace.GetSubspaceLabels().U3();
+          int rho0=sector.rho0();
+          // iterate through U3S subspaces, states correspond to lgi sets
+          for(int i=0; i<bra_subspace.size(); ++i)
+            for(int j=0; j<ket_subspace.size(); ++j)
+              {
+                // extracting subsector information
+                // (dimp,dim)->size of subsector
+                // (indexp,index)-> position of upper left corner of subsector in sector
+                int dimp, dim, indexp,index,gammap,gamma;
+                u3::U3 sigma,sigmap;
+                std::tie(gammap,sigmap,dimp,indexp)=bra_subspace.GetStateLabels(i);
+                std::tie(gamma,sigma,dim,index)=ket_subspace.GetStateLabels(j);
+
+                //Keys for looking up subsector in unit tensor cache
+                std::pair<int,int> lgi_pair(gammap,gamma);
+                std::pair<int,int> NnpNn(int(omegap.N()-sigmap.N()),int(omega.N()-sigma.N()));              
+                spncci::UnitTensorU3Sector unit_sector(omegap,omega,tensor_u3st,rho0);
+                // Get cache containing unit tensor sector              
+                spncci::UnitTensorSectorsCache& cache=unit_tensor_sector_cache[lgi_pair][NnpNn];
+                
+                //REMOVE : turn back on when finished debugging
+                // Diagonistic: check if expected unit tensor sectors are found
+                // if(not cache.count(unit_sector))
+                  // for(auto t=cache.begin(); t!=cache.end(); ++t)
+                    // std::cout<<t->first.Str()<<std::endl;
+                if(cache.count(unit_sector))
+                  matrix_vector[s].block(indexp,index,dimp,dim)+=interaction_rme*cache[unit_sector];
+              }
+        }
+      }
+  }
+
+}// end namespace
+
 int main(int argc, char **argv)
 {
+      //REMOVE 
+      int test=1;
+
   u3::U3CoefInit();
   //unit tensor cache 
   u3::UCoefCache u_coef_cache;
 	u3::g_u_cache_enabled = true;
-
+  double zero_threshold=1e-10;
   // For GenerateRelativeUnitTensors
   // should be consistant with lsu3shell tensors
   int T0=0;
@@ -37,7 +145,8 @@ int main(int argc, char **argv)
   // parse arguments
   if (argc<8)
     {
-      std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1B Nmax <basis filename> <nrel filename> <brel filename>" << std::endl;
+      std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1B Nmax <basis filename> <nrel filename> <brel filename>" 
+                << std::endl;
       std::exit(1);
     }
   int A = std::stoi(argv[1]); 
@@ -53,10 +162,7 @@ int main(int argc, char **argv)
   //initializing map that will store map containing unit tensors {SpIrrep pair : {}  
   // inner map is keyed by unit tensor matrix element labels of type UnitTensorRME
   // SpIrrep pair -> NnpNn -> UnitTensorRME -> v'v subsector
-  std:: map< 
-    std::pair<int,int>, 
-    std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >
-    > unit_tensor_sector_cache;
+  spncci::LGIUnitTensorSectorCache unit_tensor_sector_cache;
 
   //////////////////////////////////////////////////////////////////////////////////////////
   // Get LGI's and populate sector map with LGI rme's
@@ -76,9 +182,29 @@ int main(int argc, char **argv)
   lgi::GenerateLGIExpansion(A,basis_table,space, is_brel,is_nrel,lgi_expansion_matrix_vector);
   // Extract LGI labels and store in lgi_vector
   lgi::GetLGILabels(Nsigma_0,space,lgi_expansion_matrix_vector, lgi_vector);
+  int i=0;
   for(auto lgi_tagged : lgi_vector)
-    std::cout<<lgi_tagged.irrep.Str()<<"  "<<lgi_tagged.tag<<std::endl;
+  {
+    std::cout<<i<<"  "<<lgi_tagged.irrep.Str()<<"  "<<lgi_tagged.tag<<std::endl;
+    ++i;
+  }
 
+  for(auto& matrix :lgi_expansion_matrix_vector)
+    {
+      for(int j=0; j<matrix.cols(); ++j)
+        {
+          double sum_squared=0;
+          for(int i=0; i<matrix.rows(); ++i)
+            {
+              double rme=matrix(i,j);
+              if(fabs(rme)>zero_threshold)
+                sum_squared+=rme*rme;
+            }
+          if(fabs(sum_squared)<zero_threshold)
+            continue;
+          matrix.block(0,j,matrix.rows(),1)*=1./sqrt(sum_squared);
+        }
+    }
   // Setting up the symplectic basis containers
   spncci::SigmaIrrepMap sigma_irrep_map;
   spncci::SpIrrepVector sp_irrep_vector;
@@ -89,11 +215,13 @@ int main(int argc, char **argv)
   // Labels of relative unit tensors computed between LGI's
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> LGI_unit_tensor_labels;  
   std::cout<<"Nsigma0_ex_max "<<Nsigma0_ex_max<<std::endl;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max, LGI_unit_tensor_labels,-1,0,true);
+  // -1 is all J0, T0=0 and false->don't restrict N0 to positive (temp)
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max, LGI_unit_tensor_labels,-1,0,false);
   // For each operator, transform from lsu3shell basis to spncci basis
   std::cout<<"Number of unit tensors "<<LGI_unit_tensor_labels.size()<<std::endl;
   
   for(int i=0; i<LGI_unit_tensor_labels.size(); ++i)
+  // for(int i=0; i<; ++i)
     {
       //Get unit tensor labels
       u3shell::RelativeUnitTensorLabelsU3ST unit_tensor(LGI_unit_tensor_labels[i]);
@@ -101,44 +229,60 @@ int main(int argc, char **argv)
       // Generate sectors from labels
       u3shell::SectorsU3SPN sectors(space,operator_labels,false);
       // Read in lsu3shell rme's of unit tensor
-      std::ifstream is_operator(fmt::format("relative_unit_{:06d}",i));
+      std::ifstream is_operator(fmt::format("relative_unit_{:06d}.rme",i));
       // If operator is not found, print name and continue;
       if(not is_operator)
         {
-          std::cout<<fmt::format("relative_unit_{:06d} not found",i)<<std::endl;
+          std::cout<<fmt::format("relative_unit_{:06d}.rme not found",i)<<std::endl;
           continue;
         }
       // Read in operator from file
-      std::cout<<fmt::format("Transforming relative_unit_{:06d}",i)<<std::endl;
-      std::cout<< LGI_unit_tensor_labels[i].Str()<<std::endl;
+      // std::cout<<fmt::format("Transforming relative_unit_{:06d}.rme",i)<<std::endl;
+      // std::cout<< LGI_unit_tensor_labels[i].Str()<<std::endl;
 
-      std::cout<<"  Reading in rmes"<<std::endl;
+      // std::cout<<"  Reading in rmes"<<std::endl;
       basis::MatrixVector lsu3shell_operator_matrices(sectors.size());
       lsu3shell::ReadLSU3ShellRMEs(
         is_operator,operator_labels, basis_table,space, 
         sectors,lsu3shell_operator_matrices
         );
+
       // Basis transformation for each sector
-      std::cout<<"  Transforming"<<std::endl;
+      // std::cout<<"  Transforming"<<std::endl;
+
       basis::MatrixVector spncci_operator_matrices;
       lgi::TransformOperatorToSpBasis(
         sectors,lgi_expansion_matrix_vector,
         lsu3shell_operator_matrices,spncci_operator_matrices
         );
+
+      // std::cout<<"lgi expansions"<<std::endl;
+      // for(auto matrix :lgi_expansion_matrix_vector)
+      //   std::cout<<matrix<<std::endl<<std::endl;
+
       // Populate unit tensor map with sectors
-      std::cout<<"Populating lgi sectors"<<std::endl;
+      // std::cout<<"Populating lgi sectors"<<std::endl;
       std::pair<int,int> N0_pair(0,0);
+      // REMOVE
+      // for(int s=0; s<3; ++s)
+
       for(int s=0; s<sectors.size(); ++s)
         {
+          
           int i=sectors.GetSector(s).bra_subspace_index();
           int j=sectors.GetSector(s).ket_subspace_index();
+          //REMOVE
+          if(i!=test || j!=test)
+            continue;
           int rho0=sectors.GetSector(s).multiplicity_index();
           std::pair<int,int>sp_irrep_pair(i,j);
           u3::U3 sigmap=sp_irrep_vector[i].irrep.sigma();
           u3::U3 sigma=sp_irrep_vector[j].irrep.sigma();
           spncci::UnitTensorU3Sector u3_sector(sigmap,sigma,unit_tensor,rho0);
           unit_tensor_sector_cache[sp_irrep_pair][N0_pair][u3_sector]
-              =lsu3shell_operator_matrices[s];
+              =spncci_operator_matrices[s];
+          // std::cout<<i<<"  "<<j<<std::endl;
+          // std::cout<<spncci_operator_matrices[s]<<std::endl;
         }
     }
 
@@ -146,6 +290,24 @@ int main(int argc, char **argv)
     {
       std::cout<<"Irreps "<<it->first.first<<" and "<<it->first.second<<std::endl;
     }
+
+  std::cout<<"traversing the map"<<std::endl;
+  auto it_ending=unit_tensor_sector_cache.begin();
+  for(int i=0; i<unit_tensor_sector_cache.size(); ++i) 
+    it_ending++;
+  for(auto it=unit_tensor_sector_cache.begin(); it!=it_ending; ++it)
+    {
+      std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+      for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+        {
+          std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+          for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+            {
+              std::cout<<it3->first.Str()<<std::endl;
+              std::cout<<it3->second<<std::endl;
+            }
+        }
+  }
 
   //////////////////////////////////////////////////////////////////////////////////////////
   //Precomputing Kmatrices 
@@ -162,43 +324,123 @@ int main(int argc, char **argv)
       // int Nex=int(s.N()-Nsigma_0);
       // vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, k_map);
       vcs::GenerateKMatrices(sigma_irrep_map[s], k_map);
+
+      // std::cout<<"kmap "<<s.Str()<<std::endl;
+      // for(auto it=k_map.begin(); it!=k_map.end(); ++it)
+      //   std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
     }
 
-  //////////////////////////////////////////////////////////////////////////////////////////
-  // Computing unit tensor sectors
-  //////////////////////////////////////////////////////////////////////////////////////////
-  std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, unit_tensor_labels, J0, T0, true);
+  // //////////////////////////////////////////////////////////////////////////////////////////
+  // // Computing unit tensor sectors
+  // //////////////////////////////////////////////////////////////////////////////////////////
+  // if(Nmax!=0)
+  // {
+  //   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
+  //   // if true, unit tensors restricted to N0>=0
+  //   // Nrel_max=Nmax+2N1b
+  //   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_tensor_labels, J0, T0, false);
 
-  // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
-  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
-  {
-    
-    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
-      unit_tensor_NpN_sector_map;
+  //   //REMOVE
+  //   // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
+  //   auto it_end=unit_tensor_sector_cache.begin();
+  //   for(int a=0; a<3; a++)
+  //     ++it_end;
 
-    // std::cout<<"Getting sector labes"<<std::endl;
-    spncci::GenerateUnitTensorU3SectorLabels(
-      N1b,Nmax,it->first,sp_irrep_vector,
-      unit_tensor_labels,unit_tensor_NpN_sector_map);
+  //   // for(auto it=unit_tensor_sector_cache.begin(); it!=it_end; ++it)
+  //   for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
+  //   {
+  //     //REMOVE
+  //     if(it->first.first!=test || it->first.second!=test)
+  //       continue;
+  //     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
+  //       unit_tensor_NpN_sector_map;
 
-    spncci::GenerateUnitTensorMatrix(
-      N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
-      // unit_tensor_NpN_sector_map,
-      unit_tensor_labels,
-      unit_tensor_sector_cache);
-  }
+  //     // std::cout<<"Getting sector labes"<<std::endl;
+  //     spncci::GenerateUnitTensorU3SectorLabels(
+  //       N1b,Nmax,it->first,sp_irrep_vector,
+  //       unit_tensor_labels,unit_tensor_NpN_sector_map);
+
+  //     spncci::GenerateUnitTensorMatrix(
+  //       N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
+  //       // unit_tensor_NpN_sector_map,
+  //       unit_tensor_labels,
+  //       unit_tensor_sector_cache);
+  //   }
+  // }
+  // // REMOVE
+  // auto it_stop=unit_tensor_sector_cache.begin();
+  // int all=unit_tensor_sector_cache.size();
+  // for(int a=0; a<all; ++a)
+  //   ++it_stop;
+  
+  // std::cout<<"traversing the map"<<std::endl;
+  // for(auto it=unit_tensor_sector_cache.begin(); it!=it_stop; ++it)
+  //   {
+  //     if(it->first.first!=it->first.second)
+  //       continue;
+  //     std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+  //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+  //       {
+  //         std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+  //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+  //           {
+  //             std::cout<<it3->first.Str()<<std::endl;
+  //             std::cout<<it3->second<<std::endl;
+  //           }
+  //       }
+  // }
 
   //////////////////////////////////////////////////////////////////////////////////////////
-  // Getting interaction
-  //////////////////////////////////////////////////////////////////////////////////////////
-  //TODO make input 
-  std::string interaction_file="/Users/annamccoy/projects/spncci/data/trel_SU3_Nmax06.dat";
+  // // Getting interaction
+  // //////////////////////////////////////////////////////////////////////////////////////////
+  // //TODO make input 
+  // //std::string interaction_file="/Users/annamccoy/projects/spncci/data/trel_SU3_Nmax06.dat";
+  std::string interaction_file="/Users/annamccoy/projects/spncci/data/id_SU3_Nmax16.dat";
   std::ifstream interaction_stream(interaction_file.c_str());
   assert(interaction_stream);
   
   u3shell::RelativeRMEsU3ST interaction_rme_cache;
   u3shell::ReadRelativeOperatorU3ST(interaction_stream, interaction_rme_cache);
 
+  // for(auto it=interaction_rme_cache.begin(); it!=interaction_rme_cache.end(); ++it)
+  //   std::cout<<it->second<<std::endl;
 
+  std::vector<u3shell::IndexedOperatorLabelsU3S> operator_u3s_list;
+  u3shell::GetInteractionTensorsU3S(interaction_rme_cache,operator_u3s_list);
+
+  // Get U3S space 
+  spncci::SpaceU3S u3s_space(sp_irrep_vector);
+  // Storage for sectors, value gives sector index
+  
+  // spncci::SectorLabelsU3SCache u3s_sectors;
+  std::vector<spncci::SectorLabelsU3S> u3s_sector_vector;
+  // for(auto tensor : operator_u3s_list)
+  //   {
+  //     int kappa0, L0;
+  //     u3shell::OperatorLabelsU3S tensor_u3st;
+  //     std::tie(tensor_u3st,kappa0,L0)=tensor;
+  //     std::cout<<tensor_u3st.Str()<<"  "<<kappa0<<"  "<<L0<<std::endl;
+  //   }
+
+  spncci::GetSectorsU3S(u3s_space,operator_u3s_list,u3s_sector_vector);
+
+  //////////////////////////////////////////////////////////////////////////////////////////////
+  // Contracting
+  //////////////////////////////////////////////////////////////////////////////////////////////
+  basis::MatrixVector matrix_vector;
+
+  spncci::Contracting(Nmax, N1b,u3s_sector_vector,interaction_rme_cache,
+                      u3s_space,unit_tensor_sector_cache, matrix_vector);
+
+  std::cout<<"printing"<<std::endl;
+  for(int i=0; i<u3s_space.size(); ++i)
+    std::cout<<i<<"  "<<space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  for(int s=0; s<matrix_vector.size();  ++s)
+    {
+      if (not CheckIfZeroMatrix(matrix_vector[s], zero_threshold))
+      {
+        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+        std::cout<<matrix_vector[s]<<std::endl;
+      }
+    }
 }

@@ -128,6 +128,11 @@ namespace u3shell
   void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes);  
   void ReadRelativeOperatorU3ST(std::istream& is, RelativeRMEsU3ST& relative_rmes);
 
+  void GetInteractionTensorsU3S(
+      const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
+      std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
+    );
+
 }
 // 
 

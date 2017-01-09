@@ -7,7 +7,7 @@ $(eval $(begin-module))
 
 module_units_h := 
 module_units_cpp-h := tensor_labels relative_operator two_body_operator u3st_scheme
-module_units_cpp-h += u3spn_scheme
+module_units_cpp-h += u3spn_scheme two_body_branching
 module_units_cpp-h += import_interaction upcoupling unu3 unit_tensor_expansion
 
 # module_units_f := 

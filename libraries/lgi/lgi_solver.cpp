@@ -152,6 +152,7 @@ namespace lgi
     spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
+        
         int i=sectors.GetSector(s).bra_subspace_index();
         int j=sectors.GetSector(s).ket_subspace_index();
         // get transformation matrices and transpose bra transformation matrix
