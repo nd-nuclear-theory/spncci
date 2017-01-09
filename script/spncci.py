@@ -45,6 +45,8 @@ generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"s
 
 def generate_basis_table(task):
     """Create basis table.
+
+    Depends on model space file created by generate_lsu3shell_relative_operators.
     """
 
     print("{nuclide}".format(**task))
@@ -149,8 +151,8 @@ def task_handler_relative_tensor_rmes(task):
     """
 
     print(task)
-    generate_basis_table(task)
     generate_relative_operators(task)
+    generate_basis_table(task)
     relative_operator_basename_list = read_unit_tensor_list(task)
     recouple_operators(relative_operator_basename_list)
     calculate_rmes(relative_operator_basename_list)
