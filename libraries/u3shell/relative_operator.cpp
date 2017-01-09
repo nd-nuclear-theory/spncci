@@ -116,7 +116,7 @@ namespace u3shell {
     double rme=0;
     if (bra==ket)
       // 1.5 from the 3/2 zero point energy for a single particle
-      rme=ket.eta()+1.5;
+      rme=ket.eta();
     return rme;
   }
 

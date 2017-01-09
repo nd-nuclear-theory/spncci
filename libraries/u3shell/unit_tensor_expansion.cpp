@@ -110,6 +110,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
         {
           ket=u3shell::RelativeStateLabelsU3ST(N,S,T); 
 
+          // Brel term
           Np=N-2;
           rho_max=u3::OuterMultiplicity(u3::SU3(N,0), u3::SU3(2,0), u3::SU3(Np,0));
           if(rho_max==0)
@@ -120,6 +121,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           if (fabs(Brme)>zero_threshold)
             Trel_operator[relative_unit_tensor]+=Brme;
 
+          // Hrel term
           Np=N;
           rho_max=u3::OuterMultiplicity(u3::SU3(N,0), u3::SU3(0,0), u3::SU3(Np,0));
           if(rho_max==0)
@@ -130,6 +132,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           if (fabs(Nrme)>zero_threshold)
             Trel_operator[relative_unit_tensor]+=Nrme;
 
+          // Arel term
           Np=N+2;
           rho_max=u3::OuterMultiplicity(u3::SU3(N,0), u3::SU3(2,0), u3::SU3(Np,0));
           if(rho_max==0)

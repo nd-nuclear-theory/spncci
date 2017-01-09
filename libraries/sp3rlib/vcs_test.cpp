@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   	// std::cout<<K_matrix_map.begin()<<std::endl;
     for (auto it=K_matrix_map.begin(); it !=K_matrix_map.end(); ++it)
   		{
-  			std::cout <<it->first.Str()<<it->second<<std::endl;
+  			std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
   		}
 
 

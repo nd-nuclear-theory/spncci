@@ -356,6 +356,7 @@ namespace spncci
             int kappa0,L0; 
             u3shell::OperatorLabelsU3S op_labels;
             std::tie(op_labels, kappa0,L0)=tensor_labels;
+            assert(kappa0!=0);
             u3::U3S omegapSp(space.GetSubspace(i).GetSubspaceLabels());
             u3::U3S omegaS(space.GetSubspace(j).GetSubspaceLabels());
             int rho0_max=u3::OuterMultiplicity(omegaS.SU3(), op_labels.x0(),omegapSp.SU3());

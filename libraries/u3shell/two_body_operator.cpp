@@ -353,23 +353,65 @@ namespace u3shell {
       } 
   }
   
-
-  void WriteTwoBodyOperatorRecoupler(
-      std::ostream& output_stream,
-      const u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
-    )
-  {
+  void 
+  RegroupBiquadsForRecoupler(
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn,
+      std::map<u3shell::TwoBodyUnitTensorLabelsU3S,std::vector<CoefficientsPN>>&
+          biquad_coefficients_pn_recoupler
+      )
+    {
       for (const auto& key_value : biquad_coefficients_pn)
         {
           // extract unit tensor labels and coefficients
           const u3shell::TwoBodyUnitTensorLabelsU3S& biquad_labels= key_value.first;
           const CoefficientsPN& coefficients_pn = key_value.second;
-        
+          // if rho0=1, then group all biquads with same labels but different rho0
+          int rho0=biquad_labels.rho0();
+          if(rho0==1)
+            {
+              // extract unit tensor label groups
+              u3shell::OperatorLabelsU3S operator_labels(biquad_labels);
+              
+              const u3shell::TwoBodyStateLabelsU3S& bra=biquad_labels.bra();
+              const u3shell::TwoBodyStateLabelsU3S& ket=biquad_labels.ket();
+
+              const u3::SU3& x0=operator_labels.x0();
+              const u3::SU3& x=ket.x();
+              const u3::SU3& xp=bra.x();
+
+              int rho0_max=u3::OuterMultiplicity(x,x0,xp);
+              u3shell::TwoBodyUnitTensorLabelsU3S biquad_key(operator_labels,rho0_max,bra,ket);
+              biquad_coefficients_pn_recoupler[biquad_key].resize(rho0_max);
+              for(int rho0=1; rho0<=rho0_max; ++rho0)
+                {
+                  u3shell::TwoBodyUnitTensorLabelsU3S biquad_lookup(operator_labels,rho0,bra,ket);
+                  biquad_coefficients_pn_recoupler[biquad_key][rho0-1]=biquad_coefficients_pn[biquad_lookup];
+                }
+            }
+        }
+    }
+
+  void WriteTwoBodyOperatorRecoupler(
+      std::ostream& output_stream,
+      u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn
+    )
+  {
+      std::map<u3shell::TwoBodyUnitTensorLabelsU3S,std::vector<CoefficientsPN>>
+          biquad_coefficients_pn_recoupler;
+
+      u3shell::RegroupBiquadsForRecoupler(biquad_coefficients_pn,biquad_coefficients_pn_recoupler);
+
+      for (const auto& key_value : biquad_coefficients_pn_recoupler)
+        {
+          // extract unit tensor labels and coefficients
+          const u3shell::TwoBodyUnitTensorLabelsU3S& biquad_labels= key_value.first;
+          const std::vector<CoefficientsPN>& coefficient_vector=key_value.second;
+                  
           // extract unit tensor label groups
           u3shell::OperatorLabelsU3S::KeyType operator_labels_key;
-          int rho0;
+          int rho0_max;
           u3shell::TwoBodyStateLabelsU3S::KeyType bra_key, ket_key;
-          std::tie(operator_labels_key,rho0,bra_key,ket_key) = biquad_labels.Key();
+          std::tie(operator_labels_key,rho0_max,bra_key,ket_key) = biquad_labels.Key();
 
           // extract operator label groups
           //
@@ -390,37 +432,49 @@ namespace u3shell {
           int eta1, eta2;
           u3::SU3 x;
           HalfInt S;
-          std::tie(eta1,eta2,x,S) = ket_key;
-          if(
-              (fabs(coefficients_pn.pppp)>zero_threshold)
-              ||(fabs(coefficients_pn.nnnn)>zero_threshold)
-              ||(fabs(coefficients_pn.pnnp)>zero_threshold)
-            )
-          {
-            // label line
-            output_stream
-              << fmt::format(
-                  "{:d} {:d} {:d} {:d}   "
-                  "{:d} {:d} {:d} {:d}   "
-                  "{:d} {:d} {:d} {:d}   "
-                  "{:d} {:d} {:d} {:d}   ",
-                  eta1p,eta2p,eta2,eta1,
-                  1,xp.lambda(),xp.mu(),TwiceValue(Sp),
-                  1,x.mu(),x.lambda(),TwiceValue(S),
-                  rho0,x0.lambda(),x0.mu(),TwiceValue(S0)
-                )
-              << std::endl;
+          std::tie(eta1,eta2,x,S) = ket_key;  
 
-            // coefficient line
-            output_stream
-              << fmt::format(
-                  "{:+e} {:+e} {:+e}",
-                  coefficients_pn.pppp,
-                  coefficients_pn.nnnn,
-                  coefficients_pn.pnnp
+          // check that one of the coefficients is non-zero, may not be necessary
+          bool non_zero=false;
+          for(auto& coefficients_pn : coefficient_vector)
+          // const CoefficientsPN& coefficients_pn = 
+            {
+              if(
+                  (fabs(coefficients_pn.pppp)>zero_threshold)
+                  ||(fabs(coefficients_pn.nnnn)>zero_threshold)
+                  ||(fabs(coefficients_pn.pnnp)>zero_threshold)
                 )
-              << std::endl;
-          }
+                 
+                 { non_zero=true; break;}
+            }
+          if(non_zero)
+            {
+              // label line
+              output_stream
+                << fmt::format(
+                    "{:d} {:d} {:d} {:d}   "
+                    "{:d} {:d} {:d} {:d}   "
+                    "{:d} {:d} {:d} {:d}   "
+                    "{:d} {:d} {:d} {:d}   ",
+                    eta1p,eta2p,eta2,eta1,
+                    1,xp.lambda(),xp.mu(),TwiceValue(Sp),
+                    1,x.mu(),x.lambda(),TwiceValue(S),
+                    rho0_max,x0.lambda(),x0.mu(),TwiceValue(S0)
+                  )
+                << std::endl;
+              for(auto& coefficients_pn : coefficient_vector)
+                {
+                  // coefficient line
+                  output_stream
+                    << fmt::format(
+                        "{:+e} {:+e} {:+e}",
+                        coefficients_pn.pppp,
+                        coefficients_pn.nnnn,
+                        coefficients_pn.pnnp
+                      )
+                    << std::endl;
+                }
+            }
         }
   }
 

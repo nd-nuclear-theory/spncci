@@ -9,7 +9,8 @@
   Created by Anna E. McCoy on 3/9/16.   
  
   3/9/16 (aem): Created based on prototype vcs.py.
-
+  1/6/17 (aem): Changed phase convention for U3BosonCreation from
+                R->L to L->R.
 ****************************************************************/
 
 #ifndef VCS_H_

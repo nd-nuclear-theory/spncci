@@ -45,9 +45,9 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
 
 
-  if(argc<4)
+  if(argc<6)
     {
-      std::cout<<"Syntax: Protons Neutrons Nmax Nstep"<<std::endl;
+      std::cout<<"Syntax: Protons Neutrons Nmax Nstep N1B"<<std::endl;
       std::exit(1);
     }
   int Z=std::stoi(argv[1]);
@@ -88,13 +88,13 @@ int main(int argc, char **argv)
   std::string brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",A,Nmax);
   std::string brel_file_name=fmt::format("{}.recoupler",brel_file_name_base);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
-  u3shell::BrelRelativeUnitTensorExpansion(Nmin,2*(Nmax+N1B), Brel_operator);
+  u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Brel_operator, brel_file_name, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
-  std::string nintr_file_name_base=fmt::format("Nintr_{:02d}_Nmax{:02d}",A,Nmax);
+  std::string nintr_file_name_base=fmt::format("Nrel_{:02d}_Nmax{:02d}",A,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  u3shell::NintrRelativeUnitTensorExpansion(Nmin,2*(Nmax+N1B), Nrel_operator,A);
+  u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Nrel_operator,A);
   std::string nintr_file_name=fmt::format("{}.recoupler",nintr_file_name_base);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+A, Nrel_operator, nintr_file_name,un_u3_restrict);
 
