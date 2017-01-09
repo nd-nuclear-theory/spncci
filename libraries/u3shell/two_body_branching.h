@@ -11,7 +11,6 @@
 #ifndef TWO_BODY_BRANCHING_H_
 #define TWO_BODY_BRANCHING_H_
 
-#include "cppformat/format.h"
 #include "u3shell/tensor_labels.h"
 #include "moshinsky/moshinsky_xform.h"
 
