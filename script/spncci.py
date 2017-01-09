@@ -43,20 +43,6 @@ generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"s
 #     N1v (int): valence shell oscillator N
 
 
-def generate_basis_table(task):
-    """Create basis table.
-
-    Depends on model space file created by generate_lsu3shell_relative_operators.
-    """
-
-    print("{nuclide}".format(**task))
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nmax:02d}.dat".format(**task)
-    command_line=[su3basis_executable,model_space_filename,"lsu3shell_basis.dat"]
-    mcscript.call(
-        command_line,
-        mode=mcscript.call.serial
-    )
-
 def generate_relative_operators(task):
     """ Create recoupler input files.
     """
@@ -74,6 +60,32 @@ def generate_relative_operators(task):
         command_line,
         mode=mcscript.call.serial
     )
+
+def generate_basis_table(task):
+    """Create basis table.
+
+    Depends on model space file created by generate_lsu3shell_relative_operators.
+    """
+
+    print("{nuclide}".format(**task))
+    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nmax:02d}.dat".format(**task)
+    basis_listing_filename = "lsu3shell_basis.dat"
+
+    # TODO: restore when push updated code to lsu3shell
+    ##command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
+    ##mcscript.call(
+    ##    command_line,
+    ##    mode=mcscript.call.serial
+    ##)
+
+    command_line=[su3basis_executable,model_space_filename]
+    output=mcscript.call(
+        command_line,
+        mode=mcscript.call.serial
+    )
+    output_stream = open(basis_listing_filename,"w")
+    output_stream.write(output)
+    output_stream.close()
 
 def read_unit_tensor_list(task):
     """ Read list of unit tensor basenames.
