@@ -277,7 +277,7 @@ namespace spncci
     // iterate over U(3)xSU(2) irreps
     for(int i=0; i< sp_irrep_vector.size(); ++i)
       {
-        auto irrep=sp_irrep_vector[i].irrep;
+        auto& irrep=sp_irrep_vector[i].irrep;
         // extract U(3) spaces labeled by omega
         const sp3r::Sp3RSpace& space=irrep.Sp3RSpace();
         // if space contains omega and S
@@ -369,16 +369,19 @@ namespace spncci
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
                 spncci::SectorLabelsU3S sector(i,j,op_labels, kappa0,L0,rho0);
-                if(not u3s_sectors.count(sector))
-                  {
-                    u3s_sectors[sector]=u3s_sector_vector_index;
-                    ++u3s_sector_vector_index;
-                  }
+                // should not alread by a sector in map
+                // assert(not u3s_sectors.count(sector));
+                // if(not u3s_sectors.count(sector))
+                //   {
+                //     u3s_sectors[sector]=u3s_sector_vector_index;
+                //     ++u3s_sector_vector_index;
+                //   }
+                sector_vector.push_back(sector);
               }
           }
-    sector_vector.resize(u3s_sectors.size());
-    for(auto it=u3s_sectors.begin(); it!=u3s_sectors.end(); ++it)
-      sector_vector[it->second]=it->first;
+    // sector_vector.resize(u3s_sectors.size());
+    // for(auto it=u3s_sectors.begin(); it!=u3s_sectors.end(); ++it)
+    //   sector_vector[it->second]=it->first;
   }
 
   SubspaceLS::SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space)

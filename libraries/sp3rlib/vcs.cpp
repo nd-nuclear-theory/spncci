@@ -159,7 +159,7 @@ namespace vcs{
         stop==irrep.size();
       else
         stop=partition[p];
-      std::cout<<"start/stop"<<start<<"  "<<stop<<std::endl;
+      // std::cout<<"start/stop"<<start<<"  "<<stop<<std::endl;
       #pragma omp parallel
       {
         #pragma omp for 

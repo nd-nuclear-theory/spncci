@@ -10,6 +10,7 @@
   1/6/17 (aem) : Added contraction of unit tensors and interaction
 ****************************************************************/
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 #include <sys/resource.h>
 #include "cppformat/format.h"
@@ -78,6 +79,7 @@ namespace spncci
         if((r>Nmax+2*N1b)||(rp>Nmax+2*N1b))
           continue;
         // Iterate over U3 sectors and find target sectors
+        #pragma omp parallel for schedule(runtime)
         for(int s=0; s<sector_labels_vector.size(); ++s)
         {
           const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
@@ -111,7 +113,11 @@ namespace spncci
                 std::pair<int,int> lgi_pair(gammap,gamma);
                 std::pair<int,int> NnpNn(int(omegap.N()-sigmap.N()),int(omega.N()-sigma.N()));              
                 spncci::UnitTensorU3Sector unit_sector(omegap,omega,tensor_u3st,rho0);
-                // Get cache containing unit tensor sector              
+                // Get cache containing unit tensor sector 
+                if(not unit_tensor_sector_cache.count(lgi_pair))
+                  continue;
+                if(not unit_tensor_sector_cache[lgi_pair].count(NnpNn)) 
+                  continue;
                 spncci::UnitTensorSectorsCache& cache=unit_tensor_sector_cache[lgi_pair][NnpNn];
                 
                 //REMOVE : turn back on when finished debugging
@@ -119,8 +125,11 @@ namespace spncci
                 // if(not cache.count(unit_sector))
                   // for(auto t=cache.begin(); t!=cache.end(); ++t)
                     // std::cout<<t->first.Str()<<std::endl;
-                if(cache.count(unit_sector))
-                  matrix_vector[s].block(indexp,index,dimp,dim)+=interaction_rme*cache[unit_sector];
+                #pragma omp critical
+                {
+                  if(cache.count(unit_sector))
+                    matrix_vector[s].block(indexp,index,dimp,dim)+=interaction_rme*cache[unit_sector];
+                }
               }
         }
       }
@@ -130,14 +139,15 @@ namespace spncci
 
 int main(int argc, char **argv)
 {
-      //REMOVE 
-      int test=1;
+      //REMOVE
+      int testb=3;
+      int testk=3;
 
   u3::U3CoefInit();
   //unit tensor cache 
   u3::UCoefCache u_coef_cache;
 	u3::g_u_cache_enabled = true;
-  double zero_threshold=1e-10;
+  double zero_threshold=1e-6;
   // For GenerateRelativeUnitTensors
   // should be consistant with lsu3shell tensors
   int T0=0;
@@ -179,9 +189,9 @@ int main(int argc, char **argv)
   std::ifstream is_nrel(nrel_filename.c_str());
   lgi::LGIVector lgi_vector;
   basis::MatrixVector lgi_expansion_matrix_vector(space.size());
-  lgi::GenerateLGIExpansion(A,basis_table,space, is_brel,is_nrel,lgi_expansion_matrix_vector);
+  lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel,is_nrel,lgi_vector,lgi_expansion_matrix_vector);
   // Extract LGI labels and store in lgi_vector
-  lgi::GetLGILabels(Nsigma_0,space,lgi_expansion_matrix_vector, lgi_vector);
+  // lgi::GetLGILabels(Nsigma_0,space,lgi_expansion_matrix_vector, lgi_vector);
   int i=0;
   for(auto lgi_tagged : lgi_vector)
   {
@@ -189,22 +199,6 @@ int main(int argc, char **argv)
     ++i;
   }
 
-  // for(auto& matrix :lgi_expansion_matrix_vector)
-  //   {
-  //     for(int j=0; j<matrix.cols(); ++j)
-  //       {
-  //         double sum_squared=0;
-  //         for(int i=0; i<matrix.rows(); ++i)
-  //           {
-  //             double rme=matrix(i,j);
-  //             if(fabs(rme)>zero_threshold)
-  //               sum_squared+=rme*rme;
-  //           }
-  //         if(fabs(sum_squared)<zero_threshold)
-  //           continue;
-  //         matrix.block(0,j,matrix.rows(),1)*=1./sqrt(sum_squared);
-  //       }
-  //   }
   // Setting up the symplectic basis containers
   spncci::SigmaIrrepMap sigma_irrep_map;
   spncci::SpIrrepVector sp_irrep_vector;
@@ -216,15 +210,15 @@ int main(int argc, char **argv)
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> LGI_unit_tensor_labels;  
   std::cout<<"Nsigma0_ex_max "<<Nsigma0_ex_max<<std::endl;
   // -1 is all J0, T0=0 and false->don't restrict N0 to positive (temp)
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max, LGI_unit_tensor_labels,-1,0,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max+2*N1b, LGI_unit_tensor_labels,-1,0,false);
   // For each operator, transform from lsu3shell basis to spncci basis
   std::cout<<"Number of unit tensors "<<LGI_unit_tensor_labels.size()<<std::endl;
   
   for(int i=0; i<LGI_unit_tensor_labels.size(); ++i)
-  // for(int i=0; i<; ++i)
     {
       //Get unit tensor labels
       u3shell::RelativeUnitTensorLabelsU3ST unit_tensor(LGI_unit_tensor_labels[i]);
+      // std::cout<<"unit tensor "<<i<<"  "<<unit_tensor.Str()<<std::endl;
       u3shell::OperatorLabelsU3ST operator_labels(unit_tensor);
       // Generate sectors from labels
       u3shell::SectorsU3SPN sectors(space,operator_labels,false);
@@ -236,10 +230,10 @@ int main(int argc, char **argv)
           std::cout<<fmt::format("relative_unit_{:06d}.rme not found",i)<<std::endl;
           continue;
         }
+
       // Read in operator from file
       // std::cout<<fmt::format("Transforming relative_unit_{:06d}.rme",i)<<std::endl;
       // std::cout<< LGI_unit_tensor_labels[i].Str()<<std::endl;
-
       // std::cout<<"  Reading in rmes"<<std::endl;
       basis::MatrixVector lsu3shell_operator_matrices(sectors.size());
       lsu3shell::ReadLSU3ShellRMEs(
@@ -249,6 +243,9 @@ int main(int argc, char **argv)
 
       // Basis transformation for each sector
       // std::cout<<"  Transforming"<<std::endl;
+
+      // for(auto matrix : lsu3shell_operator_matrices)
+      //   std::cout<<matrix<<std::endl<<std::endl;
 
       basis::MatrixVector spncci_operator_matrices;
       lgi::TransformOperatorToSpBasis(
@@ -263,51 +260,50 @@ int main(int argc, char **argv)
       // Populate unit tensor map with sectors
       // std::cout<<"Populating lgi sectors"<<std::endl;
       std::pair<int,int> N0_pair(0,0);
-      // REMOVE
-      // for(int s=0; s<3; ++s)
 
       for(int s=0; s<sectors.size(); ++s)
         {
-          
           int i=sectors.GetSector(s).bra_subspace_index();
           int j=sectors.GetSector(s).ket_subspace_index();
-          //REMOVE
-          if(i!=test || j!=test)
-            continue;
           int rho0=sectors.GetSector(s).multiplicity_index();
           std::pair<int,int>sp_irrep_pair(i,j);
           u3::U3 sigmap=sp_irrep_vector[i].irrep.sigma();
           u3::U3 sigma=sp_irrep_vector[j].irrep.sigma();
           spncci::UnitTensorU3Sector u3_sector(sigmap,sigma,unit_tensor,rho0);
-          unit_tensor_sector_cache[sp_irrep_pair][N0_pair][u3_sector]
-              =spncci_operator_matrices[s];
+          if(not CheckIfZeroMatrix(spncci_operator_matrices[s],zero_threshold))
+            unit_tensor_sector_cache[sp_irrep_pair][N0_pair][u3_sector]
+                =spncci_operator_matrices[s];
           // std::cout<<i<<"  "<<j<<std::endl;
           // std::cout<<spncci_operator_matrices[s]<<std::endl;
         }
     }
 
-  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
-    {
-      std::cout<<"Irreps "<<it->first.first<<" and "<<it->first.second<<std::endl;
-    }
+  // for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
+  //   {
+  //     std::cout<<"Irreps "<<it->first.first<<" and "<<it->first.second<<std::endl;
+  //   }
 
-  std::cout<<"traversing the map"<<std::endl;
-  auto it_ending=unit_tensor_sector_cache.begin();
-  for(int i=0; i<unit_tensor_sector_cache.size(); ++i) 
-    it_ending++;
-  for(auto it=unit_tensor_sector_cache.begin(); it!=it_ending; ++it)
-    {
-      std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-      for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
-        {
-          std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-          for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
-            {
-              std::cout<<it3->first.Str()<<std::endl;
-              std::cout<<it3->second<<std::endl;
-            }
-        }
-  }
+  // std::cout<<"traversing the map"<<std::endl;
+  // auto it_ending=unit_tensor_sector_cache.begin();
+  // for(int i=0; i<unit_tensor_sector_cache.size(); ++i) 
+  //   it_ending++;
+
+  // for(auto it=unit_tensor_sector_cache.begin(); it!=it_ending; ++it)
+  //   {
+  //     // if((it->first.first!=2)||(it->first.second!=5))
+  //     //   continue;
+  //     std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+
+  //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+  //       {
+  //         std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+  //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+  //           {
+  //             std::cout<<it3->first.Str()<<std::endl;
+  //             std::cout<<it3->second<<std::endl;
+  //           }
+  //       }
+  //   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
   //Precomputing Kmatrices 
@@ -322,7 +318,7 @@ int main(int argc, char **argv)
     {
       vcs::MatrixCache& k_map=k_matrix_map[s];
       // int Nex=int(s.N()-Nsigma_0);
-      // vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], Nmax-Nex, k_map);
+      // vcs::GenerateKMatricesOpenMP(sigma_irrep_map[s], k_map);
       vcs::GenerateKMatrices(sigma_irrep_map[s], k_map);
 
       // std::cout<<"kmap "<<s.Str()<<std::endl;
@@ -330,54 +326,93 @@ int main(int argc, char **argv)
       //   std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
     }
 
-  // //////////////////////////////////////////////////////////////////////////////////////////
-  // // Computing unit tensor sectors
-  // //////////////////////////////////////////////////////////////////////////////////////////
-  // if(Nmax!=0)
-  // {
-  //   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
-  //   // if true, unit tensors restricted to N0>=0
-  //   // Nrel_max=Nmax+2N1b
-  //   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_tensor_labels, J0, T0, false);
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Computing unit tensor sectors
+  //////////////////////////////////////////////////////////////////////////////////////////
+  if(Nmax!=0)
+  {
+    std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
+    // if true, unit tensors restricted to N0>=0
+    // Nrel_max=Nmax+2N1b
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_tensor_labels, J0, T0, false);
 
-  //   //REMOVE
-  //   // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
-  //   auto it_end=unit_tensor_sector_cache.begin();
-  //   for(int a=0; a<3; a++)
-  //     ++it_end;
+    //REMOVE
+    // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
+    // auto it_end=unit_tensor_sector_cache.begin();
+    // for(int a=0; a<3; a++)
+    //   ++it_end;
 
-  //   // for(auto it=unit_tensor_sector_cache.begin(); it!=it_end; ++it)
-  //   for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
-  //   {
-  //     //REMOVE
-  //     if(it->first.first!=test || it->first.second!=test)
-  //       continue;
-  //     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
-  //       unit_tensor_NpN_sector_map;
+    // for(auto it=unit_tensor_sector_cache.begin(); it!=it_end; ++it)
+    int t=0;
+    double sum_time=0;
+    double max_time=0;
+    int size_max=0;
+    double min_time=9999;
+    int size_min=0;
+    int count_zero=0;
 
-  //     // std::cout<<"Getting sector labes"<<std::endl;
-  //     spncci::GenerateUnitTensorU3SectorLabels(
-  //       N1b,Nmax,it->first,sp_irrep_vector,
-  //       unit_tensor_labels,unit_tensor_NpN_sector_map);
+    for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
+    {
+      
+      clock_t start_time=std::clock();
+      // // //REMOVE
+      // if(it->first.first>testb || it->first.second>testk)
+      //   continue;
+      // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
+      //   unit_tensor_NpN_sector_map;
 
-  //     spncci::GenerateUnitTensorMatrix(
-  //       N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
-  //       // unit_tensor_NpN_sector_map,
-  //       unit_tensor_labels,
-  //       unit_tensor_sector_cache);
-  //   }
-  // }
-  // // REMOVE
+      // // std::cout<<"Getting sector labes"<<std::endl;
+      // spncci::GenerateUnitTensorU3SectorLabels(
+      //   N1b,Nmax,it->first,sp_irrep_vector,
+      //   unit_tensor_labels,unit_tensor_NpN_sector_map);
+
+      spncci::GenerateUnitTensorMatrix(
+        N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
+        // unit_tensor_NpN_sector_map,
+        unit_tensor_labels,
+        unit_tensor_sector_cache);
+      //Timing data
+      double duration=(std::clock()-start_time)/(double) CLOCKS_PER_SEC;
+      if(duration<1e-10)
+        count_zero++;
+      else
+      {
+        t++;
+        sum_time+=duration;
+        if(duration>max_time)
+        {
+          max_time=duration;
+          std::pair<int,int> N0_pair(0,0);
+          size_max=unit_tensor_sector_cache[it->first][N0_pair].size();
+
+        }
+        if(duration<min_time)
+        {
+          min_time=duration;
+          std::pair<int,int> N0_pair(0,0);
+          size_min=unit_tensor_sector_cache[it->first][N0_pair].size();
+        }
+      }
+
+    }
+    std::cout<<"average time per lgi pair "<<(sum_time/t)<<std::endl;
+    std::cout<<"max time per lgi pair "<<max_time<<std::endl;
+    std::cout<<"number of lgi sectors "<<size_max<<std::endl<<std::endl;
+    std::cout<<"min time per lgi pair "<<min_time<<std::endl;
+    std::cout<<"number of lgi sectors "<<size_min<<std::endl<<std::endl;
+    std::cout<<"nothing to compute "<<count_zero<<std::endl;
+  }
+  // REMOVE
   // auto it_stop=unit_tensor_sector_cache.begin();
   // int all=unit_tensor_sector_cache.size();
   // for(int a=0; a<all; ++a)
   //   ++it_stop;
   
   // std::cout<<"traversing the map"<<std::endl;
-  // for(auto it=unit_tensor_sector_cache.begin(); it!=it_stop; ++it)
+  // for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
   //   {
-  //     if(it->first.first!=it->first.second)
-  //       continue;
+  //     // if((it->first.first!=2)||(it->first.second!=5))
+  //     //   continue;
   //     std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
   //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
   //       {
@@ -395,7 +430,7 @@ int main(int argc, char **argv)
   // //////////////////////////////////////////////////////////////////////////////////////////
   // //TODO make input 
   // //std::string interaction_file="/Users/annamccoy/projects/spncci/data/trel_SU3_Nmax06.dat";
-  std::string interaction_file="/Users/annamccoy/projects/spncci/data/id_SU3_Nmax16.dat";
+  std::string interaction_file="id_SU3_Nmax16.dat";
   std::ifstream interaction_stream(interaction_file.c_str());
   assert(interaction_stream);
   
@@ -432,15 +467,16 @@ int main(int argc, char **argv)
   spncci::Contracting(Nmax, N1b,u3s_sector_vector,interaction_rme_cache,
                       u3s_space,unit_tensor_sector_cache, matrix_vector);
 
-  std::cout<<"printing"<<std::endl;
-  for(int i=0; i<u3s_space.size(); ++i)
-    std::cout<<i<<"  "<<space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
-  for(int s=0; s<matrix_vector.size();  ++s)
-    {
-      if (not CheckIfZeroMatrix(matrix_vector[s], zero_threshold))
-      {
-        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
-        std::cout<<matrix_vector[s]<<std::endl;
-      }
-    }
+  // ZeroOutMatrix(matrix_vector,1e-6);
+  // std::cout<<"printing"<<std::endl;
+  // for(int i=0; i<u3s_space.size(); ++i)
+  //   std::cout<<i<<"  "<<space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  // for(int s=0; s<matrix_vector.size();  ++s)
+  //   {
+  //     if (not CheckIfZeroMatrix(matrix_vector[s], zero_threshold))
+  //     {
+  //       std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+  //       std::cout<<matrix_vector[s]<<std::endl;
+  //     }
+  //   }
 }

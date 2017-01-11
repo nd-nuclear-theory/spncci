@@ -46,10 +46,12 @@ namespace lgi
     void 
   GenerateLGIExpansion(
     int A,
+    HalfInt Nsigma_0,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
     const u3shell::SpaceU3SPN& space, 
     std::ifstream& is_brel,
     std::ifstream& is_nrel,
+    lgi::LGIVector& lgi_vector,
     basis::MatrixVector& lgi_expansion_matrix_vector  
   );
   // Generates the LGI Expansion in terms of lsu3shell SU(3)xSU(2) 
@@ -76,15 +78,15 @@ namespace lgi
   );
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 
-  void GetLGILabels(
-      HalfInt Nsigma_0,
-      const u3shell::SpaceU3SPN& space, 
-      const basis::MatrixVector& lgi_expansion_matrix_vector,
-      lgi::LGIVector& lgi_vector
-      );
-  // Accumlate LGI labels with counts into lgi_vector
-  // For each count, Nex twice_N lambda mu twice_Sp twice_Sn twice_S
-  // is added to vector.
+  // void GetLGILabels(
+  //     HalfInt Nsigma_0,
+  //     const u3shell::SpaceU3SPN& space, 
+  //     const basis::MatrixVector& lgi_expansion_matrix_vector,
+  //     lgi::LGIVector& lgi_vector
+  //     );
+  // // Accumlate LGI labels with counts into lgi_vector
+  // // For each count, Nex twice_N lambda mu twice_Sp twice_Sn twice_S
+  // // is added to vector.
 
 
   void

@@ -17,6 +17,7 @@
 #define UTILITIES_H_
 #include "gsl/gsl_sf.h"
 #include "eigen3/Eigen/Eigen"
+#include "basis/operator.h"
 
 // extern double zero_threshold;
 
@@ -86,6 +87,15 @@ inline bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix, double zero_thresho
       return true;
     }
 
-
+inline void ZeroOutMatrix(basis::MatrixVector& matrix_vector,double threshold)
+  {
+    for(auto& matrix : matrix_vector)
+      for(int i=0; i<matrix.rows(); ++i)
+        for(int j=0; j<matrix.cols(); ++j)
+          {
+            if(fabs(matrix(i,j))<threshold)
+              matrix(i,j)=0;
+          }
+  }
 
 #endif

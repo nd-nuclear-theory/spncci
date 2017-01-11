@@ -67,7 +67,9 @@ def generate_unit_tensors():
         str(Z),
         str(N),
         str(Nmax),
-        str(Nstep)
+        str(Nstep),
+        str(start),
+        str(stop)
     ]
     utils.call(command_line)
 
@@ -157,7 +159,8 @@ def check_rmes():
 # command line parameters
 Nmax = int(sys.argv[1])
 Nstep = int(sys.argv[2])
-
+start = int(sys.argv[3])
+stop= int(sys.argv[4])
 generate_unit_tensors()
 two_body_operator_basename_list = read_unit_tensor_list()
 recouple_unit_tensors(two_body_operator_basename_list)

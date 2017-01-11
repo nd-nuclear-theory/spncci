@@ -8,9 +8,9 @@
 #include <fstream>
 
 #include "cppformat/format.h"
-
+#include <eigen3/Eigen/QR>
 #include "lgi/lgi_solver.h"
-
+#include "utilities/utilities.h"
 extern double zero_threshold;
 
 namespace lgi
@@ -105,10 +105,12 @@ namespace lgi
   //TODO: combine with GetLGILabels
   void GenerateLGIExpansion(
       int A,
+      HalfInt Nsigma_0,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
+      lgi::LGIVector& lgi_vector,
       basis::MatrixVector& lgi_expansion_matrix_vector      
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
@@ -135,12 +137,26 @@ namespace lgi
             lu_decomp.setThreshold(threshold);
             null=lu_decomp.kernel();
           }
-        lgi_expansion_matrix_vector[i]=null;
-        // std::cout<<null<<std::endl;
-        // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
+        
+        // null space has non-zero vectors, write to file    
+        if(CheckIfZeroMatrix(null))
+            continue;
+        u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+        int Nex=int(labels.N()-Nsigma_0);
+        int count=null.cols();
+        lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
+
+        // Do QR decomposition of null to get orthogonal expansion vectors
+        Eigen::FullPivHouseholderQR<Eigen::MatrixXd> qr(null);
+        qr.setThreshold(threshold);
+        lgi_expansion_matrix_vector[i]=qr.matrixQ().block(0,0,null.rows(),null.cols());
+        // std::cout<<null<<std::endl<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
+        // std::cout<<null.cols()<<"  "<<lgi_expansion_matrix_vector[i].cols()<<std::endl;
+        assert(null.cols()==lgi_expansion_matrix_vector[i].cols());
+
       }
-    // Normalizing columns 
-    for(auto& matrix :lgi_expansion_matrix_vector)
+    // Normalizing and zeroing out lgi expansion vectors
+    for(auto& matrix : lgi_expansion_matrix_vector)
       {
         for(int j=0; j<matrix.cols(); ++j)
           {
@@ -148,14 +164,17 @@ namespace lgi
             for(int i=0; i<matrix.rows(); ++i)
               {
                 double rme=matrix(i,j);
-                if(fabs(rme)>zero_threshold)
+                if(fabs(rme)>threshold)
                   sum_squared+=rme*rme;
               }
-            if(fabs(sum_squared)<zero_threshold)
+            if(fabs(sum_squared)<threshold)
               continue;
             matrix.block(0,j,matrix.rows(),1)*=1./sqrt(sum_squared);
           }
       }
+    // ZeroOutMatrix(lgi_expansion_matrix_vector,threshold);
+
+
   }
   void
   TransformOperatorToSpBasis(
@@ -169,7 +188,6 @@ namespace lgi
     spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
-        
         int i=sectors.GetSector(s).bra_subspace_index();
         int j=sectors.GetSector(s).ket_subspace_index();
         // get transformation matrices and transpose bra transformation matrix
@@ -180,64 +198,40 @@ namespace lgi
       }
   }
 
-  bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix)
-    {
-      int rows=matrix.rows();
-      int cols=matrix.cols();
-      for(int j=0; j<cols; ++j)
-        for(int i=0; i<rows; ++i)
-          {
-            if(fabs(matrix(i,j))>zero_threshold)
-                return false;
-          }
-      return true;
-    }
+  // bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix)
+  //   {
+  //     int rows=matrix.rows();
+  //     int cols=matrix.cols();
+  //     for(int j=0; j<cols; ++j)
+  //       for(int i=0; i<rows; ++i)
+  //         {
+  //           if(fabs(matrix(i,j))>zero_threshold)
+  //               return false;
+  //         }
+  //     return true;
+  //   }
+  
 
-  // void WriteLGILabels(
+  // void GetLGILabels(
   //     HalfInt Nsigma_0,
   //     const u3shell::SpaceU3SPN& space, 
   //     const basis::MatrixVector& lgi_expansion_matrix_vector,
-  //     std::ofstream& os 
+  //     lgi::LGIVector& lgi_vector
   //     )
   //   {
-  //     std::cout<<"Writing to file"<<std::endl;
   //     // For each space, if corresponding null space has non-zero vectors, write to file 
   //     for(int i=0; i<space.size(); ++i)
   //       {
   //         const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
-  //         // std::cout<<matrix<<std::endl;
   //         if(CheckIfZeroMatrix(matrix))
   //           continue;
   //         u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
   //         int Nex=int(labels.N()-Nsigma_0);
   //         int count=matrix.cols();
-  //         os << fmt::format("{}  {}  {}  {}  {}  {}  {}  {}",
-  //           Nex,TwiceValue(labels.N()),labels.SU3().lambda(),labels.SU3().mu(),
-  //           TwiceValue(labels.Sp()), TwiceValue(labels.Sn()),TwiceValue(labels.S()),count)
-  //         <<std::endl;
+  //         // for(int i=1; i<=count; ++i)
+  //         lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
   //       }
   //   }     
-
-  void GetLGILabels(
-      HalfInt Nsigma_0,
-      const u3shell::SpaceU3SPN& space, 
-      const basis::MatrixVector& lgi_expansion_matrix_vector,
-      lgi::LGIVector& lgi_vector
-      )
-    {
-      // For each space, if corresponding null space has non-zero vectors, write to file 
-      for(int i=0; i<space.size(); ++i)
-        {
-          const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
-          if(CheckIfZeroMatrix(matrix))
-            continue;
-          u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
-          int Nex=int(labels.N()-Nsigma_0);
-          int count=matrix.cols();
-          // for(int i=1; i<=count; ++i)
-          lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
-        }
-    }     
 
   void 
   WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
@@ -251,8 +245,10 @@ namespace lgi
         std::tie(Nex,sigma,Sp,Sn,S)=lgi_count.irrep.Key();
         int count=lgi_count.tag;
         os
-          <<Nex<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
-          <<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()<<"  "<<count<<std::endl;     
+          <<Nex
+          <<"  "<<TwiceValue(sigma.N())<<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()
+          <<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
+          <<"  "<<count<<std::endl;     
       }
     }
 

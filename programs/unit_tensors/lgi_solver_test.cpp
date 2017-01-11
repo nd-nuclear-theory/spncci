@@ -13,7 +13,7 @@
 #include "lgi/lgi_solver.h"
 #include "lsu3shell/lsu3shell_basis.h"
 #include "u3shell/unit_tensor_expansion.h"
-
+#include "utilities/utilities.h"
 
 int CountBasisIrreps(const u3shell::SpaceU3SPN& space)
 {
@@ -91,27 +91,16 @@ void NullSpaceCheck(
   std::cout<<"Total rank : "<<total_rank<<"   Total null : "<<total_null<<std::endl<<std::endl;
 }
 
-// void IdentityCheck(
-//         const u3shell::SpaceU3SPN& space, 
-//         const u3shell::SectorsU3SPN& sectors,
-//         const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
-//         basis::MatrixVector& lsu3shell_operator_matrices,
-//         basis::MatrixVector& matrix_vector
-//       )
-// {
-//   for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
-//     {
-      
-//       int i=sectors.GetSector(s).bra_subspace_index();
-//       int j=sectors.GetSector(s).ket_subspace_index();
-//       const auto& subspace_bra=space.GetSubspace(i);
-//       const auto& subspace_ket=space.GetSubspace(j);
-//       const u3shell::U3SPN& bra_labels=subspace_bra.GetSubspaceLabels();
-//       const u3shell::U3SPN& ket_labels=subspace_ket.GetSubspaceLabels();
-//       const u3shell::OperatorLabelsU3ST& operator_labels=sectors.GetSector(s).operator_labels();
-//       std::cout<<bra_labels.Str()<<std::endl;
-
-// }
+// void ZeroOutMatrix(basis::MatrixVector& matrix_vector,double threshold)
+//   {
+//     for(auto& matrix : matrix_vector)
+//       for(int i=0; i<matrix.rows(); ++i)
+//         for(int j=0; j<matrix.cols(); ++j)
+//           {
+//             if(fabs(matrix(i,j))<threshold)
+//               matrix(i,j)=0;
+//           }
+//   }
 
 
 int main(int argc, char **argv)
@@ -160,17 +149,18 @@ int main(int argc, char **argv)
   std::ifstream is_nrel2(nrel_filename.c_str());
   std::ifstream is_brel2(brel_filename.c_str());
 
-  lgi::GenerateLGIExpansion(A,basis_table,space, is_brel2,
-  	is_nrel2,lgi_expansion_matrix_vector);
+  lgi::LGIVector lgi_vector;
+  lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel2,
+  	is_nrel2,lgi_vector,lgi_expansion_matrix_vector);
   is_nrel.close();
   is_brel.close();
 
+  ZeroOutMatrix(lgi_expansion_matrix_vector,1e-5);
   // for(auto matrix: lgi_expansion_matrix_vector)
   // 	std::cout<<matrix<<std::endl<<std::endl;
 
   std::ofstream os("LGI_file.dat");
-  lgi::LGIVector lgi_vector;
-  lgi::GetLGILabels(Nsigma_0,space,lgi_expansion_matrix_vector, lgi_vector);
+  // lgi::GetLGILabels(Nsigma_0,space,lgi_expansion_matrix_vector, lgi_vector);
   lgi::WriteLGILabels(lgi_vector,os);
   os.close();
 
@@ -198,9 +188,9 @@ int main(int argc, char **argv)
       basis::MatrixVector spncci_operator_matrices;
       // std::cout<<"reading in"<<std::endl;
       lsu3shell::ReadLSU3ShellRMEs(is_operator,operator_labels, basis_table,space, sectors,lsu3shell_operator_matrices);
-      for(auto matrix : lsu3shell_operator_matrices)
-        std::cout<<matrix<<std::endl<<std::endl;
-      std::cout<<"transforming"<<std::endl;
+      // for(auto matrix : lsu3shell_operator_matrices)
+      //   std::cout<<matrix<<std::endl<<std::endl;
+      // std::cout<<"transforming"<<std::endl;
       lgi::TransformOperatorToSpBasis(sectors,lgi_expansion_matrix_vector,lsu3shell_operator_matrices,spncci_operator_matrices);
       // for(auto matrix : spncci_operator_matrices)
       //   std::cout<<matrix<<std::endl<<std::endl;
@@ -225,8 +215,11 @@ int main(int argc, char **argv)
 
     lgi::TransformOperatorToSpBasis(id_sectors,lgi_expansion_matrix_vector,id_lsu3shell,id_spncci);
 
+    ZeroOutMatrix(id_spncci,1e-5);
 
     std::cout<<"spncci"<<std::endl;
     for(auto sp_matrix : id_spncci)
       std::cout<<sp_matrix<<std::endl<<std::endl;
+
+
 }

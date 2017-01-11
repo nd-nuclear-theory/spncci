@@ -22,19 +22,23 @@
 
 int main(int argc, char **argv)
 {
+  if(argc<5)
+    std::cout<<"Syntax: Z  N  Nmax  N1B"<<std::endl;
   u3::U3CoefInit();
 
   int Z=std::stoi(argv[1]);
   int N=std::stoi(argv[2]);
   int Nmax=std::stoi(argv[3]);
+  int N1B=std::stoi(argv[4]);
 
   bool un_u3_restrict=false;
   if(((N==2)&&(Z==0))||((N==0)&&(Z==2)))
     un_u3_restrict=true;
-  std::string trel_file_name_base=fmt::format("Trel_{:02d}_Nmax{:02d}",A,Nmax);
+  std::string trel_file_name_base=fmt::format("Krel2_{:02d}_Nmax{:02d}",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Trel_operator;
-  u3shell::TrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Trel_operator,A);
-
+  u3shell::TrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Trel_operator,N+Z);
+  // for(auto it=Trel_operator.begin(); it!=Trel_operator.end(); ++it)
+  //   std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
   std::string trel_file_name=fmt::format("{}.recoupler",trel_file_name_base);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Trel_operator, trel_file_name,un_u3_restrict);
 

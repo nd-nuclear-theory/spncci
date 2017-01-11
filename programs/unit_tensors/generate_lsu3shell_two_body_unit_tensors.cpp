@@ -38,9 +38,9 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
 
   // process arguments
-  if(argc<4)
+  if(argc<7)
     {
-      std::cout<<"Syntax: Protons Neutrons Nmin Nmax "<<std::endl;
+      std::cout<<"Syntax: Protons Neutrons Nmax Nstep start stop "<<std::endl;
       std::exit(EXIT_FAILURE);
     }
   int Z=std::stoi(argv[1]);
@@ -48,6 +48,8 @@ int main(int argc, char **argv)
   int Nmax=std::stoi(argv[3]);
   // will be either 1 or 2; 
   int Nstep=std::stoi(argv[4]);
+  int start=std::stoi(argv[5]);
+  int stop=std::stoi(argv[6]);
   assert((1<=Nstep)&&(Nstep<=2));
 
   // set up unit tensor model space space
@@ -63,7 +65,9 @@ int main(int argc, char **argv)
   std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> two_body_unit_tensor_labels;
   u3shell::GenerateTwoBodyUnitTensorLabelsU3ST(Nmax, two_body_unit_tensor_labels);
   int num_unit=two_body_unit_tensor_labels.size();
-  for(int i=0; i<num_unit; ++i)
+
+  // for(int i=0; i<num_unit; ++i)  
+  for(int i=start; i<std::min(stop,num_unit); ++i)
     {
       u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
       two_body_unit_tensor_coefficients[two_body_unit_tensor_labels[i]]=1;
@@ -72,6 +76,6 @@ int main(int argc, char **argv)
 
   // write operator listing file
   std::ofstream control_stream("two_body_operators.dat");
-  for(int i=0; i<num_unit; ++i)
+  for(int i=start; i<std::min(stop,num_unit); ++i)
     control_stream<<fmt::format("two_body_unit_{:06d}",i)<<std::endl;
 }

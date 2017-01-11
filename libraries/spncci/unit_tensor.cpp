@@ -116,7 +116,7 @@ namespace spncci
                 {
                   u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();
                   // Iterating over the operator labels             
-                  for (auto unit_tensor : N0_operator_set)
+                  for (auto& unit_tensor : N0_operator_set)
                     {                     
                       // std::cout<<"unit tensor"<<std::endl;
                       //unpack unit_tensor labels 
@@ -228,7 +228,7 @@ namespace spncci
     Eigen::MatrixXd unit_tensor_matrix=Eigen::MatrixXd::Zero(dimp*multp,dim*mult);
 
     // summing over omega1
-    for (auto omega1_tagged : omega1_set)
+    for (auto& omega1_tagged : omega1_set)
       {	
         u3::U3 omega1(omega1_tagged.irrep);			
         //check that omega1 in irrep  
@@ -270,16 +270,16 @@ namespace spncci
         Eigen::MatrixXd KBUK(dim1,dim);
         KBUK.noalias()=K1*BU*K_inv;
 
-        std::cout<<"KBUK "<<KBUK<<std::endl;
+        // std::cout<<"KBUK "<<KBUK<<std::endl;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         //summing over x0'
-        for (auto x0p_tagged :x0p_set)
+        for (auto& x0p_tagged : x0p_set)
           {
             u3::SU3 x0p(x0p_tagged.irrep);
             Eigen::MatrixXd unit_matrix_x0=Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
 
-            std::cout<<"x0 "<<x0p.Str()<<std::endl;
+            // std::cout<<"x0 "<<x0p.Str()<<std::endl;
             int rho0p_max=OuterMultiplicity(omega1.SU3(),x0p,omegap.SU3());
   				  // std::cout<<omega1.Str()<<"  "<<x0p.Str()<<"  "<<rho0p_max<<"  "<<rho0_max<<std::endl;
             // summing over rho0'
@@ -288,26 +288,26 @@ namespace spncci
                 double coef=0;
                 for(int rho0b=1; rho0b<=rho0_max; rho0b++)
                   {
-                  //(2,0)xx0->x0p(by construction), 
-                  //(2,0)xomega1->omega (by construction),
-                  // x0xomega->omegap, (rho0_max)
-                  //omega1xx0p->omegap (rho0p_max)
-                  // std::cout<<"rhos "<<rho0p<<"  "<<rho0b<<std::endl;
+                    //(2,0)xx0->x0p(by construction), 
+                    //(2,0)xomega1->omega (by construction),
+                    // x0xomega->omegap, (rho0_max)
+                    //omega1xx0p->omegap (rho0p_max)
+                    // std::cout<<"rhos "<<rho0p<<"  "<<rho0b<<std::endl;
                   
-                  // std::cout<<"coef sum"<< omega1.Str()<<"  "
-                  // <<u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0b)<<std::endl;
-                  coef+=u3::Phi(omega.SU3(),x0,omegap.SU3(),rho0,rho0b)
+                    // std::cout<<"coef sum"<< omega1.Str()<<"  "
+                    // <<u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0b)<<std::endl;
+                    coef+=u3::Phi(omega.SU3(),x0,omegap.SU3(),rho0,rho0b)
                          *u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0b);
                   }
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // third term
                 // sum over omega'', v'' and rho0''
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 //Initilize 3rd-term-unit-tensor matrix
                 Eigen::MatrixXd unit3_matrix=Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
 
                 // Summing over omega''
-                for ( auto omegapp_tagged : omegapp_set)
+                for (auto& omegapp_tagged : omegapp_set)
                   {
                     // A matrix will annihilate bra
                     if(Nnp==0)
@@ -354,8 +354,8 @@ namespace spncci
                               boson_matrix(vp,vpp)=0;
                           } //end vp
                       } //end vpp
-                    std::cout<<"boson matrix pieces"<<std::endl;
-                    std::cout<<Kp<<"  "<<boson_matrix<<"  "<<Kpp_inv<<std::endl;
+                    // std::cout<<"boson matrix pieces"<<std::endl;
+                    // std::cout<<Kp<<"  "<<boson_matrix<<"  "<<Kpp_inv<<std::endl;
                     Eigen::MatrixXd A=Kp*boson_matrix*Kpp_inv;
                     // Unit tensor matrix 
                     Eigen::MatrixXd unit3pp_matrix=Eigen::MatrixXd::Zero(dimpp*multp,dim1*mult);
@@ -378,8 +378,9 @@ namespace spncci
 
                         // Retriving unit tensor matrix 
                         spncci::UnitTensorU3Sector unit3_labels(omegapp,omega1,tensor,rho0pp);
-                        assert(sector_NpN4.count(unit3_labels)>0);
-                        unit3pp_matrix+=coef3*sector_NpN4[unit3_labels];
+                        if(sector_NpN4.count(unit3_labels)>0)
+                        // assert(sector_NpN4.count(unit3_labels)>0);
+                          unit3pp_matrix+=coef3*sector_NpN4[unit3_labels];
                       } //end rho0pp
                     // matrix product (v',v'')*(v'',v1)
 
@@ -394,14 +395,14 @@ namespace spncci
                           int js=j*dim1;
 
                           unit3_matrix.block(it,jt,dimp,dim1)+=A*unit3pp_matrix.block(is,js,dimpp,dim1);
-                          std::cout<<A<<"  "<<unit3pp_matrix<<std::endl;
+                          // std::cout<<A<<"  "<<unit3pp_matrix<<std::endl;
                         }
                         // unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
                   } // end omegapp
                 // std::cout<<"unit3_matrix "<<unit3_matrix<<std::endl;
                 unit_matrix_x0+=unit3_matrix;
-                std::cout<<"term 3  "<<unit_matrix_x0<<std::endl;							
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // std::cout<<"term 3  "<<unit_matrix_x0<<std::endl;							
+                // //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 //first term 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 if(u3::OuterMultiplicity(u3::SU3(rbp,0),u3::SU3(0,rb-2),x0p)>0)
@@ -436,8 +437,9 @@ namespace spncci
                   unit_matrix_x0+=coef1*unit1_matrix;
                   // std::cout<< "unit 1  "<<unit1_matrix<<std::endl;
 
-                }               
-                std::cout<< "term 1  "<<unit_matrix_x0<<std::endl;
+                } 
+                // if(omp_get_thread_num()==7)
+                  // std::cout<< "term 1  "<<unit_matrix_x0<<std::endl;
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // second term 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -472,12 +474,12 @@ namespace spncci
                     // accumulate term 2 sectors in unit matrix sector
                     unit_matrix_x0+=coef2*unit2_matrix;
                   }
-                  std::cout<<"term 2  "<<unit_matrix_x0<<std::endl;
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // std::cout<<"term 2  "<<unit_matrix_x0<<std::endl;
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 unit_matrix+=coef*unit_matrix_x0;
               } //end rho0p
           } //end sum over x0p
-          std::cout<<"unit matrix "<<unit_matrix<<std::endl;
+          // std::cout<<"unit matrix "<<unit_matrix<<std::endl;
         // summing over n, rho, n1, rho1, v1
         for(int i=0; i<multp; ++i)
           for(int j=0; j<mult; ++j)
@@ -554,7 +556,7 @@ GenerateNpNSector(
     for (int i=0; i<unit_U3Sector_vector.size(); i++)
       {
         const spncci::UnitTensorU3Sector& unit_tensor_u3_sector=unit_U3Sector_vector[i];
-        std::cout<<"unit u3 sector "<<unit_tensor_u3_sector.Str()<<std::endl;
+        // std::cout<<"unit u3 sector "<<unit_tensor_u3_sector.Str()<<std::endl;
 
         Eigen::MatrixXd temp_matrix
           =spncci::UnitTensorMatrix(
@@ -565,6 +567,7 @@ GenerateNpNSector(
         // std::cout<<temp_matrix<<std::endl;
         // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
         // if (temp_matrix.any())
+        
         if (not CheckIfZeroMatrix(temp_matrix, zero_threshold))
             u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,temp_matrix));
       }
@@ -629,8 +632,8 @@ GenerateNpNSector(
       sp_irrep_vector[sp_irrep_pair.first].tag,
       sp_irrep_vector[sp_irrep_pair.second].tag
       );
-    std::cout<<sp_irrep_vector[sp_irrep_pair.first].irrep.Str()<<"  "<< sp_irrep_vector[sp_irrep_pair.second].irrep.Str()<<std::endl;
-    std::cout<<lgi_multiplicities.first<<"  "<<lgi_multiplicities.second<<std::endl;
+    // std::cout<<sp_irrep_vector[sp_irrep_pair.first].irrep.Str()<<"  "<< sp_irrep_vector[sp_irrep_pair.second].irrep.Str()<<std::endl;
+    // std::cout<<lgi_multiplicities.first<<"  "<<lgi_multiplicities.second<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
     // Looping over NpN subspaces 
     ////////////////////////////////////////////////////////////////////////////////////    
