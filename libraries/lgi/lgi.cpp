@@ -57,7 +57,7 @@ namespace lgi
         ParsingCheck(line_stream, line_count, line);
         // conversions
         HalfInt Nsigma = HalfInt(twice_N,2);
-        std::cout<<fmt::format("{} {} {}", Nsigma, lambda,mu)<<std::endl;
+        // std::cout<<fmt::format("{} {} {}", Nsigma, lambda,mu)<<std::endl;
         // assert(Nsigma == Nsigma_0 + Nex);
         u3::U3 sigma(Nsigma,u3::SU3(lambda,mu));
         HalfInt Sp = HalfInt(twice_Sp,2);
