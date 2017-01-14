@@ -246,12 +246,15 @@ namespace u3
       // retrieve from cache
       {
         const u3::UCoefLabels labels(x1,x2,x,x3,x12,x23);
-        if (cache.count(labels)==0)
-          {
-            #pragma omp critical
-            cache[labels]=u3::UCoefBlock(labels);
+        // cache.count(labels);
+        #pragma omp critical
+          {// std::cout<<"thread number "<<omp_get_thread_num()<<std::endl;
+            if (cache.count(labels)==0)
+              {
+                // #pragma omp critical
+                cache[labels]=u3::UCoefBlock(labels);
+              }
           }
-        
         const u3::UCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(r12,r12_3,r23,r1_23);
       }
