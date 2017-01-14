@@ -300,7 +300,7 @@ int main(int argc, char **argv)
   //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
   //           {
   //             std::cout<<it3->first.Str()<<std::endl;
-  //             std::cout<<it3->second<<std::endl;
+  //             // std::cout<<it3->second<<std::endl;
   //           }
   //       }
   //   }
@@ -343,64 +343,64 @@ int main(int argc, char **argv)
     //   ++it_end;
 
     // for(auto it=unit_tensor_sector_cache.begin(); it!=it_end; ++it)
-    int t=0;
-    double sum_time=0;
-    double max_time=0;
-    int size_max=0;
-    double min_time=9999;
-    int size_min=0;
-    int count_zero=0;
+
+    // std::tuple<accumulated time, std::vector<lgi_pairs>,std::vector<num non-zero unit tensors>>
+    std::map<int,double> timing_map;
+    std::map<int,std::vector<std::pair<int,int>>> lgi_distribution;
+    std::map<int,std::vector<int>>  sector_count_map;
+    std::map<int,std::vector<double>> individual_times;
+    std::map<int,u3::UCoefCache> u_cache_map;
+    std::pair<int,int> N0_pair(0,0);
+    int num_nodes=20;
+    int counter=0; 
+    for(int n=0; n<num_nodes; ++n)
+      timing_map[n]=0;
 
     for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
     {
-      
       clock_t start_time=std::clock();
-      // // //REMOVE
-      // if(it->first.first>testb || it->first.second>testk)
-      //   continue;
-      // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
-      //   unit_tensor_NpN_sector_map;
 
-      // // std::cout<<"Getting sector labes"<<std::endl;
-      // spncci::GenerateUnitTensorU3SectorLabels(
-      //   N1b,Nmax,it->first,sp_irrep_vector,
-      //   unit_tensor_labels,unit_tensor_NpN_sector_map);
-
-      spncci::GenerateUnitTensorMatrix(
-        N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
-        // unit_tensor_NpN_sector_map,
-        unit_tensor_labels,
-        unit_tensor_sector_cache);
+      // spncci::GenerateUnitTensorMatrix(
+      //   N1b,Nmax,it->first,sp_irrep_vector,u_coef_cache,k_matrix_map,
+      //   unit_tensor_labels,unit_tensor_sector_cache);
+      int node=counter%num_nodes;
+      assert(node<num_nodes);
       //Timing data
-      double duration=(std::clock()-start_time)/(double) CLOCKS_PER_SEC;
-      if(duration<1e-10)
-        count_zero++;
-      else
-      {
-        t++;
-        sum_time+=duration;
-        if(duration>max_time)
-        {
-          max_time=duration;
-          std::pair<int,int> N0_pair(0,0);
-          size_max=unit_tensor_sector_cache[it->first][N0_pair].size();
+      spncci::GenerateUnitTensorMatrix(
+        N1b,Nmax,it->first,sp_irrep_vector,u_cache_map[node],k_matrix_map,
+        unit_tensor_labels,unit_tensor_sector_cache);
 
-        }
-        if(duration<min_time)
-        {
-          min_time=duration;
-          std::pair<int,int> N0_pair(0,0);
-          size_min=unit_tensor_sector_cache[it->first][N0_pair].size();
-        }
-      }
+      double duration=(std::clock()-start_time)/(double) CLOCKS_PER_SEC;
+      int num_sector=unit_tensor_sector_cache[it->first][N0_pair].size();
+
+      timing_map[node]+=duration;
+      individual_times[node].push_back(duration);
+      lgi_distribution[node].push_back(it->first);
+      sector_count_map[node].push_back(num_sector);
+      counter++;
 
     }
-    std::cout<<"average time per lgi pair "<<(sum_time/t)<<std::endl;
-    std::cout<<"max time per lgi pair "<<max_time<<std::endl;
-    std::cout<<"number of lgi sectors "<<size_max<<std::endl<<std::endl;
-    std::cout<<"min time per lgi pair "<<min_time<<std::endl;
-    std::cout<<"number of lgi sectors "<<size_min<<std::endl<<std::endl;
-    std::cout<<"nothing to compute "<<count_zero<<std::endl;
+    std::cout<<"individual pairs"<<std::endl;
+    for(int n=0; n<num_nodes; ++n)
+      {
+        std::cout<<"node"<<n<<std::endl;
+        int i_stop=lgi_distribution[n].size();
+        for(int i=0; i<i_stop; ++i)
+          {
+            std::cout<<lgi_distribution[n][i].first<<" "<<lgi_distribution[n][i].second<<"  "
+            <<sector_count_map[n][i]<<"  "<<individual_times[n][i]<<std::endl;
+          }
+        std::cout<<"  "<<std::endl;
+
+      }
+
+    std::cout<<"summarizing"<<std::endl;
+    for(int n=0; n<num_nodes; ++n)
+      {
+        std::cout<<"node "<<n<<std::endl;
+        std::cout<<" time "<<timing_map[n]<<std::endl;
+        std::cout<<" U cache size "<<u_cache_map[n].size()<<std::endl;
+      } 
   }
   // REMOVE
   // auto it_stop=unit_tensor_sector_cache.begin();
