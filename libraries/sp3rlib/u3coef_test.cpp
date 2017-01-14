@@ -504,6 +504,68 @@ UTest(
 }
 
 
+void phi_caching_test()
+// Test use of caching wrapper for U coefficients
+{
+  std::vector<u3::PhiCoefLabels> label_set;
+
+  for(int lambda1=1; lambda1<3; ++lambda1)
+    for(int mu1=1; mu1<3; ++mu1)
+      for(int lambda2=1; lambda2<4; ++lambda2)
+        for(int mu2=1; mu2<4; ++mu2)
+          {
+            u3::SU3 x1(lambda1,mu1);
+            u3::SU3 x2(lambda2,mu2);
+            MultiplicityTagged<u3::SU3>::vector x3_set=u3::KroneckerProduct(x1,x2);
+            for(auto x3_tagged : x3_set)
+              {
+                u3::PhiCoefLabels labels(x1,x2,x3_tagged.irrep);
+                label_set.push_back(labels);
+              }
+          }
+  // cache coefficients
+  std::cout << "Caching coefficients" << std::endl;
+  u3::PhiCoefCache phi_coef_cache;
+  for (const u3::PhiCoefLabels& labels : label_set)
+    {
+      if ((phi_coef_cache.size()%100)==0)
+        std::cout << "  cache size " << phi_coef_cache.size() << "..." << std::endl;
+      phi_coef_cache[labels] = u3::PhiCoefBlock(labels);
+    }
+  std::cout << "  cached " << phi_coef_cache.size() << std::endl;
+
+  // retrieve labels and compare with on-the-fly values
+  std::cout << "Checking cached values" << std::endl;
+  for (const u3::PhiCoefLabels& labels : label_set)
+    {
+      // retrieve labels
+      u3::SU3 x1, x2, x3;
+      std::tie(x1,x2,x3) = labels.Key();
+      // retrieve coefficient block
+      // const u3::PhiCoefBlock& block = phi_coef_cache[labels];
+
+      int rho_max=u3::OuterMultiplicity(x1,x2,x3);
+      for(int rho1=1; rho1<=rho_max; ++rho1)
+        for(int rho2=1; rho2<=rho_max; ++rho2)
+          {
+
+            double coef_direct = u3::Phi(x1,x2,x3,rho1,rho2);
+            double coef_cached = u3::PhiCached(phi_coef_cache,x1,x2,x3,rho1,rho2);
+            bool compare_ok = (coef_direct == coef_cached);
+            if (!compare_ok)
+              std::cout << " " << coef_direct << " " << coef_cached << " " << compare_ok << std::endl;
+
+          }
+    }
+  std::cout << "Done." << std::endl;
+
+}
+
+
+
+
+
+
 
 int main(int argc, char **argv)
 {
@@ -552,8 +614,8 @@ int main(int argc, char **argv)
   // TestWSymmetries(lm_max);
   
   //test orthogonality of W coefficients 
-  TestOrthogonalityW(lm_min,lm_max, mu_min,mu_max);
-
+  //TestOrthogonalityW(lm_min,lm_max, mu_min,mu_max);
+  phi_caching_test();
   // caching_W_test();
 
   // for(int q1=0; q1<=20; ++q1)

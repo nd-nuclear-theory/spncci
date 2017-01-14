@@ -197,29 +197,22 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // hashing
     ////////////////////////////////////////////////////////////////
+    inline friend bool operator == (const UCoefLabels& coef1, const UCoefLabels& coef2)
+    {
+      return coef1.Key() == coef2.Key();
+    }
+
+    inline friend bool operator < (const UCoefLabels& coef1, const UCoefLabels& coef2)
+    {
+      return coef1.Key() < coef2.Key();
+    }
 
     inline friend std::size_t hash_value(UCoefLabels const& ucoef_labels)
     {
-      // 6 labels all of SU3 type
-      // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
-      // SU3 hash_value defined in sp3rlib/u3.h
-      #ifdef NAIVEHASH
-      // naive implementation: sum hashes together
-      std::size_t ulab1 = hash_value(ucoef_labels.x1_);
-      std::size_t ulab2 = hash_value(ucoef_labels.x2_);
-      std::size_t ulab3 = hash_value(ucoef_labels.x_);
-      std::size_t ulab4 = hash_value(ucoef_labels.x3_);
-      std::size_t ulab5 = hash_value(ucoef_labels.x12_);
-      std::size_t ulab6 = hash_value(ucoef_labels.x23_);
-      std::size_t ulabsum = 0;
-      return ulabsum = ulab1 + ulab2 + ulab3 + ulab4 +ulab5 + ulab6;
-      #endif
-
-      #ifdef BOOSTHASH
-        boost::hash<UCoefLabels::KeyType> hasher;
-        return hasher(ucoef_labels.Key());
-      #endif
+      boost::hash<UCoefLabels::KeyType> hasher;
+      return hasher(ucoef_labels.Key());
     }
+
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
@@ -236,15 +229,6 @@ namespace u3
 
   };
 
-  inline bool operator == (const UCoefLabels& coef1, const UCoefLabels& coef2)
-  {
-    return coef1.Key() == coef2.Key();
-  }
-
-  inline bool operator < (const UCoefLabels& coef1, const UCoefLabels& coef2)
-  {
-    return coef1.Key() < coef2.Key();
-  }
 
   class UCoefBlock
   // Class to store and retrieve block of U coefficients sharing same
@@ -381,29 +365,20 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // hashing
     ////////////////////////////////////////////////////////////////
+    inline friend bool operator == (const WCoefLabels& coef1, const WCoefLabels& coef2)
+    {
+      return coef1.Key() == coef2.Key();
+    }
+
+    inline friend bool operator < (const WCoefLabels& coef1, const WCoefLabels& coef2)
+    {
+      return coef1.Key() < coef2.Key();
+    }
 
     inline friend std::size_t hash_value(WCoefLabels const& wcoef_labels)
     {
-      // 6 labels all of SU3 type
-      // SU3 type and size: ints lambda and mu in sp3rlib/u3.h
-      // SU3 hash_value defined in sp3rlib/u3.h
-
-      #ifdef NAIVEHASH
-      // naive implementation: sum hashes together
-        std::size_t wlabsum = 0;
-        std::size_t wlab1 = hash_value(wcoef_labels.x1_);
-        std::size_t wlab2 = hash_value(wcoef_labels.x2_);
-        std::size_t wlab3 = hash_value(wcoef_labels.x3_);
-        std::size_t wlab4 = hash_value(wcoef_labels.L1_);
-        std::size_t wlab5 = hash_value(wcoef_labels.L2_);
-        std::size_t wlab6 = hash_value(wcoef_labels.L3_);
-        return wlabsum = wlab1 + wlab2 + wlab3 + wlab4 +wlab5 + wlab6;
-      #endif
-
-      #ifdef BOOSTHASH
-        boost::hash<WCoefLabels::KeyType> hasher;
-        return hasher(wcoef_labels.Key());
-      #endif
+      boost::hash<WCoefLabels::KeyType> hasher;
+      return hasher(wcoef_labels.Key());
     }
     ////////////////////////////////////////////////////////////////
     // string conversion
@@ -421,15 +396,6 @@ namespace u3
     int L1_, L2_, L3_;
   };
 
-  inline bool operator == (const WCoefLabels& coef1, const WCoefLabels& coef2)
-  {
-    return coef1.Key() == coef2.Key();
-  }
-
-  inline bool operator < (const WCoefLabels& coef1, const WCoefLabels& coef2)
-  {
-    return coef1.Key() < coef2.Key();
-  }
 
   class WCoefBlock
   // Class to store and retrieve block of U coefficients sharing same
@@ -528,6 +494,144 @@ namespace u3
   //   (double): single coefficient value
 
   void WBlockCached(WCoefCache& cache, const u3::WCoefLabels& labels);
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+  class PhiCoefLabels
+  // Class to gather and provide hashing for U coefficient labels
+  {
+  public:
+
+    ////////////////////////////////////////////////////////////////
+    // type definitions
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<u3::SU3,u3::SU3,u3::SU3> KeyType;
+    // tuple of SU(3) and SO(3) labels
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    inline PhiCoefLabels(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
+      :x1_(x1), x2_(x2), x3_(x3){}
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+ 
+    inline KeyType Key() const
+    {
+      return KeyType(x1_, x2_, x3_);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+    inline friend bool operator == (const PhiCoefLabels& coef1, const PhiCoefLabels& coef2)
+    {
+      return coef1.Key() == coef2.Key();
+    }
+
+    inline friend bool operator < (const PhiCoefLabels& coef1, const PhiCoefLabels& coef2)
+    {
+      return coef1.Key() < coef2.Key();
+    }
+
+    inline friend std::size_t hash_value(PhiCoefLabels const& coef_labels)
+    {
+      boost::hash<PhiCoefLabels::KeyType> hasher;
+      return hasher(coef_labels.Key());
+    }
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+  
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+  private:
+    // Operator labels
+    u3::SU3 x1_, x2_, x3_;
+  };
+
+
+  class PhiCoefBlock
+  // Class to store and retrieve block of Phi coefficients sharing same
+  // SU(3) labels but with different multiplicity indices
+  //
+  {
+  public:
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    inline PhiCoefBlock()
+    :rho_max_(0){}
+    // Construct and store multiplicites and coefficient values
+
+    PhiCoefBlock(const u3::PhiCoefLabels& labels);
+ 
+    ////////////////////////////////////////////////////////////////
+    // entry lookup
+    ////////////////////////////////////////////////////////////////
+
+    double GetCoef(int rho1, int rho2) const;
+
+    inline std::vector<double> GetCoefBlock() const
+    {
+      return cache_;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+  
+    std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+  private:
+    // multiplicities
+    int rho_max_;
+   
+    // coefficient values
+    std::vector<double> cache_;
+  };
+
+  typedef std::unordered_map<
+    u3::PhiCoefLabels,
+    u3::PhiCoefBlock,
+    boost::hash<u3::PhiCoefLabels> 
+    > PhiCoefCache;
+
+  double PhiCached(
+                 PhiCoefCache& cache, 
+                 const u3::SU3& x1, const u3::SU3& x2, 
+                 const u3::SU3& x3, int rho1, int rho2);
+  // Cached Phi coefficient. 
+  //
+  // Global:
+  //
+  //   u3::g_u_cache_enabled (bool): mode flag determining whether to
+  //     use caching or calculate on the fly (for debugging and
+  //     profiling)
+  //
+  // Arguments:
+  //   cache (WCoefCache): cache to use for W coefficients
+  //   x1,x2,x3 ...: standard W coefficient SU(3) and multiplicity labels
+  //
+  // Returns;
+  //   (double): single coefficient value
+
 
 
 } //namespace 

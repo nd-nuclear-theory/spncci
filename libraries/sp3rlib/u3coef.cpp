@@ -363,4 +363,74 @@ namespace u3
       }
   }
 
+  std::string PhiCoefLabels::Str() const
+  {
+    std::ostringstream ss;
+
+    ss << "[" << x1_.Str()<< x2_.Str() << x3_.Str() << "]";
+    return ss.str();
+  }
+
+
+  PhiCoefBlock::PhiCoefBlock(const u3::PhiCoefLabels& labels)
+  {
+    // calculate multiplicities
+    u3::SU3 x1,x2,x3;
+    std::tie(x1,x2,x3) = labels.Key();
+    rho_max_=u3::OuterMultiplicity(x1,x2,x3);
+    // zero initialize array
+    int rho_dummy=1;
+    int dim=rho_max_*rho_max_;
+    cache_.resize(dim);
+    su3lib::wzu3optimized_(
+     x1.lambda(), x1.mu(), 0, 0, x3.lambda(), x3.mu(), x2.lambda(), x2.mu(), 
+     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(),rho_dummy, rho_max_, rho_dummy, rho_max_, 
+     &cache_[0], dim
+     );
+  }
+
+  double PhiCoefBlock::GetCoef(int rho1, int rho2) const
+  {
+    // validate multiplicity indices
+    assert((rho1 <= rho_max_)&&(rho2<=rho_max_));
+    
+    int index = (rho2-1);
+    index = index * rho_max_ + (rho1-1);
+    // retrieve entry
+    double value = cache_[index];
+
+    return value;
+  }
+
+  double PhiCached(
+         u3::PhiCoefCache& cache, 
+         const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho1, int rho2 
+        )
+  {
+    double value;
+    if (g_u_cache_enabled)
+      // retrieve from cache
+      {
+        const u3::PhiCoefLabels labels(x1,x2,x3);
+        if (cache.count(labels)==0)
+          {
+            #pragma omp critical
+            cache[labels]=u3::PhiCoefBlock(labels);
+          }
+        
+        const u3::PhiCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
+        value = block.GetCoef(rho1, rho2);
+      }
+    else
+      // calculate on the fly
+      {
+        value = u3::Phi(x1,x2,x3,rho1,rho2);
+      }
+
+    return value;
+  }
+
+
+
+
 } // namespace 
