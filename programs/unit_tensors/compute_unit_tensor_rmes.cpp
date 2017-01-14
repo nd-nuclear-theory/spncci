@@ -146,6 +146,8 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   //unit tensor cache 
   u3::UCoefCache u_coef_cache;
+  u3::PhiCoefCache phi_coef_cache;
+
 	u3::g_u_cache_enabled = true;
   double zero_threshold=1e-6;
   // For GenerateRelativeUnitTensors
@@ -367,7 +369,7 @@ int main(int argc, char **argv)
       assert(node<num_nodes);
       //Timing data
       spncci::GenerateUnitTensorMatrix(
-        N1b,Nmax,it->first,sp_irrep_vector,u_cache_map[node],k_matrix_map,
+        N1b,Nmax,it->first,sp_irrep_vector,u_cache_map[node], phi_coef_cache,k_matrix_map,
         unit_tensor_labels,unit_tensor_sector_cache);
 
       double duration=(std::clock()-start_time)/(double) CLOCKS_PER_SEC;

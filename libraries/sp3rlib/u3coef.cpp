@@ -339,12 +339,11 @@ namespace u3
       {
         const u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
         // std::cout<<fmt::format("{}  {} {} {} {}",labels.Str(),kappa1,kappa2,kappa3,rho)<<std::endl;
-        if (cache.count(labels)==0)
-          {
-            #pragma omp critical
-            cache[labels]=u3::WCoefBlock(labels);
-          }
-        
+        #pragma omp critical
+        {
+          if (cache.count(labels)==0)
+            cache[labels]=u3::WCoefBlock(labels);          
+        }
         const u3::WCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(kappa1, kappa2, kappa3, rho);
       }
@@ -415,11 +414,11 @@ namespace u3
       // retrieve from cache
       {
         const u3::PhiCoefLabels labels(x1,x2,x3);
-        if (cache.count(labels)==0)
-          {
-            #pragma omp critical
+        #pragma omp critical
+        {
+          if (cache.count(labels)==0)            
             cache[labels]=u3::PhiCoefBlock(labels);
-          }
+        }
         
         const u3::PhiCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(rho1, rho2);

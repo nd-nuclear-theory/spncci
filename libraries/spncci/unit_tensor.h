@@ -157,6 +157,7 @@ GenerateUnitTensorMatrix(
   std::pair<int,int> sp_irrep_pair,
   const spncci::SpIrrepVector& sp_irrep_vector,
   u3::UCoefCache& u_coef_cache,
+  u3::PhiCoefCache& phi_coef_cache,
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
   std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
   std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >>& 

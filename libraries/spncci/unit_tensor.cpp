@@ -161,6 +161,7 @@ namespace spncci
   Eigen::MatrixXd 
     UnitTensorMatrix(
     u3::UCoefCache& u_coef_cache,
+    u3::PhiCoefCache& phi_coef_cache,
     std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
      // SpIrrep pair sector 
     const spncci::SpIrrep& sp_irrepp,
@@ -296,7 +297,7 @@ namespace spncci
                   
                     // std::cout<<"coef sum"<< omega1.Str()<<"  "
                     // <<u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0b)<<std::endl;
-                    coef+=u3::Phi(omega.SU3(),x0,omegap.SU3(),rho0,rho0b)
+                    coef+=u3::PhiCached(phi_coef_cache,omega.SU3(),x0,omegap.SU3(),rho0,rho0b)
                          *u3::UCached(u_coef_cache,x0,u3::SU3(2,0),omegap.SU3(), omega1.SU3(),x0p,1,rho0p,omega.SU3(),1,rho0b);
                   }
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -370,7 +371,7 @@ namespace spncci
                           // x0x(2,0)->x0p (construction)
                           // omegappx(2,0)->omegap (construction)
                           // omegaxx0p->omegap
-                            coef3+=u3::Phi(x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
+                            coef3+=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
                                         *u3::UCached(u_coef_cache,
                                           omega1.SU3(),x0,omegap.SU3(),u3::SU3(2,0),
                                           omegapp.SU3(),rho0pp,1,x0p,1,rho0bp
@@ -427,7 +428,7 @@ namespace spncci
                       // Accumulate
                       // std::cout<<"unit 1 labels "<<unit1_labels.Str()<<"  "<<sector_NpN2.count(unit1_labels)<<std::endl;
                       if (sector_NpN2.count(unit1_labels)!=0)  
-                          unit1_matrix+=u3::Phi(x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)*sector_NpN2[unit1_labels];
+                          unit1_matrix+=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)*sector_NpN2[unit1_labels];
                     } //end rho0bp
 
                   // accumulate term 1 sectors in unit matrix sector
@@ -466,7 +467,7 @@ namespace spncci
                         {
                           // std::cout<<"unit2"<<std::endl<<unit2_matrix<<std::endl;
                           // std::cout<<"sector2"<<std::endl<<sector_NpN2[unit2_labels]<<std::endl;
-                          unit2_matrix+=u3::Phi(x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)*sector_NpN2[unit2_labels];
+                          unit2_matrix+=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)*sector_NpN2[unit2_labels];
 
                         }
                       }
@@ -517,6 +518,7 @@ GenerateNpNSector(
   const spncci::SpIrrep& sp_irrep,
   const std::pair<int,int>& lgi_multiplicities,
   u3::UCoefCache& u_coef_cache,
+  u3::PhiCoefCache& phi_coef_cache,
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
   std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
   std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector> >& unit_tensor_NpN_sector_map
@@ -560,7 +562,7 @@ GenerateNpNSector(
 
         Eigen::MatrixXd temp_matrix
           =spncci::UnitTensorMatrix(
-            u_coef_cache,k_matrix_map,sp_irrepp,sp_irrep, lgi_multiplicities,
+            u_coef_cache,phi_coef_cache,k_matrix_map,sp_irrepp,sp_irrep, lgi_multiplicities,
             sector_NpN2,sector_NpN4,unit_tensor_u3_sector
             );
         // std::cout<<"temp_matrix"<<std::endl;
@@ -601,6 +603,7 @@ GenerateNpNSector(
     std::pair<int,int> sp_irrep_pair,
     const spncci::SpIrrepVector& sp_irrep_vector,
     u3::UCoefCache& u_coef_cache,
+    u3::PhiCoefCache& phi_coef_cache,
     std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
     // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
     std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
@@ -668,7 +671,7 @@ GenerateNpNSector(
         std::pair<int,int> NpN_pair(0,Nn);
         spncci::GenerateNpNSector(
             NpN_pair,sp_irrep,sp_irrepp,lgi_mult_conj,
-            u_coef_cache, k_matrix_map,
+            u_coef_cache, phi_coef_cache, k_matrix_map,
             unit_tensor_rme_map_conj,unit_tensor_NpN_sector_map_conj
             ); 
       }
@@ -730,7 +733,7 @@ GenerateNpNSector(
           std::pair<int,int> NpN_pair(Nnp,Nn);              
           GenerateNpNSector(
             NpN_pair,sp_irrepp,sp_irrep,lgi_multiplicities,
-            u_coef_cache, k_matrix_map,
+            u_coef_cache, phi_coef_cache,k_matrix_map,
             unit_tensor_rme_map,unit_tensor_NpN_sector_map
             ); 
           // diagnostic output

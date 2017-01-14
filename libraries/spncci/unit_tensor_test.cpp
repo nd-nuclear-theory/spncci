@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 
   //unit tensor cache 
   u3::UCoefCache u_coef_cache;
+  u3::PhiCoefCache phi_coef_cache;
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3> >  k_matrix_map;
   spncci::SpIrrepVector sp_irrep_vector;
   // general diagnostics
@@ -171,22 +172,10 @@ int main(int argc, char **argv)
         continue;
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Generating the rme's of the unit tensor for each SpIrrep
-      // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
-      // std::cout<<"Getting sector labes"<<std::endl;
-      // GenerateUnitTensorU3SectorLabels(
-      //   N1b,Nmax,sp_irrep_pair,sp_irrep_vector,
-      //   unit_sym_map,unit_tensor_NpN_sector_map);
-      // for(auto it=unit_tensor_NpN_sector_map.begin(); it!=unit_tensor_NpN_sector_map.end(); ++it)
-      //   {
-      //     std::cout<<"N0 "<<it->first<<std::endl;
-      //     for(auto tensor : it->second)
-      //       std::cout<<tensor.Str()<<std::endl;
-      //   }
-
       std::cout<<"Generating unit tensor sectors"<<std::endl;
       spncci::GenerateUnitTensorMatrix(
-        N1b,Nmax,sp_irrep_pair,sp_irrep_vector,u_coef_cache,k_matrix_map,
-        //unit_tensor_NpN_sector_map,
+        N1b,Nmax,sp_irrep_pair,sp_irrep_vector,
+        u_coef_cache,phi_coef_cache,k_matrix_map,
         unit_sym_map,
         sp_irrep_unit_tensor_rme_map);
 
