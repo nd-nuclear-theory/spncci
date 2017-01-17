@@ -26,7 +26,7 @@ namespace u3shell
   void BrelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
         u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator, int A)
   {
-    for(int N=Nmin; N<=Nmax; N+=2)
+    for(int N=Nmin; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
         for(int T=0; T<=1; ++T)
           if((N+S+T)%2==1)
@@ -48,7 +48,7 @@ namespace u3shell
 void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
       u3shell::RelativeUnitTensorCoefficientsU3ST& Arel_operator, int A)
   {
-    for(int N=Nmin; N<=Nmax; N+=2)
+    for(int N=Nmin; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
         for(int T=0; T<=1; ++T)
           if((N+S+T)%2==1)
@@ -79,7 +79,7 @@ void RaisingPolynomialRelativeUnitTensorExpansion(const u3::U3& n0, int Nmin, in
     // for(auto n0 : raising_polynomials)
     for(int S=0; S<=1; ++S)
       for(int T=0; T<=1; ++T)
-        for(int N=Nmin; N<=Nmax; N+=2)
+        for(int N=Nmin; N<=Nmax; N++)
           {
             int Np=int(N+n0.N());
             // Check parity constraint on bra and ket

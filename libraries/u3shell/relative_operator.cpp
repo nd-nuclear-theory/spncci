@@ -148,7 +148,7 @@ namespace u3shell {
     sp3r::BCoefCache& bcoef_cache
     )
   {
-    if(n0==u3::U3(0,0,0))
+    if((n0==u3::U3(0,0,0))&&(bra==ket))
       return 1.0;
 
     double rme=0;
