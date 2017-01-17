@@ -14,6 +14,7 @@
 #ifndef RELATIVE_OPERATOR_H_
 #define RELATIVE_OPERATOR_H_
 
+#include "sp3rlib/sp3r.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/two_body_operator.h"
 #include "u3shell/u3st_scheme.h"
@@ -86,6 +87,13 @@ namespace u3shell
   double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
   double RelativeSp3rRaisingOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+
+  double RelativeSp3rRaisingPolynomial(
+    const u3::U3& n0, 
+    const u3shell::RelativeStateLabelsU3ST& bra, 
+    const u3shell::RelativeStateLabelsU3ST& ket, 
+    sp3r::BCoefCache& bcoef_cache
+    );
 
   double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 

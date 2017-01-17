@@ -31,6 +31,15 @@ namespace u3shell
 		int A=2
 	);
   // kappa0 and L0 index labels are just dummy labels since we aren't branching
+  void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
+        u3shell::RelativeUnitTensorCoefficientsU3ST& Arel_operator, int A);
+
+
+  void RaisingPolynomialRelativeUnitTensorExpansion(
+        const u3::U3& n0, int Nmin, int Nmax, 
+        u3shell::RelativeUnitTensorCoefficientsU3ST& Prel_operator, int A
+      );
+
 
   void 
   NintrRelativeUnitTensorExpansion(

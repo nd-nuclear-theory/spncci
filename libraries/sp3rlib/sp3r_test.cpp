@@ -9,12 +9,12 @@
 ****************************************************************/
 
 #include "sp3rlib/sp3r.h"
-
+#include "cppformat/format.h"
 #include <iostream>
-
+#include "sp3rlib/u3coef.h"
 int main(int argc, char **argv)
 {
-
+  u3::U3CoefInit();
 
   ////////////////////////////////////////////////////////////////
   // Sp(3,R) irrep construction test
@@ -39,4 +39,22 @@ int main(int argc, char **argv)
   sp3r::Sp3RSpace irrep(sigma,Nn_max);
   std::cout << irrep.DebugString();
   std::cout<<irrep.size()<<std::endl;
+
+
+  std::cout<<"Bcoef cache check"<<std::endl;
+  Nn_max=8;
+  sp3r::BCoefCache cache;
+  sp3r::GenerateBCoefCache(cache, Nn_max);
+  u3::U3 n1,n2,n3;
+  int rho;
+  
+  for(auto it=cache.begin(); it!=cache.end(); ++it)
+    {
+      std::tie(n1,n2,n3,rho)=it->first;
+      double coef_flip=cache[sp3r::BCoefLabels(n2,n1,n3,rho)];
+      double coef=it->second;
+      if((fabs(coef_flip-coef)>1e-8)||(fabs(coef)<1e-8))
+        std::cout<<fmt::format("B({} {} {} {})  {}  {}  {}",n1.Str(), n2.Str(),n3.Str(),rho,coef,coef_flip,fabs(coef_flip-coef))<<std::endl;
+    }
+
 } //main
