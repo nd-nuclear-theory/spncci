@@ -19,6 +19,24 @@
 namespace lsu3shell
 {
 
+  void GenerateModelSpaceFile(int Z, int N, int Nmax, int parity)
+  {
+    // If parity is -1, then full model space with no parity restriction,
+    // otherwise construct model space by parity
+    int Nmin=(parity==-1)?0:parity;
+    int Nstep=(parity==-1)?1:2;
+
+    std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
+    std::ofstream model_stream(model_space);
+    // Model space with no restirction on J
+    model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;
+    // Get full space up to Nmax in steps of Nex=2
+    for(int Nex=Nmin; Nex<=Nmax; Nex+=Nstep)
+      model_stream<<Nex<<"  "<<-1<<std::endl;
+    
+    model_stream.close();
+  }
+
   void 
   GenerateLSU3ShellOperator(
       int Nmax, 

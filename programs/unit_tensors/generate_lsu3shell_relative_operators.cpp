@@ -65,12 +65,14 @@ int main(int argc, char **argv)
   if( (N==0) || (Z==0) )
     un_u3_restrict=true;
   // Set up unit tensor model space space
-  std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
-  std::ofstream model_stream(model_space);
-  model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;
-  for(int Nex=Nmin; Nex<=Nmax; Nex+=2)
-    model_stream<<Nex<<"  "<<-1<<std::endl;
-  model_stream.close();
+  int parity=(Nstep==1)?-1:Nmin;
+  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, parity);
+  // std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
+  // std::ofstream model_stream(model_space);
+  // model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;
+  // for(int Nex=Nmin; Nex<=Nmax; Nex+=2)
+  //   model_stream<<Nex<<"  "<<-1<<std::endl;
+  // model_stream.close();
 
   //begin control file
   // first give specifications for unit tensors, then Brel and Nrel
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
   std::string brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",A,Nmax);
   std::string brel_file_name=fmt::format("{}.recoupler",brel_file_name_base);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
-  u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator);
+  u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator,A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file_name, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff

@@ -21,6 +21,18 @@
 
 namespace lsu3shell
 {
+  void GenerateModelSpaceFile(int Z, int N, int Nmax, int parity);
+  // Generates model space for lsu3shell SU3RME with no restrictions on 
+  // J taking full parity model space up to Nmax
+  //
+  // Arguments:
+  //  Z,N (input) : number of protons/neutrons
+  //  Nmax (input) : Truncation of oscillator quanta
+  //  parity (input) : determines which parity space.
+  //    parity=0 is natural parity, basis starts with Nex=0 
+  //    parity=1 is unnatural parity, basis starts with Nex=1
+  //    parity=-1 basis contains both parities and starts with Nex=0 
+
   void
   GenerateLSU3ShellOperator(
       int Nmax, 

@@ -17,37 +17,37 @@
 
 int main(int argc, char **argv)
 {
+  if(argc<5)
+    std::cout<<"Syntax: Z  N  Nmax  N1B"<<std::endl;
+
   u3::U3CoefInit();
 
   int Z=std::stoi(argv[1]);
   int N=std::stoi(argv[2]);
   int Nmax=std::stoi(argv[3]);
-
+  int N1B=std::stoi(argv[4]);
   // assert(Nmax>=(N+Z));
 
   bool un_u3_restrict=false;
   if(((N==2)&&(Z==0))||((N==0)&&(Z==2)))
     un_u3_restrict=true;
   
-  u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
-  u3shell::IdentityRelativeUnitTensorExpansion(0, Nmax, identity_operator, N+Z);
+  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmax%2);
 
+  u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
+  u3shell::IdentityRelativeUnitTensorExpansion(0, Nmax+2*N1B, identity_operator, N+Z);
   std::string identity_file=fmt::format("Identity_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, identity_operator, identity_file,un_u3_restrict);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, identity_operator, identity_file,un_u3_restrict);
 
   //Generate Nrel operator up to Nmax cutoff
   std::string nrel_file=fmt::format("Nrel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  u3shell::NintrRelativeUnitTensorExpansion(0,Nmax, Nrel_operator,N+Z);
-  // for(auto it=Nrel_operator.begin(); it!=Nrel_operator.end(); ++it)
-  // 	{
-  // 		std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
-  // 	}
+  u3shell::NintrRelativeUnitTensorExpansion(0,Nmax+2*N1B, Nrel_operator,N+Z);
   lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nrel_file, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
   std::string brel_file=fmt::format("Brel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
-  u3shell::BrelRelativeUnitTensorExpansion(0,Nmax, Brel_operator);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Brel_operator, brel_file, un_u3_restrict);
+  u3shell::BrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Brel_operator);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
 }
