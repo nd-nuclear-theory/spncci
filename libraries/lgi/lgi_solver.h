@@ -52,7 +52,8 @@ namespace lgi
     std::ifstream& is_brel,
     std::ifstream& is_nrel,
     lgi::LGIVector& lgi_vector,
-    basis::MatrixVector& lgi_expansion_matrix_vector  
+    basis::MatrixVector& lgi_expansion_matrix_vector,
+    bool eliminate_zeros=true  
   );
   // Generates the LGI Expansion in terms of lsu3shell SU(3)xSU(2) 
   // reduced basis states by solving for the null space of the Brel+Ncm matrix

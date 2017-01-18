@@ -111,7 +111,8 @@ namespace lgi
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
       lgi::LGIVector& lgi_vector,
-      basis::MatrixVector& lgi_expansion_matrix_vector      
+      basis::MatrixVector& lgi_expansion_matrix_vector,
+      bool eliminate_zeros      
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
@@ -138,21 +139,35 @@ namespace lgi
             null=lu_decomp.kernel();
           }
         
-        // null space has non-zero vectors, write to file    
-        if(CheckIfZeroMatrix(null))
-            continue;
+        // if zero matrix (no null vectors) and elimate_zeros 
+        // set to true skp
+        // std::cout<<"testing null check zero"<<std::endl;
+        bool matrix_zero=CheckIfZeroMatrix(null);
+        // std::cout<<"matrix zero "<<matrix_zero<<std::endl;
+        std::cout<<null<<std::endl;
+        
+        
+        eliminate_zeros&=matrix_zero;
+        // std::cout<<"eliminate_zeros "<<eliminate_zeros<<std::endl;
+        if(eliminate_zeros)
+          continue;
+
         u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
         int Nex=int(labels.N()-Nsigma_0);
-        int count=null.cols();
+        int count=matrix_zero?0:null.cols();
         lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
 
         // Do QR decomposition of null to get orthogonal expansion vectors
         Eigen::FullPivHouseholderQR<Eigen::MatrixXd> qr(null);
         qr.setThreshold(threshold);
-        lgi_expansion_matrix_vector[i]=qr.matrixQ().block(0,0,null.rows(),null.cols());
-        // std::cout<<null<<std::endl<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
+        lgi_expansion_matrix_vector[i]
+          =matrix_zero?null:qr.matrixQ().block(0,0,null.rows(),null.cols());
+        // std::cout<<lgi_vector[i].Str()<<std::endl;
+        // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
         // std::cout<<null.cols()<<"  "<<lgi_expansion_matrix_vector[i].cols()<<std::endl;
+        // std::cout<<"end test "<<std::endl;
         assert(null.cols()==lgi_expansion_matrix_vector[i].cols());
+        assert(null.cols()!=0);
 
       }
     // Normalizing and zeroing out lgi expansion vectors
@@ -173,7 +188,6 @@ namespace lgi
           }
       }
     // ZeroOutMatrix(lgi_expansion_matrix_vector,threshold);
-
 
   }
   void

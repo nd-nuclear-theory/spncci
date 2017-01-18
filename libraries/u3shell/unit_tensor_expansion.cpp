@@ -26,7 +26,7 @@ namespace u3shell
   void BrelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
         u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator, int A)
   {
-    for(int N=Nmin; N<=Nmax; N++)
+    for(int N=Nmin; N<=Nmax; N+=2)
       for(int S=0; S<=1; ++S)
         for(int T=0; T<=1; ++T)
           if((N+S+T)%2==1)
