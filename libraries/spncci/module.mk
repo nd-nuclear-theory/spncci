@@ -9,7 +9,7 @@ module_units_cpp-h := sp_basis  unit_tensor
 ## module_units_cpp-h += 
 
 # module_units_f := 
-module_programs_cpp := sp_basis_test 
+module_programs_cpp := sp_basis_test explicit_basis_construction
 module_programs_cpp+=unit_tensor_test
 
 # module_programs_f :=
