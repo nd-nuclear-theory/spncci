@@ -116,7 +116,7 @@
                   int rho_max(n3_tagged.tag);
                   for(int rho=1; rho<=rho_max; ++rho)
                     {
-                  std::cout<<n1.Str()<<"  "<<n2.Str()<<"  "<<n3.Str()<<"  "<<rho<<std::endl;
+                  // std::cout<<n1.Str()<<"  "<<n2.Str()<<"  "<<n3.Str()<<"  "<<rho<<std::endl;
                       BCoefLabels labels(n1,n2,n3,rho);
                       double coef2=0;
                       for(auto n3p_tagged : n3p_set)
@@ -135,16 +135,16 @@
                               BCoefLabels labelsp(n1p,n2,n3p,rhop);
                               double coef=coef3/coef1*cache[labelsp]
                                 *u3::U(u3::SU3(2,0),n1p.SU3(),n3.SU3(),n2.SU3(),n1.SU3(),1,rho,n3p.SU3(),rhop,1);
-                              std::cout<<"  "<<n1p.Str()<<"  "<<n2.Str()
-                              <<"  "<<n3p.Str()<<"  "<<rhop<<"  "<<coef1<<"  "<<coef3<<"  "<<cache[labelsp]
-                              <<"  "<<u3::U(u3::SU3(2,0),n1p.SU3(),n3.SU3(),n2.SU3(),n1.SU3(),1,rho,n3p.SU3(),rhop,1)
-                              <<"  "<<coef
-                              <<std::endl;
+                              // std::cout<<"  "<<n1p.Str()<<"  "<<n2.Str()
+                              // <<"  "<<n3p.Str()<<"  "<<rhop<<"  "<<coef1<<"  "<<coef3<<"  "<<cache[labelsp]
+                              // <<"  "<<u3::U(u3::SU3(2,0),n1p.SU3(),n3.SU3(),n2.SU3(),n1.SU3(),1,rho,n3p.SU3(),rhop,1)
+                              // <<"  "<<coef
+                              // <<std::endl;
                               assert(cache.count(labelsp));
                               cache[labels]
                               +=coef3/coef1*cache[labelsp]
                                 *u3::U(u3::SU3(2,0),n1p.SU3(),n3.SU3(),n2.SU3(),n1.SU3(),1,rho,n3p.SU3(),rhop,1);
-                              std::cout<<"    "<<cache[labels]<<std::endl;
+                              // std::cout<<"    "<<cache[labels]<<std::endl;
                               // coef2+=cache[labelsp]
                               // *u3::U(u3::SU3(2,0),n1p.SU3(),n3.SU3(),n2.SU3(),n1.SU3(),1,rho,n3p.SU3(),rhop,1);
                             }

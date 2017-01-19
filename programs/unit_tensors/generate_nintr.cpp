@@ -26,10 +26,12 @@ int main(int argc, char **argv)
   int N=std::stoi(argv[2]);
   int Nmax=std::stoi(argv[3]);
   int N1B=std::stoi(argv[4]);
+  int Nmin=Nmax%2;
+  int A=N+Z;
   // assert(Nmax>=(N+Z));
 
   bool un_u3_restrict=false;
-  if(((N==2)&&(Z==0))||((N==0)&&(Z==2)))
+  if((N==0)||(Z==0))
     un_u3_restrict=true;
   
   lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmax%2);
@@ -43,11 +45,14 @@ int main(int argc, char **argv)
   std::string nrel_file=fmt::format("Nrel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NintrRelativeUnitTensorExpansion(0,Nmax+2*N1B, Nrel_operator,N+Z);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax, Nrel_operator, nrel_file, un_u3_restrict);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Nrel_operator, nrel_file, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
   std::string brel_file=fmt::format("Brel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
-  u3shell::BrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Brel_operator);
+  u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator,A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
+
+  // u3shell::BrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Brel_operator, N+Z);
+  // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
 }

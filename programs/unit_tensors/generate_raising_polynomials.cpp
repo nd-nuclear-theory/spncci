@@ -56,10 +56,12 @@ int main(int argc, char **argv)
   for(int i=0; i<raising_polynomials.size(); ++i)
   {
     u3::U3 n0(raising_polynomials[i]);
+    std::cout<<"n0 "<<n0.Str()<<std::endl;
     //Generate Nintr operator up to Nmax cutoff
     std::string Prel_file=fmt::format("Prel_{:02d}_Nmax{:02d}_{:06d}.recoupler",N+Z,Nmax,i);
     u3shell::RelativeUnitTensorCoefficientsU3ST Prel_operator;
     u3shell::RaisingPolynomialRelativeUnitTensorExpansion(n0,0, Nmax+2*N1B, Prel_operator, N+Z);
+    std::cout<<"size "<<Prel_operator.size()<<std::endl;
     lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Prel_operator, Prel_file, un_u3_restrict);
   }
   for(int i=0; i<raising_polynomials.size(); ++i)

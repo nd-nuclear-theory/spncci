@@ -97,5 +97,31 @@ inline void ZeroOutMatrix(basis::MatrixVector& matrix_vector,double threshold)
               matrix(i,j)=0;
           }
   }
+  
+inline void NormalizeMatrix(Eigen::MatrixXd& matrix, std::string type)
+  {
+    int rows=matrix.rows(); 
+    int cols=matrix.cols();
+    if(type=="column")
+      {
+        for(int j=0; j<cols; ++j)
+          {
+            int sum=0; 
+            for(int i=0; i<rows; ++i)
+                sum+=matrix(i,j)*matrix(i,j);
+            matrix.block(0,j,rows,1)*=std::sqrt(sum);
+          }
+      }
+    if (type=="row")
+      {
+        for(int i=0; i<rows; ++i)
+          {
+            int sum=0;
+            for(int j=0; j<cols; ++j)
+              sum+=matrix(i,j)*matrix(i,j);
+            matrix.block(i,0,1,cols)*=std::sqrt(sum);
+          }
+      }
+  }
 
 #endif
