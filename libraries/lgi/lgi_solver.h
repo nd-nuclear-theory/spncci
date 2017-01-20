@@ -21,40 +21,40 @@
 namespace lgi
 {
   void 
-  GenerateNcmMatrixVector(
-    int A,     
-    std::ifstream& is_nrel,
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
-    );
+    GenerateNcmMatrixVector(
+        int A,     
+        std::ifstream& is_nrel,
+        const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+        const u3shell::SpaceU3SPN& space, 
+        basis::MatrixVector& matrix_vector 
+      );
   // Generates vector of Ncm Matrix sectors in LSU3shell basis from 
   // Nrel matrix sectors. 
 
   void 
-  GenerateBrelNcmMatrices(
-      int A,
-      std::ifstream& is_brel,
-      std::ifstream& is_nrel,
-      const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
-      basis::MatrixVector& BrelNcm_vector 
-    );
+    GenerateBrelNcmMatrices(
+        int A,
+        std::ifstream& is_brel,
+        std::ifstream& is_nrel,
+        const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+        const u3shell::SpaceU3SPN& space, 
+        basis::MatrixVector& BrelNcm_vector 
+      );
   // Constructs the Brel+Ncm Matrices for each ket subspace and
   // stores them in BrelNcm_vector
 
-    void 
-  GenerateLGIExpansion(
-    int A,
-    HalfInt Nsigma_0,
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    std::ifstream& is_brel,
-    std::ifstream& is_nrel,
-    lgi::LGIVector& lgi_vector,
-    basis::MatrixVector& lgi_expansion_matrix_vector,
-    bool eliminate_zeros=true  
-  );
+  void 
+    GenerateLGIExpansion(
+        int A,
+        HalfInt Nsigma_0,
+        const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+        const u3shell::SpaceU3SPN& space, 
+        std::ifstream& is_brel,
+        std::ifstream& is_nrel,
+        lgi::LGIVector& lgi_vector,
+        basis::MatrixVector& lgi_expansion_matrix_vector,
+        bool eliminate_zeros=true  
+      );
   // Generates the LGI Expansion in terms of lsu3shell SU(3)xSU(2) 
   // reduced basis states by solving for the null space of the Brel+Ncm matrix
   // 
@@ -71,27 +71,16 @@ namespace lgi
   //    
 
   void
-  TransformOperatorToSpBasis(
-    const u3shell::SectorsU3SPN& sectors,
-    const basis::MatrixVector& basis_transformation_matrices,
-    const basis::MatrixVector& lsu3shell_operator_matrices,
-    basis::MatrixVector& spncci_operator_matrices
-  );
+    TransformOperatorToSpBasis(
+        const u3shell::SectorsU3SPN& sectors,
+        const basis::MatrixVector& basis_transformation_matrices,
+        const basis::MatrixVector& lsu3shell_operator_matrices,
+        basis::MatrixVector& spncci_operator_matrices
+      );
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 
-  // void GetLGILabels(
-  //     HalfInt Nsigma_0,
-  //     const u3shell::SpaceU3SPN& space, 
-  //     const basis::MatrixVector& lgi_expansion_matrix_vector,
-  //     lgi::LGIVector& lgi_vector
-  //     );
-  // // Accumlate LGI labels with counts into lgi_vector
-  // // For each count, Nex twice_N lambda mu twice_Sp twice_Sn twice_S
-  // // is added to vector.
-
-
   void
-  WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os);
+    WriteLGILabels(const lgi::LGIVector& lgi_vector, std::ofstream& os);
 
 
 }
