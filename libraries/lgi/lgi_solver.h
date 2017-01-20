@@ -1,5 +1,5 @@
 /****************************************************************
-  lgi_prob.h
+  lgi_solver.h
 
   Interface for lsu3shell basis.
                                   
@@ -8,6 +8,8 @@
 
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
+  ...
+  1/19/17 (mac): Replace null solver.
 ****************************************************************/
 
 #ifndef LGI_PROB_H_
@@ -53,7 +55,7 @@ namespace lgi
         std::ifstream& is_nrel,
         lgi::LGIVector& lgi_vector,
         basis::MatrixVector& lgi_expansion_matrix_vector,
-        bool eliminate_zeros=true  
+        bool keep_empty_subspaces=false  
       );
   // Generates the LGI Expansion in terms of lsu3shell SU(3)xSU(2) 
   // reduced basis states by solving for the null space of the Brel+Ncm matrix

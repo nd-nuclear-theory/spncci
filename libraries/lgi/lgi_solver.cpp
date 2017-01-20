@@ -8,9 +8,10 @@
 #include <fstream>
 
 #include "cppformat/format.h"
-#include <eigen3/Eigen/QR>
 #include "lgi/lgi_solver.h"
+#include "lgi/null_solver.h"
 #include "utilities/utilities.h"
+
 extern double zero_threshold;
 
 namespace lgi
@@ -102,8 +103,9 @@ namespace lgi
           }
       }
   }
-  //TODO: combine with GetLGILabels
-  void GenerateLGIExpansion(
+
+  void
+  GenerateLGIExpansion(
       int A,
       HalfInt Nsigma_0,
       const lsu3shell::LSU3BasisTable& lsu3_basis_table,
@@ -112,84 +114,36 @@ namespace lgi
       std::ifstream& is_nrel,
       lgi::LGIVector& lgi_vector,
       basis::MatrixVector& lgi_expansion_matrix_vector,
-      bool eliminate_zeros      
+      bool keep_empty_subspaces
     )
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   {
     double threshold=10e-6;
+   
     basis::MatrixVector BrelNcm_vector(space.size());
     GenerateBrelNcmMatrices(A,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);
-    Eigen::MatrixXd null;
+
     for(int i=0; i<BrelNcm_vector.size();++i)
       {
-        // std::cout<<"Null space of "<<std::endl;
-        // std::cout<<BrelNcm_vector[i]<<std::endl<<std::endl;
-        if(BrelNcm_vector[i].cols()<2)
-          {
-            if(fabs(BrelNcm_vector[i](0,0))<threshold)
-              null=Eigen::MatrixXd::Identity(1,1);
-            else
-              null=Eigen::MatrixXd::Zero(1,1);
-          }
-        else
-          {
-            Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(BrelNcm_vector[i]);
-            lu_decomp.setThreshold(threshold);
-            null=lu_decomp.kernel();
-          }
-        
-        // if zero matrix (no null vectors) and elimate_zeros 
-        // set to true skp
-        // std::cout<<"testing null check zero"<<std::endl;
-        bool matrix_zero=CheckIfZeroMatrix(null);
-        // std::cout<<"matrix zero "<<matrix_zero<<std::endl;
-        std::cout<<null<<std::endl;
-        
-        
-        eliminate_zeros&=matrix_zero;
-        // std::cout<<"eliminate_zeros "<<eliminate_zeros<<std::endl;
-        if(eliminate_zeros)
-          continue;
+        Eigen::MatrixXd null_vectors;
+        lgi::FindNullSpaceSVD(BrelNcm_vector[i],null_vectors,threshold);
+        int nullity = null_vectors.cols();
 
-        u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
-        int Nex=int(labels.N()-Nsigma_0);
-        int count=matrix_zero?0:null.cols();
-        lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
-
-        // Do QR decomposition of null to get orthogonal expansion vectors
-        Eigen::FullPivHouseholderQR<Eigen::MatrixXd> qr(null);
-        qr.setThreshold(threshold);
-        lgi_expansion_matrix_vector[i]
-          =matrix_zero?null:qr.matrixQ().block(0,0,null.rows(),null.cols());
-        // std::cout<<lgi_vector[i].Str()<<std::endl;
-        // std::cout<<lgi_expansion_matrix_vector[i]<<std::endl<<std::endl;
-        // std::cout<<null.cols()<<"  "<<lgi_expansion_matrix_vector[i].cols()<<std::endl;
-        // std::cout<<"end test "<<std::endl;
-        assert(null.cols()==lgi_expansion_matrix_vector[i].cols());
-        assert(null.cols()!=0);
-
-      }
-    // Normalizing and zeroing out lgi expansion vectors
-    for(auto& matrix : lgi_expansion_matrix_vector)
-      {
-        for(int j=0; j<matrix.cols(); ++j)
+        if ((nullity>0) || keep_empty_subspaces)
           {
-            double sum_squared=0;
-            for(int i=0; i<matrix.rows(); ++i)
-              {
-                double rme=matrix(i,j);
-                if(fabs(rme)>threshold)
-                  sum_squared+=rme*rme;
-              }
-            if(fabs(sum_squared)<threshold)
-              continue;
-            matrix.block(0,j,matrix.rows(),1)*=1./sqrt(sum_squared);
+            // save LGI labels, tagged by nullity as multiplicity
+            u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+            int Nex=int(labels.N()-Nsigma_0);
+            lgi_vector.emplace_back(lgi::LGI(labels,Nex),nullity);
+
+            // save expansions for these LGIs
+            lgi_expansion_matrix_vector.push_back(null_vectors);
           }
       }
-    // ZeroOutMatrix(lgi_expansion_matrix_vector,threshold);
 
   }
+
   void
   TransformOperatorToSpBasis(
       const u3shell::SectorsU3SPN& sectors,
@@ -211,41 +165,6 @@ namespace lgi
         spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
       }
   }
-
-  // bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix)
-  //   {
-  //     int rows=matrix.rows();
-  //     int cols=matrix.cols();
-  //     for(int j=0; j<cols; ++j)
-  //       for(int i=0; i<rows; ++i)
-  //         {
-  //           if(fabs(matrix(i,j))>zero_threshold)
-  //               return false;
-  //         }
-  //     return true;
-  //   }
-  
-
-  // void GetLGILabels(
-  //     HalfInt Nsigma_0,
-  //     const u3shell::SpaceU3SPN& space, 
-  //     const basis::MatrixVector& lgi_expansion_matrix_vector,
-  //     lgi::LGIVector& lgi_vector
-  //     )
-  //   {
-  //     // For each space, if corresponding null space has non-zero vectors, write to file 
-  //     for(int i=0; i<space.size(); ++i)
-  //       {
-  //         const Eigen::MatrixXd& matrix=lgi_expansion_matrix_vector[i];
-  //         if(CheckIfZeroMatrix(matrix))
-  //           continue;
-  //         u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
-  //         int Nex=int(labels.N()-Nsigma_0);
-  //         int count=matrix.cols();
-  //         // for(int i=1; i<=count; ++i)
-  //         lgi_vector.emplace_back(lgi::LGI(labels,Nex),count);
-  //       }
-  //   }     
 
   void 
   WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os)

@@ -53,11 +53,11 @@ int main(int argc, char **argv)
   std::ifstream is_nrel(nrel_filename.c_str());
   std::ifstream is_brel(brel_filename.c_str());
   lgi::LGIVector lgi_vector;
-  bool eliminate_zeros=false;
+  bool keep_empty_subspaces=true;
   lgi::GenerateLGIExpansion(
   	A,Nsigma_0,basis_table,space, is_brel,
   	is_nrel,lgi_vector,lgi_expansion_matrix_vector,
-    eliminate_zeros
+        keep_empty_subspaces
   );
   is_nrel.close();
   is_brel.close();
