@@ -1,1 +1,1 @@
-../../../config/config-gnu-nersc.mk
+../config-gnu-nersc.mk

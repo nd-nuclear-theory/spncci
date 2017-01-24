@@ -1,1 +1,1 @@
-../../../config/module-load-ndcrc.csh
+../module-load-ndcrc.csh

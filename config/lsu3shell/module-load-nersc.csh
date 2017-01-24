@@ -1,1 +1,1 @@
-../../../config/module-load-nersc.csh
+../module-load-nersc.csh
