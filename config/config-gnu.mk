@@ -81,7 +81,7 @@ FFLAGS += -fopenmp -frecursive
 # Example values, depending on the compiler you are using to compile
 # the FORTRAN objects:
 #   for GCC 3.x f77: -lg2c
-#   for GCC 4.x gfortran: -lgfortran -lquadmath
+#   for GCC 4.x gfortran: -lgfortran
 #   for Intel ifort: -lifport -lifcore -limf
 
 fortran_libs := -lgfortran -lquadmath

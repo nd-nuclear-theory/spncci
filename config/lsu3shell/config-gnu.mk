@@ -103,10 +103,14 @@ fortran_libs := -lgfortran
 fortran_flags := 
 
 ################################################################
-# machine-independent library configuration 
-#
-# NOTE: These should really be in project.mk.
+# library configuration 
 ################################################################
+
+# GNU OpenMP library
+#
+# needed for MFDn eigensolver with gcc 6
+
+LDFLAGS += -lgomp
 
 # SU3LIB numerical precision
 #   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
