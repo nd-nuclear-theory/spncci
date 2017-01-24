@@ -6,7 +6,7 @@ In programs/tomascode/
 
 setenv SU3SHELL_DATA $HOME/projects/lsu3shell/su3shell_data/
 
-OBSELETE
+OBSOLETE
 Converts input files from Anna into format used by SU3Recoupler (increasing shell number ordering)
 1.  run AnnaConvention2SU3Recoupler
  give file names for  PPNN and PN

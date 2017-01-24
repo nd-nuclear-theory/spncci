@@ -1,18 +1,18 @@
 Installation instructions for lsu3shell package for use with spncci
 
-+ 4/13/16 (mac): Written for use with University of Notre Dame CRC
+  - 4/13/16 (mac): Written for use with University of Notre Dame CRC
     Linux cluster. First new build in a couple of years, with lots of
     new modules.
-+ 9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
+  - 9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
     commit, and update config-ndcrc.mk.
-+ 9/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
+  - 9/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
     to update makefile.
-+ 11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
-+ 11/17/16 (mac): Update to lsu3shell 11/13/16 commit (56981f) and
+  - 11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
+  - 11/17/16 (mac): Update to lsu3shell 11/13/16 commit (56981f) and
     current spncci config files (93ec11).
-+ 12/22/16 (mac): Revise to serve as generic instructions across clusters,
+  - 12/22/16 (mac): Revise to serve as generic instructions across clusters,
   following shell/spncci project install.txt.
-
+  - 1/24/16 (mac): Update path to config files (spncci/config/lsu3shell).
 ----------------------------------------------------------------
 
 The compiler and library dependences for LSU3shell are similar to
@@ -65,13 +65,13 @@ a LAPACK-like library (e.g., MKL or ACML).
   || @NDCRC: For compiling under gcc:
   || 
   ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/doc/lsu3shell/config
+  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell
   ||   % ln -s config/config-gnu-ndcrc.mk config.mk
 
   || @NERSC: For compiling under gcc:
   || 
   ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/doc/lsu3shell/config
+  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell
   ||   % ln -s config/config-gnu-nersc.mk config.mk
 
   Note: Some, but perhaps not all, of these system-specific wrapper
