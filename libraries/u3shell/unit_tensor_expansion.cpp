@@ -26,7 +26,7 @@ namespace u3shell
   void BrelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
         u3shell::RelativeUnitTensorCoefficientsU3ST& Brel_operator, int A)
   {
-    for(int N=Nmin; N<=Nmax; N+=2)
+    for(int N=Nmin; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
         for(int T=0; T<=1; ++T)
           if((N+S+T)%2==1)
@@ -41,7 +41,7 @@ namespace u3shell
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,2),0,0,bra,ket);
               double rme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
               if (fabs(rme)>zero_threshold)
-                Brel_operator[relative_unit_tensor]+=rme;
+                Brel_operator[relative_unit_tensor]+=rme/A;
             }
   }
 
@@ -63,7 +63,7 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(2,0),0,0,bra,ket);
               double rme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
               if (fabs(rme)>zero_threshold)
-                Arel_operator[relative_unit_tensor]+=rme;
+                Arel_operator[relative_unit_tensor]+=rme/A;
             }
   }
 

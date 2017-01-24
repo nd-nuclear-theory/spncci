@@ -190,7 +190,7 @@ int main(int argc, char **argv)
   std::ifstream is_brel(brel_filename.c_str());
   std::ifstream is_nrel(nrel_filename.c_str());
   lgi::LGIVector lgi_vector;
-  basis::MatrixVector lgi_expansion_matrix_vector(space.size());
+  basis::MatrixVector lgi_expansion_matrix_vector;
   lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel,is_nrel,lgi_vector,lgi_expansion_matrix_vector);
   // Extract LGI labels and store in lgi_vector
   // lgi::GetLGILabels(Nsigma_0,space,lgi_expansion_matrix_vector, lgi_vector);
@@ -469,16 +469,16 @@ int main(int argc, char **argv)
   spncci::Contracting(Nmax, N1b,u3s_sector_vector,interaction_rme_cache,
                       u3s_space,unit_tensor_sector_cache, matrix_vector);
 
-  // ZeroOutMatrix(matrix_vector,1e-6);
-  // std::cout<<"printing"<<std::endl;
-  // for(int i=0; i<u3s_space.size(); ++i)
-  //   std::cout<<i<<"  "<<space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
-  // for(int s=0; s<matrix_vector.size();  ++s)
-  //   {
-  //     if (not CheckIfZeroMatrix(matrix_vector[s], zero_threshold))
-  //     {
-  //       std::cout<<u3s_sector_vector[s].Str()<<std::endl;
-  //       std::cout<<matrix_vector[s]<<std::endl;
-  //     }
-  //   }
+  ZeroOutMatrix(matrix_vector,1e-6);
+  std::cout<<"printing"<<std::endl;
+  for(int i=0; i<u3s_space.size(); ++i)
+    std::cout<<i<<"  "<<space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  for(int s=0; s<matrix_vector.size();  ++s)
+    {
+      if (not CheckIfZeroMatrix(matrix_vector[s], zero_threshold))
+      {
+        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+        std::cout<<matrix_vector[s]<<std::endl;
+      }
+    }
 }

@@ -119,7 +119,7 @@ namespace lgi
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   {
-    double threshold=10e-6;
+    double threshold=10e-4;
    
     basis::MatrixVector BrelNcm_vector(space.size());
     GenerateBrelNcmMatrices(A,is_brel,is_nrel,lsu3_basis_table, space, BrelNcm_vector);

@@ -53,6 +53,13 @@ int main(int argc, char **argv)
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator,A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
 
+  //Generate Nintr operator up to Nmax cutoff
+  std::string arel_file=fmt::format("Arel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  u3shell::RelativeUnitTensorCoefficientsU3ST Arel_operator;
+  u3shell::ArelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Arel_operator,A);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Arel_operator, arel_file, un_u3_restrict);
+
+
   // u3shell::BrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Brel_operator, N+Z);
   // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
 }
