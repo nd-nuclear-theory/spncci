@@ -65,13 +65,13 @@ a LAPACK-like library (e.g., MKL or ACML).
   || @NDCRC: For compiling under gcc:
   || 
   ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell
+  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell config
   ||   % ln -s config/config-gnu-ndcrc.mk config.mk
 
   || @NERSC: For compiling under gcc:
   || 
   ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell
+  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell config
   ||   % ln -s config/config-gnu-nersc.mk config.mk
 
   Note: Some, but perhaps not all, of these system-specific wrapper
