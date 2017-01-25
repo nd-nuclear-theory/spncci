@@ -50,7 +50,8 @@ void NullSpaceCheck(
       u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
       // std::cout<<"Doing decomp..." << std::endl;
       int size=space.GetSubspace(i).size();
-      std::cout<<labels.Str()<<"subspace size: "<<size<<std::endl;
+      // std::cout<<labels.Str()<<"subspace size: "<<size<<std::endl;
+     
       // std::cout<<matrix<<std::endl;
       // bool verbose=false;
       // int dimension=matrix.rows();
@@ -221,68 +222,80 @@ int main(int argc, char **argv)
     basis::MatrixVector null_matrix_vector;
     null_matrix_vector.push_back(null_matrix);
     ZeroOutMatrix(null_matrix_vector,threshold);
-    std::cout<<"cmf matrix ?"<<std::endl;
-    std::cout<<null_matrix_vector[0]<<std::endl;
+    
+    if(not CheckIfZeroMatrix(null_matrix_vector[0]))
+      {
+        std::cout<<null_matrix_vector[0]<<std::endl;
+        std::cout<<"cmf matrix ?"<<std::endl;
+      }
+    // Check orthogonality of laddered states 
+    // Eigen::MatrixXd w_matrix=Arel*LGIs;
+    // Eigen::MatrixXd orthog_set=w_matrix.transpose()*w_matrix;
+    // basis::MatrixVector orthog_vector;
+    // orthog_vector.push_back(orthog_set);
+    // ZeroOutMatrix(orthog_vector,threshold);
+    // std::cout<<orthog_vector[0]<<std::endl<<std::endl;
+
   }
 
 
-  // std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  // u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B, relative_unit_tensor_labels,-1,0,false);
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B, relative_unit_tensor_labels,-1,0,false);
 
-  // u3shell::OperatorLabelsU3ST id_labels(0,u3::SU3(0,0),0,0,0);
-  // u3shell::SectorsU3SPN id_sectors(space,id_labels,false);
-  // basis::MatrixVector id_lsu3shell(id_sectors.size()), id_spncci(id_sectors.size());
-  // basis::SetOperatorToZero(id_sectors,id_lsu3shell);
-  // basis::SetOperatorToZero(id_sectors,id_spncci);
-  // std::cout<<"number of relative unit tensors "<<relative_unit_tensor_labels.size()<<std::endl;
-  // for(int i=0; i<relative_unit_tensor_labels.size(); ++i)
-  //   {
-  //     // std::cout<<"tensor "<<i<<std::endl;
-  //     u3shell::OperatorLabelsU3ST operator_labels(relative_unit_tensor_labels[i]);
-  //     u3shell::SectorsU3SPN sectors(space,operator_labels,false);
-  //     std::ifstream is_operator(fmt::format("relative_unit_{:06d}.rme",i));
+  u3shell::OperatorLabelsU3ST id_labels(0,u3::SU3(0,0),0,0,0);
+  u3shell::SectorsU3SPN id_sectors(space,id_labels,false);
+  basis::MatrixVector id_lsu3shell(id_sectors.size()), id_spncci(id_sectors.size());
+  basis::SetOperatorToZero(id_sectors,id_lsu3shell);
+  basis::SetOperatorToZero(id_sectors,id_spncci);
+  std::cout<<"number of relative unit tensors "<<relative_unit_tensor_labels.size()<<std::endl;
+  for(int i=0; i<relative_unit_tensor_labels.size(); ++i)
+    {
+      // std::cout<<"tensor "<<i<<std::endl;
+      u3shell::OperatorLabelsU3ST operator_labels(relative_unit_tensor_labels[i]);
+      u3shell::SectorsU3SPN sectors(space,operator_labels,false);
+      std::ifstream is_operator(fmt::format("relative_unit_{:06d}.rme",i));
 
-  //     if(not is_operator)
-  //       {
-  //         std::cout<<fmt::format("relative_unit_{:06d}.rme not found",i)<<std::endl;
-  //         continue;
-  //       }
-  //     basis::MatrixVector lsu3shell_operator_matrices;
-  //     basis::MatrixVector spncci_operator_matrices;
-  //     // std::cout<<"reading in"<<std::endl;
-  //     lsu3shell::ReadLSU3ShellRMEs(is_operator,operator_labels, basis_table,space, sectors,lsu3shell_operator_matrices);
-  //     // for(auto matrix : lsu3shell_operator_matrices)
-  //     //   std::cout<<matrix<<std::endl<<std::endl;
-  //     // std::cout<<"transforming"<<std::endl;
-  //     lgi::TransformOperatorToSpBasis(sectors,lgi_expansion_matrix_vector,lsu3shell_operator_matrices,spncci_operator_matrices);
-  //     // for(auto matrix : spncci_operator_matrices)
-  //     //   std::cout<<matrix<<std::endl<<std::endl;
+      if(not is_operator)
+        {
+          std::cout<<fmt::format("relative_unit_{:06d}.rme not found",i)<<std::endl;
+          continue;
+        }
+      basis::MatrixVector lsu3shell_operator_matrices;
+      basis::MatrixVector spncci_operator_matrices;
+      // std::cout<<"reading in"<<std::endl;
+      lsu3shell::ReadLSU3ShellRMEs(is_operator,operator_labels, basis_table,space, sectors,lsu3shell_operator_matrices);
+      // for(auto matrix : lsu3shell_operator_matrices)
+      //   std::cout<<matrix<<std::endl<<std::endl;
+      // std::cout<<"transforming"<<std::endl;
+      lgi::TransformOperatorToSpBasis(sectors,lgi_expansion_matrix_vector,lsu3shell_operator_matrices,spncci_operator_matrices);
+      // for(auto matrix : spncci_operator_matrices)
+      //   std::cout<<matrix<<std::endl<<std::endl;
 
-  //     // Checking identity before and after transformation 
-  //     // std::cout<<"trans complete"<<std::endl;
-  //     if(operator_labels==id_labels)
-  //       {
-  //         assert(sectors.size()==id_sectors.size());
-  //         // std::cout<<" id sum"<<std::endl;
-  //         for(int i=0; i<sectors.size(); ++i)
-  //           {
-  //             // std::cout<<id_lsu3shell[i]<<"  "<<lsu3shell_operator_matrices[i]<<std::endl;
-  //             id_lsu3shell[i]+=lsu3shell_operator_matrices[i];
-  //             // id_spncci[i]+=spncci_operator_matrices[i];
-  //           }
-  //       }
-  //   }
-  //   // std::cout<<"lsu3shell identity check"<<std::endl;
-  //   // for(auto lsu3_matrix : id_lsu3shell)
-  //   //   std::cout<<lsu3_matrix<<std::endl<<std::endl;
-  //   std::cout<<"transforming identity "<<std::endl;
-  //   lgi::TransformOperatorToSpBasis(id_sectors,lgi_expansion_matrix_vector,id_lsu3shell,id_spncci);
+      // Checking identity before and after transformation 
+      // std::cout<<"trans complete"<<std::endl;
+      if(operator_labels==id_labels)
+        {
+          assert(sectors.size()==id_sectors.size());
+          // std::cout<<" id sum"<<std::endl;
+          for(int i=0; i<sectors.size(); ++i)
+            {
+              // std::cout<<id_lsu3shell[i]<<"  "<<lsu3shell_operator_matrices[i]<<std::endl;
+              id_lsu3shell[i]+=lsu3shell_operator_matrices[i];
+              // id_spncci[i]+=spncci_operator_matrices[i];
+            }
+        }
+    }
+    // std::cout<<"lsu3shell identity check"<<std::endl;
+    // for(auto lsu3_matrix : id_lsu3shell)
+    //   std::cout<<lsu3_matrix<<std::endl<<std::endl;
+    std::cout<<"transforming identity "<<std::endl;
+    lgi::TransformOperatorToSpBasis(id_sectors,lgi_expansion_matrix_vector,id_lsu3shell,id_spncci);
 
-  //   ZeroOutMatrix(id_spncci,1e-5);
+    ZeroOutMatrix(id_spncci,1e-5);
 
-  //   std::cout<<"spncci"<<std::endl;
-  //   for(auto sp_matrix : id_spncci)
-  //     std::cout<<sp_matrix<<std::endl<<std::endl;
+    std::cout<<"spncci"<<std::endl;
+    for(auto sp_matrix : id_spncci)
+      std::cout<<sp_matrix<<std::endl<<std::endl;
 
 
 }

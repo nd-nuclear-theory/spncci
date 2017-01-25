@@ -92,9 +92,9 @@ int main(int argc, char **argv)
 
 
 
-  for(auto& matrix :Arel_matrices)
-    std::cout<<matrix<<std::endl<<std::endl;
-
+  // for(auto& matrix :Arel_matrices)
+  //   std::cout<<matrix<<std::endl<<std::endl;
+  std::cout<<"Checking BA actions"<<std::endl;
   for(int i=0; i<arel_sectors.size(); ++i)
   {
     auto& arel_sector=arel_sectors.GetSector(i);
