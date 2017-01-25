@@ -1,0 +1,28 @@
+# instructions to set up minimal test run of recoupler code
+#
+# Working location:
+#   /afs/crc.nd.edu/group/nuclthy/test
+#
+# Requires data file:
+#   two_body_unit_000000.recoupler
+
+# clone repositories
+cd /afs/crc.nd.edu/group/nuclthy/test
+git clone --recursive /afs/crc.nd.edu/group/nuclthy/git/spncci.git
+git clone /afs/crc.nd.edu/group/nuclthy/git/lsu3shell.git lsu3shell --branch LSU3develop
+
+# set up lsu3shell config files
+cd /afs/crc.nd.edu/group/nuclthy/test/lsu3shell
+ln -s ../spncci/config/lsu3shell config
+rm config.mk
+ln -s config/config-gnu-ndcrc.mk config.mk
+
+# build
+source config/module-load-ndcrc.csh
+make all -j 16
+
+# run code
+cd /afs/crc.nd.edu/group/nuclthy/test
+lsu3shell/programs/upstreams/RecoupleSU3Operator two_body_unit_000000.recoupler test
+
+
