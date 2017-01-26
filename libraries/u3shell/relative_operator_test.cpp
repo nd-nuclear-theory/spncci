@@ -73,31 +73,52 @@ int main(int argc, char **argv)
         std::cout<<tensor.Str()<<std::endl;
     }
 
-  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
-  std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
-  for(auto tensor : relative_unit_tensors)
-    std::cout<<tensor.Str()<<std::endl;
+  {
+    int Nmax=2;
+    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+    std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
+    int index=0;
+    for(auto& tensor : relative_unit_tensors)
+     {
+        std::cout<<index<<"   "<<tensor.Str()<<std::endl;
+        index++;
+      }  
+  }
 
-  u3shell::RelativeStateLabelsU3ST bra;
-  u3shell::RelativeStateLabelsU3ST ket;
+  {
+    int Nmax=4;
+    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+    std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
+    int index=0;
+    for(auto& tensor : relative_unit_tensors)
+     {
+        std::cout<<index<<"   "<<tensor.Str()<<std::endl;
+        index++;
+      }
+  }
+  
 
-  bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  std::cout<<"Number operator    "<<u3shell::RelativeNumberOperator(bra,ket)<<std::endl;
-  std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+  // u3shell::RelativeStateLabelsU3ST bra;
+  // u3shell::RelativeStateLabelsU3ST ket;
+
+  // bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  // ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  // std::cout<<"Number operator    "<<u3shell::RelativeNumberOperator(bra,ket)<<std::endl;
+  // std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
 
 
-  bra=u3shell::RelativeStateLabelsU3ST(4,1,0);
-  ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  std::cout<<"Raising operator   "<<u3shell::RelativeSp3rRaisingOperator(bra,ket)<<std::endl;
-  std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+  // bra=u3shell::RelativeStateLabelsU3ST(4,1,0);
+  // ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  // std::cout<<"Raising operator   "<<u3shell::RelativeSp3rRaisingOperator(bra,ket)<<std::endl;
+  // std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
 
 
-  bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  ket=u3shell::RelativeStateLabelsU3ST(4,1,0);
-  std::cout<<"Lowering operator  "<<u3shell::RelativeSp3rLoweringOperator(bra,ket)<<std::endl;
-  std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+  // bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
+  // ket=u3shell::RelativeStateLabelsU3ST(4,1,0);
+  // std::cout<<"Lowering operator  "<<u3shell::RelativeSp3rLoweringOperator(bra,ket)<<std::endl;
+  // std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
 
 
 

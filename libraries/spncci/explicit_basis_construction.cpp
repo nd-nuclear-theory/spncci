@@ -41,7 +41,7 @@ int main(int argc, char **argv)
   std::string nrel_filename = argv[6];
   std::string brel_filename = argv[7];
   std::string arel_filename = argv[8];
-  
+  int i=std::stoi(argv[9]);
   // Set up lsu3shell basis
   lsu3shell::LSU3BasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
@@ -90,11 +90,66 @@ int main(int argc, char **argv)
     brel_sectors,Brel_matrices);
   is_brel2.close();
 
-
-
   // for(auto& matrix :Arel_matrices)
   //   std::cout<<matrix<<std::endl<<std::endl;
-  std::cout<<"Checking BA actions"<<std::endl;
+  // std::cout<<"Checking BA actions"<<std::endl;
+  // for(int i=0; i<arel_sectors.size(); ++i)
+  // {
+  //   auto& arel_sector=arel_sectors.GetSector(i);
+  //   int lgi_index=arel_sector.ket_subspace_index();
+  //   int w_index=arel_sector.bra_subspace_index();
+  //   Eigen::MatrixXd& Arel=Arel_matrices[i];
+  //   Eigen::MatrixXd& LGIs=lgi_expansion_matrix_vector[lgi_index];
+  //   // std::cout<<"Arel "<<std::endl;
+  //   // std::cout<<Arel<<std::endl;
+  //   // std::cout<<"LGI "<<std::endl;
+  //   // std::cout<<LGIs<<std::endl;
+  //   int j=brel_sectors.LookUpSectorIndex(lgi_index,w_index,1);
+  //   Eigen::MatrixXd& Brel=Brel_matrices[j];
+  //   // std::cout<<"Brel "<<std::endl;
+  //   // std::cout<<Brel<<std::endl;
+  //   Eigen::MatrixXd omega_matrix=Arel*LGIs;
+  //   // std::cout<<"omegas "<<std::endl;
+  //   // std::cout<<omega_matrix<<std::endl;
+  //   // std::cout<<"Brel on omega_matrix "<<std::endl;
+  //   // std::cout<<Brel*omega_matrix<<std::endl;
+  //   std::cout<<space.GetSubspace(lgi_index).GetSubspaceLabels().Str()<<std::endl;
+  //   std::cout<<LGIs.transpose()*Brel*omega_matrix<<std::endl<<std::endl;
+
+  // }
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Read in unit tensor in lsu3shell basis
+  // Get matrix elements between lgis
+  // Get matrix elements between excited states [LGI][U][A][LGI] or [[A][LGI]]^T[U][LGI] or ...
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //Get unit tensor labels
+
+    // std::vector<u3shell::RelativeUnitTensorLabelsU3ST> LGI_unit_tensor_labels;  
+    // -1 is all J0, T0=0 and false->don't restrict N0 to positive (temp)
+    // u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, LGI_unit_tensor_labels,-1,0,false);
+
+
+
+    // u3shell::RelativeUnitTensorLabelsU3ST unit_tensor(LGI_unit_tensor_labels[i]);
+    // // std::cout<<"unit tensor "<<i<<"  "<<unit_tensor.Str()<<std::endl;
+    // u3shell::OperatorLabelsU3ST operator_labels(unit_tensor);
+    // // Generate sectors from labels
+    // u3shell::SectorsU3SPN sectors(space,operator_labels,false);
+    // // Read in lsu3shell rme's of unit tensor
+    // std::ifstream is_operator(fmt::format("relative_unit_{:06d}.rme",i));
+    // // If operator is not found, print name and continue;
+    // if(not is_operator)
+    //   {
+    //     std::cout<<fmt::format("relative_unit_{:06d}.rme not found",i)<<std::endl;
+    //     continue;
+    //   }
+
+    // basis::MatrixVector lsu3shell_operator_matrices(sectors.size());
+    // lsu3shell::ReadLSU3ShellRMEs(
+    //   is_operator,operator_labels, basis_table,space, 
+    //   sectors,lsu3shell_operator_matrices
+    //   );
+
   for(int i=0; i<arel_sectors.size(); ++i)
   {
     auto& arel_sector=arel_sectors.GetSector(i);
@@ -102,23 +157,14 @@ int main(int argc, char **argv)
     int w_index=arel_sector.bra_subspace_index();
     Eigen::MatrixXd& Arel=Arel_matrices[i];
     Eigen::MatrixXd& LGIs=lgi_expansion_matrix_vector[lgi_index];
-    // std::cout<<"Arel "<<std::endl;
-    // std::cout<<Arel<<std::endl;
-    // std::cout<<"LGI "<<std::endl;
-    // std::cout<<LGIs<<std::endl;
     int j=brel_sectors.LookUpSectorIndex(lgi_index,w_index,1);
     Eigen::MatrixXd& Brel=Brel_matrices[j];
-    // std::cout<<"Brel "<<std::endl;
-    // std::cout<<Brel<<std::endl;
     Eigen::MatrixXd omega_matrix=Arel*LGIs;
-    // std::cout<<"omegas "<<std::endl;
-    // std::cout<<omega_matrix<<std::endl;
-    // std::cout<<"Brel on omega_matrix "<<std::endl;
-    // std::cout<<Brel*omega_matrix<<std::endl;
-    std::cout<<space.GetSubspace(lgi_index).GetSubspaceLabels().Str()<<std::endl;
-    std::cout<<LGIs.transpose()*Brel*omega_matrix<<std::endl<<std::endl;
-
   }
+  //   std::cout<<space.GetSubspace(lgi_index).GetSubspaceLabels().Str()<<std::endl;
+  //   std::cout<<LGIs.transpose()*Brel*omega_matrix<<std::endl<<std::endl;
+
+
 
 }//End Program
 
