@@ -20,35 +20,35 @@ int main(int argc, char **argv)
   // read in LGIs
   ////////////////////////////////////////////////////////////////
 
-  HalfInt Nsigma_0 = HalfInt(11,1);
   // std::string filename = "libraries/spncci/sp_basis_test.dat";
   std::string filename = "lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
-  lgi::MultiplicityTaggedLGIVector lgi_vector;
-  lgi::ReadLGISet(lgi_vector,filename);
+  lgi::MultiplicityTaggedLGIVector multiplicity_tagged_lgi_vector;
+  lgi::ReadLGISet(multiplicity_tagged_lgi_vector,filename);
 
   // diagnostic -- inspect LGI listing
-  std::cout << "LGI vector" << std::endl;
-  for (int i=0; i<lgi_vector.size(); ++i)
-    std::cout << i << " " << lgi_vector[i].Str() << std::endl;
+  std::cout << "LGI set" << std::endl;
+  for (int i=0; i<multiplicity_tagged_lgi_vector.size(); ++i)
+    std::cout << i << " " << multiplicity_tagged_lgi_vector[i].Str() << std::endl;
   std::cout << "********************************" << std::endl;
 
   ////////////////////////////////////////////////////////////////
-  // build irreps
+  // build SpNCCI space
   ////////////////////////////////////////////////////////////////
 
+  HalfInt Nsigma_0 = HalfInt(11,1);
   int Nmax = 2;
-  spncci::SpNCCISpace sp_irrep_vector;
+  spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;  // dictionary from sigma to branching
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
-  spncci::GenerateSpNCCISpace(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
+  spncci::GenerateSpNCCISpace(multiplicity_tagged_lgi_vector,truncator,spncci_space,sigma_irrep_map);
 
   // diagnostic -- inspect irrep listing and contents
   if(false)
   {
     std::cout << "SpNCCIIrrepFamily vector reprise" << std::endl;
-    for (int i=0; i<sp_irrep_vector.size(); ++i)
-      std::cout << i << " " << sp_irrep_vector[i].DebugString()
-                <<"  "<<sp_irrep_vector[i].gamma_max();
+    for (int i=0; i<spncci_space.size(); ++i)
+      std::cout << i << " " << spncci_space[i].DebugStr()
+                << "  " <<spncci_space[i].gamma_max();
 
     // examine irreps
     std::cout << "irreps (by sigma)" << std::endl;
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
         u3::U3 sigma = it->first;
         const sp3r::Sp3RSpace& irrep = it->second;
 
-        std::cout << irrep.DebugString();
+        std::cout << irrep.DebugStr();
         std::cout << std::endl;
       }
     std::cout << "********************************" << std::endl;
@@ -67,15 +67,14 @@ int main(int argc, char **argv)
   if(false)
   {
     // examine irreps by calling reference to irreps from vector
-    std::cout << "irreps (by lgi)" << std::endl;
-    for (auto sp_irrep_tag : sp_irrep_vector)
+    std::cout << "SpNCCI space" << std::endl;
+    for (const spncci::SpNCCIIrrepFamily& spncci_irrep_family : spncci_space)
       {
-        std::cout<<"Get irrep"<<std::endl;
-        const spncci::SpNCCIIrrepFamily& sp_irrep = sp_irrep_tag;
+        std::cout<<"Irrep family labels"<<std::endl;
+        std::cout<<spncci_irrep_family.Str();
         std::cout<<"Get subspace"<<std::endl;
-        const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
-        std::cout<<"Debug"<<std::endl;
-        std::cout << irrep.DebugString();
+        std::cout<<"Irrep contents"<<std::endl;
+        std::cout << spncci_irrep_family.Sp3RSpace().DebugStr();
         std::cout << std::endl;
       }
     std::cout << "********************************" << std::endl;
@@ -88,14 +87,14 @@ int main(int argc, char **argv)
 
   if(false)
   {
-    std::cout << "TotalU3Subspaces " << spncci::TotalU3Subspaces(sp_irrep_vector) << std::endl;
-    std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3S(sp_irrep_vector) << std::endl;
-    std::cout << "TotalDimensionU3LS " << spncci::TotalDimensionU3LS(sp_irrep_vector) << std::endl;
+    std::cout << "TotalU3Subspaces " << spncci::TotalU3Subspaces(spncci_space) << std::endl;
+    std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3S(spncci_space) << std::endl;
+    std::cout << "TotalDimensionU3LS " << spncci::TotalDimensionU3LS(spncci_space) << std::endl;
     std::cout << "TotalDimensionU3LSJConstrained ";
     for (HalfInt J=0; J<10; ++J)
-      std::cout << J << " " << spncci::TotalDimensionU3LSJConstrained(sp_irrep_vector,J) << "    ";
+      std::cout << J << " " << spncci::TotalDimensionU3LSJConstrained(spncci_space,J) << "    ";
     std::cout << std::endl;
-    std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(sp_irrep_vector) << std::endl;
+    std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(spncci_space) << std::endl;
   }
 
   ////////////////////////////////////////////////////////////////
@@ -105,9 +104,9 @@ int main(int argc, char **argv)
     {
       std::cout<<"Regroup test"<<std::endl;
       // build space
-      spncci::SpaceU3S space(sp_irrep_vector);
-      std::cout<<"irreps "<< sp_irrep_vector.size()<<std::endl;
-      for(auto irrep :sp_irrep_vector)
+      spncci::SpaceU3S space(spncci_space);
+      std::cout<<"irreps "<< spncci_space.size()<<std::endl;
+      for(auto irrep :spncci_space)
         std::cout<<irrep.Str()<<std::endl;
       // dump subspace contents 
       std::cout<<"Regrouping"<<std::endl;     
@@ -130,7 +129,7 @@ int main(int argc, char **argv)
   if(true)
   {
     std::cout<<"U3S Sectors "<<std::endl;
-    spncci::SpaceU3S space(sp_irrep_vector);
+    spncci::SpaceU3S space(spncci_space);
     // spncci::SectorLabelsU3SCache u3s_sectors;
     // To test sector construction
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_tensor_labels;
@@ -186,7 +185,7 @@ int main(int argc, char **argv)
   if (false)
     {
       std::cout<<"Regroup LS test"<<std::endl;
-      spncci::SpaceU3S space(sp_irrep_vector);
+      spncci::SpaceU3S space(spncci_space);
       // build space
       spncci::SpaceLS space_ls(space,0);
       // dump subspace contents 

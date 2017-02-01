@@ -8,7 +8,7 @@
 
   3/9/16 (aem,mac): Created based on prototype spstates.py, sp3r.py,
     and coefficients.py.
-
+  2/1/17 (mac): Rename DebugString to DebugStr.
 ****************************************************************/
 
 #ifndef SP3R_H_
@@ -122,7 +122,7 @@ namespace sp3r
     }
 
     // diagnostic output
-    std::string DebugString() const;
+    std::string DebugStr() const;
 
   };
 
@@ -151,7 +151,7 @@ namespace sp3r
     // Constructs all U3 subspaces up to given Nn_max.
 
     // diagnostic output
-    std::string DebugString() const;
+    std::string DebugStr() const;
 
     // accessors
     u3::U3 sigma() const {return sigma_;}

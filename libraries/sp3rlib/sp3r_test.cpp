@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     
   // examine Sp3RSpace object
   sp3r::Sp3RSpace irrep(sigma,Nn_max);
-  std::cout << irrep.DebugString();
+  std::cout << irrep.DebugStr();
   std::cout<<irrep.size()<<std::endl;
 
 
