@@ -31,7 +31,7 @@ namespace lgi
     return ss.str();
   }
 
-  void ReadLGISet(LGIVector& lgi_vector, const std::string& lgi_filename)
+  void ReadLGISet(MultiplicityTaggedLGIVector& lgi_vector, const std::string& lgi_filename)
   {
     // open input file
     std::ifstream lgi_stream(lgi_filename.c_str());

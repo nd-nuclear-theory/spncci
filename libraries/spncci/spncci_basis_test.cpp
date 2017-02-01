@@ -1,41 +1,46 @@
 /****************************************************************
-  sp_basis_test.cpp
+  spncci_basis_test.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
+
 #include "cppformat/format.h"
-#include "spncci/sp_basis.h"
 #include "lgi/lgi.h"
+#include "spncci/spncci_basis.h"
 #include "u3shell/relative_operator.h"
+
 int main(int argc, char **argv)
 {
+
   ////////////////////////////////////////////////////////////////
-  // SpIrrep list
+  // read in LGIs
   ////////////////////////////////////////////////////////////////
+
   HalfInt Nsigma_0 = HalfInt(11,1);
   // std::string filename = "libraries/spncci/sp_basis_test.dat";
-  std::string filename = "programs/unit_tensors/relative_test/Li6/LGI_file.dat";
-  lgi::LGIVector lgi_vector;
-  spncci::SpIrrepVector sp_irrep_vector;
-  lgi::ReadLGISet(lgi_vector, filename);
-  // lgi::ReadLGISet(lgi_vector,filename);
+  std::string filename = "lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
+  lgi::MultiplicityTaggedLGIVector lgi_vector;
+  lgi::ReadLGISet(lgi_vector,filename);
 
+  // diagnostic -- inspect LGI listing
   std::cout << "LGI vector" << std::endl;
   for (int i=0; i<lgi_vector.size(); ++i)
     std::cout << i << " " << lgi_vector[i].Str() << std::endl;
   std::cout << "********************************" << std::endl;
 
   ////////////////////////////////////////////////////////////////
-  // build subspaces
+  // build irreps
   ////////////////////////////////////////////////////////////////
 
   int Nmax = 2;
-
-  spncci::SigmaIrrepMap sigma_irrep_map;
+  spncci::SpIrrepVector sp_irrep_vector;
+  spncci::SigmaIrrepMap sigma_irrep_map;  // dictionary from sigma to branching
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   spncci::GenerateSp3RIrreps(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
+
+  // diagnostic -- inspect irrep listing and contents
   if(false)
   {
     std::cout << "SpIrrep vector reprise" << std::endl;
@@ -55,6 +60,8 @@ int main(int argc, char **argv)
       }
     std::cout << "********************************" << std::endl;
   }
+
+  // diagnostic -- inspect irrep listing and contents
   if(false)
   {
     // examine irreps by calling reference to irreps from vector
@@ -73,10 +80,10 @@ int main(int argc, char **argv)
   }
 
 
-
   ////////////////////////////////////////////////////////////////
   // indicate dimensions
   ////////////////////////////////////////////////////////////////
+
   if(false)
   {
     std::cout << "TotalU3Subspaces " << spncci::TotalU3Subspaces(sp_irrep_vector) << std::endl;
@@ -88,10 +95,8 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(sp_irrep_vector) << std::endl;
   }
+
   ////////////////////////////////////////////////////////////////
-  // indicate dimensions
-  ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
   // Regroup state tests
   ////////////////////////////////////////////////////////////////
   if (true)

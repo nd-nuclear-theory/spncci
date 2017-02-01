@@ -14,8 +14,10 @@
 
 #ifndef LGI_PROB_H_
 #define LGI_PROB_H_
+
 #include <vector>
 #include <eigen3/Eigen/Eigen>
+
 #include "am/am.h"  
 #include "lgi/lgi.h"
 #include "lsu3shell/lsu3shell_rme.h"
@@ -53,7 +55,7 @@ namespace lgi
         const u3shell::SpaceU3SPN& space, 
         std::ifstream& is_brel,
         std::ifstream& is_nrel,
-        lgi::LGIVector& lgi_vector,
+        lgi::MultiplicityTaggedLGIVector& lgi_vector,
         basis::MatrixVector& lgi_expansion_matrix_vector,
         bool keep_empty_subspaces=false  
       );
@@ -82,7 +84,7 @@ namespace lgi
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 
   void
-    WriteLGILabels(const lgi::LGIVector& lgi_vector, std::ofstream& os);
+    WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_vector, std::ofstream& os);
 
 
 }

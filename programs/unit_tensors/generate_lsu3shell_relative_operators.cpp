@@ -14,7 +14,6 @@
 #include "cppformat/format.h"
 
 #include "lsu3shell/lsu3shell_operator.h"
-#include "spncci/sp_basis.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unit_tensor_expansion.h"
 

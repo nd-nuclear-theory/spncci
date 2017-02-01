@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   int N1b=1;
 
   // Generate vector of LGI's from input file 
-  lgi::LGIVector lgi_vector;
+  lgi::MultiplicityTaggedLGIVector lgi_vector;
   lgi::ReadLGISet(lgi_vector,filename);
   // spncci::SpIrrepVector sp_irrep_vector;
   spncci::SigmaIrrepMap sigma_irrep_map;
@@ -72,9 +72,12 @@ int main(int argc, char **argv)
   // spncci::SpIrrep sp_irrep=sp_irrep_vector[0].irrep;
   // sp3r::Sp3RSpace irrep=sp_irrep.Sp3RSpace();
 
+  // enumerate pairs of families connected under two-body allowed spin
+  // selection rules
+  //
   // bra<=ket
-  std::vector< std::pair<int,int> > sp_irrep_pair_vector
-    =spncci::GenerateSpIrrepPairs(sp_irrep_vector);
+  std::vector< std::pair<int,int> > spncci_irrep_family_pair_vector
+    = GenerateSpNCCIIrrepFamilyPairs(spncci_space);
 
   //Generate list of sigma's and count of (sigma,S)
   // spncci::U3SCount sigma_S_count;
@@ -121,9 +124,9 @@ int main(int argc, char **argv)
   
   u3::U3 sigma_old(0,0,0), sigmap_old(0,0,0);
   HalfInt Sp_old, S_old;
-  for (int i=0; i<sp_irrep_pair_vector.size(); i++)
+  for (int i=0; i<spncci_irrep_family_pair_vector.size(); i++)
     {
-      std::pair<int,int> sp_irrep_pair=sp_irrep_pair_vector[i];
+      std::pair<int,int> sp_irrep_pair=spncci_irrep_family_pair_vector[i];
       spncci::SpIrrep sp_irrepp=sp_irrep_vector[sp_irrep_pair.first].irrep;
       spncci::SpIrrep sp_irrep=sp_irrep_vector[sp_irrep_pair.second].irrep;
 

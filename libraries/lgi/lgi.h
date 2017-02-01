@@ -7,6 +7,7 @@
   University of Notre Dame
 
   9/8/16 (aem,mac): Created.
+  1/31/17 (mac): Rename LGIVector to MultiplicityTaggedLGIVector.
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
@@ -24,27 +25,16 @@ namespace lgi
   ////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////
-  // LGI data structure
+  // LGI labels
   ////////////////////////////////////////////////////////////////
 
-  // Stored for each LGI:
-  //   U3SPN labels -- inherited, so as to inherit accesors, etc.
-  //   Nex -- useful when using LGI in recurrence relation formulas
-  //   pointer to irrep indexing
+  // class LGI
   //
-  // Note: It might be useful to store the running index (0-based) in
-  // the LGI as well, so that it can appear in, e.g., the debugging
-  // string output.
+  // U3SPN labels "dressed" with easy access to the Nex quantum number
   //
-  // Note: Sp and Sn are spectators for most conceivable calculations
-  // but are retained for informational value.
-  //
-  // Note: Although sigma x S could be encoded together as a single
-  // u3::U3S object, it is not clear that there is any benefit
-  // (conceptual or practical) to adding an extra layer of packaging
-  // at this stage in the code.
+  // U3SPN (parent): omega x Sp x Sn x S labels
+  // Nex (int): N relative to Nsigma0 for nucleus
 
-  // class LGI  
   class LGI
     : public u3shell::U3SPN
   {
@@ -120,14 +110,14 @@ namespace lgi
   // LGI container convenience type
   //
   // STYLE: maybe LGI::vector would be more consistent
-  typedef MultiplicityTagged<lgi::LGI>::vector LGIVector;
+  typedef MultiplicityTagged<lgi::LGI>::vector MultiplicityTaggedLGIVector;
 
-  void ReadLGISet(LGIVector& lgi_vector, const std::string& lgi_filename);
+  void ReadLGISet(MultiplicityTaggedLGIVector& lgi_vector, const std::string& lgi_filename);
 
   // Generates vector of LGIs based on LGI input tabulation.
   //
   // Arguments:
-  //   lgi_vector (LGIVector) : container for LGI list (OUTPUT)
+  //   lgi_vector (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)
   //   filename (string) : filename for LGI table file
 }
 

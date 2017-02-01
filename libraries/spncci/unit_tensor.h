@@ -23,7 +23,7 @@
 #include <boost/functional/hash_fwd.hpp>
 #include <eigen3/Eigen/Eigen>
 
-#include "spncci/sp_basis.h"
+#include "spncci/spncci_basis.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
