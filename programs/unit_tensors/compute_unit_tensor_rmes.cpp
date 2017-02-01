@@ -23,6 +23,7 @@
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h" 
 #include "spncci/unit_tensor.h"
+#include "spncci/spncci_branching_u3s.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/upcoupling.h"
 
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
   //Get LGI expansion by solving for null space of Brel and Ncm
   std::ifstream is_brel(brel_filename.c_str());
   std::ifstream is_nrel(nrel_filename.c_str());
-  lgi::LGIVector lgi_vector;
+  lgi::MultiplicityTaggedLGIVector lgi_vector;
   basis::MatrixVector lgi_expansion_matrix_vector;
   lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel,is_nrel,lgi_vector,lgi_expansion_matrix_vector);
   is_brel.close();
@@ -224,16 +225,16 @@ int main(int argc, char **argv)
   int i=0;
   for(auto lgi_tagged : lgi_vector)
   {
-    std::cout<<i<<"  "<<lgi_tagged.irrep.Str()<<"  "<<lgi_tagged.tag<<std::endl;
+    std::cout<<i<<"  "<<lgi_tagged.Str()<<"  "<<lgi_tagged.tag<<std::endl;
     ++i;
   }
 
   // Setting up the symplectic basis containers
   spncci::SigmaIrrepMap sigma_irrep_map;
-  spncci::SpIrrepVector sp_irrep_vector;
+  spncci::SpNCCISpace sp_irrep_vector;
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   // Generating sp3r irreps
-  spncci::GenerateSp3RIrreps(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
+  spncci::GenerateSpNCCISpace(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
 
 
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -242,7 +243,7 @@ int main(int argc, char **argv)
   std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
   for(int l=0; l<sp_irrep_vector.size(); l++)
     {
-      sigma_set.insert(sp_irrep_vector[l].irrep.sigma());
+      sigma_set.insert(sp_irrep_vector[l].sigma());
     }
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map;
   for( const auto& s : sigma_set)
@@ -319,8 +320,8 @@ int main(int argc, char **argv)
           {
             // Get lgi expansion 
             std::pair<int,int> lgi_pair(m,n);
-            u3shell::U3SPN bra_lgi_labels=sp_irrep_vector[m].irrep;
-            u3shell::U3SPN ket_lgi_labels=sp_irrep_vector[n].irrep;
+            u3shell::U3SPN bra_lgi_labels=sp_irrep_vector[m];
+            u3shell::U3SPN ket_lgi_labels=sp_irrep_vector[n];
             if(not am::AllowedTriangle(ket_lgi_labels.S(),unit_tensor.S0(), bra_lgi_labels.S()))
               continue;
 
@@ -454,8 +455,8 @@ int main(int argc, char **argv)
           int j=sectors.GetSector(s).ket_subspace_index();
           int rho0=sectors.GetSector(s).multiplicity_index();
           std::pair<int,int>sp_irrep_pair(i,j);
-          u3::U3 sigmap=sp_irrep_vector[i].irrep.sigma();
-          u3::U3 sigma=sp_irrep_vector[j].irrep.sigma();
+          u3::U3 sigmap=sp_irrep_vector[i].sigma();
+          u3::U3 sigma=sp_irrep_vector[j].sigma();
           spncci::UnitTensorU3Sector u3_sector(sigmap,sigma,unit_tensor,rho0);
           if(not CheckIfZeroMatrix(spncci_operator_matrices[s],zero_threshold))
             {

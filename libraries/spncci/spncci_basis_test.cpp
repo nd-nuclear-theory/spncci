@@ -5,12 +5,14 @@
   University of Notre Dame
 
 ****************************************************************/
+#include "spncci/spncci_basis.h"
 
 #include "cppformat/format.h"
 #include "lgi/lgi.h"
-#include "spncci/spncci_basis.h"
-#include "u3shell/relative_operator.h"
 
+#include "u3shell/relative_operator.h"
+#include "spncci/spncci_branching_u3s.h"
+#include "spncci/spncci_branching_u3lsj.h"
 int main(int argc, char **argv)
 {
 
@@ -35,18 +37,18 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
 
   int Nmax = 2;
-  spncci::SpIrrepVector sp_irrep_vector;
+  spncci::SpNCCISpace sp_irrep_vector;
   spncci::SigmaIrrepMap sigma_irrep_map;  // dictionary from sigma to branching
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
-  spncci::GenerateSp3RIrreps(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
+  spncci::GenerateSpNCCISpace(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
 
   // diagnostic -- inspect irrep listing and contents
   if(false)
   {
-    std::cout << "SpIrrep vector reprise" << std::endl;
+    std::cout << "SpNCCIIrrepFamily vector reprise" << std::endl;
     for (int i=0; i<sp_irrep_vector.size(); ++i)
-      std::cout << i << " " << sp_irrep_vector[i].irrep.DebugString()
-                <<"  "<<sp_irrep_vector[i].tag;
+      std::cout << i << " " << sp_irrep_vector[i].DebugString()
+                <<"  "<<sp_irrep_vector[i].gamma_max();
 
     // examine irreps
     std::cout << "irreps (by sigma)" << std::endl;
@@ -69,7 +71,7 @@ int main(int argc, char **argv)
     for (auto sp_irrep_tag : sp_irrep_vector)
       {
         std::cout<<"Get irrep"<<std::endl;
-        const spncci::SpIrrep& sp_irrep = sp_irrep_tag.irrep;
+        const spncci::SpNCCIIrrepFamily& sp_irrep = sp_irrep_tag;
         std::cout<<"Get subspace"<<std::endl;
         const sp3r::Sp3RSpace& irrep = sp_irrep.Sp3RSpace();
         std::cout<<"Debug"<<std::endl;
@@ -87,7 +89,7 @@ int main(int argc, char **argv)
   if(false)
   {
     std::cout << "TotalU3Subspaces " << spncci::TotalU3Subspaces(sp_irrep_vector) << std::endl;
-    std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3(sp_irrep_vector) << std::endl;
+    std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3S(sp_irrep_vector) << std::endl;
     std::cout << "TotalDimensionU3LS " << spncci::TotalDimensionU3LS(sp_irrep_vector) << std::endl;
     std::cout << "TotalDimensionU3LSJConstrained ";
     for (HalfInt J=0; J<10; ++J)
@@ -129,7 +131,7 @@ int main(int argc, char **argv)
   {
     std::cout<<"U3S Sectors "<<std::endl;
     spncci::SpaceU3S space(sp_irrep_vector);
-    spncci::SectorLabelsU3SCache u3s_sectors;
+    // spncci::SectorLabelsU3SCache u3s_sectors;
     // To test sector construction
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_tensor_labels;
     u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_tensor_labels);

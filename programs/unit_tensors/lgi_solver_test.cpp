@@ -163,7 +163,7 @@ int main(int argc, char **argv)
   std::ifstream is_nrel2(nrel_filename.c_str());
   std::ifstream is_brel2(brel_filename.c_str());
 
-  lgi::LGIVector lgi_vector;
+  lgi::MultiplicityTaggedLGIVector lgi_vector;
   bool keep_empty_subspaces=true;
   lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel2,
   	is_nrel2,lgi_vector,lgi_expansion_matrix_vector, keep_empty_subspaces);

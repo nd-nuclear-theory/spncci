@@ -48,7 +48,7 @@ namespace spncci
     int N1b,
     int Nmax,
     std::pair<int,int>  sp_irrep_pair,
-    const spncci::SpIrrepVector& sp_irrep_vector,
+    const spncci::SpNCCISpace& sp_irrep_vector,
     std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map
     )
@@ -57,9 +57,9 @@ namespace spncci
     std::cout<<"Entering GenerateU3SectorLabels"<<std::endl;
     #endif
 
-    // Extracting SpIrrep labels from pair
-    const spncci::SpIrrep& sp_irrepp=sp_irrep_vector[sp_irrep_pair.first].irrep;
-    const spncci::SpIrrep& sp_irrep=sp_irrep_vector[sp_irrep_pair.second].irrep;
+    // Extracting SpNCCIIrrepFamily labels from pair
+    const spncci::SpNCCIIrrepFamily& sp_irrepp=sp_irrep_vector[sp_irrep_pair.first];
+    const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[sp_irrep_pair.second];
     u3::U3 sigmap=sp_irrepp.sigma();
     u3::U3 sigma=sp_irrep.sigma(); 
     const sp3r::Sp3RSpace& irrepp=sp_irrepp.Sp3RSpace();
@@ -152,9 +152,9 @@ namespace spncci
     u3::UCoefCache& u_coef_cache,
     u3::PhiCoefCache& phi_coef_cache,
     std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
-     // SpIrrep pair sector 
-    const spncci::SpIrrep& sp_irrepp,
-    const spncci::SpIrrep& sp_irrep,
+     // SpNCCIIrrepFamily pair sector 
+    const spncci::SpNCCIIrrepFamily& sp_irrepp,
+    const spncci::SpNCCIIrrepFamily& sp_irrep,
     const std::pair<int,int>& lgi_mult,
      // vector of addresses to relevant Np,N sectors of unit tensor matrix
      spncci::UnitTensorSectorsCache& sector_NpN2,
@@ -506,8 +506,8 @@ namespace spncci
 void 
 GenerateNpNSector(
   const std::pair<int,int> NpN_pair, 
-  const spncci::SpIrrep& sp_irrepp,
-  const spncci::SpIrrep& sp_irrep,
+  const spncci::SpNCCIIrrepFamily& sp_irrepp,
+  const spncci::SpNCCIIrrepFamily& sp_irrep,
   const std::pair<int,int>& lgi_multiplicities,
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
@@ -593,7 +593,7 @@ GenerateNpNSector(
     int N1b,
     int Nmax, 
     std::pair<int,int> sp_irrep_pair,
-    const spncci::SpIrrepVector& sp_irrep_vector,
+    const spncci::SpNCCISpace& sp_irrep_vector,
     u3::UCoefCache& u_coef_cache,
     u3::PhiCoefCache& phi_coef_cache,
     std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
@@ -616,18 +616,18 @@ GenerateNpNSector(
     std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
         =sp_irrep_unit_tensor_rme_map[sp_irrep_pair];
 
-    // extract SpIrrep labels from pair
-    const spncci::SpIrrep& sp_irrepp=sp_irrep_vector[sp_irrep_pair.first].irrep;
-    const spncci::SpIrrep& sp_irrep=sp_irrep_vector[sp_irrep_pair.second].irrep;
+    // extract SpNCCIIrrepFamily labels from pair
+    const spncci::SpNCCIIrrepFamily& sp_irrepp=sp_irrep_vector[sp_irrep_pair.first];
+    const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[sp_irrep_pair.second];
     const sp3r::Sp3RSpace& irrepp=sp_irrepp.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=sp_irrep.Sp3RSpace();
     const HalfInt& Sp=sp_irrepp.S();
     const HalfInt& S=sp_irrep.S();
     std::pair<int,int> lgi_multiplicities(
-      sp_irrep_vector[sp_irrep_pair.first].tag,
-      sp_irrep_vector[sp_irrep_pair.second].tag
+      sp_irrep_vector[sp_irrep_pair.first].gamma_max(),
+      sp_irrep_vector[sp_irrep_pair.second].gamma_max()
       );
-    // std::cout<<sp_irrep_vector[sp_irrep_pair.first].irrep.Str()<<"  "<< sp_irrep_vector[sp_irrep_pair.second].irrep.Str()<<std::endl;
+    // std::cout<<sp_irrep_vector[sp_irrep_pair.first].Str()<<"  "<< sp_irrep_vector[sp_irrep_pair.second].Str()<<std::endl;
     // std::cout<<lgi_multiplicities.first<<"  "<<lgi_multiplicities.second<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
     // Looping over NpN subspaces 
@@ -654,8 +654,8 @@ GenerateNpNSector(
       unit_tensor_labels_map,unit_tensor_NpN_sector_map_conj);
     // Swap multiplicity labels 
     std::pair<int,int> lgi_mult_conj(
-      sp_irrep_vector[sp_irrep_pair.second].tag,
-      sp_irrep_vector[sp_irrep_pair.first].tag
+      sp_irrep_vector[sp_irrep_pair.second].gamma_max(),
+      sp_irrep_vector[sp_irrep_pair.first].gamma_max()
       );
     // For each NnpNn sector
     for(int Nn=2; Nn<=Np_truncate; ++Nn)

@@ -19,7 +19,7 @@
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h" 
 #include "spncci/unit_tensor.h"
-
+#include "spncci/spncci_branching_u3s.h"
 
 int main(int argc, char **argv)
 {
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
   u3::UCoefCache u_coef_cache;
   u3::PhiCoefCache phi_coef_cache;
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3> >  k_matrix_map;
-  spncci::SpIrrepVector sp_irrep_vector;
+  spncci::SpNCCISpace sp_irrep_vector;
   // general diagnostics
   // stack size
   {
@@ -62,14 +62,14 @@ int main(int argc, char **argv)
   // Generate vector of LGI's from input file 
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   lgi::ReadLGISet(lgi_vector,filename);
-  // spncci::SpIrrepVector sp_irrep_vector;
+  // spncci::SpNCCISpace sp_irrep_vector;
   spncci::SigmaIrrepMap sigma_irrep_map;
   spncci::NmaxTruncator truncator(Nsigma_0,Nmax);
   std::cout<<"Generating irreps"<<std::endl;
-  spncci::GenerateSp3RIrreps(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
+  spncci::GenerateSpNCCISpace(lgi_vector,truncator,sp_irrep_vector,sigma_irrep_map);
   // Generate list of LGI's for which two-body operators will have non-zero matrix elements 
   std::cout<<"Sp irrep vector size "<<sp_irrep_vector.size()<<std::endl;
-  // spncci::SpIrrep sp_irrep=sp_irrep_vector[0].irrep;
+  // spncci::SpNCCIIrrepFamily sp_irrep=sp_irrep_vector[0].irrep;
   // sp3r::Sp3RSpace irrep=sp_irrep.Sp3RSpace();
 
   // enumerate pairs of families connected under two-body allowed spin
@@ -77,13 +77,13 @@ int main(int argc, char **argv)
   //
   // bra<=ket
   std::vector< std::pair<int,int> > spncci_irrep_family_pair_vector
-    = GenerateSpNCCIIrrepFamilyPairs(spncci_space);
+    = GenerateSpNCCIIrrepFamilyPairs(sp_irrep_vector);
 
   //Generate list of sigma's and count of (sigma,S)
   // spncci::U3SCount sigma_S_count;
   std::unordered_set<u3::U3,boost::hash<u3::U3> >sigma_set;
   for(int l=0; l<sp_irrep_vector.size(); l++)
-      sigma_set.insert(sp_irrep_vector[l].irrep.sigma());
+      sigma_set.insert(sp_irrep_vector[l].sigma());
 
   /////////////////////////////////////////////////////////////////////////////////////  
   // Generate Kmatrices 
@@ -111,9 +111,9 @@ int main(int argc, char **argv)
 
   // spncci::GenerateUnitTensors(Nmax,unit_sym_map);
 
-  //initializing map that will store map containing unit tensors.  Outer map is keyed SpIrrep pair. 
+  //initializing map that will store map containing unit tensors.  Outer map is keyed SpNCCIIrrepFamily pair. 
   // inner map is keyed by unit tensor matrix element labels of type UnitTensorRME
-  // SpIrrep pair -> UnitTensorRME -> Matrix of reduced unit tensor matrix elements for v'v subsector
+  // SpNCCIIrrepFamily pair -> UnitTensorRME -> Matrix of reduced unit tensor matrix elements for v'v subsector
   std:: map< 
     std::pair<int,int>, 
     std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >
@@ -127,12 +127,12 @@ int main(int argc, char **argv)
   for (int i=0; i<spncci_irrep_family_pair_vector.size(); i++)
     {
       std::pair<int,int> sp_irrep_pair=spncci_irrep_family_pair_vector[i];
-      spncci::SpIrrep sp_irrepp=sp_irrep_vector[sp_irrep_pair.first].irrep;
-      spncci::SpIrrep sp_irrep=sp_irrep_vector[sp_irrep_pair.second].irrep;
+      spncci::SpNCCIIrrepFamily sp_irrepp=sp_irrep_vector[sp_irrep_pair.first];
+      spncci::SpNCCIIrrepFamily sp_irrep=sp_irrep_vector[sp_irrep_pair.second];
 
-      int dimp=sp_irrep_vector[sp_irrep_pair.first].tag;
-      int dim=sp_irrep_vector[sp_irrep_pair.second].tag;
-      std::cout <<"SpIrrep pair"<< sp_irrepp.Str()<<"  "<<sp_irrep.Str()<<std::endl;
+      int dimp=sp_irrep_vector[sp_irrep_pair.first].gamma_max();
+      int dim=sp_irrep_vector[sp_irrep_pair.second].gamma_max();
+      std::cout <<"SpNCCIIrrepFamily pair"<< sp_irrepp.Str()<<"  "<<sp_irrep.Str()<<std::endl;
 
       u3::U3 sigmap=sp_irrepp.sigma();  		
       u3::U3 sigma=sp_irrep.sigma();
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
       else
         continue;
       //////////////////////////////////////////////////////////////////////////////////////////////
-      // Generating the rme's of the unit tensor for each SpIrrep
+      // Generating the rme's of the unit tensor for each SpNCCIIrrepFamily
       std::cout<<"Generating unit tensor sectors"<<std::endl;
       spncci::GenerateUnitTensorMatrix(
         N1b,Nmax,sp_irrep_pair,sp_irrep_vector,
