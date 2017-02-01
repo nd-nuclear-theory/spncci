@@ -1,13 +1,14 @@
 /****************************************************************
   explicit_basis_construction.cpp
 
+  Generating the symplectic basis by explicit laddering with
+  raising polynomials 
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
   1/17/17 (aem): Created.
 ****************************************************************/
-// Generating the symplectic basis by explicit laddering with
-// raising polynomials 
 
 #include <fstream>
 #include <unordered_set>
@@ -17,7 +18,7 @@
 #include "lsu3shell/lsu3shell_basis.h"
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h"
-#include "spncci/sp_basis.h"
+// #include "spncci/spncci_basis.h"
 #include "u3shell/unit_tensor_expansion.h"
 #include "utilities/utilities.h"
 
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
   basis::MatrixVector lgi_expansion_matrix_vector;
   std::ifstream is_nrel(nrel_filename.c_str());
   std::ifstream is_brel(brel_filename.c_str());
-  lgi::LGIVector lgi_vector;
+  lgi::MultiplicityTaggedLGIVector lgi_vector;
   bool keep_empty_subspaces=true;
   lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel,is_nrel,
     lgi_vector,lgi_expansion_matrix_vector,keep_empty_subspaces);

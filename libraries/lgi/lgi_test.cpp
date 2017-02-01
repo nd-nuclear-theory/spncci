@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 	lgi::LGI lgi(u3spn,0);
 	std::cout<<lgi.Str()<<std::endl;
 	std::string filename="../../data/lgi_set/lgi_test.dat";
-	lgi::LGIVector lgi_vector;
+	lgi::MultiplicityTaggedLGIVector lgi_vector;
 	std::cout<<"lgi's from lgi_test.dat"<<std::endl;
 	ReadLGISet(lgi_vector, filename);
 	for(auto lgi : lgi_vector)

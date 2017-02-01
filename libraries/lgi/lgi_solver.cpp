@@ -112,7 +112,7 @@ namespace lgi
       const u3shell::SpaceU3SPN& space, 
       std::ifstream& is_brel,
       std::ifstream& is_nrel,
-      lgi::LGIVector& lgi_vector,
+      lgi::MultiplicityTaggedLGIVector& lgi_vector,
       basis::MatrixVector& lgi_expansion_matrix_vector,
       bool keep_empty_subspaces
     )
@@ -167,7 +167,7 @@ namespace lgi
   }
 
   void 
-  WriteLGILabels(const lgi::LGIVector& lgi_vector,   std::ofstream& os)
+  WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_vector,   std::ofstream& os)
   {
     int Nex;
     u3::U3 sigma;
