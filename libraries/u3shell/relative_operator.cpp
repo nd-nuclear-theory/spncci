@@ -106,7 +106,7 @@ namespace u3shell {
   {
     std::vector<RelativeUnitTensorLabelsU3ST> temp_vector;
     GenerateRelativeUnitTensorLabelsU3ST(Nmax, temp_vector,J0,T0,restrict_positive_N0);
-    for (auto tensor : temp_vector)
+    for (auto& tensor : temp_vector)
     {
       // std::cout<<"tensor "<<tensor.Str()<<std::endl;
       relative_unit_tensor_labels[tensor.N0()].push_back(tensor);

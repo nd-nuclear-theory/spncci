@@ -84,17 +84,15 @@ namespace spncci
       for (int Nnp=0; Nnp<=std::min(Nsum,Nnp_max); Nnp+=2)
         {
           int Nn=Nsum-Nnp;
+
           if((Nnp+sp_irrepp.Nex())>Nmax)
             continue;
+
           if ((Nn+sp_irrep.Nex())>Nmax)
             continue; 
-          // Only computing unit tensors with N0>=0 
-          // The rest are obtain by conjustation.
+
           int N0=sp_irrepp.Nex()+Nnp-sp_irrep.Nex()-Nn;
-          // std::cout << "N0" <<N0<<std::endl;
-          // if(N0<0)
-          //   continue;
-          // std::cout<<" pairs "<<Nnp<<"  "<<Nn<<std::endl;
+
           std::pair<int,int> NpN_pair(Nnp,Nn);
           // Selecting section of spaces to iterate over
           int ip_min, ip_max, i_min, i_max;
@@ -105,9 +103,9 @@ namespace spncci
           // taking into account different Nsigmas 
           std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& N0_operator_set
             =unit_tensor_labels_map[N0];
-          // std::cout<<"Getting sectors for "<<N0_operator_set.size()<<" unit tensors"<<std::endl;
+
           // iterate over omega' subspace
-          // std::cout<<"loop through subspaces"<<std::endl;
+
           for(int ip=ip_min; ip<=ip_max; ip++ )
             {
               u3::U3 omegap=irrepp.GetSubspace(ip).GetSubspaceLabels();    
@@ -118,27 +116,18 @@ namespace spncci
                   // Iterating over the operator labels             
                   for (auto& unit_tensor : N0_operator_set)
                     {                     
-                      // std::cout<<"unit tensor"<<std::endl;
                       //unpack unit_tensor labels 
                       u3::SU3 x0(unit_tensor.x0());
-                      HalfInt S0(unit_tensor.S0());
-                      HalfInt T0(unit_tensor.T0());
+                      // HalfInt S0(unit_tensor.S0());
+                      // HalfInt T0(unit_tensor.T0());
                       int rbp=unit_tensor.bra().eta();
                       int rb=unit_tensor.ket().eta();
-                      // std::cout<<"checking angular momentum"<<std::endl;
-                      //Checking angular momentum constraint 
-                      if (not am::AllowedTriangle(sp_irrep.S(),sp_irrepp.S(),S0))
-                        continue;
 
-                      // The max bosons a single relative particle can carry is 
-                      // 2*max_one_body_value+num_excitation_quanta
-                      // std::cout<<fmt::format("{} {} {} : {} {}  {} {}", N1b,Nnp,Nn,rb,2*N1b+Nn,rbp,2*N1b+Nnp)<<std::endl;
-                      if(rb>(2*N1b+Nn))
+                      if(rb>(2*N1b+Nn+sp_irrep.Nex()))
                         continue;
-                      if(rbp>(2*N1b+Nnp))
+                      if(rbp>(2*N1b+Nnp+sp_irrepp.Nex()))
                         continue;
                       int rho0_max=OuterMultiplicity(omega.SU3(),x0,omegap.SU3());
-                      // std::cout<<"rho0_max"<<rho0_max<<std::endl;
 
                       ///////////////////////////////////////////////////////////////////////////////////////
                       // Iterating over outer multiplicity
@@ -178,6 +167,9 @@ namespace spncci
     #endif
     // v',v
     int N1b=2;
+
+
+    // std::cout<<"unit labels "<<unit_labels.Str()<<std::endl;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  Set up for calculation 
@@ -398,7 +390,7 @@ namespace spncci
                           unit3_matrix.block(it,jt,dimp,dim1)+=A*unit3pp_matrix.block(is,js,dimpp,dim1);
                           // std::cout<<A<<"  "<<unit3pp_matrix<<std::endl;
                         }
-                        // unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix;
+                        // unit3_matrix+=Kp*boson_matrix*Kpp_inv*unit3pp_matrix; //Now A
                   } // end omegapp
                 // std::cout<<"unit3_matrix "<<unit3_matrix<<std::endl;
                 unit_matrix_x0+=unit3_matrix;
