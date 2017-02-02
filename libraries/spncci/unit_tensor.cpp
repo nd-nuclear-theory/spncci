@@ -5,12 +5,13 @@
   University of Notre Dame
 
 ****************************************************************/
-#include <omp.h>
-#include "cppformat/format.h"
 
-#include "sp3rlib/u3coef.h"
-#include "sp3rlib/vcs.h"
 #include "spncci/unit_tensor.h"
+
+#include <omp.h>
+
+#include "cppformat/format.h"
+#include "sp3rlib/u3coef.h"
 
 extern double zero_threshold;
 

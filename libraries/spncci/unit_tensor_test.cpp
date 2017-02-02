@@ -8,6 +8,9 @@
 
   3/18/16 (aem,mac): Created.
 ****************************************************************/
+
+#include "spncci/unit_tensor.h"
+
 #include <cstdio>
 #include <fstream>
 #include <sys/resource.h>
@@ -18,7 +21,6 @@
 #include "lgi/lgi.h"
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h" 
-#include "spncci/unit_tensor.h"
 #include "spncci/spncci_branching_u3s.h"
 
 int main(int argc, char **argv)

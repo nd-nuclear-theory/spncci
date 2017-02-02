@@ -1,15 +1,16 @@
 /****************************************************************
-  tensor.cpp
+  tensor_labels.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
-#include <sstream>
   
-#include "cppformat/format.h"
 #include "u3shell/tensor_labels.h"
 
+#include <sstream>
+
+#include "cppformat/format.h"
 
 namespace u3shell {
 
