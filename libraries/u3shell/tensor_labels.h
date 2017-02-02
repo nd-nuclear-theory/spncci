@@ -770,8 +770,8 @@ namespace u3shell
 
     inline RelativeUnitTensorLabelsU3ST(
         const u3::SU3& x0, HalfInt S0, HalfInt T0,
-        const RelativeStateLabelsU3ST& bra,
-        const RelativeStateLabelsU3ST& ket
+        const u3shell::RelativeStateLabelsU3ST& bra,
+        const u3shell::RelativeStateLabelsU3ST& ket
       )
       : bra_(bra), ket_(ket)
     // Construct from labels, with operator labels set individually.
@@ -780,6 +780,7 @@ namespace u3shell
     //
     // Redundant operator labels are set from the bra/ket labels.
     {
+      assert(false); // I am deprecated.  Are you still using me?  Or can I be deleted?
       N0_ = bra_.eta() - ket_.eta();
       x0_= x0;
       S0_ = S0;
@@ -787,10 +788,10 @@ namespace u3shell
       g0_ = (bra_.g()+ket_.g())%2;  // equivalently, N0_%2
     }
 
-    inline RelativeUnitTensorLabelsU3ST(
+    inline RelativeUnitTensorLabelsU3ST (
         const u3shell::OperatorLabelsU3ST operator_labels,
-        const RelativeStateLabelsU3ST& bra,
-        const RelativeStateLabelsU3ST& ket
+        const u3shell::RelativeStateLabelsU3ST& bra,
+        const u3shell::RelativeStateLabelsU3ST& ket
       )
       : OperatorLabelsU3ST(operator_labels), bra_(bra), ket_(ket)
     // Construct from labels, with operator labels set collectively.

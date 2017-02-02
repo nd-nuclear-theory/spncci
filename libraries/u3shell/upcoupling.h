@@ -19,7 +19,15 @@ namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
   typedef std::tuple<int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
-  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>RelativeRMEsU3ST;
+
+  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>
+    RelativeRMEsU3ST;
+  // Mapping to store coefficients (RMEs) of relative operator in
+  // terms of relative unit tensors.
+  //
+  // (relative_unit_tensor_labels,kappa0,L0) -> RME
+  //
+  //    relative_unit_tensor_labels (u3shell::RelativeUnitTensorLabelsU3ST):
 
   typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt> RelativeCMStateLabelsNLST;  
   typedef std::tuple<int,HalfInt,HalfInt,RelativeCMStateLabelsNLST,RelativeCMStateLabelsNLST> RelativeCMBraketNLST;

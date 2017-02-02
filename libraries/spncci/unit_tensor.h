@@ -153,7 +153,7 @@ namespace spncci
 
   typedef std::map<std::pair<int,int>,std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>>
     UnitTensorMatricesByIrrepFamily;
-  // Mapping:
+  // Mapping to store matrices for unit tensors as caculated in recurrence:
   //
   // (bra_irrep_family_index,ket_irrep_family_index) (<int,int>)
   //   -> (bra_Nn,ket_Nn) (<int,int>)

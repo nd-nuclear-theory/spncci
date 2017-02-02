@@ -57,7 +57,8 @@ int main(int argc, char **argv)
 
   // <u3shell::RelativeUnitTensorLabelsU3ST,int,int> -> RME
   //
-  //   (unit tensor labels,kappa0,L0)
+  //   (unit_tensor_labels,kappa0,L0)
+  //
 
   std::string interaction_filename = "unit.dat";
   std::ifstream interaction_stream(interaction_filename);
@@ -65,11 +66,31 @@ int main(int argc, char **argv)
   u3shell::RelativeRMEsU3ST relative_rmes;
   u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
 
+  // diagnostic -- relative rme contents
+  for (const auto& label_rme_pair : relative_rmes)
+    {
+    }
+
   ////////////////////////////////////////////////////////////////
   // construct fake unit tensor recurrence results
   ////////////////////////////////////////////////////////////////
 
+  // For each allowed BabySpNCCI sector, we will fill relevant unit
+  // tensor matrix with constants.
   spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+
+  // u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor_labels = 
+  //       const u3shell::OperatorLabelsU3ST operator_labels,
+  //       const RelativeStateLabelsU3ST& bra,
+  //       const RelativeStateLabelsU3ST& ket
+     
+
+  // (bra_irrep_family_index,ket_irrep_family_index) (<int,int>)
+  //   -> (bra_Nn,ket_Nn) (<int,int>)
+  //   -> unit_tensor_sector_labels (spncci::UnitTensorU3Sector)
+  //   -> sector matrix (Eigen::MatrixXd)
+  
+  
 
   ////////////////////////////////////////////////////////////////
   // baby SpNCCI sector construction
