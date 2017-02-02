@@ -5,14 +5,18 @@
   University of Notre Dame
 
 ****************************************************************/
-#include "spncci/spncci_basis.h"
+
+#include <iostream>
+#include <fstream>
 
 #include "cppformat/format.h"
 #include "lgi/lgi.h"
-
-#include "u3shell/relative_operator.h"
+#include "spncci/spncci_basis.h"
 #include "spncci/spncci_branching_u3s.h"
 #include "spncci/spncci_branching_u3lsj.h"
+#include "spncci/unit_tensor.h"
+#include "u3shell/relative_operator.h"
+#include "u3shell/upcoupling.h"
 
 int main(int argc, char **argv)
 {
@@ -47,6 +51,31 @@ int main(int argc, char **argv)
     std::cout << baby_spncci_space.GetSubspace(subspace_index).DebugStr()
               << std::endl;
 
+  ////////////////////////////////////////////////////////////////
+  // read interaction coefficients
+  ////////////////////////////////////////////////////////////////
+
+  // <u3shell::RelativeUnitTensorLabelsU3ST,int,int> -> RME
+  //
+  //   (unit tensor labels,kappa0,L0)
+
+  std::string interaction_filename = "unit.dat";
+  std::ifstream interaction_stream(interaction_filename);
+  assert(interaction_stream);
+  u3shell::RelativeRMEsU3ST relative_rmes;
+  u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
+
+  ////////////////////////////////////////////////////////////////
+  // construct fake unit tensor recurrence results
+  ////////////////////////////////////////////////////////////////
+
+  spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+
+  ////////////////////////////////////////////////////////////////
+  // baby SpNCCI sector construction
+  ////////////////////////////////////////////////////////////////
+
+  //spncci::BabySpNCCISectors scalar_sectors(baby_spncci_space,)
 
   ////////////////////////////////////////////////////////////////
   // Regroup state tests

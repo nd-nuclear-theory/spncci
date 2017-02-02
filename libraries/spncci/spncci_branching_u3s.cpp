@@ -22,7 +22,10 @@ namespace spncci
   // baby SpNCCI
   ////////////////////////////////////////////////////////////////
 
-  BabySpNCCISubspace::BabySpNCCISubspace(const spncci::SpNCCIIrrepFamily& spncci_irrep_family, const sp3r::U3Subspace& u3_subspace)
+  BabySpNCCISubspace::BabySpNCCISubspace(
+      const spncci::SpNCCIIrrepFamily& spncci_irrep_family,
+      const sp3r::U3Subspace& u3_subspace
+    )
   {
 
     // set labels
@@ -89,13 +92,13 @@ namespace spncci
           allowed &= (ket_subspace.omega().N() + operator_labels.N0() - bra_subspace.omega().N() == 0);
           // spin
           //
-          // Note: Basic constaints could/should also be placed on Sp
+          // Note: Basic two-body constaints can be placed on Sp
           // and Sn triangularity based on two-body nature of
           // operator, so delta Sp<=2 and delta Sn<=2.  However, in
           // general, the operator does not have sharp Sp0 or Sn0.
           allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0(),bra_subspace.S());
-          // allowed &= am::AllowedTriangle(ket_subspace.Sp(),operator_labels.S0(),bra_subspace.Sp());
-          // allowed &= am::AllowedTriangle(ket_subspace.Sn(),operator_labels.S0(),bra_subspace.Sn());
+          allowed &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
+          allowed &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
           if (!allowed)
             continue;
 

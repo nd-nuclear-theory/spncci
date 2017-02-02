@@ -12,6 +12,7 @@
                  changed interation in UnitTensorMatrixGenerator
   12/7/16 (aem): Overhall of unit tensor rme calculation
   12/21/16 (aem): Factored out conjugate sector calculation
+  2/2/17 (mac): Add typedef UnitTensorMatricesByIrrepFamily.
 ****************************************************************/
 
 #ifndef UNIT_TENSOR_H_
@@ -150,6 +151,14 @@ namespace spncci
     // unit_tensor_NpN_sector_map (output) :  For each NpN pair key in map the corresponding value 
 
 
+  typedef std::map<std::pair<int,int>,std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>>
+    UnitTensorMatricesByIrrepFamily;
+  // Mapping:
+  //
+  // (bra_irrep_family_index,ket_irrep_family_index) (<int,int>)
+  //   -> (bra_Nn,ket_Nn) (<int,int>)
+  //   -> unit_tensor_sector_labels (spncci::UnitTensorU3Sector)
+  //   -> sector matrix (Eigen::MatrixXd)
 
 void 
 GenerateUnitTensorMatrix(
@@ -161,8 +170,7 @@ GenerateUnitTensorMatrix(
   u3::PhiCoefCache& phi_coef_cache,
   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
   std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-  std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >>& 
-    sp_irrep_unit_tensor_rme_map
+  spncci::UnitTensorMatricesByIrrepFamily& sp_irrep_unit_tensor_rme_map
   // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
   // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
   );

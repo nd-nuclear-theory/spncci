@@ -30,8 +30,9 @@
 
 namespace spncci
 {
-  typedef std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >
-                      > LGIUnitTensorSectorCache;
+  // typedef std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >
+  //                     > LGIUnitTensorSectorCache;
+  typedef spncci::UnitTensorMatricesByIrrepFamily LGIUnitTensorSectorCache;
 
   void 
   Contracting(int Nmax, int N1b,
