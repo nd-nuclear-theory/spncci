@@ -37,7 +37,7 @@ namespace spncci
 
   void 
   ConstructSpNCCIBasisExplicit(
-    const spncci::SpIrrepVector& sp_irrep_vector,
+    const spncci::SpNCCISpace& sp_irrep_vector,
     basis::MatrixVector& lgi_expansion_matrix_vector,
     const u3shell::SpaceU3SPN& space,
     const u3shell::SectorsU3SPN& sectors,
@@ -53,7 +53,7 @@ namespace spncci
 
   void
   ComputeUnitTensorSectorsExplicit(
-    const spncci::SpIrrepVector& sp_irrep_vector,
+    const spncci::SpNCCISpace& sp_irrep_vector,
     basis::MatrixVector& lgi_expansion_matrix_vector,
     const u3shell::SpaceU3SPN& space,
     const u3shell::SectorsU3SPN& sectors,
@@ -77,8 +77,8 @@ namespace spncci
         {
           // Get lgi expansion 
           std::pair<int,int> lgi_pair(m,n);
-          u3shell::U3SPN bra_lgi_labels=sp_irrep_vector[m].irrep;
-          u3shell::U3SPN ket_lgi_labels=sp_irrep_vector[n].irrep;
+          u3shell::U3SPN bra_lgi_labels=sp_irrep_vector[m];
+          u3shell::U3SPN ket_lgi_labels=sp_irrep_vector[n];
 
           if(not am::AllowedTriangle(ket_lgi_labels.S(),unit_tensor.S0(), bra_lgi_labels.S()))
             continue;
