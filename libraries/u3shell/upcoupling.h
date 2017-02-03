@@ -5,7 +5,10 @@
   University of Notre Dame
 
   6/14/16 (aem,mac): Created to import relative jisp16 files.
-  2/2/17 (mac): Fix missing include guard.
+  2/2/17 (mac):
+    + Fix missing include guard.
+    + Add class UpcouplingLabels.
+
 ****************************************************************/
 
 #ifndef UPCOUPLING_H_
@@ -31,6 +34,11 @@ namespace u3shell
   // Storage of (kappa0,L0) pair.
   {
   public:
+
+    UpcouplingLabels(int kappa0, int L0)
+      : std::tuple<int,int>(kappa0,L0)
+    {}
+
     int kappa0() const {return std::get<1>(*this);};
     int L0() const {return std::get<1>(*this);};
   };

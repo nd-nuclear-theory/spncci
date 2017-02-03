@@ -50,18 +50,13 @@ int main(int argc, char **argv)
   for (int subspace_index=0; subspace_index<baby_spncci_space.size(); ++subspace_index)
     std::cout << baby_spncci_space.GetSubspace(subspace_index).DebugStr()
               << std::endl;
+  std::cout << std::endl;
 
   ////////////////////////////////////////////////////////////////
   // read interaction coefficients
   ////////////////////////////////////////////////////////////////
 
-  std::string interaction_filename = "unit.dat";
-  std::ifstream interaction_stream(interaction_filename);
-  assert(interaction_stream);
-  u3shell::RelativeRMEsU3ST relative_rmes;
-  u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
-
-  // Recall:
+  // Recall storage scheme for u3shell::RelativeRMEsU3ST:
   //
   // relative_rmes (u3shell::RelativeRMEsU3ST) maps
   //
@@ -76,7 +71,14 @@ int main(int argc, char **argv)
   //   u3shell::RelativeStateLabelsU3ST ket
 
 
+  std::string interaction_filename = "unit.dat";
+  std::ifstream interaction_stream(interaction_filename);
+  assert(interaction_stream);
+  u3shell::RelativeRMEsU3ST relative_rmes;
+  u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
+
   // diagnostic -- relative rme contents
+  std::cout << "relative rme list" << std::endl;
   for (const auto& label_rme_pair : relative_rmes)
     {
 
@@ -92,38 +94,136 @@ int main(int argc, char **argv)
           "unit tensor {} kappa0 {} L0 {} -> U3S symmetry {} rme {}",
           unit_tensor_labels.Str(),kappa0,L0,operator_labels_u3s.Str(),rme
         ) << std::endl;
-      // FlatKey x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T()
     }
+  std::cout << std::endl;
 
   ////////////////////////////////////////////////////////////////
   // construct fake unit tensor recurrence results
   ////////////////////////////////////////////////////////////////
 
   // For each allowed BabySpNCCI sector, we will fill relevant unit
-  // tensor matrix with constants.
-  spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+  // tensor matrix with a constant matrix.
 
-  // u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor_labels = 
-  //       const u3shell::OperatorLabelsU3ST operator_labels,
-  //       const u3shell::RelativeStateLabelsU3ST& bra,
-  //       const u3shell::RelativeStateLabelsU3ST& ket
-     
-
+  // Recall storage scheme for spncci::UnitTensorMatricesByIrrepFamily:
+  //
   // (bra_irrep_family_index,ket_irrep_family_index) (<int,int>)
   //   -> (bra_Nn,ket_Nn) (<int,int>)
   //   -> unit_tensor_sector_labels (spncci::UnitTensorU3Sector)
   //   -> sector matrix (Eigen::MatrixXd)
+
+  spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
   
-  
+  // TODO finish construction...  not worth the effort?
+
+  for (const auto& label_rme_pair : relative_rmes)
+    // for each contribution in coefficient list
+    {
+
+      // extract (unit_tensor_labels,kappa0,L0)
+      u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
+      int kappa0, L0;
+      std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
+      // double rme = label_rme_pair.second;
+
+      // recombine unit tensor labels as needed in spncci::UnitTensorMatricesByIrrepFamily
+      u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;  // implicit cast to U3S labels
+      int bra_Nn, ket_Nn;
+      // spncci::UnitTensorU3Sector unit_tensor_sector_labels(...);
+      // UnitTensorU3Sector(u3::U3 omegap, u3::U3 omega, u3shell::RelativeUnitTensorLabelsU3ST tensor, int rho0)
+
+
+      // FlatKey x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T()
+    }
+
 
   ////////////////////////////////////////////////////////////////
   // baby SpNCCI sector construction
   ////////////////////////////////////////////////////////////////
 
-  //spncci::BabySpNCCISectors scalar_sectors(baby_spncci_space,)
+  // for each contributing (N0,x0,S0) in coef list:
+  //   generate source (sigma,Sp,Sn,S,omega) sectors (BabySpNCCISectors) for this (N0,x0,S0)
+  //   generate target (omega,S) sectors (SpNCCISectorsU3) for this (N0,x0,S0)
+  //   for each (kappa0,L0) within (N0,x0,S0) in coef list:
+  //
+  //      Alternative #1:
+  //
+  //      zero initialize matrices for all target sectors
+  //      for each source sector:
+  //        for each contributing operator ([N0,x0,S0];T0,eta_prime,...;[kappa0,L0]) in coef list:
+  //          accumulate source sector matrix into corresponding block of *appropriate* target sector matrix
+  //
+  //      Alternative #2:
+  //
+  //        for each target (omega,S) sector
+  //          zero initialize target sector matrix
+  //          for each source (sigma,Sp,Sn,S,omega) sector contained within this target sector:
+  //            for each contributing operator ([N0,x0,S0];T0,eta_prime,...;[kappa0,L0]) in coef list:
+  //              accumulate source sector matrix into corresponding block of *current* target sector matrix
+  //     
+  //        Cons: requires us to filter source sectors by current target sector
+  //
+  //
+  // Prerequisites:
+  //
+  //   - Operator symmetry (N0,x0,S0) and corresponding upcoupling (kappa0,L0) labels
+  //
+  //     (N0,x0,S0) -> {(kappa0,L0),...}
+  //
+  //   - ... ideally also with pointer to 
+
+  // accumulate relevant symmetry and upcoupling labels for given interaction
+
+  // Note: can make map and set unordered, but that is less pretty for debugging
+  std::map<u3shell::OperatorLabelsU3S,std::set<u3shell::UpcouplingLabels>> operator_u3s_upcoupling_labels;
+  for (const auto& label_rme_pair : relative_rmes)
+    // for each contribution in coefficient list
+    {
+
+      // extract operator symmetry and upcoupling labels
+      u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
+      int kappa0, L0;
+      std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
+      u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;  // implicit cast to U3S labels
+      u3shell::UpcouplingLabels upcoupling_labels(kappa0,L0);
+
+      // accumulate
+      operator_u3s_upcoupling_labels[operator_labels_u3s].insert(upcoupling_labels);
+    }
+
+  // Alternatively, can extract from:
+  // std::vector<u3shell::IndexedOperatorLabelsU3S> operator_u3s_kappa0_L0_list;
+  // u3shell::GetInteractionTensorsU3S(interaction_rmes,operator_u3s_kappa0_L0_list);
+
+  for (const auto& u3s_upcoupling_labels_set_pair : operator_u3s_upcoupling_labels)
+    {
+      // recover operator labels and corresponding set of upcoupling labels
+      const u3shell::OperatorLabelsU3S& operator_labels_u3s = u3s_upcoupling_labels_set_pair.first;
+      const std::set<u3shell::UpcouplingLabels> upcoupling_labels_set = u3s_upcoupling_labels_set_pair.second;
+
+      // generate source sectors
+      spncci::BabySpNCCISectors source_sectors(baby_spncci_space,operator_labels_u3s);
+      std::cout << fmt::format("Sectors for u3s {}",operator_labels_u3s.Str()) << std::endl;
+      
+      for (int sector_index=0; sector_index < source_sectors.size(); ++sector_index)
+        {
+          const auto& source_sector = source_sectors.GetSector(sector_index);
+          const auto& bra_subspace = source_sector.bra_subspace();
+          const auto& ket_subspace = source_sector.ket_subspace();
+          std::cout
+            << fmt::format("  ({:3d},{:3d}) : {} -- {}",
+                           source_sector.bra_subspace_index(),
+                           source_sector.ket_subspace_index(),
+                           source_sector.bra_subspace().LabelStr(),
+                           source_sector.ket_subspace().LabelStr()
+              )
+            << std::endl;
+         }
+      std::cout << std::endl;
+    }
+
 
   ////////////////////////////////////////////////////////////////
-  // Regroup state tests
+  // Regroup state tests -- aem old tests
   ////////////////////////////////////////////////////////////////
 
   if (false)
@@ -150,7 +250,7 @@ int main(int argc, char **argv)
         }
     }
   ////////////////////////////////////////////////////////////////
-  // Regroup U3S sector tests
+  // Regroup U3S sector tests -- aem old tests
   ////////////////////////////////////////////////////////////////  
   if(false)
   {
@@ -206,7 +306,7 @@ int main(int argc, char **argv)
       }
   }
   ////////////////////////////////////////////////////////////////
-  // Regroup LS test state tests
+  // Regroup LS test state tests -- aem old tests
   ////////////////////////////////////////////////////////////////
   if (false)
     {
