@@ -55,20 +55,45 @@ int main(int argc, char **argv)
   // read interaction coefficients
   ////////////////////////////////////////////////////////////////
 
-  // <u3shell::RelativeUnitTensorLabelsU3ST,int,int> -> RME
-  //
-  //   (unit_tensor_labels,kappa0,L0)
-  //
-
   std::string interaction_filename = "unit.dat";
   std::ifstream interaction_stream(interaction_filename);
   assert(interaction_stream);
   u3shell::RelativeRMEsU3ST relative_rmes;
   u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
 
+  // Recall:
+  //
+  // relative_rmes (u3shell::RelativeRMEsU3ST) maps
+  //
+  //   (unit_tensor_labels,kappa0,L0) -> RME
+  //
+  // where
+  // 
+  // unit_tensor_labels (u3shell::RelativeUnitTensorLabelsU3ST) contains
+  //
+  //   u3shell::OperatorLabelsU3ST operator_labels
+  //   u3shell::RelativeStateLabelsU3ST bra
+  //   u3shell::RelativeStateLabelsU3ST ket
+
+
+
   // diagnostic -- relative rme contents
   for (const auto& label_rme_pair : relative_rmes)
     {
+
+      u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
+      int kappa0, L0;
+      std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
+      double rme = label_rme_pair.second;
+
+      // cast unit tensor labels into U3S operator labels
+      u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;
+      
+      std::cout << fmt::format(
+          "unit tensor {} kappa0 {} L0 {} -> U3S symmetry {} rme {}",
+          unit_tensor_labels.Str(),kappa0,L0,operator_labels_u3s.Str(),rme
+        ) << std::endl;
+      // FlatKey x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T()
     }
 
   ////////////////////////////////////////////////////////////////
@@ -81,8 +106,8 @@ int main(int argc, char **argv)
 
   // u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor_labels = 
   //       const u3shell::OperatorLabelsU3ST operator_labels,
-  //       const RelativeStateLabelsU3ST& bra,
-  //       const RelativeStateLabelsU3ST& ket
+  //       const u3shell::RelativeStateLabelsU3ST& bra,
+  //       const u3shell::RelativeStateLabelsU3ST& ket
      
 
   // (bra_irrep_family_index,ket_irrep_family_index) (<int,int>)

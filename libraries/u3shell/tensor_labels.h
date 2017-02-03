@@ -778,6 +778,10 @@ namespace u3shell
     //
     // DEPRECATED -- as less cleanly "structured" form
     //
+    // Note: Purge use from upcoupling.cpp then delete?  Structured
+    // form below requires N0 to be explicitly calculated, instead of
+    // implicitly from bra-ket difference.
+    //
     // Redundant operator labels are set from the bra/ket labels.
     {
       assert(false); // I am deprecated.  Are you still using me?  Or can I be deleted?
