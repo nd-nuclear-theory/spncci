@@ -784,7 +784,6 @@ namespace u3shell
     //
     // Redundant operator labels are set from the bra/ket labels.
     {
-      assert(false); // I am deprecated.  Are you still using me?  Or can I be deleted?
       N0_ = bra_.eta() - ket_.eta();
       x0_= x0;
       S0_ = S0;

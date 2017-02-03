@@ -76,7 +76,6 @@ int main(int argc, char **argv)
   //   u3shell::RelativeStateLabelsU3ST ket
 
 
-
   // diagnostic -- relative rme contents
   for (const auto& label_rme_pair : relative_rmes)
     {
