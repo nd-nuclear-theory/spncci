@@ -167,7 +167,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     
     std::string Str() const;
-    std::string DebugString() const;
+    std::string DebugStr() const;
 
     //////////////////////////////////////////////////////////////
     //key tuple, comparisons and hashing

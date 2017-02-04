@@ -5,12 +5,13 @@
   University of Notre Dame
 
 ****************************************************************/
-#include <omp.h>
-#include "cppformat/format.h"
 
-#include "sp3rlib/u3coef.h"
-#include "sp3rlib/vcs.h"
 #include "spncci/unit_tensor.h"
+
+#include <omp.h>
+
+#include "cppformat/format.h"
+#include "sp3rlib/u3coef.h"
 
 extern double zero_threshold;
 
@@ -599,9 +600,7 @@ GenerateNpNSector(
     std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
     // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
     std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-    std:: map< std::pair<int,int>, std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache >>& 
-      sp_irrep_unit_tensor_rme_map
-
+    spncci::UnitTensorMatricesByIrrepFamily& sp_irrep_unit_tensor_rme_map
     // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
     )
   // Generates all unit tensor matrix matrices between states in the irreps of sp_irrep_pair
@@ -717,6 +716,8 @@ GenerateNpNSector(
         {
           // Check Nmax constrain
           int Nnp=Nsum-Nn;
+          if(Nnp==0)
+            continue;
           if (Nnp>Np_truncate)
             continue;
          //////////////////////////////////////////////////////////////////////////////     

@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   int Nmin=Nmax%Nstep;
   int A=N+Z;
   int T0=0;
-  int J0=0;
+  int J0=-1;
   bool un_u3_restrict=false;
   if( (N==0) || (Z==0) )
     un_u3_restrict=true;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
   //Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B,relative_unit_tensor_labels,-1,T0,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B,relative_unit_tensor_labels,J0,T0,false);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, relative_unit_tensor_labels,un_u3_restrict);
 
   // Generate Brel operator up to Nmax cutoff

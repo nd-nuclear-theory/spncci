@@ -61,5 +61,5 @@ Class declarations
   text representation of an object (e.g., a group label), as might be
   used in production output.
 
-  We use a DebugString() member function to generate a data dump of an
+  We use a DebugStr() member function to generate a data dump of an
   object, as might be used in debugging and testing.

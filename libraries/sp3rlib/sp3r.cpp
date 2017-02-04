@@ -187,7 +187,7 @@
        }
      }
 
-     std::string U3Subspace::DebugString() const
+     std::string U3Subspace::DebugStr() const
      {
       std::ostringstream ss;
       
@@ -281,7 +281,7 @@
 
    }
 
-   std::string Sp3RSpace::DebugString() const
+   std::string Sp3RSpace::DebugStr() const
    {
     std::ostringstream ss;
 
@@ -298,7 +298,7 @@
       const sp3r::U3Subspace& subspace = GetSubspace(i_subspace);
 
         // generate debug information for subspace
-      ss << subspace.DebugString();
+      ss << subspace.DebugStr();
     }
 
     return ss.str();

@@ -31,7 +31,7 @@ namespace spncci
     return ss.str();
   }
 
-  std::string SpNCCIIrrepFamily::DebugString() const
+  std::string SpNCCIIrrepFamily::DebugStr() const
   {
     std::ostringstream ss;
 
