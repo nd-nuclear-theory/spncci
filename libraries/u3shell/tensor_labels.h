@@ -770,13 +770,17 @@ namespace u3shell
 
     inline RelativeUnitTensorLabelsU3ST(
         const u3::SU3& x0, HalfInt S0, HalfInt T0,
-        const RelativeStateLabelsU3ST& bra,
-        const RelativeStateLabelsU3ST& ket
+        const u3shell::RelativeStateLabelsU3ST& bra,
+        const u3shell::RelativeStateLabelsU3ST& ket
       )
       : bra_(bra), ket_(ket)
     // Construct from labels, with operator labels set individually.
     //
     // DEPRECATED -- as less cleanly "structured" form
+    //
+    // Note: Purge use from upcoupling.cpp then delete?  Structured
+    // form below requires N0 to be explicitly calculated, instead of
+    // implicitly from bra-ket difference.
     //
     // Redundant operator labels are set from the bra/ket labels.
     {
@@ -787,10 +791,10 @@ namespace u3shell
       g0_ = (bra_.g()+ket_.g())%2;  // equivalently, N0_%2
     }
 
-    inline RelativeUnitTensorLabelsU3ST(
+    inline RelativeUnitTensorLabelsU3ST (
         const u3shell::OperatorLabelsU3ST operator_labels,
-        const RelativeStateLabelsU3ST& bra,
-        const RelativeStateLabelsU3ST& ket
+        const u3shell::RelativeStateLabelsU3ST& bra,
+        const u3shell::RelativeStateLabelsU3ST& ket
       )
       : OperatorLabelsU3ST(operator_labels), bra_(bra), ket_(ket)
     // Construct from labels, with operator labels set collectively.

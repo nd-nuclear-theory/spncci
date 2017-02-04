@@ -5,7 +5,15 @@
   University of Notre Dame
 
   6/14/16 (aem,mac): Created to import relative jisp16 files.
+  2/2/17 (mac):
+    + Fix missing include guard.
+    + Add class UpcouplingLabels.
+
 ****************************************************************/
+
+#ifndef UPCOUPLING_H_
+#define UPCOUPLING_H_
+
 #include <iomanip>
 #include <iostream>
 
@@ -19,7 +27,30 @@ namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
   typedef std::tuple<int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
-  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>RelativeRMEsU3ST;
+
+
+  class UpcouplingLabels
+    : public std::tuple<int,int>
+  // Storage of (kappa0,L0) pair.
+  {
+  public:
+
+    UpcouplingLabels(int kappa0, int L0)
+      : std::tuple<int,int>(kappa0,L0)
+    {}
+
+    int kappa0() const {return std::get<1>(*this);};
+    int L0() const {return std::get<1>(*this);};
+  };
+
+  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>
+    RelativeRMEsU3ST;
+  // Mapping to store coefficients (RMEs) of relative operator in
+  // terms of relative unit tensors.
+  //
+  // (relative_unit_tensor_labels,kappa0,L0) -> RME
+  //
+  // TODO: replace with map (relative_tensor_unit_labels,upcoupling_labels) -> RME
 
   typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt> RelativeCMStateLabelsNLST;  
   typedef std::tuple<int,HalfInt,HalfInt,RelativeCMStateLabelsNLST,RelativeCMStateLabelsNLST> RelativeCMBraketNLST;
@@ -136,3 +167,4 @@ namespace u3shell
 }
 // 
 
+#endif
