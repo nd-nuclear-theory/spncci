@@ -116,7 +116,7 @@ namespace u3shell
           // overall factor for the bra
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
           double coef=norm?(1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p))):1;
-          bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(etap, eta_cm, eta1p, eta2p,xp); //Match Mark
+          bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(etap, eta_cm, eta1p, eta2p,xp);
         } 
       // iterate over ket subspace
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +129,7 @@ namespace u3shell
           // overall factor for the ket
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
           double coef=norm?(1./std::sqrt(1.+KroneckerDelta(eta1,eta2))):1;
-          ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta, eta_cm,eta1,eta2,x); //Match Mark
+          ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta, eta_cm,eta1,eta2,x);
         }  
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // summing sector terms over Ncm and antisymmeterizing

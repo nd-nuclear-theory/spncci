@@ -692,7 +692,8 @@ GenerateNpNSector(
             //Conjugating matrix element
             double coef=ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap)+ConjugationGrade(tensor.x0()))
                         *sqrt(1.*dim(u3::SU3(rp,0))*dim(omega)/(dim(u3::SU3(r,0))*dim(omegap)));
-            coef*=ParitySign(S+tensor.S0()+Sp+Sb+Sbp+Tb+Tbp)
+            // coef*=ParitySign(S+tensor.S0()+Sp+Sb+Sbp+Tb+Tbp)
+            coef*=ParitySign(S+Sp+Sb+Sbp+Tb+Tbp)
                   *sqrt(1.*am::dim(S)*am::dim(Sbp)*am::dim(Tbp)/am::dim(Sp)/am::dim(Sb)/am::dim(Tb));
             // un-conjugated sector labels
             spncci::UnitTensorU3Sector sector(omegap,omega,u3shell::Conjugate(tensor),rho0);

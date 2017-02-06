@@ -709,9 +709,11 @@ int main(int argc, char **argv)
       // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
       for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
         {
-          if(it2->first.first!=2 && it2->first.second!=0)
-            continue;
-          // std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+          // if(it2->first.first!=2)
+          //   continue;
+          // if(it2->first.second!=2)
+          //   continue;
+          // // std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
           auto& explicit_cache=unit_tensor_sector_cache_explicit[it->first][it2->first];
           for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
             {
@@ -720,8 +722,8 @@ int main(int argc, char **argv)
               int rho0;
               u3shell::RelativeUnitTensorLabelsU3ST tensor;
               std::tie(std::ignore,std::ignore,tensor,rho0)=it3->first.Key();
-              if(tensor.S0()!=1)
-                continue;
+              // if(tensor.S0()!=1)
+              //   continue;
               if(explicit_cache.count(it3->first))
               {
                 Eigen::MatrixXd& recurrence_matrix=it3->second;
