@@ -254,7 +254,7 @@ namespace spncci
                 // check allowed couping
                 // (2,0)xn1->n, n1xsigma->omega1 (rho1), omega1x(2,0)->omega, nxsigma->omega(rho) 
                 if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
-                    BU(m1,m)=vcs::BosonCreationRME(n,n1)
+                    BU(m1,m)=2./Nn*vcs::BosonCreationRME(n,n1)
                              *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sp_irrep.sigma().SU3(),
                                           n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1);
                 else
@@ -496,6 +496,7 @@ namespace spncci
       }// end sum over omega1
       // std::cout<<multp<<"  "<<dimp<<"   "<<mult<<" "<<dim<<std::endl;
       // std::cout<<unit_tensor_matrix<<std::endl<<std::endl;;
+
     assert(unit_tensor_matrix.cols()!=0 && unit_tensor_matrix.rows()!=0);
     // std::cout<<unit_tensor_matrix <<std::endl;
     #ifdef VERBOSE

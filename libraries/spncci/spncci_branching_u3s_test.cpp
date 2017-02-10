@@ -70,33 +70,32 @@ int main(int argc, char **argv)
   //   u3shell::RelativeStateLabelsU3ST bra
   //   u3shell::RelativeStateLabelsU3ST ket
 
+    std::string interaction_filename = "unit.dat";
+    std::ifstream interaction_stream(interaction_filename);
+    assert(interaction_stream);
+    u3shell::RelativeRMEsU3ST relative_rmes;
+    u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
 
-  std::string interaction_filename = "unit.dat";
-  std::ifstream interaction_stream(interaction_filename);
-  assert(interaction_stream);
-  u3shell::RelativeRMEsU3ST relative_rmes;
-  u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
+    // diagnostic -- relative rme contents
+    std::cout << "relative rme list" << std::endl;
+    for (const auto& label_rme_pair : relative_rmes)
+      {
 
-  // diagnostic -- relative rme contents
-  std::cout << "relative rme list" << std::endl;
-  for (const auto& label_rme_pair : relative_rmes)
-    {
+        u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
+        int kappa0, L0;
+        std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
+        double rme = label_rme_pair.second;
 
-      u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
-      int kappa0, L0;
-      std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
-      double rme = label_rme_pair.second;
-
-      // cast unit tensor labels into U3S operator labels
-      u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;
-      
-      std::cout << fmt::format(
-          "unit tensor {} kappa0 {} L0 {} -> U3S symmetry {} rme {}",
-          unit_tensor_labels.Str(),kappa0,L0,operator_labels_u3s.Str(),rme
-        ) << std::endl;
-    }
-  std::cout << std::endl;
-
+        // cast unit tensor labels into U3S operator labels
+        u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;
+        
+        std::cout << fmt::format(
+            "unit tensor {} kappa0 {} L0 {} -> U3S symmetry {} rme {}",
+            unit_tensor_labels.Str(),kappa0,L0,operator_labels_u3s.Str(),rme
+          ) << std::endl;
+      }
+    std::cout << std::endl;
+  
   ////////////////////////////////////////////////////////////////
   // construct fake unit tensor recurrence results
   ////////////////////////////////////////////////////////////////
@@ -226,7 +225,7 @@ int main(int argc, char **argv)
   // Regroup state tests -- aem old tests
   ////////////////////////////////////////////////////////////////
 
-  if (false)
+  if (true)
     {
       std::cout<<"Regroup test"<<std::endl;
       // build space
@@ -244,8 +243,9 @@ int main(int argc, char **argv)
                     <<"  and subspace size "<<subspace.size()<<std::endl;
           for (int state_index=0; state_index<subspace.size(); ++state_index)
             {
-              const spncci::StateU3S state(subspace,state_index);
-              std::cout << state.Str()<< std::endl;
+              int baby_spncci_index;
+              std::tie(baby_spncci_index)=subspace.GetStateLabels(state_index);
+              std::cout << baby_spncci_index<< std::endl;
             } 
         }
     }
@@ -308,7 +308,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // Regroup LS test state tests -- aem old tests
   ////////////////////////////////////////////////////////////////
-  if (false)
+  if (true)
     {
       std::cout<<"Regroup LS test"<<std::endl;
       spncci::SpaceU3S space(spncci_space);
@@ -324,8 +324,12 @@ int main(int argc, char **argv)
                     <<"  "<<subspace_ls.size()<<std::endl;
           for (int state_index=0; state_index<subspace_ls.size(); ++state_index)
             {
-              const spncci::StateLS state_ls(subspace_ls,state_index);
-              std::cout << state_ls.Str()<< std::endl;
+              
+              int u3_subspace_index;
+              std::tie(u3_subspace_index)=subspace_ls.GetStateLabels(state_index);
+              std::cout<<u3_subspace_index<<std::endl;
+              // const spncci::StateLS state_ls(subspace_ls,state_index);
+              // std::cout << state_ls<< std::endl;
             } 
         }
     }

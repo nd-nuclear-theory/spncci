@@ -18,6 +18,7 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
+#include "spncci/unit_tensor.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
 #include "u3shell/upcoupling.h"
@@ -100,6 +101,7 @@ namespace spncci
 
     BabySpNCCISubspace(
         const spncci::SpNCCIIrrepFamily& spncci_irrep_family,
+        int irrep_family_index,
         const sp3r::U3Subspace& u3_subspace
       );
     // Construct from native description of SpNCCI space.
@@ -115,7 +117,8 @@ namespace spncci
     HalfInt Sn() const {return std::get<2>(labels_);}
     HalfInt S() const {return std::get<3>(labels_);}
     u3::U3 omega() const {return std::get<4>(labels_);}
-
+    u3::U3S omegaS() const {return u3::U3S(omega(),S());}
+    int irrep_family_index() const {return irrep_family_index_;}
     // diagnostic strings
 
     std::string LabelStr() const;
@@ -128,7 +131,8 @@ namespace spncci
     
     // dimension info
     int gamma_max_, upsilon_max_;
-
+    // backwards lookup into SpNCCISpace
+    int irrep_family_index_;
   };
 
   // space
@@ -198,11 +202,14 @@ namespace spncci
   //
   // States
   //
-  // States are indexed by a tuple of numbers [gamma,sigmaS,dim,index]
-  // where gamma which corresponds to the index of the lgi in lgi_vector.
-  // dim=nu_max is symplectic multiplicity of omega in the lgi
-  // index is the position of the nu=0 state for the given lgi in the 
-  // subspace list of states labeld by gamma(sigma,Sp,Sn), nu. 
+  // States are indexed by a tuple of an int (to distinguish it from an 
+  // alternative constructor) which corresponds to the index of the
+  // corresponding baby spncci subspace. 
+  // The lgi family index and dimension (nu_max*gamma_max) as well as gamma_max
+  // and nu_max can be extracted from baby spncci. 
+  //
+  // Associated with each subspace is a look-up table which can look up
+  // the starting index of the particular "state" in the U3S sector.  
   //
   // However, we keep track of the subspace dimension.  The subspace
   // dimensions must be provided to the constructor via a mapping U3S
@@ -221,20 +228,19 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   class SubspaceU3S
-    : public basis::BaseSubspace<u3::U3S,std::tuple<int,u3::U3,int,int>>
+    : public basis::BaseSubspace<u3::U3S, std::tuple<int> >
   // Subspace class for two-body states of given U(3)xS.
   //
-  // SubspaceLabelsType (u3shell::U3S): (omega,S)
-  // StateLabelsType (std::tuple<int,int,int>): (gamma, dim, index)
+  // SubspaceLabelsType (u3shell::U3S) : (omega,S)
+  // StateLabelsType (int) : Baby Spncci index
   {
     public:
-
     // constructor
     SubspaceU3S() {};
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 
-    SubspaceU3S (const u3::U3S& omegaS,const SpNCCISpace& spncci_space);
+    SubspaceU3S (const u3::U3S& omegaS,const BabySpNCCISpace& baby_spncci_space);
 
     // accessors
     u3::U3S omegaS() const {return labels_;}
@@ -246,8 +252,26 @@ namespace spncci
     // diagnostic output
     std::string Str() const;
 
+    int sector_index(int state_index) const
+      {
+        int sector_index=-1;
+        for(auto it=sector_index_lookup_.begin(); it!=sector_index_lookup_.end(); ++it)
+          {
+            if(it->first==state_index)
+              {
+                sector_index=it->second;
+                return sector_index;
+              }
+          }
+        // if none, found, then return -1.
+        return sector_index;
+      }
+
     private:
       int sector_size_;
+      // Look up table to find starting index of state in sectors
+      std::map<int,int> sector_index_lookup_;
+
   };
   ////////////////////////////////////////////////////////////////
   // state
@@ -261,7 +285,7 @@ namespace spncci
   public:
     // pass-through constructors
   
-  StateU3S(const SubspaceType& subspace, int index)
+  StateU3S(const SubspaceType& subspace, int& index)
     // Construct state by index.
     : basis::BaseState<SubspaceU3S>(subspace, index) {}
 
@@ -279,14 +303,14 @@ namespace spncci
     HalfInt S() const {return Subspace().S();}
     HalfInt N() const {return Subspace().N();}
 
-    // state label accessors
-    int gamma() const {return std::get<0>(GetStateLabels());} 
-    u3::U3 sigma() const {return std::get<1>(GetStateLabels());}
 
-    int sector_dim() const {return std::get<2>(GetStateLabels());}
-    int index() const {return std::get<3>(GetStateLabels());}
+    // // state label accessors
+    // int gamma() const {return std::get<0>(GetStateLabels());} 
+    // u3::U3 sigma() const {return std::get<1>(GetStateLabels());}
 
-    std::string Str() const;
+    // int sector_dim() const {return std::get<2>(GetStateLabels());}
+
+
   private:
  
   };
@@ -310,7 +334,7 @@ namespace spncci
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 
-    SpaceU3S(SpNCCISpace& spncci_space);
+    SpaceU3S(const BabySpNCCISpace& baby_spncci_space);
 
     // diagnostic output
     std::string Str() const;
@@ -325,7 +349,7 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // Sector
-  // Enumerates upper triangle sectors omegaS'<=omegaS
+  // Enumerates omegaS sectors
   ////////////////////////////////////////////////////////////////
   class SectorLabelsU3S
   {
@@ -435,6 +459,27 @@ namespace spncci
   // relative_tensor_rmes (input) : container of rme labels keys and rme values
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values
+ 
+
+  void 
+  ContractAndRegroupU3S(
+      int Nmax, int N1b,
+      const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
+      const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      spncci::SpaceU3S& target_space,
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
+      basis::MatrixVector& matrix_vector
+    );
+  // Args:
+  //  Nmax (input) : Basis truncation parameter
+  //  N1b (input) : Basis single particle cutoff for Nmax=0
+  //  sector_labels_vector (input) : vector of sector labels 
+  //  interaction_rme_cache (input) : Container holding interaction rme's keyed
+  //     by RelativeUnitTensorU3ST labels
+  //  space (input) : space of omegaS subspaces
+  //  unit_tensor_sector_cache (input) : nested container holding unit tensor rmes
+  //  matrix_vector (output) : vector of U3S sectors indexed by U3S labels and kappa0,L0
 
 
 }  // namespace
