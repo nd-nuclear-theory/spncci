@@ -15,7 +15,7 @@
 #include <sys/resource.h>
 #include "cppformat/format.h"
 #include "am/am.h"
-#include "am/wigner_gsl.h"
+
 #include "lgi/lgi.h"
 #include "lgi/lgi_solver.h"
 #include "lsu3shell/lsu3shell_basis.h"
@@ -656,22 +656,13 @@ int main(int argc, char **argv)
   //////////////////////////////////////////////////////////////////////////////////////////
   // Computing unit tensor sectors
   //////////////////////////////////////////////////////////////////////////////////////////
+  // if true, unit tensors restricted to N0>=0
+  // Nrel_max=Nmax+2N1b
+
+  std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_tensor_labels, J0,T0, false);
   if(Nmax!=0)
   {
-    std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
-    // if true, unit tensors restricted to N0>=0
-    // Nrel_max=Nmax+2N1b
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_tensor_labels, J0,T0, false);
- 
-    //REMOVE
-    // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
-    // auto it_end=unit_tensor_sector_cache.begin();
-    // for(int a=0; a<3; a++)
-    //   ++it_end;
-
-    // for(auto it=unit_tensor_sector_cache.begin(); it!=it_end; ++it)
-
-    // std::tuple<accumulated time, std::vector<lgi_pairs>,std::vector<num non-zero unit tensors>>
     std::map<int,double> timing_map;
     std::map<int,std::vector<std::pair<int,int>>> lgi_distribution;
     std::map<int,std::vector<int>>  sector_count_map;
@@ -795,8 +786,9 @@ int main(int argc, char **argv)
   // // Getting interaction
   // //////////////////////////////////////////////////////////////////////////////////////////
   // //TODO make input 
-  // //std::string interaction_file="/Users/annamccoy/projects/spncci/data/trel_SU3_Nmax06.dat";
-  std::string interaction_file="id_SU3_Nmax16.dat";
+  std::string interaction_file="trel_SU3_Nmax06.dat";
+  // std::string interaction_file= "Trel_upcouled";
+  // std::string interaction_file="id_SU3_Nmax16.dat";
   // std::string interaction_file="unit.dat";
   std::ifstream interaction_stream(interaction_file.c_str());
   assert(interaction_stream);
@@ -838,37 +830,37 @@ int main(int argc, char **argv)
     Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
     u3s_space,unit_tensor_sector_cache, matrix_vector);
 
-  // spncci::ContractAndRegroupU3S(
-  //   Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
-  //   u3s_space,unit_tensor_sector_cache_explicit, matrix_vector_explicit);
+  spncci::ContractAndRegroupU3S(
+    Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
+    u3s_space,unit_tensor_sector_cache_explicit, matrix_vector_explicit);
 
 
-  // ZeroOutMatrix(matrix_vector,1e-4);
-  // ZeroOutMatrix(matrix_vector_explicit,1e-4);
+  ZeroOutMatrix(matrix_vector,1e-4);
+  ZeroOutMatrix(matrix_vector_explicit,1e-4);
   
   // basis::MatrixVector difference_vector;
   // for(int i=0; i<matrix_vector.size();++i)
   //   difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
   // ZeroOutMatrix(difference_vector,1e-4);
 
-  // std::cout<<"printing"<<std::endl;
-  // for(int i=0; i<u3s_space.size(); ++i)
-  //   std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
-  // for(int s=0; s<matrix_vector.size();  ++s)
-  //   {
-  //     if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
-  //     {
-  //       std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+  std::cout<<"printing"<<std::endl;
+  for(int i=0; i<u3s_space.size(); ++i)
+    std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  for(int s=0; s<matrix_vector.size();  ++s)
+    {
+      if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
+      {
+        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
 
-  //       std::cout<<matrix_vector[s]<<std::endl<<std::endl;
-  //       // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
+        std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+        // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
         
-  //       // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
-  //       // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
+        // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+        // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
 
-  //       // std::cout<<difference_vector[s]<<std::endl<<std::endl;
-  //     }
-  //   }
+        // std::cout<<difference_vector[s]<<std::endl<<std::endl;
+      }
+    }
   HalfInt J=1;
   J0=0;
   spncci::SpaceLS space_LS(u3s_space,J);
@@ -892,17 +884,17 @@ int main(int argc, char **argv)
     space_LS,sector_labels_LS,sectors_LS
   );
 
-  ZeroOutMatrix(sectors_LS,1e-4);
+  // ZeroOutMatrix(sectors_LS,1e-4);
   // std::cout<<"printing LS"<<std::endl;
-  // for(int i=0; i<target_space_LS.size(); ++i)
-  //   std::cout<<i<<"  "<<target_space_LS.GetSubspace(i).Str()<<std::endl;
+  // for(int i=0; i<space_LS.size(); ++i)
+  //   std::cout<<i<<"  "<<space_LS.GetSubspace(i).Str()<<std::endl;
     
-  // for(int s=0; s<target_sectors_LS.size();  ++s)
+  // for(int s=0; s<sectors_LS.size();  ++s)
   //   {
-  //     if (not CheckIfZeroMatrix(target_sectors_LS[s], 1e-4))
+  //     if (not CheckIfZeroMatrix(sectors_LS[s], 1e-4))
   //     {
-  //       std::cout<<target_sector_labels_LS[s].Str()<<std::endl;
-  //       std::cout<<target_sectors_LS[s]<<std::endl<<std::endl;
+  //       std::cout<<sector_labels_LS[s].Str()<<std::endl;
+  //       std::cout<<sectors_LS[s]<<std::endl<<std::endl;
   //     }
   //   }
 
@@ -911,5 +903,8 @@ int main(int argc, char **argv)
   ConstructOperatorMatrix(space_LS,sector_labels_LS,
     sectors_LS,operator_matrix);
 
-  std::cout<<operator_matrix<<std::endl;
+  // for(auto it=unit_tensor_labels.begin(); it!=unit_tensor_labels.end(); ++it)
+  //   for(auto tensor : it->second)
+  //     std::cout<<tensor.Str()<<std::endl;
+  // std::cout<<operator_matrix<<std::endl;
 }
