@@ -29,7 +29,7 @@ modules += libraries/basis libraries/am libraries/mcutils  # ordering note: mcut
 
 
 #programs
-modules += programs/interactions programs/unit_tensors programs/su3calc programs/validation
+modules += programs/operators programs/unit_tensors programs/su3calc programs/validation
 #modules += programs/test 
 
 ################################################################

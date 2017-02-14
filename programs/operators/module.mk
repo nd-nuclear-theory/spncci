@@ -7,7 +7,7 @@ $(eval $(begin-module))
 # module_units_h := 
 # module_units_cpp-h := 
 # module_units_f := 
-module_programs_cpp := import_jisp16
+module_programs_cpp := generate_relative_u3st_operators
 # module_programs_f :=
 # module_generated :=
 

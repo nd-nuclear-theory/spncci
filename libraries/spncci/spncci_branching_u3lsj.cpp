@@ -178,14 +178,14 @@ namespace spncci
             int source_index_bra=source_labels.bra_index();
             
             // Check if sector is source for target sector
-            if(not bra_subspace.ContainsState(source_index_bra))
+            if(not bra_subspace.ContainsState(std::tuple<int>(source_index_bra)))
               continue;
-            if(not ket_subspace.ContainsState(source_index_ket))
+            if(not ket_subspace.ContainsState(std::tuple<int>(source_index_ket)))
               continue;
 
             // (indexp,index)->position of upper left corner of subsector
-            int indexp=bra_subspace.sector_index(bra_subspace.LookUpStateIndex(source_index_bra));
-            int index=ket_subspace.sector_index(ket_subspace.LookUpStateIndex(source_index_ket));
+            int indexp=bra_subspace.sector_index(bra_subspace.LookUpStateIndex(std::tuple<int>(source_index_bra)));
+            int index=ket_subspace.sector_index(ket_subspace.LookUpStateIndex(std::tuple<int>(source_index_ket)));
 
             //Extract source operator labels 
             const u3::SU3& x0=source_labels.x0();

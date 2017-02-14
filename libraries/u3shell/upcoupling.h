@@ -8,7 +8,8 @@
   2/2/17 (mac):
     + Fix missing include guard.
     + Add class UpcouplingLabels.
-
+  2/14/17 (aem): 
+    Changed typedef RelativeRMEsU3ST from map to unorder_map
 ****************************************************************/
 
 #ifndef UPCOUPLING_H_
@@ -16,7 +17,7 @@
 
 #include <iomanip>
 #include <iostream>
-
+#include <boost/functional/hash_fwd.hpp>
 #include "eigen3/Eigen/Eigen" 
 #include "basis/lsjt_scheme.h"
 #include "basis/lsjt_operator.h"
@@ -43,8 +44,17 @@ namespace u3shell
     int L0() const {return std::get<1>(*this);};
   };
 
-  typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>
+  // typedef std::map<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,double>
+  //   RelativeRMEsU3ST;
+
+
+  typedef std::unordered_map<
+    std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>,
+    double,
+    boost::hash<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>>
+    >
     RelativeRMEsU3ST;
+
   // Mapping to store coefficients (RMEs) of relative operator in
   // terms of relative unit tensors.
   //

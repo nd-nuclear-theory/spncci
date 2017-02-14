@@ -156,7 +156,8 @@ namespace u3shell
 
 void
 ConvertRelativeTensorToTwoBodyTensor(int Nmax,
-  std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
+  u3shell::RelativeRMEsU3ST& relative_rmes,
+  // std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
   IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
   std::string normalization="AS"
@@ -164,7 +165,8 @@ ConvertRelativeTensorToTwoBodyTensor(int Nmax,
 
 void 
 ConvertRelativeTensorToTwoBodyTensor(int Nmax,
-  std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
+  u3shell::RelativeRMEsU3ST& relative_rmes,
+  // std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
   IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
   std::string normalization="AS"
   );
