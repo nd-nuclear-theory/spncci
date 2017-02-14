@@ -233,8 +233,10 @@ namespace spncci
   // Generate a list of two-body tensor labels give the triangluar restriction on L0,S0, and J0
   // and the two-body limit on S0<=2.
 
+
   void GetSectorsLS(
-    const spncci::SpaceLS& space, 
+    const spncci::SpaceLS& space_bra, 
+    const spncci::SpaceLS& space_ket,
     const std::vector<OperatorLabelsLS>& tensor_labels,
     std::vector<spncci::SectorLabelsLS>& sector_labels
     );
@@ -242,7 +244,26 @@ namespace spncci
   // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
   // by (N0,x0,S0,kappa0,L0). 
   // 
-  // space (input) : space used to define sectors
+  // space_bra (input) : space for bra used to define sectors
+  // space_ket (input) : space for ket used to define sectors
+  // relative_tensor_rmes (input) : container of rme labels keys and rme values
+  //                                RelativeRMEsU3ST defined in upcoupling.h
+  // u3_sectors (output) : container with SectorLabelsU3S keys and index values
+
+
+  inline void GetSectorsLS(
+    const spncci::SpaceLS& space, 
+    const std::vector<OperatorLabelsLS>& tensor_labels,
+    std::vector<spncci::SectorLabelsLS>& sector_labels
+    )
+  {
+    GetSectorsLS(space, space,tensor_labels, sector_labels);
+  }
+  // Generates a cache of SectorLabelsU3S from operator labels given in 
+  // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
+  // by (N0,x0,S0,kappa0,L0). 
+  // 
+  // space (input) : space for both bra and ket used to define sectors
   // relative_tensor_rmes (input) : container of rme labels keys and rme values
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values

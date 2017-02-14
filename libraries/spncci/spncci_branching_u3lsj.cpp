@@ -104,19 +104,20 @@ namespace spncci
   }
 
   void GetSectorsLS(
-    const spncci::SpaceLS& space, 
+    const spncci::SpaceLS& space_bra, 
+    const spncci::SpaceLS& space_ket,
     const std::vector<OperatorLabelsLS>& tensor_labels,
     std::vector<spncci::SectorLabelsLS>& sector_labels
     )
   {
     for(auto tensor_label: tensor_labels)
-      for(int j=0; j<space.size(); ++j)
-        for(int i=0; i<space.size(); ++i)
+      for(int j=0; j<space_ket.size(); ++j)
+        for(int i=0; i<space_bra.size(); ++i)
           {
             int L,Lp,L0;
             HalfInt S, Sp, S0;
-            std::tie(Lp,Sp)=space.GetSubspace(i).GetSubspaceLabels();
-            std::tie(L,S)=space.GetSubspace(j).GetSubspaceLabels();
+            std::tie(Lp,Sp)=space_bra.GetSubspace(i).GetSubspaceLabels();
+            std::tie(L,S)=space_ket.GetSubspace(j).GetSubspaceLabels();
             std::tie(L0,S0)=tensor_label;
             if(am::AllowedTriangle(L,Lp,L0) && am::AllowedTriangle(S,Sp,S0))
               sector_labels.emplace_back(i,j,tensor_label);
