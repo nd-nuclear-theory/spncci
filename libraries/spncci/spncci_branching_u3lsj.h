@@ -268,7 +268,24 @@ namespace spncci
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values
 
+
   void 
+ ContractAndRegroupLSJ(
+    const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
+    spncci::SpaceU3S& u3s_space,
+    const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
+    basis::MatrixVector& source_sectors,
+    const spncci::SpaceLS& target_space_bra,
+    const spncci::SpaceLS& target_space_ket,
+    std::vector<spncci::SectorLabelsLS>& target_sector_labels,
+    basis::MatrixVector& target_sectors
+    );
+
+  // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
+  // LS reduced matrix elements 
+
+
+ inline void 
  ContractAndRegroupLSJ(
     const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
     spncci::SpaceU3S& u3s_space,
@@ -277,7 +294,13 @@ namespace spncci
     const spncci::SpaceLS& target_space,
     std::vector<spncci::SectorLabelsLS>& target_sector_labels,
     basis::MatrixVector& target_sectors
-    );
+    )
+  {
+    ContractAndRegroupLSJ(Jp,J0,J,
+      u3s_space,source_sector_labels,source_sectors,
+      target_space,target_space,target_sector_labels,target_sectors
+      );
+  }
 
   // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
   // LS reduced matrix elements 

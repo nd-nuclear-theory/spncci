@@ -131,7 +131,8 @@ namespace spncci
     spncci::SpaceU3S& u3s_space,
     const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
     basis::MatrixVector& source_sectors,
-    const spncci::SpaceLS& target_space,
+    const spncci::SpaceLS& target_space_bra,
+    const spncci::SpaceLS& target_space_ket,
     std::vector<spncci::SectorLabelsLS>& target_sector_labels,
     basis::MatrixVector& target_sectors
     )
@@ -144,9 +145,9 @@ namespace spncci
       {
         const spncci::SectorLabelsLS& sector_labels=target_sector_labels[t];
         const spncci::SubspaceLS& 
-          ket_subspace=target_space.GetSubspace(sector_labels.ket_index());
+          ket_subspace=target_space_ket.GetSubspace(sector_labels.ket_index());
         const spncci::SubspaceLS& 
-          bra_subspace=target_space.GetSubspace(sector_labels.bra_index());
+          bra_subspace=target_space_bra.GetSubspace(sector_labels.bra_index());
         
         int target_dim_bra=bra_subspace.sector_dim();
         int target_dim_ket=ket_subspace.sector_dim();
