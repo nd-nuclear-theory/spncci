@@ -44,6 +44,10 @@ modules += programs/spectra_test
 # % git clone https://github.com/yixuan/spectra.git
 # % setenv SPECTRA_DIR ${home}/projects/spectra
 #
+# or 
+#
+# % wget https://github.com/yixuan/spectra/archive/v0.5.0.tar.gz
+#
 # The spncci project uses the long form for eigen3 includes (e.g.,
 # "eigen3/Eigen/Core"), but Spectra uses short form for eigen3
 # includes (e.g., "Eigen/Core").  We therefore explicitly include the
