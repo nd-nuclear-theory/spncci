@@ -254,9 +254,15 @@ namespace spncci
                 // check allowed couping
                 // (2,0)xn1->n, n1xsigma->omega1 (rho1), omega1x(2,0)->omega, nxsigma->omega(rho) 
                 if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
-                    BU(m1,m)=2./Nn*vcs::BosonCreationRME(n,n1)
+                {
+                    BU(m1,m)=std::sqrt(2.)/Nn*vcs::BosonCreationRME(n,n1)
                              *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sp_irrep.sigma().SU3(),
                                           n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1);
+                  // std::cout<<vcs::BosonCreationRME(n,n1)<<"  "
+                  // <<u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sp_irrep.sigma().SU3(),
+                  //                         n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
+                  // <<"  "<<2./Nn<<std::endl;
+                }
                 else
                   BU(m1,m)=0;
               }	
@@ -338,7 +344,7 @@ namespace spncci
                             // std::cout<<"A matrix"<<std::endl;
                             if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
                               boson_matrix(vp,vpp)=
-                                vcs::BosonCreationRME(np,npp)
+                                std::sqrt(2)*vcs::BosonCreationRME(np,npp)
                                 *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
                                 *u3::UCached(u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sp_irrepp.sigma().SU3(),
                                                           np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
@@ -495,7 +501,7 @@ namespace spncci
           }
       }// end sum over omega1
       // std::cout<<multp<<"  "<<dimp<<"   "<<mult<<" "<<dim<<std::endl;
-      // std::cout<<unit_tensor_matrix<<std::endl<<std::endl;;
+      // std::cout<<"final unit matrix "<<std::endl<<unit_tensor_matrix<<std::endl<<std::endl;;
 
     assert(unit_tensor_matrix.cols()!=0 && unit_tensor_matrix.rows()!=0);
     // std::cout<<unit_tensor_matrix <<std::endl;
@@ -692,10 +698,10 @@ GenerateNpNSector(
             // Conjugation phase
             //Conjugating matrix element
             double coef=ParitySign(rp+r+ConjugationGrade(omega)+ConjugationGrade(omegap)+ConjugationGrade(tensor.x0()))
-                        *sqrt(1.*dim(u3::SU3(rp,0))*dim(omega)/(dim(u3::SU3(r,0))*dim(omegap)));
+                        *sqrt(1.*(dim(u3::SU3(rp,0))*dim(omega))/(dim(u3::SU3(r,0))*dim(omegap)));
             // coef*=ParitySign(S+tensor.S0()+Sp+Sb+Sbp+Tb+Tbp)
             coef*=ParitySign(S+Sp+Sb+Sbp+Tb+Tbp)
-                  *sqrt(1.*am::dim(S)*am::dim(Sbp)*am::dim(Tbp)/am::dim(Sp)/am::dim(Sb)/am::dim(Tb));
+                  *sqrt(1.*(am::dim(S)*am::dim(Sbp)*am::dim(Tbp))/(am::dim(Sp)*am::dim(Sb)*am::dim(Tb)));
             // un-conjugated sector labels
             spncci::UnitTensorU3Sector sector(omegap,omega,u3shell::Conjugate(tensor),rho0);
             // std::cout<<it2->second<<std::endl;
