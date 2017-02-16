@@ -27,10 +27,35 @@ modules += libraries/cppformat
 # additional libraries -- cloned as submodules
 modules += libraries/basis libraries/am libraries/mcutils  # ordering note: mcutils is called by basis
 
-
 #programs
 modules += programs/operators programs/unit_tensors programs/su3calc programs/validation
-#modules += programs/test 
+#modules += programs/test
+modules += programs/spectra_test 
+
+################################################################
+# external template libraries
+#
+# This should arguably go in config.mk, but it is being placed
+# here temporarily to keep config.mk standardized with the shell
+# project.
+################################################################
+
+# % cd ${home}/projects
+# % git clone https://github.com/yixuan/spectra.git
+# % setenv SPECTRA_DIR ${home}/projects/spectra
+#
+# or 
+#
+# % wget https://github.com/yixuan/spectra/archive/v0.5.0.tar.gz
+#
+# The spncci project uses the long form for eigen3 includes (e.g.,
+# "eigen3/Eigen/Core"), but Spectra uses short form for eigen3
+# includes (e.g., "Eigen/Core").  We therefore explicitly include the
+# preprocessor option "-I${EIGEN3_DIR}/include/eigen3".
+
+search_prefix += $(SPECTRA_DIR)
+search_dirs_include += $(EIGEN3_DIR)/include/eigen3
+
 
 ################################################################
 # extras -- list of extra files to be included
