@@ -62,14 +62,15 @@ int main(int argc, char **argv)
 
   if(true)
   {
-    std::cout << "TotalU3Subspaces " << spncci::TotalU3Subspaces(spncci_space) << std::endl;
-    std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3S(spncci_space) << std::endl;
-    std::cout << "TotalDimensionU3LS " << spncci::TotalDimensionU3LS(spncci_space) << std::endl;
+    std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
+    std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
+    std::cout << fmt::format("  TotalDimensionU3 {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
+    std::cout << fmt::format("  TotalDimensionU3LS {}",spncci::TotalDimensionU3LS(spncci_space)) << std::endl;
     std::cout << "TotalDimensionU3LSJConstrained ";
     for (HalfInt J=0; J<10; ++J)
       std::cout << J << " " << spncci::TotalDimensionU3LSJConstrained(spncci_space,J) << "    ";
     std::cout << std::endl;
-    std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(spncci_space) << std::endl;
+    std::cout << fmt::format("  TotalDimensionU3LSJAll {}",spncci::TotalDimensionU3LSJAll(spncci_space)) << std::endl;
   }
 
 } //main

@@ -31,6 +31,25 @@ namespace lgi
     return ss.str();
   }
 
+  void 
+  WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families,std::ostream& os)
+  {
+    int Nex;
+    u3::U3 sigma;
+    HalfInt Sp,Sn,S;
+    // std::unordered_map<lgi::LGI,int,boost::hash<lgi::LGI>> lgi_counter;
+    for(auto lgi_count : lgi_families)
+      {
+        std::tie(Nex,sigma,Sp,Sn,S)=lgi_count.irrep.Key();
+        int count=lgi_count.tag;
+        os
+          <<Nex
+          <<"  "<<TwiceValue(sigma.N())<<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()
+          <<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
+          <<"  "<<count<<std::endl;     
+      }
+    }
+
   void ReadLGISet(MultiplicityTaggedLGIVector& lgi_vector, const std::string& lgi_filename)
   {
     // open input file

@@ -27,7 +27,9 @@ Namespaces
 
   Even though namespace qualifiers are not strictly needed when you
   are accessing an identifier from the same namespace, go ahead and
-  consistently use namespace qualifiers anyway, for readability.
+  consistently use namespace qualifiers anyway, for readability, and
+  so that the code can easily be adapted for use outside of the
+  namespace.
 
 Half-integer values
 
@@ -47,7 +49,7 @@ Half-integer values
 
 Text input
 
-  Use the utilities/parsing functions for uniform error messages.
+  Use the mcutils/parsing functions for uniform error messages.
 
 Class declarations
 
@@ -61,5 +63,30 @@ Class declarations
   text representation of an object (e.g., a group label), as might be
   used in production output.
 
-  We use a DebugStr() member function to generate a data dump of an
-  object, as might be used in debugging and testing.
+  We use a LabelStr() member function to generate a string
+  representation of some label describing the contents of the object,
+  e.g., the quantum numbers for a subspace object.
+
+  We use a DebugStr() member function to generate a full data dump of
+  an object, as might be used in debugging and testing.
+
+----------------------------------------------------------------
+
+Note on uppercase mathematical symbols
+2/17/17 (mac)
+
+There is a conflict between mathematical notation, e.g.,
+
+     int twice_Nsigma0;
+
+and strict google lowercase convention, e.g.,
+
+     int twice_nsigma0;
+
+Mathematical understandability takes precedence here...  You can't 
+change the case of a mathematical variable, as that changes the meaning.  
+
+We are not consistent about this when the letters form part of a
+coupling scheme name, e.g., "lsjt_scheme" or "u3st_scheme".  Here one
+may think of "lsjt" more as an identifier (name) than as a
+mathematical expression.
