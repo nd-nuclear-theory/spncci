@@ -73,4 +73,18 @@ int main(int argc, char **argv)
     std::cout << fmt::format("  TotalDimensionU3LSJAll {}",spncci::TotalDimensionU3LSJAll(spncci_space)) << std::endl;
   }
 
+  ////////////////////////////////////////////////////////////////
+  // construct flattened baby SpNCCI space
+  ////////////////////////////////////////////////////////////////
+
+  // put SpNCCI space into standard linearized container
+  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
+
+  // diagnostic
+  std::cout << "baby_spncci_space" << std::endl;
+  for (int subspace_index=0; subspace_index<baby_spncci_space.size(); ++subspace_index)
+    std::cout << baby_spncci_space.GetSubspace(subspace_index).DebugStr()
+              << std::endl;
+  std::cout << std::endl;
+
 } //main

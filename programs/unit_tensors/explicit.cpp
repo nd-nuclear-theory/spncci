@@ -49,20 +49,177 @@
 #include "u3shell/relative_operator.h"
 #include "u3shell/upcoupling.h"
 
-
 namespace spncci
 {
+
+  typedef std::unordered_map<u3::U3,vcs::MatrixCache,boost::hash<u3::U3>> KMatrixCache;
+  // storage for K matrices
+  //
+  // maps sigma -> K matrix cache for that Sp irrep (vcs::MatrixCache),
+  // where then vcs::MatrixCache maps omega to K matrix
+  //
+  // Usage: k_matrix_cache[sigma][omega]
+
   void 
   ConstructSpNCCIBasisExplicit(
-      const spncci::SpNCCISpace& spncci_space,
-      basis::MatrixVector& lgi_expansion_matrix_vector,
-      const u3shell::SpaceU3SPN& space,
-      const u3shell::SectorsU3SPN& sectors,
-      const u3shell::SectorsU3SPN& arel_sectors,
-      basis::MatrixVector& Arel_matrices,
-      std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>>& k_matrix_map
+      const u3shell::SpaceU3SPN& lsu3shell_space,
+      const basis::MatrixVector& lgi_expansions,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::KMatrixCache& k_matrix_cache,
+      const u3shell::SectorsU3SPN& Arel_sectors,
+      const basis::MatrixVector& Arel_matrices,
+      basis::MatrixVector& spncci_expansions
     )
-  {}
+  // Generate expansions of SpNCCI basis states in terms of lsu3shell
+  // basis states, broken up by "baby SpNCCI subspaces", i.e., U3
+  // subspaces segregated by irrep family.
+  //
+  // Limitation: Presently only supports Nex=0 or 2.
+  //
+  // Arguments:
+  //   ...
+  {
+
+    spncci_expansions.resize(baby_spncci_space.size());
+    for (int subspace_index=0; subspace_index<baby_spncci_space.size(); ++subspace_index)
+      {
+        // extract subspace properties
+        const BabySpNCCISubspace& subspace = baby_spncci_space.GetSubspace(subspace_index);
+        int irrep_family_index = subspace.irrep_family_index();
+        int Nex = int(subspace.omega().N()-subspace.sigma().N());
+
+        // define aliases to the relevant lsu3shell subspaces
+        int lgi_lsu3shell_subspace_index = lsu3shell_space.LookUpSubspaceIndex(subspace.sigmaSPN());
+        int spncci_lsu3shell_subspace_index = lsu3shell_space.LookUpSubspaceIndex(subspace.omegaSPN());
+
+        // diagnostics
+        const u3shell::SubspaceU3SPN& lgi_lsu3shell_subspace = lsu3shell_space.GetSubspace(lgi_lsu3shell_subspace_index);
+        const u3shell::SubspaceU3SPN& spncci_lsu3shell_subspace = lsu3shell_space.GetSubspace(spncci_lsu3shell_subspace_index);
+        std::cout
+          << fmt::format(
+              "Constructing subspace: LGI sigmaSPN {} family index {} => omegaSPN {} (Nex {})",
+              subspace.sigmaSPN().Str(),irrep_family_index,
+              subspace.omegaSPN().Str(),spncci_lsu3shell_subspace.size(),Nex
+            )
+          << std::endl
+          << fmt::format(
+              "  lsu3shell subspace sigmaSPN: U3SPN {} subspace index {} dim {}",
+              lgi_lsu3shell_subspace.U3SPN().Str(),
+              lgi_lsu3shell_subspace_index,
+              lgi_lsu3shell_subspace.size()
+            )
+          << std::endl
+          << fmt::format(
+              "  lsu3shell subspace omegaSPN: U3SPN {} subspace index {} dim {}",
+             spncci_lsu3shell_subspace.U3SPN().Str(),
+             spncci_lsu3shell_subspace_index,
+             spncci_lsu3shell_subspace.size()
+            )
+          << std::endl;
+
+        // define aliases to expansion matrices
+        const Eigen::MatrixXd& lgi_expansion = lgi_expansions[irrep_family_index];
+        Eigen::MatrixXd& spncci_expansion = spncci_expansions[subspace_index];
+
+        // diagnostics
+        // std::cout << fmt::format("  lgi_expansion ({},{})",lgi_expansion.rows(),lgi_expansion.cols()) << std::endl;
+
+        // calculate expansion of baby SpNCCI subspace
+        assert((Nex==0)||(Nex==2));
+        if (Nex==0)
+          // Nex=0 -- trivial expansion
+          {
+            spncci_expansion = lgi_expansion;
+          }
+        else if (Nex==2)
+          // Nex=1 -- single laddering, free of outer multiplicity
+          {
+            // retrieve matrix for applicable Arel sector
+            int Arel_sector_index = Arel_sectors.LookUpSectorIndex(
+                spncci_lsu3shell_subspace_index,
+                lgi_lsu3shell_subspace_index
+              );
+            assert(Arel_sector_index!=basis::kNone);
+            const Eigen::MatrixXd& Arel_matrix = Arel_matrices[Arel_sector_index];
+
+            // diagnostics
+            // std::cout << fmt::format("  Arel sector index {} matrix ({},{})",Arel_sector_index,Arel_matrix.rows(),Arel_matrix.cols()) << std::endl;
+
+            // retrieve applicable inverse K matrix
+            //
+            // Language issue: Subscripted access only works for nonconst map.
+            // const Eigen::MatrixXd& k_matrix = k_matrix_cache[subspace.sigma()][subspace.omega()];
+            const Eigen::MatrixXd& k_matrix = k_matrix_cache.at(subspace.sigma()).at(subspace.omega());
+
+            assert((k_matrix.rows()==1)&&(k_matrix.cols()==1));
+            double k_inverse = 1 / k_matrix(0,0);  // specialize to multiplicity-free branching
+
+            // act with raising operator on LGI expansions
+            int phase = ParitySign(
+                u3::ConjugationGrade(subspace.sigma().SU3())
+                +u3::ConjugationGrade(subspace.omega().SU3())
+              );
+            
+            spncci_expansion = phase*k_inverse*Arel_matrix*lgi_expansion;
+          }
+
+      }
+  }
+
+
+
+  void 
+  CheckOrthonormalityExplicit(
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const basis::MatrixVector& spncci_expansions
+    )
+  // Check orthonormality of SpNCCI basis vectors from explicit
+  // expansion in lsu3shell basis.
+  //
+  // Takes pairs of BabySpNCCI subspaces sharing the same U3SPN, and
+  // thus the same underlying lsu3shell subspace.
+  //
+  // Arguments:
+  //   ...
+  {
+
+    for (int bra_subspace_index=0; bra_subspace_index<baby_spncci_space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=bra_subspace_index; ket_subspace_index<baby_spncci_space.size(); ++ket_subspace_index)
+      {
+        // extract subspace info
+        const spncci::BabySpNCCISubspace& bra_subspace = baby_spncci_space.GetSubspace(bra_subspace_index);
+        const spncci::BabySpNCCISubspace& ket_subspace = baby_spncci_space.GetSubspace(ket_subspace_index);
+
+        // short circuit if subspaces have different underlying lsu3shell subspaces
+        if (not (bra_subspace.omegaSPN()==ket_subspace.omegaSPN()))
+          continue;
+
+        // calculate overlaps
+        Eigen::MatrixXd overlap_matrix = spncci_expansions[bra_subspace_index].transpose()*spncci_expansions[ket_subspace_index];
+        Eigen::MatrixXd overlap_matrix_minus_identity = overlap_matrix - Eigen::MatrixXd::Identity(overlap_matrix.rows(),overlap_matrix.cols());
+        mcutils::ChopMatrix(overlap_matrix);
+        mcutils::ChopMatrix(overlap_matrix_minus_identity);
+
+        // check overlaps
+        bool on_diagonal = (bra_subspace_index==ket_subspace_index);
+        bool success = on_diagonal ? mcutils::IsZero(overlap_matrix_minus_identity)
+          : mcutils::IsZero(overlap_matrix);
+        
+        std::cout
+          << fmt::format(
+              "  bra index {} labels {} ket index {} labels {}",
+              bra_subspace_index,bra_subspace.LabelStr(),
+              ket_subspace_index,ket_subspace.LabelStr()
+            )
+          << std::endl;
+        std::cout << fmt::format("  on_diagonal {}",on_diagonal)
+                  << std::endl;
+        std::cout << fmt::format("  {}",success ? "PASS" : "FAIL")
+                  << std::endl;
+        std::cout << mcutils::FormatMatrix(overlap_matrix,"8.5f","  ") << std::endl;
+        std::cout << std::endl;
+      }
+  }
 
 
 }// end namespace
@@ -164,9 +321,7 @@ int main(int argc, char **argv)
   u3::PhiCoefCache phi_coef_cache;
   u3::g_u_cache_enabled = true;
 
-  // global numerical parameter
-  //
-  // Apparently referenced via cut-and-paste extern declarations (UGLY).
+  // numerical parameter for certain calculations
   double zero_threshold=1e-6;
 
   // run parameters
@@ -210,6 +365,18 @@ int main(int argc, char **argv)
       lsu3shell_basis_table,lsu3shell_space,
       Arel_labels,Arel_sectors,Arel_matrices
     );
+
+  // diagnostics
+  std::cout << "Arel operator..." << std::endl;
+  std::cout << "Arel sectors" << std::endl;
+  std::cout << Arel_sectors.DebugStr();
+  std::cout << "Arel matrices" << std::endl;
+  for (int sector_index=0; sector_index<Arel_sectors.size(); ++sector_index)
+    {
+      std::cout << fmt::format("  sector {}",sector_index) << std::endl;
+      std::cout << mcutils::FormatMatrix(Arel_matrices[sector_index],"8.5f","  ") << std::endl;
+    }
+
 
   // read Nrel
   u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
@@ -257,19 +424,61 @@ int main(int argc, char **argv)
 
   std::cout << "Set up SpNCCI space..." << std::endl;
 
+  // build SpNCCI irrep branchings
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;  // persistent container to store branchings
   spncci::NmaxTruncator truncator(run_parameters.Nsigma_0,run_parameters.Nmax);
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
+
+  // put SpNCCI space into standard linearized container
+  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
 
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
   std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
   std::cout << fmt::format("  TotalDimensionU3 {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
 
+
+  ////////////////////////////////////////////////////////////////
+  // precompute K matrices
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Precompute K matrices..." << std::endl;
+
+  // traverse distinct sigma values in SpNCCI space, generating K
+  // matrices for each
+  spncci::KMatrixCache k_matrix_cache;
+  for (const auto& sigma_irrep_pair : sigma_irrep_map)
+    {
+      // extract sigma and irrep contents
+      const u3::U3& sigma = sigma_irrep_pair.first;
+      const sp3r::Sp3RSpace& sp_irrep = sigma_irrep_pair.second;
+
+      // populate K matrix cache for this irrep
+      vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma]);
+
+      // diagnostics
+      for (auto& omega_matrix_pair : k_matrix_cache[sigma])
+        {
+          const u3::U3& omega = omega_matrix_pair.first;
+          const Eigen::MatrixXd& k_matrix = omega_matrix_pair.second;
+          std::cout << fmt::format("  sigma {} omega {}",sigma.Str(),omega.Str()) << std::endl;
+          std::cout << k_matrix << std::endl;
+        }
+    }
+
   ////////////////////////////////////////////////////////////////
   // do explicit subspace constructions
   ////////////////////////////////////////////////////////////////
 
+  std::cout << "Explicitly construct SpNCCI basis states using Arel..." << std::endl;
+  basis::MatrixVector spncci_expansions;
+  ConstructSpNCCIBasisExplicit(
+      lsu3shell_space,lgi_expansions,baby_spncci_space,k_matrix_cache,
+      Arel_sectors,Arel_matrices,spncci_expansions
+    );
+
+  std::cout << "Check orthonormality for all SpNCCI subspaces sharing same underlying lsu3shell subspace..." << std::endl;
+  CheckOrthonormalityExplicit(baby_spncci_space,spncci_expansions);
 
 }

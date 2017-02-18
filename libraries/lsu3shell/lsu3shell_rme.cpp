@@ -158,8 +158,8 @@ namespace lsu3shell
             << fmt::format(
                 "sector {} bra {} ket {} dim {}x{}",
                 sector_index,
-                sector.bra_subspace().Str(),
-                sector.ket_subspace().Str(),
+                sector.bra_subspace().LabelStr(),
+                sector.ket_subspace().LabelStr(),
                 sector.bra_subspace().size(),
                 sector.ket_subspace().size()
               )
