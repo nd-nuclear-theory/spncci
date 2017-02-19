@@ -1,5 +1,5 @@
 /****************************************************************
-  spncci_branching_u3s_test.cpp
+  branching_u3s_test.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -12,8 +12,8 @@
 #include "cppformat/format.h"
 #include "lgi/lgi.h"
 #include "spncci/spncci_basis.h"
-#include "spncci/spncci_branching_u3s.h"
-#include "spncci/spncci_branching_u3lsj.h"
+#include "spncci/branching_u3s.h"
+#include "spncci/branching_u3lsj.h"
 #include "spncci/unit_tensor.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/upcoupling.h"

@@ -44,8 +44,8 @@
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h" 
 #include "spncci/unit_tensor.h"
-#include "spncci/spncci_branching_u3s.h"
-#include "spncci/spncci_branching_u3lsj.h"
+#include "spncci/branching_u3s.h"
+#include "spncci/branching_u3lsj.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/upcoupling.h"
 

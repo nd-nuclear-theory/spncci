@@ -9,10 +9,7 @@
 
 #include "cppformat/format.h"
 #include "lgi/lgi.h"
-
 #include "u3shell/relative_operator.h"
-#include "spncci/spncci_branching_u3s.h"
-#include "spncci/spncci_branching_u3lsj.h"
 
 int main(int argc, char **argv)
 {

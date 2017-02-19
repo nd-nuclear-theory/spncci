@@ -1,12 +1,12 @@
 /****************************************************************
-  spncci_branching_u3s.cpp
+  branching_u3s.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
 
-#include "spncci/spncci_branching_u3s.h"
+#include "spncci/branching_u3s.h"
 
 #include <fstream>
 #include <iostream>

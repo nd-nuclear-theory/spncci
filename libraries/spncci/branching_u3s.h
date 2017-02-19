@@ -1,17 +1,18 @@
 /****************************************************************
-  spncci_branching_u3s.h
+  branching_u3s.h
 
   U(3)xS layer of SpNCCI basis branching.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  1/31/17 (mac): Extracted from sp_basis.
+  1/31/17 (mac): Extracted from sp_basis (as spncci_branching_u3s).
   2/17/17 (mac): Extract BabySpNCCISubspace to spncci_basis.
+  2/19/17 (mac): Rename to branching_u3s.
 ****************************************************************/
 
-#ifndef SPNCCI_BRANCHING_U3S_H_
-#define SPNCCI_BRANCHING_U3S_H_
+#ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_
+#define SPNCCI_SPNCCI_BRANCHING_U3S_H_
 
 #include <unordered_map>
 

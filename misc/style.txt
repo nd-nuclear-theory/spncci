@@ -90,3 +90,29 @@ We are not consistent about this when the letters form part of a
 coupling scheme name, e.g., "lsjt_scheme" or "u3st_scheme".  Here one
 may think of "lsjt" more as an identifier (name) than as a
 mathematical expression.
+
+----------------------------------------------------------------
+
+The #define guard
+2/19/17 (mac)
+
+Google style: All header files should have #define guards to prevent
+multiple inclusion.  The format of the symbol name should be
+<PROJECT>_<PATH>_<FILE>_H_.
+
+We do not literally use the path, as the "libraries" part of the path
+is redundant.  For modules which are native to the big project (like
+shell or spncci), we use
+
+   <PROJECT>_<MODULE>_<FILE>_
+
+For standalone submodules that have their own repository (like
+basis or mcutils), we use
+
+   <MODULE>_<FILE>_
+
+Thus, e.g., for spncci/libraries/spncci/unit_tensor.h,
+
+#ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
+#define SPNCCI_SPNCCI_UNIT_TENSOR_H_
+

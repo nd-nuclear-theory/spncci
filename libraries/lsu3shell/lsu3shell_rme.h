@@ -72,28 +72,28 @@ namespace lsu3shell
   //   matrices1 : matrices for first operator
   //   matrices2 : matrices for second operator
   //   tolerance : max acceptable magnitude for entrywise residual
-  //   verbose (optional) : whether or not to print sector header lines
+  //   verbose (optional): whether or not to print sector header lines
   //
   // Returns:
-  //   (bool) : comparison OK
+  //   (bool): comparison OK
 
 
   void GenerateLSU3ShellNcmRMEs(
-    int A,      
-    const std::string& Nrel_filename,
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
+    const u3shell::SpaceU3SPN& space,
+    const u3shell::SectorsU3SPN& Nrel_sectors,
+    const basis::MatrixVector& Nrel_matrices,
+    int A,
+    basis::MatrixVector& Ncm_matrices
   );
   // Generates the Ncm matrix elements from Nrel matrix elements
   // and stores them in a vector of lsu3shell basis sectors
   //
   // Arguments:
-  //  A (input) : atomic mass number
-  //  Nrel_filename (input) : filename for file containing Nrel rmes
-  //  lsu3_basis_table (input) : table of lsu3shell basis states
-  //  space (input) : space defined by lsu3shell basis
-  //  matrix_vector (output) : container for Ncm matrix sectors.
+  //  space (input): space defined by lsu3shell basis
+  //  Nrel_sectors (input): sectors for Nrel operator
+  //  Nrel_matrices (input): matrices for Nrel operator
+  //  A (input): atomic mass number
+  //  matrix_vector (output): container for Ncm matrix sectors.
 
   void GenerateNcmMatrixVector(
     int A,      
@@ -108,11 +108,11 @@ namespace lsu3shell
   // and stores them in a vector of lsu3shell basis sectors
   //
   // Arguments:
-  //  A (input) : atomic mass number
-  //  is_Nrel (input) : stream from file containing Nrel rmes
-  //  lsu3_basis_table (input) : table of lsu3shell basis states
-  //  space (input) : space defined by lsu3shell basis
-  //  matrix_vector (output) : container for Ncm matrix sectors.
+  //  A (input): atomic mass number
+  //  is_Nrel (input): stream from file containing Nrel rmes
+  //  lsu3_basis_table (input): table of lsu3shell basis states
+  //  space (input): space defined by lsu3shell basis
+  //  matrix_vector (output): container for Ncm matrix sectors.
 
 }
 #endif

@@ -1,17 +1,18 @@
 /****************************************************************
-  spncci_branching_u3lsj.h
+  branching_u3lsj.h
 
   U(3)xLS and U(3)xLSJ layers of SpNCCI basis branching.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  1/31/17 (mac): Extracted from sp_basis.
+  1/31/17 (mac): Extracted from sp_basis (as spncci_branching_u3lsj).
+  2/19/17 (mac): Rename to branching_u3lsj.
     
 ****************************************************************/
 
-#ifndef SPNCCI_BRANCHING_U3LSJ_H_
-#define SPNCCI_BRANCHING_U3LSJ_H_
+#ifndef SPNCCI_SPNCCI_BRANCHING_U3LSJ_H_
+#define SPNCCI_SPNCCI_BRANCHING_U3LSJ_H_
 
 #include <unordered_map>
 
@@ -19,7 +20,7 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
-#include "spncci/spncci_branching_u3s.h"
+#include "spncci/branching_u3s.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
 #include "u3shell/upcoupling.h"

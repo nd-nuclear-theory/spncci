@@ -219,11 +219,11 @@ namespace lsu3shell
   }
 
   void GenerateNcmMatrixVector(
-    int A,      
+    int A,
     std::ifstream& is_Nrel,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
+    const u3shell::SpaceU3SPN& space,
+    basis::MatrixVector& matrix_vector
   )
   // DEPRECATED
   {
@@ -259,36 +259,35 @@ namespace lsu3shell
   }
 
   void GenerateLSU3ShellNcmRMEs(
-    int A,      
-    const std::string& Nrel_filename,
-    const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
+    const u3shell::SpaceU3SPN& space,
+    const u3shell::SectorsU3SPN& Nrel_sectors,
+    const basis::MatrixVector& Nrel_matrices,
+    int A,
+    basis::MatrixVector& Ncm_matrices
   )
   {
 
-    // read in Nrel matrix elements and populate sectors
-    u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
-    basis::MatrixVector Nrel_matrix_vector;
-    u3shell::SectorsU3SPN Nrel_sectors(space,Nrel_labels,true);
-    lsu3shell::ReadLSU3ShellRMEs(
-        Nrel_filename,lsu3_basis_table,space, 
-        Nrel_labels,Nrel_sectors,Nrel_matrix_vector
-      );
-
     // populate matrices for Ncm
-    matrix_vector.resize(Nrel_sectors.size());
-    for(int i=0; i<Nrel_sectors.size(); ++i)
+    Ncm_matrices.resize(Nrel_sectors.size());
+    for(int sector_index=0; sector_index<Nrel_sectors.size(); ++sector_index)
       {
-        const auto& subspace=space.GetSubspace(i);
+        // define alias for subspace
+        //
+        // Note: Sectors here are diagonal and in 1-1 correspondence
+        // with subspaces.  We do not actually need the space as an
+        // argument, but keep it for uniformity.
+        assert(Nrel_sectors.GetSector(sector_index).IsDiagonal());
+        const auto& subspace = Nrel_sectors.GetSector(sector_index).ket_subspace();
 
-        // eigenvalue of N is given by total number of oscilator quanta minus
-        // the zero point energy boson 3A/2. 
-        HalfInt N=subspace.N()-3.*A/2;
-
-        // Ncm=N-Nrel
-        int dim=subspace.size();
-        matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrix_vector[i];
+        // calculate Ncm
+        //
+        // Obtain as Ncm=N-Nrel, where eigenvalue of N is given by
+        // total number of oscilator quanta minus the zero point
+        // energy 3A/2.
+        HalfInt N = subspace.N()-3.*A/2;
+        int dim = subspace.size();
+        Ncm_matrices[sector_index]
+          = Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrices[sector_index];
       }
 
   }

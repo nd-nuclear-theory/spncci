@@ -15,8 +15,8 @@
   2/2/17 (mac): Add typedef UnitTensorMatricesByIrrepFamily.
 ****************************************************************/
 
-#ifndef UNIT_TENSOR_H_
-#define UNIT_TENSOR_H_
+#ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
+#define SPNCCI_SPNCCI_UNIT_TENSOR_H_
 
 #include <map>
 #include <unordered_map>

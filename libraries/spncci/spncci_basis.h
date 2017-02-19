@@ -20,9 +20,10 @@
     - Rename to spncci_basis.
     - Rename and restructure SpNCCI irrep family containers.
     - Split off branched basis definitions.
-  2/17/19 (mac):
+  2/17/17 (mac):
     - Extract BabySpNCCI indexing from spncci_branching_u3s.
     - Add U3SPN accessors sigmaSPN and omegaSPN to BabySpNCCISubspace.
+  2/19/17 (mac): Move in PrecomputeKMatrices from explicit.cpp.
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -32,6 +33,7 @@
 
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
+#include "sp3rlib/vcs.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
 #include "u3shell/upcoupling.h"
@@ -504,6 +506,32 @@ namespace spncci
       //   space (BabySpNCCISpace): the space
       //   operator_labels (OperatorLabelsU3S): NxSU(3)xS character of operator
   };
+
+  ////////////////////////////////////////////////////////////////
+  // precomputation of K matrices
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::unordered_map<u3::U3,vcs::MatrixCache,boost::hash<u3::U3>> KMatrixCache;
+  // storage for K matrices
+  //
+  // maps sigma -> K matrix cache for that Sp irrep (vcs::MatrixCache),
+  // where then vcs::MatrixCache maps omega to K matrix
+  //
+  // Usage: k_matrix_cache[sigma][omega]
+
+  void
+  PrecomputeKMatrices(
+      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      spncci::KMatrixCache& k_matrix_cache
+    );
+  // Precompute and cache K matrices for all symplectic irreps
+  // occurring in SpNCCI space.
+  //
+  // May be used either in SpNCCI RME recurrence or in explicit construction of states.
+  //
+  // Arguments:
+  //   sigma_irrep_map (input): container for distinct symplectic irreps
+  //   k_matrix_cache (output): container for corresponding K matrices
 
 
 
