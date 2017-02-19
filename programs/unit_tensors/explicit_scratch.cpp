@@ -1,5 +1,5 @@
 /****************************************************************
-  explicit.cpp
+  explicit_scratch.cpp
 
   Tests of explicit SpNCCI basis construction in LSU3Shell basis.
 

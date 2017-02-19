@@ -32,9 +32,9 @@ namespace lsu3shell
       const u3shell::SectorsU3SPN& sectors,
       basis::MatrixVector& matrix_vector 
     )
-  // DEPRECATED but used internally by new version; so this code
-  // should actually be inserted into new version when the deprecated
-  // version is no longer needed
+  // DEPRECATED version taking streams; but used internally by new
+  // version; so this code should actually be inserted into new
+  // version when the deprecated version is no longer needed
   {    
     int i,j;
     double rme;

@@ -60,6 +60,41 @@ namespace spncci
   //
   // Usage: k_matrix_cache[sigma][omega]
 
+  void
+  PrecomputeKMatrices(
+      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      spncci::KMatrixCache& k_matrix_cache
+    )
+  // Precompute and cache K matrices for all symplectic irreps
+  // occurring in SpNCCI space.
+  //
+  // May be used either in SpNCCI RME recurrence or in explicit construction of states.
+  //
+  // Arguments:
+  //   sigma_irrep_map (input): container for distinct symplectic irreps
+  //   k_matrix_cache (output): container for corresponding K matrices
+  {
+    for (const auto& sigma_irrep_pair : sigma_irrep_map)
+      {
+        // extract sigma and irrep contents
+        const u3::U3& sigma = sigma_irrep_pair.first;
+        const sp3r::Sp3RSpace& sp_irrep = sigma_irrep_pair.second;
+
+        // populate K matrix cache for this irrep
+        vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma]);
+
+        // diagnostics
+        for (auto& omega_matrix_pair : k_matrix_cache[sigma])
+          {
+            const u3::U3& omega = omega_matrix_pair.first;
+            const Eigen::MatrixXd& k_matrix = omega_matrix_pair.second;
+            std::cout << fmt::format("  sigma {} omega {}",sigma.Str(),omega.Str()) << std::endl;
+            std::cout << k_matrix << std::endl;
+          }
+      }
+
+    }
+
   void 
   ConstructSpNCCIBasisExplicit(
       const u3shell::SpaceU3SPN& lsu3shell_space,
@@ -166,8 +201,6 @@ namespace spncci
       }
   }
 
-
-
   void 
   CheckOrthonormalityExplicit(
       const spncci::BabySpNCCISpace& baby_spncci_space,
@@ -222,6 +255,129 @@ namespace spncci
   }
 
 
+  void
+  ReadLSU3ShellSeedUnitTensorRMEs(
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
+      std::vector<basis::MatrixVector>& lgi_unit_tensor_lsu3shell_matrices,
+      const std::string& relative_unit_tensor_filename_template
+    )
+  // Read lsu3shell RMEs for seed unit tensors.
+  //
+  // Arguments:
+  //   lsu3shell_basis_table (input): lsu3shell basis data
+  //   lsu3shell_space (input): lsu3shell basis
+  //   lgi_unit_tensor_lables (input): labels for the unit tensors to read
+  //   lgi_unit_tensor_sectors (output): U3SPN sectors (for each unit tensor)
+  //   lgi_unit_tensor_lsu3shell_matrices (output): matrices of RMEs (for each unit tensor)
+  //   relative_unit_tensor_filename_template (input): filename template for use with fmt::format
+  {
+    lgi_unit_tensor_sectors.resize(lgi_unit_tensor_labels.size());
+    lgi_unit_tensor_lsu3shell_matrices.resize(lgi_unit_tensor_labels.size());
+    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+      {
+        // set up aliases for current unit tensor
+        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+        u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
+        basis::MatrixVector& unit_tensor_lsu3shell_matrices = lgi_unit_tensor_lsu3shell_matrices[unit_tensor_index];
+      
+        // read rmes
+        const bool spin_scalar = false;
+        std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
+        unit_tensor_sectors = u3shell::SectorsU3SPN(lsu3shell_space,unit_tensor_labels,spin_scalar);
+        lsu3shell::ReadLSU3ShellRMEs(
+            filename,
+            lsu3shell_basis_table,lsu3shell_space,
+            unit_tensor_labels,unit_tensor_sectors,unit_tensor_lsu3shell_matrices
+          );
+      }
+  }
+
+  void
+  TransformSeedUnitTensorRMEs(
+      const basis::MatrixVector& lgi_expansions,
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
+      const std::vector<basis::MatrixVector>& lgi_unit_tensor_lsu3shell_matrices,
+      std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices
+    )
+  // Transform seed lsu3shell sector RMEs to obtain RMEs between LGIs.
+  //
+  // Arguments:
+  //   lgi_expansions (input): expansions of LGIs in lsu3shell basis
+  //   lgi_unit_tensor_lables (input): labels for the unit tensors to read
+  //   lgi_unit_tensor_sectors (input): U3SPN sectors (for each unit tensor)
+  //   lgi_unit_tensor_lsu3shell_matrices (input): matrices of RMEs (for each unit tensor)
+  //   lgi_unit_tensor_spncci_matrices (output): matrices of RMEs with respect to LGIs (for each unit tensor)
+  {
+    lgi_unit_tensor_spncci_matrices.resize(lgi_unit_tensor_labels.size());
+    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+      {
+        // set up aliases for current unit tensor
+        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+        const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
+        const basis::MatrixVector& unit_tensor_lsu3shell_matrices = lgi_unit_tensor_lsu3shell_matrices[unit_tensor_index];
+        basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
+      
+        // transform seed rmes to SpNCCI basis (among LGIs)
+        lgi::TransformOperatorToSpBasis(
+            unit_tensor_sectors,lgi_expansions,
+            unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
+          );
+      }
+  }
+
+  void
+  StoreSeedUnitTensorRMEs(
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
+      const std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices,
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      double zero_threshold
+    )
+  // Store seed RMEs in souffle (by irrep family) for recurrence.
+  //
+  // Arguments:
+  //   lgi_unit_tensor_lables (input): labels for the unit tensors to read
+  //   lgi_unit_tensor_sectors (input): U3SPN sectors (for each unit tensor)
+  //   lgi_unit_tensor_spncci_matrices (input): matrices of RMEs with respect to LGIs (for each unit tensor)
+  //   unit_tensor_matrices (output): container for RMEs from recurrence
+  //   zero_threshold (input): floating-point threshold for zero-suppression of sector
+  {
+    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+      {
+        // set up aliases for current unit tensor
+        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+        const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
+        const basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
+      
+        // stash each sector in big souffle (i.e., by irrep family)
+        for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
+          {
+            // extract U3SPN sector information
+            const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
+            const int bra_subspace_index = sector.bra_subspace_index();
+            const int ket_subspace_index = sector.ket_subspace_index();
+            const u3::U3& bra_sigma = sector.bra_subspace().U3();
+            const u3::U3& ket_sigma = sector.ket_subspace().U3();
+            const int rho0 = unit_tensor_sectors.GetSector(sector_index).multiplicity_index();
+
+            // put rme matrix into nested maps
+            std::pair<int,int> irrep_family_index_pair(bra_subspace_index,ket_subspace_index);
+            std::pair<int,int> Nn_pair(0,0);
+            spncci::UnitTensorU3Sector unit_tensor_sector_labels(bra_sigma,ket_sigma,unit_tensor_labels,rho0);
+            if(not mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],zero_threshold))
+              {
+                unit_tensor_matrices[irrep_family_index_pair][Nn_pair][unit_tensor_sector_labels]
+                  = unit_tensor_spncci_matrices[sector_index];
+              }
+          }
+      }
+  }
+
+
 }// end namespace
 
 ////////////////////////////////////////////////////////////////
@@ -252,14 +408,7 @@ struct RunParameters
   std::string Brel_filename;
   std::string Arel_filename;
   std::string Nrel_filename;
-  std::string relative_unit_filename_template;
-
-  // relative unit tensors to be studied
-  //
-  // Note: Should be consistant with set of tensors generated by
-  // generate_lsu3shell_relative_operators.
-  int T0;
-  int J0;
+  std::string relative_unit_tensor_filename_template;
 };
 
 RunParameters::RunParameters()
@@ -297,10 +446,7 @@ RunParameters::RunParameters()
   Brel_filename = lsu3shell_rme_directory + "/" + "Brel_06_Nmax02.rme";
   Arel_filename = lsu3shell_rme_directory + "/" + "Arel_06_Nmax02.rme";
   Nrel_filename = lsu3shell_rme_directory + "/" + "Nrel_06_Nmax02.rme";
-  relative_unit_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
-
-  T0=0;
-  J0=-1;
+  relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 }
 
 
@@ -448,24 +594,7 @@ int main(int argc, char **argv)
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
   spncci::KMatrixCache k_matrix_cache;
-  for (const auto& sigma_irrep_pair : sigma_irrep_map)
-    {
-      // extract sigma and irrep contents
-      const u3::U3& sigma = sigma_irrep_pair.first;
-      const sp3r::Sp3RSpace& sp_irrep = sigma_irrep_pair.second;
-
-      // populate K matrix cache for this irrep
-      vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma]);
-
-      // diagnostics
-      for (auto& omega_matrix_pair : k_matrix_cache[sigma])
-        {
-          const u3::U3& omega = omega_matrix_pair.first;
-          const Eigen::MatrixXd& k_matrix = omega_matrix_pair.second;
-          std::cout << fmt::format("  sigma {} omega {}",sigma.Str(),omega.Str()) << std::endl;
-          std::cout << k_matrix << std::endl;
-        }
-    }
+  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache);
 
   ////////////////////////////////////////////////////////////////
   // do explicit subspace constructions
@@ -473,12 +602,84 @@ int main(int argc, char **argv)
 
   std::cout << "Explicitly construct SpNCCI basis states using Arel..." << std::endl;
   basis::MatrixVector spncci_expansions;
-  ConstructSpNCCIBasisExplicit(
+  spncci::ConstructSpNCCIBasisExplicit(
       lsu3shell_space,lgi_expansions,baby_spncci_space,k_matrix_cache,
       Arel_sectors,Arel_matrices,spncci_expansions
     );
 
   std::cout << "Check orthonormality for all SpNCCI subspaces sharing same underlying lsu3shell subspace..." << std::endl;
-  CheckOrthonormalityExplicit(baby_spncci_space,spncci_expansions);
+  spncci::CheckOrthonormalityExplicit(baby_spncci_space,spncci_expansions);
 
+  ////////////////////////////////////////////////////////////////
+  // read lsu3shell seed unit tensor rmes
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Read seed unit tensor rmes..." << std::endl;
+
+  // storage for seed unit tensor rmes
+  //
+  //   lgi_unit_tensor_labels: vector of labels for seed unit tensors
+  //   lgi_unit_tensor_lsu3shell_sectors: vector of lsu3shell sectors for seed unit tensors
+  //   lgi_unit_tensor_matrices: vector of matrices for these sectors
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
+  std::vector<u3shell::SectorsU3SPN> lgi_unit_tensor_sectors;
+  std::vector<basis::MatrixVector> lgi_unit_tensor_lsu3shell_matrices;
+
+  // determine set of seed unit tensors
+  //
+  // i.e., those for which we calculate seed rmes among the LGIs
+  //
+  // Note: Should be consistant with set of tensors generated by
+  // generate_lsu3shell_relative_operators.
+  int Nmax_for_unit_tensors = run_parameters.Nsigma0_ex_max+2*run_parameters.N1b;  // max quanta for pair in LGI (?)
+  int J0 = -1;  // all J0
+  int T0 = 0;
+  const bool restrict_positive_N0 = false;  // don't restrict to N0 positive
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(
+      Nmax_for_unit_tensors, lgi_unit_tensor_labels,
+      J0,T0,restrict_positive_N0
+    );
+
+  // diagnostic
+  std::cout << fmt::format("  seed unit tensors {}",lgi_unit_tensor_labels.size()) << std::endl;
+
+  spncci::ReadLSU3ShellSeedUnitTensorRMEs(
+      lsu3shell_basis_table,lsu3shell_space,
+      lgi_unit_tensor_labels,
+      lgi_unit_tensor_sectors,
+      lgi_unit_tensor_lsu3shell_matrices,
+      run_parameters.relative_unit_tensor_filename_template
+    );
+
+  ////////////////////////////////////////////////////////////////
+  // transform and store seed rmes for use in SpNCCI recurrence
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Transform and store seed unit tensor rmes..." << std::endl;
+
+  // transform to SpNCCI LGI RMEs
+  std::vector<basis::MatrixVector> lgi_unit_tensor_spncci_matrices;
+  spncci::TransformSeedUnitTensorRMEs(
+      lgi_expansions,
+      lgi_unit_tensor_labels,
+      lgi_unit_tensor_sectors,
+      lgi_unit_tensor_lsu3shell_matrices,
+      lgi_unit_tensor_spncci_matrices
+    );
+
+  // store unit tensor matrix elements for recurrence
+  spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+  spncci::StoreSeedUnitTensorRMEs(
+      lgi_unit_tensor_labels,
+      lgi_unit_tensor_sectors,
+      lgi_unit_tensor_spncci_matrices,
+      unit_tensor_matrices,
+      zero_threshold
+    );
+
+  ////////////////////////////////////////////////////////////////
+  // ladder unit tensor rmes to full SpNCCI basis
+  ////////////////////////////////////////////////////////////////
+
+  // TODO
 }

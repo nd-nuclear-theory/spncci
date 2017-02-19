@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     {
       const u3shell::SubspaceU3SPN& subspace = space.GetSubspace(subspace_index);
       
-      std::cout << fmt::format("subspace {} dimension {}",subspace.Str(),subspace.size()) << std::endl;
+      std::cout << fmt::format("subspace {} dimension {}",subspace.LabelStr(),subspace.size()) << std::endl;
          
     }
 
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
           "{:3} ({:2},{:2},{:1}): {} {}",
           sector_index,
           sector.bra_subspace_index(),sector.ket_subspace_index(),sector.multiplicity_index(),
-          sector.bra_subspace().Str(),sector.ket_subspace().Str()
+          sector.bra_subspace().LabelStr(),sector.ket_subspace().LabelStr()
         )
                 << std::endl;
     }
