@@ -909,7 +909,7 @@ int main(int argc, char **argv)
   //       total++;
   //     }
 
-  std::cout<<operator_matrix<<std::endl;
+  // std::cout<<operator_matrix<<std::endl;
 
   Eigen::EigenSolver<Eigen::MatrixXd> es(operator_matrix);
   for(int i=0; i<10; ++i)
