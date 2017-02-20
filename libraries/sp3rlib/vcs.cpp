@@ -59,10 +59,16 @@ namespace vcs{
   }
 
 
-  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, MatrixCache& K_matrix_map)
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, MatrixCache& K_matrix_map, bool is_intrinsic)
   {
     u3::U3 sigma=irrep.sigma();
     vcs::MatrixCache S_matrix_map;
+    // If K matrices are for intrinsic operator computed in
+    // full space of A particles, then it is necessary to include
+    // an offset corresponding to taking the map A->(A-1). 
+    // Offset arrises in Omega(np,wp)-Omega(np). 
+    double offset=is_intrinsic?1:0;
+
     for(int i=0; i<irrep.size(); i++)
       {
       
@@ -115,7 +121,7 @@ namespace vcs{
                             if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0), n1p.SU3())>0)
                               coef1_matrix(i1,j1)=(
                                                    2./int(n1p.N())
-                                                   *(Omega(n1p, omega_p)-Omega(n1,omega))
+                                                   *(Omega(n1p, omega_p)-Omega(n1,omega)-offset)
                                                    *U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
                                                    );
                             else
@@ -146,10 +152,17 @@ namespace vcs{
       } // end for (i)  
   }
 
-  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, MatrixCache& K_matrix_map)
+  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, MatrixCache& K_matrix_map, bool is_intrinsic)
   {
     u3::U3 sigma=irrep.sigma();
     vcs::MatrixCache S_matrix_map;
+    // If K matrices are for intrinsic operator computed in
+    // full space of A particles, then it is necessary to include
+    // an offset corresponding to taking the map A->(A-1). 
+    // Offset arrises in Omega(np,wp)-Omega(np). 
+    double offset=is_intrinsic?1:0;
+
+
     std::vector<int> partition=sp3r::PartitionIrrepByNn(irrep, Nmax);
     int start=0;
     int stop;
@@ -217,7 +230,7 @@ namespace vcs{
                                 if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0), n1p.SU3())>0)
                                   coef1_matrix(i1,j1)=(
                                                        2./int(n1p.N())
-                                                       *(Omega(n1p, omega_p)-Omega(n1,omega))
+                                                       *(Omega(n1p, omega_p)-Omega(n1,omega)-offset)
                                                        *U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
                                                        );
                                 else

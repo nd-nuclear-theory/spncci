@@ -99,6 +99,14 @@ int main(int argc, char **argv)
   std::string nintr_file_name=fmt::format("{}.recoupler",nintr_file_name_base);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Nrel_operator, nintr_file_name,un_u3_restrict);
 
+  // Generate Brel operator up to Nmax cutoff
+  std::string arel_file_name_base=fmt::format("Arel_{:02d}_Nmax{:02d}",A,Nmax);
+  std::string arel_file_name=fmt::format("{}.recoupler",arel_file_name_base);
+  u3shell::RelativeUnitTensorCoefficientsU3ST Arel_operator;
+  u3shell::ArelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Arel_operator,A);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Arel_operator, arel_file_name, un_u3_restrict);
+
+
   int num_unit=relative_unit_tensor_labels.size();
   // number of relative operators including Brel and Nintr
   // int num_ops=num_unit+2;
@@ -108,5 +116,6 @@ int main(int argc, char **argv)
 
   control_stream<<brel_file_name_base<<std::endl;
   control_stream<<nintr_file_name_base<<std::endl;
+  control_stream<<arel_file_name_base<<std::endl;
   control_stream.close();
 }

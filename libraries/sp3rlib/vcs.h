@@ -11,6 +11,8 @@
   3/9/16 (aem): Created based on prototype vcs.py.
   1/6/17 (aem): Changed phase convention for U3BosonCreation from
                 R->L to L->R.
+  2/20/17 (aem): Added is_intrinsic option to Kmatrices to allow
+    for computation of normalization for intrinsic operators
 ****************************************************************/
 
 #ifndef VCS_H_
@@ -66,9 +68,9 @@ namespace vcs
   const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop, const u3::U3& omegap,
   const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega);
 
-  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map);
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map, bool is_intrinsic=false);
   //Calculates the K matrix 	
-  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, vcs::MatrixCache& K_matrix_map);
+  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, vcs::MatrixCache& K_matrix_map, bool is_intrinsic=false);
 
 
 }  //  namespace
