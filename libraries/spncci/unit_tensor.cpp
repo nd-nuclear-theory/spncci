@@ -80,7 +80,6 @@ namespace spncci
     int Nnp_max=conj_sector?0:Nmax;
 
     // Loop over Nnp+Nn starting from 2, (Nnp+Nn=0 accounted for elsewhere)
-    // std::cout<<"Loop over omega subspaces"<<std::endl;
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nnp=0; Nnp<=std::min(Nsum,Nnp_max); Nnp+=2)
         {
@@ -97,7 +96,6 @@ namespace spncci
           std::pair<int,int> NpN_pair(Nnp,Nn);
           // Selecting section of spaces to iterate over
           int ip_min, ip_max, i_min, i_max;
-          // std::cout<<"iterator"<<std::endl;
           std::tie (i_min,i_max)=GetNSectorIndices(Nmax, irrep_size, Nn, NPartition);
           std::tie (ip_min,ip_max)=GetNSectorIndices(Nmax, irrepp_size, Nnp, NpPartition);
           // Get set of operator labels for given omega'omega sector
@@ -141,7 +139,6 @@ namespace spncci
                 }
             }
         }    
-      // std::cout<<"end subspaces"<<std::endl;
     #ifdef VERBOSE
     std::cout<<"Exiting GenerateU3SectorLabels"<<std::endl;
     #endif
@@ -153,15 +150,13 @@ namespace spncci
     u3::UCoefCache& u_coef_cache,
     u3::PhiCoefCache& phi_coef_cache,
     std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
-     // SpNCCIIrrepFamily pair sector 
     const spncci::SpNCCIIrrepFamily& sp_irrepp,
     const spncci::SpNCCIIrrepFamily& sp_irrep,
     const std::pair<int,int>& lgi_mult,
-     // vector of addresses to relevant Np,N sectors of unit tensor matrix
-     spncci::UnitTensorSectorsCache& sector_NpN2,
-     spncci::UnitTensorSectorsCache& sector_NpN4,
-     spncci::UnitTensorU3Sector unit_labels
-     )
+    spncci::UnitTensorSectorsCache& sector_NpN2,
+    spncci::UnitTensorSectorsCache& sector_NpN4,
+    spncci::UnitTensorU3Sector unit_labels
+    )
   {
     #ifdef VERBOSE
     std::cout<<"Entering UnitTensorMatrix"<<std::endl;
@@ -258,10 +253,6 @@ namespace spncci
                     BU(m1,m)=2./Nn*vcs::BosonCreationRME(n,n1)
                              *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sp_irrep.sigma().SU3(),
                                           n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1);
-                  // std::cout<<vcs::BosonCreationRME(n,n1)<<"  "
-                  // <<u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sp_irrep.sigma().SU3(),
-                  //                         n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1)
-                  // <<"  "<<2./Nn<<std::endl;
                 }
                 else
                   BU(m1,m)=0;
@@ -271,17 +262,13 @@ namespace spncci
         KBUK.noalias()=K1*BU*K_inv;
 
         // std::cout<<"KBUK "<<KBUK<<std::endl;
-
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         //summing over x0'
         for (auto& x0p_tagged : x0p_set)
           {
             u3::SU3 x0p(x0p_tagged.irrep);
-            
-            // std::cout<<"x0 "<<x0p.Str()<<std::endl;
             int rho0p_max=OuterMultiplicity(omega1.SU3(),x0p,omegap.SU3());
             
-            // std::cout<<omega1.Str()<<"  "<<x0p.Str()<<"  "<<rho0p_max<<"  "<<rho0_max<<std::endl;
             // summing over rho0'
             for (int rho0p=1; rho0p<=rho0p_max; rho0p++)
               {
@@ -312,17 +299,9 @@ namespace spncci
                     if(Nnp==0)
                       continue;
                     u3::U3 omegapp(omegapp_tagged.irrep);
-                    // std::cout<<"omegapp "<<omegapp.Str()<<std::endl;
                     if (not irrepp.ContainsSubspace(omegapp))
                       continue;
                     
-                   // // trap to check if sectors are found in NpN4,
-                   // // if not found for rho0b'=1, then continue      
-                   // spncci::UnitTensorU3Sector 
-                   //    unit_tensor_u3_sector_1(omegapp,omega1,tensor,1);
-                   //  if ((sector_NpN4).count(unit_tensor_u3_sector_1)==0)
-                   //    continue; 
-
                     // omega'' subspace (v'')
                     sp3r::U3Subspace u3_subspacepp=irrepp.LookUpSubspace(omegapp);
                     int dimpp=u3_subspacepp.size();
@@ -342,13 +321,13 @@ namespace spncci
                             const int& rhop=np_rhop.tag; 
                             // std::cout<<"A matrix"<<std::endl;
                             if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
-                              boson_matrix(vp,vpp)=
-                                vcs::BosonCreationRME(np,npp)
-                                *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
-                                *u3::UCached(u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sp_irrepp.sigma().SU3(),
+                              {
+                                boson_matrix(vp,vpp)=
+                                  vcs::BosonCreationRME(np,npp)
+                                  *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
+                                  *u3::UCached(u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sp_irrepp.sigma().SU3(),
                                                           np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
-                                //*u3::UCached(u_coef_cache,sp_irrepp.sigma().SU3(),npp.SU3(),omegap.SU3(),u3::SU3(2,0), 
-                                              // omegapp.SU3(),rhopp,1,np.SU3(),1,rhop);
+                              }
                             else
                               boson_matrix(vp,vpp)=0;
                           } //end vp

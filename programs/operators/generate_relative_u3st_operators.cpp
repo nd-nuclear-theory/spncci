@@ -29,7 +29,7 @@ namespace u3shell
             }
   }
 
-  void Krel2(int Nmax,u3shell::RelativeRMEsU3ST& Krel2,int A)
+  void K2intr(int Nmax,u3shell::RelativeRMEsU3ST& K2intr, int A, bool moshinsky_convention=true)
   {
     u3shell::RelativeStateLabelsU3ST bra,ket;
     int Np, rho_max;
@@ -37,6 +37,9 @@ namespace u3shell
     std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key;
     int kappa0=1; 
     int L0=0;
+
+    double intrinsic_factor=2.*(1.+KroneckerDelta(moshinsky_convention,false))/A;
+
     for(int N=0; N<=Nmax; N++)
     for(int S=0; S<=1; ++S)
       for(int T=0; T<=1; ++T)
@@ -51,7 +54,7 @@ namespace u3shell
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
             if (fabs(Brme)>zero_threshold)
-              Krel2[key]+=-sqrt(1.5)*Brme;
+              K2intr[key]+=-sqrt(1.5)*Brme*intrinsic_factor;
 
             // Hrel term
             Np=N;
@@ -59,7 +62,7 @@ namespace u3shell
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Nrme=N+3/2.;
-            Krel2[key]+=Nrme;
+            K2intr[key]+=Nrme*intrinsic_factor;
 
             // Arel term
             Np=N+2;
@@ -68,7 +71,7 @@ namespace u3shell
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
             if (fabs(Arme)>zero_threshold)
-              Krel2[key]+=-sqrt(1.5)*Arme;
+              K2intr[key]+=-sqrt(1.5)*Arme*intrinsic_factor;
           }
   }
 } // end namespace 
@@ -92,11 +95,15 @@ int main(int argc, char **argv)
   std::ofstream nintr_os(nintr_filename);
   u3shell::WriteRelativeOperatorU3ST(nintr_os, Nintr);  
 
+  // Tintr=(hbar^2/(2m))*K2intr
+
   u3shell::RelativeRMEsU3ST Krel2;
-  u3shell::Nintr(Nmax+2*N1B,Krel2, A);
-  std::string krel2_filename="Krel2_u3st.dat";
+  u3shell::K2intr(Nmax+2*N1B,Krel2, A);
+  std::string krel2_filename="K2intr_u3st.dat";
   std::ofstream krel2_os(krel2_filename);
   u3shell::WriteRelativeOperatorU3ST(krel2_os, Krel2);  
+
+
 
 }
 

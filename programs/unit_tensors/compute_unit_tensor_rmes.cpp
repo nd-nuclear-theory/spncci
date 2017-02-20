@@ -13,6 +13,11 @@
 #include <ctime>
 #include <fstream>
 #include <sys/resource.h>
+
+#include <Eigen/Core>
+#include <SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
+
+
 #include "cppformat/format.h"
 #include "am/am.h"
 
@@ -755,8 +760,8 @@ int main(int argc, char **argv)
   // //////////////////////////////////////////////////////////////////////////////////////////
   // //TODO make input 
   // std::string interaction_file="JISP16_u3st.dat";
-
-  std::string interaction_file="Nintr_u3st.dat";
+  std::string interaction_file= "K2intr_u3st.dat";
+  // std::string interaction_file="Nintr_u3st.dat";
 
   // std::string interaction_file="trel_SU3_Nmax06.dat";
   // std::string interaction_file= "Trel_upcouled";
@@ -819,26 +824,28 @@ int main(int argc, char **argv)
   //   difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
   // ZeroOutMatrix(difference_vector,1e-4);
 
-  std::cout<<"printing"<<std::endl;
-  for(int i=0; i<u3s_space.size(); ++i)
-    std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
-  for(int s=0; s<matrix_vector.size();  ++s)
-    {
-      if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
-      {
-        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
-        std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+  // std::cout<<"printing"<<std::endl;
+  // for(int i=0; i<u3s_space.size(); ++i)
+  //   std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  // for(int s=0; s<matrix_vector.size();  ++s)
+  //   {
+  //     if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
+  //     {
+  //       std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+  //       std::cout<<matrix_vector[s]<<std::endl<<std::endl;
         
 
-        // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
+  //       // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
         
-        // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
-        // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
+  //       // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+  //       // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
 
-        // std::cout<<difference_vector[s]<<std::endl<<std::endl;
-      }
-    }
-  HalfInt J=5;
+  //       // std::cout<<difference_vector[s]<<std::endl<<std::endl;
+  //     }
+  //   }
+
+
+  HalfInt J=0;
   J0=0;
   spncci::SpaceLS space_LS(u3s_space,J);
   std::cout<<"target_space size "<<space_LS.size()<<std::endl;
@@ -848,8 +855,8 @@ int main(int argc, char **argv)
   spncci::GenerateOperatorLabelsLS(J0, tensor_labels_LS);
   std::vector<spncci::SectorLabelsLS> sector_labels_LS;
 
-  for(auto tensor_labels : tensor_labels_LS)
-    std::cout<<"tensor "<<tensor_labels.first<<"  "<<tensor_labels.second<<std::endl;
+  // for(auto tensor_labels : tensor_labels_LS)
+  //   std::cout<<"tensor "<<tensor_labels.first<<"  "<<tensor_labels.second<<std::endl;
 
   GetSectorsLS(space_LS, tensor_labels_LS,sector_labels_LS);
 
@@ -902,7 +909,31 @@ int main(int argc, char **argv)
   //       total++;
   //     }
 
-  // std::cout<<operator_matrix<<std::endl;
+  std::cout<<operator_matrix<<std::endl;
+
+  Eigen::EigenSolver<Eigen::MatrixXd> es(operator_matrix);
+  for(int i=0; i<10; ++i)
+    std::cout<<"eigenvalues are "<<es.eigenvalues()[i]<<std::endl;
+
+
+    // Spectra::DenseSymMatProd<double> op(operator_matrix);
+
+    // // Construct eigen solver object, requesting the largest three eigenvalues
+    // Spectra::SymEigsSolver< double, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<double> > eigs(&op, 5, 6);
+
+    // // Initialize and compute
+    // eigs.init();
+    // int nconv = eigs.compute();
+
+    // // Retrieve result
+    // Eigen::VectorXd evalues;
+    // if(eigs.info() == Spectra::SUCCESSFUL)
+    //     evalues = eigs.eigenvalues();
+    // else
+    //   std::cout<<"failed"<<std::endl;
+
+    // std::cout << "Eigenvalues found:\n" << evalues << std::endl;
+
 
 
 

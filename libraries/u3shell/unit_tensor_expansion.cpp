@@ -67,40 +67,6 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
             }
   }
 
-
-// void RaisingPolynomialRelativeUnitTensorExpansion(const u3::U3& n0, int Nmin, int Nmax, 
-//       u3shell::RelativeUnitTensorCoefficientsU3ST& Prel_operator, int A)
-//   {
-//     // Get B coefficients
-//     sp3r::BCoefCache bcoef_cache;
-//     sp3r::GenerateBCoefCache(bcoef_cache,Nmax);
-//     // std::vector<u3::U3> raising_polynomials=sp3r::RaisingPolynomialLabels(Nmax);
-//     // Get list of raising polynomials 
-//     // for(auto n0 : raising_polynomials)
-//     for(int S=0; S<=1; ++S)
-//       for(int T=0; T<=1; ++T)
-//         for(int N=Nmin; N<=Nmax; N++)
-//           {
-//             int Np=int(N+n0.N());
-//             // Check parity constraint on bra and ket
-//             if(((N+S+T)%2==0)||((Np+S+T)%2==0))
-//               continue;
-//             //Check outer multiplciity of SU(3) coupling
-//             int rho_max=u3::OuterMultiplicity(u3::SU3(N,0), n0.SU3(), u3::SU3(Np,0));
-//             if(rho_max==0)
-//               continue;
-          
-//             u3shell::RelativeStateLabelsU3ST bra(Np,S,T);
-//             u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
-//             u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(n0.SU3(),0,0,bra,ket);
-//             double rme=u3shell::RelativeSp3rRaisingPolynomial(n0,bra,ket,bcoef_cache);
-//             std::cout<<fmt::format("{}  {} {} {}   {} {} {}  {}",n0.Str(),Np,S,T, N, S, T,rme)<<std::endl;
-//             if (fabs(rme)>zero_threshold)
-//               Prel_operator[relative_unit_tensor]+=rme;
-//           }
-//   }
-
-
   void NintrRelativeUnitTensorExpansion(int Nmin, int Nmax, 
         u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator, int A)
   {
@@ -146,37 +112,29 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
 
           // Brel term
           Np=N-2;
-          // rho_max=u3::OuterMultiplicity(u3::SU3(N,0), u3::SU3(0,2), u3::SU3(Np,0));
-          // if(rho_max==0)
-          //   continue;
-          bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
           double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
           if (fabs(Brme)>zero_threshold)
-            // Division by 2 for comparison with Tomas Trel
+            // Division by 2 for comparison with Tomas Trel (convert from moshinsky to mechanics convention)
             Trel_operator[relative_unit_tensor]+=-sqrt(1.5)*Brme/2.;
+          
           // Hrel term
           Np=N;
-          // rho_max=u3::OuterMultiplicity(u3::SU3(N,0), u3::SU3(0,0), u3::SU3(Np,0));
-          // if(rho_max==0)
-          //   continue;
           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket);
           double Nrme=N+3/2.;
           if (fabs(Nrme)>zero_threshold)
-            // Division by 2 for comparison with Tomas Trel
+            // Division by 2 for comparison with Tomas Trel (convert from moshinsky to mechanics convention)
             Trel_operator[relative_unit_tensor]+=Nrme/2.;
 
           // Arel term
           Np=N+2;
-          // rho_max=u3::OuterMultiplicity(u3::SU3(N,0), u3::SU3(2,0), u3::SU3(Np,0));
-          // if(rho_max==0)
-          //   continue;
           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
           double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
           if (fabs(Arme)>zero_threshold)
-            // Division by 2 for comparison with Tomas Trel
+            // Division by 2 for comparison with Tomas Trel (convert from moshinsky to mechanics convention)
             Trel_operator[relative_unit_tensor]+=-sqrt(1.5)*Arme/2.;
         }
 
