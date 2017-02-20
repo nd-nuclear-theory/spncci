@@ -16,8 +16,9 @@
 //#include <functional>
 
 #include "cppformat/format.h"
+#include "mcutils/parsing.h"
 
-extern double zero_threshold;
+extern double zero_threshold;  // TODO: FIX ME PLEASE!!!!! (mac)
 
 namespace lsu3shell
 {
@@ -31,6 +32,9 @@ namespace lsu3shell
       const u3shell::SectorsU3SPN& sectors,
       basis::MatrixVector& matrix_vector 
     )
+  // DEPRECATED version taking streams; but used internally by new
+  // version; so this code should actually be inserted into new
+  // version when the deprecated version is no longer needed
   {    
     int i,j;
     double rme;
@@ -92,6 +96,38 @@ namespace lsu3shell
     //   std::cout<<matrix_vector[i]<<std::endl;
   }
 
+  void 
+  ReadLSU3ShellRMEs(
+      const std::string& filename,
+      const LSU3BasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      basis::MatrixVector& matrix_vector
+    )
+  {
+    // open file
+    std::ifstream in_stream(filename);
+    StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+
+    // process stream
+    //
+    // Currently implemented as wrapper to deprecated form of
+    // ReadLSU3ShellRMEs, but these may later be merged.
+    ReadLSU3ShellRMEs(
+        in_stream,
+        operator_labels,
+        lsu3_basis_table,
+        space, 
+        sectors,
+        matrix_vector
+      );
+
+    // close file
+    in_stream.close();
+  };
+
+
   bool 
   CompareLSU3ShellRMEs(
       std::ostream& log_stream,
@@ -122,8 +158,8 @@ namespace lsu3shell
             << fmt::format(
                 "sector {} bra {} ket {} dim {}x{}",
                 sector_index,
-                sector.bra_subspace().Str(),
-                sector.ket_subspace().Str(),
+                sector.bra_subspace().LabelStr(),
+                sector.ket_subspace().LabelStr(),
                 sector.bra_subspace().size(),
                 sector.ket_subspace().size()
               )
@@ -183,42 +219,77 @@ namespace lsu3shell
   }
 
   void GenerateNcmMatrixVector(
-    int A,      
-    std::ifstream& is_nrel,
+    int A,
+    std::ifstream& is_Nrel,
     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-    const u3shell::SpaceU3SPN& space, 
-    basis::MatrixVector& matrix_vector 
+    const u3shell::SpaceU3SPN& space,
+    basis::MatrixVector& matrix_vector
   )
+  // DEPRECATED
   {
-    assert(is_nrel.is_open());
+    assert(is_Nrel.is_open());
 
     // Read in Nrel matrix elements and populate sectors
-    u3shell::OperatorLabelsU3ST nrel_labels(0,u3::SU3(0,0),0,0,0);
-    basis::MatrixVector nrel_matrix_vector;
-    u3shell::SectorsU3SPN nrel_sectors(space,nrel_labels,true);
+    u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
+    basis::MatrixVector Nrel_matrix_vector;
+    u3shell::SectorsU3SPN Nrel_sectors(space,Nrel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(
-        is_nrel,nrel_labels,lsu3_basis_table,space, 
-        nrel_sectors,nrel_matrix_vector
+        is_Nrel,Nrel_labels,lsu3_basis_table,space, 
+        Nrel_sectors,Nrel_matrix_vector
       );
 
     // Resize vector
-    matrix_vector.resize(nrel_matrix_vector.size());
+    matrix_vector.resize(Nrel_matrix_vector.size());
 
     // Iterate over Nrel subspaces and populate Ncm sectors in matrix_vector
-    for(int i=0; i<nrel_matrix_vector.size(); ++i)
+    for(int i=0; i<Nrel_matrix_vector.size(); ++i)
       {
         auto subspace=space.GetSubspace(i);
         // eigenvalue of N is given by total number of oscilator quanta minus
         // the zero point energy boson 3A/2. 
         HalfInt N=subspace.N()-3.*A/2;
-        // std::cout<<N<<std::endl<<nrel_matrix_vector[i]<<std::endl;
+        // std::cout<<N<<std::endl<<Nrel_matrix_vector[i]<<std::endl;
         int dim=subspace.size();
-        // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<nrel_matrix_vector[i]<<std::endl;
-        // std::cout<<"nrel"<<std::endl<<nrel_matrix_vector[i]<<std::endl;
+        // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<Nrel_matrix_vector[i]<<std::endl;
+        // std::cout<<"Nrel"<<std::endl<<Nrel_matrix_vector[i]<<std::endl;
     
         // Ncm=N-Nrel
-        matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-nrel_matrix_vector[i];
+        matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrix_vector[i];
       }
+  }
+
+  void GenerateLSU3ShellNcmRMEs(
+    const u3shell::SpaceU3SPN& space,
+    const u3shell::SectorsU3SPN& Nrel_sectors,
+    const basis::MatrixVector& Nrel_matrices,
+    int A,
+    basis::MatrixVector& Ncm_matrices
+  )
+  {
+
+    // populate matrices for Ncm
+    Ncm_matrices.resize(Nrel_sectors.size());
+    for(int sector_index=0; sector_index<Nrel_sectors.size(); ++sector_index)
+      {
+        // define alias for subspace
+        //
+        // Note: Sectors here are diagonal and in 1-1 correspondence
+        // with subspaces.  We do not actually need the space as an
+        // argument, but keep it for uniformity.
+        assert(Nrel_sectors.GetSector(sector_index).IsDiagonal());
+        const auto& subspace = Nrel_sectors.GetSector(sector_index).ket_subspace();
+
+        // calculate Ncm
+        //
+        // Obtain as Ncm=N-Nrel, where eigenvalue of N is given by
+        // total number of oscilator quanta minus the zero point
+        // energy 3A/2.
+        HalfInt N = subspace.N()-3.*A/2;
+        int dim = subspace.size();
+        Ncm_matrices[sector_index]
+          = Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrices[sector_index];
+      }
+
   }
 
 

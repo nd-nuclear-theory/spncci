@@ -27,7 +27,9 @@ Namespaces
 
   Even though namespace qualifiers are not strictly needed when you
   are accessing an identifier from the same namespace, go ahead and
-  consistently use namespace qualifiers anyway, for readability.
+  consistently use namespace qualifiers anyway, for readability, and
+  so that the code can easily be adapted for use outside of the
+  namespace.
 
 Half-integer values
 
@@ -47,7 +49,7 @@ Half-integer values
 
 Text input
 
-  Use the utilities/parsing functions for uniform error messages.
+  Use the mcutils/parsing functions for uniform error messages.
 
 Class declarations
 
@@ -61,5 +63,56 @@ Class declarations
   text representation of an object (e.g., a group label), as might be
   used in production output.
 
-  We use a DebugStr() member function to generate a data dump of an
-  object, as might be used in debugging and testing.
+  We use a LabelStr() member function to generate a string
+  representation of some label describing the contents of the object,
+  e.g., the quantum numbers for a subspace object.
+
+  We use a DebugStr() member function to generate a full data dump of
+  an object, as might be used in debugging and testing.
+
+----------------------------------------------------------------
+
+Note on uppercase mathematical symbols
+2/17/17 (mac)
+
+There is a conflict between mathematical notation, e.g.,
+
+     int twice_Nsigma0;
+
+and strict google lowercase convention, e.g.,
+
+     int twice_nsigma0;
+
+Mathematical understandability takes precedence here...  You can't 
+change the case of a mathematical variable, as that changes the meaning.  
+
+We are not consistent about this when the letters form part of a
+coupling scheme name, e.g., "lsjt_scheme" or "u3st_scheme".  Here one
+may think of "lsjt" more as an identifier (name) than as a
+mathematical expression.
+
+----------------------------------------------------------------
+
+The #define guard
+2/19/17 (mac)
+
+Google style: All header files should have #define guards to prevent
+multiple inclusion.  The format of the symbol name should be
+<PROJECT>_<PATH>_<FILE>_H_.
+
+We do not literally use the path, as the "libraries" part of the path
+is redundant.  For modules which are native to the big project (like
+shell or spncci), we use
+
+   <PROJECT>_<MODULE>_<FILE>_
+
+For standalone submodules that have their own repository (like
+basis or mcutils), we use
+
+   <MODULE>_<FILE>_
+
+Thus, e.g., for spncci/libraries/spncci/unit_tensor.h,
+
+#ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
+#define SPNCCI_SPNCCI_UNIT_TENSOR_H_
+

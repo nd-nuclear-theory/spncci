@@ -15,6 +15,7 @@
 
   9/6/16 (mac): Created, based on a subset of u3st_scheme and u3::U3S.
   9/8/16 (mac): Add default constructors.
+  2/17/16 (mac): Rename SubspaceU3SPN method Str to LabelStr.
 
 ****************************************************************/
 
@@ -212,7 +213,8 @@ namespace u3shell {
     HalfInt Sn() const {return U3SPN().Sn();}
 
     // diagnostic output
-    std::string Str() const;
+    std::string LabelStr() const;
+    // std::string Str() const {return LabelStr();};  // DEPRECATED
 
     private:
   };

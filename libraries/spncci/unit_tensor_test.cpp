@@ -21,7 +21,7 @@
 #include "lgi/lgi.h"
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h" 
-#include "spncci/spncci_branching_u3s.h"
+#include "spncci/branching_u3s.h"
 
 int main(int argc, char **argv)
 {

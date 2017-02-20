@@ -9,10 +9,7 @@
 
 #include "cppformat/format.h"
 #include "lgi/lgi.h"
-
 #include "u3shell/relative_operator.h"
-#include "spncci/spncci_branching_u3s.h"
-#include "spncci/spncci_branching_u3lsj.h"
 
 int main(int argc, char **argv)
 {
@@ -62,14 +59,29 @@ int main(int argc, char **argv)
 
   if(true)
   {
-    std::cout << "TotalU3Subspaces " << spncci::TotalU3Subspaces(spncci_space) << std::endl;
-    std::cout << "TotalDimensionU3 " << spncci::TotalDimensionU3S(spncci_space) << std::endl;
-    std::cout << "TotalDimensionU3LS " << spncci::TotalDimensionU3LS(spncci_space) << std::endl;
+    std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
+    std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
+    std::cout << fmt::format("  TotalDimensionU3 {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
+    std::cout << fmt::format("  TotalDimensionU3LS {}",spncci::TotalDimensionU3LS(spncci_space)) << std::endl;
     std::cout << "TotalDimensionU3LSJConstrained ";
     for (HalfInt J=0; J<10; ++J)
       std::cout << J << " " << spncci::TotalDimensionU3LSJConstrained(spncci_space,J) << "    ";
     std::cout << std::endl;
-    std::cout << "TotalDimensionU3LSJAll " << spncci::TotalDimensionU3LSJAll(spncci_space) << std::endl;
+    std::cout << fmt::format("  TotalDimensionU3LSJAll {}",spncci::TotalDimensionU3LSJAll(spncci_space)) << std::endl;
   }
+
+  ////////////////////////////////////////////////////////////////
+  // construct flattened baby SpNCCI space
+  ////////////////////////////////////////////////////////////////
+
+  // put SpNCCI space into standard linearized container
+  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
+
+  // diagnostic
+  std::cout << "baby_spncci_space" << std::endl;
+  for (int subspace_index=0; subspace_index<baby_spncci_space.size(); ++subspace_index)
+    std::cout << baby_spncci_space.GetSubspace(subspace_index).DebugStr()
+              << std::endl;
+  std::cout << std::endl;
 
 } //main

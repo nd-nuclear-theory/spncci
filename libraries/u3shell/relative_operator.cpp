@@ -37,9 +37,7 @@ namespace u3shell {
     std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
     #endif
     
-    bool restrict_J0=true;
-    if(J0==-1)
-      restrict_J0=false;
+    bool restrict_J0 = (J0!=-1);
 
     int N0_min=restrict_positive_N0?0:-1*Nmax;
     for(int N0=N0_min; N0<=Nmax; N0+=2)

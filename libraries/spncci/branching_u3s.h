@@ -1,17 +1,18 @@
 /****************************************************************
-  spncci_branching_u3s.h
+  branching_u3s.h
 
   U(3)xS layer of SpNCCI basis branching.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  1/31/17 (mac): Extracted from sp_basis.
-    
+  1/31/17 (mac): Extracted from sp_basis (as spncci_branching_u3s).
+  2/17/17 (mac): Extract BabySpNCCISubspace to spncci_basis.
+  2/19/17 (mac): Rename to branching_u3s.
 ****************************************************************/
 
-#ifndef SPNCCI_BRANCHING_U3S_H_
-#define SPNCCI_BRANCHING_U3S_H_
+#ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_
+#define SPNCCI_SPNCCI_BRANCHING_U3S_H_
 
 #include <unordered_map>
 
@@ -26,171 +27,6 @@
 
 namespace spncci
 {
-
-
-  ////////////////////////////////////////////////////////////////
-  // basis indexing
-  ////////////////////////////////////////////////////////////////
-
-
-  ////////////////////////////////////////////////////////////////
-  // baby SpNCCI subspaces -- the most finely chopped SpNCCI
-  // subspaces
-  //
-  // These are the U(3) subspaces distinguished by SpNCCI irrep, but
-  // unioned over SpNCCI irreps in the same family, i.e., sharing the
-  // same LGI labels.
-  //
-  ////////////////////////////////////////////////////////////////
-  //
-  // Labeling
-  //
-  // subspace labels: (sigma,Sp,Sn,S,omega)
-  //
-  //   sigma (U3): LGI U(3) label
-  //   Sp, Sn, S (HalfInt): spin labels
-  //   omega (U3): subspace U(3) label
-  //
-  // state labels within subspace: (gamma,upsilon) -> (dummy)
-  // 
-  //   gamma (int): index of SpNCCI irrep within family defined by LGI
-  //     quantum numbers (1<=gamma<=gamma_max)
-  //
-  //   upsilon (int): branching multiplicity label for sigma->omega
-  //     (1<=upsilon<=upsilon_max); represents composite of (n,rho),
-  //     where n is the raising U(3) and rho is the sigma x n coupling
-  //     multiplicity index
-  //
-  //   However, we suppress storage of the state labels and instead
-  //   keep track of subspace dimensions.  A dummy int label is
-  //   instead provided for purposes of the template argument.
-  //
-  ////////////////////////////////////////////////////////////////
-  //
-  // Subspaces
-  //
-  // Subspaces are ordered by traversal of the SpNCCISpace:
-  //
-  //   -- by irrep family ordering (determined by LGI input order)
-  //
-  //   -- by U(3) subspace within irrep family's Sp3RSpace
-  //     (i.e., canonically by increasing omega)
-  //
-  // Dimensions are calculated as gamma_max*upsilon_max.
-  //
-  ////////////////////////////////////////////////////////////////
-
-  // labels
-
-  typedef std::tuple<u3::U3,HalfInt,HalfInt,HalfInt,u3::U3> BabySpNCCISubspaceLabels;
-
-  // subspace
-
-  class BabySpNCCISubspace
-    : public basis::BaseSubspace<spncci::BabySpNCCISubspaceLabels,int>
-  // SubspaceLabelsType (u3shell::U3SPN): (omega,S)
-  // StateLabelsType (int): 1 (just a place holder)
-  {
-    public:
-
-    // constructor
-
-    BabySpNCCISubspace() {};
-    // default constructor -- provided since required for certain
-    // purposes by STL container classes
-
-    BabySpNCCISubspace(
-        const spncci::SpNCCIIrrepFamily& spncci_irrep_family,
-        int irrep_family_index,
-        const sp3r::U3Subspace& u3_subspace
-      );
-    // Construct from native description of SpNCCI space.
-    //
-    // Arguments:
-    //   spncci_irrep_family (spncci::SpNCCIIrrepFamily): irrep family from which to take subspace
-    //   u3_subspace (sp3r::U3Subspace): U(3) subspace
-
-    // accessors
-
-    u3::U3 sigma() const {return std::get<0>(labels_);}
-    HalfInt Sp() const {return std::get<1>(labels_);}
-    HalfInt Sn() const {return std::get<2>(labels_);}
-    HalfInt S() const {return std::get<3>(labels_);}
-    u3::U3 omega() const {return std::get<4>(labels_);}
-    u3::U3S omegaS() const {return u3::U3S(omega(),S());}
-    int irrep_family_index() const {return irrep_family_index_;}
-    // diagnostic strings
-
-    std::string LabelStr() const;
-    // Provide string representation of subspace labels.
-
-    std::string DebugStr() const;
-    // Dump subspace contents (or, rather, dimension info).
-
-    private:
-    
-    // dimension info
-    int gamma_max_, upsilon_max_;
-    // backwards lookup into SpNCCISpace
-    int irrep_family_index_;
-  };
-
-  // space
-  class BabySpNCCISpace
-    : public basis::BaseSpace<BabySpNCCISubspace>
-  {
-    
-  public:
-
-    // constructor
-
-    BabySpNCCISpace() {};
-    // default constructor -- provided since required for certain
-    // purposes by STL container classes
-
-    BabySpNCCISpace(const spncci::SpNCCISpace& spncci_space);
-    // Construct from native description of SpNCCI space.
-    //
-    // Arguments:
-    //   spncci_space (spncci::SpNCCISpace): space from which to harvest subspaces
-
-    // diagnostic strings
-
-    // std::string DebugStr() const;
-
-  private:
-
-  };
-
-  // sectors
-
-  class BabySpNCCISectors
-    : public basis::BaseSectors<BabySpNCCISpace>
-  {
-
-  public:
-
-    // constructor
-
-    BabySpNCCISectors() {};
-    // default constructor -- provided since required for certain
-    // purposes by STL container classes
-
-    BabySpNCCISectors(
-        const spncci::BabySpNCCISpace& space,
-        const u3shell::OperatorLabelsU3S& operator_labels
-      );
-      // Enumerate sector pairs connected by an operator of given
-      // tensorial character ("constrained" sector
-      // enumeration).
-      //
-      // Arguments:
-      //   space (BabySpNCCISpace): the space
-      //   operator_labels (OperatorLabelsU3S): NxSU(3)xS character of operator
-  };
-
-
-
 
   ////////////////////////////////////////////////////////////////  
   //

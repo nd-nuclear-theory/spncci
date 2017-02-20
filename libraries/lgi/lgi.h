@@ -8,6 +8,9 @@
 
   9/8/16 (aem,mac): Created.
   1/31/17 (mac): Rename LGIVector to MultiplicityTaggedLGIVector.
+  2/17/17 (mac): Extract WriteLGILabels from lgi_solver and change
+    to accept std::ostream for output and extract to lgi.
+
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
@@ -112,12 +115,15 @@ namespace lgi
   // STYLE: maybe LGI::vector would be more consistent
   typedef MultiplicityTagged<lgi::LGI>::vector MultiplicityTaggedLGIVector;
 
-  void ReadLGISet(MultiplicityTaggedLGIVector& lgi_vector, const std::string& lgi_filename);
+  void
+    WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families,std::ostream& os);
 
-  // Generates vector of LGIs based on LGI input tabulation.
+  void ReadLGISet(MultiplicityTaggedLGIVector& lgi_families, const std::string& lgi_filename);
+
+  // Generate vector of LGIs based on LGI input tabulation.
   //
   // Arguments:
-  //   lgi_vector (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)
+  //   lgi_families (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)
   //   filename (string) : filename for LGI table file
 }
 

@@ -34,7 +34,7 @@ namespace u3shell {
     dimension_ = dimension;
   }
 
-  std::string SubspaceU3SPN::Str() const
+  std::string SubspaceU3SPN::LabelStr() const
   {
 
     return fmt::format(

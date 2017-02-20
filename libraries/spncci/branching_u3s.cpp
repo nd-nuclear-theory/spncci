@@ -1,12 +1,12 @@
 /****************************************************************
-  spncci_branching_u3s.cpp
+  branching_u3s.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
 
-#include "spncci/spncci_branching_u3s.h"
+#include "spncci/branching_u3s.h"
 
 #include <fstream>
 #include <iostream>
@@ -18,106 +18,6 @@
 namespace spncci
 {
 
-  ////////////////////////////////////////////////////////////////
-  // baby SpNCCI
-  ////////////////////////////////////////////////////////////////
-
-  BabySpNCCISubspace::BabySpNCCISubspace(
-      const spncci::SpNCCIIrrepFamily& spncci_irrep_family,
-      int irrep_family_index,
-      const sp3r::U3Subspace& u3_subspace
-    )
-  {
-
-    // set labels
-    labels_ = BabySpNCCISubspaceLabels(
-        spncci_irrep_family.sigma(),
-        spncci_irrep_family.Sp(),
-        spncci_irrep_family.Sn(),
-        spncci_irrep_family.S(),
-        u3_subspace.U3()  // omega
-      );
-
-    // save dimension info
-    gamma_max_ = spncci_irrep_family.gamma_max();
-    upsilon_max_ = u3_subspace.size();
-    irrep_family_index_=irrep_family_index;
-    dimension_ = gamma_max_*upsilon_max_;
-  }
-
-  std::string BabySpNCCISubspace::LabelStr() const
-  {
-    return fmt::format("{} ({} {} {}) {}",sigma().Str(),Sp(),Sn(),S(),omega().Str());
-  }
-
-  std::string BabySpNCCISubspace::DebugStr() const
-  {
-    return fmt::format("{}: gamma_max {} upsilon_max {} -> dim {}",LabelStr(),gamma_max_,upsilon_max_,size());
-  }
-
-  BabySpNCCISpace::BabySpNCCISpace(const spncci::SpNCCISpace& spncci_space)
-  {
-    // traverse irrep families
-    for(int irrep_family_index=0; irrep_family_index<spncci_space.size(); ++irrep_family_index)
-      {
-        const spncci::SpNCCIIrrepFamily& spncci_irrep_family=spncci_space[irrep_family_index];
-        // extract Sp(3,R) space
-        const sp3r::Sp3RSpace& sp_space = spncci_irrep_family.Sp3RSpace();
-
-        // traverse U(3) subspaces
-        for (int subspace_index = 0; subspace_index < sp_space.size(); ++subspace_index)
-          {
-            const sp3r::U3Subspace& u3_subspace = sp_space.GetSubspace(subspace_index);
-            PushSubspace(BabySpNCCISubspace(spncci_irrep_family,irrep_family_index,u3_subspace));
-          }
-      }
-  }
-
-  BabySpNCCISectors::BabySpNCCISectors(
-      const spncci::BabySpNCCISpace& space,
-      const u3shell::OperatorLabelsU3S& operator_labels
-    )
-  // Based loosely on u3shell::SectorsU3SPN constructor.
-  {
-    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
-      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
-        {
-          // retrieve subspaces
-          const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
-          const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
-
-          // verify selection rules
-          bool allowed = true;
-          // U(1)
-          allowed &= (ket_subspace.omega().N() + operator_labels.N0() - bra_subspace.omega().N() == 0);
-          // spin
-          //
-          // Note: Basic two-body constaints can be placed on Sp
-          // and Sn triangularity based on two-body nature of
-          // operator, so delta Sp<=2 and delta Sn<=2.  However, in
-          // general, the operator does not have sharp Sp0 or Sn0.
-          allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0(),bra_subspace.S());
-          allowed &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
-          allowed &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
-          if (!allowed)
-            continue;
-
-          // find SU(3) multiplicity and check SU(3) selection
-          int multiplicity = u3::OuterMultiplicity(
-              ket_subspace.omega().SU3(),
-              operator_labels.x0(),
-              bra_subspace.omega().SU3()
-            );
-          allowed &= (multiplicity > 0);
-
-          // push sectors (tagged by multiplicity)
-          if (allowed)
-            for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
-              {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
-              }
-        }
-  }
 
   std::string SubspaceU3S::Str() const
   {
