@@ -47,6 +47,28 @@ namespace spncci
       double zero_threshold
     );
 
+  void
+  RecurseUnitTensors(
+      int N1v, int Nmax,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::KMatrixCache k_matrix_cache,
+      u3::UCoefCache& u_coef_cache,
+      u3::PhiCoefCache& phi_coef_cache,
+      const std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels,
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
+    );
+  // Recursively populate sectors for unit tensors.
+  //
+  // (Does recursing unit tensors implies unit tensors are already cursed?)
+  //
+  // FUTURE: Should be able to do recurrence without externally
+  // imposing N1v, Nmax.  Rather, use truncation defined by the
+  // spncci_space.  Requires corresponding change to
+  // spncci::GenerateUnitTensorMatrix.
+  //
+  // Arguments:
+  //    ...
+
 }  // namespace
 
 #endif

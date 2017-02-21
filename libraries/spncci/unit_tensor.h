@@ -13,6 +13,7 @@
   12/7/16 (aem): Overhall of unit tensor rme calculation
   12/21/16 (aem): Factored out conjugate sector calculation
   2/2/17 (mac): Add typedef UnitTensorMatricesByIrrepFamily.
+  2/20/17 (mac): Update argument types on GenerateUnitTensorMatrix.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
@@ -45,7 +46,7 @@ namespace spncci
     // typedefs
     ////////////////////////////////////////////////////////////////
 
-  public:
+    public:
     typedef std::tuple< u3::U3, u3::U3, u3shell::RelativeUnitTensorLabelsU3ST, int> KeyType;
     // w', w, Unit_tensor_labels,r0
 
@@ -107,7 +108,7 @@ namespace spncci
     // labels
     ////////////////////////////////////////////////////////////////
 
-  private:
+    private:
     // Operator labels
     u3::U3 omegap_,omega_;
     u3shell::RelativeUnitTensorLabelsU3ST tensor_;
@@ -118,37 +119,37 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
   // typedefs
   ////////////////////////////////////////////////////////////////
-  #ifdef HASH_UNIT_TENSOR
-    typedef std::unordered_map< spncci::UnitTensorU3Sector, Eigen::MatrixXd, boost::hash<spncci::UnitTensorU3Sector> > UnitTensorSectorsCache;
-  #else
-    typedef std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd > UnitTensorSectorsCache;
-  #endif
+#ifdef HASH_UNIT_TENSOR
+  typedef std::unordered_map< spncci::UnitTensorU3Sector, Eigen::MatrixXd, boost::hash<spncci::UnitTensorU3Sector> > UnitTensorSectorsCache;
+#else
+  typedef std::map< spncci::UnitTensorU3Sector,Eigen::MatrixXd > UnitTensorSectorsCache;
+#endif
 
   void 
-  GenerateUnitTensorU3SectorLabels(
-    int N1b,
-    int Nmax,
-    std::pair<int,int>  sp_irrep_pair,
-    const spncci::SpNCCISpace& sp_irrep_vector,
-    std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map
-    );
-    // Generates labels for (omega' omega unit_tensor) sectors for N0>=0 unit tensors.  The N0<0
-    // unit tensor can be obtained by taking the adjoint of the sector. Labels are sorted by
-    // Nnp and Nn of bra and ket respectively, where Nn and Nnp are the excitation quanta within the 
-    // irrep. 
-    //
-    // Note that N0 must equal the difference between the Nn of the states as well as the difference
-    // between Nsigma, i.e., N0=Nsigma_ex_p+Nnp-Nsigma_ex-Nn, 
-    //
-    // Arguments: 
-    //
-    // N1b (input) : single particle cutoff, relative particle <= 2*N1b+Nn
-    // Nmax (input) : Nmax of truncation
-    // sp_irrep_pair (input) : sector pair given as index pair from global list sp_irrep_vector 
-    // sp_irrep_vector (input) : vector of multiplicty tagged SpIrreps
-    // unit_tensor_labels_map (input) : map with list of unit tensor labels with key N0 
-    // unit_tensor_NpN_sector_map (output) :  For each NpN pair key in map the corresponding value 
+    GenerateUnitTensorU3SectorLabels(
+        int N1b,
+        int Nmax,
+        std::pair<int,int>  irrep_family_indices,
+        const spncci::SpNCCISpace& sp_irrep_vector,
+        const std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
+        std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map
+      );
+  // Generates labels for (omega' omega unit_tensor) sectors for N0>=0 unit tensors.  The N0<0
+  // unit tensor can be obtained by taking the adjoint of the sector. Labels are sorted by
+  // Nnp and Nn of bra and ket respectively, where Nn and Nnp are the excitation quanta within the 
+  // irrep. 
+  //
+  // Note that N0 must equal the difference between the Nn of the states as well as the difference
+  // between Nsigma, i.e., N0=Nsigma_ex_p+Nnp-Nsigma_ex-Nn, 
+  //
+  // Arguments: 
+  //
+  // N1b (input) : single particle cutoff, relative particle <= 2*N1b+Nn
+  // Nmax (input) : Nmax of truncation
+  // irrep_family_indices (input) : sector pair given as index pair from global list sp_irrep_vector 
+  // sp_irrep_vector (input) : vector of multiplicty tagged SpIrreps
+  // unit_tensor_labels_map (input) : map with list of unit tensor labels with key N0 
+  // unit_tensor_NpN_sector_map (output) :  For each NpN pair key in map the corresponding value 
 
 
   typedef std::map<std::pair<int,int>,std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>>
@@ -160,40 +161,42 @@ namespace spncci
   //   -> unit_tensor_sector_labels (spncci::UnitTensorU3Sector)
   //   -> sector matrix (Eigen::MatrixXd)
 
-void 
-GenerateUnitTensorMatrix(
-  int N1b,
-  int Nmax, 
-  std::pair<int,int> sp_irrep_pair,
-  const spncci::SpNCCISpace& sp_irrep_vector,
-  u3::UCoefCache& u_coef_cache,
-  u3::PhiCoefCache& phi_coef_cache,
-  std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
-  std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-  spncci::UnitTensorMatricesByIrrepFamily& sp_irrep_unit_tensor_rme_map
-  // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
-  // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
-  );
-  // Uses recurrance method to compute rme's of unit tensors in unit_tensor_labels_map
+  void 
+    GenerateUnitTensorMatrix(
+        int N1b,
+        int Nmax, 
+        const std::pair<int,int> irrep_family_indices,
+        const spncci::SpNCCISpace& sp_irrep_vector,
+        u3::UCoefCache& u_coef_cache,
+        u3::PhiCoefCache& phi_coef_cache,
+        const spncci::KMatrixCache& k_matrix_map,
+        const std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
+        spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
+      );
+  // Uses recurrence method to compute rme's of unit tensors in unit_tensor_labels_map
   // and stores rme's in unit_tensor_rme_map. 
   //
   // Arguments:
-  // N1b (input) : One-body cutoff.  Nrel<=2N1b+Nex. 
-  // Nmax (input) : Boson number truncation  
-  // sp_irrep_pair (input) : Ints indicatce which sigma'sigma sector. Correspond to 
-  //                         irrep labels in sp_irrep_vector.
-  // sp_irrep_vector (input) : Vector of mutliplicity tagged sp irreps. 
-  // u_coef_cach (input,output) : cache containing already computed U coefs.  As coefs
-  //                              computed, cache is updated.
-  // k_matrix_map (input) : cache containing precomputed Kmatrices
-  // unit_tensor_NpN_sector_map (input) : unit tensor sectors, defined only for N0>=0
-  // unit_tensor_rme_map (output) : map of computed rme's.
+  //   N1b (input) : [=N1v] valence shell, used to determine cutoff Nrel<=2N1b+Nex. 
+  //   Nmax (input) : boson number truncation
+  //      [(mac): this is actually in NCCI sense, i.e., excitation relative to Nsigma0; TODO: no need to hard
+  //      code this across all irreps; rather, just use the truncation for each irrep that was built into
+  //      the SpNCCI space; truncators may be more general than Nmax based]
+  //   irrep_family_indices (input) : integers (irrep_family_index_bra,irrep_family_index_ket) indicate which irrep family sector to recurse.
+  //   sp_irrep_vector (input) : vector of mutliplicity tagged sp irreps (TO UPDATE)
+  //   u_coef_cach (input,output) : cache containing already computed U coefs.  As coefs
+  //                                computed, cache is updated.
+  //   phi_coef_cach (input,output) : cache containing already computed phi coefs.  As coefs
+  //                                computed, cache is updated.
+  //   k_matrix_map (input) : cache containing precomputed Kmatrices
+  //   unit_tensor_labels_map (input) : map with list of unit tensor labels with key N0 
+  //   unit_tensor_matrices (input, output) : seed rmes (input) and computed rmes (output)
 
   // void RegroupUnitTensorU3SSectors(
   //       bool is_new_subsector,
   //       const HalfInt& Sp, const HalfInt& S,
-  //       std::pair<int,int> sp_irrep_pair,
-  //       const std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
+  //       std::pair<int,int> irrep_family_indices,
+  //       const std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_teXFnsor_rme_map,
   //       const std::pair<int,int>& sp_irrep_symmetry_sum,
   //       UnitTensorU3SSectorsCache& unit_tensor_u3S_cache
   //     );

@@ -1,14 +1,11 @@
 /****************************************************************
-  explicit.cpp
+  spncci.cpp
 
   Tests of explicit SpNCCI basis construction in LSU3Shell basis.
 
   This code just tests normalization, but using clean refactored
   infrastructure.  Other deeper tests (of unit tensor matrix elements)
   were carried out in compute_unit_tensor_rmes.cpp.
-
-  CAVEAT: Right now run parameters are hard coded in RunParameters
-  constructor.
 
   Required data:
 
@@ -29,15 +26,11 @@
     Not saved to repository since ~3.5 Mb...
 
        data/lsu3shell/lsu3shell_rme_6Li_Nmax02
-
-    % ln -s ../../data/lsu3shell/lsu3shell_rme_6Li_Nmax02/ lsu3shell_rme
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  2/16/17 (mac): Created.  Based on compute_unit_tensor_rmes.cpp.
-  2/18/17 (mac): Implement normalization test.
-  2/20/17 (mac): Branch off spncci diagonalization code.
+  2/20/17 (mac): Created (starting from explicit.cpp).
 ****************************************************************/
 
 #include <cstdio>
@@ -71,62 +64,6 @@ namespace spncci
 
 }// end namespace
 
-////////////////////////////////////////////////////////////////
-// explicit construction checks
-////////////////////////////////////////////////////////////////
-
-void 
-CheckOrthonormalityExplicit(
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const basis::MatrixVector& spncci_expansions
-  )
-// Check orthonormality of SpNCCI basis vectors from explicit
-// expansion in lsu3shell basis.
-//
-// Takes pairs of BabySpNCCI subspaces sharing the same U3SPN, and
-// thus the same underlying lsu3shell subspace.
-//
-// Arguments:
-//   ...
-{
-
-  for (int bra_subspace_index=0; bra_subspace_index<baby_spncci_space.size(); ++bra_subspace_index)
-    for (int ket_subspace_index=bra_subspace_index; ket_subspace_index<baby_spncci_space.size(); ++ket_subspace_index)
-      {
-        // extract subspace info
-        const spncci::BabySpNCCISubspace& bra_subspace = baby_spncci_space.GetSubspace(bra_subspace_index);
-        const spncci::BabySpNCCISubspace& ket_subspace = baby_spncci_space.GetSubspace(ket_subspace_index);
-
-        // short circuit if subspaces have different underlying lsu3shell subspaces
-        if (not (bra_subspace.omegaSPN()==ket_subspace.omegaSPN()))
-          continue;
-
-        // calculate overlaps
-        Eigen::MatrixXd overlap_matrix = spncci_expansions[bra_subspace_index].transpose()*spncci_expansions[ket_subspace_index];
-        Eigen::MatrixXd overlap_matrix_minus_identity = overlap_matrix - Eigen::MatrixXd::Identity(overlap_matrix.rows(),overlap_matrix.cols());
-        mcutils::ChopMatrix(overlap_matrix);
-        mcutils::ChopMatrix(overlap_matrix_minus_identity);
-
-        // check overlaps
-        bool on_diagonal = (bra_subspace_index==ket_subspace_index);
-        bool success = on_diagonal ? mcutils::IsZero(overlap_matrix_minus_identity)
-          : mcutils::IsZero(overlap_matrix);
-        
-        std::cout
-          << fmt::format(
-              "  bra index {} labels {} ket index {} labels {}",
-              bra_subspace_index,bra_subspace.LabelStr(),
-              ket_subspace_index,ket_subspace.LabelStr()
-            )
-          << std::endl;
-        std::cout << fmt::format("  on_diagonal {}",on_diagonal)
-                  << std::endl;
-        std::cout << fmt::format("  {}",success ? "PASS" : "FAIL")
-                  << std::endl;
-        std::cout << mcutils::FormatMatrix(overlap_matrix,"8.5f","  ") << std::endl;
-        std::cout << std::endl;
-      }
-}
 
 ////////////////////////////////////////////////////////////////
 // run parameters
@@ -339,17 +276,84 @@ int main(int argc, char **argv)
   std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
 
   ////////////////////////////////////////////////////////////////
-  // do explicit subspace constructions
+  // read lsu3shell seed unit tensor rmes
   ////////////////////////////////////////////////////////////////
 
-  std::cout << "Explicitly construct SpNCCI basis states using Arel..." << std::endl;
-  basis::MatrixVector spncci_expansions;
-  spncci::ConstructSpNCCIBasisExplicit(
-      lsu3shell_space,lgi_expansions,baby_spncci_space,k_matrix_cache,
-      Arel_sectors,Arel_matrices,spncci_expansions
+  std::cout << "Read seed unit tensor rmes..." << std::endl;
+
+  // storage for seed unit tensor rmes
+  //
+  //   lgi_unit_tensor_labels: vector of labels for seed unit tensors
+  //   lgi_unit_tensor_lsu3shell_sectors: vector of lsu3shell sectors for seed unit tensors
+  //   lgi_unit_tensor_matrices: vector of matrices for these sectors
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
+  std::vector<u3shell::SectorsU3SPN> lgi_unit_tensor_sectors;
+  std::vector<basis::MatrixVector> lgi_unit_tensor_lsu3shell_matrices;
+
+  // determine set of seed unit tensors
+  //
+  // i.e., those for which we calculate seed rmes among the LGIs
+  //
+  // Note: Should be consistant with set of tensors generated by
+  // generate_lsu3shell_relative_operators.
+  int Nmax_for_unit_tensors = run_parameters.Nsigma0_ex_max+2*run_parameters.N1v;  // max quanta for pair in LGI (?)
+  int J0 = -1;  // all J0
+  int T0 = 0;
+  const bool restrict_positive_N0 = false;  // don't restrict to N0 positive
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(
+      Nmax_for_unit_tensors,lgi_unit_tensor_labels,
+      J0,T0,restrict_positive_N0
     );
 
-  std::cout << "Check orthonormality for all SpNCCI subspaces sharing same underlying lsu3shell subspace..." << std::endl;
-  CheckOrthonormalityExplicit(baby_spncci_space,spncci_expansions);
+  // diagnostic
+  std::cout << fmt::format("  seed unit tensors {}",lgi_unit_tensor_labels.size()) << std::endl;
+
+  spncci::ReadLSU3ShellSeedUnitTensorRMEs(
+      lsu3shell_basis_table,lsu3shell_space,
+      lgi_unit_tensor_labels,
+      run_parameters.relative_unit_tensor_filename_template,
+      lgi_unit_tensor_sectors,
+      lgi_unit_tensor_lsu3shell_matrices
+    );
+
+  ////////////////////////////////////////////////////////////////
+  // transform and store seed rmes for use in SpNCCI recurrence
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Transform and store seed unit tensor rmes..." << std::endl;
+
+  // transform to SpNCCI LGI RMEs
+  std::vector<basis::MatrixVector> lgi_unit_tensor_spncci_matrices;
+  spncci::TransformSeedUnitTensorRMEs(
+      lgi_expansions,
+      lgi_unit_tensor_labels,
+      lgi_unit_tensor_sectors,
+      lgi_unit_tensor_lsu3shell_matrices,
+      lgi_unit_tensor_spncci_matrices
+    );
+
+  // store unit tensor matrix elements for recurrence
+  spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+  spncci::StoreSeedUnitTensorRMEs(
+      lgi_unit_tensor_labels,
+      lgi_unit_tensor_sectors,
+      lgi_unit_tensor_spncci_matrices,
+      unit_tensor_matrices,
+      zero_threshold
+    );
+
+  ////////////////////////////////////////////////////////////////
+  // recurse unit tensor rmes to full SpNCCI basis
+  ////////////////////////////////////////////////////////////////
+
+  // determine full set of unit tensors for rme calculation
+  std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax_for_unit_tensors,unit_tensor_labels,J0,T0,restrict_positive_N0);
+
+  RecurseUnitTensors(
+      run_parameters.N1v, run_parameters.Nmax,spncci_space,
+      k_matrix_cache,u_coef_cache,phi_coef_cache,
+      unit_tensor_labels,unit_tensor_matrices
+    );
 
 }
