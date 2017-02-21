@@ -39,13 +39,19 @@
    Example:
 
        ../operators/generate_relative_u3st_operators 6 2 1 hamiltonian
-       ../operators/generate_relative_u3st_operators 6 10 1 hamiltonian
 
        with hamiltonian.load containing
 
        20    // hw
        Tintr 1.0    // coef
        INT 1.0 4 0 0 0 relative_observables/JISP16_Nmax20_hw20.0_rel.dat      // coef Jmax J0 T0 g0 interaction_filename
+
+       ../operators/generate_relative_u3st_operators 6 2 1 Nintr
+
+       with Nintr.load containing
+
+       20    // hw
+       Nintr 1.0    // coef
 
    % ln -s ../../data/relative_observables/
 
@@ -72,9 +78,6 @@
 
 // to vett as moved into computation_control 
 #include "mcutils/eigen.h"
-#include "spncci/branching_u3s.h"
-#include "spncci/branching_u3lsj.h"
-#include "u3shell/upcoupling.h"
 
 ////////////////////////////////////////////////////////////////
 // WIP code
@@ -446,4 +449,20 @@ int main(int argc, char **argv)
         unit_tensor_matrices,observable_relative_rmes[observable_index],
         observable_sectors_u3s[observable_index],observable_matrices_u3s[observable_index]
       );
+
+  // diagnostic
+  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+    {
+      std::cout << fmt::format("  observable {}",observable_index) << std::endl;
+      const auto& sectors_u3s = observable_sectors_u3s[observable_index];
+      const auto& matrices_u3s = observable_matrices_u3s[observable_index];
+      for (int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+        {
+          std::cout << fmt::format("    sector {}",sector_index) << std::endl;
+          std::cout << sectors_u3s[sector_index].Str() << std::endl;
+          std::cout << mcutils::FormatMatrix(matrices_u3s[sector_index],"8.3f") << std::endl
+                    <<std::endl;
+        }
+    }
+
 }

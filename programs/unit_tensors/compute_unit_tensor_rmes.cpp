@@ -785,8 +785,11 @@ int main(int argc, char **argv)
   std::vector<u3shell::IndexedOperatorLabelsU3S> operator_u3s_list;
   u3shell::GetInteractionTensorsU3S(interaction_rme_cache,operator_u3s_list);
 
+  // get baby SpNCCI space
+  spncci::BabySpNCCISpace baby_spncci_space(sp_irrep_vector);
+  
   // Get U3S space 
-  spncci::SpaceU3S u3s_space(sp_irrep_vector);
+  spncci::SpaceU3S u3s_space(baby_spncci_space);
   // Storage for sectors, value gives sector index
   
   // spncci::SectorLabelsU3SCache u3s_sectors;
@@ -806,8 +809,6 @@ int main(int argc, char **argv)
   //////////////////////////////////////////////////////////////////////////////////////////////
   basis::MatrixVector matrix_vector;
   basis::MatrixVector matrix_vector_explicit;
-  
-  spncci::BabySpNCCISpace baby_spncci_space(sp_irrep_vector);
   
   spncci::ContractAndRegroupU3S(
     Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
