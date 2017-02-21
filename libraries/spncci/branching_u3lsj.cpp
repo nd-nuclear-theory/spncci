@@ -223,8 +223,13 @@ namespace spncci
                   // starting position given by :
                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
                   double Wcoef=u3::W(x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
+                  // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
+                  //           <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
                   int start_indexp=(kappa_p-1)*source_dimp+indexp;
                   int start_index=(kappa-1)*source_dim+index;
+                  // std::cout<<"branching"<<std::endl
+                  //   <<"W "<<Wcoef<<"  Jcoef "<<Jcoef<<std::endl
+                  //   <<source_sector<<std::endl<<std::endl;
                   target_sector.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_sector;
                 }
           }

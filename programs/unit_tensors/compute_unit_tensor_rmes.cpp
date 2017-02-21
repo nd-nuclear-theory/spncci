@@ -760,7 +760,9 @@ int main(int argc, char **argv)
   // //////////////////////////////////////////////////////////////////////////////////////////
   // //TODO make input 
   // std::string interaction_file="JISP16_u3st.dat";
-  std::string interaction_file= "K2intr_u3st.dat";
+  // std::string interaction_file= "K2intr_u3st.dat";
+
+   std::string interaction_file="Tintr_hw20.0_Nmax10_u3st.dat";
   // std::string interaction_file="Nintr_u3st.dat";
 
   // std::string interaction_file="trel_SU3_Nmax06.dat";
@@ -819,30 +821,30 @@ int main(int argc, char **argv)
   ZeroOutMatrix(matrix_vector,1e-4);
   ZeroOutMatrix(matrix_vector_explicit,1e-4);
   
-  // basis::MatrixVector difference_vector;
-  // for(int i=0; i<matrix_vector.size();++i)
-  //   difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
-  // ZeroOutMatrix(difference_vector,1e-4);
+  basis::MatrixVector difference_vector;
+  for(int i=0; i<matrix_vector.size();++i)
+    difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
+  ZeroOutMatrix(difference_vector,1e-4);
 
-  // std::cout<<"printing"<<std::endl;
-  // for(int i=0; i<u3s_space.size(); ++i)
-  //   std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
-  // for(int s=0; s<matrix_vector.size();  ++s)
-  //   {
-  //     if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
-  //     {
-  //       std::cout<<u3s_sector_vector[s].Str()<<std::endl;
-  //       std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+  std::cout<<"printing"<<std::endl;
+  for(int i=0; i<u3s_space.size(); ++i)
+    std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  for(int s=0; s<matrix_vector.size();  ++s)
+    {
+      if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
+      {
+        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+        std::cout<<matrix_vector[s]<<std::endl<<std::endl;
         
 
-  //       // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
+        // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
         
-  //       // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
-  //       // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
+        // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+        // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
 
-  //       // std::cout<<difference_vector[s]<<std::endl<<std::endl;
-  //     }
-  //   }
+        // std::cout<<difference_vector[s]<<std::endl<<std::endl;
+      }
+    }
 
 
   HalfInt J=0;
@@ -870,7 +872,7 @@ int main(int argc, char **argv)
     space_LS,sector_labels_LS,sectors_LS
   );
 
-  ZeroOutMatrix(sectors_LS,1e-4);
+  // ZeroOutMatrix(sectors_LS,1e-4);
   // std::cout<<"printing LS"<<std::endl;
   // for(int i=0; i<space_LS.size(); ++i)
   //   std::cout<<i<<"  "<<space_LS.GetSubspace(i).Str()<<std::endl;
@@ -911,7 +913,9 @@ int main(int argc, char **argv)
 
   // std::cout<<operator_matrix<<std::endl;
 
-  Eigen::EigenSolver<Eigen::MatrixXd> es(operator_matrix);
+
+
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(operator_matrix);
   for(int i=0; i<10; ++i)
     std::cout<<"eigenvalues are "<<es.eigenvalues()[i]<<std::endl;
 
