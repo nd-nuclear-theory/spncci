@@ -78,7 +78,8 @@ namespace spncci
 void 
 CheckOrthonormalityExplicit(
     const spncci::BabySpNCCISpace& baby_spncci_space,
-    const basis::MatrixVector& spncci_expansions
+    const basis::MatrixVector& spncci_expansions,
+    double tolerance
   )
 // Check orthonormality of SpNCCI basis vectors from explicit
 // expansion in lsu3shell basis.
@@ -104,8 +105,8 @@ CheckOrthonormalityExplicit(
         // calculate overlaps
         Eigen::MatrixXd overlap_matrix = spncci_expansions[bra_subspace_index].transpose()*spncci_expansions[ket_subspace_index];
         Eigen::MatrixXd overlap_matrix_minus_identity = overlap_matrix - Eigen::MatrixXd::Identity(overlap_matrix.rows(),overlap_matrix.cols());
-        mcutils::ChopMatrix(overlap_matrix);
-        mcutils::ChopMatrix(overlap_matrix_minus_identity);
+        mcutils::ChopMatrix(overlap_matrix,tolerance);
+        mcutils::ChopMatrix(overlap_matrix_minus_identity,tolerance);
 
         // check overlaps
         bool on_diagonal = (bra_subspace_index==ket_subspace_index);
@@ -119,6 +120,7 @@ CheckOrthonormalityExplicit(
               ket_subspace_index,ket_subspace.LabelStr()
             )
           << std::endl;
+        std::cout << mcutils::FormatMatrix(overlap_matrix,"14.7e","  ") << std::endl;
         std::cout << fmt::format("  on_diagonal {}",on_diagonal)
                   << std::endl;
         std::cout << fmt::format("  {}",success ? "PASS" : "FAIL")
@@ -216,7 +218,7 @@ int main(int argc, char **argv)
   u3::g_u_cache_enabled = true;
 
   // numerical parameter for certain calculations
-  double zero_threshold=1e-6;
+  double tolerance=1e-6;
 
   // run parameters
   RunParameters run_parameters;
@@ -332,7 +334,23 @@ int main(int argc, char **argv)
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
   spncci::KMatrixCache k_matrix_cache;
-  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache);
+  bool intrinsic = true;
+  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,intrinsic);
+
+  // diagnostics
+  for (const auto& sigma_irrep_pair : sigma_irrep_map)
+    {
+      // extract sigma and irrep contents
+      const u3::U3& sigma = sigma_irrep_pair.first;
+      const sp3r::Sp3RSpace& sp_irrep = sigma_irrep_pair.second;
+      for (auto& omega_matrix_pair : k_matrix_cache[sigma])
+        {
+          const u3::U3& omega = omega_matrix_pair.first;
+          const Eigen::MatrixXd& k_matrix = omega_matrix_pair.second;
+          std::cout << fmt::format("  sigma {} omega {}",sigma.Str(),omega.Str()) << std::endl;
+          std::cout << k_matrix << std::endl;
+        }
+    }
 
   // timing stop
   timer_k_matrices.Stop();
@@ -350,6 +368,6 @@ int main(int argc, char **argv)
     );
 
   std::cout << "Check orthonormality for all SpNCCI subspaces sharing same underlying lsu3shell subspace..." << std::endl;
-  CheckOrthonormalityExplicit(baby_spncci_space,spncci_expansions);
+  CheckOrthonormalityExplicit(baby_spncci_space,spncci_expansions,tolerance);
 
 }

@@ -106,4 +106,30 @@ namespace spncci
   }
 
 
+  void
+  ConstructObservableU3S(
+      int Nmax, int N1v,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::SpaceU3S& space_u3s,
+      const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      const u3shell::RelativeRMEsU3ST& relative_rmes,
+      std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      basis::MatrixVector& matrices_u3s
+    )
+  {
+    // identify operator symmetry and upcoupling labels
+    //
+    // Note: see branching_u3s_test for possible scheme for
+    // reimplementation
+    std::vector<u3shell::IndexedOperatorLabelsU3S> operator_u3s_list;
+    u3shell::GetInteractionTensorsU3S(relative_rmes,operator_u3s_list);
+
+    // constract and regroup at U3S level
+    spncci::GetSectorsU3S(space_u3s,operator_u3s_list,sectors_u3s);
+    spncci::ContractAndRegroupU3S(
+        Nmax,N1v,sectors_u3s,relative_rmes,baby_spncci_space,
+        space_u3s,unit_tensor_matrices,matrices_u3s
+      );
+  }
+
 }  // namespace

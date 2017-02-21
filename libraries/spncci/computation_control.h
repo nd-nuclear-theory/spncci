@@ -20,7 +20,10 @@
 #include "spncci/unit_tensor.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/relative_operator.h"
+// #include "u3shell/upcoupling.h"
 #include "u3shell/u3spn_scheme.h"
+#include "spncci/branching_u3s.h"
+#include "spncci/branching_u3lsj.h"
 
 namespace spncci
 {
@@ -68,6 +71,25 @@ namespace spncci
   //
   // Arguments:
   //    ...
+
+
+  void
+  ConstructObservableU3S(
+      int Nmax, int N1v,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::SpaceU3S& space_u3s,
+      const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      const u3shell::RelativeRMEsU3ST& relative_rmes,
+      std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      basis::MatrixVector& matrices_u3s
+    );
+  //   Nmax, N1v (input): why are these needed???
+  //   baby_spncci_space (input): baby SpNCCI space
+  //   space_u3s (input): U3S regrouped SpNCCI space
+  //   unit_tensor_matrices (input): unit tensor rmes in SpNCCI space
+  //   relative_rmes (input): observable upcoupled relative rmes
+  //   sectors_u3s (output): operator sectors [TODO upgrade to a proper "sectors" container]
+  //   matrices_u3s (output): operator matrices
 
 }  // namespace
 

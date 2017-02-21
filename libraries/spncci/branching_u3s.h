@@ -303,8 +303,8 @@ namespace spncci
       const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
       const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      spncci::SpaceU3S& target_space,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
+      const spncci::SpaceU3S& target_space,
+      const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
       basis::MatrixVector& matrix_vector
     );
   // Args:

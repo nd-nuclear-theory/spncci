@@ -389,7 +389,8 @@ namespace spncci
   void
   PrecomputeKMatrices(
       const spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::KMatrixCache& k_matrix_cache
+      spncci::KMatrixCache& k_matrix_cache,
+      bool intrinsic
     )
   {
     for (const auto& sigma_irrep_pair : sigma_irrep_map)
@@ -399,16 +400,7 @@ namespace spncci
         const sp3r::Sp3RSpace& sp_irrep = sigma_irrep_pair.second;
 
         // populate K matrix cache for this irrep
-        vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma]);
-
-        // diagnostics
-        for (auto& omega_matrix_pair : k_matrix_cache[sigma])
-          {
-            const u3::U3& omega = omega_matrix_pair.first;
-            const Eigen::MatrixXd& k_matrix = omega_matrix_pair.second;
-            std::cout << fmt::format("  sigma {} omega {}",sigma.Str(),omega.Str()) << std::endl;
-            std::cout << k_matrix << std::endl;
-          }
+        vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma],intrinsic);
       }
 
   }

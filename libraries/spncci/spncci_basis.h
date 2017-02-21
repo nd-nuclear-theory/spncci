@@ -24,6 +24,9 @@
     - Extract BabySpNCCI indexing from spncci_branching_u3s.
     - Add U3SPN accessors sigmaSPN and omegaSPN to BabySpNCCISubspace.
   2/19/17 (mac): Move in PrecomputeKMatrices from explicit.cpp.
+  2/21/17 (mac):
+    - Add intrinsic coordinate mode for PrecomputeKMatrices.
+    - Impose explicit attribute on SpNCCI space constructor.
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -466,7 +469,7 @@ namespace spncci
     // default constructor -- provided since required for certain
     // purposes by STL container classes
 
-    BabySpNCCISpace(const spncci::SpNCCISpace& spncci_space);
+    explicit BabySpNCCISpace(const spncci::SpNCCISpace& spncci_space);
     // Construct from native description of SpNCCI space.
     //
     // Arguments:
@@ -522,7 +525,8 @@ namespace spncci
   void
   PrecomputeKMatrices(
       const spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::KMatrixCache& k_matrix_cache
+      spncci::KMatrixCache& k_matrix_cache,
+      bool intrinsic
     );
   // Precompute and cache K matrices for all symplectic irreps
   // occurring in SpNCCI space.
@@ -532,7 +536,8 @@ namespace spncci
   // Arguments:
   //   sigma_irrep_map (input): container for distinct symplectic irreps
   //   k_matrix_cache (output): container for corresponding K matrices
-
+  //   intrinsic (input): whether to compute K matrices for intrinsic (A-1)
+  //     or lab (A) coordinates
 
 
 }  // namespace
