@@ -48,9 +48,9 @@ namespace spncci
   GenerateUnitTensorU3SectorLabels(
     int N1b,
     int Nmax,
-    std::pair<int,int>  sp_irrep_pair,
+    std::pair<int,int>  irrep_family_indices,
     const spncci::SpNCCISpace& sp_irrep_vector,
-    std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
+    const std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map
     )
   {   
@@ -59,8 +59,8 @@ namespace spncci
     #endif
 
     // Extracting SpNCCIIrrepFamily labels from pair
-    const spncci::SpNCCIIrrepFamily& sp_irrepp=sp_irrep_vector[sp_irrep_pair.first];
-    const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[sp_irrep_pair.second];
+    const spncci::SpNCCIIrrepFamily& sp_irrepp=sp_irrep_vector[irrep_family_indices.first];
+    const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[irrep_family_indices.second];
     u3::U3 sigmap=sp_irrepp.sigma();
     u3::U3 sigma=sp_irrep.sigma(); 
     const sp3r::Sp3RSpace& irrepp=sp_irrepp.Sp3RSpace();
@@ -76,7 +76,7 @@ namespace spncci
     // Looping over omega' and omega subspaces 
     ////////////////////////////////////////////////////////////////////////////////////
     // std::cout<<"iterating"<<std::endl;
-    bool conj_sector=sp_irrep_pair.first>sp_irrep_pair.second;
+    bool conj_sector=irrep_family_indices.first>irrep_family_indices.second;
     int Nnp_max=conj_sector?0:Nmax;
 
     // Loop over Nnp+Nn starting from 2, (Nnp+Nn=0 accounted for elsewhere)
@@ -102,8 +102,8 @@ namespace spncci
           std::tie (ip_min,ip_max)=GetNSectorIndices(Nmax, irrepp_size, Nnp, NpPartition);
           // Get set of operator labels for given omega'omega sector
           // taking into account different Nsigmas 
-          std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& N0_operator_set
-            =unit_tensor_labels_map[N0];
+          const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& N0_operator_set
+            =unit_tensor_labels_map.at(N0);
 
           // iterate over omega' subspace
 
@@ -152,7 +152,7 @@ namespace spncci
     UnitTensorMatrix(
     u3::UCoefCache& u_coef_cache,
     u3::PhiCoefCache& phi_coef_cache,
-    std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
+    const std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
      // SpNCCIIrrepFamily pair sector 
     const spncci::SpNCCIIrrepFamily& sp_irrepp,
     const spncci::SpNCCIIrrepFamily& sp_irrep,
@@ -205,11 +205,11 @@ namespace spncci
     int rho0_max=u3::OuterMultiplicity(omega.SU3(),x0,omegap.SU3());
  
     // Extracting K matrices for sp_irrep and sp_irrepp from the K_matrix_maps 
-    vcs::MatrixCache& K_matrix_map_sp_irrep=k_matrix_map[sp_irrep.sigma()];
-    vcs::MatrixCache& K_matrix_map_sp_irrepp=k_matrix_map[sp_irrepp.sigma()];
+    const vcs::MatrixCache& K_matrix_map_sp_irrep=k_matrix_map.at(sp_irrep.sigma());
+    const vcs::MatrixCache& K_matrix_map_sp_irrepp=k_matrix_map.at(sp_irrepp.sigma());
 
-    Eigen::MatrixXd Kp=K_matrix_map_sp_irrepp[omegap];
-    Eigen::MatrixXd K_inv=K_matrix_map_sp_irrep[omega].inverse();
+    Eigen::MatrixXd Kp=K_matrix_map_sp_irrepp.at(omegap);
+    Eigen::MatrixXd K_inv=K_matrix_map_sp_irrep.at(omega).inverse();
 
     // Precalculating kronecker products used in sum to calculate unit tensor matrix
     MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
@@ -232,7 +232,7 @@ namespace spncci
         sp3r::U3Subspace u3_subspace1=irrep.LookUpSubspace(omega1);
         int dim1=u3_subspace1.size();
         // Look up K1 matrix (dim v1, v1)
-        Eigen::MatrixXd K1=K_matrix_map_sp_irrep[omega1];
+        Eigen::MatrixXd K1=K_matrix_map_sp_irrep.at(omega1);
         // Initializing unit tensor matrix with dim. v' v1
         Eigen::MatrixXd unit_matrix
           =Eigen::MatrixXd::Zero(dimp*multp,dim1*mult);
@@ -321,7 +321,7 @@ namespace spncci
                     sp3r::U3Subspace u3_subspacepp=irrepp.LookUpSubspace(omegapp);
                     int dimpp=u3_subspacepp.size();
                     // Obtaining K matrix for omega''
-                    Eigen::MatrixXd Kpp_inv=K_matrix_map_sp_irrepp[omegapp].inverse();
+                    Eigen::MatrixXd Kpp_inv=K_matrix_map_sp_irrepp.at(omegapp).inverse();
                     //Constructing a^\dagger U(3) boson matrix for A matrix
                     Eigen::MatrixXd boson_matrix(dimp,dimpp);
                     for(int vpp=0; vpp<dimpp; vpp++)
@@ -513,7 +513,7 @@ GenerateNpNSector(
   const std::pair<int,int>& lgi_multiplicities,
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
-  std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
+  const std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
   std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map,
   std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector> >& unit_tensor_NpN_sector_map
   )
@@ -592,21 +592,19 @@ GenerateNpNSector(
 
   void 
   GenerateUnitTensorMatrix(
-    int N1b,
-    int Nmax, 
-    std::pair<int,int> sp_irrep_pair,
-    const spncci::SpNCCISpace& sp_irrep_vector,
-    u3::UCoefCache& u_coef_cache,
-    u3::PhiCoefCache& phi_coef_cache,
-    std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>> k_matrix_map,
-    // std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
-    std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-    spncci::UnitTensorMatricesByIrrepFamily& sp_irrep_unit_tensor_rme_map
-    // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
+  int N1b,
+  int Nmax, 
+  const std::pair<int,int> irrep_family_indices,
+  const spncci::SpNCCISpace& sp_irrep_vector,
+  u3::UCoefCache& u_coef_cache,
+  u3::PhiCoefCache& phi_coef_cache,
+  const spncci::KMatrixCache k_matrix_map,
+  const std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
+  spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
     )
-  // Generates all unit tensor matrix matrices between states in the irreps of sp_irrep_pair
+  // Generates all unit tensor matrix matrices between states in the irreps of irrep_family_indices
   // The unit tensors are stored in the map of a map unit_tensor_rme_map which has key 
-  // sp_irrep_pair to a map with key std::pair<Nnp,Nn> and value map(matrix labels for 
+  // irrep_family_indices to a map with key std::pair<Nnp,Nn> and value map(matrix labels for 
   // w'w sector, matrix) 
   { 
     #ifdef VERBOSE
@@ -614,20 +612,20 @@ GenerateNpNSector(
     #endif
 
     std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map
-        =sp_irrep_unit_tensor_rme_map[sp_irrep_pair];
+        =unit_tensor_matrices[irrep_family_indices];
 
     // extract SpNCCIIrrepFamily labels from pair
-    const spncci::SpNCCIIrrepFamily& sp_irrepp=sp_irrep_vector[sp_irrep_pair.first];
-    const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[sp_irrep_pair.second];
+    const spncci::SpNCCIIrrepFamily& sp_irrepp=sp_irrep_vector[irrep_family_indices.first];
+    const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[irrep_family_indices.second];
     const sp3r::Sp3RSpace& irrepp=sp_irrepp.Sp3RSpace();
     const sp3r::Sp3RSpace& irrep=sp_irrep.Sp3RSpace();
     const HalfInt& Sp=sp_irrepp.S();
     const HalfInt& S=sp_irrep.S();
     std::pair<int,int> lgi_multiplicities(
-      sp_irrep_vector[sp_irrep_pair.first].gamma_max(),
-      sp_irrep_vector[sp_irrep_pair.second].gamma_max()
+      sp_irrep_vector[irrep_family_indices.first].gamma_max(),
+      sp_irrep_vector[irrep_family_indices.second].gamma_max()
       );
-    // std::cout<<sp_irrep_vector[sp_irrep_pair.first].Str()<<"  "<< sp_irrep_vector[sp_irrep_pair.second].Str()<<std::endl;
+    // std::cout<<sp_irrep_vector[irrep_family_indices.first].Str()<<"  "<< sp_irrep_vector[irrep_family_indices.second].Str()<<std::endl;
     // std::cout<<lgi_multiplicities.first<<"  "<<lgi_multiplicities.second<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
     // Looping over NpN subspaces 
@@ -644,18 +642,18 @@ GenerateNpNSector(
     // Temporary container
     // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache> unit_tensor_rme_map_conj;
     // Get reverse pair
-    std::pair<int,int> sp_irrep_pair_conj(sp_irrep_pair.second,sp_irrep_pair.first);
+    std::pair<int,int> irrep_family_indices_conj(irrep_family_indices.second,irrep_family_indices.first);
     // Get labels, should only be for Nnp=0 since iconj>jconj
     std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map_conj
-      =sp_irrep_unit_tensor_rme_map[sp_irrep_pair_conj];
+      =unit_tensor_matrices[irrep_family_indices_conj];
 
     GenerateUnitTensorU3SectorLabels(
-      N1b,Nmax,sp_irrep_pair_conj,sp_irrep_vector,
+      N1b,Nmax,irrep_family_indices_conj,sp_irrep_vector,
       unit_tensor_labels_map,unit_tensor_NpN_sector_map_conj);
     // Swap multiplicity labels 
     std::pair<int,int> lgi_mult_conj(
-      sp_irrep_vector[sp_irrep_pair.second].gamma_max(),
-      sp_irrep_vector[sp_irrep_pair.first].gamma_max()
+      sp_irrep_vector[irrep_family_indices.second].gamma_max(),
+      sp_irrep_vector[irrep_family_indices.first].gamma_max()
       );
     // For each NnpNn sector
     for(int Nn=2; Nn<=Np_truncate; ++Nn)
@@ -710,7 +708,7 @@ GenerateNpNSector(
     ////////////////////////////////////////////////////////////////////////////////////    
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
     GenerateUnitTensorU3SectorLabels(
-      N1b,Nmax,sp_irrep_pair,sp_irrep_vector,
+      N1b,Nmax,irrep_family_indices,sp_irrep_vector,
       unit_tensor_labels_map,unit_tensor_NpN_sector_map);
 
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)

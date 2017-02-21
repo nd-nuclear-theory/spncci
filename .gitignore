@@ -10,6 +10,9 @@
 *.mod
 .DS_Store 
 *.recoupler
+*#
+*.stackdump
+*.tgz
 
 # temporary diagnostic output files
 *.out
@@ -20,6 +23,7 @@
 ## !*.{mk,h,cpp,F}
 
 config.mk
+*.dat
 
 bin/
 

@@ -1,0 +1,18 @@
+/afs/crc.nd.edu/user/m/mcaprio/projects/lsu3shell/programs/tools/SU3RME model_space.dat model_space.dat two_body_unit_000000.load
+
+make clean
+make all DEBUG=zzz
+
+
+gdb ~/projects/lsu3shell/programs/tools/SU3RME
+break CalculateRME
+run model_space.dat model_space.dat two_body_unit_000000.load
+
+
+
+module load allinea
+ddt ~/projects/lsu3shell/programs/tools/SU3RME
+
+Control > Add Breakpoint
+   function CalculateRME
+CalculateRME

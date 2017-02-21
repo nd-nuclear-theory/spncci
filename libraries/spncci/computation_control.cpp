@@ -85,4 +85,25 @@ namespace spncci
       }
   }
 
+  void
+  RecurseUnitTensors(
+      int N1v, int Nmax,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::KMatrixCache k_matrix_cache,
+      u3::UCoefCache& u_coef_cache,
+      u3::PhiCoefCache& phi_coef_cache,
+      const std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels,
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
+    )
+  {
+    for(const auto& irrep_family_indices_submap_pair : unit_tensor_matrices)
+      {
+        std::pair<int,int> irrep_family_indices = irrep_family_indices_submap_pair.first;
+        spncci::GenerateUnitTensorMatrix(
+            N1v,Nmax,irrep_family_indices,spncci_space,u_coef_cache,phi_coef_cache,k_matrix_cache,
+            unit_tensor_labels,unit_tensor_matrices);
+      }
+  }
+
+
 }  // namespace
