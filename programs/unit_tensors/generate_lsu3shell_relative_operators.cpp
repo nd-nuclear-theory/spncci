@@ -99,13 +99,16 @@ int main(int argc, char **argv)
 
   // generate control file for lsu3shell
   //
-  // first give specifications for unit tensors, then Brel and Nrel
+  // first give specifications for unit tensors, then Brel, Arel and Nintr
   std::ofstream control_stream("relative_operators.dat");
   int num_unit=relative_unit_tensor_labels.size();
   for(int i=0; i<num_unit; ++i)
     control_stream<<fmt::format("relative_unit_{:06d}",i)<<std::endl;
+
+
   control_stream<<Brel_file_name_base<<std::endl;
   control_stream<<Arel_file_name_base<<std::endl;
   control_stream<<Nintr_file_name_base<<std::endl;
+
   control_stream.close();
 }

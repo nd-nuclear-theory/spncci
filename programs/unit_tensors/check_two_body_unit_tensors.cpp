@@ -209,7 +209,7 @@ int main(int argc, char **argv)
   // process arguments
   if(argc<5)
     {
-      std::cout<<"Syntax: Protons Neutrons Nmin Nmax 2Nsigma0"<<std::endl;
+      std::cout<<"Syntax: Protons Neutrons Nmin Nmax 2Nsigma0 start stop"<<std::endl;
       std::exit(EXIT_FAILURE);
     }
   int Z=std::stoi(argv[1]);
@@ -225,6 +225,9 @@ int main(int argc, char **argv)
   assert(two_Nsigma_0==2*3);  // deuteron Nsigma_0 = 2*(3/2) = 3
   HalfInt Nsigma_0 = HalfInt(two_Nsigma_0,2);
 
+  int operator_index_start=std::stoi(argv[6]);
+  int operator_index_stop=std::stoi(argv[7]);
+
   // generate list of relative unit tensors up to Nmax cutoff
   std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> two_body_unit_tensor_labels_list;
   u3shell::GenerateTwoBodyUnitTensorLabelsU3ST(Nmax, two_body_unit_tensor_labels_list);
@@ -238,7 +241,7 @@ int main(int argc, char **argv)
   
   // iterate over unit tensors
   int num_unit = two_body_unit_tensor_labels_list.size();
-  for(int operator_index=0; operator_index<num_unit; ++operator_index)
+  for(int operator_index=operator_index_start; operator_index<operator_index_stop; ++operator_index)
     {
       // extract tensor information
       const u3shell::TwoBodyUnitTensorLabelsU3ST& two_body_unit_tensor_labels

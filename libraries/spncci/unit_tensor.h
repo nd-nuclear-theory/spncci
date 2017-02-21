@@ -169,7 +169,7 @@ namespace spncci
         const spncci::SpNCCISpace& sp_irrep_vector,
         u3::UCoefCache& u_coef_cache,
         u3::PhiCoefCache& phi_coef_cache,
-        const spncci::KMatrixCache k_matrix_map,
+        const spncci::KMatrixCache& k_matrix_map,
         const std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
         spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
       );

@@ -143,42 +143,6 @@ namespace u3shell {
     return rme;
   }
 
-  double RelativeSp3rRaisingPolynomial(
-    const u3::U3& n0, 
-    const u3shell::RelativeStateLabelsU3ST& bra, 
-    const u3shell::RelativeStateLabelsU3ST& ket, 
-    sp3r::BCoefCache& bcoef_cache
-    )
-  {
-    if((n0==u3::U3(0,0,0))&&(bra==ket))
-      return 1.0;
-
-    double rme=0;
-    int eta=ket.eta();
-    int etap=bra.eta();
-    if(
-        (bra.S()==ket.S())    // delta on spin
-        && (bra.T()==bra.T()) // delta on isospin
-        && (eta+n0.N()==etap) // U(1) product rule
-      )
-        {
-          u3::U3 sigma(HalfInt(eta%2)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 omega(HalfInt(eta)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 omegap(HalfInt(etap)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 n(omega.N()-sigma.N(),0,0);
-          u3::U3 np(omegap.N()-sigma.N(),0,0);
-          MultiplicityTagged<u3::U3>n_rho(n,1);
-          MultiplicityTagged<u3::U3>np_rhop(np,1);
-          rme=sqrt(vcs::Omega(np, omegap)-vcs::Omega(n, omega))
-                *u3::U(n0.SU3(), n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,1,omega.SU3(),1,1)
-                *bcoef_cache[sp3r::BCoefLabels(n0,n,np,1)];
-        }
-    return rme;
-  }
-
-
-
-
   double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
 

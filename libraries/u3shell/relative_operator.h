@@ -88,13 +88,6 @@ namespace u3shell
 
   double RelativeSp3rRaisingOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
-  double RelativeSp3rRaisingPolynomial(
-    const u3::U3& n0, 
-    const u3shell::RelativeStateLabelsU3ST& bra, 
-    const u3shell::RelativeStateLabelsU3ST& ket, 
-    sp3r::BCoefCache& bcoef_cache
-    );
-
   double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
   double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);

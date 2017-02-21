@@ -146,7 +146,9 @@ def check_rmes():
         str(N),
         str(Nmax),
         str(Nstep),
-        str(twice_Nsigma_0)
+        str(twice_Nsigma_0),
+        str(start),
+        str(stop)
     ]
     utils.call(command_line)
 

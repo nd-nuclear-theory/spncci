@@ -202,9 +202,16 @@ namespace lgi
       {
         int i=sectors.GetSector(s).bra_subspace_index();
         int j=sectors.GetSector(s).ket_subspace_index();
+        // std::cout<<"braket "<<i<<"  "<<j<<std::endl;
         // get transformation matrices and transpose bra transformation matrix
         const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
         const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
+        // std::cout<<"bra "<<std::endl;
+        // std::cout<<bra.rows()<<"  "<<bra.cols()<<std::endl;
+        // std::cout<<"ket"<<std::endl;
+        // std::cout<<ket.rows()<<"  "<<ket.cols()<<std::endl;
+        // std::cout<<"operator "<<std::endl;
+        // std::cout<<lsu3shell_operator_matrices[s].rows()<<"  "<<lsu3shell_operator_matrices[s].cols()<<std::endl;
         // transform operator to spncci basis
         spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
       }

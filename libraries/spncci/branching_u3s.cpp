@@ -224,8 +224,8 @@ namespace spncci
                     if(cache[unit_sector].cols()!=0)
                     {
                       matrix_vector[s].block(indexp,index,dimp,dim)+=interaction_rme*cache[unit_sector];
-                      std::cout<<"unit sector "<<unit_sector.Str()<<std::endl;
-                      std::cout<<cache[unit_sector]<<std::endl;
+                      // std::cout<<"unit sector "<<unit_sector.Str()<<std::endl;
+                      // std::cout<<cache[unit_sector]<<std::endl;
                     }
                 }
               }
