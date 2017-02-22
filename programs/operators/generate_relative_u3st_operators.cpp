@@ -9,22 +9,18 @@
 #include <iostream>
 #include <fstream>
 #include "cppformat/format.h"
+#include "mcutils/parsing.h"
+
 #include "u3shell/upcoupling.h"
 
-// For Tintr, need hbarOmega/(2A)*Krel^2 
-// K2rel=A/2(1+delta)*K2intr
-// Tintr=hbarOmega/8(K2intr)
-//
-// For R2intr, mult by b^2=(hbar*c)^2/(mc^2)[1/hbarOmega]
-//
-// For mass quadrupole, Sqrt[5/(16Pi)]b^2 Qintr= sqrt[5/(16Pi)]*(hbar*c)^2/(mc^2)[1/hbarOmega]*Qintr
+// Checked agains mfdn for R2intr, Tintr, Nintr
 
 
 
 double zero_threshold=10e-6;
 namespace u3shell
 {
-  void Nintr(int Nmax, u3shell::RelativeRMEsU3ST& Nrel_operator, int A, double coef=1.0, bool moshinsky_convention=true)
+  void Nintr(int Nmax, u3shell::RelativeRMEsU3ST& Nrel_operator, int A, double coef=1.0, bool moshinsky_convention=false)
   {
     for (int N=0; N<=Nmax; N++)
       for (int S=0;S<=1; S++)
@@ -35,9 +31,26 @@ namespace u3shell
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
               int kappa0=1;
-              int L0=1;
+              int L0=0;
               std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
               Nrel_operator[key]+=(2.*N)/A*coef;
+            }
+  }
+
+  void Spin(int Nmax, u3shell::RelativeRMEsU3ST& Spin_operator, int A, double coef=1.0, bool moshinsky_convention=false)
+  {
+    for (int N=0; N<=Nmax; N++)
+      for (int S=0;S<=1; S++)
+        for (int T=0;T<=1; T++)
+          if ((N+S+T)%2==1)
+            {
+              u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
+              int kappa0=1;
+              int L0=0;
+              std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
+              Spin_operator[key]+=(2*S*(S+1.))/A/(A-1)*coef;
             }
   }
 
@@ -167,7 +180,8 @@ namespace u3shell
     int kappa0=1; 
     int L0=0;
 
-    double intrinsic_factor=(1.+KroneckerDelta(moshinsky_convention,true))/A;
+    double intrinsic_factor=2./A;
+
 
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
@@ -183,7 +197,7 @@ namespace u3shell
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
             if (fabs(Brme)>zero_threshold)
-              R2intr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
+              R2intr[key]+=sqrt(1.5)*Brme*intrinsic_factor*coef;
 
             // Crel term
             Np=N;
@@ -191,7 +205,7 @@ namespace u3shell
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Nrme=N+3/2.;
-            R2intr[key]+=sqrt(3)*std::sqrt(2./3*(N*N+3*N))*intrinsic_factor*coef;
+            R2intr[key]+=Nrme*intrinsic_factor*coef;
 
             // Arel term
             Np=N+2;
@@ -200,13 +214,13 @@ namespace u3shell
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
             if (fabs(Arme)>zero_threshold)
-              R2intr[key]+=sqrt(3)*Arme*intrinsic_factor*coef;
+              R2intr[key]+=sqrt(1.5)*Arme*intrinsic_factor*coef;
           }
   }
 
   void Tintr(int Nmax,u3shell::RelativeRMEsU3ST& Tintr, int A, double hbar_omega, double coef=1.0, bool moshinsky_convention=false)
   {
-    coef*=hbar_omega/(4.*(1+KroneckerDelta(moshinsky_convention,false)));
+    coef*=hbar_omega/(4*(KroneckerDelta(moshinsky_convention,false)));
     K2intr(Nmax,Tintr, A, coef, moshinsky_convention);
   }
 
@@ -261,27 +275,44 @@ int main(int argc, char **argv)
 
   std::string operator_type;
   std::ifstream is(fmt::format("{}.load",operator_filename));
-  
+  assert(is);
+
   double hbar_omega;
-  is >> hbar_omega;
-  
-  double b2=hbarc*hbarc/mc2/hbar_omega;
+  double b2;
 
   u3shell::RelativeRMEsU3ST Operator;
   double coef;
 
-  while(!is.eof())
+  std::string line;
+  int line_count=0;
+  while(std::getline(is,line))
   {
-    is >> operator_type >> coef;
+    ++line_count;
+    std::istringstream line_stream(line);
+    ParsingCheck(line_stream,line_count,line);
+    
+    if(line_count==1)
+      {
+        line_stream >> hbar_omega;
+        b2=hbarc*hbarc/mc2/hbar_omega;
+        std::cout<<"bsqr= "<<b2<<std::endl;
+        continue;
+      }
 
+    line_stream>> operator_type >> coef;
+    
+    ++line_count;
     if(operator_type=="INT")       
-      is >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
+      line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
 
     if(operator_type=="Nintr") 
       u3shell::Nintr(Nmax+2*N1B,Operator, A, coef);
 
+    if(operator_type=="Spin") 
+      u3shell::Spin(Nmax+2*N1B,Operator, A, coef);
+
     else if(operator_type=="R2intr")
-      u3shell::R2intr(Nmax+2*N1B,Operator, A, coef*b2);
+      u3shell::R2intr(Nmax+2*N1B,Operator, A, coef*b2/A);
 
     else if(operator_type=="K2intr")
       u3shell::K2intr(Nmax+2*N1B,Operator, A, coef/b2);
@@ -297,6 +328,7 @@ int main(int argc, char **argv)
 
     else if(operator_type=="INT")
       Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
+
     else
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl

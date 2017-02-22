@@ -539,6 +539,17 @@ int main(int argc, char **argv)
           std::pair<int,int>sp_irrep_pair(i,j);
           u3::U3 sigmap=sp_irrep_vector[i].sigma();
           u3::U3 sigma=sp_irrep_vector[j].sigma();
+
+          // //REMOVE
+          // if(sp_irrep_vector[i].Sp()!=HalfInt(1,2) || sp_irrep_vector[i].Sn()!=HalfInt(1,2) || sp_irrep_vector[i].S()!=0)
+          //   continue;
+          // if(sp_irrep_vector[j].Sp()!=HalfInt(1,2) || sp_irrep_vector[j].Sn()!=HalfInt(1,2) || sp_irrep_vector[j].S()!=0)
+          //   continue;
+
+          if(Nmax==0 && sigma.N()>Nsigma_0)
+            continue;
+          if(Nmax==0 && sigmap.N()>Nsigma_0)
+            continue;
           spncci::UnitTensorU3Sector u3_sector(sigmap,sigma,unit_tensor,rho0);
           if(not CheckIfZeroMatrix(spncci_operator_matrices[s],zero_threshold))
             {
@@ -580,26 +591,26 @@ int main(int argc, char **argv)
   // for(int i=0; i<unit_tensor_sector_cache.size(); ++i) 
   //   it_ending++;
 
-  // for(auto it=unit_tensor_sector_cache.begin(); it!=it_ending; ++it)
-  //   {
+  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
+    {
 
-  //     // //REMOVE
-  //     // if(it->first.first!=0 || it->first.second!=3)
-  //     //   continue;
-  //     // //
+      // //REMOVE
+      // if(it->first.first!=0 || it->first.second!=3)
+      //   continue;
+      // //
 
-  //     std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+      std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
 
-  //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
-  //       {
-  //         std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-  //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
-  //           {
-  //             std::cout<<it3->first.Str()<<std::endl;
-  //             std::cout<<it3->second<<std::endl;
-  //           }
-  //       }
-  //   }
+      for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+        {
+          std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+          for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+            {
+              std::cout<<it3->first.Str()<<std::endl;
+              std::cout<<it3->second<<std::endl;
+            }
+        }
+    }
 
   std::cout<<"Entering the recurrence"<<std::endl;
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -628,7 +639,7 @@ int main(int argc, char **argv)
       clock_t start_time=std::clock();
 
       // //REMOVE
-      // if((it->first.first!=0 ) || (it->first.second!=24))
+      // if((it->first.first!=0 ) || (it->first.second!=0))
       //   continue;
 
       int node=counter%num_nodes;
@@ -676,12 +687,12 @@ int main(int argc, char **argv)
   // std::cout<<"traversing the map"<<std::endl;
   for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
     {
-      // if(it->first.first!=0 || it->first.second!=0)
+      // if(it->first.first!=0 || it->first.second!=1)
       //   continue;
       // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
       for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
         {
-          // if(it2->first.first!=2)
+          // if(it2->first.first!=0)
           //   continue;
           // if(it2->first.second!=2)
           //   continue;
@@ -759,10 +770,13 @@ int main(int argc, char **argv)
   // // Getting interaction
   // //////////////////////////////////////////////////////////////////////////////////////////
   // //TODO make input 
-  // std::string interaction_file="JISP16_u3st.dat";
+  std::string interaction_file="JISP16_u3st.dat";
   // std::string interaction_file= "K2intr_u3st.dat";
 
-   std::string interaction_file="Tintr_hw20.0_Nmax10_u3st.dat";
+  // std::string interaction_file="Tintr_hw20.0_Nmax10_u3st.dat";
+  // std::string interaction_file="r2intr_hw20.0_Nmax02_u3st.dat";
+  // std::string interaction_file="spin_hw20.0_Nmax04_u3st.dat";
+  // std::string interaction_file="Hamiltonian_hw20.0_Nmax04_u3st.dat";
   // std::string interaction_file="Nintr_u3st.dat";
 
   // std::string interaction_file="trel_SU3_Nmax06.dat";
@@ -776,6 +790,7 @@ int main(int argc, char **argv)
   std::ifstream interaction_stream(interaction_file.c_str());
   assert(interaction_stream);
   
+  std::cout<<"reading in interaction"<<std::endl;
   u3shell::RelativeRMEsU3ST interaction_rme_cache;
   u3shell::ReadRelativeOperatorU3ST(interaction_stream, interaction_rme_cache);
 
@@ -801,6 +816,7 @@ int main(int argc, char **argv)
 
   spncci::GetSectorsU3S(u3s_space,operator_u3s_list,u3s_sector_vector);
 
+  std::cout<<"contracting"<<std::endl;
   //////////////////////////////////////////////////////////////////////////////////////////////
   // Contracting
   //////////////////////////////////////////////////////////////////////////////////////////////
@@ -813,18 +829,18 @@ int main(int argc, char **argv)
     Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
     u3s_space,unit_tensor_sector_cache, matrix_vector);
 
-  spncci::ContractAndRegroupU3S(
-    Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
-    u3s_space,unit_tensor_sector_cache_explicit, matrix_vector_explicit);
+  // spncci::ContractAndRegroupU3S(
+  //   Nmax, N1b,u3s_sector_vector,interaction_rme_cache,baby_spncci_space,
+  //   u3s_space,unit_tensor_sector_cache_explicit, matrix_vector_explicit);
 
 
   ZeroOutMatrix(matrix_vector,1e-4);
-  ZeroOutMatrix(matrix_vector_explicit,1e-4);
+  // ZeroOutMatrix(matrix_vector_explicit,1e-4);
   
   basis::MatrixVector difference_vector;
-  for(int i=0; i<matrix_vector.size();++i)
-    difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
-  ZeroOutMatrix(difference_vector,1e-4);
+  // for(int i=0; i<matrix_vector.size();++i)
+  //   difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
+  // ZeroOutMatrix(difference_vector,1e-4);
 
   std::cout<<"printing"<<std::endl;
   for(int i=0; i<u3s_space.size(); ++i)
@@ -833,7 +849,8 @@ int main(int argc, char **argv)
     {
       if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
       {
-        std::cout<<u3s_sector_vector[s].Str()<<std::endl;
+        
+        std::cout<<u3s_sector_vector[s].Str()<<"  "<<s<<std::endl;
         std::cout<<matrix_vector[s]<<std::endl<<std::endl;
         
 
@@ -872,19 +889,19 @@ int main(int argc, char **argv)
     space_LS,sector_labels_LS,sectors_LS
   );
 
-  // ZeroOutMatrix(sectors_LS,1e-4);
-  // std::cout<<"printing LS"<<std::endl;
-  // for(int i=0; i<space_LS.size(); ++i)
-  //   std::cout<<i<<"  "<<space_LS.GetSubspace(i).Str()<<std::endl;
+  ZeroOutMatrix(sectors_LS,1e-4);
+  std::cout<<"printing LS"<<std::endl;
+  for(int i=0; i<space_LS.size(); ++i)
+    std::cout<<i<<"  "<<space_LS.GetSubspace(i).Str()<<std::endl;
     
-  // for(int s=0; s<sectors_LS.size();  ++s)
-  //   {
-  //     if (not CheckIfZeroMatrix(sectors_LS[s], 1e-4))
-  //     {
-  //       std::cout<<sector_labels_LS[s].Str()<<std::endl;
-  //       std::cout<<sectors_LS[s]<<std::endl<<std::endl;
-  //     }
-  //   }
+  for(int s=0; s<sectors_LS.size();  ++s)
+    {
+      if (not CheckIfZeroMatrix(sectors_LS[s], 1e-4))
+      {
+        std::cout<<sector_labels_LS[s].Str()<<std::endl;
+        std::cout<<sectors_LS[s]<<std::endl<<std::endl;
+      }
+    }
 
   Eigen::MatrixXd operator_matrix;
 
@@ -911,7 +928,7 @@ int main(int argc, char **argv)
   //       total++;
   //     }
 
-  // std::cout<<operator_matrix<<std::endl;
+  std::cout<<operator_matrix<<std::endl;
 
 
 
