@@ -53,6 +53,13 @@
        20    // hw
        Nintr 1.0    // coef
 
+       ../operators/generate_relative_u3st_operators 6 2 1 r2intr
+
+       with r2intr.load containing
+
+       20    // hw
+       r2intr 1.0    // coef
+
    % ln -s ../../data/relative_observables/
 
          
@@ -68,6 +75,8 @@
 #include <ctime>
 #include <fstream>
 #include <sys/resource.h>
+
+#include "SymEigsSolver.h"  // from spectra
 
 #include "cppformat/format.h"
 #include "lgi/lgi_solver.h"
@@ -122,10 +131,17 @@ struct RunParameters
   std::string Arel_filename;
   std::string Nrel_filename;
   std::string relative_unit_tensor_filename_template;
+
+  // many-body problem
   std::vector<std::string> observable_filenames;  // first observable is used as Hamiltonian
   int num_observables;
   std::vector<HalfInt> J_values;
 
+  // eigensolver
+  int num_eigenvalues;
+  int eigensolver_num_convergence;  // whatever exactly this is...
+  int eigensolver_max_iterations;
+  double eigensolver_tolerance;
 
 };
 
@@ -170,6 +186,10 @@ RunParameters::RunParameters()
   observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat"});
   num_observables = observable_filenames.size();
   J_values = std::vector<HalfInt>({0,1});
+  num_eigenvalues = 10;
+  eigensolver_num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
+  eigensolver_max_iterations = 100*num_eigenvalues;
+  eigensolver_tolerance = 1e-6;
 }
 
 
@@ -267,7 +287,8 @@ int main(int argc, char **argv)
 
   // diagnostics
   std::cout << fmt::format("  LGI families {}",lgi_families.size()) << std::endl;
-  lgi::WriteLGILabels(lgi_families,std::cout);
+  if (false)
+    lgi::WriteLGILabels(lgi_families,std::cout);
 
   // timing stop
   timer_lgi.Stop();
@@ -565,5 +586,59 @@ int main(int argc, char **argv)
 
           }
     }
+
+  ////////////////////////////////////////////////////////////////
+  // eigenstuff
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Solve Hamiltonian eigenproblem..." << std::endl;
+
+  // timing start
+  Timer timer_eigenproblem;
+  timer_eigenproblem.Start();
+
+  std::map<HalfInt,Eigen::VectorXd> eigenvalues;  // map: J -> eigenvalues
+  std::map<HalfInt,Eigen::MatrixXd> eigenvectors;  // map: J -> eigenvectors
+
+  for (const HalfInt J : run_parameters.J_values)
+    {
+      // set up aliases
+      Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
+      
+      std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
+
+      // define eigensolver and compute
+      typedef Eigen::MatrixXd MatrixType;  // allow for possible future switch to more compact single-precision matrix
+      typedef double FloatType;
+      Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
+      Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
+        eigensolver(
+            &matvec,
+            run_parameters.num_eigenvalues,
+            run_parameters.eigensolver_num_convergence
+          );
+      eigensolver.init();
+      int eigensolver_nconv = eigensolver.compute(
+          run_parameters.eigensolver_max_iterations,
+          run_parameters.eigensolver_tolerance,
+          Spectra::SMALLEST_ALGE  // sorting rule
+        );
+      int eigensolver_status = eigensolver.info();
+      std::cout << fmt::format("  Eigensolver reports: nconv {} status {}",eigensolver_nconv,eigensolver_status)
+                << std::endl;
+
+      // save eigenresults
+      
+      eigenvalues[J] = eigensolver.eigenvalues();
+      eigenvectors[J] = eigensolver.eigenvectors();
+      std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
+                << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
+                << std::endl;
+    }
+
+  
+  // timing stop
+  timer_eigenproblem.Stop();
+  std::cout << fmt::format("(Task time: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
 
 }

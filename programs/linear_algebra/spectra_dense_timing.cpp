@@ -54,8 +54,8 @@ int main()
           test_time.Start();
 
           // define eigensolver and compute
-          Spectra::DenseSymMatProd<FloatType> op(M);
-          Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>> eigensolver(&op,num_eigenvalues,num_convergence);
+          Spectra::DenseSymMatProd<FloatType> matvec(M);
+          Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>> eigensolver(&matvec,num_eigenvalues,num_convergence);
           eigensolver.init();
           int nconv = eigensolver.compute(max_iterations,tolerance,Spectra::SMALLEST_ALGE);  // int maxit=1000, Scalar tol=1e-10, int sort_rule=LARGEST_ALGE
 
