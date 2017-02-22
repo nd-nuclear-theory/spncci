@@ -5,6 +5,7 @@
   University of Notre Dame
 
   2/14/17 (aem,mac): Created.
+  2/21/17 (aem,mac): Update input parsing.  Add parsing checks.
 ****************************************************************/
 #include <iostream>
 #include <fstream>
@@ -15,7 +16,8 @@
 
 // Checked agains mfdn for R2intr, Tintr, Nintr
 
-
+// TODO (mac): update function names to accurately reflect that they
+// are imperatives, not fruitful, e.g., AppendOperatorNintr...
 
 double zero_threshold=10e-6;
 namespace u3shell
@@ -54,7 +56,7 @@ namespace u3shell
             }
   }
 
-  void K2intr(int Nmax,u3shell::RelativeRMEsU3ST& K2intr, int A, double coef=1.0, bool moshinsky_convention=false)
+  void k2intr(int Nmax,u3shell::RelativeRMEsU3ST& K2intr, int A, double coef=1.0, bool moshinsky_convention=false)
   {
     u3shell::RelativeStateLabelsU3ST bra,ket;
     int Np, rho_max;
@@ -171,7 +173,7 @@ namespace u3shell
           }
   }
 
-  void R2intr(int Nmax,u3shell::RelativeRMEsU3ST& R2intr, int A, double coef=1.0, bool moshinsky_convention=false)
+  void r2intr(int Nmax,u3shell::RelativeRMEsU3ST& R2intr, int A, double coef=1.0, bool moshinsky_convention=false)
   {
     u3shell::RelativeStateLabelsU3ST bra,ket;
     int Np, rho_max;
@@ -221,7 +223,7 @@ namespace u3shell
   void Tintr(int Nmax,u3shell::RelativeRMEsU3ST& Tintr, int A, double hbar_omega, double coef=1.0, bool moshinsky_convention=false)
   {
     coef*=hbar_omega/(4*(KroneckerDelta(moshinsky_convention,false)));
-    K2intr(Nmax,Tintr, A, coef, moshinsky_convention);
+    k2intr(Nmax,Tintr, A, coef, moshinsky_convention);
   }
 
   void Interaction(int Nmax, int Jmax, int J0, int T0, int g0, std::string& interaction_filename,
@@ -289,53 +291,46 @@ int main(int argc, char **argv)
   {
     ++line_count;
     std::istringstream line_stream(line);
-    ParsingCheck(line_stream,line_count,line);
     
     if(line_count==1)
       {
         line_stream >> hbar_omega;
+        ParsingCheck(line_stream,line_count,line);
         b2=hbarc*hbarc/mc2/hbar_omega;
         std::cout<<"bsqr= "<<b2<<std::endl;
         continue;
       }
 
-    line_stream>> operator_type >> coef;
-    
-    ++line_count;
-    if(operator_type=="INT")       
-      line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
+    line_stream >> operator_type >> coef;
+    ParsingCheck(line_stream,line_count,line);
 
     if(operator_type=="Nintr") 
       u3shell::Nintr(Nmax+2*N1B,Operator, A, coef);
-
-    if(operator_type=="Spin") 
+    else if(operator_type=="Spin") 
       u3shell::Spin(Nmax+2*N1B,Operator, A, coef);
-
-    else if(operator_type=="R2intr")
-      u3shell::R2intr(Nmax+2*N1B,Operator, A, coef*b2/A);
-
-    else if(operator_type=="K2intr")
-      u3shell::K2intr(Nmax+2*N1B,Operator, A, coef/b2);
-
+    else if(operator_type=="r2intr")
+      u3shell::r2intr(Nmax+2*N1B,Operator, A, coef*b2/A);
+    else if(operator_type=="k2intr")
+      u3shell::k2intr(Nmax+2*N1B,Operator, A, coef/b2);
     else if(operator_type=="Lintr")
       u3shell::Lintr(Nmax+2*N1B,Operator, A, coef);
-
     else if(operator_type=="Qintr")
       u3shell::Qintr(Nmax+2*N1B,Operator, A, coef*b2);
-
     else if(operator_type=="Tintr")
       u3shell::Tintr(Nmax+2*N1B,Operator, A, hbar_omega, coef);
-
     else if(operator_type=="INT")
-      Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
-
+      {
+        line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
+        ParsingCheck(line_stream,line_count,line);
+        Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
+      }
     else
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl
                <<"The allowed operator types are:"<<std::endl
-               <<"    Lintr, K2intr, R2intr, Nintr, Qintr, Tintr, INT"<<std::endl;
+               <<"    Lintr, k2intr, r2intr, Nintr, Qintr, Tintr, INT"<<std::endl;
 
-        exit;
+        std::exit(EXIT_FAILURE);
       }
   }
   is.close();

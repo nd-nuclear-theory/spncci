@@ -183,7 +183,7 @@ RunParameters::RunParameters()
   relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 
   // many-body problem
-  observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat"});
+  observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat","r2intr_hw20.0_Nmax02_u3st.dat"});
   num_observables = observable_filenames.size();
   J_values = std::vector<HalfInt>({0,1});
   num_eigenvalues = 10;
@@ -438,11 +438,14 @@ int main(int argc, char **argv)
   std::vector<u3shell::RelativeRMEsU3ST> observable_relative_rmes;
   observable_relative_rmes.resize(run_parameters.num_observables);
   for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    u3shell::ReadRelativeOperatorU3ST(
-        run_parameters.observable_filenames[observable_index],
-        observable_relative_rmes[observable_index]
-      );
-
+    {
+      std::cout << fmt::format("  Reading {}...",run_parameters.observable_filenames[observable_index])
+                << std::endl;
+      u3shell::ReadRelativeOperatorU3ST(
+          run_parameters.observable_filenames[observable_index],
+          observable_relative_rmes[observable_index]
+        );
+    }
   ////////////////////////////////////////////////////////////////
   // contract and regroup observables
   ////////////////////////////////////////////////////////////////
@@ -618,27 +621,107 @@ int main(int argc, char **argv)
             run_parameters.eigensolver_num_convergence
           );
       eigensolver.init();
-      int eigensolver_nconv = eigensolver.compute(
+      int converged_eigenvectors = eigensolver.compute(
           run_parameters.eigensolver_max_iterations,
           run_parameters.eigensolver_tolerance,
           Spectra::SMALLEST_ALGE  // sorting rule
         );
       int eigensolver_status = eigensolver.info();
-      std::cout << fmt::format("  Eigensolver reports: nconv {} status {}",eigensolver_nconv,eigensolver_status)
-                << std::endl;
+      std::cout
+        << fmt::format("  Eigensolver reports: eigenvectors {} status {}",converged_eigenvectors,eigensolver_status)
+        << std::endl;
+      assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
+      assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
 
       // save eigenresults
-      
       eigenvalues[J] = eigensolver.eigenvalues();
       eigenvectors[J] = eigensolver.eigenvectors();
       std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
                 << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
                 << std::endl;
+
+      // check eigenvector norms
+      Eigen::VectorXd eigenvector_norms(eigenvectors[J].cols());
+      for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+        {
+          eigenvector_norms(eigenvector_index) = eigenvectors[J].col(eigenvector_index).norm();
+          const double norm_tolerance=1e-8;
+          assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
+        }
+      if (false)
+        {
+          std::cout << fmt::format("  Norms (J={}):",J) << std::endl
+                    << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")
+                    << std::endl;
+        }
+
+      // normalize eigenvectors -- redundant with Spectra eigensolver
+      for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+        eigenvectors[J].col(eigenvector_index).normalize();
+
+      // diagnostics
+      if (false)
+        {
+          std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
+                    << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
+                    << std::endl;
+        }
     }
 
   
   // timing stop
   timer_eigenproblem.Stop();
   std::cout << fmt::format("(Task time: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
+
+  // observable expectation values (assumes J0=0)
+  std::vector<std::map<HalfInt,Eigen::VectorXd>> observable_expectations;  // map: observable -> J -> eigenvalues
+  observable_expectations.resize(run_parameters.num_observables);
+  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+    for (const HalfInt J : run_parameters.J_values)
+      {
+        const int converged_eigenvectors = eigenvalues[J].size();
+        const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
+        observable_expectations[observable_index][J].resize(converged_eigenvectors);
+        for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+          {
+            const Eigen::VectorXd eigenvector = eigenvectors[J].col(eigenvector_index);
+            double expectation_value = eigenvector.dot(observable_matrix*eigenvector);
+            observable_expectations[observable_index][J][eigenvector_index] = expectation_value;
+          }
+      }
+
+  // eigenvalue output
+
+  for (const HalfInt J : run_parameters.J_values)
+    {
+
+      // eigenvalues
+      std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
+                << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
+                << std::endl;
+
+      // expectations
+      for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+        {
+          std::cout
+            << fmt::format(
+                "  Operator {} ({}) expectations (J={}):",
+                observable_index,
+                run_parameters.observable_filenames[observable_index],
+                J
+              )
+            << std::endl
+            << mcutils::FormatMatrix(observable_expectations[observable_index][J],"8.5f","    ")
+            << std::endl;
+        }
+
+      // diagnostics
+      if (false)
+        {
+          std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
+                    << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
+                    << std::endl;
+        }
+    }
 
 }

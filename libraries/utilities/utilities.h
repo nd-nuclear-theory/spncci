@@ -13,6 +13,13 @@
 
 ****************************************************************/
 
+// TODO (mac) -- eliminate ONLYIF and sqr  in favor of copies in mcutils::arithmetic
+// TODO (mac) -- eliminate paritysign in favor of version in am
+// TODO (mac) -- if you need NormalizeMatrix, replace with version using Eigen .col(i).normalize()
+// TODO (mac) -- eliminate CheckIfZeroMatrix in favor of mcutils/eigen
+// TODO (mac) -- ZeroOutMatrix neither "zeros out" nor acts on a "matrix"; also eliminate in favor
+//   of using mcutils/eigen ChopMatrix
+
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 #include "gsl/gsl_sf.h"
