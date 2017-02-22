@@ -232,16 +232,18 @@ namespace u3shell
       basis::MatrixVector sector_vector;
       u3shell::GetInteractionMatrix(interaction_filename, relative_lsjt_space,relative_lsjt_sectors,sector_vector);
 
-      //upcouple to LST
-      std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> Interaction_nlst;
-      u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,Interaction_nlst);
 
-      // Upcouple to U(3) level
-      u3shell::UpcouplingU3ST(Interaction_nlst, T0, Nmax, Interaction_u3st);
+      u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector, J0, g0, T0,Nmax,Interaction_u3st);
+    //   //upcouple to LST
+    //   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> Interaction_nlst;
+    //   u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,Interaction_nlst);
 
-      // Apply coefficient to interaction
-      for(auto it=Interaction_u3st.begin(); it!=Interaction_u3st.end(); ++it)
-        Interaction_u3st[it->first]*=coef;
+    //   // Upcouple to U(3) level
+    //   u3shell::UpcouplingU3ST(Interaction_nlst, T0, Nmax, Interaction_u3st);
+
+    //   // Apply coefficient to interaction
+    //   for(auto it=Interaction_u3st.begin(); it!=Interaction_u3st.end(); ++it)
+    //     Interaction_u3st[it->first]*=coef;
     }
 
 } // end namespace
