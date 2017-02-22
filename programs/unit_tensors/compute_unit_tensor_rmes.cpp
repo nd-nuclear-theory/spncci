@@ -770,13 +770,13 @@ int main(int argc, char **argv)
   // // Getting interaction
   // //////////////////////////////////////////////////////////////////////////////////////////
   // //TODO make input 
-  std::string interaction_file="JISP16_u3st.dat";
+  // std::string interaction_file="JISP16_u3st.dat";
   // std::string interaction_file= "K2intr_u3st.dat";
 
   // std::string interaction_file="Tintr_hw20.0_Nmax10_u3st.dat";
   // std::string interaction_file="r2intr_hw20.0_Nmax02_u3st.dat";
   // std::string interaction_file="spin_hw20.0_Nmax04_u3st.dat";
-  // std::string interaction_file="Hamiltonian_hw20.0_Nmax04_u3st.dat";
+  std::string interaction_file="Hamiltonian_hw20.0_Nmax04_u3st.dat";
   // std::string interaction_file="Nintr_u3st.dat";
 
   // std::string interaction_file="trel_SU3_Nmax06.dat";
@@ -865,7 +865,7 @@ int main(int argc, char **argv)
     }
 
 
-  HalfInt J=0;
+  HalfInt J=1;
   J0=0;
   spncci::SpaceLS space_LS(u3s_space,J);
   std::cout<<"target_space size "<<space_LS.size()<<std::endl;
