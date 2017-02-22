@@ -229,7 +229,7 @@ int main(int argc, char **argv)
     {
       std::cout<<"Regroup test"<<std::endl;
       // build space
-      spncci::SpaceU3S space(spncci_space);
+      spncci::SpaceU3S space(baby_spncci_space);
       std::cout<<"irreps "<< spncci_space.size()<<std::endl;
       for(auto irrep :spncci_space)
         std::cout<<irrep.Str()<<std::endl;
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
   if(false)
   {
     std::cout<<"U3S Sectors "<<std::endl;
-    spncci::SpaceU3S space(spncci_space);
+    spncci::SpaceU3S space(baby_spncci_space);
     // spncci::SectorLabelsU3SCache u3s_sectors;
     // To test sector construction
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_tensor_labels;
@@ -311,7 +311,7 @@ int main(int argc, char **argv)
   if (true)
     {
       std::cout<<"Regroup LS test"<<std::endl;
-      spncci::SpaceU3S space(spncci_space);
+      spncci::SpaceU3S space(baby_spncci_space);
       // build space
       spncci::SpaceLS space_ls(space,0);
       // dump subspace contents 
