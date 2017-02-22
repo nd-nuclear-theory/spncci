@@ -861,7 +861,7 @@ int main(int argc, char **argv)
   // for(auto tensor_labels : tensor_labels_LS)
   //   std::cout<<"tensor "<<tensor_labels.first<<"  "<<tensor_labels.second<<std::endl;
 
-  GetSectorsLS(space_LS, tensor_labels_LS,sector_labels_LS);
+  spncci::GetSectorsLS(space_LS,space_LS, tensor_labels_LS,sector_labels_LS);
 
   // std::cout<<"sectors"<<std::endl;
   // for(auto sector :target_sector_labels_LS)
@@ -870,7 +870,7 @@ int main(int argc, char **argv)
   spncci::ContractAndRegroupLSJ(
     J,J0,J,
     u3s_space,u3s_sector_vector,matrix_vector,
-    space_LS,sector_labels_LS,sectors_LS
+    space_LS,space_LS,sector_labels_LS,sectors_LS
   );
 
   // ZeroOutMatrix(sectors_LS,1e-4);

@@ -93,7 +93,6 @@ namespace spncci
     std::vector<OperatorLabelsLS>& tensor_labels
     )
   {
-    std::cout<<"generate operators labels ls"<<std::endl;
     int L0_min=std::max(int(J0-2),0);
     for(int L0=L0_min; L0<=int(J0+2); L0++)
       for(int S0=0; S0<=2; S0++)
@@ -127,14 +126,14 @@ namespace spncci
 
   void 
   ContractAndRegroupLSJ(
-    const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
-    spncci::SpaceU3S& u3s_space,
-    const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    const spncci::SpaceLS& target_space_bra,
-    const spncci::SpaceLS& target_space_ket,
-    std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-    basis::MatrixVector& target_sectors
+        const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
+        const spncci::SpaceU3S& u3s_space,
+        const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
+        const basis::MatrixVector& source_sectors,
+        const spncci::SpaceLS& target_space_bra,
+        const spncci::SpaceLS& target_space_ket,
+        const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
+        basis::MatrixVector& target_sectors
     )
   {
     // For a given Jp,J0,J sector
@@ -171,7 +170,7 @@ namespace spncci
         for(int s=0; s<source_sector_labels.size(); ++s)
           {
             const spncci::SectorLabelsU3S& source_labels=source_sector_labels[s];
-            Eigen::MatrixXd& source_sector=source_sectors[s];
+            const Eigen::MatrixXd& source_sector=source_sectors.at(s);
 
             if(L0!=source_labels.L0())
               continue;

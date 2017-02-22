@@ -63,27 +63,27 @@ namespace spncci
 
   class SubspaceLS
     : public basis::BaseSubspace< std::pair<int,HalfInt>,std::tuple<int> >
-  // Subspace class for two-body states of given SO(3)xS.
-  //
-  {
-    public:
+    // Subspace class for two-body states of given SO(3)xS.
+    //
+    {
+      public:
 
-    // constructors
+      // constructors
 
-    SubspaceLS() {};
-    // default constructor -- provided since required for certain
-    // purposes by STL container classes (e.g., std::vector::resize)
+      SubspaceLS() {};
+      // default constructor -- provided since required for certain
+      // purposes by STL container classes (e.g., std::vector::resize)
 
-    SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space);
+      SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space);
 
-    // accessors
-    HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
-    int L() const{return std::get<0>(GetSubspaceLabels());}
-    int sector_dim() const {return sector_size_;}
-    // diagnostic output
-    std::string Str() const;
+      // accessors
+      HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
+      int L() const{return std::get<0>(GetSubspaceLabels());}
+      int sector_dim() const {return sector_size_;}
+      // diagnostic output
+      std::string Str() const;
 
-    int sector_index(int state_index) const
+      int sector_index(int state_index) const
       {
         int sector_index=-1;
         for(auto it=sector_index_lookup_.begin(); it!=sector_index_lookup_.end(); ++it)
@@ -98,11 +98,11 @@ namespace spncci
         return sector_index;
       }
 
-    private:
+      private:
       int sector_size_;
       // Look up table to find starting index of state in 
       std::map<int,int> sector_index_lookup_;
-  };
+    };
   ////////////////////////////////////////////////////////////////
   // state
   ////////////////////////////////////////////////////////////////
@@ -112,20 +112,20 @@ namespace spncci
   // State class for two-body states of given U(3)xSxT.
   {
     
-  public:
+    public:
     // pass-through constructors
   
-  StateLS(const SubspaceType& subspace, int index)
-    // Construct state by index.
-    : basis::BaseState<SubspaceLS>(subspace, index) {}
+    StateLS(const SubspaceType& subspace, int index)
+      // Construct state by index.
+      : basis::BaseState<SubspaceLS>(subspace, index) {}
 
-  StateLS(
-    const SubspaceType& subspace,
-    const typename SubspaceType::StateLabelsType& state_labels
-    )
-    // Construct state by reverse lookup on labels.
-    : basis::BaseState<SubspaceLS> (subspace, state_labels) 
-    {}
+    StateLS(
+        const SubspaceType& subspace,
+        const typename SubspaceType::StateLabelsType& state_labels
+      )
+      // Construct state by reverse lookup on labels.
+      : basis::BaseState<SubspaceLS> (subspace, state_labels) 
+      {}
 
     // pass-through accessors
     HalfInt S() const {return Subspace().S();}
@@ -140,7 +140,7 @@ namespace spncci
   // Space class for two-body states of given U(3)xS.
   {
     
-  public:
+    public:
 
     // constructor
 
@@ -153,7 +153,7 @@ namespace spncci
     // diagnostic output
     std::string Str() const;
 
-  private:
+    private:
     int dimension_;
   };
 
@@ -162,27 +162,27 @@ namespace spncci
   // Sector
   // Enumerates sectors LS
   ////////////////////////////////////////////////////////////////
-  typedef std::pair<int,int> OperatorLabelsLS; 
+  typedef std::pair<int,int> OperatorLabelsLS;  // (L0,S0)
 
   class SectorLabelsLS
   {
-  public:
-// Need N0,x0,S0,kappa0,L0, rho0
+    public:
+    // Need N0,x0,S0,kappa0,L0, rho0
     typedef std::tuple<int,int,int,HalfInt> KeyType;
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
     //default constructor
     inline SectorLabelsLS()
-    :bra_index_(-1), ket_index_(-1){}
+      :bra_index_(-1), ket_index_(-1){}
 
     // construction from labels
     inline 
-    SectorLabelsLS(
-      int bra_index, int ket_index, 
-      const OperatorLabelsLS& tensor_labels
-      )
-    : bra_index_( bra_index), ket_index_(ket_index),tensor_labels_(tensor_labels)
+      SectorLabelsLS(
+          int bra_index, int ket_index, 
+          const OperatorLabelsLS& tensor_labels
+        )
+      : bra_index_( bra_index), ket_index_(ket_index),tensor_labels_(tensor_labels)
     {}
 
     ////////////////////////////////////////////////////////////////
@@ -224,22 +224,22 @@ namespace spncci
 
     std::string Str() const;
 
-  private:
+    private:
     int bra_index_, ket_index_, L0_;
     OperatorLabelsLS tensor_labels_;
   };
 
 
   void GenerateOperatorLabelsLS(const HalfInt& J0, std::vector<OperatorLabelsLS>& tensor_labels);
-  // Generate a list of two-body tensor labels give the triangluar restriction on L0,S0, and J0
+  // Generate a list of two-body tensor labels given the triangular restriction on L0,S0, and J0
   // and the two-body limit on S0<=2.
 
 
   void GetSectorsLS(
-    const spncci::SpaceLS& space_bra, 
-    const spncci::SpaceLS& space_ket,
-    const std::vector<OperatorLabelsLS>& tensor_labels,
-    std::vector<spncci::SectorLabelsLS>& sector_labels
+      const spncci::SpaceLS& space_bra, 
+      const spncci::SpaceLS& space_ket,
+      const std::vector<OperatorLabelsLS>& tensor_labels,
+      std::vector<spncci::SectorLabelsLS>& sector_labels
     );
   // Generates a cache of SectorLabelsU3S from operator labels given in 
   // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
@@ -251,68 +251,29 @@ namespace spncci
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values
 
-
-  inline void GetSectorsLS(
-    const spncci::SpaceLS& space, 
-    const std::vector<OperatorLabelsLS>& tensor_labels,
-    std::vector<spncci::SectorLabelsLS>& sector_labels
-    )
-  {
-    GetSectorsLS(space, space,tensor_labels, sector_labels);
-  }
-  // Generates a cache of SectorLabelsU3S from operator labels given in 
-  // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
-  // by (N0,x0,S0,kappa0,L0). 
-  // 
-  // space (input) : space for both bra and ket used to define sectors
-  // relative_tensor_rmes (input) : container of rme labels keys and rme values
-  //                                RelativeRMEsU3ST defined in upcoupling.h
-  // u3_sectors (output) : container with SectorLabelsU3S keys and index values
-
-
   void 
- ContractAndRegroupLSJ(
-    const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
-    spncci::SpaceU3S& u3s_space,
-    const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    const spncci::SpaceLS& target_space_bra,
-    const spncci::SpaceLS& target_space_ket,
-    std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-    basis::MatrixVector& target_sectors
-    );
-
-  // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
-  // LS reduced matrix elements 
-
-
- inline void 
- ContractAndRegroupLSJ(
-    const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
-    spncci::SpaceU3S& u3s_space,
-    const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    const spncci::SpaceLS& target_space,
-    std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-    basis::MatrixVector& target_sectors
-    )
-  {
-    ContractAndRegroupLSJ(Jp,J0,J,
-      u3s_space,source_sector_labels,source_sectors,
-      target_space,target_space,target_sector_labels,target_sectors
+    ContractAndRegroupLSJ(
+        const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
+        const spncci::SpaceU3S& u3s_space,
+        const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
+        const basis::MatrixVector& source_sectors,
+        const spncci::SpaceLS& target_space_bra,
+        const spncci::SpaceLS& target_space_ket,
+        const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
+        basis::MatrixVector& target_sectors
       );
-  }
 
   // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
   // LS reduced matrix elements 
 
   void
-  ConstructOperatorMatrix(
-    const spncci::SpaceLS& source_space,
-    std::vector<spncci::SectorLabelsLS>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    Eigen::MatrixXd& operator_matrix
-    );
+    ConstructOperatorMatrix(
+        const spncci::SpaceLS& source_space,
+        std::vector<spncci::SectorLabelsLS>& source_sector_labels,
+        basis::MatrixVector& source_sectors,
+        Eigen::MatrixXd& operator_matrix
+      );
+  // TODO (mac): generalize to case where bra_J (and bra_space_ls) != ket_J (and ket_space_ls)
 
 }  // namespace
 
