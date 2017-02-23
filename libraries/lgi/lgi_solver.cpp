@@ -6,6 +6,7 @@
 
 ****************************************************************/
 #include <fstream>
+#include <omp.h>
 
 #include "cppformat/format.h"
 #include "lgi/lgi_solver.h"
@@ -105,8 +106,8 @@ namespace lgi
         const basis::MatrixVector& Ncm_matrices,
         HalfInt Nsigma_0,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions,
-        bool keep_empty_subspaces
+        basis::MatrixVector& lgi_expansions
+        // bool keep_empty_subspaces
       )
   {
     double threshold=10e-4;
@@ -118,22 +119,24 @@ namespace lgi
         BrelNcm_matrices
       );
 
+    lgi_expansions.resize(BrelNcm_matrices.size());
+    lgi_families.resize(BrelNcm_matrices.size());
+
+    #pragma omp parallel for schedule(runtime)
     for(int i=0; i<BrelNcm_matrices.size();++i)
       {
         Eigen::MatrixXd null_vectors;
         lgi::FindNullSpaceSVD(BrelNcm_matrices[i],null_vectors,threshold);
         int nullity = null_vectors.cols();
 
-        if ((nullity>0) || keep_empty_subspaces)
-          {
-            // save LGI labels, tagged by nullity as multiplicity
-            u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
-            int Nex=int(labels.N()-Nsigma_0);
-            lgi_families.emplace_back(lgi::LGI(labels,Nex),nullity);
+        // save LGI labels, tagged by nullity as multiplicity
+        u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+        int Nex=int(labels.N()-Nsigma_0);
+        lgi_families[i]=MultiplicityTagged<lgi::LGI>(lgi::LGI(labels,Nex),nullity);
+        // .emplace_back(lgi::LGI(labels,Nex),nullity);
 
-            // save expansions for these LGIs
-            lgi_expansions.push_back(null_vectors);
-          }
+        // save expansions for these LGIs
+        lgi_expansions[i]=null_vectors;
       }
 
   }
@@ -148,8 +151,8 @@ namespace lgi
         std::ifstream& is_Brel,
         std::ifstream& is_Nrel,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions,
-        bool keep_empty_subspaces
+        basis::MatrixVector& lgi_expansions
+        // bool keep_empty_subspaces
       )
   // DEPRECATED
   {
@@ -182,8 +185,7 @@ namespace lgi
         lsu3shell_space, 
         Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
         Nsigma_0,
-        lgi_families,lgi_expansions,
-        keep_empty_subspaces
+        lgi_families,lgi_expansions
       );
 
   }
@@ -198,20 +200,17 @@ namespace lgi
   {
     // for each sector, look up bra and ket subspaces 
     spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
+    
+    #pragma omp parallel for schedule(runtime)
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
         int i=sectors.GetSector(s).bra_subspace_index();
         int j=sectors.GetSector(s).ket_subspace_index();
-        // std::cout<<"braket "<<i<<"  "<<j<<std::endl;
+
         // get transformation matrices and transpose bra transformation matrix
         const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
         const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
-        // std::cout<<"bra "<<std::endl;
-        // std::cout<<bra.rows()<<"  "<<bra.cols()<<std::endl;
-        // std::cout<<"ket"<<std::endl;
-        // std::cout<<ket.rows()<<"  "<<ket.cols()<<std::endl;
-        // std::cout<<"operator "<<std::endl;
-        // std::cout<<lsu3shell_operator_matrices[s].rows()<<"  "<<lsu3shell_operator_matrices[s].cols()<<std::endl;
+
         // transform operator to spncci basis
         spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
       }

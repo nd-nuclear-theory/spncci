@@ -56,7 +56,7 @@ CXXFLAGS += -std=c++11 -fopenmp
 # avoid gcc 5 warnings on Eigen library
 CXXFLAGS += -Wno-deprecated-declarations
 # avoid gcc 6 warnings on Eigen library
-## CXXFLAGS += -Wno-ignored-attributes
+CXXFLAGS += -Wno-ignored-attributes
 
 ################################################################
 # FORTRAN compiler-specific configuration

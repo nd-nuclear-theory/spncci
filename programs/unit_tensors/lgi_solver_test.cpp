@@ -164,9 +164,8 @@ int main(int argc, char **argv)
   std::ifstream is_brel2(brel_filename.c_str());
 
   lgi::MultiplicityTaggedLGIVector lgi_vector;
-  bool keep_empty_subspaces=true;
   lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel2,
-  	is_nrel2,lgi_vector,lgi_expansion_matrix_vector, keep_empty_subspaces);
+  	is_nrel2,lgi_vector,lgi_expansion_matrix_vector);
   
   is_nrel.close();
   is_brel.close();

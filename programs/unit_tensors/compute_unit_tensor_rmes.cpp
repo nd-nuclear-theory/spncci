@@ -380,7 +380,7 @@ int main(int argc, char **argv)
   std::ifstream is_nrel(nrel_filename.c_str());
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   basis::MatrixVector lgi_expansion_matrix_vector;
-  lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel,is_nrel,lgi_vector,lgi_expansion_matrix_vector,true);
+  lgi::GenerateLGIExpansion(A,Nsigma_0,basis_table,space, is_brel,is_nrel,lgi_vector,lgi_expansion_matrix_vector);
   is_brel.close();
   is_nrel.close();
 
@@ -690,86 +690,86 @@ int main(int argc, char **argv)
   std::cout<<"exiting the recurrence"<<std::endl;
   // std::cout<<"traversing the map"<<std::endl;
   // std::cout<<"cache size "<<unit_tensor_sector_cache.size()<<std::endl;
-  // for(auto it=unit_tensor_sector_cache_explicit.begin(); it!=unit_tensor_sector_cache_explicit.end(); ++it)
-  //   {
-  //     // if(it->first.first!=3 || it->first.second!=0)
-  //     //   continue;
-  //     // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-  //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
-  //       {
-  //         if(it2->first.first!=0)
-  //           continue;
-  //         if(it2->first.second!=2)
-  //           continue;
-  //         // std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-  //         auto& explicit_cache=unit_tensor_sector_cache[it->first][it2->first];
-  //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
-  //           {
-  //             assert(assert_trap);
+  for(auto it=unit_tensor_sector_cache_explicit.begin(); it!=unit_tensor_sector_cache_explicit.end(); ++it)
+    {
+      // if(it->first.first!=3 || it->first.second!=0)
+      //   continue;
+      // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+      for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+        {
+          if(it2->first.first!=0)
+            continue;
+          if(it2->first.second!=2)
+            continue;
+          // std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+          auto& explicit_cache=unit_tensor_sector_cache[it->first][it2->first];
+          for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+            {
+              assert(assert_trap);
 
-  //             int rho0;
-  //             u3shell::RelativeUnitTensorLabelsU3ST tensor;
-  //             std::tie(std::ignore,std::ignore,tensor,rho0)=it3->first.Key();
-  //             // if(not (tensor.x0()==u3::SU3(0,0)))
-  //             //   continue;
+              int rho0;
+              u3shell::RelativeUnitTensorLabelsU3ST tensor;
+              std::tie(std::ignore,std::ignore,tensor,rho0)=it3->first.Key();
+              // if(not (tensor.x0()==u3::SU3(0,0)))
+              //   continue;
 
-  //             // std::cout<<"     "<<it3->first.Str()<<std::endl;
-  //             // std::cout<<"       "<<it3->second<<std::endl;
+              // std::cout<<"     "<<it3->first.Str()<<std::endl;
+              // std::cout<<"       "<<it3->second<<std::endl;
 
-  //             if(explicit_cache.count(it3->first))
-  //             {
-  //               Eigen::MatrixXd& recurrence_matrix=it3->second;
+              if(explicit_cache.count(it3->first))
+              {
+                Eigen::MatrixXd& recurrence_matrix=it3->second;
                 
-  //               Eigen::MatrixXd& explicit_matrix=explicit_cache[it3->first];
-  //               if(not mcutils::IsZero(recurrence_matrix-explicit_matrix,1e-3))
-  //               {
-  //                 u3::U3 omega,omegap;
-  //                 std::tie(omegap,omega,std::ignore, std::ignore)=it3->first.Key();
-  //                 // if((omegap.N()==15)&&(omega.N()==15))
-  //                 //   continue;
-  //                 // // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+                Eigen::MatrixXd& explicit_matrix=explicit_cache[it3->first];
+                if(not mcutils::IsZero(recurrence_matrix-explicit_matrix,1e-3))
+                {
+                  u3::U3 omega,omegap;
+                  std::tie(omegap,omega,std::ignore, std::ignore)=it3->first.Key();
+                  // if((omegap.N()==15)&&(omega.N()==15))
+                  //   continue;
+                  // // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
 
-  //                 // if((it->first.first!=0 )|| (it->first.second!=24))
-  //                 //   continue;
+                  // if((it->first.first!=0 )|| (it->first.second!=24))
+                  //   continue;
 
-  //                 // if((it->first.first!=0 )&& (it->first.second!=0))
-  //                 //   continue;
-  //                 // if((it->first.first!=24 )&& (it->first.second!=24))
-  //                 //   continue;
+                  // if((it->first.first!=0 )&& (it->first.second!=0))
+                  //   continue;
+                  // if((it->first.first!=24 )&& (it->first.second!=24))
+                  //   continue;
 
 
-  //                 std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-  //                 std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-  //                 std::cout<<"     "<<it3->first.Str()<<std::endl;
+                  std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+                  std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+                  std::cout<<"     "<<it3->first.Str()<<std::endl;
 
-  //                 std::cout<<"recurrence"<<std::endl;
-  //                 std::cout<<recurrence_matrix<<std::endl<<std::endl;
-  //                 std::cout<<"explicit"<<std::endl;
-  //                 std::cout<<explicit_matrix<<std::endl<<std::endl;
+                  std::cout<<"recurrence"<<std::endl;
+                  std::cout<<recurrence_matrix<<std::endl<<std::endl;
+                  std::cout<<"explicit"<<std::endl;
+                  std::cout<<explicit_matrix<<std::endl<<std::endl;
                   
-  //                 Eigen::MatrixXd ratios(recurrence_matrix.rows(),recurrence_matrix.cols());
-  //                 for(int i=0; i<recurrence_matrix.rows(); ++i)
-  //                   for(int j=0; j<recurrence_matrix.cols(); ++j)
-  //                     ratios(i,j)=recurrence_matrix(i,j)/explicit_matrix(i,j);
+                  Eigen::MatrixXd ratios(recurrence_matrix.rows(),recurrence_matrix.cols());
+                  for(int i=0; i<recurrence_matrix.rows(); ++i)
+                    for(int j=0; j<recurrence_matrix.cols(); ++j)
+                      ratios(i,j)=recurrence_matrix(i,j)/explicit_matrix(i,j);
                   
-  //                 std::cout<<ratios<<std::endl<<std::endl;
+                  std::cout<<ratios<<std::endl<<std::endl;
 
-  //                 // assert_trap=false;
-  //               }
-  //             }
-  //             else 
-  //             {
-  //               if(mcutils::IsZero(it3->second,1e-3))
-  //                 continue;
-  //               std::cout<<"Explicit sector not found "<<std::endl;
-  //               std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-  //               std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-  //               std::cout<<"     "<<it3->first.Str()<<std::endl;
-  //               std::cout<<"     "<<it3->second<<std::endl<<std::endl;
-  //             }
-  //           }
-  //       }
-  //    }
+                  // assert_trap=false;
+                }
+              }
+              else 
+              {
+                if(mcutils::IsZero(it3->second,1e-3))
+                  continue;
+                std::cout<<"Explicit sector not found "<<std::endl;
+                std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+                std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+                std::cout<<"     "<<it3->first.Str()<<std::endl;
+                std::cout<<"     "<<it3->second<<std::endl<<std::endl;
+              }
+            }
+        }
+     }
 
   //////////////////////////////////////////////////////////////////////////////////////////
   // // Getting interaction

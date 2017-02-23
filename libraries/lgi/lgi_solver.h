@@ -41,8 +41,7 @@ namespace lgi
         std::ifstream& is_Brel,
         std::ifstream& is_Nrel,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions,
-        bool keep_empty_subspaces=false
+        basis::MatrixVector& lgi_expansions
       );
   // DEPRECATED -- now just a wrapper to the preferred version which accepts matrices for Brel and Nrel
 
@@ -55,8 +54,8 @@ namespace lgi
         const basis::MatrixVector& Ncm_matrices,
         HalfInt Nsigma_0,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions,
-        bool keep_empty_subspaces=false
+        basis::MatrixVector& lgi_expansions
+        // bool keep_empty_subspaces=false
       );
   // Generate the LGI Expansion in terms of lsu3shell SU(3)xSU(2)
   // reduced basis states by solving for the null space of the

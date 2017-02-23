@@ -278,13 +278,13 @@ int main(int argc, char **argv)
 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
-  bool keep_zero_sectors=true;
+  // bool keep_zero_sectors=true;
   lgi::GenerateLGIExpansion(
       lsu3shell_space, 
       Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
       run_parameters.Nsigma_0,
-      lgi_families,lgi_expansions,
-      keep_zero_sectors
+      lgi_families,lgi_expansions
+      // keep_zero_sectors
     );
 
   // diagnostics

@@ -284,7 +284,7 @@ int main(int argc, char **argv)
       Ncm_matrices
     );
 
-
+  //Removed keep_empty_subspaces flag set to false.  May need to make changes here to accomodate probable empty sectors. 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
   lgi::GenerateLGIExpansion(
