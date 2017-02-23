@@ -27,7 +27,7 @@ namespace lsu3shell
     int Nmin=(parity==-1)?0:parity;
     int Nstep=(parity==-1)?1:2;
 
-    std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
+    std::string model_space=fmt::format("model_space_{:02d}_{:02d}_Nmax{:02d}.dat",Z,N,Nmax);
     std::ofstream model_stream(model_space);
     // Model space with no restirction on J
     model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;
