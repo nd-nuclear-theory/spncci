@@ -14,6 +14,7 @@
   12/21/16 (aem): Factored out conjugate sector calculation
   2/2/17 (mac): Add typedef UnitTensorMatricesByIrrepFamily.
   2/20/17 (mac): Update argument types on GenerateUnitTensorMatrix.
+  2/23/17 (aem): Add conjugate sector flag to GenerateUnitTensorU3SectorLabels.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_

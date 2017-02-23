@@ -31,6 +31,7 @@
 #include "spncci/unit_tensor.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/branching_u3lsj.h"
+#include "spncci/explicit_construction.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/upcoupling.h"
 
@@ -42,270 +43,270 @@ namespace spncci
   typedef spncci::UnitTensorMatricesByIrrepFamily LGIUnitTensorSectorCache;
 
 
-  void 
-  ConstructSpNCCIBasisExplicit(
-    const spncci::SpNCCISpace& sp_irrep_vector,
-    basis::MatrixVector& lgi_expansion_matrix_vector,
-    const u3shell::SpaceU3SPN& space,
-    const u3shell::SectorsU3SPN& arel_sectors,
-    basis::MatrixVector& Arel_matrices,
-    std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>>& k_matrix_map
-  )
-  {
+  // void 
+  // ConstructSpNCCIBasisExplicit(
+  //   const spncci::SpNCCISpace& sp_irrep_vector,
+  //   basis::MatrixVector& lgi_expansion_matrix_vector,
+  //   const u3shell::SpaceU3SPN& space,
+  //   const u3shell::SectorsU3SPN& arel_sectors,
+  //   basis::MatrixVector& Arel_matrices,
+  //   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>>& k_matrix_map
+  // )
+  // {
 
-    for(int irrep_index=0; irrep_index<sp_irrep_vector.size(); ++irrep_index)
-        {
-          u3shell::U3SPN lgi_labels=sp_irrep_vector[irrep_index];
+  //   for(int irrep_index=0; irrep_index<sp_irrep_vector.size(); ++irrep_index)
+  //       {
+  //         u3shell::U3SPN lgi_labels=sp_irrep_vector[irrep_index];
 
-          const u3::U3& sigma=lgi_labels.U3();
-          Eigen::MatrixXd& lgi_expansion=lgi_expansion_matrix_vector[irrep_index];
+  //         const u3::U3& sigma=lgi_labels.U3();
+  //         Eigen::MatrixXd& lgi_expansion=lgi_expansion_matrix_vector[irrep_index];
 
-          const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[irrep_index];
-          const sp3r::Sp3RSpace& sp_space=sp_irrep.Sp3RSpace();
+  //         const spncci::SpNCCIIrrepFamily& sp_irrep=sp_irrep_vector[irrep_index];
+  //         const sp3r::Sp3RSpace& sp_space=sp_irrep.Sp3RSpace();
 
 
-          // Act A on bra lgi
-          for(int a=0; a<arel_sectors.size(); ++a)
-            {
-              auto& sector=arel_sectors.GetSector(a);
-              int ket_index=sector.ket_subspace_index();
-              u3shell::U3SPN ket_subspace_labels=space.GetSubspace(ket_index).GetSubspaceLabels();
-              u3::U3 omega=ket_subspace_labels.U3();
-              HalfInt S=ket_subspace_labels.S();
+  //         // Act A on bra lgi
+  //         for(int a=0; a<arel_sectors.size(); ++a)
+  //           {
+  //             auto& sector=arel_sectors.GetSector(a);
+  //             int ket_index=sector.ket_subspace_index();
+  //             u3shell::U3SPN ket_subspace_labels=space.GetSubspace(ket_index).GetSubspaceLabels();
+  //             u3::U3 omega=ket_subspace_labels.U3();
+  //             HalfInt S=ket_subspace_labels.S();
               
 
-              if(
-                  (not (omega==sigma))
-                  ||(S!=lgi_labels.S())
-                  ||(ket_subspace_labels.Sp()!=lgi_labels.Sp())
-                  ||(ket_subspace_labels.Sn()!=lgi_labels.Sn())
-                )
-                continue;
+  //             if(
+  //                 (not (omega==sigma))
+  //                 ||(S!=lgi_labels.S())
+  //                 ||(ket_subspace_labels.Sp()!=lgi_labels.Sp())
+  //                 ||(ket_subspace_labels.Sn()!=lgi_labels.Sn())
+  //               )
+  //               continue;
 
 
-              int bra_index=sector.bra_subspace_index();
-              u3shell::U3SPN bra_subspace_labels=space.GetSubspace(bra_index).GetSubspaceLabels();
-              u3::U3 omegap=bra_subspace_labels.U3();
+  //             int bra_index=sector.bra_subspace_index();
+  //             u3shell::U3SPN bra_subspace_labels=space.GetSubspace(bra_index).GetSubspaceLabels();
+  //             u3::U3 omegap=bra_subspace_labels.U3();
 
-              // Check if omegap is in irrep
-              if(not sp_space.ContainsSubspace(omegap))
-              {
-                std::cout<<omegap.Str()<<" is not in irrep "<<sigma.Str()<<std::endl;
-                continue;
-              }
+  //             // Check if omegap is in irrep
+  //             if(not sp_space.ContainsSubspace(omegap))
+  //             {
+  //               std::cout<<omegap.Str()<<" is not in irrep "<<sigma.Str()<<std::endl;
+  //               continue;
+  //             }
 
-              HalfInt Sp=bra_subspace_labels.S();
-              assert(Sp==S);
+  //             HalfInt Sp=bra_subspace_labels.S();
+  //             assert(Sp==S);
 
-              Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[sigma][omegap].inverse();
-              double k_inverse=Kmatrix_inverse(0,0);
+  //             Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[sigma][omegap].inverse();
+  //             double k_inverse=Kmatrix_inverse(0,0);
               
-              Eigen::MatrixXd omega_expansion
-              =ParitySign(u3::ConjugationGrade(omega.SU3())+u3::ConjugationGrade(lgi_labels.U3().SU3()))
-                *k_inverse
-                *Arel_matrices[a]*lgi_expansion;
+  //             Eigen::MatrixXd omega_expansion
+  //             =ParitySign(u3::ConjugationGrade(omega.SU3())+u3::ConjugationGrade(lgi_labels.U3().SU3()))
+  //               *k_inverse
+  //               *Arel_matrices[a]*lgi_expansion;
 
-              std::cout<<fmt::format("{} in irrep {} ",omegap.Str(), lgi_labels.Str())<<std::endl;
-              std::cout<<omega_expansion.transpose()*omega_expansion<<std::endl;
-              // std::cout<<lgi_expansion.transpose()*lgi_expansion<<std::endl;
-              // std::cout<<Arel_matrices[a].transpose()*Arel_matrices[a]<<std::endl;
-              // std::cout<<k_matrix_map[sigma][omegap]*k_matrix_map[sigma][omegap]<<std::endl;
+  //             std::cout<<fmt::format("{} in irrep {} ",omegap.Str(), lgi_labels.Str())<<std::endl;
+  //             std::cout<<omega_expansion.transpose()*omega_expansion<<std::endl;
+  //             // std::cout<<lgi_expansion.transpose()*lgi_expansion<<std::endl;
+  //             // std::cout<<Arel_matrices[a].transpose()*Arel_matrices[a]<<std::endl;
+  //             // std::cout<<k_matrix_map[sigma][omegap]*k_matrix_map[sigma][omegap]<<std::endl;
 
-            }
-        }
-  }
-
-
-  void
-  ComputeUnitTensorSectorsExplicit(
-    const spncci::SpNCCISpace& sp_irrep_vector,
-    basis::MatrixVector& lgi_expansion_matrix_vector,
-    const u3shell::SpaceU3SPN& space,
-    const u3shell::SectorsU3SPN& sectors,
-    const u3shell::SectorsU3SPN& arel_sectors,
-    basis::MatrixVector& Arel_matrices,
-    std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>>& k_matrix_map,
-    const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
-    basis::MatrixVector& lsu3shell_operator_matrices,
-    spncci::LGIUnitTensorSectorCache& unit_tensor_sector_cache_explicit,
-    double zero_threshold
-  )
-  // Compute unit tensor sectors using SpNCCI basis states explicityly constructed in terms of 
-  // lsu3shell states. 
-  //
-  // Arguemnts:
-  //  
-  {
-    // REMOVE 
-    int d=0;
-    // Get operator labels 
-    for(int m=0; m<sp_irrep_vector.size(); ++m)
-      for(int n=0; n<sp_irrep_vector.size(); ++n)
-        {
-          // Get lgi expansion 
-          std::pair<int,int> lgi_pair(m,n);
-          u3shell::U3SPN bra_lgi_labels=sp_irrep_vector[m];
-          u3shell::U3SPN ket_lgi_labels=sp_irrep_vector[n];
-
-          if(not am::AllowedTriangle(ket_lgi_labels.S(),unit_tensor.S0(), bra_lgi_labels.S()))
-            continue;
-
-          const HalfInt& Nsigmap=bra_lgi_labels.N();
-          const HalfInt& Nsigma=ket_lgi_labels.N();
-          Eigen::MatrixXd& bra_lgi_expansion=lgi_expansion_matrix_vector[m];
-          Eigen::MatrixXd& ket_lgi_expansion=lgi_expansion_matrix_vector[n];
-          // Act A on bra lgi
-          for(int s=0; s<sectors.size(); ++s)
-            {
-              auto& sector=sectors.GetSector(s);
-              int bra_index=sector.bra_subspace_index();
-              int ket_index=sector.ket_subspace_index();
-              u3shell::U3SPN ket_subspace_labels=space.GetSubspace(ket_index).GetSubspaceLabels();
-              u3shell::U3SPN bra_subspace_labels=space.GetSubspace(bra_index).GetSubspaceLabels();
-              u3::U3 omega=ket_subspace_labels.U3();
-              u3::U3 omegap=bra_subspace_labels.U3();
-              HalfInt S=ket_subspace_labels.S();
-              HalfInt Sp=bra_subspace_labels.S();
-              // Checking if omegaS and omegapS are contained in irreps in question
-              if(
-                  (omegap.N()<Nsigmap)
-                  ||(Sp!=bra_lgi_labels.S())
-                  ||(bra_subspace_labels.Sp()!=bra_lgi_labels.Sp())
-                  ||(bra_subspace_labels.Sn()!=bra_lgi_labels.Sn())
-                  ||(omega.N()<Nsigma)
-                  ||(ket_subspace_labels.Sp()!=ket_lgi_labels.Sp())
-                  ||(ket_subspace_labels.Sn()!=ket_lgi_labels.Sn())
-                  ||(ket_subspace_labels.S()!=ket_lgi_labels.S())
-                )
-                continue;
-
-              if((omegap.N()==Nsigmap)&&(not (bra_subspace_labels==bra_lgi_labels)))
-                continue;
-
-              if((omega.N()==Nsigma)&&(not (ket_subspace_labels==ket_lgi_labels)))
-                continue;
+  //           }
+  //       }
+  // }
 
 
-              int rho0=sector.multiplicity_index();
-              spncci::UnitTensorU3Sector unit_U3Sector(omegap,omega,unit_tensor,rho0);
-              std::pair<int,int> NnpNn(int(omegap.N()-Nsigmap),int(omega.N()-Nsigma));
+  // void
+  // ComputeUnitTensorSectorsExplicit(
+  //   const spncci::SpNCCISpace& sp_irrep_vector,
+  //   basis::MatrixVector& lgi_expansion_matrix_vector,
+  //   const u3shell::SpaceU3SPN& space,
+  //   const u3shell::SectorsU3SPN& sectors,
+  //   const u3shell::SectorsU3SPN& arel_sectors,
+  //   basis::MatrixVector& Arel_matrices,
+  //   std::unordered_map<u3::U3,vcs::MatrixCache, boost::hash<u3::U3>>& k_matrix_map,
+  //   const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
+  //   basis::MatrixVector& lsu3shell_operator_matrices,
+  //   spncci::LGIUnitTensorSectorCache& unit_tensor_sector_cache_explicit,
+  //   double zero_threshold
+  // )
+  // // Compute unit tensor sectors using SpNCCI basis states explicityly constructed in terms of 
+  // // lsu3shell states. 
+  // //
+  // // Arguemnts:
+  // //  
+  // {
+  //   // REMOVE 
+  //   int d=0;
+  //   // Get operator labels 
+  //   for(int m=0; m<sp_irrep_vector.size(); ++m)
+  //     for(int n=0; n<sp_irrep_vector.size(); ++n)
+  //       {
+  //         // Get lgi expansion 
+  //         std::pair<int,int> lgi_pair(m,n);
+  //         u3shell::U3SPN bra_lgi_labels=sp_irrep_vector[m];
+  //         u3shell::U3SPN ket_lgi_labels=sp_irrep_vector[n];
 
-              Eigen::MatrixXd unit_rmes;
-              Eigen::MatrixXd& operator_matrix=lsu3shell_operator_matrices[s];
+  //         if(not am::AllowedTriangle(ket_lgi_labels.S(),unit_tensor.S0(), bra_lgi_labels.S()))
+  //           continue;
+
+  //         const HalfInt& Nsigmap=bra_lgi_labels.N();
+  //         const HalfInt& Nsigma=ket_lgi_labels.N();
+  //         Eigen::MatrixXd& bra_lgi_expansion=lgi_expansion_matrix_vector[m];
+  //         Eigen::MatrixXd& ket_lgi_expansion=lgi_expansion_matrix_vector[n];
+  //         // Act A on bra lgi
+  //         for(int s=0; s<sectors.size(); ++s)
+  //           {
+  //             auto& sector=sectors.GetSector(s);
+  //             int bra_index=sector.bra_subspace_index();
+  //             int ket_index=sector.ket_subspace_index();
+  //             u3shell::U3SPN ket_subspace_labels=space.GetSubspace(ket_index).GetSubspaceLabels();
+  //             u3shell::U3SPN bra_subspace_labels=space.GetSubspace(bra_index).GetSubspaceLabels();
+  //             u3::U3 omega=ket_subspace_labels.U3();
+  //             u3::U3 omegap=bra_subspace_labels.U3();
+  //             HalfInt S=ket_subspace_labels.S();
+  //             HalfInt Sp=bra_subspace_labels.S();
+  //             // Checking if omegaS and omegapS are contained in irreps in question
+  //             if(
+  //                 (omegap.N()<Nsigmap)
+  //                 ||(Sp!=bra_lgi_labels.S())
+  //                 ||(bra_subspace_labels.Sp()!=bra_lgi_labels.Sp())
+  //                 ||(bra_subspace_labels.Sn()!=bra_lgi_labels.Sn())
+  //                 ||(omega.N()<Nsigma)
+  //                 ||(ket_subspace_labels.Sp()!=ket_lgi_labels.Sp())
+  //                 ||(ket_subspace_labels.Sn()!=ket_lgi_labels.Sn())
+  //                 ||(ket_subspace_labels.S()!=ket_lgi_labels.S())
+  //               )
+  //               continue;
+
+  //             if((omegap.N()==Nsigmap)&&(not (bra_subspace_labels==bra_lgi_labels)))
+  //               continue;
+
+  //             if((omega.N()==Nsigma)&&(not (ket_subspace_labels==ket_lgi_labels)))
+  //               continue;
+
+
+  //             int rho0=sector.multiplicity_index();
+  //             spncci::UnitTensorU3Sector unit_U3Sector(omegap,omega,unit_tensor,rho0);
+  //             std::pair<int,int> NnpNn(int(omegap.N()-Nsigmap),int(omega.N()-Nsigma));
+
+  //             Eigen::MatrixXd unit_rmes;
+  //             Eigen::MatrixXd& operator_matrix=lsu3shell_operator_matrices[s];
               
-              // Act A on ket LGI
-              if(Nsigmap==(Nsigma+unit_tensor.N0()+2))
-                {
+  //             // Act A on ket LGI
+  //             if(Nsigmap==(Nsigma+unit_tensor.N0()+2))
+  //               {
                   
-                  int arel_index=arel_sectors.LookUpSectorIndex(ket_index,n,1);
-                  // Check if there is a valid arel sector that will yield the omegap
-                  // subspace
-                  if(arel_index==-1)
-                    if(u3::OuterMultiplicity(ket_lgi_labels.U3().SU3(),u3::SU3(2,0),omega.SU3()))
-                      {
-                        // std::cout<<unit_tensor.Str()<<std::endl;
-                        // std::cout<<bra_lgi_labels.Str()<<"  "<<omegap.Str()<<Sp<<"  "<<ket_lgi_labels.Str()<<"  "<<omega.Str()
-                        //   <<S<<"  "<<arel_index<<std::endl;
-                        // std::cout<<ket_index<<"  "<<n<<std::endl;
-                      }
-                  if(arel_index!=-1)
-                    {
-                      // std::cout<<"hi"<<std::endl;
-                      Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[ket_lgi_labels.U3()][omega].inverse();
-                      double k_inverse=Kmatrix_inverse(0,0);
-                      Eigen::MatrixXd omega_expansion
-                      =ParitySign(u3::ConjugationGrade(omega.SU3())+u3::ConjugationGrade(ket_lgi_labels.U3().SU3()))
-                        *k_inverse*Arel_matrices[arel_index]*ket_lgi_expansion;
-                      // std::cout<<k_inverse
-                      // <<std::endl<<std::endl
-                      // <<Arel_matrices[arel_index]<<std::endl<<std::endl<<ket_lgi_expansion<<std::endl;
-                      // std::cout<<"operator"<<std::endl;
-                      // std::cout<<operator_matrix<<std::endl;
-                      unit_rmes
-                        =bra_lgi_expansion.transpose()*operator_matrix*omega_expansion;
-                      // std::cout<<"unit_rmes"<<std::endl<<unit_rmes<<std::endl<<std::endl;                    
-                    }
-                }
-              // Act A on both lgi
-              if(Nsigmap==(Nsigma+unit_tensor.N0()))
-                {
+  //                 int arel_index=arel_sectors.LookUpSectorIndex(ket_index,n,1);
+  //                 // Check if there is a valid arel sector that will yield the omegap
+  //                 // subspace
+  //                 if(arel_index==-1)
+  //                   if(u3::OuterMultiplicity(ket_lgi_labels.U3().SU3(),u3::SU3(2,0),omega.SU3()))
+  //                     {
+  //                       // std::cout<<unit_tensor.Str()<<std::endl;
+  //                       // std::cout<<bra_lgi_labels.Str()<<"  "<<omegap.Str()<<Sp<<"  "<<ket_lgi_labels.Str()<<"  "<<omega.Str()
+  //                       //   <<S<<"  "<<arel_index<<std::endl;
+  //                       // std::cout<<ket_index<<"  "<<n<<std::endl;
+  //                     }
+  //                 if(arel_index!=-1)
+  //                   {
+  //                     // std::cout<<"hi"<<std::endl;
+  //                     Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[ket_lgi_labels.U3()][omega].inverse();
+  //                     double k_inverse=Kmatrix_inverse(0,0);
+  //                     Eigen::MatrixXd omega_expansion
+  //                     =ParitySign(u3::ConjugationGrade(omega.SU3())+u3::ConjugationGrade(ket_lgi_labels.U3().SU3()))
+  //                       *k_inverse*Arel_matrices[arel_index]*ket_lgi_expansion;
+  //                     // std::cout<<k_inverse
+  //                     // <<std::endl<<std::endl
+  //                     // <<Arel_matrices[arel_index]<<std::endl<<std::endl<<ket_lgi_expansion<<std::endl;
+  //                     // std::cout<<"operator"<<std::endl;
+  //                     // std::cout<<operator_matrix<<std::endl;
+  //                     unit_rmes
+  //                       =bra_lgi_expansion.transpose()*operator_matrix*omega_expansion;
+  //                     // std::cout<<"unit_rmes"<<std::endl<<unit_rmes<<std::endl<<std::endl;                    
+  //                   }
+  //               }
+  //             // Act A on both lgi
+  //             if(Nsigmap==(Nsigma+unit_tensor.N0()))
+  //               {
 
-                  int arel_index_bra=arel_sectors.LookUpSectorIndex(bra_index,m,1);
-                  int arel_index_ket=arel_sectors.LookUpSectorIndex(ket_index,n,1);
+  //                 int arel_index_bra=arel_sectors.LookUpSectorIndex(bra_index,m,1);
+  //                 int arel_index_ket=arel_sectors.LookUpSectorIndex(ket_index,n,1);
     
-                  // if((arel_index_bra==-1)&&(arel_index_ket==-1))
-                  //   if(u3::OuterMultiplicity(ket_lgi_labels.U3().SU3(),u3::SU3(2,0),omega.SU3()))
-                  //     if(u3::OuterMultiplicity(bra_lgi_labels.U3().SU3(),u3::SU3(2,0),omegap.SU3()))
-                  //       {
-                  //         std::cout<<unit_tensor.Str()<<std::endl;
-                  //         std::cout<<bra_lgi_labels.Str()<<"  "<<omegap.Str()<<Sp<<"  "<<ket_lgi_labels.Str()
-                  //         <<"  "<<omega.Str()<<S<<"  "<<arel_index_bra<<"  "<<arel_index_ket<<std::endl;
-                  //         std::cout<<bra_index<<"   "<<m<<"  "<<ket_index<<"  "<<n<<std::endl;
-                  //       }
+  //                 // if((arel_index_bra==-1)&&(arel_index_ket==-1))
+  //                 //   if(u3::OuterMultiplicity(ket_lgi_labels.U3().SU3(),u3::SU3(2,0),omega.SU3()))
+  //                 //     if(u3::OuterMultiplicity(bra_lgi_labels.U3().SU3(),u3::SU3(2,0),omegap.SU3()))
+  //                 //       {
+  //                 //         std::cout<<unit_tensor.Str()<<std::endl;
+  //                 //         std::cout<<bra_lgi_labels.Str()<<"  "<<omegap.Str()<<Sp<<"  "<<ket_lgi_labels.Str()
+  //                 //         <<"  "<<omega.Str()<<S<<"  "<<arel_index_bra<<"  "<<arel_index_ket<<std::endl;
+  //                 //         std::cout<<bra_index<<"   "<<m<<"  "<<ket_index<<"  "<<n<<std::endl;
+  //                 //       }
 
-                  if((arel_index_bra!=-1)&&(arel_index_ket!=-1))
-                    {
-                      Eigen::MatrixXd Kmatrixp_inverse=k_matrix_map[bra_lgi_labels.U3()][omegap].inverse();
-                      double kp_inverse=Kmatrixp_inverse(0,0);
+  //                 if((arel_index_bra!=-1)&&(arel_index_ket!=-1))
+  //                   {
+  //                     Eigen::MatrixXd Kmatrixp_inverse=k_matrix_map[bra_lgi_labels.U3()][omegap].inverse();
+  //                     double kp_inverse=Kmatrixp_inverse(0,0);
 
-                      Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[ket_lgi_labels.U3()][omega].inverse();
-                      double k_inverse=Kmatrix_inverse(0,0);
+  //                     Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[ket_lgi_labels.U3()][omega].inverse();
+  //                     double k_inverse=Kmatrix_inverse(0,0);
 
-                      Eigen::MatrixXd omegap_expansion
-                      =ParitySign(u3::ConjugationGrade(omegap.SU3())+u3::ConjugationGrade(bra_lgi_labels.U3().SU3()))
-                        *kp_inverse*Arel_matrices[arel_index_bra]*bra_lgi_expansion;
-                      Eigen::MatrixXd omega_expansion
-                      =ParitySign(u3::ConjugationGrade(omega.SU3())+u3::ConjugationGrade(ket_lgi_labels.U3().SU3()))
-                        *k_inverse*Arel_matrices[arel_index_ket]*ket_lgi_expansion;
+  //                     Eigen::MatrixXd omegap_expansion
+  //                     =ParitySign(u3::ConjugationGrade(omegap.SU3())+u3::ConjugationGrade(bra_lgi_labels.U3().SU3()))
+  //                       *kp_inverse*Arel_matrices[arel_index_bra]*bra_lgi_expansion;
+  //                     Eigen::MatrixXd omega_expansion
+  //                     =ParitySign(u3::ConjugationGrade(omega.SU3())+u3::ConjugationGrade(ket_lgi_labels.U3().SU3()))
+  //                       *k_inverse*Arel_matrices[arel_index_ket]*ket_lgi_expansion;
                       
 
-                      unit_rmes=omegap_expansion.transpose()*operator_matrix*omega_expansion;
-                      // if(m==0 && n==0 && d<2)
-                      //   {
-                      //     std::cout<<omegap.Str()<<"  "<<unit_tensor.Str()<<"  "<<omega.Str()<<std::endl;
-                      //     std::cout<<"operator"<<std::endl;
-                      //     std::cout<<operator_matrix<<std::endl<<std::endl;
-                      //     std::cout<<"bra "<<std::endl;
-                      //     std::cout<<(Arel_matrices[arel_index_bra]*bra_lgi_expansion).transpose()<<std::endl<<std::endl;
-                      //     std::cout<<"ket "<<std::endl;
-                      //     std::cout<<(Arel_matrices[arel_index_ket]*ket_lgi_expansion)<<std::endl<<std::endl;
-                      //     std::cout<<"rme"<<std::endl;
-                      //     std::cout<<(Arel_matrices[arel_index_bra]*bra_lgi_expansion).transpose()
-                      //     *operator_matrix*Arel_matrices[arel_index_ket]*ket_lgi_expansion
-                      //     <<std::endl<<"  "<<kp_inverse<<"  "<<k_inverse<<std::endl;
-                      //     std::cout<<"unit tensors"<<std::endl;
-                      //     std::cout<<unit_rmes<<std::endl<<std::endl;
-                      //     ++d;
-                      //   }
-                    }
-                }
-              // Act A on ket lgi
-              if(Nsigmap==(Nsigma+unit_tensor.N0()-2))
-                {
+  //                     unit_rmes=omegap_expansion.transpose()*operator_matrix*omega_expansion;
+  //                     // if(m==0 && n==0 && d<2)
+  //                     //   {
+  //                     //     std::cout<<omegap.Str()<<"  "<<unit_tensor.Str()<<"  "<<omega.Str()<<std::endl;
+  //                     //     std::cout<<"operator"<<std::endl;
+  //                     //     std::cout<<operator_matrix<<std::endl<<std::endl;
+  //                     //     std::cout<<"bra "<<std::endl;
+  //                     //     std::cout<<(Arel_matrices[arel_index_bra]*bra_lgi_expansion).transpose()<<std::endl<<std::endl;
+  //                     //     std::cout<<"ket "<<std::endl;
+  //                     //     std::cout<<(Arel_matrices[arel_index_ket]*ket_lgi_expansion)<<std::endl<<std::endl;
+  //                     //     std::cout<<"rme"<<std::endl;
+  //                     //     std::cout<<(Arel_matrices[arel_index_bra]*bra_lgi_expansion).transpose()
+  //                     //     *operator_matrix*Arel_matrices[arel_index_ket]*ket_lgi_expansion
+  //                     //     <<std::endl<<"  "<<kp_inverse<<"  "<<k_inverse<<std::endl;
+  //                     //     std::cout<<"unit tensors"<<std::endl;
+  //                     //     std::cout<<unit_rmes<<std::endl<<std::endl;
+  //                     //     ++d;
+  //                     //   }
+  //                   }
+  //               }
+  //             // Act A on ket lgi
+  //             if(Nsigmap==(Nsigma+unit_tensor.N0()-2))
+  //               {
 
-                  int arel_index=arel_sectors.LookUpSectorIndex(bra_index,m,1);
-                  if(arel_index!=-1)
-                    {
-                      Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[bra_lgi_labels.U3()][omegap].inverse();
-                      double k_inverse=Kmatrix_inverse(0,0);
+  //                 int arel_index=arel_sectors.LookUpSectorIndex(bra_index,m,1);
+  //                 if(arel_index!=-1)
+  //                   {
+  //                     Eigen::MatrixXd Kmatrix_inverse=k_matrix_map[bra_lgi_labels.U3()][omegap].inverse();
+  //                     double k_inverse=Kmatrix_inverse(0,0);
 
-                      Eigen::MatrixXd omegap_expansion
-                      =ParitySign(u3::ConjugationGrade(omegap.SU3())+u3::ConjugationGrade(bra_lgi_labels.U3().SU3()))
-                        *k_inverse*Arel_matrices[arel_index]*bra_lgi_expansion;
+  //                     Eigen::MatrixXd omegap_expansion
+  //                     =ParitySign(u3::ConjugationGrade(omegap.SU3())+u3::ConjugationGrade(bra_lgi_labels.U3().SU3()))
+  //                       *k_inverse*Arel_matrices[arel_index]*bra_lgi_expansion;
 
-                      unit_rmes=omegap_expansion.transpose()
-                                *operator_matrix
-                                *ket_lgi_expansion;
-                    }
-                }
-                  if(not CheckIfZeroMatrix(unit_rmes,zero_threshold))
-                    // If nonzero, save unit tensor rmes to cache
-                    unit_tensor_sector_cache_explicit[lgi_pair][NnpNn][unit_U3Sector]
-                       =unit_rmes;      
-            }
-        }
+  //                     unit_rmes=omegap_expansion.transpose()
+  //                               *operator_matrix
+  //                               *ket_lgi_expansion;
+  //                   }
+  //               }
+  //                 if(not CheckIfZeroMatrix(unit_rmes,zero_threshold))
+  //                   // If nonzero, save unit tensor rmes to cache
+  //                   unit_tensor_sector_cache_explicit[lgi_pair][NnpNn][unit_U3Sector]
+  //                      =unit_rmes;      
+  //           }
+  //       }
 
-  }
+  // }
 }// end namespace
 
 int main(int argc, char **argv)
@@ -443,6 +444,23 @@ int main(int argc, char **argv)
   // Labels of relative unit tensors computed between LGI's
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> LGI_unit_tensor_labels;  
   std::cout<<"Nsigma0_ex_max "<<Nsigma0_ex_max<<std::endl;
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  //Explicit construction of basis
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // std::cout<<"Explicit construction of basis"<<std::endl;
+  // basis::MatrixVector spncci_expansions;
+  // spncci::BabySpNCCISpace baby_spncci_space2(sp_irrep_vector);
+  // ConstructSpNCCIBasisExplicit(space,sp_irrep_vector,lgi_expansion_matrix_vector,
+  //     baby_spncci_space2,k_matrix_map,
+  //     arel_sectors,Arel_matrices,
+  //     spncci_expansions
+  //   );
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  //Transform unit tensors
+  //////////////////////////////////////////////////////////////////////////////////////////
+
   // -1 is all J0, T0=0 and false->don't restrict N0 to positive (temp)
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max+2*N1b, LGI_unit_tensor_labels,J0,T0,false);
 
@@ -476,13 +494,6 @@ int main(int argc, char **argv)
         operator_sectors,lsu3shell_operator_matrices
         );
 
-      // Basis transformation for each sector
-      // std::cout<<"  Transforming"<<std::endl;
-
-      // {
-      //   for(auto matrix : lsu3shell_operator_matrices)
-      //     std::cout<<matrix<<std::endl<<std::endl;
-      // }
         basis::MatrixVector spncci_operator_matrices;
         lgi::TransformOperatorToSpBasis(
           operator_sectors,lgi_expansion_matrix_vector,
@@ -492,17 +503,10 @@ int main(int argc, char **argv)
 
       // explicit basis construction unit tensor matrix elements
       // for comparison with Sp-NCCI
-        // std::cout<<"finished transforming"<<std::endl;
-
-
-
-      // ComputeUnitTensorSectorsExplicit(
-      //   sp_irrep_vector,lgi_expansion_matrix_vector,space, operator_sectors,
-      //   arel_sectors,Arel_matrices,k_matrix_map,unit_tensor,
-      //   lsu3shell_operator_matrices,unit_tensor_sector_cache_explicit,zero_threshold
-      // );
-
-
+      //
+      // spncci::ComputeUnitTensorSectorsExplicit(
+      //   unit_tensor,space,operator_sectors,lsu3shell_operator_matrices,
+      //   baby_spncci_space2,spncci_expansions,unit_tensor_sector_cache_explicit);
 
 
 
@@ -591,26 +595,26 @@ int main(int argc, char **argv)
   // for(int i=0; i<unit_tensor_sector_cache.size(); ++i) 
   //   it_ending++;
 
-  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
-    {
+  // for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
+  //   {
 
-      // //REMOVE
-      // if(it->first.first!=0 || it->first.second!=3)
-      //   continue;
-      // //
+  //     // //REMOVE
+  //     // if(it->first.first!=0 || it->first.second!=3)
+  //     //   continue;
+  //     // //
 
-      std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+  //     std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
 
-      for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
-        {
-          std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-          for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
-            {
-              std::cout<<it3->first.Str()<<std::endl;
-              std::cout<<it3->second<<std::endl;
-            }
-        }
-    }
+  //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+  //       {
+  //         std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+  //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+  //           {
+  //             std::cout<<it3->first.Str()<<std::endl;
+  //             std::cout<<it3->second<<std::endl;
+  //           }
+  //       }
+  //   }
 
   std::cout<<"Entering the recurrence"<<std::endl;
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -639,7 +643,7 @@ int main(int argc, char **argv)
       clock_t start_time=std::clock();
 
       // //REMOVE
-      // if((it->first.first!=0 ) || (it->first.second!=0))
+      // if((it->first.first!=3 ) || (it->first.second!=0))
       //   continue;
 
       int node=counter%num_nodes;
@@ -685,86 +689,87 @@ int main(int argc, char **argv)
 
   std::cout<<"exiting the recurrence"<<std::endl;
   // std::cout<<"traversing the map"<<std::endl;
-  for(auto it=unit_tensor_sector_cache.begin(); it!=unit_tensor_sector_cache.end(); ++it)
-    {
-      // if(it->first.first!=0 || it->first.second!=1)
-      //   continue;
-      // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-      for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
-        {
-          // if(it2->first.first!=0)
-          //   continue;
-          // if(it2->first.second!=2)
-          //   continue;
-          // std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-          auto& explicit_cache=unit_tensor_sector_cache_explicit[it->first][it2->first];
-          for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
-            {
-              assert(assert_trap);
+  // std::cout<<"cache size "<<unit_tensor_sector_cache.size()<<std::endl;
+  // for(auto it=unit_tensor_sector_cache_explicit.begin(); it!=unit_tensor_sector_cache_explicit.end(); ++it)
+  //   {
+  //     // if(it->first.first!=3 || it->first.second!=0)
+  //     //   continue;
+  //     // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+  //     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
+  //       {
+  //         if(it2->first.first!=0)
+  //           continue;
+  //         if(it2->first.second!=2)
+  //           continue;
+  //         // std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+  //         auto& explicit_cache=unit_tensor_sector_cache[it->first][it2->first];
+  //         for(auto it3=it2->second.begin(); it3!=it2->second.end();++ it3)
+  //           {
+  //             assert(assert_trap);
 
-              int rho0;
-              u3shell::RelativeUnitTensorLabelsU3ST tensor;
-              std::tie(std::ignore,std::ignore,tensor,rho0)=it3->first.Key();
-              // if(not (tensor.x0()==u3::SU3(0,0)))
-              //   continue;
+  //             int rho0;
+  //             u3shell::RelativeUnitTensorLabelsU3ST tensor;
+  //             std::tie(std::ignore,std::ignore,tensor,rho0)=it3->first.Key();
+  //             // if(not (tensor.x0()==u3::SU3(0,0)))
+  //             //   continue;
 
-              // std::cout<<"     "<<it3->first.Str()<<std::endl;
-              // std::cout<<"       "<<it3->second<<std::endl;
+  //             // std::cout<<"     "<<it3->first.Str()<<std::endl;
+  //             // std::cout<<"       "<<it3->second<<std::endl;
 
-              // if(explicit_cache.count(it3->first))
-              // {
-              //   Eigen::MatrixXd& recurrence_matrix=it3->second;
+  //             if(explicit_cache.count(it3->first))
+  //             {
+  //               Eigen::MatrixXd& recurrence_matrix=it3->second;
                 
-              //   Eigen::MatrixXd& explicit_matrix=explicit_cache[it3->first];
-              //   if(not mcutils::IsZero(recurrence_matrix-explicit_matrix,1e-3))
-              //   {
-              //     u3::U3 omega,omegap;
-              //     std::tie(omegap,omega,std::ignore, std::ignore)=it3->first.Key();
-              //     // if((omegap.N()==15)&&(omega.N()==15))
-              //     //   continue;
-              //     // // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+  //               Eigen::MatrixXd& explicit_matrix=explicit_cache[it3->first];
+  //               if(not mcutils::IsZero(recurrence_matrix-explicit_matrix,1e-3))
+  //               {
+  //                 u3::U3 omega,omegap;
+  //                 std::tie(omegap,omega,std::ignore, std::ignore)=it3->first.Key();
+  //                 // if((omegap.N()==15)&&(omega.N()==15))
+  //                 //   continue;
+  //                 // // std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
 
-              //     // if((it->first.first!=0 )|| (it->first.second!=24))
-              //     //   continue;
+  //                 // if((it->first.first!=0 )|| (it->first.second!=24))
+  //                 //   continue;
 
-              //     // if((it->first.first!=0 )&& (it->first.second!=0))
-              //     //   continue;
-              //     // if((it->first.first!=24 )&& (it->first.second!=24))
-              //     //   continue;
+  //                 // if((it->first.first!=0 )&& (it->first.second!=0))
+  //                 //   continue;
+  //                 // if((it->first.first!=24 )&& (it->first.second!=24))
+  //                 //   continue;
 
 
-              //     std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-              //     std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-              //     std::cout<<"     "<<it3->first.Str()<<std::endl;
+  //                 std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+  //                 std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+  //                 std::cout<<"     "<<it3->first.Str()<<std::endl;
 
-              //     std::cout<<"recurrence"<<std::endl;
-              //     std::cout<<recurrence_matrix<<std::endl<<std::endl;
-              //     std::cout<<"explicit"<<std::endl;
-              //     std::cout<<explicit_matrix<<std::endl<<std::endl;
+  //                 std::cout<<"recurrence"<<std::endl;
+  //                 std::cout<<recurrence_matrix<<std::endl<<std::endl;
+  //                 std::cout<<"explicit"<<std::endl;
+  //                 std::cout<<explicit_matrix<<std::endl<<std::endl;
                   
-              //     Eigen::MatrixXd ratios(recurrence_matrix.rows(),recurrence_matrix.cols());
-              //     for(int i=0; i<recurrence_matrix.rows(); ++i)
-              //       for(int j=0; j<recurrence_matrix.cols(); ++j)
-              //         ratios(i,j)=recurrence_matrix(i,j)/explicit_matrix(i,j);
+  //                 Eigen::MatrixXd ratios(recurrence_matrix.rows(),recurrence_matrix.cols());
+  //                 for(int i=0; i<recurrence_matrix.rows(); ++i)
+  //                   for(int j=0; j<recurrence_matrix.cols(); ++j)
+  //                     ratios(i,j)=recurrence_matrix(i,j)/explicit_matrix(i,j);
                   
-              //     std::cout<<ratios<<std::endl<<std::endl;
+  //                 std::cout<<ratios<<std::endl<<std::endl;
 
-              //     // assert_trap=false;
-              //   }
-              // }
-              // // else 
-              // // {
-              // //   if(mcutils::IsZero(it3->second,1e-3))
-              // //     continue;
-              // //   std::cout<<"Explicit sector not found "<<std::endl;
-              // //   std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
-              // //   std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
-              // //   std::cout<<"     "<<it3->first.Str()<<std::endl;
-              // //   std::cout<<"     "<<it3->second<<std::endl<<std::endl;
-              // // }
-            }
-        }
-     }
+  //                 // assert_trap=false;
+  //               }
+  //             }
+  //             else 
+  //             {
+  //               if(mcutils::IsZero(it3->second,1e-3))
+  //                 continue;
+  //               std::cout<<"Explicit sector not found "<<std::endl;
+  //               std::cout<<it->first.first<<"  "<<it->first.second<<std::endl;
+  //               std::cout<<"  "<<it2->first.first<<"  "<<it2->first.second<<std::endl;
+  //               std::cout<<"     "<<it3->first.Str()<<std::endl;
+  //               std::cout<<"     "<<it3->second<<std::endl<<std::endl;
+  //             }
+  //           }
+  //       }
+  //    }
 
   //////////////////////////////////////////////////////////////////////////////////////////
   // // Getting interaction
@@ -843,26 +848,26 @@ int main(int argc, char **argv)
   //   difference_vector.push_back(matrix_vector_explicit[i]-matrix_vector[i]);
   // ZeroOutMatrix(difference_vector,1e-4);
 
-  std::cout<<"printing"<<std::endl;
-  for(int i=0; i<u3s_space.size(); ++i)
-    std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
-  for(int s=0; s<matrix_vector.size();  ++s)
-    {
-      if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
-      {
+  // std::cout<<"printing"<<std::endl;
+  // for(int i=0; i<u3s_space.size(); ++i)
+  //   std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+  // for(int s=0; s<matrix_vector.size();  ++s)
+  //   {
+  //     if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))
+  //     {
         
-        std::cout<<u3s_sector_vector[s].Str()<<"  "<<s<<std::endl;
-        std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+  //       std::cout<<u3s_sector_vector[s].Str()<<"  "<<s<<std::endl;
+  //       std::cout<<matrix_vector[s]<<std::endl<<std::endl;
         
 
-        // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
+  //       // Eigen::MatrixXd difference=matrix_vector_explicit[s]-matrix_vector[s];
         
-        // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
-        // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
+  //       // std::cout<<matrix_vector[s]<<std::endl<<std::endl;
+  //       // std::cout<<matrix_vector_explicit[s]<<std::endl<<std::endl;
 
-        // std::cout<<difference_vector[s]<<std::endl<<std::endl;
-      }
-    }
+  //       // std::cout<<difference_vector[s]<<std::endl<<std::endl;
+  //     }
+  //   }
 
 
   HalfInt J=1;
@@ -890,19 +895,19 @@ int main(int argc, char **argv)
     space_LS,space_LS,sector_labels_LS,sectors_LS
   );
 
-  ZeroOutMatrix(sectors_LS,1e-4);
-  std::cout<<"printing LS"<<std::endl;
-  for(int i=0; i<space_LS.size(); ++i)
-    std::cout<<i<<"  "<<space_LS.GetSubspace(i).Str()<<std::endl;
+  // ZeroOutMatrix(sectors_LS,1e-4);
+  // std::cout<<"printing LS"<<std::endl;
+  // for(int i=0; i<space_LS.size(); ++i)
+  //   std::cout<<i<<"  "<<space_LS.GetSubspace(i).Str()<<std::endl;
     
-  for(int s=0; s<sectors_LS.size();  ++s)
-    {
-      if (not CheckIfZeroMatrix(sectors_LS[s], 1e-4))
-      {
-        std::cout<<sector_labels_LS[s].Str()<<std::endl;
-        std::cout<<sectors_LS[s]<<std::endl<<std::endl;
-      }
-    }
+  // for(int s=0; s<sectors_LS.size();  ++s)
+  //   {
+  //     if (not CheckIfZeroMatrix(sectors_LS[s], 1e-4))
+  //     {
+  //       std::cout<<sector_labels_LS[s].Str()<<std::endl;
+  //       std::cout<<sectors_LS[s]<<std::endl<<std::endl;
+  //     }
+  //   }
 
   Eigen::MatrixXd operator_matrix;
 
@@ -929,7 +934,7 @@ int main(int argc, char **argv)
   //       total++;
   //     }
 
-  std::cout<<operator_matrix<<std::endl;
+  // std::cout<<operator_matrix<<std::endl;
 
 
 

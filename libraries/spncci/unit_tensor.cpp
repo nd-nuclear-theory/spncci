@@ -51,7 +51,8 @@ namespace spncci
     std::pair<int,int>  irrep_family_indices,
     const spncci::SpNCCISpace& sp_irrep_vector,
     const std::map< int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>>& unit_tensor_labels_map,
-    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map
+    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>>& unit_tensor_NpN_sector_map,
+    bool conj_sector
     )
   {   
     #ifdef VERBOSE
@@ -76,9 +77,11 @@ namespace spncci
     // Looping over omega' and omega subspaces 
     ////////////////////////////////////////////////////////////////////////////////////
     // std::cout<<"iterating"<<std::endl;
-    bool conj_sector=irrep_family_indices.first>irrep_family_indices.second;
-    int Nnp_max=conj_sector?0:Nmax;
+    // bool conj_sector=irrep_family_indices.first>irrep_family_indices.second;
 
+    int Nnp_max=conj_sector?0:Nmax;
+    
+    // std::cout<<"Nnp_max "<<Nnp_max<<std::endl;
     // Loop over Nnp+Nn starting from 2, (Nnp+Nn=0 accounted for elsewhere)
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nnp=0; Nnp<=std::min(Nsum,Nnp_max); Nnp+=2)
@@ -92,6 +95,8 @@ namespace spncci
             continue; 
 
           int N0=sp_irrepp.Nex()+Nnp-sp_irrep.Nex()-Nn;
+
+          // std::cout<<" N0 "<<N0<<std::endl; 
 
           std::pair<int,int> NpN_pair(Nnp,Nn);
           // Selecting section of spaces to iterate over
@@ -429,7 +434,7 @@ namespace spncci
 
                 } 
                 // if(omp_get_thread_num()==7)
-                  // std::cout<< "term 1  "<<unit_matrix_x0<<std::endl;
+                // std::cout<< "term 1  "<<unit_matrix_x0<<std::endl;
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // second term 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////  
@@ -467,7 +472,7 @@ namespace spncci
                     // accumulate term 2 sectors in unit matrix sector
                     unit_matrix_x0+=coef2*unit2_matrix;
                   }
-                    // std::cout<<"term 2  "<<std::endl<<unit_matrix_x0<<std::endl;
+                // std::cout<<"term 2  "<<std::endl<<unit_matrix_x0<<std::endl;
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 unit_matrix+=coef*unit_matrix_x0;
                 // std::cout<<"unit matrix "<<std::endl<<unit_matrix<<std::endl;
@@ -546,7 +551,6 @@ GenerateNpNSector(
 
     // private storage of generated sectors
     std::vector<spncci::UnitTensorU3SectorPair> u3_sector_pairs;
-
     #pragma omp for schedule(runtime)
     for (int i=0; i<unit_U3Sector_vector.size(); i++)
       {
@@ -563,7 +567,7 @@ GenerateNpNSector(
         // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
         // if (temp_matrix.any())
         
-        if (not CheckIfZeroMatrix(temp_matrix, zero_threshold))
+        // if (not CheckIfZeroMatrix(temp_matrix, zero_threshold))
             u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,temp_matrix));
       }
     // save out sectors
@@ -624,6 +628,7 @@ GenerateNpNSector(
       sp_irrep_vector[irrep_family_indices.first].gamma_max(),
       sp_irrep_vector[irrep_family_indices.second].gamma_max()
       );
+    // std::cout<<irrep_family_indices.first<<"  "<<irrep_family_indices.second<<std::endl;
     // std::cout<<sp_irrep_vector[irrep_family_indices.first].Str()<<"  "<< sp_irrep_vector[irrep_family_indices.second].Str()<<std::endl;
     // std::cout<<lgi_multiplicities.first<<"  "<<lgi_multiplicities.second<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
@@ -634,28 +639,35 @@ GenerateNpNSector(
     int N_truncate=Nmax-sp_irrep.Nex();
     if(Np_truncate<0 || N_truncate<0)
       return;
+    // std::cout<<"conjugate sectors"<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
     // Compute sector for conjugate subspaces (Nn=0, Nnp!=0)
     ////////////////////////////////////////////////////////////////////////////////////    
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map_conj;
-    // Temporary container
-    // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache> unit_tensor_rme_map_conj;
     // Get reverse pair
     std::pair<int,int> irrep_family_indices_conj(irrep_family_indices.second,irrep_family_indices.first);
     // Get labels, should only be for Nnp=0 since iconj>jconj
-    std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map_conj
-      =unit_tensor_matrices[irrep_family_indices_conj];
+    // Temporary container
+    std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache> unit_tensor_rme_map_conj;
+    unit_tensor_rme_map_conj[std::pair<int,int>(0,0)]
+      =unit_tensor_matrices[irrep_family_indices_conj][std::pair<int,int>(0,0)];
+
+    // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map_conj
+    //   =unit_tensor_matrices[irrep_family_indices_conj];
+
+    bool conj_sector=true;
 
     GenerateUnitTensorU3SectorLabels(
       N1b,Nmax,irrep_family_indices_conj,sp_irrep_vector,
-      unit_tensor_labels_map,unit_tensor_NpN_sector_map_conj);
+      unit_tensor_labels_map,unit_tensor_NpN_sector_map_conj,
+      conj_sector);
     // Swap multiplicity labels 
     std::pair<int,int> lgi_mult_conj(
       sp_irrep_vector[irrep_family_indices.second].gamma_max(),
       sp_irrep_vector[irrep_family_indices.first].gamma_max()
       );
     // For each NnpNn sector
-    for(int Nn=2; Nn<=Np_truncate; ++Nn)
+    for(int Nn=2; Nn<=Np_truncate; Nn+=2)
       {
         std::pair<int,int> NpN_pair(0,Nn);
         spncci::GenerateNpNSector(
@@ -664,6 +676,7 @@ GenerateNpNSector(
             unit_tensor_rme_map_conj,unit_tensor_NpN_sector_map_conj
             ); 
       }
+      // std::cout<<"populating with conjugated sectors"<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
     // Populate map with conjugated sectors
     ////////////////////////////////////////////////////////////////////////////////////          
@@ -705,24 +718,33 @@ GenerateNpNSector(
     ////////////////////////////////////////////////////////////////////////////////////
     // Nn>0
     ////////////////////////////////////////////////////////////////////////////////////    
+    conj_sector=false;
+
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
     GenerateUnitTensorU3SectorLabels(
       N1b,Nmax,irrep_family_indices,sp_irrep_vector,
-      unit_tensor_labels_map,unit_tensor_NpN_sector_map);
+      unit_tensor_labels_map,unit_tensor_NpN_sector_map,
+      conj_sector);
 
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nn=2; Nn<=std::min(Nsum,N_truncate); Nn+=2)
         {
           // Check Nmax constrain
           int Nnp=Nsum-Nn;
-          if(Nnp==0)
-            continue;
+          // if(Nnp==0)
+          //   continue;
           if (Nnp>Np_truncate)
             continue;
+
+          std::pair<int,int> NpN_pair(Nnp,Nn);
+          // std::cout<<"we are going to compute"<<std::endl;
+          // for(auto sector : unit_tensor_NpN_sector_map[NpN_pair])
+            // std::cout<<sector.Str()<<std::endl;
          //////////////////////////////////////////////////////////////////////////////     
           //  Compute rmes for NSectors
           //////////////////////////////////////////////////////////////////////////////    
-          std::pair<int,int> NpN_pair(Nnp,Nn);              
+           
+          // std::cout<<" sector map size "<<unit_tensor_NpN_sector_map[NpN_pair].size()<<std::endl;             
           GenerateNpNSector(
             NpN_pair,sp_irrepp,sp_irrep,lgi_multiplicities,
             u_coef_cache, phi_coef_cache,k_matrix_map,

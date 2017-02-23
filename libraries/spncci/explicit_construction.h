@@ -8,7 +8,9 @@
 
   2/19/17 (mac): Extracted from unit tensor test codes
     (compute_unit_tensor_rmes.cpp and explicit.cpp).
-
+  2/21/17 (aem): Add explict construction of full spncci basis
+  2/22/17 (aem): Add computation of unit tensor rmes in explicit
+    basis
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_EXPLICIT_CONSTRUCTION_H_
@@ -31,25 +33,6 @@ namespace spncci
       const basis::MatrixVector& Arel_matrices,
       basis::MatrixVector& spncci_expansions
     );
-
-  // void 
-  // ConstructSpNCCIBasisExplicit(
-  //     const u3shell::SpaceU3SPN& lsu3shell_space,
-  //     const basis::MatrixVector& lgi_expansions,
-  //     const spncci::BabySpNCCISpace& baby_spncci_space,
-  //     const spncci::KMatrixCache& k_matrix_cache,
-  //     const u3shell::SectorsU3SPN& Arel_sectors,
-  //     const basis::MatrixVector& Arel_matrices,
-  //     basis::MatrixVector& spncci_expansions
-  //   );
-  // Generate expansions of SpNCCI basis states in terms of lsu3shell
-  // basis states, broken up by "baby SpNCCI subspaces", i.e., U3
-  // subspaces segregated by irrep family.
-  //
-  // Limitation: Presently only supports Nex=0 or 2.
-  //
-  // Arguments:
-  //   ...
 
   void 
   ComputeUnitTensorSectorsExplicit(
