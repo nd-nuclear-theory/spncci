@@ -30,7 +30,7 @@
 
        data/lsu3shell/lsu3shell_rme_6Li_Nmax02
 
-    % ln -s ../../data/lsu3shell/lsu3shell_rme_6Li_Nmax02/ lsu3shell_rme
+    % ln -s ../../data/relative_observables/lsu3shell_rme_6Li_Nmax02/ lsu3shell_rme
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -188,15 +188,17 @@ RunParameters::RunParameters()
   int twice_Nsigma0 = 22;
   Nsigma_0=HalfInt(twice_Nsigma0,2);
 
-  Nsigma0_ex_max = 2;
+  Nsigma0_ex_max = 4;
   N1v = 1;
-  Nmax = 2;
+  Nmax = 4;
+
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-  Brel_filename = lsu3shell_rme_directory + "/" + "Brel_06_Nmax02.rme";
-  Arel_filename = lsu3shell_rme_directory + "/" + "Arel_06_Nmax02.rme";
-  Nrel_filename = lsu3shell_rme_directory + "/" + "Nrel_06_Nmax02.rme";
+  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nmax);
+  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel_06_Nmax{:02d}.rme",Nmax);
+  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel_06_Nmax{:02d}.rme",Nmax);
   relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
+
 }
 
 
@@ -362,8 +364,10 @@ int main(int argc, char **argv)
 
   std::cout << "Explicitly construct SpNCCI basis states using Arel..." << std::endl;
   basis::MatrixVector spncci_expansions;
+  
   spncci::ConstructSpNCCIBasisExplicit(
-      lsu3shell_space,lgi_expansions,baby_spncci_space,k_matrix_cache,
+      lsu3shell_space,spncci_space,lgi_expansions,
+      baby_spncci_space,k_matrix_cache,
       Arel_sectors,Arel_matrices,spncci_expansions
     );
 
