@@ -643,38 +643,46 @@ GenerateNpNSector(
     ////////////////////////////////////////////////////////////////////////////////////
     // Compute sector for conjugate subspaces (Nn=0, Nnp!=0)
     ////////////////////////////////////////////////////////////////////////////////////    
-    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map_conj;
+    std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> 
+      unit_tensor_NpN_sector_map_conj;
     // Get reverse pair
     std::pair<int,int> irrep_family_indices_conj(irrep_family_indices.second,irrep_family_indices.first);
     // Get labels, should only be for Nnp=0 since iconj>jconj
+
     // Temporary container
-    std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache> unit_tensor_rme_map_conj;
-    unit_tensor_rme_map_conj[std::pair<int,int>(0,0)]
-      =unit_tensor_matrices[irrep_family_indices_conj][std::pair<int,int>(0,0)];
+    std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& 
+      unit_tensor_rme_map_conj=unit_tensor_matrices[irrep_family_indices_conj];
 
-    // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map_conj
-    //   =unit_tensor_matrices[irrep_family_indices_conj];
-
-    bool conj_sector=true;
-
-    GenerateUnitTensorU3SectorLabels(
-      N1b,Nmax,irrep_family_indices_conj,sp_irrep_vector,
-      unit_tensor_labels_map,unit_tensor_NpN_sector_map_conj,
-      conj_sector);
-    // Swap multiplicity labels 
-    std::pair<int,int> lgi_mult_conj(
-      sp_irrep_vector[irrep_family_indices.second].gamma_max(),
-      sp_irrep_vector[irrep_family_indices.first].gamma_max()
-      );
-    // For each NnpNn sector
-    for(int Nn=2; Nn<=Np_truncate; Nn+=2)
+    bool is_conjugate_sector;
+    if(unit_tensor_rme_map_conj.count(std::pair<int,int>(0,Np_truncate))==0)
       {
-        std::pair<int,int> NpN_pair(0,Nn);
-        spncci::GenerateNpNSector(
-            NpN_pair,sp_irrep,sp_irrepp,lgi_mult_conj,
-            u_coef_cache, phi_coef_cache, k_matrix_map,
-            unit_tensor_rme_map_conj,unit_tensor_NpN_sector_map_conj
-            ); 
+        is_conjugate_sector=true;
+        // unit_tensor_rme_map_conj[std::pair<int,int>(0,0)]
+        //   =unit_tensor_matrices[irrep_family_indices_conj][std::pair<int,int>(0,0)];
+
+        // std::map<std::pair<int,int>,spncci::UnitTensorSectorsCache>& unit_tensor_rme_map_conj
+        //   =unit_tensor_matrices[irrep_family_indices_conj];        
+        GenerateUnitTensorU3SectorLabels(
+          N1b,Nmax,irrep_family_indices_conj,sp_irrep_vector,
+          unit_tensor_labels_map,unit_tensor_NpN_sector_map_conj,
+          is_conjugate_sector);
+        
+        // Swap multiplicity labels 
+        std::pair<int,int> lgi_mult_conj(
+          sp_irrep_vector[irrep_family_indices.second].gamma_max(),
+          sp_irrep_vector[irrep_family_indices.first].gamma_max()
+          );
+        
+        // For each NnpNn sector
+        for(int Nn=2; Nn<=Np_truncate; Nn+=2)
+          {
+            std::pair<int,int> NpN_pair(0,Nn);
+            spncci::GenerateNpNSector(
+                NpN_pair,sp_irrep,sp_irrepp,lgi_mult_conj,
+                u_coef_cache, phi_coef_cache, k_matrix_map,
+                unit_tensor_rme_map_conj,unit_tensor_NpN_sector_map_conj
+                ); 
+          }
       }
       // std::cout<<"populating with conjugated sectors"<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////
@@ -718,13 +726,13 @@ GenerateNpNSector(
     ////////////////////////////////////////////////////////////////////////////////////
     // Nn>0
     ////////////////////////////////////////////////////////////////////////////////////    
-    conj_sector=false;
+    is_conjugate_sector=false;
 
     std::map<std::pair<int,int>,std::vector<spncci::UnitTensorU3Sector>> unit_tensor_NpN_sector_map;
     GenerateUnitTensorU3SectorLabels(
       N1b,Nmax,irrep_family_indices,sp_irrep_vector,
       unit_tensor_labels_map,unit_tensor_NpN_sector_map,
-      conj_sector);
+      is_conjugate_sector);
 
     for (int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
       for (int Nn=2; Nn<=std::min(Nsum,N_truncate); Nn+=2)
@@ -737,9 +745,10 @@ GenerateNpNSector(
             continue;
 
           std::pair<int,int> NpN_pair(Nnp,Nn);
-          // std::cout<<"we are going to compute"<<std::endl;
-          // for(auto sector : unit_tensor_NpN_sector_map[NpN_pair])
-            // std::cout<<sector.Str()<<std::endl;
+
+          // If already computed as a conjugate sector, we don't need to compute again
+          if(unit_tensor_rme_map.count(NpN_pair))
+            continue;
          //////////////////////////////////////////////////////////////////////////////     
           //  Compute rmes for NSectors
           //////////////////////////////////////////////////////////////////////////////    

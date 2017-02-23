@@ -9,6 +9,7 @@
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
   12/2/16 (aem): Added bool for U(N)->U(3) restriction on operators
+  2/23/17 (aem): Added openMP to GenerateLSU3ShellOperator
 ****************************************************************/
 
 #ifndef LSU3SHELL_OPERATOR_H_

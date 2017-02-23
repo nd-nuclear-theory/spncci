@@ -8,9 +8,10 @@
 
 #include "lsu3shell/lsu3shell_operator.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
+#include <omp.h>
 
 #include "cppformat/format.h"
 #include "moshinsky/moshinsky_xform.h"
@@ -51,14 +52,14 @@ namespace lsu3shell
     u3shell::TwoBodyUnitTensorCoefficientsU3SPN biquad_coefficients_pn;
     //moshinsky transform and accumulate coefficients
     u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
-// CHECK THIS FIRST
+
     u3shell::TransformRelativeTensorToTwobodyTensor(
         relative_tensor_expansion,
         twobody_space,
         two_body_unit_tensor_coefficients,
         "NAS"   
       );
-    std::cout<<"TransformRelativeTensorToTwobodyTensor"<<std::endl;
+    // std::cout<<"TransformRelativeTensorToTwobodyTensor"<<std::endl;
     // for(auto it=two_body_unit_tensor_coefficients.begin(); it!=two_body_unit_tensor_coefficients.end(); ++it)
     // {
     //   std::cout<<it->first.Str()<<"  "<<it->second<<std::endl;
@@ -82,8 +83,15 @@ namespace lsu3shell
   {
     u3shell::TwoBodySpaceU3ST  twobody_space(Nmax);
     int i=0;
-    for(auto tensor : relative_tensor_labels)
+
+    // container for computed biquad expansion of unit tensor 
+    std::vector<u3shell::TwoBodyUnitTensorCoefficientsU3SPN> 
+      biquad_coefficients_pn_list(relative_tensor_labels.size());
+
+    #pragma omp parallel for schedule(runtime)  
+    for(int i=0; i<relative_tensor_labels.size(); ++i)
       {
+        const u3shell::RelativeUnitTensorLabelsU3ST& tensor=relative_tensor_labels[i];
         // declare coefficient containers
         u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
         u3shell::TwoBodyUnitTensorCoefficientsU3ST biquad_coefficients;
@@ -97,11 +105,18 @@ namespace lsu3shell
         u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
         // convert biquads to pn scheme
         u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn,un_u3_restrict);
+        
+        biquad_coefficients_pn_list[i]=biquad_coefficients_pn;
+      }
+      
+    // writing out recoupler files
+      for(int i=0; i<relative_tensor_labels.size(); ++i)
+      {
+        u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn=biquad_coefficients_pn_list[i];
         std::string operator_stream_filename = fmt::format("relative_unit_{:06d}.recoupler",i);
         std::ofstream operator_stream(operator_stream_filename);
         WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
         operator_stream.close();
-        ++i;
       }
   }
 

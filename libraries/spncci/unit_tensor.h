@@ -15,6 +15,7 @@
   2/2/17 (mac): Add typedef UnitTensorMatricesByIrrepFamily.
   2/20/17 (mac): Update argument types on GenerateUnitTensorMatrix.
   2/23/17 (aem): Add conjugate sector flag to GenerateUnitTensorU3SectorLabels.
+  2/23/17 (aem): Removed redundent calculation of edge sectors in recurrence.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
@@ -48,7 +49,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
 
     public:
-    typedef std::tuple< u3::U3, u3::U3, u3shell::RelativeUnitTensorLabelsU3ST, int> KeyType;
+    typedef std::tuple<u3::U3,u3::U3,u3shell::RelativeUnitTensorLabelsU3ST,int> KeyType;
     // w', w, Unit_tensor_labels,r0
 
     ////////////////////////////////////////////////////////////////

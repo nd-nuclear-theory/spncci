@@ -172,14 +172,14 @@ RunParameters::RunParameters()
   int twice_Nsigma0 = 22;
   Nsigma_0=HalfInt(twice_Nsigma0,2);
 
-  Nsigma0_ex_max = 2;
+  Nsigma0_ex_max = 4;
   N1v = 1;
-  Nmax = 2;
+  Nmax = 4;
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-  Brel_filename = lsu3shell_rme_directory + "/" + "Brel_06_Nmax02.rme";
-  Arel_filename = lsu3shell_rme_directory + "/" + "Arel_06_Nmax02.rme";
-  Nrel_filename = lsu3shell_rme_directory + "/" + "Nrel_06_Nmax02.rme";
+  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nmax);
+  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel_06_Nmax{:02d}.rme",Nmax);
+  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel_06_Nmax{:02d}.rme",Nmax);
   relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 
   // many-body problem
@@ -189,7 +189,7 @@ RunParameters::RunParameters()
   num_eigenvalues = 10;
   eigensolver_num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
   eigensolver_max_iterations = 100*num_eigenvalues;
-  eigensolver_tolerance = 1e-6;
+  eigensolver_tolerance = 1e-8;
 }
 
 
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
   u3::g_u_cache_enabled = true;
 
   // numerical parameter for certain calculations
-  double zero_threshold=1e-6;
+  double zero_threshold=1e-8;
 
   // run parameters
   RunParameters run_parameters;
@@ -278,11 +278,13 @@ int main(int argc, char **argv)
 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
+  bool keep_zero_sectors=true;
   lgi::GenerateLGIExpansion(
       lsu3shell_space, 
       Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
       run_parameters.Nsigma_0,
-      lgi_families,lgi_expansions
+      lgi_families,lgi_expansions,
+      keep_zero_sectors
     );
 
   // diagnostics
@@ -335,6 +337,9 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // read lsu3shell seed unit tensor rmes
   ////////////////////////////////////////////////////////////////
+  // timing start
+  Timer timer_read_seeds;
+  timer_read_seeds.Start();
 
   std::cout << "Read seed unit tensor rmes..." << std::endl;
 
@@ -372,6 +377,10 @@ int main(int argc, char **argv)
       lgi_unit_tensor_sectors,
       lgi_unit_tensor_lsu3shell_matrices
     );
+
+  timer_read_seeds.Stop();
+  std::cout << fmt::format("(Task time: {})",timer_read_seeds.ElapsedTime()) << std::endl;
+
 
   ////////////////////////////////////////////////////////////////
   // transform and store seed rmes for use in SpNCCI recurrence

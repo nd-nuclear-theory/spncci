@@ -439,7 +439,8 @@ namespace spncci
     u3shell::U3SPN omegaSPN() const {return u3shell::U3SPN(omega(),Sp(),Sn(),S());}
 
     int irrep_family_index() const {return irrep_family_index_;}
-
+    int upsilon_max() const {return upsilon_max_;}
+    int gamma_max() const {return gamma_max_;}
     // diagnostic strings
 
     std::string LabelStr() const;
