@@ -7,6 +7,7 @@
   Department of Physics, University of Notre Dame
 
   1/8/17 (aem,mac): Created with code from compute_relative_tensors_lsu3shell_rmes.py.
+  2/23/17 (aem,mac): Update rme invocation and add spncci handler.
 
 """
   
@@ -27,6 +28,7 @@ su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","S
 su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
+spncci_executable = os.path.join(projects_root,"spncci","programs","spncci","spncci")
 
 ################################################################
 # relative unit tensor evaluation
@@ -71,21 +73,11 @@ def generate_basis_table(task):
     model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nmax:02d}.dat".format(**task)
     basis_listing_filename = "lsu3shell_basis.dat"
 
-    # TODO: restore when push updated code to lsu3shell
-    ##command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
-    ##mcscript.call(
-    ##    command_line,
-    ##    mode=mcscript.call.serial
-    ##)
-
-    command_line=[su3basis_executable,model_space_filename]
-    output=mcscript.call(
+    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
+    mcscript.call(
         command_line,
         mode=mcscript.call.serial
     )
-    output_stream = open(basis_listing_filename,"w")
-    output_stream.write(output)
-    output_stream.close()
 
 def read_unit_tensor_list(task):
     """ Read list of unit tensor basenames.
@@ -105,7 +97,7 @@ def read_unit_tensor_list(task):
     relative_operator_stream.close()
     return relative_operator_basename_list
 
-def recouple_operators(relative_operator_basename_list):
+def recouple_operators(task,relative_operator_basename_list):
     """ Invoke lsu3shell recoupler code on operators.
 
     Arguments:
@@ -126,7 +118,7 @@ def recouple_operators(relative_operator_basename_list):
             mode=mcscript.call.serial
         )
 
-def calculate_rmes(relative_operator_basename_list):
+def calculate_rmes(task,relative_operator_basename_list):
     """ Invoke lsu3shell SU3RME code to calculate rmes.
 
     Arguments:
@@ -160,16 +152,37 @@ def calculate_rmes(relative_operator_basename_list):
             mode=mcscript.call.serial
         )
 
-def task_handler_relative_tensor_rmes(task):
+def generate_lsu3shell_rmes(task):
     """ Carry out full task of generating set of relative tensor rmes.
     """
 
-    print(task)
+    ## print(task)
+    mcscript.utils.mkdir("lsu3shell_rme")
+    os.chdir("lsu3shell_rme")
     generate_relative_operators(task)
     generate_basis_table(task)
     relative_operator_basename_list = read_unit_tensor_list(task)
-    recouple_operators(relative_operator_basename_list)
-    calculate_rmes(relative_operator_basename_list)
+    recouple_operators(task,relative_operator_basename_list)
+    calculate_rmes(task,relative_operator_basename_list)
+    os.chdir("..")
+
+def call_spncci(task):
+    """ Carry out full task of generating set of relative tensor rmes.
+    """
+
+    twice_Nsigma_0 = int(2*task["Nsigma_0"])
+    command_line = [
+        spncci_executable,
+        # TODO determine actual arguments or move into a control file
+        "{Nmax:d}".format(**task),
+        "{twice_Nsigma_0:d}".format(twice_Nsigma_0=twice_Nsigma_0,**task)
+    ]
+    mcscript.call(
+        command_line,
+        mode=mcscript.call.serial
+    )
+
+    
 
 
 if (__name__ == "__MAIN__"):

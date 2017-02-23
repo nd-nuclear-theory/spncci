@@ -145,7 +145,7 @@ struct RunParameters
 
 };
 
-RunParameters::RunParameters()
+RunParameters::RunParameters(int argc, char **argv)
 {
   // read from command line arguments
   //
@@ -171,10 +171,11 @@ RunParameters::RunParameters()
   A = 6;
   int twice_Nsigma0 = 22;
   Nsigma_0=HalfInt(twice_Nsigma0,2);
-
   Nsigma0_ex_max = 4;
   N1v = 1;
   Nmax = 4;
+
+  // hard-coded directory structure and filenames
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
   Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nmax);
@@ -214,7 +215,7 @@ int main(int argc, char **argv)
   double zero_threshold=1e-8;
 
   // run parameters
-  RunParameters run_parameters;
+  RunParameters run_parameters(argc,argv);
 
   // Eigen OpenMP multithreading mode
   Eigen::initParallel();

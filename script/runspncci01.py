@@ -25,7 +25,11 @@ task_list = [
         "nuclide" : (3,3),
         "Nmax" : Nmax,
         "Nstep" : 2,
-        "N1v" : 1
+        "N1v" : 1,
+        "Nsigma_0" : 11,
+        "Nsigma_ex_max" : 4,
+        "num_eigenvalues" : 10,
+        "J_values" : [0,1]
     }
     for Nmax in mcscript.utils.value_range(0,4,2)
 ]
@@ -51,7 +55,7 @@ mcscript.task.init(
     task_list,
     task_descriptor=task_descriptor,
     task_pool=task_pool,
-    phase_handler_list=[spncci.task_handler_relative_tensor_rmes]
+    phase_handler_list=[spncci.generate_lsu3shell_rmes,spncci.call_spncci]
     )
 
 ################################################################
