@@ -142,7 +142,7 @@ Nstep = int(sys.argv[5])
 N1B = int(sys.argv[6])
 
 # data files
-model_space_filename = "model_space_{}_{}_Nmax{:02d}.dat".format(Z, N,Nmax)
+model_space_filename = "model_space_{:02d}_{:02d}_Nmax{:02d}.dat".format(Z, N,Nmax)
 relative_operator_filename = "relative_operators.dat"
 
 generate_relative_operators()

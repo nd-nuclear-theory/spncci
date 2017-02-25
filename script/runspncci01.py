@@ -21,6 +21,10 @@ mcscript.init()
 ##################################################################
 interaction_directory = os.path.join(os.environ["HOME"],"nuclthy","data","interaction","rel")
 interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
+unit_tensor_directory_template = os.path.join(
+        "/afs/crc.nd.edu/group/nuclthy/data/lsu3shell-data/unit_tensors",
+        "lsu3shell_{Nsigma_ex_max:02d}"
+        )
 
 
 task_list = [
@@ -36,7 +40,7 @@ task_list = [
         "J_range" : [0,1,1], #min, max, step
         "hw_range" : [10,20,2.5], # min, max, step
         "interaction_filename_template" :interaction_filename_template,
-        # "observable_directory" : observable_directory,
+        "unit_tensor_directory" : unit_tensor_directory_template,
         "observables" : ["r2intr"]
     }
     for Nmax in mcscript.utils.value_range(2,2,2)
