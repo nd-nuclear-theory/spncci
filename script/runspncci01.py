@@ -12,13 +12,16 @@
 
 import mcscript
 import spncci
-
+import os
 # initialize mcscript
 mcscript.init()
 
 ##################################################################
 # build task list
 ##################################################################
+interaction_directory = os.path.join(os.environ["HOME"],"nuclthy","data","interaction","rel")
+interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
+
 
 task_list = [
     {
@@ -27,11 +30,16 @@ task_list = [
         "Nstep" : 2,
         "N1v" : 1,
         "Nsigma_0" : 11,
-        "Nsigma_ex_max" : 4,
+        "Nsigma_ex_max" : 2,
         "num_eigenvalues" : 10,
-        "J_values" : [0,1]
+        "J0" : 0,
+        "J_range" : [0,1,1], #min, max, step
+        "hw_range" : [10,20,2.5], # min, max, step
+        "interaction_filename_template" :interaction_filename_template,
+        # "observable_directory" : observable_directory,
+        "observables" : ["r2intr"]
     }
-    for Nmax in mcscript.utils.value_range(0,4,2)
+    for Nmax in mcscript.utils.value_range(2,2,2)
 ]
 
 ################################################################
@@ -55,7 +63,9 @@ mcscript.task.init(
     task_list,
     task_descriptor=task_descriptor,
     task_pool=task_pool,
-    phase_handler_list=[spncci.generate_lsu3shell_rmes,spncci.call_spncci]
+    phase_handler_list=[
+        spncci.do_full_spncci_run
+        ]
     )
 
 ################################################################

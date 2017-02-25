@@ -51,6 +51,7 @@ namespace spncci
       const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
       const std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices,
       spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      HalfInt Nsigma_max,
       double zero_threshold
     )
   {
@@ -72,6 +73,10 @@ namespace spncci
             const u3::U3& ket_sigma = sector.ket_subspace().U3();
             const int rho0 = unit_tensor_sectors.GetSector(sector_index).multiplicity_index();
 
+            // // Restrict by lgi
+            // if((bra_sigma.N()>Nsigma_max) || (ket_sigma.N()>Nsigma_max))
+            //   continue;
+
             // put rme matrix into nested maps
             std::pair<int,int> irrep_family_index_pair(bra_subspace_index,ket_subspace_index);
             std::pair<int,int> Nn_pair(0,0);
@@ -80,6 +85,7 @@ namespace spncci
               {
                 unit_tensor_matrices[irrep_family_index_pair][Nn_pair][unit_tensor_sector_labels]
                   = unit_tensor_spncci_matrices[sector_index];
+                // std::cout<<unit_tensor_spncci_matrices[sector_index]<<std::endl;
               }
           }
       }
@@ -99,6 +105,8 @@ namespace spncci
     for(const auto& irrep_family_indices_submap_pair : unit_tensor_matrices)
       {
         std::pair<int,int> irrep_family_indices = irrep_family_indices_submap_pair.first;
+        // std::cout<<"family pair "<<irrep_family_indices.first<<"  "<<irrep_family_indices.second<<std::endl;
+
         spncci::GenerateUnitTensorMatrix(
             N1v,Nmax,irrep_family_indices,spncci_space,u_coef_cache,phi_coef_cache,k_matrix_cache,
             unit_tensor_labels,unit_tensor_matrices);
@@ -131,5 +139,62 @@ namespace spncci
         space_u3s,unit_tensor_matrices,matrices_u3s
       );
   }
+
+  void ConstructBranchedObservables(
+    const spncci::SpaceU3S& space_u3s,
+    const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
+    const std::vector<basis::MatrixVector>& observable_matrices_u3s,
+    std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+    int num_observables,
+    const std::vector<HalfInt>& J_values,
+    int J0,
+    std::vector<std::map<HalfInt,Eigen::MatrixXd>>& observable_matrices
+    )
+  {
+    // populate fully-branched many-body matrices for observables
+    // map: observable -> J ->  matrix
+    // std::vector<std::map<HalfInt,Eigen::MatrixXd>> observable_matrices;  
+    observable_matrices.resize(num_observables);
+    for (int observable_index=0; observable_index<num_observables; ++observable_index)
+      for (const HalfInt J : J_values)
+        {
+          // set up aliases (for current observable and J space)
+          const std::vector<spncci::SectorLabelsU3S>& sectors_u3s = observable_sectors_u3s[observable_index];
+          const basis::MatrixVector& matrices_u3s = observable_matrices_u3s[observable_index];
+          const spncci::SpaceLS& space_lsj = spaces_lsj[J];
+          Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
+
+          // determine set of (L0,S0) labels for this observable (triangular with J0)
+          std::vector<spncci::OperatorLabelsLS> operator_labels_ls;
+          // Note: to update when J0 varies by observable
+          spncci::GenerateOperatorLabelsLS(J0,operator_labels_ls);
+
+          // determine allowed LS sectors
+          const spncci::SpaceLS& bra_space_lsj = space_lsj;
+          const spncci::SpaceLS& ket_space_lsj = space_lsj;
+          const HalfInt bra_J = J;
+          const HalfInt ket_J = J;
+          std::vector<spncci::SectorLabelsLS> sectors_lsj;
+          spncci::GetSectorsLS(bra_space_lsj,ket_space_lsj,operator_labels_ls,sectors_lsj);
+
+          // branch LS sectors to LSJ
+          basis::MatrixVector matrices_lsj;  
+          spncci::ContractAndRegroupLSJ(
+              bra_J,J0,ket_J,
+              space_u3s,sectors_u3s,matrices_u3s,
+              bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
+            );
+
+          // collect LSJ sectors into J matrix
+          //
+          // Note: Interface needs to be generalized to handle J_bra != J_ket.
+          ConstructOperatorMatrix(
+              space_lsj,sectors_lsj,matrices_lsj,
+              observable_matrix
+            );
+        }
+  }
+
+
 
 }  // namespace

@@ -47,6 +47,7 @@ namespace spncci
       const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
       const std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices,
       spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      HalfInt Nsigma_max,
       double zero_threshold
     );
 
@@ -90,6 +91,21 @@ namespace spncci
   //   relative_rmes (input): observable upcoupled relative rmes
   //   sectors_u3s (output): operator sectors [TODO upgrade to a proper "sectors" container]
   //   matrices_u3s (output): operator matrices
+
+
+  void 
+  ConstructBranchedObservables(
+    const spncci::SpaceU3S& space_u3s,
+    const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
+    const std::vector<basis::MatrixVector>& observable_matrices_u3s,
+    std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+    int num_observables,
+    const std::vector<HalfInt>& J_values,
+    int J0,
+    std::vector<std::map<HalfInt,Eigen::MatrixXd>>& observable_matrices
+    );
+  // Construct J branched observable matrices 
+
 
 }  // namespace
 

@@ -154,7 +154,7 @@ namespace spncci
           continue;
 
         // Iterate over U3 sectors to get target sectors
-#pragma omp parallel for schedule(runtime)
+        #pragma omp parallel for schedule(runtime)
         for(int s=0; s<sector_labels_vector.size(); ++s)
           {
             const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
@@ -218,7 +218,7 @@ namespace spncci
                   //   for(auto t=cache.begin(); t!=cache.end(); ++t)
                   //     std::cout<<t->first.Str()<<std::endl;
   
-                  #pragma omp critical
+                  // #pragma omp critical
                   {
                     if(cache.count(unit_sector))
                       if(cache.at(unit_sector).cols()!=0)

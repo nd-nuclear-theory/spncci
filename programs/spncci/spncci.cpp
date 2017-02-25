@@ -79,6 +79,7 @@
 #include "SymEigsSolver.h"  // from spectra
 
 #include "cppformat/format.h"
+#include "mcutils/parsing.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/profiling.h"
 #include "spncci/computation_control.h"
@@ -93,11 +94,108 @@
 //
 // to extract to spncci library when ready
 ////////////////////////////////////////////////////////////////
-
+#define EIGEN_DONT_PARALLELIZE
 namespace spncci
 {
+  void
+  WriteEigenValues(const std::vector<HalfInt>& J_values, double hw, 
+    int Nmax, int Nsigma0_ex_max,
+    std::map<HalfInt,Eigen::VectorXd>& eigenvalues 
+  )
+  {
+    std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigma0_ex_max);
+    std::fstream fs;
+    const int width=3;
+    const int precision=16;
+    fs.open (filename, std::fstream::out | std::fstream::app);
+    fs << std::setprecision(precision);
+    for(HalfInt J : J_values)
+      {
+        fs << fmt::format("hw={:2.1f}  J={}",hw,J)<<std::endl; 
+        fs << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
+        <<std::endl<<std::endl;
+
+      }
+      
+    fs.close();
+  }
 
 
+  void 
+  SolveHamiltonian(
+      const Eigen::MatrixXd& hamiltonian_matrix,
+      const HalfInt& J,
+      int num_eigenvalues,
+      int eigensolver_num_convergence,  // whatever exactly this is...
+      int eigensolver_max_iterations,
+      double eigensolver_tolerance,
+      std::map<HalfInt,Eigen::VectorXd>& eigenvalues,  // map: J -> eigenvalues
+      std::map<HalfInt,Eigen::MatrixXd>& eigenvectors  // map: J -> eigenvectors
+    )
+  {    
+
+    // set up aliases
+    // Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
+    
+    std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
+
+    // define eigensolver and compute
+    typedef Eigen::MatrixXd MatrixType;  // allow for possible future switch to more compact single-precision matrix
+    typedef double FloatType;
+    Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
+    Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
+      eigensolver(
+          &matvec,
+          num_eigenvalues,
+          eigensolver_num_convergence
+        );
+    eigensolver.init();
+    int converged_eigenvectors = eigensolver.compute(
+        eigensolver_max_iterations,
+        eigensolver_tolerance,
+        Spectra::SMALLEST_ALGE  // sorting rule
+      );
+    int eigensolver_status = eigensolver.info();
+    std::cout
+      << fmt::format("  Eigensolver reports: eigenvectors {} status {}",converged_eigenvectors,eigensolver_status)
+      << std::endl;
+    assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
+    assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
+
+    // save eigenresults
+    eigenvalues[J] = eigensolver.eigenvalues();
+    eigenvectors[J] = eigensolver.eigenvectors();
+    std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
+              << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
+              << std::endl;
+
+    // check eigenvector norms
+    Eigen::VectorXd eigenvector_norms(eigenvectors[J].cols());
+    for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+      {
+        eigenvector_norms(eigenvector_index) = eigenvectors[J].col(eigenvector_index).norm();
+        const double norm_tolerance=1e-8;
+        assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
+      }
+      if (false)
+        {
+          std::cout << fmt::format("  Norms (J={}):",J) << std::endl
+                    << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")
+                    << std::endl;
+        }
+
+      // normalize eigenvectors -- redundant with Spectra eigensolver
+      for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+        eigenvectors[J].col(eigenvector_index).normalize();
+
+      // diagnostics
+      if (false)
+        {
+          std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
+                    << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
+                    << std::endl;
+        }
+  }
 
 }// end namespace
 
@@ -115,7 +213,7 @@ struct RunParameters
 {
 
   // constructor
-  RunParameters(); 
+  RunParameters(int argc, char **argv); 
 
   // basis parameters
   int A;
@@ -133,9 +231,12 @@ struct RunParameters
   std::string relative_unit_tensor_filename_template;
 
   // many-body problem
+  std::string observable_directory;
   std::vector<std::string> observable_filenames;  // first observable is used as Hamiltonian
   int num_observables;
+  int J0;
   std::vector<HalfInt> J_values;
+  std::vector<double> hw_values;
 
   // eigensolver
   int num_eigenvalues;
@@ -150,44 +251,88 @@ RunParameters::RunParameters(int argc, char **argv)
   // read from command line arguments
   //
   // TODO reorder filenames 
-  // if (argc<8)
-  //   {
-  //     std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1B Nmax <basis filename> <Nrel filename> <Brel filename> <Arel filename>" 
-  //               << std::endl;
-  //     std::exit(1);
-  //   }
-  // int A = std::stoi(argv[1]); 
-  // int twice_Nsigma0= std::stoi(argv[2]);
-  // int Nsigma0_ex_max=std::stoi(argv[3]);
-  // int N1v=std::stoi(argv[4]);
-  // int Nmax = std::stoi(argv[5]);
-  // std::string lsu3shell_basis_filename = argv[6];
-  // std::string Nrel_filename = argv[7];
-  // std::string Brel_filename = argv[8];
-  // std::string Arel_filename = argv[9];
-  // HalfInt Nsigma_0=HalfInt(twice_Nsigma0,2);
-
-  // basis parameters
-  A = 6;
-  int twice_Nsigma0 = 22;
+  if (argc<5)
+    {
+      std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1v Nmax num_eigenvalues <load file>"
+       // <basis filename> <Nrel filename> <Brel filename> <Arel filename>" 
+                << std::endl;
+      std::exit(1);
+    }
+  A = std::stoi(argv[1]); 
+  int twice_Nsigma0= std::stoi(argv[2]);
+  Nsigma0_ex_max=std::stoi(argv[3]);
   Nsigma_0=HalfInt(twice_Nsigma0,2);
-  Nsigma0_ex_max = 4;
-  N1v = 1;
-  Nmax = 4;
+  N1v=std::stoi(argv[4]);
+  Nmax = std::stoi(argv[5]);
+  num_eigenvalues=std::stoi(argv[6]);
+  std::string load_file=argv[7];
+
+  // std::cout<< fmt::format("{} {} {} {} {} {}",A, twice_Nsigma0, Nsigma_0, Nsigma0_ex_max, N1v, Nmax)<<std::endl;
+  
+  // many-body problem
+  // observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat"});
+
+  // Reading in from load life 
+  int line_count=0;
+  int twice_Jmin, twice_Jmax, J_step;
+  double hw_min, hw_max, hw_step;
+  std::string line, observable;
+  std::ifstream is(fmt::format("{}.load",load_file));
+  
+  assert(is);
+  while(std::getline(is,line))
+    {
+      std::istringstream line_stream(line);
+      ++line_count;
+      if(line_count==1)
+      {
+        line_stream >> J0 >> twice_Jmin >> twice_Jmax >> J_step;
+        ParsingCheck(line_stream,line_count,line);
+      }
+      else if(line_count==2)
+      {
+        line_stream >> hw_min >> hw_max >> hw_step;
+        ParsingCheck(line_stream,line_count,line);
+      }
+      else
+      {
+        line_stream >> observable;
+        ParsingCheck(line_stream,line_count,line);
+        observable_filenames.push_back(observable);
+      }
+    }
+
+  num_observables = observable_filenames.size();
+  observable_directory="relative_observables";
+  // generate list of J values 
+  HalfInt Jmin(twice_Jmin,2);
+  HalfInt Jmax(twice_Jmax,2);
+  for(HalfInt J=Jmin; J<=Jmax; J+=J_step)
+    J_values.push_back(J);
+
+  std::cout<<"J values are: ";
+  for(auto J : J_values)
+    std::cout<<J<<"  ";
+  std::cout<<std::endl;
+
+  for(double hw=hw_min; hw<=hw_max; hw+=hw_step)
+    hw_values.push_back(hw);
+
+  std::cout<<"hw values are: ";
+  for(auto hw : hw_values)
+    std::cout<<hw<<"  ";
+  std::cout<<std::endl;
+
 
   // hard-coded directory structure and filenames
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nmax);
-  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel_06_Nmax{:02d}.rme",Nmax);
-  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel_06_Nmax{:02d}.rme",Nmax);
+  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nsigma0_ex_max);
+  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel_06_Nmax{:02d}.rme",Nsigma0_ex_max);
+  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel_06_Nmax{:02d}.rme",Nsigma0_ex_max);
   relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 
-  // many-body problem
-  observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat","r2intr_hw20.0_Nmax02_u3st.dat"});
-  num_observables = observable_filenames.size();
-  J_values = std::vector<HalfInt>({0,1});
-  num_eigenvalues = 10;
+  // hard-coded eigen solver parameters   
   eigensolver_num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
   eigensolver_max_iterations = 100*num_eigenvalues;
   eigensolver_tolerance = 1e-8;
@@ -359,12 +504,12 @@ int main(int argc, char **argv)
   //
   // Note: Should be consistant with set of tensors generated by
   // generate_lsu3shell_relative_operators.
-  int Nmax_for_unit_tensors = run_parameters.Nsigma0_ex_max+2*run_parameters.N1v;  // max quanta for pair in LGI (?)
+  int Nmax_for_lgi_unit_tensors = run_parameters.Nsigma0_ex_max+2*run_parameters.N1v;  // max quanta for pair in LGI (?)
   int J0_for_unit_tensors = -1;  // all J0
   int T0_for_unit_tensors = 0;
   const bool restrict_positive_N0 = false;  // don't restrict to N0 positive
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
-      Nmax_for_unit_tensors,lgi_unit_tensor_labels,
+      Nmax_for_lgi_unit_tensors,lgi_unit_tensor_labels,
       J0_for_unit_tensors,T0_for_unit_tensors,restrict_positive_N0
     );
 
@@ -400,15 +545,17 @@ int main(int argc, char **argv)
     );
 
   // store unit tensor matrix elements for recurrence
+  HalfInt Nsigma_max=run_parameters.Nsigma0_ex_max+run_parameters.Nsigma_0;
   spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
   spncci::StoreSeedUnitTensorRMEs(
       lgi_unit_tensor_labels,
       lgi_unit_tensor_sectors,
       lgi_unit_tensor_spncci_matrices,
       unit_tensor_matrices,
+      Nsigma_max,
       zero_threshold
     );
-
+  std::cout<<"number of seed sectors "<<unit_tensor_matrices.size()<<std::endl;
   ////////////////////////////////////////////////////////////////
   // recurse unit tensor rmes to full SpNCCI basis
   ////////////////////////////////////////////////////////////////
@@ -416,11 +563,14 @@ int main(int argc, char **argv)
   std::cout << "Recurse unit tensor rmes..." << std::endl;
 
   // determine full set of unit tensors for rme calculation
+  int Nmax_for_unit_tensors=run_parameters.Nmax+2*run_parameters.N1v;
   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
       Nmax_for_unit_tensors,unit_tensor_labels,
       J0_for_unit_tensors,T0_for_unit_tensors,restrict_positive_N0
     );
+
+  // std::cout<<"unit tensor labels size "<<unit_tensor_labels.size()<<std::endl;
 
   // timing start
   Timer timer_recurse;
@@ -438,300 +588,240 @@ int main(int argc, char **argv)
   // timing stop
   timer_recurse.Stop();
   std::cout << fmt::format("(Task time: {})",timer_recurse.ElapsedTime()) << std::endl;
+  
 
-  ////////////////////////////////////////////////////////////////
-  // read relative operators
-  ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Observables 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  std::cout << "Read observable relative rmes..." << std::endl;
+  for(double hw : run_parameters.hw_values)
+  {
 
-  std::vector<u3shell::RelativeRMEsU3ST> observable_relative_rmes;
-  observable_relative_rmes.resize(run_parameters.num_observables);
-  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    {
-      std::cout << fmt::format("  Reading {}...",run_parameters.observable_filenames[observable_index])
-                << std::endl;
-      u3shell::ReadRelativeOperatorU3ST(
-          run_parameters.observable_filenames[observable_index],
-          observable_relative_rmes[observable_index]
+    ////////////////////////////////////////////////////////////////
+    // read relative operators
+    ////////////////////////////////////////////////////////////////
+
+    std::cout << "Read observable relative rmes..." << std::endl;
+
+    std::vector<u3shell::RelativeRMEsU3ST> observable_relative_rmes;
+    observable_relative_rmes.resize(run_parameters.num_observables);
+    for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+      {
+        std::string observable_filename=fmt::format("{}/{}_hw{:2.1f}_Nmax{:02d}_u3st.dat", 
+            run_parameters.observable_directory,
+            run_parameters.observable_filenames[observable_index],hw,run_parameters.Nmax);
+
+        std::cout << fmt::format("  Reading {}...",observable_filename)<< std::endl;
+        u3shell::ReadRelativeOperatorU3ST(observable_filename,observable_relative_rmes[observable_index]);
+      }
+    ////////////////////////////////////////////////////////////////
+    // contract and regroup observables
+    ////////////////////////////////////////////////////////////////
+
+    std::cout << "Set up basis indexing for contracting and regrouping..." << std::endl;
+
+    // set up basis indexing for regrouping
+    spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
+    spncci::SpaceU3S space_u3s(baby_spncci_space);
+
+    std::cout << "Constract and regroup observable matrices..." << std::endl;
+
+    // timing start
+    Timer timer_regrouping;
+    timer_regrouping.Start();
+
+    // contract and regroup observable matrices at U3S level
+    std::vector<std::vector<spncci::SectorLabelsU3S>> observable_sectors_u3s;
+    std::vector<basis::MatrixVector> observable_matrices_u3s;
+    observable_sectors_u3s.resize(run_parameters.num_observables);
+    observable_matrices_u3s.resize(run_parameters.num_observables);
+    for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+      spncci::ConstructObservableU3S(
+          run_parameters.Nmax,run_parameters.N1v,
+          baby_spncci_space,
+          space_u3s,
+          unit_tensor_matrices,observable_relative_rmes[observable_index],
+          observable_sectors_u3s[observable_index],observable_matrices_u3s[observable_index]
         );
-    }
-  ////////////////////////////////////////////////////////////////
-  // contract and regroup observables
-  ////////////////////////////////////////////////////////////////
 
-  std::cout << "Set up basis indexing for contracting and regrouping..." << std::endl;
+    // timing stop
+    timer_regrouping.Stop();
+    std::cout << fmt::format("(Task time: {})",timer_regrouping.ElapsedTime()) << std::endl;
 
-  // set up basis indexing for regrouping
-  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
-  spncci::SpaceU3S space_u3s(baby_spncci_space);
+    // diagnostic
+    if (false)
+      {
+        for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+          {
+            std::cout << fmt::format("  observable {}",observable_index) << std::endl;
+            const auto& sectors_u3s = observable_sectors_u3s[observable_index];
+            const auto& matrices_u3s = observable_matrices_u3s[observable_index];
+            for (int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+              {
+                std::cout << fmt::format("    sector {}",sector_index) << std::endl;
+                std::cout << sectors_u3s[sector_index].Str() << std::endl;
+                std::cout << mcutils::FormatMatrix(matrices_u3s[sector_index],"8.3f") << std::endl
+                          <<std::endl;
+              }
+          }
+      }
 
-  std::cout << "Constract and regroup observable matrices..." << std::endl;
+    ////////////////////////////////////////////////////////////////
+    // branch observables
+    ////////////////////////////////////////////////////////////////
 
-  // timing start
-  Timer timer_regrouping;
-  timer_regrouping.Start();
+    // Note: Right now, only supports J0=0.  Will have to implement more
+    // generally to work with (J_bra,J_ket) pairs when go to nonscalar
+    // operators.
+    int J0 = 0;
 
-  // contract and regroup observable matrices at U3S level
-  std::vector<std::vector<spncci::SectorLabelsU3S>> observable_sectors_u3s;
-  std::vector<basis::MatrixVector> observable_matrices_u3s;
-  observable_sectors_u3s.resize(run_parameters.num_observables);
-  observable_matrices_u3s.resize(run_parameters.num_observables);
-  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    spncci::ConstructObservableU3S(
-        run_parameters.Nmax,run_parameters.N1v,
-        baby_spncci_space,
-        space_u3s,
-        unit_tensor_matrices,observable_relative_rmes[observable_index],
-        observable_sectors_u3s[observable_index],observable_matrices_u3s[observable_index]
-      );
+    std::cout << "Set up basis indexing for branching..." << std::endl;
 
-  // timing stop
-  timer_regrouping.Stop();
-  std::cout << fmt::format("(Task time: {})",timer_regrouping.ElapsedTime()) << std::endl;
+    // set up basis indexing for branching
+    std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
+    for (const HalfInt J : run_parameters.J_values)
+      {
+        spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
+      }
 
-  // diagnostic
-  if (false)
-    {
-      for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-        {
-          std::cout << fmt::format("  observable {}",observable_index) << std::endl;
-          const auto& sectors_u3s = observable_sectors_u3s[observable_index];
-          const auto& matrices_u3s = observable_matrices_u3s[observable_index];
-          for (int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+    std::cout << "Construct branched observable matrices..." << std::endl;
+
+    // timing start
+    Timer timer_branching;
+    timer_branching.Start();
+
+    // populate fully-branched many-body matrices for observables
+    // map: observable -> J ->  matrix
+    std::vector<std::map<HalfInt,Eigen::MatrixXd>> observable_matrices;  
+    observable_matrices.resize(run_parameters.num_observables);
+    spncci::ConstructBranchedObservables(space_u3s,observable_sectors_u3s,
+      observable_matrices_u3s, spaces_lsj,run_parameters.num_observables,run_parameters.J_values,
+      run_parameters.J0, observable_matrices);
+
+    // timing stop
+    timer_branching.Stop();
+    std::cout << fmt::format("(Task time: {})",timer_branching.ElapsedTime()) << std::endl;
+
+    // diagnostics: branched matrices
+    if (false)
+      {
+        for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+          for (const HalfInt J : run_parameters.J_values)
             {
-              std::cout << fmt::format("    sector {}",sector_index) << std::endl;
-              std::cout << sectors_u3s[sector_index].Str() << std::endl;
-              std::cout << mcutils::FormatMatrix(matrices_u3s[sector_index],"8.3f") << std::endl
-                        <<std::endl;
+              Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
+
+              const HalfInt bra_J = J;
+              const HalfInt ket_J = J;
+              std::cout
+                << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
+                << std::endl;
+              std::cout
+                << mcutils::FormatMatrix(observable_matrix,"8.5f")
+                << std::endl
+                << std::endl;
+
+            }
+      }
+
+    ////////////////////////////////////////////////////////////////
+    // eigenstuff
+    ////////////////////////////////////////////////////////////////
+
+    std::cout << "Solve Hamiltonian eigenproblem..." << std::endl;
+
+    // timing start
+    Timer timer_eigenproblem;
+    timer_eigenproblem.Start();
+
+    std::map<HalfInt,Eigen::VectorXd> eigenvalues;  // map: J -> eigenvalues
+    std::map<HalfInt,Eigen::MatrixXd> eigenvectors;  // map: J -> eigenvectors
+
+    for (const HalfInt J : run_parameters.J_values)
+      {
+        // set up aliases
+        Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
+
+        int num_eigenvalues;
+        int num_convergence;
+        if((hamiltonian_matrix.cols()/2)<run_parameters.num_eigenvalues)
+        {
+          num_eigenvalues=int(hamiltonian_matrix.cols()/2);
+          num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
+        }
+        else
+        {
+          num_eigenvalues=run_parameters.num_eigenvalues;
+          num_convergence=run_parameters.eigensolver_num_convergence;
+        }
+        spncci::SolveHamiltonian(hamiltonian_matrix,J,
+            num_eigenvalues,
+            num_convergence,
+            // run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
+            run_parameters.eigensolver_max_iterations,
+            run_parameters.eigensolver_tolerance,
+            eigenvalues,  eigenvectors
+          );
+      }
+
+    
+    // timing stop
+    timer_eigenproblem.Stop();
+    std::cout << fmt::format("(Task time: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
+
+    // observable expectation values (assumes J0=0)
+    std::vector<std::map<HalfInt,Eigen::VectorXd>> observable_expectations;  // map: observable -> J -> eigenvalues
+    observable_expectations.resize(run_parameters.num_observables);
+    // observable_index=0 correspond to hamiltonian.
+    for (int observable_index=1; observable_index<run_parameters.num_observables; ++observable_index)
+      for (const HalfInt J : run_parameters.J_values)
+        {
+          const int converged_eigenvectors = eigenvalues[J].size();
+          const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
+          observable_expectations[observable_index][J].resize(converged_eigenvectors);
+          for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+            {
+              const Eigen::VectorXd eigenvector = eigenvectors[J].col(eigenvector_index);
+              double expectation_value = eigenvector.dot(observable_matrix*eigenvector);
+              observable_expectations[observable_index][J][eigenvector_index] = expectation_value;
             }
         }
-    }
 
-  ////////////////////////////////////////////////////////////////
-  // branch observables
-  ////////////////////////////////////////////////////////////////
+    spncci::WriteEigenValues(run_parameters.J_values, hw, 
+      run_parameters.Nmax, run_parameters.Nsigma0_ex_max, eigenvalues);
 
-  // Note: Right now, only supports J0=0.  Will have to implement more
-  // generally to work with (J_bra,J_ket) pairs when go to nonscalar
-  // operators.
-  int J0 = 0;
 
-  std::cout << "Set up basis indexing for branching..." << std::endl;
+    // eigenvalue output
 
-  // set up basis indexing for branching
-  std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
-  for (const HalfInt J : run_parameters.J_values)
-    {
-      spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
-    }
-
-  std::cout << "Construct branched observable matrices..." << std::endl;
-
-  // timing start
-  Timer timer_branching;
-  timer_branching.Start();
-
-  // populate fully-branched many-body matrices for observables
-  // map: observable -> J ->  matrix
-  std::vector<std::map<HalfInt,Eigen::MatrixXd>> observable_matrices;  
-  observable_matrices.resize(run_parameters.num_observables);
-  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
     for (const HalfInt J : run_parameters.J_values)
       {
-        // set up aliases (for current observable and J space)
-        const std::vector<spncci::SectorLabelsU3S>& sectors_u3s = observable_sectors_u3s[observable_index];
-        const basis::MatrixVector& matrices_u3s = observable_matrices_u3s[observable_index];
-        const spncci::SpaceLS& space_lsj = spaces_lsj[J];
-        Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
 
-        // determine set of (L0,S0) labels for this observable (triangular with J0)
-        std::vector<spncci::OperatorLabelsLS> operator_labels_ls;
-        // Note: to update when J0 varies by observable
-        spncci::GenerateOperatorLabelsLS(J0,operator_labels_ls);
+        // eigenvalues
+        std::cout << fmt::format("  Eigenvalues (J={}, hw={}):",J,hw) << std::endl
+                  << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
+                  << std::endl;
 
-        // determine allowed LS sectors
-        const spncci::SpaceLS& bra_space_lsj = space_lsj;
-        const spncci::SpaceLS& ket_space_lsj = space_lsj;
-        const HalfInt bra_J = J;
-        const HalfInt ket_J = J;
-        std::vector<spncci::SectorLabelsLS> sectors_lsj;
-        spncci::GetSectorsLS(bra_space_lsj,ket_space_lsj,operator_labels_ls,sectors_lsj);
-
-        // branch LS sectors to LSJ
-        basis::MatrixVector matrices_lsj;  
-        spncci::ContractAndRegroupLSJ(
-            bra_J,J0,ket_J,
-            space_u3s,sectors_u3s,matrices_u3s,
-            bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
-          );
-
-        // collect LSJ sectors into J matrix
-        //
-        // Note: Interface needs to be generalized to handle J_bra != J_ket.
-        ConstructOperatorMatrix(
-            space_lsj,sectors_lsj,matrices_lsj,
-            observable_matrix
-          );
-      }
-
-  // timing stop
-  timer_branching.Stop();
-  std::cout << fmt::format("(Task time: {})",timer_branching.ElapsedTime()) << std::endl;
-
-  // diagnostics: branched matrices
-  if (false)
-    {
-      for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-        for (const HalfInt J : run_parameters.J_values)
+        // expectations
+        for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
           {
-            Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
-
-            const HalfInt bra_J = J;
-            const HalfInt ket_J = J;
             std::cout
-              << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
-              << std::endl;
-            std::cout
-              << mcutils::FormatMatrix(observable_matrix,"8.5f")
+              << fmt::format(
+                  "  Operator {} ({}) expectations (J={}):",
+                  observable_index,
+                  run_parameters.observable_filenames[observable_index],
+                  J
+                )
               << std::endl
+              << mcutils::FormatMatrix(observable_expectations[observable_index][J],"8.5f","    ")
               << std::endl;
-
           }
-    }
 
-  ////////////////////////////////////////////////////////////////
-  // eigenstuff
-  ////////////////////////////////////////////////////////////////
-
-  std::cout << "Solve Hamiltonian eigenproblem..." << std::endl;
-
-  // timing start
-  Timer timer_eigenproblem;
-  timer_eigenproblem.Start();
-
-  std::map<HalfInt,Eigen::VectorXd> eigenvalues;  // map: J -> eigenvalues
-  std::map<HalfInt,Eigen::MatrixXd> eigenvectors;  // map: J -> eigenvectors
-
-  for (const HalfInt J : run_parameters.J_values)
-    {
-      // set up aliases
-      Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
-      
-      std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
-
-      // define eigensolver and compute
-      typedef Eigen::MatrixXd MatrixType;  // allow for possible future switch to more compact single-precision matrix
-      typedef double FloatType;
-      Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
-      Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
-        eigensolver(
-            &matvec,
-            run_parameters.num_eigenvalues,
-            run_parameters.eigensolver_num_convergence
-          );
-      eigensolver.init();
-      int converged_eigenvectors = eigensolver.compute(
-          run_parameters.eigensolver_max_iterations,
-          run_parameters.eigensolver_tolerance,
-          Spectra::SMALLEST_ALGE  // sorting rule
-        );
-      int eigensolver_status = eigensolver.info();
-      std::cout
-        << fmt::format("  Eigensolver reports: eigenvectors {} status {}",converged_eigenvectors,eigensolver_status)
-        << std::endl;
-      assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
-      assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
-
-      // save eigenresults
-      eigenvalues[J] = eigensolver.eigenvalues();
-      eigenvectors[J] = eigensolver.eigenvectors();
-      std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
-                << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
-                << std::endl;
-
-      // check eigenvector norms
-      Eigen::VectorXd eigenvector_norms(eigenvectors[J].cols());
-      for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
-        {
-          eigenvector_norms(eigenvector_index) = eigenvectors[J].col(eigenvector_index).norm();
-          const double norm_tolerance=1e-8;
-          assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
-        }
-      if (false)
-        {
-          std::cout << fmt::format("  Norms (J={}):",J) << std::endl
-                    << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")
-                    << std::endl;
-        }
-
-      // normalize eigenvectors -- redundant with Spectra eigensolver
-      for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
-        eigenvectors[J].col(eigenvector_index).normalize();
-
-      // diagnostics
-      if (false)
-        {
-          std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
-                    << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
-                    << std::endl;
-        }
-    }
-
-  
-  // timing stop
-  timer_eigenproblem.Stop();
-  std::cout << fmt::format("(Task time: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
-
-  // observable expectation values (assumes J0=0)
-  std::vector<std::map<HalfInt,Eigen::VectorXd>> observable_expectations;  // map: observable -> J -> eigenvalues
-  observable_expectations.resize(run_parameters.num_observables);
-  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    for (const HalfInt J : run_parameters.J_values)
-      {
-        const int converged_eigenvectors = eigenvalues[J].size();
-        const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
-        observable_expectations[observable_index][J].resize(converged_eigenvectors);
-        for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+        // diagnostics
+        if (false)
           {
-            const Eigen::VectorXd eigenvector = eigenvectors[J].col(eigenvector_index);
-            double expectation_value = eigenvector.dot(observable_matrix*eigenvector);
-            observable_expectations[observable_index][J][eigenvector_index] = expectation_value;
+            std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
+                      << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
+                      << std::endl;
           }
       }
-
-  // eigenvalue output
-
-  for (const HalfInt J : run_parameters.J_values)
-    {
-
-      // eigenvalues
-      std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
-                << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
-                << std::endl;
-
-      // expectations
-      for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-        {
-          std::cout
-            << fmt::format(
-                "  Operator {} ({}) expectations (J={}):",
-                observable_index,
-                run_parameters.observable_filenames[observable_index],
-                J
-              )
-            << std::endl
-            << mcutils::FormatMatrix(observable_expectations[observable_index][J],"8.5f","    ")
-            << std::endl;
-        }
-
-      // diagnostics
-      if (false)
-        {
-          std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
-                    << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
-                    << std::endl;
-        }
-    }
-
+  }
 }
