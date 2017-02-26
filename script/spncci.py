@@ -29,7 +29,7 @@ su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(projects_root,"spncci","programs","operators","generate_relative_u3st_operators")
 spncci_executable = os.path.join(projects_root,"spncci","programs","spncci","spncci")
-
+module_file=os.path.join(projects_root,"spncci","config","module-load-ndcrc.csh")
 ################################################################
 # relative unit tensor evaluation
 ################################################################
@@ -172,7 +172,6 @@ def generate_interaction_rmes(task):
     """
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
-
     J0=0
     T0=0
     g0=0
@@ -182,10 +181,8 @@ def generate_interaction_rmes(task):
     # generate hamiltonian load file
     for hw in mcscript.utils.value_range(10,30,2.5):
         interaction_filename=task["interaction_filename_template"].format(hw)
-        print(hw)
         hamiltonian_input_lines = [
-            
-            "{}".format(hw),   # dummy hw value
+            "{}".format(hw),
             "Tintr 1.",
             "INT 1. {} {} {} {} {}".format(J_max,J0,T0,g0,interaction_filename,**task)
         ]
@@ -201,7 +198,8 @@ def generate_interaction_rmes(task):
             ]
 
         mcscript.call(
-            command_line
+            command_line,
+            mode=mcscript.call.serial
         )
       
         for observable in task["observables"] :
@@ -213,6 +211,7 @@ def generate_interaction_rmes(task):
             load_file_name = "{}.load".format(observable)
             mcscript.utils.write_input(load_file_name,input_lines,verbose=True)
             # Generate observable u3st rmes 
+            print("made load file")
             command_line = [
                 generate_relative_operator_rmes_executable,
                 "{:d}".format(A) ,   
@@ -221,8 +220,10 @@ def generate_interaction_rmes(task):
                 "{}".format(observable)
             ]
             mcscript.call(
-                command_line
+                command_line,
+                mode=mcscript.call.serial
             )
+
     os.chdir("..")
 
 def generate_spncci_control_file(task):

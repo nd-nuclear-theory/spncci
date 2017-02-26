@@ -29,32 +29,35 @@ int main(int argc, char **argv)
   int Nmin=Nmax%2;
   int A=N+Z;
   // assert(Nmax>=(N+Z));
+  int T0=0;
+  int J0=-1;
 
   bool un_u3_restrict=false;
   if((N==0)||(Z==0))
     un_u3_restrict=true;
   
-  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmax%2);
+  // set up lsu3shell model space file for unit tensor calculations
+  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmin%2);
 
+  std::string identity_file=fmt::format("Identity_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
-  u3shell::IdentityRelativeUnitTensorExpansion(0, Nmax+2*N1B, identity_operator, N+Z);
-  std::string identity_file=fmt::format("Identity_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  u3shell::IdentityRelativeUnitTensorExpansion(Nmin, Nmax+2*N1B, identity_operator, N+Z);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, identity_operator, identity_file,un_u3_restrict);
 
   //Generate Nrel operator up to Nmax cutoff
-  std::string nrel_file=fmt::format("Nrel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  std::string nrel_file=fmt::format("Nrel_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  u3shell::NintrRelativeUnitTensorExpansion(0,Nmax+2*N1B, Nrel_operator,N+Z);
+  u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Nrel_operator,N+Z);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Nrel_operator, nrel_file, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
-  std::string brel_file=fmt::format("Brel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  std::string brel_file=fmt::format("Brel_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
   u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Brel_operator,A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
-  std::string arel_file=fmt::format("Arel_{:02d}_Nmax{:02d}.recoupler",N+Z,Nmax);
+  std::string arel_file=fmt::format("Arel_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Arel_operator;
   u3shell::ArelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Arel_operator,A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Arel_operator, arel_file, un_u3_restrict);

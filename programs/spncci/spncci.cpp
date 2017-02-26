@@ -95,12 +95,16 @@
 // to extract to spncci library when ready
 ////////////////////////////////////////////////////////////////
 #define EIGEN_DONT_PARALLELIZE
+  
 namespace spncci
 {
   void
   WriteEigenValues(const std::vector<HalfInt>& J_values, double hw, 
     int Nmax, int Nsigma0_ex_max,
-    std::map<HalfInt,Eigen::VectorXd>& eigenvalues 
+    std::map<HalfInt,Eigen::VectorXd>& eigenvalues,
+    std::vector<std::map<HalfInt,Eigen::VectorXd>>& observable_expectations,
+    int num_observables
+
   )
   {
     std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigma0_ex_max);
@@ -111,10 +115,17 @@ namespace spncci
     fs << std::setprecision(precision);
     for(HalfInt J : J_values)
       {
-        fs << fmt::format("hw={:2.1f}  J={}",hw,J)<<std::endl; 
-        fs << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
-        <<std::endl<<std::endl;
-
+        Eigen::VectorXd& eigenvalues_J=eigenvalues[J];
+        // Eigen::VectorXd& observables=observable_expectations[J];
+        
+        for(int i=0; i<eigenvalues_J.size(); ++i)
+        {
+          double eigenvalue=eigenvalues_J(i);
+          fs << fmt::format("{:2d}   {:2d}   {:2.1f}   {}   {:8.5f}", Nsigma0_ex_max, Nmax, hw, J,eigenvalue);
+          for(int j=1; j<num_observables; ++j)
+            fs <<fmt::format("   {}",observable_expectations[j][J](i))
+          <<std::endl;
+        }
       }
       
     fs.close();
@@ -136,7 +147,6 @@ namespace spncci
 
     // set up aliases
     // Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
-    
     std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
 
     // define eigensolver and compute
@@ -786,22 +796,23 @@ int main(int argc, char **argv)
             }
         }
 
-    spncci::WriteEigenValues(run_parameters.J_values, hw, 
-      run_parameters.Nmax, run_parameters.Nsigma0_ex_max, eigenvalues);
+    spncci::WriteEigenValues(
+      run_parameters.J_values, hw, 
+      run_parameters.Nmax, run_parameters.Nsigma0_ex_max, 
+      eigenvalues, observable_expectations, run_parameters.num_observables
+    );
 
-
+    std::cout<<"wrote to file"<<std::endl;
     // eigenvalue output
-
     for (const HalfInt J : run_parameters.J_values)
       {
-
         // eigenvalues
         std::cout << fmt::format("  Eigenvalues (J={}, hw={}):",J,hw) << std::endl
                   << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
                   << std::endl;
 
         // expectations
-        for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+        for (int observable_index=1; observable_index<run_parameters.num_observables; ++observable_index)
           {
             std::cout
               << fmt::format(

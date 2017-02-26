@@ -16,6 +16,7 @@
 
 // Checked agains mfdn for R2intr, Tintr, Nintr
 
+
 // TODO (mac): update function names to accurately reflect that they
 // are imperatives, not fruitful, e.g., AppendOperatorNintr...
 
@@ -279,6 +280,8 @@ int main(int argc, char **argv)
 
   std::string operator_type;
   std::ifstream is(fmt::format("{}.load",operator_filename));
+  if(not is)
+    std::cout<<"is not open"<<std::endl;
   assert(is);
 
   double hbar_omega;

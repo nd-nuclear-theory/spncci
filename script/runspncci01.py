@@ -37,13 +37,13 @@ task_list = [
         "Nsigma_ex_max" : 2,
         "num_eigenvalues" : 10,
         "J0" : 0,
-        "J_range" : [0,1,1], #min, max, step
-        "hw_range" : [10,20,2.5], # min, max, step
+        "J_range" : [1,3,2], #min, max, step
+        "hw_range" : [10,30,2.5], # min, max, step
         "interaction_filename_template" :interaction_filename_template,
         "unit_tensor_directory" : unit_tensor_directory_template,
         "observables" : ["r2intr"]
     }
-    for Nmax in mcscript.utils.value_range(2,2,2)
+    for Nmax in mcscript.utils.value_range(2,20,2)
 ]
 
 ################################################################
