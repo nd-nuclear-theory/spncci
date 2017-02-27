@@ -1,13 +1,25 @@
-""" runmfdn01.py
+""" runspncci01.py
 
-    See runmfdn.txt for description.
+    spncci demonstration run
+
+    Environment:
+      SPNCCI_INTERACTION_DIR -- base directory for relative lsjt interaction files
+      SPNCCI_LSU3SHELL_DIR -- base directory for unit tensor rme files
+
+    Ex (NDCRC nuclthy):
+      setenv SPNCCI_INTERACTION_DIR /afs/crc.nd.edu/group/nuclthy/data/interaction/rel
+      setenv SPNCCI_LSU3SHELL_DIR /afs/crc.nd.edu/group/nuclthy/data/spncci/lsu3shell
+
+    Ex (NERSC m2032):
+      setenv SPNCCI_INTERACTION_DIR /project/projectdirs/m2032/data/interaction/rel
+      setenv SPNCCI_LSU3SHELL_DIR /project/projectdirs/m2032/data/spncci/lsu3shell
 
     Mark A. Caprio
     University of Notre Dame
 
-    - 12/14/16 (mac): Created.
-    - 12/29/16 (mac): Complete run.  Add full run list.
-      
+    + 1/8/17 (mac): Created from runmfdn01.py.
+    + 2/23/17 (mac): Implement basic scripting.
+
 """
 
 import mcscript
@@ -17,15 +29,18 @@ import os
 mcscript.init()
 
 ##################################################################
+# directory configuration
+##################################################################
+
+interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
+unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
+interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
+unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_{Nsigma_ex_max:02d}")
+
+
+##################################################################
 # build task list
 ##################################################################
-interaction_directory = os.path.join(os.environ["HOME"],"nuclthy","data","interaction","rel")
-interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
-unit_tensor_directory_template = os.path.join(
-        "/afs/crc.nd.edu/group/nuclthy/data/lsu3shell-data/unit_tensors",
-        "lsu3shell_{Nsigma_ex_max:02d}"
-        )
-
 
 task_list = [
     {
@@ -34,7 +49,7 @@ task_list = [
         "Nstep" : 2,
         "N1v" : 1,
         "Nsigma_0" : 11,
-        "Nsigma_ex_max" : 2,
+        "Nsigma_ex_max" : Nsigma_ex_max,
         "num_eigenvalues" : 10,
         "J0" : 0,
         "J_range" : [1,3,2], #min, max, step
@@ -43,7 +58,8 @@ task_list = [
         "unit_tensor_directory" : unit_tensor_directory_template,
         "observables" : ["r2intr"]
     }
-    for Nmax in mcscript.utils.value_range(2,20,2)
+    for Nsigma_ex_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
+    for Nmax in mcscript.utils.value_range(Nsigma_ex_max,20,2)
 ]
 
 ################################################################
@@ -52,11 +68,11 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return ("Nmax{Nmax:02d}".format(**task))
+    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nsigmaexmax{Nsigma_ex_max:02d}-Nmax{Nmax:02d}".format(**task))
 
 def task_pool(task):
     """"""
-    return ("Nmax{Nmax:02d}".format(**task))
+    return ("{Nsigma_ex_max:02d}-{Nmax:02d}".format(**task))
 
 
 ##################################################################

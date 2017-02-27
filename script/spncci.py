@@ -29,7 +29,7 @@ su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(projects_root,"spncci","programs","operators","generate_relative_u3st_operators")
 spncci_executable = os.path.join(projects_root,"spncci","programs","spncci","spncci")
-module_file=os.path.join(projects_root,"spncci","config","module-load-ndcrc.csh")
+
 ################################################################
 # relative unit tensor evaluation
 ################################################################
@@ -270,15 +270,38 @@ def call_spncci(task):
         mode=mcscript.call.serial
     )
 
+def save_spncci_results(task):
+    """
+    Ad hoc...
+    """
+    raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
+    new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.run.name,**task))
+    mcscript.call(
+        [
+            "cp",
+            "--verbose",
+            raw_results_filename,
+            new_results_filename
+        ]
+    )
+
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing hamiltonian and other observables.
     """
-    unit_tensor_directory=task["unit_tensor_directory"].format(**task)
+    if ("unit_tensor_directory" in task):
+        # LEGACY support for scripts with messed up name
+        unit_tensor_directory=task["unit_tensor_directory"].format(**task)
+    else:
+        unit_tensor_directory=task["unit_tensor_directory_template"].format(**task)
     # generate_lsu3shell_rmes(task)
-    os.symlink(unit_tensor_directory, "lsu3shell_rme")
+    ## os.symlink(unit_tensor_directory, "lsu3shell_rme")  # hard to reliably clean up?
+    ## mcscript.call(["cp","--recursive",unit_tensor_directory,"lsu3shell_rme"])
+    unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
+    mcscript.call(["tar","xf",unit_tensor_directory_archive_filename])
     generate_interaction_rmes(task)
     generate_spncci_control_file(task)
     call_spncci(task)
+    save_spncci_results(task)
 
 
 if (__name__ == "__MAIN__"):
