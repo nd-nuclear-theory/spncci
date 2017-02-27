@@ -94,7 +94,6 @@
 //
 // to extract to spncci library when ready
 ////////////////////////////////////////////////////////////////
-#define EIGEN_DONT_PARALLELIZE
   
 namespace spncci
 {
@@ -134,23 +133,23 @@ namespace spncci
 
   void 
   SolveHamiltonian(
-      const Eigen::MatrixXd& hamiltonian_matrix,
+      const spncci::MatrixType& hamiltonian_matrix,
       const HalfInt& J,
       int num_eigenvalues,
       int eigensolver_num_convergence,  // whatever exactly this is...
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
       std::map<HalfInt,Eigen::VectorXd>& eigenvalues,  // map: J -> eigenvalues
-      std::map<HalfInt,Eigen::MatrixXd>& eigenvectors  // map: J -> eigenvectors
+      std::map<HalfInt,spncci::MatrixType>& eigenvectors  // map: J -> eigenvectors
     )
   {    
 
     // set up aliases
-    // Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
+    // spncci::MatrixType& hamiltonian_matrix = observable_matrices[0][J];
     std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
 
     // define eigensolver and compute
-    typedef Eigen::MatrixXd MatrixType;  // allow for possible future switch to more compact single-precision matrix
+    typedef spncci::MatrixType MatrixType;  // allow for possible future switch to more compact single-precision matrix
     typedef double FloatType;
     Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
     Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
@@ -374,7 +373,7 @@ int main(int argc, char **argv)
 
   // Eigen OpenMP multithreading mode
   Eigen::initParallel();
-  Eigen::setNbThreads(0);  // disable Eigen internal multithreading
+  // Eigen::setNbThreads(0);
 
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
@@ -566,6 +565,7 @@ int main(int argc, char **argv)
       zero_threshold
     );
   std::cout<<"number of seed sectors "<<unit_tensor_matrices.size()<<std::endl;
+
   ////////////////////////////////////////////////////////////////
   // recurse unit tensor rmes to full SpNCCI basis
   ////////////////////////////////////////////////////////////////
@@ -592,7 +592,8 @@ int main(int argc, char **argv)
   RecurseUnitTensors(
       run_parameters.N1v, run_parameters.Nmax,spncci_space,
       k_matrix_cache,u_coef_cache,phi_coef_cache,
-      unit_tensor_labels,unit_tensor_matrices
+      unit_tensor_labels,unit_tensor_matrices,
+      true  // verbose
     );
 
   // timing stop
@@ -624,6 +625,7 @@ int main(int argc, char **argv)
         std::cout << fmt::format("  Reading {}...",observable_filename)<< std::endl;
         u3shell::ReadRelativeOperatorU3ST(observable_filename,observable_relative_rmes[observable_index]);
       }
+
     ////////////////////////////////////////////////////////////////
     // contract and regroup observables
     ////////////////////////////////////////////////////////////////
@@ -702,7 +704,7 @@ int main(int argc, char **argv)
 
     // populate fully-branched many-body matrices for observables
     // map: observable -> J ->  matrix
-    std::vector<std::map<HalfInt,Eigen::MatrixXd>> observable_matrices;  
+    std::vector<std::map<HalfInt,spncci::MatrixType>> observable_matrices;  
     observable_matrices.resize(run_parameters.num_observables);
     spncci::ConstructBranchedObservables(space_u3s,observable_sectors_u3s,
       observable_matrices_u3s, spaces_lsj,run_parameters.num_observables,run_parameters.J_values,
@@ -718,7 +720,7 @@ int main(int argc, char **argv)
         for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
           for (const HalfInt J : run_parameters.J_values)
             {
-              Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
+              spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J];
 
               const HalfInt bra_J = J;
               const HalfInt ket_J = J;
@@ -744,12 +746,12 @@ int main(int argc, char **argv)
     timer_eigenproblem.Start();
 
     std::map<HalfInt,Eigen::VectorXd> eigenvalues;  // map: J -> eigenvalues
-    std::map<HalfInt,Eigen::MatrixXd> eigenvectors;  // map: J -> eigenvectors
+    std::map<HalfInt,spncci::MatrixType> eigenvectors;  // map: J -> eigenvectors
 
     for (const HalfInt J : run_parameters.J_values)
       {
         // set up aliases
-        Eigen::MatrixXd& hamiltonian_matrix = observable_matrices[0][J];
+        spncci::MatrixType& hamiltonian_matrix = observable_matrices[0][J];
 
         int num_eigenvalues;
         int num_convergence;
@@ -786,7 +788,7 @@ int main(int argc, char **argv)
       for (const HalfInt J : run_parameters.J_values)
         {
           const int converged_eigenvectors = eigenvalues[J].size();
-          const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][J];
+          const spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J];
           observable_expectations[observable_index][J].resize(converged_eigenvectors);
           for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
             {
@@ -835,4 +837,5 @@ int main(int argc, char **argv)
           }
       }
   }
+
 }

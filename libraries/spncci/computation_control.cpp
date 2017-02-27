@@ -99,17 +99,54 @@ namespace spncci
       u3::UCoefCache& u_coef_cache,
       u3::PhiCoefCache& phi_coef_cache,
       const std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      bool verbose
     )
   {
+    // verbosity control
+    const int verbosity_interval = 10;
+    int irrep_family_pair_count = 0;
+
     for(const auto& irrep_family_indices_submap_pair : unit_tensor_matrices)
       {
+        ++irrep_family_pair_count;
+
         std::pair<int,int> irrep_family_indices = irrep_family_indices_submap_pair.first;
         // std::cout<<"family pair "<<irrep_family_indices.first<<"  "<<irrep_family_indices.second<<std::endl;
 
         spncci::GenerateUnitTensorMatrix(
             N1v,Nmax,irrep_family_indices,spncci_space,u_coef_cache,phi_coef_cache,k_matrix_cache,
             unit_tensor_labels,unit_tensor_matrices);
+
+        // diagnostics
+        if (verbose)
+          {
+            if ((irrep_family_pair_count%verbosity_interval==0)||(irrep_family_pair_count==unit_tensor_matrices.size()))
+              {
+                spncci::UnitTensorMatrixStatistics statistics
+                  = spncci::GenerateUnitTensorMatrixStatistics(unit_tensor_matrices);
+                std::cout
+                  << fmt::format("  After LGI family pair {}...",irrep_family_pair_count)
+                  << std::endl
+                  << fmt::format(
+                      "    num_irrep_family_index_pairs    {}\n"
+                      "    num_Nn_pairs                    {}\n"
+                      "    num_unit_tensor_sectors         {}\n"
+                      "    num_nonzero_unit_tensor_sectors {} ({:.2e})\n"
+                      "    num_matrix_elements             {}\n"
+                      "    num_nonzero_matrix_elements     {} ({:.2e})\n",
+                      statistics.num_irrep_family_index_pairs,
+                      statistics.num_Nn_pairs,
+                      statistics.num_unit_tensor_sectors,
+                      statistics.num_nonzero_unit_tensor_sectors,
+                      double(statistics.num_nonzero_unit_tensor_sectors)/statistics.num_unit_tensor_sectors,
+                      statistics.num_matrix_elements,
+                      statistics.num_nonzero_matrix_elements,
+                      double(statistics.num_nonzero_matrix_elements)/statistics.num_matrix_elements
+                )
+                  << std::endl;
+              }
+          }
       }
   }
 

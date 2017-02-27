@@ -163,7 +163,34 @@ namespace spncci
   //   -> unit_tensor_sector_labels (spncci::UnitTensorU3Sector)
   //   -> sector matrix (Eigen::MatrixXd)
 
-  void 
+  struct UnitTensorMatrixStatistics
+  // Structure for reporting diagnostic information on unit tensor matrices.
+  {
+    UnitTensorMatrixStatistics()
+    : num_irrep_family_index_pairs(0), num_Nn_pairs(0), num_unit_tensor_sectors(0), num_nonzero_unit_tensor_sectors(0), num_matrix_elements(0), num_nonzero_matrix_elements(0)
+    {};
+
+    int num_irrep_family_index_pairs;
+    int num_Nn_pairs;
+    int num_unit_tensor_sectors;
+    int num_nonzero_unit_tensor_sectors;
+    int num_matrix_elements;
+    int num_nonzero_matrix_elements;
+  };
+
+  spncci::UnitTensorMatrixStatistics
+    GenerateUnitTensorMatrixStatistics(
+        const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
+      );
+  // Count entries at each level of branching in unit tensor matrices container.
+  //
+  // Arguments:
+  //   unit_tensor_matrices (input): seed rmes (input) and computed rmes (output)
+  //
+  // Returns:
+  //   statistics
+
+  void
     GenerateUnitTensorMatrix(
         int N1b,
         int Nmax, 

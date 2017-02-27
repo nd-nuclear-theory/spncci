@@ -37,6 +37,7 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/vcs.h"
+#include "spncci/spncci_common.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
 #include "u3shell/upcoupling.h"

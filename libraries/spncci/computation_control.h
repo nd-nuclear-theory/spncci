@@ -59,7 +59,8 @@ namespace spncci
       u3::UCoefCache& u_coef_cache,
       u3::PhiCoefCache& phi_coef_cache,
       const std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      bool verbose = false
     );
   // Recursively populate sectors for unit tensors.
   //

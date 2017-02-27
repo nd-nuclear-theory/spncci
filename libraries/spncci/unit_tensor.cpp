@@ -11,6 +11,7 @@
 #include <omp.h>
 
 #include "cppformat/format.h"
+#include "mcutils/eigen.h"
 #include "sp3rlib/u3coef.h"
 
 extern double zero_threshold;
@@ -592,6 +593,40 @@ GenerateNpNSector(
   if ((Nnp==0)||(Nn==0))
     unit_tensor_rme_map.erase(NpN4);
 }
+
+  spncci::UnitTensorMatrixStatistics
+    GenerateUnitTensorMatrixStatistics(const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices)
+  {
+
+    // counters
+    UnitTensorMatrixStatistics statistics;
+
+    // level 1: traverse irrep family index pairs
+    for(const auto& irrep_family_index_pairs_entry : unit_tensor_matrices)
+      {
+        ++statistics.num_irrep_family_index_pairs;
+
+        // level 2: traverse Nn pairs
+        for(const auto& Nn_pairs_entry : irrep_family_index_pairs_entry.second)
+          {
+            ++statistics.num_Nn_pairs;
+
+            // level 3: traverse unit tensor sectors
+            for(const auto& unit_tensor_sectors_entry : Nn_pairs_entry.second)
+              {
+                ++statistics.num_unit_tensor_sectors;
+                
+                // process sector matrix
+                const Eigen::MatrixXd& matrix = unit_tensor_sectors_entry.second;
+                if (not mcutils::IsZero(matrix,spncci::g_zero_tolerance))
+                  ++statistics.num_nonzero_unit_tensor_sectors;
+                statistics.num_matrix_elements += matrix.rows()*matrix.cols();
+                statistics.num_nonzero_matrix_elements += mcutils::NonzerosInMatrix(matrix,spncci::g_zero_tolerance); 
+              }
+          }
+      }
+    return statistics;
+  }
 
   void 
   GenerateUnitTensorMatrix(

@@ -35,8 +35,7 @@ mcscript.init()
 interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
 unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
 interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
-unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_{Nsigma_ex_max:02d}")
-
+unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_{Nsigma_ex_max:02d}")  # TODO label by N and Z; no longer "directory"
 
 ##################################################################
 # build task list
@@ -52,8 +51,8 @@ task_list = [
         "Nsigma_ex_max" : Nsigma_ex_max,
         "num_eigenvalues" : 10,
         "J0" : 0,
-        "J_range" : [1,3,2], #min, max, step
-        "hw_range" : [10,30,2.5], # min, max, step
+        "J_range" : (1,3,2), #min, max, step
+        "hw_range" : (20,20,2.5), # min, max, step
         "interaction_filename_template" :interaction_filename_template,
         "unit_tensor_directory" : unit_tensor_directory_template,
         "observables" : ["r2intr"]

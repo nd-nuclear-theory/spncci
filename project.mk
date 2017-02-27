@@ -74,6 +74,9 @@ LDLIBS += -lgsl
 LDLIBS += -lgslcblas 
 CPPFLAGS += -DHAVE_INLINE
 
+# Eigen
+CPPFLAGS += -DEIGEN_DONT_PARALLELIZE
+
 # verbosity level
 CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
 
