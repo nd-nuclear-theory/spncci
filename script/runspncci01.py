@@ -17,7 +17,7 @@
     Mark A. Caprio
     University of Notre Dame
 
-    + 1/8/17 (mac): Created from runmfdn01.py.
+    + 1/8/17 (mac): Created.
     + 2/23/17 (mac): Implement basic scripting.
 
 """
@@ -85,7 +85,9 @@ mcscript.task.init(
     task_pool=task_pool,
     phase_handler_list=[
         spncci.do_full_spncci_run
-        ]
+        ],
+    # Note: change to mcscript.task.archive_handler_hsi for tape backup
+    archive_phase_handler_list=[mcscript.task.archive_handler_generic]
     )
 
 ################################################################
