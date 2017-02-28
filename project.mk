@@ -120,3 +120,8 @@ FFLAGS += -DSU3LM82
 # BOOST -- lsu3shell flags
 ## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
 
+################################################################
+# special targets
+################################################################
+
+base: spncci generate_relative_u3st_operators

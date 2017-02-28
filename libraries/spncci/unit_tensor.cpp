@@ -13,6 +13,7 @@
 #include "cppformat/format.h"
 #include "mcutils/eigen.h"
 #include "sp3rlib/u3coef.h"
+#include "spncci/spncci_common.h"
 
 extern double zero_threshold;
 
@@ -568,7 +569,7 @@ GenerateNpNSector(
         // If temp_matrix is non-zero, add unit tensor sub matrix into the unit_tensor_rme_map
         // if (temp_matrix.any())
         
-        // if (not CheckIfZeroMatrix(temp_matrix, zero_threshold))
+        if (not (spncci::g_suppress_zero_sectors && mcutils::IsZero(temp_matrix,spncci::g_zero_tolerance)))
             u3_sector_pairs.push_back(UnitTensorU3SectorPair(unit_tensor_u3_sector,temp_matrix));
       }
     // save out sectors

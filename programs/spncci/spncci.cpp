@@ -366,7 +366,9 @@ int main(int argc, char **argv)
   u3::g_u_cache_enabled = true;
 
   // numerical parameter for certain calculations
-  double zero_threshold=1e-8;
+  double zero_threshold=1e-8;  // DEPRECATED but still may be used some places
+  spncci::g_zero_tolerance = 1e-6;
+  spncci::g_suppress_zero_sectors = true;
 
   // run parameters
   RunParameters run_parameters(argc,argv);

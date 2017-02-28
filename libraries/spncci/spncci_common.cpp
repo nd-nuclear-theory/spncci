@@ -11,4 +11,7 @@
 namespace spncci
 {
   spncci::MatrixFloatType g_zero_tolerance = 1e-6;  
+
+  bool g_suppress_zero_sectors = false;
+
 }  // namespace

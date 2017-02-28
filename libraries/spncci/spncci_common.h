@@ -24,6 +24,8 @@ namespace spncci
   // tolerance for zero-testing of SpNCCI matrix elements
   extern MatrixFloatType g_zero_tolerance;
 
+  extern bool g_suppress_zero_sectors;
+
 }  // namespace
 
 #endif
