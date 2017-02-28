@@ -1,3 +1,4 @@
+
 """spncci.py -- define scripting for spncci runs
 
           
@@ -28,7 +29,8 @@ su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","
 # ... from spncci
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(projects_root,"spncci","programs","operators","generate_relative_u3st_operators")
-spncci_executable = os.path.join(projects_root,"spncci","programs","spncci","spncci")
+spncci_executable_dir = os.path.join(projects_root,"spncci","programs","spncci")
+
 
 ################################################################
 # relative unit tensor evaluation
@@ -253,6 +255,10 @@ def call_spncci(task):
     """
     A = int(task["nuclide"][0]+task["nuclide"][1])
     twice_Nsigma_0 = int(2*task["Nsigma_0"])
+
+    if ("spncci_variant" not in task):
+        task["spncci_variant"] = "spncci"
+    spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
     command_line = [
         spncci_executable,

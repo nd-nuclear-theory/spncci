@@ -104,7 +104,7 @@ namespace spncci
     )
   {
     // verbosity control
-    const int verbosity_interval = 10;
+    const int verbosity_interval = 100;
     int irrep_family_pair_count = 0;
 
     for(const auto& irrep_family_indices_submap_pair : unit_tensor_matrices)
