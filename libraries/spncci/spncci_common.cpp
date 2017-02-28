@@ -17,7 +17,7 @@ namespace spncci
 
   bool g_suppress_zero_sectors = false;
 
-  const std::string log_filename("spncci.log");
+  const std::string log_filename("spncci.out");
   std::ofstream log_stream(log_filename);
  
   void WriteLog(const std::string& message)

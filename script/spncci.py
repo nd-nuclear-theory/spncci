@@ -280,6 +280,8 @@ def save_spncci_results(task):
     """
     Ad hoc...
     """
+
+    # results file
     raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
     new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.run.name,**task))
     mcscript.call(
@@ -290,6 +292,19 @@ def save_spncci_results(task):
             new_results_filename
         ]
     )
+
+    # log file
+    raw_log_filename = "spncci.out"
+    new_log_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.out".format(name=mcscript.run.name,**task))
+    mcscript.call(
+        [
+            "cp",
+            "--verbose",
+            raw_log_filename,
+            new_log_filename
+        ]
+    )
+
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing hamiltonian and other observables.
