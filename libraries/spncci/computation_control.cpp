@@ -109,8 +109,6 @@ namespace spncci
 
     for(const auto& irrep_family_indices_submap_pair : unit_tensor_matrices)
       {
-        ++irrep_family_pair_count;
-
         std::pair<int,int> irrep_family_indices = irrep_family_indices_submap_pair.first;
         // std::cout<<"family pair "<<irrep_family_indices.first<<"  "<<irrep_family_indices.second<<std::endl;
 
@@ -119,6 +117,7 @@ namespace spncci
             unit_tensor_labels,unit_tensor_matrices);
 
         // diagnostics
+        ++irrep_family_pair_count;
         if (verbose)
           {
             if ((irrep_family_pair_count%verbosity_interval==0)||(irrep_family_pair_count==unit_tensor_matrices.size()))
@@ -126,7 +125,7 @@ namespace spncci
                 spncci::UnitTensorMatrixStatistics statistics
                   = spncci::GenerateUnitTensorMatrixStatistics(unit_tensor_matrices);
                 std::cout
-                  << fmt::format("  After LGI family pair {}...",irrep_family_pair_count)
+                  << fmt::format("  After recursing {} LGI family pairs...",irrep_family_pair_count)
                   << std::endl
                   << fmt::format(
                       "    num_irrep_family_index_pairs    {}\n"
