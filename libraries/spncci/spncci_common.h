@@ -12,6 +12,8 @@
 #ifndef SPNCCI_COMMON_H_
 #define SPNCCI_COMMON_H_
 
+#include <string>
+
 #include "eigen3/Eigen/Core"
 
 namespace spncci
@@ -23,8 +25,10 @@ namespace spncci
 
   // tolerance for zero-testing of SpNCCI matrix elements
   extern MatrixFloatType g_zero_tolerance;
-
   extern bool g_suppress_zero_sectors;
+
+  // logging
+  void WriteLog(const std::string& message);
 
 }  // namespace
 

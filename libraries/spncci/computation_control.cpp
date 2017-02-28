@@ -124,26 +124,28 @@ namespace spncci
               {
                 spncci::UnitTensorMatrixStatistics statistics
                   = spncci::GenerateUnitTensorMatrixStatistics(unit_tensor_matrices);
-                std::cout
-                  << fmt::format("  After recursing {} LGI family pairs...",irrep_family_pair_count)
-                  << std::endl
-                  << fmt::format(
-                      "    num_irrep_family_index_pairs    {}\n"
-                      "    num_Nn_pairs                    {}\n"
-                      "    num_unit_tensor_sectors         {}\n"
-                      "    num_nonzero_unit_tensor_sectors {} ({:.2e})\n"
-                      "    num_matrix_elements             {}\n"
-                      "    num_nonzero_matrix_elements     {} ({:.2e})\n",
-                      statistics.num_irrep_family_index_pairs,
-                      statistics.num_Nn_pairs,
-                      statistics.num_unit_tensor_sectors,
-                      statistics.num_nonzero_unit_tensor_sectors,
-                      double(statistics.num_nonzero_unit_tensor_sectors)/statistics.num_unit_tensor_sectors,
-                      statistics.num_matrix_elements,
-                      statistics.num_nonzero_matrix_elements,
-                      double(statistics.num_nonzero_matrix_elements)/statistics.num_matrix_elements
-                )
-                  << std::endl;
+
+                // test logging interface
+                spncci::WriteLog(
+                    fmt::format(
+                        "  After recursing {} LGI family pairs...\n"
+                        "    num_irrep_family_index_pairs    {}\n"
+                        "    num_Nn_pairs                    {}\n"
+                        "    num_unit_tensor_sectors         {}\n"
+                        "    num_nonzero_unit_tensor_sectors {} ({:.2e})\n"
+                        "    num_matrix_elements             {}\n"
+                        "    num_nonzero_matrix_elements     {} ({:.2e})\n",
+                        irrep_family_pair_count,
+                        statistics.num_irrep_family_index_pairs,
+                        statistics.num_Nn_pairs,
+                        statistics.num_unit_tensor_sectors,
+                        statistics.num_nonzero_unit_tensor_sectors,
+                        double(statistics.num_nonzero_unit_tensor_sectors)/statistics.num_unit_tensor_sectors,
+                        statistics.num_matrix_elements,
+                        statistics.num_nonzero_matrix_elements,
+                        double(statistics.num_nonzero_matrix_elements)/statistics.num_matrix_elements
+                      )
+                  );
               }
           }
       }
