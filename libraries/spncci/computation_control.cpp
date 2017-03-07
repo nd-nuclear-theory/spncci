@@ -21,47 +21,63 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   void
-  TransformSeedUnitTensorRMEs(
+  ReadAndTransformSeedUnitTensorRMEs(
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
       const basis::MatrixVector& lgi_expansions,
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-      const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
-      const std::vector<basis::MatrixVector>& lgi_unit_tensor_lsu3shell_matrices,
-      std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+      const std::string& filename,
+      u3shell::SectorsU3SPN& unit_tensor_sectors,
+      basis::MatrixVector& unit_tensor_spncci_matrices
     )
   {
-    lgi_unit_tensor_spncci_matrices.resize(lgi_unit_tensor_labels.size());
-    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
-      {
+    
+    // lgi_unit_tensor_spncci_matrices.resize(lgi_unit_tensor_labels.size());
+    // for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+    //   {
         // set up aliases for current unit tensor
-        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
-        const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
-        const basis::MatrixVector& unit_tensor_lsu3shell_matrices = lgi_unit_tensor_lsu3shell_matrices[unit_tensor_index];
-        basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
+        // const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+        // const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
+        // const basis::MatrixVector& unit_tensor_lsu3shell_matrices = lgi_unit_tensor_lsu3shell_matrices[unit_tensor_index];
+        // basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
       
-        // transform seed rmes to SpNCCI basis (among LGIs)
-        lgi::TransformOperatorToSpBasis(
-            unit_tensor_sectors,lgi_expansions,
-            unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
-          );
-      }
+    const bool spin_scalar = false;
+
+    // generate sector labels 
+    unit_tensor_sectors = u3shell::SectorsU3SPN(lsu3shell_space,unit_tensor_labels,spin_scalar);
+    
+    // read in lsu3shell rms for unit tensor 
+    basis::MatrixVector unit_tensor_lsu3shell_matrices;
+    lsu3shell::ReadLSU3ShellRMEs(
+        filename,
+        lsu3shell_basis_table,lsu3shell_space,
+        unit_tensor_labels,unit_tensor_sectors,unit_tensor_lsu3shell_matrices
+      );
+
+    // transform seed rmes to SpNCCI basis (among LGIs)
+    lgi::TransformOperatorToSpBasis(
+        unit_tensor_sectors,lgi_expansions,
+        unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
+      );
+      // }
   }
 
   void
   StoreSeedUnitTensorRMEs(
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-      const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
-      const std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices,
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+      const u3shell::SectorsU3SPN& unit_tensor_sectors,
+      const basis::MatrixVector& unit_tensor_spncci_matrices,
       spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
       HalfInt Nsigma_max,
       double zero_threshold
     )
   {
-    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
-      {
+    // for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+    //   {
         // set up aliases for current unit tensor
-        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
-        const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
-        const basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
+        // const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+        // const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
+        // const basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
       
         // stash each sector in big souffle (i.e., by irrep family)
         for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
@@ -89,7 +105,7 @@ namespace spncci
                 // std::cout<<unit_tensor_spncci_matrices[sector_index]<<std::endl;
               }
           }
-      }
+      // }
   }
 
   void

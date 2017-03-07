@@ -429,8 +429,10 @@ int main(int argc, char **argv)
   //   lgi_unit_tensor_lsu3shell_sectors: vector of lsu3shell sectors for seed unit tensors
   //   lgi_unit_tensor_matrices: vector of matrices for these sectors
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
-  std::vector<u3shell::SectorsU3SPN> lgi_unit_tensor_sectors;
-  std::vector<basis::MatrixVector> lgi_unit_tensor_lsu3shell_matrices;
+
+  // DEPRECIATED
+  // std::vector<u3shell::SectorsU3SPN> lgi_unit_tensor_sectors;
+  // std::vector<basis::MatrixVector> lgi_unit_tensor_lsu3shell_matrices;
 
   // determine set of seed unit tensors
   //
@@ -442,54 +444,54 @@ int main(int argc, char **argv)
   int J0_for_unit_tensors = -1;  // all J0
   int T0_for_unit_tensors = 0;
   const bool restrict_positive_N0 = false;  // don't restrict to N0 positive
+
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
       Nmax_for_lgi_unit_tensors,lgi_unit_tensor_labels,
       J0_for_unit_tensors,T0_for_unit_tensors,restrict_positive_N0
     );
 
+  // for each unit tensor, read in and transform.
+
   // diagnostic
   std::cout << fmt::format("  seed unit tensors {}",lgi_unit_tensor_labels.size()) << std::endl;
-
-  spncci::ReadLSU3ShellSeedUnitTensorRMEs(
-      lsu3shell_basis_table,lsu3shell_space,
-      lgi_unit_tensor_labels,
-      run_parameters.relative_unit_tensor_filename_template,
-      lgi_unit_tensor_sectors,
-      lgi_unit_tensor_lsu3shell_matrices
-    );
-
-  timer_read_seeds.Stop();
-  std::cout << fmt::format("(Task time: {})",timer_read_seeds.ElapsedTime()) << std::endl;
-
 
   ////////////////////////////////////////////////////////////////
   // transform and store seed rmes for use in SpNCCI recurrence
   ////////////////////////////////////////////////////////////////
-
   std::cout << "Transform and store seed unit tensor rmes..." << std::endl;
-
-  // transform to SpNCCI LGI RMEs
-  std::vector<basis::MatrixVector> lgi_unit_tensor_spncci_matrices;
-  spncci::TransformSeedUnitTensorRMEs(
-      lgi_expansions,
-      lgi_unit_tensor_labels,
-      lgi_unit_tensor_sectors,
-      lgi_unit_tensor_lsu3shell_matrices,
-      lgi_unit_tensor_spncci_matrices
-    );
-
-  // store unit tensor matrix elements for recurrence
-  HalfInt Nsigma_max=run_parameters.Nsigma0_ex_max+run_parameters.Nsigma_0;
   spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
-  spncci::StoreSeedUnitTensorRMEs(
-      lgi_unit_tensor_labels,
-      lgi_unit_tensor_sectors,
-      lgi_unit_tensor_spncci_matrices,
-      unit_tensor_matrices,
-      Nsigma_max,
-      zero_threshold
-    );
+  for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+    {
+
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+
+      // basis::MatrixVector lgi_unit_tensor_lsu3shell_matrices;
+      u3shell::SectorsU3SPN unit_tensor_sectors;
+      std::string filename = fmt::format(run_parameters.relative_unit_tensor_filename_template,unit_tensor_index);
+      basis::MatrixVector unit_tensor_spncci_matrices;
+
+      // transform to SpNCCI LGI RMEs
+      spncci::ReadAndTransformSeedUnitTensorRMEs(
+          lsu3shell_basis_table,lsu3shell_space, lgi_expansions,
+          unit_tensor_labels,filename,
+          unit_tensor_sectors,
+          unit_tensor_spncci_matrices);
+
+      // store unit tensor matrix elements for recurrence
+      HalfInt Nsigma_max=run_parameters.Nsigma0_ex_max+run_parameters.Nsigma_0;
+      spncci::StoreSeedUnitTensorRMEs(
+          unit_tensor_labels,
+          unit_tensor_sectors,
+          unit_tensor_spncci_matrices,
+          unit_tensor_matrices,
+          Nsigma_max,
+          zero_threshold
+        );
+    }
+  timer_read_seeds.Stop();
+  std::cout << fmt::format("(Task time: {})",timer_read_seeds.ElapsedTime()) << std::endl;
   std::cout<<"number of seed sectors "<<unit_tensor_matrices.size()<<std::endl;
+
 
   ////////////////////////////////////////////////////////////////
   // recurse unit tensor rmes to full SpNCCI basis
