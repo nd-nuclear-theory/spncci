@@ -108,6 +108,20 @@ namespace spncci
   // Construct J branched observable matrices 
 
 
+  void 
+  SolveHamiltonian(
+      const spncci::MatrixType& hamiltonian_matrix,
+      const HalfInt& J,
+      int num_eigenvalues,
+      int eigensolver_num_convergence,  // whatever exactly this is...
+      int eigensolver_max_iterations,
+      double eigensolver_tolerance,
+      std::map<HalfInt,Eigen::VectorXd>& eigenvalues,  // map: J -> eigenvalues
+      std::map<HalfInt,spncci::MatrixType>& eigenvectors  // map: J -> eigenvectors
+    );
+  // Solve the hamiltonian matrix for energy eigenvalues and vectors 
+
+
 }  // namespace
 
 #endif
