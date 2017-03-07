@@ -55,15 +55,26 @@ namespace spncci
   //   <operator>_sectors (output): U3SPN sectors
   //   <operator>_matrices (output): matrices of RMEs
 
+
   void
-    ReadLSU3ShellSeedUnitTensorRMEs(
-        const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-        const std::string& relative_unit_tensor_filename_template,
-        std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
-        std::vector<basis::MatrixVector>& lgi_unit_tensor_lsu3shell_matrices
-      );
+  ReadLSU3ShellSeedUnitTensorRMEs(
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+      const std::string& filename,
+      u3shell::SectorsU3SPN& unit_tensor_sectors,
+      basis::MatrixVector& unit_tensor_lsu3shell_matrices
+    );
+
+  // void
+  //   ReadLSU3ShellSeedUnitTensorRMEs(
+  //       const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+  //       const u3shell::SpaceU3SPN& lsu3shell_space, 
+  //       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+  //       const std::string& relative_unit_tensor_filename_template,
+  //       std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
+  //       std::vector<basis::MatrixVector>& lgi_unit_tensor_lsu3shell_matrices
+  //     );
   // Read lsu3shell RMEs for seed unit tensors.
   //
   // Arguments:
