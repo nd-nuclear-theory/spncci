@@ -61,6 +61,7 @@ int main(int argc, char **argv)
   assert((Nstep==2)||(Nstep==1));
   int Nmin=Nmax%Nstep;
   int A=N+Z;
+  // int T0=-1;
   int T0=0;
   int J0=-1;
   bool un_u3_restrict=false;
@@ -75,6 +76,15 @@ int main(int argc, char **argv)
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B,relative_unit_tensor_labels,J0,T0,false);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, relative_unit_tensor_labels,un_u3_restrict);
+  //REMOVE--TEMP
+  
+  std::ofstream out("relative_unit_tensor_labels");
+  for(int i=0; i<relative_unit_tensor_labels.size(); ++i)
+    {
+      auto& tensor=relative_unit_tensor_labels[i];
+      out <<i<<"  "<<tensor.Str()<<std::endl; 
+    }
+  out.close();
 
   // Generate Brel operator up to Nmax cutoff
   std::string Brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",A,Nmax);

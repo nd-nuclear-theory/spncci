@@ -137,21 +137,21 @@ def calculate_rmes(task,relative_operator_basename_list):
             "INT {}".format(basename)
         ]
         load_filename = "{}.load".format(basename)
-        rme_filename="{}.rme".format(basename)
+        # rme_filename="{}.rme".format(basename)
         mcscript.utils.write_input(load_filename,input_lines,verbose=True)
-        print("load_file finished")
-        # call SU3RME
-        command_line = [
-            su3rme_executable,
-            model_space_filename,
-            model_space_filename,
-            load_filename,
-            rme_filename
-        ]
-        mcscript.call(
-            command_line,
-            mode=mcscript.call.serial
-        )
+    
+    print("load_files finished")
+    # call SU3RME
+    command_line = [
+        su3rme_executable,
+        model_space_filename,
+        model_space_filename,
+        "relative_operators.dat"
+    ]
+    mcscript.call(
+        command_line,
+        mode=mcscript.call.serial
+    )
 
 def generate_lsu3shell_rmes(task):
     """ Carry out full task of generating set of relative tensor rmes.
