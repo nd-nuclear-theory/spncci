@@ -258,8 +258,9 @@ int main(int argc, char **argv)
     spncci::SpaceU3S space(baby_spncci_space);
     // spncci::SectorLabelsU3SCache u3s_sectors;
     // To test sector construction
+    int N1v=1;
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_tensor_labels;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_tensor_labels);
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v, relative_tensor_labels);
     std::vector<u3shell::IndexedOperatorLabelsU3S> tensor_labels;
     for(auto unit_tensor : relative_tensor_labels)
       {

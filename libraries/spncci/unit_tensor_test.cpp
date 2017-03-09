@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
   // generate map that stores unit tensor labels keyed by N0
   std::map< int, std::vector<u3shell::RelativeUnitTensorLabelsU3ST> > unit_sym_map;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_sym_map, 0, 0, false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1b, unit_sym_map, 0, 0, false);
 
   // for(auto it=unit_sym_map.begin(); it!=unit_sym_map.end(); ++it)
   //   std::cout<<"ja "<<unit_sym_map[it->first].size()<<std::endl;

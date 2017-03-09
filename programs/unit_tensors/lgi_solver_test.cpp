@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 
 
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B, relative_unit_tensor_labels,-1,0,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1B, relative_unit_tensor_labels,-1,0,false);
 
   u3shell::OperatorLabelsU3ST id_labels(0,u3::SU3(0,0),0,0,0);
   u3shell::SectorsU3SPN id_sectors(space,id_labels,false);

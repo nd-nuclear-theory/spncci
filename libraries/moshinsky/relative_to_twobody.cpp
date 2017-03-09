@@ -42,12 +42,13 @@ int main(int argc, char **argv)
   u3::WCoefCache w_cache;
   zero_threshold=1e-6;
 
-  int Nmax=4; 
+  int Nmax=4;
+  int N1v=1; 
   int Jmax=4; 
   int J0=0;
       
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //// Identity Operator 
   ///////////////////////////////////////////////////////////////////////////////////////////////////  
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
         }
     }
   u3shell::IndexedTwoBodyTensorRMEsU3ST id_two_body_rmes;
-  u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,identity_relative_rmes, id_two_body_rmes);
+  u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,N1v,identity_relative_rmes, id_two_body_rmes);
   PrintTwoBodyIndexedRMEU3ST(id_two_body_rmes);
 
   std::map<u3shell::TwoBodyBraketLST,double> two_body_rmes_lst;
@@ -112,7 +113,7 @@ int main(int argc, char **argv)
 
   std::cout<<"Convering to Two-body"<<std::endl;
   u3shell::IndexedTwoBodyTensorRMEsU3ST j16_indexed_two_body_rmes;
-  u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,rme_map,j16_indexed_two_body_rmes);
+  u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,N1v,rme_map,j16_indexed_two_body_rmes);
   // PrintTwoBodyIndexedRMEU3ST(k2_indexed_two_body_rmes);  
 
   std::map<u3shell::TwoBodyBraketLST,double> j16_two_body_rmes_lst;

@@ -44,10 +44,11 @@ namespace u3shell
   // generation of unit tensor label lists
   ///////////////////////////////////////////////////////////////
   void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
+        int Nmax,
+        int N1v, 
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
         int J0=-1,
-        int T0=-1,
+        int T00=-1,
         bool restrict_positive_N0=false
         );
 
@@ -75,10 +76,11 @@ namespace u3shell
 
 
   void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
+        int Nmax,
+        int N1v, 
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels,
         int J0=-1,
-        int T0=-1,
+        int T00=-1,
         bool restrict_positive_N0=false
       );
   // Overload of above function where container is map with unit tensors sorted by N0. 

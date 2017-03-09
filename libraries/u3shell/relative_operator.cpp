@@ -27,6 +27,7 @@ namespace u3shell {
 
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax, 
+        int N1v,
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
         int J0,
         int T00,
@@ -38,14 +39,15 @@ namespace u3shell {
     #endif
     
     bool restrict_J0 = (J0!=-1);
-
     int N0_min=restrict_positive_N0?0:-1*Nmax;
+    int eta_max=Nmax+2*N1v;
+
     for(int N0=N0_min; N0<=Nmax; N0+=2)
       {
-        for( int etap=0; etap<=Nmax; ++etap)
+        for( int etap=0; etap<=eta_max; ++etap)
           {
             int eta=etap-N0;
-            if((eta<0)||(eta>Nmax))
+            if((eta<0)||(eta>eta_max))
               continue;
             // Get allowed x0 values
             MultiplicityTagged<u3::SU3>::vector x0_set
@@ -96,14 +98,15 @@ namespace u3shell {
 
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax, 
+        int N1v,
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels,
         int J0,
-        int T0,
+        int T00,
         bool restrict_positive_N0
       )
   {
     std::vector<RelativeUnitTensorLabelsU3ST> temp_vector;
-    GenerateRelativeUnitTensorLabelsU3ST(Nmax, temp_vector,J0,T0,restrict_positive_N0);
+    GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,temp_vector,J0,T00,restrict_positive_N0);
     for (auto& tensor : temp_vector)
     {
       // std::cout<<"tensor "<<tensor.Str()<<std::endl;

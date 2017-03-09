@@ -299,34 +299,34 @@ namespace u3shell
   }
 
   void 
-  ConvertRelativeTensorToTwoBodyTensor(int Nmax,
+  ConvertRelativeTensorToTwoBodyTensor(int Nmax, int N1v,
     u3shell::RelativeRMEsU3ST& relative_rmes,
-    // std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
     IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
     std::string normalization
     )
   {
     TwoBodyExpansionMap two_body_expansion_map;
-    TransformRelativeUnitTensorToTwobodyTensor(Nmax,relative_unit_tensors,
+    TransformRelativeUnitTensorToTwobodyTensor(Nmax+2*N1v,relative_unit_tensors,
       two_body_expansion_map,normalization);
     ContractRelativeAndTwoBodyUnitTensorRME(relative_rmes,
       two_body_expansion_map,indexed_two_body_rmes);
   }
 
   void 
-  ConvertRelativeTensorToTwoBodyTensor(int Nmax,
+  ConvertRelativeTensorToTwoBodyTensor(
+    int Nmax, int N1v,
     u3shell::RelativeRMEsU3ST& relative_rmes,
-    // std::map<IndexedRelativeUnitTensorLabelsU3ST,double>& relative_rmes,
     IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
     std::string normalization
     )
   {
+    
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v, relative_unit_tensors);
     
     ConvertRelativeTensorToTwoBodyTensor(
-      Nmax,relative_rmes,relative_unit_tensors,
+      Nmax,N1v,relative_rmes,relative_unit_tensors,
       indexed_two_body_rmes,normalization);
   }
 

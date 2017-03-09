@@ -462,7 +462,7 @@ int main(int argc, char **argv)
   //////////////////////////////////////////////////////////////////////////////////////////
 
   // -1 is all J0, T0=0 and false->don't restrict N0 to positive (temp)
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max+2*N1b, LGI_unit_tensor_labels,J0,T0,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma0_ex_max,N1b, LGI_unit_tensor_labels,J0,T0,false);
 
   // For each operator, transform from lsu3shell basis to spncci basis
   std::cout<<"Number of lgi unit tensors "<<LGI_unit_tensor_labels.size()<<std::endl;
@@ -624,7 +624,7 @@ int main(int argc, char **argv)
   // Nrel_max=Nmax+2N1b
 
   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1b, unit_tensor_labels, J0,T0, false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1b, unit_tensor_labels, J0,T0, false);
   if(Nmax!=0)
   {
     std::map<int,double> timing_map;

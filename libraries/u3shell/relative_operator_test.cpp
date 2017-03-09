@@ -61,10 +61,11 @@ int main(int argc, char **argv)
   test_relative();
 
   int Nmax=2;
+  int N1v=1;
   u3shell::RelativeSpaceU3ST space(Nmax);
   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> relative_unit_tensor_labels;
 
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensor_labels);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensor_labels);
   for(auto it=relative_unit_tensor_labels.begin(); it!=relative_unit_tensor_labels.end(); ++it)
     {
       std::cout<<it->first<<std::endl;
@@ -75,8 +76,9 @@ int main(int argc, char **argv)
 
   {
     int Nmax=2;
+    int N1v=1;
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
     std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
     int index=0;
     for(auto& tensor : relative_unit_tensors)
@@ -88,8 +90,9 @@ int main(int argc, char **argv)
 
   {
     int Nmax=4;
+    int N1v=1;
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors);
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
     std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
     int index=0;
     for(auto& tensor : relative_unit_tensors)

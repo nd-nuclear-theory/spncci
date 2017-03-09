@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   // process arguments
   if(argc<6)
     {
-      std::cout<<"Syntax: Protons Neutrons Nmax Nstep N1B"<<std::endl;
+      std::cout<<"Syntax: Protons Neutrons Nmax Nstep N1B J0 T0"<<std::endl;
       std::exit(1);
     }
   int Z=std::stoi(argv[1]);
@@ -58,12 +58,14 @@ int main(int argc, char **argv)
   // will be either 1 or 2; 
   int Nstep=std::stoi(argv[4]);
   int N1B=std::stoi(argv[5]);
+  int J0=std::stoi(argv[6]);
+  int T0=std::stoi(argv[7]);
   assert((Nstep==2)||(Nstep==1));
   int Nmin=Nmax%Nstep;
   int A=N+Z;
   // int T0=-1;
-  int T0=0;
-  int J0=-1;
+  // // int T0=0;
+  // int J0=-1;
   bool un_u3_restrict=false;
   if( (N==0) || (Z==0) )
     un_u3_restrict=true;
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
 
   // Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax+2*N1B,relative_unit_tensor_labels,J0,T0,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1B,relative_unit_tensor_labels,J0,T0,false);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, relative_unit_tensor_labels,un_u3_restrict);
   //REMOVE--TEMP
   

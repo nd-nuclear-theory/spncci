@@ -57,7 +57,9 @@ def generate_relative_operators(task):
         "{nuclide[1]:d}".format(**task),
         "{Nsigma_ex_max:d}".format(**task),
         "{Nstep:d}".format(**task),
-        "{N1v:d}".format(**task)
+        "{N1v:d}".format(**task),
+        "-1",# All J0
+        "-1"# All T0
     ]
     mcscript.call(
         command_line,
