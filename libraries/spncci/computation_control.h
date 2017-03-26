@@ -16,6 +16,8 @@
 #define SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_
 
 #include "lgi/lgi.h"
+#include "lsu3shell/lsu3shell_basis.h"
+#include "lsu3shell/lsu3shell_rme.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/unit_tensor.h"
 #include "sp3rlib/u3.h"
@@ -40,6 +42,17 @@ namespace spncci
       const std::vector<basis::MatrixVector>& lgi_unit_tensor_lsu3shell_matrices,
       std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices
     );
+  //DEPRECIATED
+  void
+  ReadAndTransformSeedUnitTensorRMEs(
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const basis::MatrixVector& lgi_expansions,
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+      const std::string& filename,
+      u3shell::SectorsU3SPN& unit_tensor_sectors,
+      basis::MatrixVector& unit_tensor_spncci_matrices
+    );
 
   void
   StoreSeedUnitTensorRMEs(
@@ -50,6 +63,18 @@ namespace spncci
       HalfInt Nsigma_max,
       double zero_threshold
     );
+  //DEPRECIATED
+
+  void
+  StoreSeedUnitTensorRMEs(
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+      const u3shell::SectorsU3SPN& unit_tensor_sectors,
+      const basis::MatrixVector& unit_tensor_spncci_matrices,
+      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+      HalfInt Nsigma_max,
+      double zero_threshold
+    );
+
 
   void
   RecurseUnitTensors(
