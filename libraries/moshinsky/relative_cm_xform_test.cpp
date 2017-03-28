@@ -310,30 +310,30 @@ int main(int argc, char **argv)
   // Checking upcoupling from interaction file generated from unit tensor
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Defining containers for reading in interaction
-  basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
+  basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
   basis::OperatorLabelsJT operator_labels;
-  std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
-  std::array<basis::MatrixVector,3> relative_component_matrices;
+  std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors;
+  std::array<basis::MatrixVector,3> isospin_component_matrices;
   //Read interaction and store sector information in relative_component_sectors
   // and matrix elements in relative_component_matrices
   basis::ReadRelativeOperatorLSJT(
-    interaction_file,relative_lsjt_space,operator_labels,
-    relative_component_sectors,relative_component_matrices, true
+    interaction_file,relative_space_lsjt,operator_labels,
+    isospin_component_sectors,isospin_component_matrices, true
     );
 
   // Extract out T0=0 sectors and matrix elements
-  const basis::MatrixVector& sector_vector=relative_component_matrices[0];
-  const basis::RelativeSectorsLSJT& relative_lsjt_sectors=relative_component_sectors[0];
+  const basis::MatrixVector& relative_matrices_lsjt=isospin_component_matrices[0];
+  const basis::RelativeSectorsLSJT& relative_sectors_lsjt=isospin_component_sectors[0];
 
   // upcouple to LST
   std::cout<<"Upcoupling to NLST"<<std::endl;
   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
-  u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,int(J0),g0,T0,Nmax,rme_nlst_map);
+  u3shell::UpcouplingNLST(relative_space_lsjt,relative_sectors_lsjt,relative_matrices_lsjt,int(J0),g0,T0,Nmax,rme_nlst_map);
 
   // Upcouple to U(3) level
   u3shell::RelativeRMEsU3ST rme_map;
   std::cout<<"Upcoupling to U3ST"<<std::endl;
-  u3shell::UpcouplingU3ST(rme_nlst_map, T0, Nmax, rme_map);
+  u3shell::UpcouplingU3ST(rme_nlst_map, Nmax, rme_map);
   // Should be a single unit tensor with rme=1
   for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
     {

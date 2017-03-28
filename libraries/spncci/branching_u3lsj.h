@@ -28,7 +28,7 @@
 
 namespace spncci
 {
-
+  typedef std::pair<HalfInt,HalfInt> JPair;
   ////////////////////////////////////////////////////////////////
   // basis indexing in LS scheme for spncci basis branching
   ////////////////////////////////////////////////////////////////
@@ -267,13 +267,14 @@ namespace spncci
   // LS reduced matrix elements 
 
   void
-    ConstructOperatorMatrix(
-        const spncci::SpaceLS& source_space,
-        std::vector<spncci::SectorLabelsLS>& source_sector_labels,
-        basis::MatrixVector& source_sectors,
-        Eigen::MatrixXd& operator_matrix
-      );
-  // TODO (mac): generalize to case where bra_J (and bra_space_ls) != ket_J (and ket_space_ls)
+  ConstructOperatorMatrix(
+    const spncci::SpaceLS& bra_source_space,
+    const spncci::SpaceLS& ket_source_space,
+    std::vector<spncci::SectorLabelsLS>& source_sector_labels,
+    basis::MatrixVector& source_sectors,
+    Eigen::MatrixXd& operator_matrix
+    );
+  
 
 }  // namespace
 

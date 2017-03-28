@@ -98,14 +98,26 @@
 namespace spncci
 {
   void
+
+    // spncci::WriteEigenValues(
+    //   run_parameters.J_values, hw, 
+    //   run_parameters.Nmax, run_parameters.Nsigma0_ex_max, 
+    //   eigenvalues, scalar_observable_expectations, nonscalar_observable_expectations,
+    //   run_parameters.num_observables
+    // );
+
   WriteEigenValues(
     const std::vector<HalfInt>& J_values, double hw, 
     int Nmax, int Nsigma0_ex_max,
     std::map<HalfInt,Eigen::VectorXd>& eigenvalues,
-    std::vector<std::map<HalfInt,Eigen::VectorXd>>& observable_expectations,
-    int num_observables
-
+    std::vector<std::string>& observable_filenames,
+    std::vector<int>& scalar_observable_indices,
+    std::vector<std::map<HalfInt,Eigen::VectorXd>>& scalar_observable_expectations,
+    std::vector<int>& nonscalar_observable_indices,
+    std::vector<std::map<spncci::JPair,Eigen::MatrixXd>>& nonscalar_observable_expectations
   )
+  // for observables with J0=0, line them up with energy eigenvalue and read off diagonal matrix elements 
+  // for observables with J0!=0, then have their own section --probably do this in the code as well, i.e.,
   {
     std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigma0_ex_max);
     std::fstream fs;
@@ -113,21 +125,61 @@ namespace spncci
     const int precision=16;
     fs.open (filename, std::fstream::out | std::fstream::app);
     fs << std::setprecision(precision);
+
+    fs << "OUPTPUT from spncci Version 1"<<std::endl<<std::endl;;
+    fs << "Scalar observables:";
+    for(int i=0; i<scalar_observable_indices.size(); ++i)
+      fs <<"  "<<observable_filenames[scalar_observable_indices[i]];
+    fs << std::endl;
+
+    fs <<"Nonscalar observables:";
+    for(int i=0; i<nonscalar_observable_indices.size(); ++i)
+      fs <<"  "<<observable_filenames[nonscalar_observable_indices[i]];
+
+    fs << std::endl<<fmt::format("hw {:2.1f}", hw)<<std::endl;
+
+    std::cout<<"hi"<<std::endl;
     for(HalfInt J : J_values)
       {
         Eigen::VectorXd& eigenvalues_J=eigenvalues[J];
         // Eigen::VectorXd& observables=observable_expectations[J];
-        
+
         for(int i=0; i<eigenvalues_J.size(); ++i)
-        {
-          double eigenvalue=eigenvalues_J(i);
-          fs << fmt::format("{:2d}   {:2d}   {:2.1f}   {}   {:8.5f}", Nsigma0_ex_max, Nmax, hw, J,eigenvalue);
-          for(int j=1; j<num_observables; ++j)
-            fs <<fmt::format("   {}",observable_expectations[j][J](i))
-          <<std::endl;
-        }
+          {
+            double eigenvalue=eigenvalues_J(i);
+            fs << fmt::format("{:2d}   {}   {:8.5f}",i, J,eigenvalue);
+            
+            for(int j=0; j<scalar_observable_indices.size(); ++j)            
+              fs <<fmt::format("   {:8.5f}",scalar_observable_expectations[j][J](i))
+              <<std::endl<<std::endl;
+          }
       }
-      
+    std::cout<<"ho"<<std::endl;
+    for(HalfInt J : J_values)
+      {
+        Eigen::VectorXd& eigenvalues_J_initial=eigenvalues[J];
+        for(int i=0; i<eigenvalues_J_initial.size(); ++i)
+          for(HalfInt Jp :J_values)
+          {
+            Eigen::VectorXd& eigenvalues_J_final=eigenvalues[Jp];
+            spncci::JPair J_pair(Jp,J);
+            for(int ip=0; ip<eigenvalues_J_final.size(); ++ip)
+              {
+                double eigenvalue_initial=eigenvalues_J_initial(i);
+                double eigenvalue_final=eigenvalues_J_final(ip);
+                fs << fmt::format("{:2d}   {}   {:2d}   {}   {:8.5f}   {:8.5f}",
+                      i,J,ip,Jp,eigenvalue_initial,eigenvalue_final);
+
+                for(int j=0; j<nonscalar_observable_indices.size(); ++j)
+                  {
+                    Eigen::MatrixXd& obserable_matrix=nonscalar_observable_expectations[j][J_pair];
+                    double observable=obserable_matrix(ip,i);
+                    fs<<fmt::format("  {:8.5f}",observable);
+                  }
+              }
+          }
+      }
+    fs<<std::endl<<std::endl;
     fs.close();
   }
 
@@ -166,8 +218,8 @@ struct RunParameters
   // many-body problem
   std::string observable_directory;
   std::vector<std::string> observable_filenames;  // first observable is used as Hamiltonian
+  std::vector<int> observable_Jvalues;
   int num_observables;
-  int J0;
   std::vector<HalfInt> J_values;
   std::vector<double> hw_values;
 
@@ -213,13 +265,14 @@ RunParameters::RunParameters(int argc, char **argv)
   std::ifstream is(fmt::format("{}.load",load_file));
   
   assert(is);
+  int J0;
   while(std::getline(is,line))
     {
       std::istringstream line_stream(line);
       ++line_count;
       if(line_count==1)
       {
-        line_stream >> J0 >> twice_Jmin >> twice_Jmax >> J_step;
+        line_stream >> twice_Jmin >> twice_Jmax >> J_step;
         ParsingCheck(line_stream,line_count,line);
       }
       else if(line_count==2)
@@ -229,9 +282,10 @@ RunParameters::RunParameters(int argc, char **argv)
       }
       else
       {
-        line_stream >> observable;
+        line_stream >> observable >> J0;
         ParsingCheck(line_stream,line_count,line);
         observable_filenames.push_back(observable);
+        observable_Jvalues.push_back(J0);
       }
     }
 
@@ -278,7 +332,7 @@ RunParameters::RunParameters(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-
+  std::cout<<"entering spncci"<<std::endl;
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
@@ -614,7 +668,7 @@ int main(int argc, char **argv)
     // Note: Right now, only supports J0=0.  Will have to implement more
     // generally to work with (J_bra,J_ket) pairs when go to nonscalar
     // operators.
-    int J0 = 0;
+    // int J0 = 0;
 
     std::cout << "Set up basis indexing for branching..." << std::endl;
 
@@ -633,11 +687,12 @@ int main(int argc, char **argv)
 
     // populate fully-branched many-body matrices for observables
     // map: observable -> J ->  matrix
-    std::vector<std::map<HalfInt,spncci::MatrixType>> observable_matrices;  
+    std::vector<std::map<spncci::JPair,spncci::MatrixType>> observable_matrices;  
     observable_matrices.resize(run_parameters.num_observables);
+
     spncci::ConstructBranchedObservables(space_u3s,observable_sectors_u3s,
       observable_matrices_u3s, spaces_lsj,run_parameters.num_observables,run_parameters.J_values,
-      run_parameters.J0, observable_matrices);
+      run_parameters.observable_Jvalues, observable_matrices);
 
     // timing stop
     timer_branching.Stop();
@@ -647,21 +702,25 @@ int main(int argc, char **argv)
     if (false)
       {
         for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-          for (const HalfInt J : run_parameters.J_values)
-            {
-              spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J];
+          for (const HalfInt bra_J : run_parameters.J_values)
+            for (const HalfInt ket_J : run_parameters.J_values)
+              {
+                int J0=run_parameters.observable_Jvalues[observable_index];
+                if(not am::AllowedTriangle(bra_J,J0,ket_J))
+                  continue;
 
-              const HalfInt bra_J = J;
-              const HalfInt ket_J = J;
-              std::cout
-                << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
-                << std::endl;
-              std::cout
-                << mcutils::FormatMatrix(observable_matrix,"8.5f")
-                << std::endl
-                << std::endl;
+                spncci::JPair J_pair(bra_J,ket_J);
+                spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J_pair];
 
-            }
+                std::cout
+                  << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
+                  << std::endl;
+                std::cout
+                  << mcutils::FormatMatrix(observable_matrix,"8.5f")
+                  << std::endl
+                  << std::endl;
+
+              }
       }
 
     ////////////////////////////////////////////////////////////////
@@ -676,11 +735,13 @@ int main(int argc, char **argv)
 
     std::map<HalfInt,Eigen::VectorXd> eigenvalues;  // map: J -> eigenvalues
     std::map<HalfInt,spncci::MatrixType> eigenvectors;  // map: J -> eigenvectors
-
+    
+    assert(run_parameters.observable_Jvalues[0]==0);
     for (const HalfInt J : run_parameters.J_values)
       {
         // set up aliases
-        spncci::MatrixType& hamiltonian_matrix = observable_matrices[0][J];
+        spncci::JPair J_pair(J,J);
+        spncci::MatrixType& hamiltonian_matrix = observable_matrices[0][J_pair];
 
         int num_eigenvalues;
         int num_convergence;
@@ -697,43 +758,92 @@ int main(int argc, char **argv)
         spncci::SolveHamiltonian(hamiltonian_matrix,J,
             num_eigenvalues,
             num_convergence,
-            // run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
             run_parameters.eigensolver_max_iterations,
             run_parameters.eigensolver_tolerance,
             eigenvalues,  eigenvectors
           );
       }
-
-    
     // timing stop
     timer_eigenproblem.Stop();
     std::cout << fmt::format("(Task time: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
 
-    // observable expectation values (assumes J0=0)
-    std::vector<std::map<HalfInt,Eigen::VectorXd>> observable_expectations;  // map: observable -> J -> eigenvalues
-    observable_expectations.resize(run_parameters.num_observables);
-    // observable_index=0 correspond to hamiltonian.
+
+    // map: observable -> J -> eigenvalues
+    // scalar observables 
+    std::vector<std::map<HalfInt,Eigen::VectorXd>> scalar_observable_expectations;
+    std::vector<int> scalar_observable_indices;
+    // Non-scalar observables 
+    std::vector<std::map<spncci::JPair,Eigen::MatrixXd>> nonscalar_observable_expectations;
+    std::vector<int> nonscalar_observable_indices;
+
+    // observable_index=0 correspond to Hamiltonian.
+    std::cout<<"break into scalar and non-scalar"<<std::endl;
     for (int observable_index=1; observable_index<run_parameters.num_observables; ++observable_index)
-      for (const HalfInt J : run_parameters.J_values)
+      {
+        if(run_parameters.observable_Jvalues[observable_index]==0)
+          scalar_observable_indices.push_back(observable_index);
+        else
+          nonscalar_observable_indices.push_back(observable_index);
+      }
+    
+    // scalar observables  
+    scalar_observable_expectations.resize(scalar_observable_indices.size());
+    for (int i=0; i<scalar_observable_indices.size(); ++i)
+      {
+        int observable_index=scalar_observable_indices[i];
+        for (const HalfInt J : run_parameters.J_values)
         {
-          const int converged_eigenvectors = eigenvalues[J].size();
-          const spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J];
-          observable_expectations[observable_index][J].resize(converged_eigenvectors);
+          int converged_eigenvectors = eigenvalues[J].size();
+          spncci::JPair J_pair(J,J);
+          const spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J_pair];
+          scalar_observable_expectations[i][J];//=Eigen::VectorXd(converged_eigenvectors);
+          scalar_observable_expectations[i][J].resize(converged_eigenvectors);
+          // std::cout<<observable_matrix<<std::endl;
           for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
             {
               const Eigen::VectorXd eigenvector = eigenvectors[J].col(eigenvector_index);
               double expectation_value = eigenvector.dot(observable_matrix*eigenvector);
-              observable_expectations[observable_index][J][eigenvector_index] = expectation_value;
+              scalar_observable_expectations[i][J][eigenvector_index]=expectation_value;
             }
         }
+      }
+
+    // non-scalar observables
+    std::cout<<"non-scalar observables"<<std::endl; 
+    nonscalar_observable_expectations.resize(nonscalar_observable_indices.size());
+    for (int i=0; i<nonscalar_observable_indices.size(); ++i)
+      for (const HalfInt bra_J : run_parameters.J_values)
+        for (const HalfInt ket_J : run_parameters.J_values)
+          {
+            int observable_index=nonscalar_observable_indices[i];
+            spncci::JPair J_pair(bra_J,ket_J);
+            const int bra_converged_eigenvectors = eigenvalues[bra_J].size();
+            const int ket_converged_eigenvectors = eigenvalues[ket_J].size();
+            const spncci::MatrixType& observable_matrix = observable_matrices[i][J_pair];
+            // nonscalar_observable_expectations[observable_index][J_pair].resize(converged_eigenvectors);
+            for (int bra_eigenvector_index=0; bra_eigenvector_index<bra_converged_eigenvectors; ++bra_eigenvector_index)
+              for (int ket_eigenvector_index=0; ket_eigenvector_index<ket_converged_eigenvectors; ++ket_eigenvector_index)
+                {
+                  const Eigen::VectorXd bra_eigenvector = eigenvectors[bra_J].col(bra_eigenvector_index);
+                  const Eigen::VectorXd ket_eigenvector = eigenvectors[ket_J].col(ket_eigenvector_index);
+                  // double expectation_value = bra_eigenvector.dot(observable_matrix*ket_eigenvector);
+                  nonscalar_observable_expectations[i][J_pair]=bra_eigenvector*observable_matrix*ket_eigenvector;
+                  // [eigenvector_index] = expectation_value;
+              }
+          }
 
     spncci::WriteEigenValues(
       run_parameters.J_values, hw, 
-      run_parameters.Nmax, run_parameters.Nsigma0_ex_max, 
-      eigenvalues, observable_expectations, run_parameters.num_observables
+      run_parameters.Nmax, run_parameters.Nsigma0_ex_max,
+      eigenvalues,
+      run_parameters.observable_filenames,
+      scalar_observable_indices,
+      scalar_observable_expectations,
+      nonscalar_observable_indices,
+      nonscalar_observable_expectations
     );
+    std::cout<<"wrote eigenvalues to file"<<std::endl;
 
-    std::cout<<"wrote to file"<<std::endl;
     // eigenvalue output
     for (const HalfInt J : run_parameters.J_values)
       {
@@ -742,28 +852,32 @@ int main(int argc, char **argv)
                   << mcutils::FormatMatrix(eigenvalues[J],"8.5f","    ")
                   << std::endl;
 
-        // expectations
-        for (int observable_index=1; observable_index<run_parameters.num_observables; ++observable_index)
-          {
-            std::cout
-              << fmt::format(
-                  "  Operator {} ({}) expectations (J={}):",
-                  observable_index,
-                  run_parameters.observable_filenames[observable_index],
-                  J
-                )
-              << std::endl
-              << mcutils::FormatMatrix(observable_expectations[observable_index][J],"8.5f","    ")
-              << std::endl;
-          }
+      //   // expectations
+      //   for(const HalfInt Jp : run_parameters.J_values)
+      //     {
+      //       spncci::JPair J_pair(Jp,J);
+      //       for (int observable_index=1; observable_index<run_parameters.num_observables; ++observable_index)
+      //         {
+      //           std::cout
+      //             << fmt::format(
+      //                 "  Operator {} ({}) expectations (J {}->{}):",
+      //                 observable_index,
+      //                 run_parameters.observable_filenames[observable_index],
+      //                 J,Jp
+      //               )
+      //             << std::endl
+      //             << mcutils::FormatMatrix(scalar_observable_expectations[observable_index][J],"8.5f","    ")
+      //             << std::endl;
+      //         }
 
-        // diagnostics
-        if (false)
-          {
-            std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
-                      << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
-                      << std::endl;
-          }
+      //       // diagnostics
+      //       if (false)
+      //         {
+      //           std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
+      //                     << mcutils::FormatMatrix(eigenvectors[J],"8.5f","    ")
+      //                     << std::endl;
+      //         }
+      //     }
       }
   }
 

@@ -228,15 +228,26 @@ namespace u3shell
   }
 
   void Interaction(int Nmax, int Jmax, int J0, int T0, int g0, std::string& interaction_filename,
-                    u3shell::RelativeRMEsU3ST& Interaction_u3st, int A, double coef=1.0)
+                    u3shell::RelativeRMEsU3ST& interaction_u3st, int A, double coef=1.0)
     {
-      basis::RelativeSectorsLSJT relative_lsjt_sectors;
-      basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
-      basis::MatrixVector sector_vector;
-      u3shell::GetInteractionMatrix(interaction_filename, relative_lsjt_space,relative_lsjt_sectors,sector_vector);
+      
+      // Read in the interaction from file
+      basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
+      std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
+      std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+      basis::OperatorLabelsJT operator_labels;
+      
+      basis::ReadRelativeOperatorLSJT(
+        interaction_filename,relative_space_lsjt,operator_labels,
+        isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, true
+        );
 
-
-      u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors,sector_vector, J0, g0, T0,Nmax,Interaction_u3st);
+      // upcouple interaction
+      u3shell::Upcoupling(
+        relative_space_lsjt,
+        isospin_component_sectors_lsjt,
+        isospin_component_matrices_lsjt,
+        J0, g0, T0,Nmax, interaction_u3st);
     //   //upcouple to LST
     //   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> Interaction_nlst;
     //   u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,Interaction_nlst);

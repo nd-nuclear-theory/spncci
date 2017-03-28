@@ -237,7 +237,8 @@ namespace spncci
 
   void
   ConstructOperatorMatrix(
-    const spncci::SpaceLS& source_space,
+    const spncci::SpaceLS& bra_source_space,
+    const spncci::SpaceLS& ket_source_space,
     std::vector<spncci::SectorLabelsLS>& source_sector_labels,
     basis::MatrixVector& source_sectors,
     Eigen::MatrixXd& operator_matrix
@@ -245,17 +246,31 @@ namespace spncci
   {
     // Get size of matrix
     // Generate look up table for sector indices
-    int index=0;
-    std::map<int,int> matrix_index_lookup;
-    for(int s=0; s<source_space.size(); ++s)
+    int bra_index=0;
+    std::map<int,int> bra_matrix_index_lookup;
+    for(int s=0; s<bra_source_space.size(); ++s)
       {
-        const spncci::SubspaceLS& subspace=source_space.GetSubspace(s);
+        const spncci::SubspaceLS& subspace=bra_source_space.GetSubspace(s);
         int sector_dim=subspace.sector_dim();
-        matrix_index_lookup[s]=index;
-        index+=sector_dim;
+        bra_matrix_index_lookup[s]=bra_index;
+        bra_index+=sector_dim;
       }
-    int matrix_dim=index;
-    operator_matrix=Eigen::MatrixXd::Zero(matrix_dim,matrix_dim);
+    
+    int bra_matrix_dim=bra_index;
+
+    int ket_index=0;
+    std::map<int,int> ket_matrix_index_lookup;
+    for(int s=0; s<ket_source_space.size(); ++s)
+      {
+        const spncci::SubspaceLS& subspace=ket_source_space.GetSubspace(s);
+        int sector_dim=subspace.sector_dim();
+        ket_matrix_index_lookup[s]=ket_index;
+        ket_index+=sector_dim;
+      }
+
+    int ket_matrix_dim=ket_index;
+    
+    operator_matrix=Eigen::MatrixXd::Zero(bra_matrix_dim,ket_matrix_dim);
     
     // For each sector in source sectors, get bra and ket indices, look-up matrix index
     // and accumulate in full matrix 
@@ -265,8 +280,8 @@ namespace spncci
         int subspace_index_bra=sector_labels.bra_index();
         int subspace_index_ket=sector_labels.ket_index();
 
-        int matrix_index_bra=matrix_index_lookup[subspace_index_bra];
-        int matrix_index_ket=matrix_index_lookup[subspace_index_ket];
+        int matrix_index_bra=bra_matrix_index_lookup[subspace_index_bra];
+        int matrix_index_ket=ket_matrix_index_lookup[subspace_index_ket];
 
         Eigen::MatrixXd& sector=source_sectors[s];
         operator_matrix.block(matrix_index_bra,matrix_index_ket,sector.rows(),sector.cols())

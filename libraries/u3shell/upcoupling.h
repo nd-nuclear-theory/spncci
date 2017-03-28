@@ -11,6 +11,8 @@
   2/14/17 (aem): 
     Change typedef RelativeRMEsU3ST from map to unordered_map.
   2/21/17 (mac): Change interface to ReadRelativeOperatorU3ST.
+  3/28/17 (aem): Change upcoupling to allow for non-isoscalar 
+    interactions
 ****************************************************************/
 
 #ifndef SPNCCI_U3SHELL_UPCOUPLING_H_
@@ -28,7 +30,7 @@
 namespace u3shell
 {
   typedef std::tuple<int,int,int> RelativeSubspaceLabelsNLST;
-  typedef std::tuple<int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
+  typedef std::tuple<int,int,int,u3shell::RelativeSubspaceLabelsNLST,u3shell::RelativeSubspaceLabelsNLST> RelativeSectorNLST;
 
 
   class UpcouplingLabels
@@ -117,7 +119,7 @@ namespace u3shell
   // 
   void UpcouplingU3ST(
       std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
-      int T0, int Nmax,
+      int Nmax,
       u3::WCoefCache& w_cache,
       RelativeRMEsU3ST& rme_map
     );
@@ -125,14 +127,16 @@ namespace u3shell
   // If no cache is passed as an arguemnt, creates cache for use in calculations
   void UpcouplingU3ST(
       std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
-      int T0, int Nmax,
+      int Nmax,
       RelativeRMEsU3ST& rme_map
     );
 
   void Upcoupling(    
       const basis::RelativeSpaceLSJT& space,
-      const basis::RelativeSectorsLSJT& sectors,
-      const std::vector<Eigen::MatrixXd>& sector_vector, 
+      // const basis::RelativeSectorsLSJT& sectors,
+      // const std::vector<Eigen::MatrixXd>& sector_vector, 
+      const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
+      const std::array<basis::MatrixVector,3>& T0_sectors,
       u3::WCoefCache& w_cache,
       int J0, int g0, int T0,int Nmax,
       RelativeRMEsU3ST& rme_map
@@ -140,8 +144,10 @@ namespace u3shell
 
   void Upcoupling(    
       const basis::RelativeSpaceLSJT& space,
-      const basis::RelativeSectorsLSJT& sectors,
-      const std::vector<Eigen::MatrixXd>& sector_vector, 
+      const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
+      const std::array<basis::MatrixVector,3>& T0_sectors,
+      // const basis::RelativeSectorsLSJT& sectors,
+      // const std::vector<Eigen::MatrixXd>& sector_vector, 
       int J0, int g0, int T0,int Nmax,
       RelativeRMEsU3ST& rme_map
     );

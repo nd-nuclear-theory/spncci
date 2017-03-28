@@ -167,7 +167,12 @@ def generate_lsu3shell_rmes(task):
     relative_operator_basename_list = read_unit_tensor_list(task)
     recouple_operators(task,relative_operator_basename_list)
     calculate_rmes(task,relative_operator_basename_list)
-    os.chdir("..")
+    delete_filenames=glob.glob(*.recoupler)
+    delete_filenames+=glob.glob(*.PN)
+    delete_filenames+=glob.glob(*.PPNN)
+    delete_filenames+=glob.glob(*.load)
+    mcscript.call(["rm"] + delete_filenames)
+    os.chdir("..")  
 
 
 def generate_interaction_rmes(task):
@@ -207,10 +212,11 @@ def generate_interaction_rmes(task):
         )
       
         for observable in task["observables"] :
+            observable_name=observable[0]
             # Generate load files for other observables
             input_lines = [
                 "{}".format(hw),
-                "{} 1.".format(observable)
+                "{} 1.".format(observable_name)
             ]
             load_file_name = "{}.load".format(observable)
             mcscript.utils.write_input(load_file_name,input_lines,verbose=True)
@@ -242,12 +248,12 @@ def generate_spncci_control_file(task):
     J0=task["J0"]
 
     input_lines = [
-            "{} {} {} {}".format(J0,twice_J_min,twice_J_max,J_step),
+            "{} {} {}".format(twice_J_min,twice_J_max,J_step),
             "{} {} {}".format(hw_min,hw_max,hw_step),   # dummy hw value
-            "hamiltonian"
+            "hamiltonian {}".format(J0)
         ]
     for observable in task["observables"]:
-        input_lines.append(observable)
+        input_lines.append("{} {}".format(observable[0],observable[1]))
 
     load_filename = "spncci.load"
     mcscript.utils.write_input(load_filename,input_lines,verbose=True)
@@ -262,6 +268,7 @@ def call_spncci(task):
         task["spncci_variant"] = "spncci"
     spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
+    print("hi ho")
     command_line = [
         spncci_executable,
         # TODO determine actual arguments or move into a control file

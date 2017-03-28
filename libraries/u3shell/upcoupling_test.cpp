@@ -43,22 +43,38 @@ void IdentityTest(
   std::cout<<"Identity test"<<std::endl;
 
   basis::RelativeSpaceLSJT relative_space(Nmax, Jmax);
-  basis::RelativeSectorsLSJT relative_sectors(relative_space, J0,T0, g0);
+  // basis::RelativeSectorsLSJT relative_sectors(relative_space, J0,T0, g0);
   std::vector<Eigen::MatrixXd> sector_vector;
-  std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
 
+  assert(Nmax<=4); 
 
-  std::string interaction_file="NONE";
-  sector_vector
-    =u3shell::ImportInteraction(interaction_file, relative_space, relative_sectors, "Identity");
+  
+  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/moshinsky/test/identity_Nmax04_rel.dat";
+  // basis::RelativeSectorsLSJT relative_sectors_lsjt;
+  basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
+  
+  std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
+  std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+  basis::OperatorLabelsJT operator_labels;
+
+  basis::ReadRelativeOperatorLSJT(
+    interaction_file,relative_space_lsjt,operator_labels,
+    isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, true
+    );
+
   //////////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"UpcouplingNLST"<<std::endl;
-  u3shell::UpcouplingNLST(relative_space,relative_sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
+
+  std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
+  const basis::RelativeSectorsLSJT& sectors_lsjt=isospin_component_sectors_lsjt[T0];
+  const basis::MatrixVector& matrices_lsjt=isospin_component_matrices_lsjt[T0];
+  u3shell::UpcouplingNLST(relative_space_lsjt,sectors_lsjt,matrices_lsjt,J0,g0,T0,Nmax,rme_nlst_map);
+
   for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end(); ++it)
     {
       int L0, S0, L,S,T, Lp, Sp, Tp;
       u3shell::RelativeSubspaceLabelsNLST bra, ket;
-      std::tie(L0,S0,bra,ket)=it->first;
+      std::tie(L0,S0,T0,bra,ket)=it->first;
       std::tie(L,S,T)=ket;
       std::tie(Lp,Sp,Tp)=bra;
       Eigen::MatrixXd sectorNLST=it->second;
@@ -67,7 +83,11 @@ void IdentityTest(
         <<std::endl<<sectorNLST<<std::endl;
     }
 
-  u3shell::Upcoupling(relative_space,relative_sectors,sector_vector,J0,g0,T0,Nmax,relative_rme_map);
+  u3shell::Upcoupling(
+    relative_space,isospin_component_sectors_lsjt,isospin_component_matrices_lsjt,
+    J0,g0,T0,Nmax,relative_rme_map
+    );
+
   std::cout<<"UpcouplingU3ST"<<std::endl;
   for (auto it=relative_rme_map.begin(); it!= relative_rme_map.end(); ++it)
     {
@@ -95,18 +115,33 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/moshinsky/test/ksqr_Nmax06_rel.dat";
   basis::RelativeSectorsLSJT relative_lsjt_sectors;
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
-  basis::MatrixVector sector_vector;
-  u3shell::GetInteractionMatrix(interaction_file, relative_lsjt_space,relative_lsjt_sectors,sector_vector);
+  
+  std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
+  std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+  basis::OperatorLabelsJT operator_labels;
+
+
+  basis::ReadRelativeOperatorLSJT(
+    interaction_file,relative_lsjt_space,operator_labels,
+    T0_sector_labels_lsjt, T0_sectors_lsjt, true
+    // relative_component_sectors,relative_component_matrices, true
+    );
+
+
+  
+  // u3shell::GetInteractionMatrix(interaction_file, relative_lsjt_space,relative_lsjt_sectors,sector_vector);
 
   //upcouple to LST
   std::cout<<"Upcoupling to NLST"<<std::endl;
   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
-  u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,rme_nlst_map);
+  const basis::RelativeSectorsLSJT& sector_labels_lsjt=T0_sector_labels_lsjt[T0];
+  const basis::MatrixVector& sectors_lsjt=T0_sectors_lsjt[T0];
+  u3shell::UpcouplingNLST(relative_lsjt_space,sector_labels_lsjt,sectors_lsjt,J0,g0,T0,Nmax,rme_nlst_map);
 
   // Upcouple to U(3) level
   // u3shell::RelativeRMEsU3ST rme_map;
   std::cout<<"Upcoupling to U3ST"<<std::endl;
-  u3shell::UpcouplingU3ST(rme_nlst_map, T0, Nmax, rme_map);
+  u3shell::UpcouplingU3ST(rme_nlst_map, Nmax, rme_map);
   for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
     {
       u3shell::RelativeUnitTensorLabelsU3ST op_labels;

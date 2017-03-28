@@ -100,16 +100,26 @@ int main(int argc, char **argv)
   
   // std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
   std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
-  basis::RelativeSectorsLSJT relative_lsjt_sectors;
-  basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
-  basis::MatrixVector sector_vector;
-  u3shell::GetInteractionMatrix(interaction_file, relative_lsjt_space,relative_lsjt_sectors,sector_vector);
+  basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
+
+  basis::OperatorLabelsJT operator_labels;
+  std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
+  std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+  basis::ReadRelativeOperatorLSJT(
+      interaction_file,relative_space_lsjt,operator_labels,
+      isospin_component_sectors_lsjt,isospin_component_matrices_lsjt, true
+    );
+
+  // basis::RelativeSectorsLSJT relative_lsjt_sectors;
+  // basis::MatrixVector sector_vector;
+
+  // u3shell::GetInteractionMatrix(interaction_file, relative_lsjt_space,relative_lsjt_sectors,sector_vector);
 
   //upcouple to LST
   int g0=0, T0=0;
   std::cout<<"Upcoupling"<<std::endl;
   u3shell::RelativeRMEsU3ST rme_map;
-  u3shell::Upcoupling(relative_lsjt_space,relative_lsjt_sectors, sector_vector, w_cache, J0, g0,T0, Nmax,rme_map);
+  u3shell::Upcoupling(relative_space_lsjt,isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, w_cache, J0, g0,T0, Nmax,rme_map);
 
   std::cout<<"Convering to Two-body"<<std::endl;
   u3shell::IndexedTwoBodyTensorRMEsU3ST j16_indexed_two_body_rmes;

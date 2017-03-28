@@ -127,8 +127,8 @@ namespace spncci
     std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
     int num_observables,
     const std::vector<HalfInt>& J_values,
-    int J0,
-    std::vector<std::map<HalfInt,Eigen::MatrixXd>>& observable_matrices
+    const std::vector<int>& observable_Jvalues,
+    std::vector<std::map<spncci::JPair,spncci::MatrixType>>& observable_matrices
     );
   // Construct J branched observable matrices 
 

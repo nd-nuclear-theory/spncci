@@ -911,7 +911,7 @@ int main(int argc, char **argv)
 
   Eigen::MatrixXd operator_matrix;
 
-  ConstructOperatorMatrix(space_LS,sector_labels_LS,
+  ConstructOperatorMatrix(space_LS,space_LS,sector_labels_LS,
     sectors_LS,operator_matrix);
 
   // for(auto it=unit_tensor_labels.begin(); it!=unit_tensor_labels.end(); ++it)
