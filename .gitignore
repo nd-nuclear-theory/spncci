@@ -28,25 +28,37 @@ config.mk
 bin/
 
 # specific executables
-libraries/su3lib/su3genbk
-libraries/sp3rlib/su3_coupler
-libraries/u3shell/branching
-libraries/u3shell/generate_unit_tensors_tb
-programs/unit_tensors/generate_lsu3shell_relative_operators
-programs/unit_tensors/generate_lsu3shell_twobody_tensors
-libraries/spncci/generate_lgi_unit_tensors
-programs/interactions/import_jisp16
-programs/su3calc/su3_coupler
-programs/su3calc/su3calc
-programs/unit_tensors/check_two_body_unit_tensors
-programs/unit_tensors/generate_lsu3shell_two_body_unit_tensors
-libraries/u3shell/relative_to_twobody
-libraries/u3shell/moshinsky_unitarity
-libraries/moshinsky/Trel_upcouled
-libraries/moshinsky/moshinsky_unitarity
+
 libraries/lgi/get_lgi_expansion
 libraries/moshinsky/moshinsky_unitarity
 libraries/moshinsky/relative_to_twobody
+libraries/moshinsky/Trel_upcouled
+libraries/sp3rlib/su3_coupler
+libraries/spncci/generate_lgi_unit_tensors
+libraries/su3lib/su3genbk
+libraries/u3shell/branching
+libraries/u3shell/generate_unit_tensors_tb
+libraries/u3shell/moshinsky_unitarity
+libraries/u3shell/relative_to_twobody
+programs/interactions/import_jisp16
+programs/linear_algebra/spectra_dense_timing
+programs/linear_algebra/spectra_example_symm
+libraries/spncci/explicit_basis_construction
+programs/spncci/spncci
+programs/su3calc/su3_coupler
+programs/su3calc/su3calc
+programs/unit_tensors/check_two_body_unit_tensors
+programs/unit_tensors/check_lsu3shell_rmes
+programs/unit_tensors/compute_unit_tensor_rmes
+programs/unit_tensors/explicit
+programs/unit_tensors/generate_krel_squared
+programs/unit_tensors/generate_lsu3shell_relative_operators
+programs/unit_tensors/generate_lsu3shell_twobody_tensors
+programs/unit_tensors/generate_lsu3shell_two_body_unit_tensors
+programs/unit_tensors/generate_nintr
+programs/unit_tensors/generate_raising_polynomials
+programs/unit_tensors/nintr_check
+programs/validation/check_wcoef_orthogonality
 
 # specific files and folders 
 libraries/su3lib/wu3r3w_test.F
