@@ -10,6 +10,7 @@
   Drawing upon libmc/mcutils C code.
   2/23/11 (mac): Renamed from mc_arithmetic to arithmetic.
   3/9/16 (mac): Imported into spncci project as utilities.h.
+  3/26/17 (mac): Add deprecation notes.
 
 ****************************************************************/
 
@@ -20,8 +21,13 @@
 // TODO (mac) -- ZeroOutMatrix neither "zeros out" nor acts on a "matrix"; also eliminate in favor
 //   of using mcutils/eigen ChopMatrix
 
+// TODO (mac) -- KroneckerDelta absorbed into mcutils/arithmetic
+// TODO (mac) -- Factorial and Choose absorbed into mcutils/gsl (namespace mcutils)
+
+
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
+
 #include "gsl/gsl_sf.h"
 #include "eigen3/Eigen/Eigen"
 #include "basis/operator.h"
