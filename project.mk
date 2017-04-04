@@ -87,8 +87,8 @@ CPPFLAGS += -DBOOSTHASH
 CPPFLAGS += -DNOHASH_UNIT_TENSOR
 #   precalculation and caching of U coefficients
 CPPFLAGS += -DUSE_U_COEF_CACHE
-#   map vs. hash for space lookup in BaseSpace
-CPPFLAGS += -DINDEXING_HASH
+#   map vs. hash for space lookup in basis module
+CPPFLAGS += -DBASIS_HASH
 
 # debugging mode
 #
