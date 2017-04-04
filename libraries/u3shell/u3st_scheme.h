@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "basis/indexing.h"
+#include "basis/basis.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
