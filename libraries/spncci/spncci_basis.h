@@ -35,11 +35,13 @@
 #include <unordered_map>
 
 #include "am/am.h"  
+#include "basis/hypersector.h"    
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/vcs.h"
 #include "spncci/spncci_common.h"
 #include "u3shell/tensor_labels.h"
-#include "u3shell/u3spn_scheme.h"  
+#include "u3shell/u3spn_scheme.h"
+#include "u3shell/unit_tensor_space_u3s.h"  
 #include "u3shell/upcoupling.h"
 #include "lgi/lgi.h"
 
@@ -511,6 +513,30 @@ namespace spncci
       //   space (BabySpNCCISpace): the space
       //   operator_labels (OperatorLabelsU3S): NxSU(3)xS character of operator
   };
+
+  class BabySpNCCIHypersectors
+    : public basis::BaseHypersectors<BabySpNCCISpace,u3shell::RelativeUnitTensorSpaceU3S>
+  {
+
+  public:
+      // constructor
+
+    BabySpNCCIHypersectors() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes
+
+    BabySpNCCIHypersectors(
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::RelativeUnitTensorSpaceU3S& operator_space
+      );
+      // Enumerate sector pairs connected by u3S subspaces of 
+      // relative unit tensors
+      //
+      // Arguments:
+      //   space (BabySpNCCISpace): the space
+      //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
+  };
+
 
   ////////////////////////////////////////////////////////////////
   // precomputation of K matrices

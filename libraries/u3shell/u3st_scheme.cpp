@@ -190,7 +190,7 @@ namespace u3shell {
   {
 
     return fmt::format(
-        "[{} {} {} {}]",
+        "[{} {} ({},{})]",
         omega().Str(),S(),T(),g()
       );
   }

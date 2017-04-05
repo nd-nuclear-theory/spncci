@@ -382,6 +382,61 @@ namespace spncci
   }
 
 
+  BabySpNCCIHypersectors::BabySpNCCIHypersectors(
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::RelativeUnitTensorSpaceU3S& operator_space
+      )
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+        {
+          // retrieve subspaces
+          const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+          for(int operator_subspace_index=0; operator_subspace_index<operator_space.size(); ++operator_subspace_index)
+            {
+              // verify selection rules
+              bool allowed = true;
+              const u3shell::RelativeUnitTensorSubspaceU3S& 
+                operator_subspace=operator_space.GetSubspace(operator_subspace_index);
+
+              // U(1)
+              allowed &= (ket_subspace.omega().N() + operator_subspace.N0() - bra_subspace.omega().N() == 0);
+              // spin
+              //
+              // Note: Basic two-body constaints can be placed on Sp
+              // and Sn triangularity based on two-body nature of
+              // operator, so (delta Sp)<=2 and (delta Sn)<=2.  However, in
+              // general, the operator does not have sharp Sp0 or Sn0.
+              allowed &= am::AllowedTriangle(ket_subspace.S(),operator_subspace.S0(),bra_subspace.S());
+              allowed &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
+              allowed &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
+              if (!allowed)
+                continue;
+
+              // find SU(3) multiplicity and check SU(3) selection
+              int multiplicity = u3::OuterMultiplicity(
+                  ket_subspace.omega().SU3(),
+                  operator_subspace.x0(),
+                  bra_subspace.omega().SU3()
+                );
+              allowed &= (multiplicity > 0);
+
+              // push sectors (tagged by multiplicity)
+              if (allowed)
+                for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+                  {
+                    PushHypersector(HypersectorType(
+                      bra_subspace_index,ket_subspace_index,operator_subspace_index,
+                      bra_subspace,ket_subspace,operator_subspace,multiplicity_index));
+                  }
+            }
+        }
+ 
+  }
+
+
   ////////////////////////////////////////////////////////////////
   // precomputation of K matrices
   ////////////////////////////////////////////////////////////////
