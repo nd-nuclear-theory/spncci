@@ -120,6 +120,7 @@ namespace spncci
   // for observables with J0!=0, then have their own section --probably do this in the code as well, i.e.,
   {
     std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigma0_ex_max);
+    std::cout<<"writing to file"<<std::endl;
     std::fstream fs;
     const int width=3;
     const int precision=16;
@@ -138,7 +139,6 @@ namespace spncci
 
     fs << std::endl<<fmt::format("hw {:2.1f}", hw)<<std::endl;
 
-    std::cout<<"hi"<<std::endl;
     for(HalfInt J : J_values)
       {
         Eigen::VectorXd& eigenvalues_J=eigenvalues[J];
@@ -147,14 +147,18 @@ namespace spncci
         for(int i=0; i<eigenvalues_J.size(); ++i)
           {
             double eigenvalue=eigenvalues_J(i);
+            std::cout<<fmt::format("{:2d}   {}   {:8.5f}",i, J,eigenvalue);
             fs << fmt::format("{:2d}   {}   {:8.5f}",i, J,eigenvalue);
             
-            for(int j=0; j<scalar_observable_indices.size(); ++j)            
+            for(int j=0; j<scalar_observable_indices.size(); ++j)  
+            {          
+              std::cout<<fmt::format("   {:8.5f}",scalar_observable_expectations[j][J](i))
+              <<std::endl<<std::endl;
               fs <<fmt::format("   {:8.5f}",scalar_observable_expectations[j][J](i))
               <<std::endl<<std::endl;
+            }
           }
       }
-    std::cout<<"ho"<<std::endl;
     for(HalfInt J : J_values)
       {
         Eigen::VectorXd& eigenvalues_J_initial=eigenvalues[J];
@@ -172,10 +176,13 @@ namespace spncci
 
                 for(int j=0; j<nonscalar_observable_indices.size(); ++j)
                   {
+                    // std::cout<<"(ip, i) ("<<ip<<","<<i<<")"<<std::endl;
                     Eigen::MatrixXd& obserable_matrix=nonscalar_observable_expectations[j][J_pair];
+                    // std::cout<<obserable_matrix<<std::endl;
                     double observable=obserable_matrix(ip,i);
                     fs<<fmt::format("  {:8.5f}",observable);
                   }
+                fs<<std::endl;
               }
           }
       }
@@ -816,20 +823,29 @@ int main(int argc, char **argv)
         for (const HalfInt ket_J : run_parameters.J_values)
           {
             int observable_index=nonscalar_observable_indices[i];
+            int J0=run_parameters.observable_Jvalues[observable_index];
+            // std::cout<<bra_J<<"  "<<J0<<"  "<<ket_J<<std::endl;
             spncci::JPair J_pair(bra_J,ket_J);
             const int bra_converged_eigenvectors = eigenvalues[bra_J].size();
             const int ket_converged_eigenvectors = eigenvalues[ket_J].size();
-            const spncci::MatrixType& observable_matrix = observable_matrices[i][J_pair];
+            const spncci::MatrixType& observable_matrix = observable_matrices[observable_index][J_pair];
             // nonscalar_observable_expectations[observable_index][J_pair].resize(converged_eigenvectors);
-            for (int bra_eigenvector_index=0; bra_eigenvector_index<bra_converged_eigenvectors; ++bra_eigenvector_index)
-              for (int ket_eigenvector_index=0; ket_eigenvector_index<ket_converged_eigenvectors; ++ket_eigenvector_index)
-                {
-                  const Eigen::VectorXd bra_eigenvector = eigenvectors[bra_J].col(bra_eigenvector_index);
-                  const Eigen::VectorXd ket_eigenvector = eigenvectors[ket_J].col(ket_eigenvector_index);
-                  // double expectation_value = bra_eigenvector.dot(observable_matrix*ket_eigenvector);
-                  nonscalar_observable_expectations[i][J_pair]=bra_eigenvector*observable_matrix*ket_eigenvector;
-                  // [eigenvector_index] = expectation_value;
-              }
+            // std::cout<<observable_matrix<<std::endl;
+            nonscalar_observable_expectations[i][J_pair]=eigenvectors[bra_J].transpose()*observable_matrix*eigenvectors[ket_J];
+
+            // for (int bra_eigenvector_index=0; bra_eigenvector_index<bra_converged_eigenvectors; ++bra_eigenvector_index)
+            //   for (int ket_eigenvector_index=0; ket_eigenvector_index<ket_converged_eigenvectors; ++ket_eigenvector_index)
+            //     {
+            //       // std::cout<<eigenvectors[bra_J].transpose().cols()<<"  "<<observable_matrix.rows()<<"  "<<observable_matrix.cols()
+            //       // <<"  "<<eigenvectors[ket_J].rows()<<std::endl;
+            //       const Eigen::VectorXd bra_eigenvector = eigenvectors[bra_J].col(bra_eigenvector_index);
+            //       const Eigen::VectorXd ket_eigenvector = eigenvectors[ket_J].col(ket_eigenvector_index);
+            //       // double expectation_value = bra_eigenvector.dot(observable_matrix*ket_eigenvector);
+            //       nonscalar_observable_expectations[i][J_pair]=bra_eigenvector.transpose()*observable_matrix*ket_eigenvector;
+                  
+            //       std::cout<<nonscalar_observable_expectations[i][J_pair]<<std::endl;
+            //       // [eigenvector_index] = expectation_value;
+            //   }
           }
 
     spncci::WriteEigenValues(
