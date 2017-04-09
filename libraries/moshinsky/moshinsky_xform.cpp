@@ -281,6 +281,7 @@ namespace u3shell
     u3shell::RelativeUnitTensorLabelsU3ST tensor;
     for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); ++it)
     {
+      
       u3shell::IndexedRelativeUnitTensorLabelsU3ST indexed_tensor=it->first;
       double rel_rme=it->second;
       std::tie(tensor,kappa0,L0)=it->first;//indexed_tensor;
@@ -307,8 +308,10 @@ namespace u3shell
     )
   {
     TwoBodyExpansionMap two_body_expansion_map;
+    // std::cout<<"transform unit tensors"<<std::endl;
     TransformRelativeUnitTensorToTwobodyTensor(Nmax+2*N1v,relative_unit_tensors,
       two_body_expansion_map,normalization);
+    // std::cout<<"Contract relative with unit tensors"<<std::endl;
     ContractRelativeAndTwoBodyUnitTensorRME(relative_rmes,
       two_body_expansion_map,indexed_two_body_rmes);
   }

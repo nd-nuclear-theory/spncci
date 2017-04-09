@@ -44,12 +44,9 @@ void IdentityTest(
 
   basis::RelativeSpaceLSJT relative_space(Nmax, Jmax);
   // basis::RelativeSectorsLSJT relative_sectors(relative_space, J0,T0, g0);
-  std::vector<Eigen::MatrixXd> sector_vector;
+  std::vector<Eigen::MatrixXd> sector_vector; 
 
-  assert(Nmax<=4); 
-
-  
-  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/moshinsky/test/identity_Nmax04_rel.dat";
+  std::string interaction_file="../moshinsky/test/identity_Nmax04_rel.dat";
   // basis::RelativeSectorsLSJT relative_sectors_lsjt;
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
   
@@ -112,7 +109,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   int T0=0;
   int g0=0;
   std::cout<<"Ksqr check"<<std::endl;
-  std::string interaction_file="/Users/annamccoy/projects/spncci/libraries/moshinsky/test/ksqr_Nmax06_rel.dat";
+  std::string interaction_file="../moshinsky/test/ksqr_Nmax06_rel.dat";
   basis::RelativeSectorsLSJT relative_lsjt_sectors;
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   
@@ -192,13 +189,14 @@ ReadWriteCheck(
       }
     for(auto it=relative_rme_map.begin(); it!=relative_rme_map.end(); ++it)
       {
-        if(not relative_rmes2.count(it->first))
-        {
-          int kappa0,L0;
-          u3shell::RelativeUnitTensorLabelsU3ST tensor;
-          std::tie(tensor,kappa0,L0)=it->first;
-          std::cout<<fmt::format("[{} {} {}] {} not in read map", tensor.Str(),kappa0,L0,it->second)<<std::endl;
-        }
+        if(fabs(it->second)>zero_threshold)
+          if(not relative_rmes2.count(it->first))
+          {
+            int kappa0,L0;
+            u3shell::RelativeUnitTensorLabelsU3ST tensor;
+            std::tie(tensor,kappa0,L0)=it->first;
+            std::cout<<fmt::format("[{} {} {}] {} not in read map", tensor.Str(),kappa0,L0,it->second)<<std::endl;
+          }
         
       }
   }
@@ -207,7 +205,7 @@ int main(int argc, char **argv)
 {
   // double zero_threshold=10e-6;
   u3::U3CoefInit();
-  int Nmax=16;
+  int Nmax=10;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;

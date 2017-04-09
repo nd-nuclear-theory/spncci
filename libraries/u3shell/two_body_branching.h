@@ -21,11 +21,14 @@ namespace u3shell
 	typedef std::tuple<int,HalfInt,HalfInt,TwoBodyStateLabelsLST,TwoBodyStateLabelsLST> TwoBodyBraketLST;
 	//LSJT
 	typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt,HalfInt> TwoBodyStateLabelsLSJT;
-	typedef std::pair<TwoBodyStateLabelsLSJT,TwoBodyStateLabelsLSJT>TwoBodyBraketLSJT;
+	typedef std::tuple<int, int, TwoBodyStateLabelsLSJT,TwoBodyStateLabelsLSJT>TwoBodyBraketLSJT;
 	//JJJT
 	typedef std::tuple<int, int, HalfInt,int, int, HalfInt,HalfInt,HalfInt>TwoBodyStateLabelsJJJT;
-	typedef std::pair<TwoBodyStateLabelsJJJT, TwoBodyStateLabelsJJJT> TwoBodyBraketJJJT;
-
+	typedef std::tuple<int, int, TwoBodyStateLabelsJJJT, TwoBodyStateLabelsJJJT> TwoBodyBraketJJJT;
+	//JJJPN
+	typedef std::tuple<int, int, int> TwoBodyStateLabelsJJJPN;
+	typedef std::tuple<int,TwoBodyStateLabelsJJJPN,TwoBodyStateLabelsJJJPN> TwoBodyBraketJJJPN;
+	typedef std::map<TwoBodyBraketJJJPN,double> pn_rmes;
 
 
 	void H2FormatLookUp(int Nmax,std::map<std::tuple<int,int,HalfInt>,int>& h2_lookup);
@@ -59,6 +62,13 @@ namespace u3shell
 	  std::map<TwoBodyBraketJJJT,double>& two_body_rme_jjjt
 	  );
 	// Branch from LSJT to JJJT
+
+	void ConvertJJJTToPN(
+		int Nmax,
+		const std::map<TwoBodyBraketJJJT,double>& two_body_rme_jjjt,
+		std::vector<pn_rmes>&  two_body_rmes_jjjpn
+		);
+
 
 	void BranchTwoBodyU3STToJJJT(int Jmax, int J0,
 	  u3shell::IndexedTwoBodyTensorRMEsU3ST& indexed_two_body_rmes,
