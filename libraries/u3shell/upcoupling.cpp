@@ -384,7 +384,7 @@ namespace u3shell
       {
         const basis::RelativeSectorsLSJT& sector_labels=T0_sector_labels[T00];
         const basis::MatrixVector& sectors=T0_sectors[T00];
-        u3shell::UpcouplingNLST(space,sector_labels,sectors,J0,g0,T0,Nmax,rme_nlst_map);
+        u3shell::UpcouplingNLST(space,sector_labels,sectors,J0,g0,T00,Nmax,rme_nlst_map);
       }
     
     u3shell::UpcouplingU3ST(rme_nlst_map,Nmax,w_cache,rme_map);

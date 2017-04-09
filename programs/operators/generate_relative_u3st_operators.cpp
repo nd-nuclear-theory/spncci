@@ -9,6 +9,7 @@
 ****************************************************************/
 #include <iostream>
 #include <fstream>
+#include "boost/math/constants/constants.hpp"
 #include "cppformat/format.h"
 #include "mcutils/parsing.h"
 
@@ -138,7 +139,7 @@ namespace u3shell
     int L0=2;
 
     double intrinsic_factor=(1.+KroneckerDelta(moshinsky_convention,true))/A;
-
+    // std::cout<<"coef "<<coef<<std::endl;
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
         for(int T=0; T<=1; ++T)
@@ -151,7 +152,11 @@ namespace u3shell
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+            std::cout<<relative_unit_tensor.Str()<<std::endl;
+
             double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+            std::cout<<Brme<<std::endl;
+
             if (fabs(Brme)>zero_threshold)
               Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
 
@@ -195,13 +200,15 @@ namespace u3shell
 
             // Brel term
             Np=N-2;
-            bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
-            key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-            if (fabs(Brme)>zero_threshold)
-              R2intr[key]+=sqrt(1.5)*Brme*intrinsic_factor*coef;
-
+            if(Np>=0)
+            {
+              bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
+              key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              if (fabs(Brme)>zero_threshold)
+               R2intr[key]+=sqrt(1.5)*Brme*intrinsic_factor*coef;
+            }
             // Crel term
             Np=N;
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
@@ -275,6 +282,7 @@ int main(int argc, char **argv)
   // constants 
   double hbarc=197.327; //MeVfm
   double mc2=938.92; //MeV
+  const double pi=boost::math::constants::pi<double>();
 
   if(argc<4)
     std::cout<<"Syntax: A Nmax N1B <operator_filename_base> "<<std::endl;
@@ -314,24 +322,29 @@ int main(int argc, char **argv)
         ParsingCheck(line_stream,line_count,line);
         b2=hbarc*hbarc/mc2/hbar_omega;
         std::cout<<"bsqr= "<<b2<<std::endl;
+        std::cout<<"pi= "<<pi<<std::endl;
         continue;
       }
 
     line_stream >> operator_type >> coef;
     ParsingCheck(line_stream,line_count,line);
 
+    std::cout<<"coef from file "<<coef/b2<<std::endl;
+
     if(operator_type=="Nintr") 
       u3shell::Nintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Spin") 
       u3shell::Spin(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="r2intr")
+      // Factor of 1/A on coef is to compute
+      // the mean square of the radius   
       u3shell::r2intr(Nmax+2*N1B,Operator, A, coef*b2/A);
     else if(operator_type=="k2intr")
       u3shell::k2intr(Nmax+2*N1B,Operator, A, coef/b2);
     else if(operator_type=="Lintr")
       u3shell::Lintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Qintr")
-      u3shell::Qintr(Nmax+2*N1B,Operator, A, coef*b2);
+      u3shell::Qintr(Nmax+2*N1B,Operator, A, sqrt(5./16*pi)*coef*b2);
     else if(operator_type=="Tintr")
       u3shell::Tintr(Nmax+2*N1B,Operator, A, hbar_omega, coef);
     else if(operator_type=="INT")
