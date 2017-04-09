@@ -9,12 +9,12 @@ module_units_h :=
 module_units_cpp-h := tensor_labels relative_operator two_body_operator u3st_scheme
 module_units_cpp-h += u3spn_scheme two_body_branching
 module_units_cpp-h += import_interaction upcoupling unu3 unit_tensor_expansion
-
+module_units_cpp-h += unit_tensor_space_u3s
 # module_units_f := 
 module_programs_cpp := tensor_labels_test relative_operator_test two_body_operator_test 
 module_programs_cpp += u3st_scheme_test u3spn_scheme_test 
 module_programs_cpp += generate_unit_tensors_tb upcoupling_test unu3_test
-module_programs_cpp += 
+module_programs_cpp += unit_tensor_space_u3s_test
 # module_programs_f :=
 # module_generated :=
 
