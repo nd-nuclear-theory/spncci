@@ -87,10 +87,10 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // construct baby SpNCCI Hypersectors
   ////////////////////////////////////////////////////////////////
-  
+
   int N1v=1;
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,unit_tensor_labels,-1,-1,false);
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1v,unit_tensor_labels,-1,-1,false);
   u3shell::RelativeUnitTensorSpaceU3S operator_space(Nmax,N1v,unit_tensor_labels);
 
   spncci::BabySpNCCIHypersectors baby_spncci_hypersectors(baby_spncci_space,operator_space);

@@ -13,10 +13,12 @@
 #include "am/am.h"
 #include "cppformat/format.h"
 
+
+
 namespace u3shell {
 
   RelativeUnitTensorSubspaceU3S::RelativeUnitTensorSubspaceU3S(
-    u3::SU3 x0, int S0, int etap, int eta,
+    u3::SU3 x0, HalfInt S0, int etap, int eta,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
     )
   {
@@ -98,6 +100,39 @@ namespace u3shell {
             }
         }
   }
+
+
+  RelativeUnitTensorSpaceU3S::RelativeUnitTensorSpaceU3S(
+    int Nmax, int N1v,
+    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
+    const std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>& 
+        NnpNn_organized_unit_tensor_subspaces
+    )
+  {
+    // save Nmax
+    Nmax_ = Nmax;
+    N1v_=N1v;
+
+    for(auto it=NnpNn_organized_unit_tensor_subspaces.begin(); it!=NnpNn_organized_unit_tensor_subspaces.end(); ++it)
+      {
+        const std::pair<int,int>& NnpNn=it->first;
+        const UnitTensorSubspaceLabelsSet& unit_tensor_subspace_labels_set=it->second;
+        for(auto& unit_tensor_subspace_labels : unit_tensor_subspace_labels_set)
+          {
+            u3::SU3 x0; 
+            HalfInt S0; 
+            int etap,eta;
+            std::tie(x0,S0,etap,eta)=unit_tensor_subspace_labels;
+            // construct subspace
+            RelativeUnitTensorSubspaceU3S subspace(x0,S0,etap,eta,unit_tensor_labels);
+            // push subspace if nonempty
+            if (subspace.size()!=0)
+              PushSubspace(subspace);
+          }
+      }
+  }
+
+
 
 
   std::string RelativeUnitTensorSpaceU3S::Str() const

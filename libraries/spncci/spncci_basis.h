@@ -535,6 +535,21 @@ namespace spncci
       // Arguments:
       //   space (BabySpNCCISpace): the space
       //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
+
+      BabySpNCCIHypersectors(
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
+        std::map< std::pair<int,int>, u3shell::UnitTensorSubspaceLabelsSet>& 
+            NnpNn_organized_unit_tensor_subspaces,
+        std::map<std::pair<int,int>,std::vector<int>>& Nn_organized_unite_tensor_hypersectors
+      );
+      //Overload of notation
+      // Enumerate sector pairs connected by u3S subspaces of 
+      // relative unit tensors
+      //
+      // Arguments:
+      //   space (BabySpNCCISpace): the space
+      //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
   };
 
 

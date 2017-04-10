@@ -123,7 +123,7 @@ namespace u3shell
 		              double so3coef=am::Unitary9J(L, S, J, L0,S0,J0,Lp,Sp,Jp);
 		              TwoBodyStateLabelsLSJT state(eta1,L1,eta2,L2,L,S,J,T);
 		              TwoBodyStateLabelsLSJT statep(eta1p,L1p,eta2p,L2p,Lp,Sp,Jp,Tp);
-		              TwoBodyBraketLSJT braket(J0,T0,statep,state);
+		              TwoBodyBraketLSJT braket(J0,int(T0),statep,state);
 		              two_body_rme_lsjt[braket]+=so3coef*rme_lst;
 		              }
 		    }
@@ -256,8 +256,8 @@ namespace u3shell
       	double pp_conversion_factor=am::ClebschGordan(T,1,T0,0,Tp,1);
       	double nn_conversion_factor=am::ClebschGordan(T,-1,T0,0,Tp,-1);
 
-				u3shell::TwoBodyStateLabelsJJJPN bra_pn(a1p,a2p,Jp);
-				u3shell::TwoBodyStateLabelsJJJPN ket_pn(a1p,a2p,Jp);
+				u3shell::TwoBodyStateLabelsJJJPN bra_pn(a1p,a2p,int(Jp));
+				u3shell::TwoBodyStateLabelsJJJPN ket_pn(a1p,a2p,int(J));
 				u3shell::TwoBodyBraketJJJPN braket_pn(J0,bra_pn,ket_pn);
 
 				std::cout<<"labels "<<T0<<" "<<Tp<<" "<<T<<std::endl;

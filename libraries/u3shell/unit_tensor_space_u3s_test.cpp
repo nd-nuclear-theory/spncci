@@ -28,7 +28,7 @@ int main(int argc, char **argv)
       int Nmax=0;
       int N1v=1;
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;
-      u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,unit_tensor_labels,-1,-1,false);
+      u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1v,unit_tensor_labels,-1,-1,false);
 
       for(auto& unit_tensor : unit_tensor_labels)
         std::cout<<unit_tensor.Str()<<std::endl;

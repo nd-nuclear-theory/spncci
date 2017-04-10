@@ -97,15 +97,92 @@
   
 namespace spncci
 {
+  
   void
+  ExtractNonZeroLGIUnitTensors(
+      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+      const u3shell::SectorsU3SPN& unit_tensor_sectors,
+      const basis::MatrixVector& unit_tensor_spncci_matrices,
+      double zero_threshold,
+      std::set<u3shell::RelativeUnitTensorLabelsU3ST>& non_zero_lgi_unit_tensors
+    )
+  {      
+    // stash each sector in big souffle (i.e., by irrep family)
+    for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
+      {
+        if(not mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],zero_threshold))
+          {
+            non_zero_lgi_unit_tensors.insert(unit_tensor_labels);
+            break;
+         }
+      }
+  }
 
-    // spncci::WriteEigenValues(
-    //   run_parameters.J_values, hw, 
-    //   run_parameters.Nmax, run_parameters.Nsigma0_ex_max, 
-    //   eigenvalues, scalar_observable_expectations, nonscalar_observable_expectations,
-    //   run_parameters.num_observables
-    // );
+  typedef std::tuple<u3::SU3,HalfInt,int,int> UnitTensorSubspaceLabels;
+  typedef std::set<UnitTensorSubspaceLabels> UnitTensorSubspaceLabelsSet;
 
+  void
+  GenerateRecurrenceUnitTensors(
+      int Nmax,
+      const std::set<u3shell::RelativeUnitTensorLabelsU3ST>& non_zero_lgi_unit_tensors,
+      std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>& 
+        NnpNn_organized_unit_tensor_families
+    )
+  {
+    u3::SU3 x0; 
+    HalfInt S0;
+    int etap,eta;
+
+    // Add lgi unit tensors to NnpNn unit tensor container 
+    std::pair<int,int>NnpNn(0,0);
+    for(auto& lgi_tensor : non_zero_lgi_unit_tensors)
+      {
+        std::tie(x0,S0,std::ignore, etap,std::ignore,std::ignore, eta, std::ignore,std::ignore)=lgi_tensor.FlatKey();
+        UnitTensorSubspaceLabels unit_tensor_family_labels(x0,S0,etap,eta);
+        NnpNn_organized_unit_tensor_families[NnpNn].insert(unit_tensor_family_labels);
+      }
+
+    // Generate non-lgi unit tensor family labels 
+    for(int Nsum=0; Nsum<=2*Nmax; Nsum+=2)
+      for(int Nn=0; Nn<=std::min(Nsum,Nmax); Nn+=2)
+        {
+          int Nnp=Nsum-Nn;
+          if((Nnp<0)||(Nnp>Nmax))
+            continue;
+
+          std::pair<int,int> NnpNn(Nnp,Nn+2);
+          const UnitTensorSubspaceLabelsSet& 
+            current_set=NnpNn_organized_unit_tensor_families[std::pair<int,int>(Nnp,Nn)];
+          for(auto& tensor : current_set)
+            {
+              std::tie(x0,S0,etap, eta)=tensor;
+              MultiplicityTagged<u3::SU3>::vector x0p_set1=KroneckerProduct(u3::SU3(etap-2,0), u3::SU3(0,eta));
+              for(auto& x0p_tagged : x0p_set1)
+                {
+                  u3::SU3 x0p(x0p_tagged.irrep);
+                  UnitTensorSubspaceLabels unit_tensor_family_labels(x0p,S0,etap-2,eta);
+                  NnpNn_organized_unit_tensor_families[NnpNn].insert(unit_tensor_family_labels);
+                }
+
+              MultiplicityTagged<u3::SU3>::vector x0p_set2=KroneckerProduct(u3::SU3(etap,0), u3::SU3(0,eta+2)); 
+              for(auto& x0p_tagged : x0p_set2)
+                {
+                  u3::SU3 x0p(x0p_tagged.irrep);
+                  UnitTensorSubspaceLabels unit_tensor_family_labels(x0p,S0,etap,eta+2);
+                  NnpNn_organized_unit_tensor_families[NnpNn].insert(unit_tensor_family_labels);
+                }
+
+              NnpNn_organized_unit_tensor_families[std::pair<int,int>(Nnp,Nn+4)].insert(tensor);
+            }
+        }
+    for(auto it=NnpNn_organized_unit_tensor_families.begin(); it!=NnpNn_organized_unit_tensor_families.end(); ++it)
+      {
+
+      }
+  }
+
+
+  void
   WriteEigenValues(
     const std::vector<HalfInt>& J_values, double hw, 
     int Nmax, int Nsigma0_ex_max,
@@ -523,6 +600,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   std::cout << "Transform and store seed unit tensor rmes..." << std::endl;
   spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+  std::set<u3shell::RelativeUnitTensorLabelsU3ST> non_zero_lgi_unit_tensors;
   for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
     {
 
@@ -539,6 +617,14 @@ int main(int argc, char **argv)
           unit_tensor_labels,filename,
           unit_tensor_sectors,
           unit_tensor_spncci_matrices);
+
+
+      spncci::ExtractNonZeroLGIUnitTensors(
+          unit_tensor_labels,unit_tensor_sectors,
+          unit_tensor_spncci_matrices,zero_threshold,
+          non_zero_lgi_unit_tensors
+        );
+
 
       // store unit tensor matrix elements for recurrence
       HalfInt Nsigma_max=run_parameters.Nsigma0_ex_max+run_parameters.Nsigma_0;
@@ -563,12 +649,42 @@ int main(int argc, char **argv)
   std::cout << "Recurse unit tensor rmes..." << std::endl;
 
   // determine full set of unit tensors for rme calculation
+  // Soon to be decreciated
   int Nmax_for_unit_tensors=run_parameters.Nmax+2*run_parameters.N1v;
   std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
       run_parameters.Nmax, run_parameters.N1v,unit_tensor_labels,
       J0_for_unit_tensors,T0_for_unit_tensors,restrict_positive_N0
     );
+
+
+  // TODO Change unit_tensor_labels2 to unit_tensor_labels once validated
+  // Generate list of unit tensor labels up to Nmax,N1v truncation 
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels2;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(
+      run_parameters.Nmax, run_parameters.N1v,unit_tensor_labels,
+      J0_for_unit_tensors,T0_for_unit_tensors,restrict_positive_N0
+    );
+
+  // Generate relative unit tensor space   
+  std::map< std::pair<int,int>, u3shell::UnitTensorSubspaceLabelsSet> 
+    NnpNn_organized_unit_tensor_subspaces; 
+
+  u3shell::RelativeUnitTensorSpaceU3S 
+    operator_space(run_parameters.Nmax, run_parameters.N1v,unit_tensor_labels2,NnpNn_organized_unit_tensor_subspaces);
+
+
+  // Generate baby spncci space 
+  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
+
+  // create hyper sectors, to replace unit tensor sectors in recurrence 
+  std::map<std::pair<int,int>,std::vector<int>> Nn_organized_unit_tensor_hypersectors;
+  spncci::BabySpNCCIHypersectors 
+  baby_spncci_hyper_sectors(
+    baby_spncci_space,operator_space,
+    NnpNn_organized_unit_tensor_subspaces,
+    Nn_organized_unit_tensor_hypersectors
+  );
 
   // std::cout<<"unit tensor labels size "<<unit_tensor_labels.size()<<std::endl;
 
@@ -623,7 +739,7 @@ int main(int argc, char **argv)
     std::cout << "Set up basis indexing for contracting and regrouping..." << std::endl;
 
     // set up basis indexing for regrouping
-    spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
+    // spncci::BabySpNCCISpace baby_spncci_space(spncci_space); // now above 
     spncci::SpaceU3S space_u3s(baby_spncci_space);
 
     std::cout << "Constract and regroup observable matrices..." << std::endl;

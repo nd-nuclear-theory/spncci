@@ -24,6 +24,9 @@
 
 namespace u3shell {
 
+  typedef std::tuple<u3::SU3,HalfInt,int,int> UnitTensorSubspaceLabels;
+  typedef std::set<UnitTensorSubspaceLabels> UnitTensorSubspaceLabelsSet;
+
   ////////////////////////////////////////////////////////////////
   // relative unit tensors subspaces in U3S scheme
   ////////////////////////////////////////////////////////////////
@@ -56,12 +59,12 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class RelativeUnitTensorSubspaceU3S
-    : public basis::BaseSubspace<std::tuple<u3::SU3,int,int,int>,std::tuple<int,int,int,int,int>>
+    : public basis::BaseSubspace<std::tuple<u3::SU3,HalfInt,int,int>,std::tuple<int,int,int,int,int>>
     // Subspace class for two-body states of given S(3)xS.
     //
     // SubspaceLabelsType (std::tuple): <x0, S0,etap,eta>
     //   x0   (SU3) : SU(3) label
-    //   S0   (int) : spin
+    //   S0   (HalfInt) : spin
     //   etap (int) : oscillator quanta in bra 
     //   eta  (int) : oscillator quanta in ket
 
@@ -71,18 +74,18 @@ namespace u3shell {
 
     // constructor
     RelativeUnitTensorSubspaceU3S (
-      u3::SU3 x0, int S0, int etap, int eta,
+      u3::SU3 x0, HalfInt S0, int etap, int eta,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
      );
 
     // accessors
     u3::SU3 x0() const {return std::get<0>(labels_);}
-    int S0() const {return std::get<1>(labels_);}
+    HalfInt S0() const {return std::get<1>(labels_);}
     int etap() const {return std::get<2>(labels_);}
     int eta() const {return std::get<3>(labels_);}
     int N0() const {return etap()-eta();}
 
-    std::tuple<u3::SU3,int,int,int> Key() const {return labels_;}
+    std::tuple<u3::SU3,HalfInt,int,int> Key() const {return labels_;}
     // diagnostic output
     std::string Str() const;
     std::string LabelStr() const;
@@ -114,7 +117,7 @@ namespace u3shell {
 
     // pass-through accessors
     u3::SU3 x0() const {return Subspace().x0();}
-    int S0() const {return Subspace().S0();}
+    HalfInt S0() const {return Subspace().S0();}
     int etap() const {return Subspace().etap();}
     int eta() const {return Subspace().eta();}
     int N0() const {return etap()-eta();}
@@ -140,8 +143,18 @@ namespace u3shell {
   public:
 
     // constructor
-    RelativeUnitTensorSpaceU3S(int Nmax, int N1v, const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels);
-
+    RelativeUnitTensorSpaceU3S(
+      int Nmax, int N1v, 
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
+    );
+    
+    RelativeUnitTensorSpaceU3S(
+      int Nmax, int N1v,
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
+      const std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>& 
+        NnpNn_organized_unit_tensor_subspaces
+    );
+    
     // accessors
     int Nmax() const {return Nmax_;}
 
