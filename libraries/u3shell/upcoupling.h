@@ -25,6 +25,7 @@
 #include "basis/lsjt_scheme.h"
 #include "basis/lsjt_operator.h"
 #include "u3shell/relative_operator.h"
+#include "u3shell/unit_tensor_space_u3s.h" 
 #include "sp3rlib/u3coef.h"
 
 namespace u3shell
@@ -57,6 +58,14 @@ namespace u3shell
     boost::hash<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>>
     >
     RelativeRMEsU3ST;
+
+  typedef std::unordered_map<
+    std::tuple<int,int,int>,
+    std::vector<double>,
+    boost::hash<std::tuple<int,int,int>> 
+    > 
+    RelativeRMEsU3SSubspaces;
+
 
   // Mapping to store coefficients (RMEs) of relative operator in
   // terms of relative unit tensors.
@@ -180,11 +189,26 @@ namespace u3shell
   // DEPRECATED form using stream argument
   void ReadRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes);
 
+  void ReadRelativeOperatorU3ST(
+    const std::string& filename, 
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    RelativeRMEsU3SSubspaces& relative_rmes
+    );
+  // Read in interaction and store in container indexed by unit tensor subspaces 
+
+
 
   void GetInteractionTensorsU3S(
       const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
       std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
     );
+  // soon to be depreciated
+
+  void GetInteractionTensorsU3S(
+      const RelativeRMEsU3SSubspaces& interaction_rme_cache,
+      std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
+    );
+
 
 }
 // 

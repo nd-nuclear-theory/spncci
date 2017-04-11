@@ -57,6 +57,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
+  typedef std::tuple<int,int,int,int,int> RelativeUnitTensorStateLabelsU3S;
 
   class RelativeUnitTensorSubspaceU3S
     : public basis::BaseSubspace<std::tuple<u3::SU3,HalfInt,int,int>,std::tuple<int,int,int,int,int>>

@@ -103,6 +103,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
 // Function given analytically 
 {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // int Nmax=20;
   int Nmax=20;
   int Jmax=4;
   int J0=0;
@@ -205,7 +206,8 @@ int main(int argc, char **argv)
 {
   // double zero_threshold=10e-6;
   u3::U3CoefInit();
-  int Nmax=10;
+  // int Nmax=10;
+  int Nmax=4;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
@@ -219,8 +221,43 @@ int main(int argc, char **argv)
   std::string filename="Trel_upcouled";
   ReadWriteCheck(ke_relative_rme_map,filename);
 
-  std::string id_filename="Id_upcouled";
-  std::ofstream os(id_filename.c_str());
-  u3shell::WriteRelativeOperatorU3ST(os,id_relative_rme_map);
-  os.close();
+  // std::string id_filename="Id_upcouled";
+  // std::ofstream os(id_filename.c_str());
+  // u3shell::WriteRelativeOperatorU3ST(os,id_relative_rme_map);
+  // os.close();
+
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;
+
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, 1,unit_tensor_labels,J0,T0,false);
+  u3shell::RelativeUnitTensorSpaceU3S unit_tensor_space(Nmax,1,unit_tensor_labels);
+
+  
+  // for(auto& tensor : unit_tensor_labels)
+  //   std::cout<<tensor.Str()<<std::endl;
+
+
+  // for(int i=0; i<unit_tensor_space.size(); ++i)
+  //   {
+  //     std::cout<<unit_tensor_space.GetSubspace(i).Str()<<std::endl;
+  //   }  
+
+
+  // will throw errors unless you change Nmax in Kinetic check to match Nmax above. 
+  u3shell::RelativeRMEsU3SSubspaces relative_rmes;
+  ReadRelativeOperatorU3ST(filename, unit_tensor_space,relative_rmes);
+  for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); ++it)
+    {
+      int index,kappa0,L0;
+      std::tie(index,kappa0,L0)=it->first;
+      std::cout<<index<<"  "<<kappa0<<"  "<<L0<<std::endl;
+      std::cout<<unit_tensor_space.GetSubspace(index).Str()<<std::endl;
+      std::vector<double>rmes(it->second);
+      for(int i=0; i<rmes.size(); ++i)
+        {
+          std::cout<<rmes[i]<<std::endl;
+        }
+    }
+
+
+
 }

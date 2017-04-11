@@ -439,9 +439,10 @@ namespace spncci
   BabySpNCCIHypersectors::BabySpNCCIHypersectors(
     const spncci::BabySpNCCISpace& space,
     const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-    std::map< std::pair<int,int>, u3shell::UnitTensorSubspaceLabelsSet>& 
+    std::map< spncci::NnPair, u3shell::UnitTensorSubspaceLabelsSet>& 
         NnpNn_organized_unit_tensor_subspaces,
-    std::map<std::pair<int,int>,std::vector<int>>& Nn_organized_unite_tensor_hypersectors
+    std::map<spncci::NnPair,std::vector<int>>& Nn_organized_unite_tensor_hypersectors,
+    int irrep_family_index_bra, int irrep_family_index_ket
     )
   {
     int hypersector_index=0;
@@ -452,9 +453,16 @@ namespace spncci
           const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
           const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
 
+          // check if baby spncci subspace corresponds to desired irrep family
+          if((irrep_family_index_bra!=-1)&&(bra_subspace.irrep_family_index()!= irrep_family_index_bra))
+            continue;
+
+          if((irrep_family_index_ket!=-1)&&(ket_subspace.irrep_family_index()!= irrep_family_index_ket))
+            continue;
+
           int Nnp=int(bra_subspace.omega().N()-bra_subspace.sigma().N());
           int Nn=int(ket_subspace.omega().N()-ket_subspace.sigma().N());
-          std::pair<int,int>NnpNn(Nnp,Nn);
+          spncci::NnPair NnpNn(Nnp,Nn);
           const u3shell::UnitTensorSubspaceLabelsSet& 
             unit_tensor_subspace_labels_set=NnpNn_organized_unit_tensor_subspaces[NnpNn];
 

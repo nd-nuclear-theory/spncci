@@ -74,7 +74,7 @@ namespace u3shell {
     N1v_=N1v;
     int eta_max=Nmax+2*N1v;
     // for each N in 0..Nmax
-    for (int N0=0; N0<=Nmax; N0+=2)
+    for (int N0=-Nmax; N0<=Nmax; N0+=2)
       // for each etap
       for(int etap=0; etap<=eta_max; ++etap)
         {

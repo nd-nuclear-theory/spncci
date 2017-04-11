@@ -48,6 +48,7 @@
 namespace spncci
 {
 
+  typedef std::pair<int,int> NnPair;
   ////////////////////////////////////////////////////////////////
   // Sp irrep truncation scheme definition
   ////////////////////////////////////////////////////////////////
@@ -539,10 +540,12 @@ namespace spncci
       BabySpNCCIHypersectors(
         const spncci::BabySpNCCISpace& space,
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-        std::map< std::pair<int,int>, u3shell::UnitTensorSubspaceLabelsSet>& 
+        std::map< spncci::NnPair, u3shell::UnitTensorSubspaceLabelsSet>& 
             NnpNn_organized_unit_tensor_subspaces,
-        std::map<std::pair<int,int>,std::vector<int>>& Nn_organized_unite_tensor_hypersectors
+        std::map<spncci::NnPair,std::vector<int>>& Nn_organized_unite_tensor_hypersectors,
+        int irrep_family_index_bra=-1, int irrep_family_index_ket=-1
       );
+      // DEPRECATED
       //Overload of notation
       // Enumerate sector pairs connected by u3S subspaces of 
       // relative unit tensors
@@ -550,6 +553,7 @@ namespace spncci
       // Arguments:
       //   space (BabySpNCCISpace): the space
       //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
+      //   irrep_family_index=-1 means no restriction on which irrep family.
   };
 
 

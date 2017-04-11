@@ -335,6 +335,51 @@ namespace u3shell
     in_stream.close();
   }
 
+
+  void ReadRelativeOperatorU3ST(
+    const std::string& filename, 
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    RelativeRMEsU3SSubspaces& relative_rmes
+    )
+  {
+    int etap,eta,lambda0,mu0,kappa0, L0;
+    int Sp,Tp,S,T,S0,T0;
+    double rme;
+    std::string line;
+
+    std::ifstream in_stream(filename);
+    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+    std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
+
+    int line_count = 0;
+    while(std::getline(in_stream,line))
+      {
+        ++line_count;
+        std::istringstream line_stream(line);
+        line_stream>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
+        ParsingCheck(line_stream,line_count,line);
+        if (fabs(rme)>zero_threshold)
+          {
+            std::tuple<u3::SU3, HalfInt, int, int> subspace_labels(u3::SU3(lambda0,mu0),S0,etap,eta);
+            int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(subspace_labels);
+            const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+            
+            u3shell::RelativeUnitTensorStateLabelsU3S state_labels(T0,Sp,Tp,S,T);
+            int unit_tensor_state_index=unit_tensor_subspace.LookUpStateIndex(state_labels);
+
+            std::tuple<int,int,int> key(unit_tensor_subspace_index,kappa0,L0);
+
+            if(not relative_rmes.count(key))
+              relative_rmes[key].resize(unit_tensor_subspace.size());
+            relative_rmes[key][unit_tensor_state_index]=rme;
+          }
+      }
+  }
+
+
+
+
+
   typedef std::unordered_map<RelativeUnitTensorLabelsU3ST,std::tuple<int,int,double>,boost::hash<RelativeUnitTensorLabelsU3ST>>
                     InteractionCache;
 
