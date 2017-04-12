@@ -540,12 +540,10 @@ namespace spncci
       BabySpNCCIHypersectors(
         const spncci::BabySpNCCISpace& space,
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-        std::map< spncci::NnPair, u3shell::UnitTensorSubspaceLabelsSet>& 
-            NnpNn_organized_unit_tensor_subspaces,
-        std::map<spncci::NnPair,std::vector<int>>& Nn_organized_unite_tensor_hypersectors,
+        std::map< spncci::NnPair, std::set<int>>& operator_subsets,
+        std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
         int irrep_family_index_bra=-1, int irrep_family_index_ket=-1
       );
-      // DEPRECATED
       //Overload of notation
       // Enumerate sector pairs connected by u3S subspaces of 
       // relative unit tensors
@@ -554,6 +552,8 @@ namespace spncci
       //   space (BabySpNCCISpace): the space
       //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
       //   irrep_family_index=-1 means no restriction on which irrep family.
+      //   unit_tensor_hypersectors is a vector of vectors of indices for unit tensor
+      //   subsets indexed first by Nsum=Nnp+Nn and then by random order. 
   };
 
 

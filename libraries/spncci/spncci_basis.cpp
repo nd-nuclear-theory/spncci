@@ -439,11 +439,10 @@ namespace spncci
   BabySpNCCIHypersectors::BabySpNCCIHypersectors(
     const spncci::BabySpNCCISpace& space,
     const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-    std::map< spncci::NnPair, u3shell::UnitTensorSubspaceLabelsSet>& 
-        NnpNn_organized_unit_tensor_subspaces,
-    std::map<spncci::NnPair,std::vector<int>>& Nn_organized_unite_tensor_hypersectors,
+    std::map< spncci::NnPair, std::set<int>>& operator_subsets,
+    std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
     int irrep_family_index_bra, int irrep_family_index_ket
-    )
+  )
   {
     int hypersector_index=0;
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
@@ -463,13 +462,12 @@ namespace spncci
           int Nnp=int(bra_subspace.omega().N()-bra_subspace.sigma().N());
           int Nn=int(ket_subspace.omega().N()-ket_subspace.sigma().N());
           spncci::NnPair NnpNn(Nnp,Nn);
-          const u3shell::UnitTensorSubspaceLabelsSet& 
-            unit_tensor_subspace_labels_set=NnpNn_organized_unit_tensor_subspaces[NnpNn];
+          int Nsum=Nnp+Nn;
 
-          for(auto& tensor : unit_tensor_subspace_labels_set)
+          const std::set<int>& operator_subset=operator_subsets[NnpNn];
+
+          for(int operator_subspace_index : operator_subset)
             {
-              int operator_subspace_index=operator_space.LookUpSubspaceIndex(tensor);
-                            // verify selection rules
               bool allowed = true;
               const u3shell::RelativeUnitTensorSubspaceU3S& 
                 operator_subspace=operator_space.GetSubspace(operator_subspace_index);
@@ -488,8 +486,6 @@ namespace spncci
               if (!allowed)
                 continue;
 
-            
-
               // find SU(3) multiplicity and check SU(3) selection
               int multiplicity = u3::OuterMultiplicity(
                   ket_subspace.omega().SU3(),operator_subspace.x0(),
@@ -502,11 +498,16 @@ namespace spncci
               if (allowed)
                 for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                   {
-                    PushHypersector(HypersectorType(
-                      bra_subspace_index,ket_subspace_index,operator_subspace_index,
-                      bra_subspace,ket_subspace,operator_subspace,multiplicity_index));
-                      Nn_organized_unite_tensor_hypersectors[NnpNn].push_back(hypersector_index);
-                      ++hypersector_index;
+                    PushHypersector(
+                      HypersectorType(
+                        bra_subspace_index,ket_subspace_index,operator_subspace_index,
+                        bra_subspace, ket_subspace,operator_subspace,
+                        multiplicity_index
+                        )
+                      );
+                    
+                    unit_tensor_hypersector_subsets[Nsum/2].push_back(hypersector_index);
+                    ++hypersector_index;
                   }
             }
         }
