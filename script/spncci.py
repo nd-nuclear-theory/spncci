@@ -35,8 +35,6 @@ spncci_executable_dir = os.path.join(projects_root,"spncci","programs","spncci")
 ################################################################
 # relative unit tensor evaluation
 ################################################################
-
-
 # task parameters
 #     nuclide (tuple of int): (N,Z)
 #     Nmax (int): oscillator Nmax for many-body basis
@@ -167,10 +165,10 @@ def generate_lsu3shell_rmes(task):
     relative_operator_basename_list = read_unit_tensor_list(task)
     recouple_operators(task,relative_operator_basename_list)
     calculate_rmes(task,relative_operator_basename_list)
-    delete_filenames=glob.glob(*.recoupler)
-    delete_filenames+=glob.glob(*.PN)
-    delete_filenames+=glob.glob(*.PPNN)
-    delete_filenames+=glob.glob(*.load)
+    delete_filenames=glob.glob('*.recoupler')
+    delete_filenames+=glob.glob('*.PN')
+    delete_filenames+=glob.glob('*.PPNN')
+    delete_filenames+=glob.glob('*.load')
     mcscript.call(["rm"] + delete_filenames)
     os.chdir("..")  
 
@@ -181,23 +179,32 @@ def generate_interaction_rmes(task):
     """
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
-    J0=0
-    T0=0
-    g0=0
-    J_max=4
+    
     A = int(task["nuclide"][0]+task["nuclide"][1])
     Nmax=task["Nmax"]
+    J0=0
+    T0=-1
+    g0=0
+    J_max_jisp=4
+    J_max_coulomb=21
+    coulomb_filename=os.path.join(task["interaction_directory"],"coulomb_Nmax20_rel.dat")
     # generate hamiltonian load file
     for hw in mcscript.utils.value_range(10,30,2.5):
         interaction_filename=task["interaction_filename_template"].format(hw)
         hamiltonian_input_lines = [
             "{}".format(hw),
-            "Tintr 1.",
-            "INT 1. {} {} {} {} {}".format(J_max,J0,T0,g0,interaction_filename,**task)
+            #"Tintr 1.",
+            #"INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
         ]
+
+        if task["use_coulomb"]==True:
+            hamiltonian_input_lines+=["INT 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
+
+
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 
+        # Call code to upcouple and generate input file for hamiltonian 
         command_line = [
                 generate_relative_operator_rmes_executable,
                 "{}".format(A) ,   
@@ -210,7 +217,9 @@ def generate_interaction_rmes(task):
             command_line,
             mode=mcscript.call.serial
         )
-      
+    #  Generate SU(3) rme files for each of the observables 
+    for hw in mcscript.utils.value_range(10,30,2.5):    
+        # generate observable load files      
         for observable in task["observables"] :
             observable_name=observable[0]
             # Generate load files for other observables
@@ -218,7 +227,7 @@ def generate_interaction_rmes(task):
                 "{}".format(hw),
                 "{} 1.".format(observable_name)
             ]
-            load_file_name = "{}.load".format(observable)
+            load_file_name = "{}.load".format(observable_name)
             mcscript.utils.write_input(load_file_name,input_lines,verbose=True)
             # Generate observable u3st rmes 
             print("made load file")
@@ -227,7 +236,7 @@ def generate_interaction_rmes(task):
                 "{:d}".format(A) ,   
                 "{Nmax:d}".format(**task),
                 "{N1v:d}".format(**task),
-                "{}".format(observable)
+                "{}".format(observable_name)
             ]
             mcscript.call(
                 command_line,
@@ -245,7 +254,7 @@ def generate_spncci_control_file(task):
     twice_J_min=2*task["J_range"][0]
     twice_J_max=2*task["J_range"][1]
     J_step=task["J_range"][2]
-    J0=task["J0"]
+    J0=0#task["J0"]
 
     input_lines = [
             "{} {} {}".format(twice_J_min,twice_J_max,J_step),
@@ -268,7 +277,6 @@ def call_spncci(task):
         task["spncci_variant"] = "spncci"
     spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
-    print("hi ho")
     command_line = [
         spncci_executable,
         # TODO determine actual arguments or move into a control file
