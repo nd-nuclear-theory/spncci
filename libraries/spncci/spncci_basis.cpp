@@ -441,7 +441,7 @@ namespace spncci
     const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
     std::map< spncci::NnPair, std::set<int>>& operator_subsets,
     std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
-    int irrep_family_index_bra, int irrep_family_index_ket
+    int irrep_family_index_1, int irrep_family_index_2
   )
   {
     int hypersector_index=0;
@@ -452,20 +452,21 @@ namespace spncci
           const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
           const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
 
-          // check if baby spncci subspace corresponds to desired irrep family
-          if((irrep_family_index_bra!=-1)&&(bra_subspace.irrep_family_index()!= irrep_family_index_bra))
+          bool allowed_hypersector=true;
+          allowed_hypersector&=(bra_subspace.irrep_family_index()== irrep_family_index_1);
+
+          allowed_hypersector&=(ket_subspace.irrep_family_index()== irrep_family_index_2);
+          if(not allowed_hypersector)                  
             continue;
 
-          if((irrep_family_index_ket!=-1)&&(ket_subspace.irrep_family_index()!= irrep_family_index_ket))
-            continue;
 
-          int Nnp=int(bra_subspace.omega().N()-bra_subspace.sigma().N());
-          int Nn=int(ket_subspace.omega().N()-ket_subspace.sigma().N());
+          int Nnp=bra_subspace.Nn();
+          int Nn=ket_subspace.Nn();
           spncci::NnPair NnpNn(Nnp,Nn);
           int Nsum=Nnp+Nn;
 
           const std::set<int>& operator_subset=operator_subsets[NnpNn];
-
+          std::cout<<"Nsum "<<Nsum<<" Nnp "<<Nnp<<" Nn "<<Nn<<" "<<operator_subset.size()<<std::endl;
           for(int operator_subspace_index : operator_subset)
             {
               bool allowed = true;
@@ -493,7 +494,7 @@ namespace spncci
                 );
 
               allowed &= (multiplicity > 0);
-
+              // std::cout<<"multiplicity "<<multiplicity<<std::endl;
               // push sectors (tagged by multiplicity)
               if (allowed)
                 for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)

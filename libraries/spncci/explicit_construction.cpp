@@ -232,93 +232,104 @@ namespace spncci
 
   void 
   ComputeUnitTensorSectorsExplicit(
+    const u3::U3& sigmap, const u3::U3& sigma,
     const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     const u3shell::SpaceU3SPN& lsu3shell_space,
     const u3shell::SectorsU3SPN& lsu3shell_operator_sectors,
     basis::MatrixVector& lsu3shell_operator_matrices,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const basis::MatrixVector& spncci_expansions,
-    spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sectors_explicit
+    const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+    basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
     )
     {
       // #pragma omp parallel
-      {
-        // #pragma omp for schedule(runtime)
-        for(int s=0; s<lsu3shell_operator_sectors.size(); ++s)
-          {
-            // std::cout<<"sector "<<s<<std::endl;
-            auto& lsu3shell_sector=lsu3shell_operator_sectors.GetSector(s);
-            int lsu3shell_bra_index=lsu3shell_sector.bra_subspace_index();
-            int lsu3shell_ket_index=lsu3shell_sector.ket_subspace_index();
-            int rho0=lsu3shell_sector.multiplicity_index();
+        
+      // #pragma omp for schedule(runtime)
+     
+      // for each of the unit tensors in lsu3shell basis
 
-            u3shell::U3SPN lsu3shell_ket_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_ket_index).GetSubspaceLabels();
-            u3shell::U3SPN lsu3shell_bra_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_bra_index).GetSubspaceLabels();
+      for(int s=0; s<lsu3shell_operator_sectors.size(); ++s)
+        {
+          // std::cout<<"sector "<<s<<std::endl;
+          // extract U3SPN labels
+          auto& lsu3shell_sector=lsu3shell_operator_sectors.GetSector(s);
+          int lsu3shell_bra_index=lsu3shell_sector.bra_subspace_index();
+          int lsu3shell_ket_index=lsu3shell_sector.ket_subspace_index();
+          int rho0=lsu3shell_sector.multiplicity_index();
 
-            u3::U3 omegap(lsu3shell_bra_subspace_labels.U3());
-            u3::U3 omega(lsu3shell_ket_subspace_labels.U3());
+          u3shell::U3SPN lsu3shell_ket_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_ket_index).GetSubspaceLabels();
+          u3shell::U3SPN lsu3shell_bra_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_bra_index).GetSubspaceLabels();
 
-            spncci::UnitTensorU3Sector unit_U3Sector(omegap,omega,unit_tensor,rho0);
+          // look up unit tensor subspace index 
+          u3shell::UnitTensorSubspaceLabels unit_tensor_labels(unit_tensor.x0(),unit_tensor.S0(),unit_tensor.bra().eta(),unit_tensor.ket().eta());
+          int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels);
+          
+          // look up unit tensor index
+          std::tuple<int,int,int,int,int> unit_tensor_state_labels(
+              int(unit_tensor.T0()), int(unit_tensor.bra().S()),
+              int(unit_tensor.bra().T()),int(unit_tensor.ket().S()),int(unit_tensor.ket().T())
+            );
+          int unit_tensor_index=unit_tensor_space.GetSubspace(unit_tensor_subspace_index).LookUpStateIndex(unit_tensor_state_labels);
+          
+          // Look up baby spncci index
+          spncci::BabySpNCCISubspaceLabels baby_spncci_labels_bra(
+              sigmap,
+              lsu3shell_bra_subspace_labels.Sp(),
+              lsu3shell_bra_subspace_labels.Sn(),
+              lsu3shell_bra_subspace_labels.S(),
+              lsu3shell_bra_subspace_labels.U3()
+            );
+          int baby_spncci_subspace_index_bra=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels_bra);
+            
+          // If baby spncci index=-1, then omega is not in sigma irrep
+          // so go to next omega.   
+          if(baby_spncci_subspace_index_bra==-1)
+            continue;
 
-            // std::cout<<"for each bra "<<std::endl;
-            for(int baby_spncci_bra_index=0; baby_spncci_bra_index<baby_spncci_space.size(); ++baby_spncci_bra_index)
-              {
-                const spncci::BabySpNCCISubspace& baby_spncci_bra_subspace=baby_spncci_space.GetSubspace(baby_spncci_bra_index);
+          spncci::BabySpNCCISubspaceLabels baby_spncci_labels_ket(
+              sigma,
+              lsu3shell_ket_subspace_labels.Sp(),
+              lsu3shell_ket_subspace_labels.Sn(),
+              lsu3shell_ket_subspace_labels.S(),
+              lsu3shell_ket_subspace_labels.U3()
+            );
 
-                // check if baby spncci subspace matches the lsu3shell subspace 
-                bool allowed_bra;      
-                // std::cout<<omegap.Str()<<"  "<<baby_spncci_bra_subspace.omega().Str()<<std::endl;
-                allowed_bra=(baby_spncci_bra_subspace.omega()==omegap);
-                // std::cout<<"allowed 1 "<<allowed_bra<<std::endl;
-                allowed_bra&=(baby_spncci_bra_subspace.Sp()==lsu3shell_bra_subspace_labels.Sp());
-                // std::cout<<"allowed 2 "<<allowed_bra<<std::endl;
-                allowed_bra&=(baby_spncci_bra_subspace.Sn()==lsu3shell_bra_subspace_labels.Sn());
-                // std::cout<<"allowed 3 "<<allowed_bra<<std::endl;
-                allowed_bra&=(baby_spncci_bra_subspace.S()==lsu3shell_bra_subspace_labels.S());
-                // std::cout<<"allowed 4 "<<allowed_bra<<std::endl;
-                if(not allowed_bra)
-                  continue;
-                // std::cout<<"for each ket "<<std::endl;
-                for(int baby_spncci_ket_index=0; baby_spncci_ket_index<baby_spncci_space.size(); ++baby_spncci_ket_index)
-                  {
-                    const spncci::BabySpNCCISubspace& baby_spncci_ket_subspace=baby_spncci_space.GetSubspace(baby_spncci_ket_index);
+            int baby_spncci_subspace_index_ket=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels_ket);
+            if(baby_spncci_subspace_index_ket==-1)
+              continue;
 
-                    // check if baby spncci subspace matches the lsu3shell subspace 
-                    bool allowed_ket;      
-                    allowed_ket=(baby_spncci_ket_subspace.omega()==omega);
-                    allowed_ket&=(baby_spncci_ket_subspace.Sp()==lsu3shell_ket_subspace_labels.Sp());
-                    allowed_ket&=(baby_spncci_ket_subspace.Sn()==lsu3shell_ket_subspace_labels.Sn());
-                    allowed_ket&=(baby_spncci_ket_subspace.S()==lsu3shell_ket_subspace_labels.S());
-                  
-                    if(not allowed_ket)
-                      continue;
+            // look up hyper sector index
+            int hypersector_index
+                  =baby_spncci_hypersectors.LookUpHypersectorIndex(
+                    baby_spncci_subspace_index_bra,baby_spncci_subspace_index_ket,
+                    unit_tensor_subspace_index, rho0
+                  );
+            
+            // If not in hypersector set, continue.
+            if(hypersector_index==-1)
+              continue;
 
-                    // std::cout<<"get lgi information"<<std::endl;
-                    // lgi information
-                    int irrep_family_bra_index=baby_spncci_bra_subspace.irrep_family_index();
-                    int irrep_family_ket_index=baby_spncci_ket_subspace.irrep_family_index();
-                    std::pair<int,int> lgi_family_pair(irrep_family_bra_index,irrep_family_ket_index);
+            // std::cout<<fmt::format("unit tensor subspace {}, unit tensor {}, baby spncci bra {} ket{} hypersector{}",
+            //   unit_tensor_subspace_index,unit_tensor_index,baby_spncci_subspace_index_bra, baby_spncci_subspace_index_ket,hypersector_index)<<std::endl;
 
-                    // NnN information
-                    int Nnp=int(omegap.N()-baby_spncci_bra_subspace.sigma().N());
-                    int Nn=int(omega.N()-baby_spncci_ket_subspace.sigma().N());
-                    std::pair<int,int>NnpNn(Nnp,Nn);
-                    
-                    // Get omega and omega' expansions 
-                    // std::cout<<"computing temp"<<std::endl;
-                    const Eigen::MatrixXd& bra_expansion=spncci_expansions[baby_spncci_bra_index];
-                    const Eigen::MatrixXd& ket_expansion=spncci_expansions[baby_spncci_ket_index];
-                    Eigen::MatrixXd temp=bra_expansion.transpose()*lsu3shell_operator_matrices[s]*ket_expansion;
-                    // std::cout<<temp<<std::endl;
+            // Get bra and ket lsu3shell expansion and compute unit tensor block
+            const Eigen::MatrixXd& bra_expansion=spncci_expansions[baby_spncci_subspace_index_bra];
+            const Eigen::MatrixXd& ket_expansion=spncci_expansions[baby_spncci_subspace_index_ket];
+            Eigen::MatrixXd temp=bra_expansion.transpose()*lsu3shell_operator_matrices[s]*ket_expansion;
+            // std::cout<<temp<<std::endl;
 
-                    if(not CheckIfZeroMatrix(temp))
-                      // #pragma omp critical
-                      {
-                        unit_tensor_sectors_explicit[lgi_family_pair][NnpNn][unit_U3Sector]=temp;
-                      }
-                  }
-              }
-          }
+            // std::cout<<fmt::format(" bra : {} x {}  operator : {} x {}  ket : {} x {}",
+            //   bra_expansion.rows(), bra_expansion.cols(), 
+            //   lsu3shell_operator_matrices[s].rows(), lsu3shell_operator_matrices[s].cols(),
+            //   ket_expansion.rows(), ket_expansion.cols()
+            //   )<<std::endl;
+
+            // Store unit tensor block in hypersector structure
+            unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]+=temp;
+            // std::cout<<"hypersector "<<hypersector_index<<"  tensor "<<unit_tensor_index<<std::endl;
+            // std::cout<<"temp "<<temp<<" in hypersectors "<<unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]<<std::endl<<std::endl;
         }          
     }
 

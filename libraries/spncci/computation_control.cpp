@@ -62,51 +62,51 @@ namespace spncci
       // }
   }
 
-  void
-  StoreSeedUnitTensorRMEs(
-      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
-      const u3shell::SectorsU3SPN& unit_tensor_sectors,
-      const basis::MatrixVector& unit_tensor_spncci_matrices,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
-      HalfInt Nsigma_max,
-      double zero_threshold
-    )
-  {
-    // for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
-    //   {
-        // set up aliases for current unit tensor
-        // const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
-        // const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
-        // const basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
+  // void
+  // StoreSeedUnitTensorRMEs(
+  //     const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+  //     const u3shell::SectorsU3SPN& unit_tensor_sectors,
+  //     const basis::MatrixVector& unit_tensor_spncci_matrices,
+  //     spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+  //     HalfInt Nsigma_max,
+  //     double zero_threshold
+  //   )
+  // {
+  //   // for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+  //   //   {
+  //       // set up aliases for current unit tensor
+  //       // const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+  //       // const u3shell::SectorsU3SPN& unit_tensor_sectors = lgi_unit_tensor_sectors[unit_tensor_index];
+  //       // const basis::MatrixVector& unit_tensor_spncci_matrices = lgi_unit_tensor_spncci_matrices[unit_tensor_index];
       
-        // stash each sector in big souffle (i.e., by irrep family)
-        for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
-          {
-            // extract U3SPN sector information
-            const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
-            const int bra_subspace_index = sector.bra_subspace_index();
-            const int ket_subspace_index = sector.ket_subspace_index();
-            const u3::U3& bra_sigma = sector.bra_subspace().U3();
-            const u3::U3& ket_sigma = sector.ket_subspace().U3();
-            const int rho0 = unit_tensor_sectors.GetSector(sector_index).multiplicity_index();
+  //       // stash each sector in big souffle (i.e., by irrep family)
+  //       for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
+  //         {
+  //           // extract U3SPN sector information
+  //           const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
+  //           const int bra_subspace_index = sector.bra_subspace_index();
+  //           const int ket_subspace_index = sector.ket_subspace_index();
+  //           const u3::U3& bra_sigma = sector.bra_subspace().U3();
+  //           const u3::U3& ket_sigma = sector.ket_subspace().U3();
+  //           const int rho0 = unit_tensor_sectors.GetSector(sector_index).multiplicity_index();
 
-            // // Restrict by lgi
-            // if((bra_sigma.N()>Nsigma_max) || (ket_sigma.N()>Nsigma_max))
-            //   continue;
+  //           // // Restrict by lgi
+  //           // if((bra_sigma.N()>Nsigma_max) || (ket_sigma.N()>Nsigma_max))
+  //           //   continue;
 
-            // put rme matrix into nested maps
-            std::pair<int,int> irrep_family_index_pair(bra_subspace_index,ket_subspace_index);
-            std::pair<int,int> Nn_pair(0,0);
-            spncci::UnitTensorU3Sector unit_tensor_sector_labels(bra_sigma,ket_sigma,unit_tensor_labels,rho0);
-            if(not mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],zero_threshold))
-              {
-                unit_tensor_matrices[irrep_family_index_pair][Nn_pair][unit_tensor_sector_labels]
-                  = unit_tensor_spncci_matrices[sector_index];
-                // std::cout<<unit_tensor_spncci_matrices[sector_index]<<std::endl;
-              }
-          }
-      // }
-  }
+  //           // put rme matrix into nested maps
+  //           std::pair<int,int> irrep_family_index_pair(bra_subspace_index,ket_subspace_index);
+  //           std::pair<int,int> Nn_pair(0,0);
+  //           spncci::UnitTensorU3Sector unit_tensor_sector_labels(bra_sigma,ket_sigma,unit_tensor_labels,rho0);
+  //           if(not mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],zero_threshold))
+  //             {
+  //               unit_tensor_matrices[irrep_family_index_pair][Nn_pair][unit_tensor_sector_labels]
+  //                 = unit_tensor_spncci_matrices[sector_index];
+  //               // std::cout<<unit_tensor_spncci_matrices[sector_index]<<std::endl;
+  //             }
+  //         }
+  //     // }
+  // }
 
   void
   RecurseUnitTensors(

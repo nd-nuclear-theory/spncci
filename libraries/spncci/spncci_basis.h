@@ -436,6 +436,7 @@ namespace spncci
     HalfInt Sn() const {return std::get<2>(labels_);}
     HalfInt S() const {return std::get<3>(labels_);}
     u3::U3 omega() const {return std::get<4>(labels_);}
+    int Nn() const {return int(omega().N()-sigma().N());}
 
     u3::U3S sigmaS() const {return u3::U3S(sigma(),S());}
     u3shell::U3SPN sigmaSPN() const {return u3shell::U3SPN(sigma(),Sp(),Sn(),S());}

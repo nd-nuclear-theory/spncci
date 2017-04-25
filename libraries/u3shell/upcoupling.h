@@ -204,10 +204,18 @@ namespace u3shell
     );
   // soon to be depreciated
 
-  void GetInteractionTensorsU3S(
-      const RelativeRMEsU3SSubspaces& interaction_rme_cache,
-      std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
+  void ReadRelativeOperatorU3ST(
+    int Nmax, int N1v,
+    const std::string& filename, 
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    RelativeRMEsU3SSubspaces& relative_rmes
     );
+
+
+  // void GetInteractionTensorsU3S(
+  //     const RelativeRMEsU3SSubspaces& interaction_rme_cache,
+  //     std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
+  //   );
 
 
 }

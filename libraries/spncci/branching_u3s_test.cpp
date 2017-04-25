@@ -110,32 +110,32 @@ int main(int argc, char **argv)
   //   -> unit_tensor_sector_labels (spncci::UnitTensorU3Sector)
   //   -> sector matrix (Eigen::MatrixXd)
 
-  spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
+  // spncci::UnitTensorMatricesByIrrepFamily unit_tensor_matrices;
   
-  // TODO finish construction...  not worth the effort?
+  // // TODO finish construction...  not worth the effort?
 
-  for (const auto& label_rme_pair : relative_rmes)
-    // for each contribution in coefficient list
-    {
+  // for (const auto& label_rme_pair : relative_rmes)
+  //   // for each contribution in coefficient list
+  //   {
 
-      // extract (unit_tensor_labels,kappa0,L0)
-      u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
-      int kappa0, L0;
-      std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
-      // double rme = label_rme_pair.second;
+  //     // extract (unit_tensor_labels,kappa0,L0)
+  //     u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
+  //     int kappa0, L0;
+  //     std::tie(unit_tensor_labels,kappa0,L0) = label_rme_pair.first;
+  //     // double rme = label_rme_pair.second;
 
-      // recombine unit tensor labels as needed in spncci::UnitTensorMatricesByIrrepFamily
-      u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;  // implicit cast to U3S labels
-      int bra_Nn, ket_Nn;
-      // spncci::UnitTensorU3Sector unit_tensor_sector_labels(...);
-      // UnitTensorU3Sector(u3::U3 omegap, u3::U3 omega, u3shell::RelativeUnitTensorLabelsU3ST tensor, int rho0)
-
-
-      // FlatKey x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T()
-    }
+  //     // recombine unit tensor labels as needed in spncci::UnitTensorMatricesByIrrepFamily
+  //     u3shell::OperatorLabelsU3S operator_labels_u3s = unit_tensor_labels;  // implicit cast to U3S labels
+  //     int bra_Nn, ket_Nn;
+  //     // spncci::UnitTensorU3Sector unit_tensor_sector_labels(...);
+  //     // UnitTensorU3Sector(u3::U3 omegap, u3::U3 omega, u3shell::RelativeUnitTensorLabelsU3ST tensor, int rho0)
 
 
-  ////////////////////////////////////////////////////////////////
+  //     // FlatKey x0_,S0_,T0_,bra_.eta(),bra_.S(),bra_.T(),ket_.eta(),ket_.S(),ket_.T()
+  //   }
+
+
+  // ////////////////////////////////////////////////////////////////
   // baby SpNCCI sector construction
   ////////////////////////////////////////////////////////////////
 

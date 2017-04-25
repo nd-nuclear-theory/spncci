@@ -114,123 +114,194 @@ namespace spncci
 
   void 
   ContractAndRegroupU3S(
-      int Nmax, int N1b,
-      const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
-      const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::SpaceU3S& target_space,
-      const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
-      basis::MatrixVector& matrix_vector
+      const u3shell::RelativeRMEsU3SSubspaces& relative_observable,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+      const std::vector<spncci::SectorLabelsU3S>& target_sectors_u3s,
+      basis::OperatorBlocks<double>& target_blocks_u3s
     )
   {
     // Initial sectors to zero matrices
-    matrix_vector.resize(sector_labels_vector.size());
-    for(int s=0; s<matrix_vector.size(); ++s)
+    std::cout<<"zero initialize blocks"<<std::endl;
+    
+    std::cout<<"sup "<<target_sectors_u3s.size()<<std::endl;
+    // target_blocks_u3s.resize(target_sectors_u3s.size());
+
+    for(int s=0; s<target_sectors_u3s.size(); ++s)
       {
-        const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
+        std::cout<<"s "<<s<<std::endl;
+        const spncci::SectorLabelsU3S& sector=target_sectors_u3s[s];
+        std::cout<<"got sector"<<std::endl;
         const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(sector.ket_index());
         const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(sector.bra_index());
+        std::cout<<"got subspaces"<<std::endl;
         int sector_dim_bra=bra_subspace.sector_dim();
         int sector_dim_ket=ket_subspace.sector_dim();
-        matrix_vector[s]=Eigen::MatrixXd::Zero(sector_dim_bra,sector_dim_ket);
+        std::cout<<"got dims"<<std::endl;
+        std::cout<<"target_blocks "<<target_blocks_u3s.size()<<std::endl;
+        target_blocks_u3s.emplace_back(Eigen::MatrixXd::Zero(sector_dim_bra,sector_dim_ket));
       }
+    std::cout<<"done"<<std::endl;
 
-    // iterate over interaction get unit tensor,kappa0,L0
+    // iterate over interaction get unit tensor family index,kappa0,L0
     // iterate over U3S sectors to get target sectors
-    // get corresponding unit tensor sector
-    // Contract interaction with unit tensors rmes and accumulate in U3S sectors.   
-    for(auto it=interaction_rme_cache.begin(); it!=interaction_rme_cache.end(); ++it)
+    // get corresponding unit tensor sectors 
+    // Contract interaction with unit tensor blocks and accumulate in U3S blocks.   
+    std::cout<<"iterating over interation"<<std::endl;
+    for(auto it=relative_observable.begin(); ++it!=relative_observable.end(); ++it)
       {
-        // Extract labels 
-        int kappa0,L0;
-        u3shell::RelativeUnitTensorLabelsU3ST tensor_u3st;
-        std::tie(tensor_u3st,kappa0,L0)=it->first;
-        double interaction_rme=it->second;
+        int unit_tensor_subspace_index,kappa0,L0;
+        std::tie(unit_tensor_subspace_index,kappa0,L0)=it->first;
+        
+        const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
+          =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
-        //Check that unit tensor has rme between states in Nmax truncated basis
-        int rp=tensor_u3st.bra().eta();
-        int r=tensor_u3st.ket().eta();
-        if((r>Nmax+2*N1b)||(rp>Nmax+2*N1b))
-          continue;
+        const std::vector<double>& relative_rmes=it->second;
 
-        // Iterate over U3 sectors to get target sectors
-        #pragma omp parallel for schedule(runtime)
-        for(int s=0; s<sector_labels_vector.size(); ++s)
+        int etap,eta;
+        u3::SU3 x0; 
+        HalfInt S0;
+        std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+
+        for(int target_sector_index=0; target_sector_index<target_sectors_u3s.size(); ++target_sector_index)
           {
-            const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
-          
-            // Checking if sector is target sector
-            bool allowed=sector.operator_labels()==u3shell::OperatorLabelsU3S(tensor_u3st.operator_labels());
-            allowed&=sector.kappa0()==kappa0;
-            allowed&=(sector.L0()==L0);
+            const auto& target_sector=target_sectors_u3s[target_sector_index];
+            bool allowed=(target_sector.x0()==x0);
+            allowed&=(target_sector.S0()==S0);
+            allowed&=((etap-eta)==target_sector.N0());
+            allowed&=(target_sector.kappa0()==kappa0);
+            allowed&=(target_sector.L0()==L0);
             if(not allowed)
               continue;
-          
-            //get subspace labels
-            const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(sector.ket_index());
-            const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(sector.bra_index());
-            const u3::U3& omegap=bra_subspace.GetSubspaceLabels().U3();
-            const u3::U3& omega=ket_subspace.GetSubspaceLabels().U3();
-            int rho0=sector.rho0();
 
-            // Iterating through U3 subspace "states" which correspond to baby spncci subspaces.
-            for(int i=0; i<bra_subspace.size(); ++i)
-              for(int j=0; j<ket_subspace.size(); ++j)
+            const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(target_sector.ket_index());
+            const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(target_sector.bra_index());
+            int rho0=target_sector.rho0();
+            
+            std::cout<<"for bra and ket"<<std::endl;
+            for(int bra_state_index=0; bra_state_index<bra_subspace.size(); ++bra_state_index)
+              for(int ket_state_index=0; ket_state_index<ket_subspace.size(); ++ket_state_index)
                 {
-                  // (indexp,index)-> position of upper left corner of subsector in sector
-                  int indexp=bra_subspace.sector_index(i);
-                  int index=ket_subspace.sector_index(j);
+
+                  // index in courser grain u3s block
+                  int block_index_u3s_bra=bra_subspace.sector_index(bra_state_index);
+                  int block_index_u3s_ket=ket_subspace.sector_index(ket_state_index);
 
                   // extracting baby spncci information
                   int baby_spncci_index_bra,baby_spncci_index_ket;
-                  std::tie(baby_spncci_index_bra)=bra_subspace.GetStateLabels(i);
-                  std::tie(baby_spncci_index_ket)=ket_subspace.GetStateLabels(j);
+                  std::tie(baby_spncci_index_bra)=bra_subspace.GetStateLabels(bra_state_index);
+                  std::tie(baby_spncci_index_ket)=ket_subspace.GetStateLabels(ket_state_index);
                 
                   const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra
-                    =baby_spncci_space.GetSubspace(baby_spncci_index_bra);
+                          =baby_spncci_space.GetSubspace(baby_spncci_index_bra);
                   const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket
-                    =baby_spncci_space.GetSubspace(baby_spncci_index_ket);
-                
-                  int irrep_family_index_bra=baby_spncci_subspace_bra.irrep_family_index();
-                  int irrep_family_index_ket=baby_spncci_subspace_ket.irrep_family_index();
-                
-                  const u3::U3& sigmap=baby_spncci_subspace_bra.sigma();
-                  const u3::U3& sigma=baby_spncci_subspace_ket.sigma();
+                          =baby_spncci_space.GetSubspace(baby_spncci_index_ket);
 
-                  // (dimp,dim)->size of subsector
+                  std::cout<<"setting up all the dimensions"<<std::endl;
+                  // (dimp,dim)->size of baby spncci block
                   int dimp=baby_spncci_subspace_bra.size();
                   int dim=baby_spncci_subspace_ket.size();
 
-                  //Keys for looking up subsector in unit tensor cache
-                  std::pair<int,int> lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
-                  std::pair<int,int> NnpNn(int(omegap.N()-sigmap.N()),int(omega.N()-sigma.N()));              
-                  spncci::UnitTensorU3Sector unit_sector(omegap,omega,tensor_u3st,rho0);
-                
-                  // Get cache containing unit tensor sector 
-                  if(not unit_tensor_sector_cache.count(lgi_pair))
-                    continue;
-                  if(not unit_tensor_sector_cache.at(lgi_pair).count(NnpNn)) 
-                    continue;
-                  const spncci::UnitTensorSectorsCache& cache=unit_tensor_sector_cache.at(lgi_pair).at(NnpNn);
-                
-                  // // Diagonistic: check if expected unit tensor sectors are found
-                  // if(not cache.count(unit_sector))
-                  //   for(auto t=cache.begin(); t!=cache.end(); ++t)
-                  //     std::cout<<t->first.Str()<<std::endl;
-  
-                  // #pragma omp critical
-                  {
-                    if(cache.count(unit_sector))
-                      if(cache.at(unit_sector).cols()!=0)
-                        {
-                          matrix_vector[s].block(indexp,index,dimp,dim)+=interaction_rme*cache.at(unit_sector);
-                          // std::cout<<"unit sector "<<unit_sector.Str()<<std::endl;
-                          // std::cout<<cache[unit_sector]<<std::endl;
-                        }
-                  }
+                  int baby_spncci_hypersector_index
+                        =baby_spncci_hypersectors.LookUpHypersectorIndex(
+                            baby_spncci_index_bra,baby_spncci_index_ket, 
+                            unit_tensor_subspace_index,rho0
+                          );
+
+                  std::cout<<"baby_spncci_hypersector_index"<<std::endl;
+                  assert(baby_spncci_hypersector_index!=-1);
+
+                  const basis::OperatorBlocks<double>& unit_tensor_blocks
+                      =unit_tensor_hyperblocks[baby_spncci_hypersector_index];
+
+                  std::cout<<"accumulating"<<std::endl;
+                  for(int unit_tensor_index=0; unit_tensor_index<unit_tensor_subspace.size(); ++unit_tensor_index)
+                    target_blocks_u3s[target_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
+                      +=relative_rmes[unit_tensor_index]*unit_tensor_blocks[unit_tensor_index];
                 }
           }
       }
+      //   // Iterate over U3 sectors to get target sectors
+      //   #pragma omp parallel for schedule(runtime)
+      //   for(int s=0; s<sector_labels_vector.size(); ++s)
+      //     {
+      //       const spncci::SectorLabelsU3S& sector=sector_labels_vector[s];
+          
+      //       // Checking if sector is target sector
+      //       bool allowed=sector.operator_labels()==u3shell::OperatorLabelsU3S(tensor_u3st.operator_labels());
+      //       allowed&=sector.kappa0()==kappa0;
+      //       allowed&=(sector.L0()==L0);
+      //       if(not allowed)
+      //         continue;
+          
+      //       //get subspace labels
+      //       const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(sector.ket_index());
+      //       const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(sector.bra_index());
+      //       const u3::U3& omegap=bra_subspace.GetSubspaceLabels().U3();
+      //       const u3::U3& omega=ket_subspace.GetSubspaceLabels().U3();
+      //       int rho0=sector.rho0();
+
+      //       // Iterating through U3 subspace "states" which correspond to baby spncci subspaces.
+      //       for(int i=0; i<bra_subspace.size(); ++i)
+      //         for(int j=0; j<ket_subspace.size(); ++j)
+      //           {
+      //             // (indexp,index)-> position of upper left corner of subsector in sector
+      //             int indexp=bra_subspace.sector_index(i);
+      //             int index=ket_subspace.sector_index(j);
+
+      //             // extracting baby spncci information
+      //             int baby_spncci_index_bra,baby_spncci_index_ket;
+      //             std::tie(baby_spncci_index_bra)=bra_subspace.GetStateLabels(i);
+      //             std::tie(baby_spncci_index_ket)=ket_subspace.GetStateLabels(j);
+                
+      //             const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra
+      //               =baby_spncci_space.GetSubspace(baby_spncci_index_bra);
+      //             const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket
+      //               =baby_spncci_space.GetSubspace(baby_spncci_index_ket);
+                
+      //             int irrep_family_index_bra=baby_spncci_subspace_bra.irrep_family_index();
+      //             int irrep_family_index_ket=baby_spncci_subspace_ket.irrep_family_index();
+                
+      //             const u3::U3& sigmap=baby_spncci_subspace_bra.sigma();
+      //             const u3::U3& sigma=baby_spncci_subspace_ket.sigma();
+
+      //             // (dimp,dim)->size of subsector
+      //             int dimp=baby_spncci_subspace_bra.size();
+      //             int dim=baby_spncci_subspace_ket.size();
+
+      //             //Keys for looking up subsector in unit tensor cache
+      //             std::pair<int,int> lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
+      //             std::pair<int,int> NnpNn(int(omegap.N()-sigmap.N()),int(omega.N()-sigma.N()));              
+      //             spncci::UnitTensorU3Sector unit_sector(omegap,omega,tensor_u3st,rho0);
+                
+      //             // Get cache containing unit tensor sector 
+      //             if(not unit_tensor_sector_cache.count(lgi_pair))
+      //               continue;
+      //             if(not unit_tensor_sector_cache.at(lgi_pair).count(NnpNn)) 
+      //               continue;
+      //             const spncci::UnitTensorSectorsCache& cache=unit_tensor_sector_cache.at(lgi_pair).at(NnpNn);
+                
+      //             // // Diagonistic: check if expected unit tensor sectors are found
+      //             // if(not cache.count(unit_sector))
+      //             //   for(auto t=cache.begin(); t!=cache.end(); ++t)
+      //             //     std::cout<<t->first.Str()<<std::endl;
+  
+      //             // #pragma omp critical
+      //             {
+      //               if(cache.count(unit_sector))
+      //                 if(cache.at(unit_sector).cols()!=0)
+      //                   {
+      //                     matrix_vector[s].block(indexp,index,dimp,dim)+=interaction_rme*cache.at(unit_sector);
+      //                     // std::cout<<"unit sector "<<unit_sector.Str()<<std::endl;
+      //                     // std::cout<<cache[unit_sector]<<std::endl;
+      //                   }
+      //             }
+      //           }
+      //     }
+      // }
   }// end function
 
 }  // namespace

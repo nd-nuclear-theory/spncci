@@ -297,16 +297,17 @@ namespace spncci
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values
  
 
-  void 
-  ContractAndRegroupU3S(
-      int Nmax, int N1b,
-      const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
-      const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
-      const spncci::BabySpNCCISpace& baby_spncci_space,
-      const spncci::SpaceU3S& target_space,
-      const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
-      basis::MatrixVector& matrix_vector
-    );
+  // void 
+  // ContractAndRegroupU3S(
+  //     int Nmax, int N1b,
+  //     const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
+  //     const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
+  //     const spncci::BabySpNCCISpace& baby_spncci_space,
+  //     const spncci::SpaceU3S& target_space,
+  //     const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
+  //     basis::MatrixVector& matrix_vector
+  //   );
+  //DEPRECATED
   // Args:
   //  Nmax (input) : Basis truncation parameter
   //  N1b (input) : Basis single particle cutoff for Nmax=0
@@ -316,6 +317,19 @@ namespace spncci
   //  space (input) : space of omegaS subspaces
   //  unit_tensor_sector_cache (input) : nested container holding unit tensor rmes
   //  matrix_vector (output) : vector of U3S sectors indexed by U3S labels and kappa0,L0
+
+
+  void 
+  ContractAndRegroupU3S(
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::SpaceU3S& target_space,
+      const u3shell::RelativeRMEsU3SSubspaces& relative_observable,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+      const std::vector<spncci::SectorLabelsU3S>& target_sectors_u3s,
+      basis::OperatorBlocks<double>& target_blocks_u3s
+    );
 
 
 }  // namespace

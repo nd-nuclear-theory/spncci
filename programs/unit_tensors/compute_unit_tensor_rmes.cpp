@@ -8,6 +8,7 @@
 
   12/3/16 (aem): Created.  Based on unit_tensor_test.cpp
   1/6/17 (aem) : Added contraction of unit tensors and interaction
+  4/20/17 (aem) : Legacy code removed from build
 ****************************************************************/
 #include <cstdio>
 #include <ctime>

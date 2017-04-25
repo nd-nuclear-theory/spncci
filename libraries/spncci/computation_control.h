@@ -54,50 +54,50 @@ namespace spncci
       basis::MatrixVector& unit_tensor_spncci_matrices
     );
 
-  void
-  StoreSeedUnitTensorRMEs(
-      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-      const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
-      const std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
-      HalfInt Nsigma_max,
-      double zero_threshold
-    );
+  // void
+  // StoreSeedUnitTensorRMEs(
+  //     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+  //     const std::vector<u3shell::SectorsU3SPN>& lgi_unit_tensor_sectors,
+  //     const std::vector<basis::MatrixVector>& lgi_unit_tensor_spncci_matrices,
+  //     spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+  //     HalfInt Nsigma_max,
+  //     double zero_threshold
+  //   );
   //DEPRECIATED
 
-  void
-  StoreSeedUnitTensorRMEs(
-      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
-      const u3shell::SectorsU3SPN& unit_tensor_sectors,
-      const basis::MatrixVector& unit_tensor_spncci_matrices,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
-      HalfInt Nsigma_max,
-      double zero_threshold
-    );
+  // void
+  // StoreSeedUnitTensorRMEs(
+  //     const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
+  //     const u3shell::SectorsU3SPN& unit_tensor_sectors,
+  //     const basis::MatrixVector& unit_tensor_spncci_matrices,
+  //     spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+  //     HalfInt Nsigma_max,
+  //     double zero_threshold
+  //   );
 
 
-  void
-  RecurseUnitTensors(
-      int N1v, int Nmax,
-      const spncci::SpNCCISpace& spncci_space,
-      const spncci::KMatrixCache k_matrix_cache,
-      u3::UCoefCache& u_coef_cache,
-      u3::PhiCoefCache& phi_coef_cache,
-      const std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels,
-      spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
-      bool verbose = false
-    );
-  // Recursively populate sectors for unit tensors.
-  //
-  // (Does recursing unit tensors implies unit tensors are already cursed?)
-  //
-  // FUTURE: Should be able to do recurrence without externally
-  // imposing N1v, Nmax.  Rather, use truncation defined by the
-  // spncci_space.  Requires corresponding change to
-  // spncci::GenerateUnitTensorMatrix.
-  //
-  // Arguments:
-  //    ...
+  // void
+  // RecurseUnitTensors(
+  //     int N1v, int Nmax,
+  //     const spncci::SpNCCISpace& spncci_space,
+  //     const spncci::KMatrixCache k_matrix_cache,
+  //     u3::UCoefCache& u_coef_cache,
+  //     u3::PhiCoefCache& phi_coef_cache,
+  //     const std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> unit_tensor_labels,
+  //     spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_matrices,
+  //     bool verbose = false
+  //   );
+  // // Recursively populate sectors for unit tensors.
+  // //
+  // // (Does recursing unit tensors implies unit tensors are already cursed?)
+  // //
+  // // FUTURE: Should be able to do recurrence without externally
+  // // imposing N1v, Nmax.  Rather, use truncation defined by the
+  // // spncci_space.  Requires corresponding change to
+  // // spncci::GenerateUnitTensorMatrix.
+  // //
+  // // Arguments:
+  // //    ...
 
 
   void

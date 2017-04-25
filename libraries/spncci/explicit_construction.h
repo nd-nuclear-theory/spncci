@@ -11,6 +11,8 @@
   2/21/17 (aem): Add explict construction of full spncci basis
   2/22/17 (aem): Add computation of unit tensor rmes in explicit
     basis
+  4/20/17 (aem): Updated to use hyperblock structure.
+  Validated using programs/unit_tensors/explicit for Nmax=4
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_EXPLICIT_CONSTRUCTION_H_
@@ -34,17 +36,31 @@ namespace spncci
       basis::MatrixVector& spncci_expansions
     );
 
+  // void 
+  // ComputeUnitTensorSectorsExplicit(
+  //   const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
+  //   const u3shell::SpaceU3SPN& lsu3shell_space,
+  //   const u3shell::SectorsU3SPN& lsu3shell_operator_sectors,
+  //   basis::MatrixVector& lsu3shell_operator_matrices,
+  //   const spncci::BabySpNCCISpace& baby_spncci_space,
+  //   const basis::MatrixVector& spncci_expansions,
+  //   spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sectors_explicit
+  //   );
+
+
   void 
   ComputeUnitTensorSectorsExplicit(
+    const u3::U3& sigmap, const u3::U3& sigma,
     const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     const u3shell::SpaceU3SPN& lsu3shell_space,
     const u3shell::SectorsU3SPN& lsu3shell_operator_sectors,
     basis::MatrixVector& lsu3shell_operator_matrices,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const basis::MatrixVector& spncci_expansions,
-    spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sectors_explicit
+    const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+    basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
     );
-
 
 }  // namespace
 

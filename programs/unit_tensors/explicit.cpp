@@ -48,7 +48,7 @@
 #include "cppformat/format.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/profiling.h"
-#include "spncci/computation_control.h"
+// #include "spncci/computation_control.h"
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
 
