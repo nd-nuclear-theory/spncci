@@ -208,6 +208,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   // int Nmax=10;
   int Nmax=4;
+  int N1v=1;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
@@ -244,7 +245,7 @@ int main(int argc, char **argv)
 
   // will throw errors unless you change Nmax in Kinetic check to match Nmax above. 
   u3shell::RelativeRMEsU3SSubspaces relative_rmes;
-  ReadRelativeOperatorU3ST(filename, unit_tensor_space,relative_rmes);
+  ReadRelativeOperatorU3ST(Nmax, N1v,filename, unit_tensor_space,relative_rmes);
   for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); ++it)
     {
       int index,kappa0,L0;

@@ -24,7 +24,7 @@ namespace u3shell {
   {
     // set values
     labels_ = SubspaceLabelsType(x0,S0,etap,eta);
-    std::cout<<fmt::format("{} {} {} {}",x0.Str(),S0,etap,eta)<<std::endl;
+    // std::cout<<fmt::format("{} {} {} {}",x0.Str(),S0,etap,eta)<<std::endl;
     for(auto& tensor : unit_tensor_labels)
       {
         if(
