@@ -67,7 +67,7 @@ namespace spncci
 
 void
 ComputeUnitTensorHyperblocks(
-  int Nmax,
+  int Nmax, int N1v,
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
   const spncci::KMatrixCache& k_matrix_map,

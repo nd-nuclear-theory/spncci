@@ -228,7 +228,7 @@ void
 
               // Add tensor to Nnp+2,Nn+2 target sector.  Will be valid if Nnp,Nn is valid sector 
               operator_subsets[spncci::NnPair(Nnp+2,Nn+2)].insert(source_operator_subspace_index);
-              std::cout<<"operator_subsets "<<Nnp<<"  "<<Nn<<"  "<<source_operator_subspace_index<<std::endl;
+              // std::cout<<"operator_subsets "<<Nnp<<"  "<<Nn<<"  "<<source_operator_subspace_index<<std::endl;
             }
         }
   }
@@ -596,6 +596,18 @@ int main(int argc, char **argv)
   timer_k_matrices.Stop();
   std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
 
+  std::cout<<"Kmatrices "<<std::endl;
+
+  for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
+    {
+      std::cout<<"sigma "<<it->first.Str()<<std::endl;
+      for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
+      {
+        std::cout<<"  omega"<<it2->first.Str()<<std::endl;
+        std::cout<<it2->second<<std::endl;
+      }
+    }
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Enumerate unit tensor space 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -875,8 +887,8 @@ int main(int argc, char **argv)
       int irrep_family_index_bra,irrep_family_index_ket;
       std::tie(irrep_family_index_bra,irrep_family_index_ket)=it->first;
 
-      if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
-        continue;
+      // if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
+      //   continue;
       // get seeds for given lgi pair
       auto& seed_blocks=it->second;  
 
@@ -961,9 +973,38 @@ int main(int argc, char **argv)
 
 
 
-      std::cout<<"lgi pair "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
-      std::cout<<"checking seed hypersectors"<<std::endl;
-      for(int hypersector_index : unit_tensor_hypersector_subsets[0])
+      // std::cout<<"lgi pair "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
+      // std::cout<<"checking seed hypersectors"<<std::endl;
+      // for(int hypersector_index : unit_tensor_hypersector_subsets[0])
+      //   {
+      //     const auto& hypersector
+      //       =baby_spncci_hypersectors.GetHypersector(hypersector_index);
+          
+      //     int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
+      //     std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
+  
+      //     const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+      //     const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
+      //     const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
+
+      //     std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
+      //     <<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+      //     for(int i=0; i<unit_tensor_subspace.size(); ++i)
+      //       std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
+      //   }
+
+      // Recurse over unit tensor hyper sectors 
+      std::cout<<"entering the recurrence for "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
+      spncci::ComputeUnitTensorHyperblocks(
+        run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,k_matrix_cache,
+        spncci_space,baby_spncci_space,unit_tensor_space,
+        baby_spncci_hypersectors, unit_tensor_hypersector_subsets,
+        unit_tensor_hyperblocks
+        );
+
+
+      std::cout<<"checking hypersectors"<<std::endl;
+      for(int hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index)
         {
           const auto& hypersector
             =baby_spncci_hypersectors.GetHypersector(hypersector_index);
@@ -975,20 +1016,11 @@ int main(int argc, char **argv)
           const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
           const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
 
-          // std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
-          // <<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
-          // for(int i=0; i<unit_tensor_subspace.size(); ++i)
-          //   std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
+          std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
+          <<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+          for(int i=0; i<unit_tensor_subspace.size(); ++i)
+            std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
         }
-
-      // Recurse over unit tensor hyper sectors 
-      std::cout<<"entering the recurrence for "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
-      spncci::ComputeUnitTensorHyperblocks(
-        run_parameters.Nmax,u_coef_cache,phi_coef_cache,k_matrix_cache,
-        spncci_space,baby_spncci_space,unit_tensor_space,
-        baby_spncci_hypersectors, unit_tensor_hypersector_subsets,
-        unit_tensor_hyperblocks
-        );
 
 
 
@@ -1038,6 +1070,7 @@ int main(int argc, char **argv)
             unit_tensor_hyperblocks_explicit
           );
         }
+      bool errors=false;
       for(int i=0; i<unit_tensor_hyperblocks.size(); ++i)
         for(int j=0; j<unit_tensor_hyperblocks[i].size(); ++j)
           {
@@ -1053,6 +1086,7 @@ int main(int argc, char **argv)
             // std::cout<<matrix1-matrix2<<std::endl;
             if(not mcutils::IsZero(matrix1-matrix2, 1e-4))
               {
+                errors=true;
                 std::cout<<"hyperblock "<<i<<" sub-block "<<j<<" is not correct"<<std::endl;
                 std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
                 << rho0<<std::endl;
@@ -1062,6 +1096,9 @@ int main(int argc, char **argv)
                 <<std::endl<<matrix2<<std::endl;
               }
           }
+      assert(not errors);
+      // if(not errors)
+      //   std::cout<<"no errors"<<std::endl;
       
     }// end lgi_pair
 }
