@@ -7,3 +7,6 @@
 [submodule "libraries/mcutils"]
 	path = libraries/mcutils
 	url = ../mcutils
+[submodule "config/ndconfig"]
+	path = config/ndconfig
+	url = ../ndconfig
