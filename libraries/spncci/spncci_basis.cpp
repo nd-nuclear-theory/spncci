@@ -444,29 +444,95 @@ namespace spncci
     int irrep_family_index_1, int irrep_family_index_2
   )
   {
+    std::cout<<"irrep family1 "<<irrep_family_index_1<<"  irrep family2 "<<irrep_family_index_2<<std::endl;
     int hypersector_index=0;
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
         {
+
           // retrieve subspaces
           const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
           const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
 
-          bool allowed_hypersector=true;
-          allowed_hypersector&=(bra_subspace.irrep_family_index()== irrep_family_index_1);
+          int Nnp=bra_subspace.Nn();
+          int Nn=ket_subspace.Nn();
 
-          allowed_hypersector&=(ket_subspace.irrep_family_index()== irrep_family_index_2);
-          if(not allowed_hypersector)                  
+          if(Nnp>Nn)
             continue;
 
 
-          int Nnp=bra_subspace.Nn();
-          int Nn=ket_subspace.Nn();
+          bool allowed=(
+            (ket_subspace.irrep_family_index()== irrep_family_index_1)
+            &&(bra_subspace.irrep_family_index()== irrep_family_index_2)
+            );
+          allowed+=(
+            (ket_subspace.irrep_family_index()== irrep_family_index_2)
+            &&(bra_subspace.irrep_family_index()== irrep_family_index_1)
+            );
+          // Only want Nnp<=Nn, else continue;
+          // Can have irrep_family_index1=bra or ket but not both
+          // Can have irrep_family_index2=bra or ket but not both
+          std::cout<<"hi "<<Nnp<<"  "<<Nn<<"  "<<bra_subspace.irrep_family_index()
+            <<"  "<<ket_subspace.irrep_family_index()<<"  "<<allowed<<std::endl;
+
+          // // Want only sectors with Nn>=Nnp, so if Nnp greater, we want the conjugate hypsersector
+          // bool Nnp_greater=(Nnp>Nn);
+          // // We only want conjugate hypersectors if irrep_family_1 and irrep_family_2 are different,
+          // //  otherwise, we only want to keep the Nn>=Nnp hypersectors sectors 
+          // Nnp_greater&=(irrep_family_index_1!=irrep_family_index_2);
+          // if (Nnp_greater)
+          //   std::cout<<"conjugate "<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<std::endl;
+          // Key for operator subsets by NnpNn, if Nnp>Nn, want conjugate 
           spncci::NnPair NnpNn(Nnp,Nn);
+          // NnpNn=Nnp_greater?spncci::NnPair(Nn,Nnp):spncci::NnPair(Nnp,Nn);
           int Nsum=Nnp+Nn;
+          // if(Nnp_greater)
+          //   std::cout<<"Nnp greater 1 "<<Nnp_greater<<std::endl;
+          // bool allowed_hypersector=true;
+
+          // allowed_hypersector&=Nnp_greater?
+          //   (ket_subspace.irrep_family_index()== irrep_family_index_1)
+          //   :(bra_subspace.irrep_family_index()== irrep_family_index_1);
+
+
+          // if(Nnp_greater)
+          //   std::cout<<"hi "<<ket_subspace.irrep_family_index()<<"  "<<irrep_family_index_1<<std::endl;
+
+          // allowed_hypersector&=Nnp_greater?
+          //   (bra_subspace.irrep_family_index()== irrep_family_index_2)
+          //   :(ket_subspace.irrep_family_index()== irrep_family_index_2);
+
+          // if(Nnp_greater)
+          //   std::cout<<"ho  "<<allowed_hypersector<<std::endl;
+
+          // if(not allowed_hypersector)                  
+          if(not allowed)                  
+            continue;
+
+          // // if(Nnp_greater)
+          // //   std::cout<<"hihi"<<std::endl;
+
+          // int subspace_index_1=Nnp_greater?ket_subspace_index:bra_subspace_index;
+          // const BabySpNCCISubspace& subspace_1=Nnp_greater?ket_subspace:bra_subspace;
+
+          // if(Nnp_greater)
+          //   std::cout<<"hoho"<<std::endl;
+
+          // int subspace_index_2=Nnp_greater?bra_subspace_index:ket_subspace_index;
+          // const BabySpNCCISubspace& subspace_2=Nnp_greater?bra_subspace:ket_subspace;          
+
+          // if(Nnp_greater)
+          //   std::cout<<"hihihi"<<std::endl;
 
           const std::set<int>& operator_subset=operator_subsets[NnpNn];
-          std::cout<<"Nsum "<<Nsum<<" Nnp "<<Nnp<<" Nn "<<Nn<<" "<<operator_subset.size()<<std::endl;
+
+          // std::cout<<"Nnp greater "<<Nnp_greater<<std::endl;
+
+          // if (Nnp_greater)
+          //   std::cout<<"conjugate 2 "<<subspace_1.LabelStr()<<"  "<<subspace_2.LabelStr()<<std::endl;
+
+
+          // std::cout<<"Nsum "<<Nsum<<" Nnp "<<Nnp<<" Nn "<<Nn<<" "<<operator_subset.size()<<std::endl;
           for(int operator_subspace_index : operator_subset)
             {
               bool allowed = true;
@@ -506,7 +572,7 @@ namespace spncci
                         multiplicity_index
                         )
                       );
-                    
+                    // std::cout<<subspace_1.LabelStr()<<" "<<subspace_2.LabelStr()<<" "<<operator_subspace.LabelStr()<<std::endl;
                     unit_tensor_hypersector_subsets[Nsum/2].push_back(hypersector_index);
                     ++hypersector_index;
                   }

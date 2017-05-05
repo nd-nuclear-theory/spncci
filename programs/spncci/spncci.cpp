@@ -785,6 +785,7 @@ int main(int argc, char **argv)
   // Container for lgi unit tensor blocks 
   std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>> lgi_unit_tensor_blocks;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
     {
       const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
@@ -882,13 +883,17 @@ int main(int argc, char **argv)
       lgi_unit_tensor_subset[it->first].insert(it2->first.first);
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // for each lgi pair
+  // Need to add seeds for both lgi pair and conjugate lgi pair
   for(auto it=lgi_unit_tensor_blocks.begin(); it!=lgi_unit_tensor_blocks.end(); ++it)
     {
       int irrep_family_index_bra,irrep_family_index_ket;
       std::tie(irrep_family_index_bra,irrep_family_index_ket)=it->first;
+      
+      if(irrep_family_index_bra>irrep_family_index_ket)
+        continue;
 
-      // if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
-      //   continue;
+      if(irrep_family_index_bra!=0 || irrep_family_index_ket!=1)
+        continue;
       // get seeds for given lgi pair
       auto& seed_blocks=it->second;  
 
@@ -906,6 +911,19 @@ int main(int argc, char **argv)
         unit_tensor_subsets,include_zero
         );
 
+      // for conjugate
+      include_zero=false;
+      // conjugate lgi
+      std::pair<int,int> lgi_pair_conjugate(irrep_family_index_ket,irrep_family_index_bra);
+      // get set of unit tensors for conjugate pair
+      const std::set<int>& lgi_unit_tensors_conjugate=lgi_unit_tensor_subset[lgi_pair_conjugate];      
+      const auto& seed_blocks_conjugate=lgi_unit_tensor_blocks[lgi_pair_conjugate];
+
+      // Generate recurrence for conjugate, accumulating in unit_tensor_subset.
+      spncci::GenerateRecurrenceUnitTensors(
+        run_parameters.Nmax,lgi_unit_tensors_conjugate,unit_tensor_space,
+        unit_tensor_subsets,include_zero
+        );
 
       std::cout<<"checking the recurrence unit tensors "<<std::endl;
 
@@ -918,9 +936,25 @@ int main(int argc, char **argv)
           irrep_family_index_bra, irrep_family_index_ket
         );
 
-      // std::cout<<"checking hypersector subsets"<<std::endl;
-      // for(int N=0; N<unit_tensor_hypersector_subsets.size(); N++)
-      //   std::cout<<unit_tensor_hypersector_subsets[N].size()<<std::endl;
+      std::cout<<"number of hypersectors "<<baby_spncci_hypersectors.size()<<std::endl;
+      std::cout<<"checking hypersector subsets"<<std::endl;
+      for(int N=0; N<unit_tensor_hypersector_subsets.size(); N++)
+        for(int hypersector_index : unit_tensor_hypersector_subsets[N])
+          {
+            std::cout<<"N="<<N<<std::endl;
+            const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
+            int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
+            std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
+    
+            const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+            const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
+            const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
+
+            std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
+            <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+
+          }
+        // std::cout<<unit_tensor_hypersector_subsets[N].size()<<std::endl;
 
       // zero initialize hypersectors 
       basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
@@ -957,11 +991,22 @@ int main(int argc, char **argv)
       // Populate hypersectors with seeds
       for(int hypersector_index : unit_tensor_hypersector_subsets[0])
         {
-          const auto& hypersector
-            =baby_spncci_hypersectors.GetHypersector(hypersector_index);
+          const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
           int unit_tensor_subspace_index=hypersector.operator_subspace_index();
           int rho0=hypersector.multiplicity_index();
-          const basis::OperatorBlocks<double>& seeds=seed_blocks[std::pair<int,int>(unit_tensor_subspace_index,rho0)];
+          std::pair<int,int> seed_unit_tensor_key(unit_tensor_subspace_index,rho0);
+          
+          // Check if hypersector is conjugate
+          const auto& bra_subspace=baby_spncci_space.GetSubspace(hypersector.bra_subspace_index());
+          const auto& ket_subspace=baby_spncci_space.GetSubspace(hypersector.ket_subspace_index());
+
+          // If conjugate then get blocks from seed_blocks_conjugate
+          // otherwise, get seeds from seed blocks.
+          bool is_conjugate=(bra_subspace.irrep_family_index()>ket_subspace.irrep_family_index());
+          const basis::OperatorBlocks<double>& seeds=is_conjugate?
+          seed_blocks_conjugate.at(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
+          seed_blocks.at(std::pair<int,int>(unit_tensor_subspace_index,rho0));
+          
           for(int i=0; i<seeds.size(); ++i)
             {
               if(seeds[i].rows()==0)
@@ -1006,8 +1051,7 @@ int main(int argc, char **argv)
       std::cout<<"checking hypersectors"<<std::endl;
       for(int hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index)
         {
-          const auto& hypersector
-            =baby_spncci_hypersectors.GetHypersector(hypersector_index);
+          const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
           
           int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
           std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
@@ -1017,9 +1061,14 @@ int main(int argc, char **argv)
           const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
 
           std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
-          <<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+          <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
           for(int i=0; i<unit_tensor_subspace.size(); ++i)
+          {
+            int T0,Sp,Tp,S,T;
+            std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(i);
+            std::cout<<fmt::format("{}  {} {}  {} {}",T0,Sp,Tp,S,T)<<std::endl;
             std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
+          }
         }
 
 
@@ -1097,8 +1146,8 @@ int main(int argc, char **argv)
               }
           }
       assert(not errors);
-      // if(not errors)
-      //   std::cout<<"no errors"<<std::endl;
+      if(not errors)
+        std::cout<<"no errors"<<std::endl;
       
     }// end lgi_pair
 }

@@ -77,6 +77,7 @@ int main(int argc, char **argv)
   // Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1B,relative_unit_tensor_labels,J0,T0,false);
+  std::cout<<"number of relative tensors "<<relative_unit_tensor_labels.size()<<std::endl;
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, relative_unit_tensor_labels,un_u3_restrict);
   //REMOVE--TEMP
   
