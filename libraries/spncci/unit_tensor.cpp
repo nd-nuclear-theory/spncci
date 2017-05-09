@@ -81,12 +81,13 @@ ComputeUnitTensorHyperblocks(
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   for(int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
     {
-      // std::cout<< "Nsum "<<Nsum<<std::endl;
+      std::cout<<std::endl<<std::endl<< "Nsum "<<Nsum<<std::endl;
       const std::vector<int>& unit_tensor_hypersectors=unit_tensor_hypersector_subsets[Nsum/2];
       // std::cout<<"for each of the "<<unit_tensor_hypersectors.size()<<" hypersectors "<<std::endl;
       for(int hypersector_index : unit_tensor_hypersectors)
         {
           // std::cout<<"baby_spncci_hypersectors.GetHypersector(hypersector_index)"<<std::endl;
+          std::cout<<std::endl<<std::endl<<"hypersector "<<hypersector_index<<std::endl;
           auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
 
           int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
@@ -101,6 +102,9 @@ ComputeUnitTensorHyperblocks(
           const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
               =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
           
+          std::cout<<baby_spncci_subspace_bra.LabelStr()<<"  "<<baby_spncci_subspace_ket.LabelStr()<<"  "
+          <<unit_tensor_subspace.LabelStr()<<"  "<<rho0<<std::endl;
+
           // If Nnp<Nn, will need to look up and use conjugate sectors 
           // std::cout<<"Nnp, Nn "<<baby_spncci_subspace_bra.Nn()<<"  "<<baby_spncci_subspace_ket.Nn()<<std::endl;
           bool conjugate=(baby_spncci_subspace_bra.Nn()>(baby_spncci_subspace_ket.Nn()-2));
@@ -149,17 +153,7 @@ ComputeUnitTensorHyperblocks(
           MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
           MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(x0, u3::SU3(2,0));
 
-          double conjugation_grade=1;
-          if(conjugate)
-            {
-            conjugation_grade*=ParitySign(
-                u3::ConjugationGrade(omegap)+S_bra
-                +u3::ConjugationGrade(omega)+S_ket
-                +u3::ConjugationGrade(x0)
-              );
-            // std::cout<<"conjugation_grade "<<conjugation_grade<<std::endl;
-            }
-          std::vector<basis::OperatorBlock<double>>& unit_tensor_blocks=unit_tensor_hyperblocks[hypersector_index];
+           std::vector<basis::OperatorBlock<double>>& unit_tensor_blocks=unit_tensor_hyperblocks[hypersector_index];
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
           //  Calculate unit tensor matrix
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,6 +168,19 @@ ComputeUnitTensorHyperblocks(
               if (not irrep_ket.ContainsSubspace(omega1))
                 continue;
               
+              double conjugation_grade=1;
+              if(conjugate)
+                {
+                conjugation_grade*=ParitySign(
+                    u3::ConjugationGrade(omegap)+S_bra
+                    +u3::ConjugationGrade(omega1)+S_ket
+                    // +u3::ConjugationGrade(x0)
+                  );
+                // std::cout<<"conjugation_grade "<<conjugation_grade<<std::endl;
+                }
+     
+
+
               spncci::BabySpNCCISubspaceLabels baby_spncci_labels1(sigma,Sp_ket,Sn_ket,S_ket,omega1);
               int baby_spncci_subspace_index1=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels1);
 
@@ -226,7 +233,7 @@ ComputeUnitTensorHyperblocks(
               for (auto& x0p_mult : x0p_set)
                 {
                   u3::SU3 x0p(x0p_mult.irrep);
-                  // std::cout<<"x0p"<<std::endl;
+                  std::cout<<"x0p "<<x0p.Str()<<std::endl;
                   int rho0p_max=OuterMultiplicity(omega1.SU3(),x0p,omegap.SU3());
                   
                   // summing over rho0'
@@ -325,8 +332,10 @@ ComputeUnitTensorHyperblocks(
                               // Get hypersector index 
                               int hypersector_index3
                                 =baby_spncci_hypersectors.LookUpHypersectorIndex(baby_spncci_subspace_indexpp,baby_spncci_subspace_index1,unit_tensor_subspace_index,rho0bp);
+                              std::cout<<"hypersector3 "<<hypersector_index3<<std::endl;
                               if(hypersector_index3==-1)
                                 continue;
+
 
                               double coef3=0;
                               for (int rho0pp=1; rho0pp<=rho0p_max; rho0pp++)
@@ -390,9 +399,9 @@ ComputeUnitTensorHyperblocks(
                           coef1=u3::UCached(u_coef_cache,u3::SU3(etap,0),u3::SU3(0,eta),x0p, u3::SU3(2,0),x0,1,1,u3::SU3(0,eta-2),1,1)
                                 *sqrt(1.*u3::dim(x0p)*u3::dim(u3::SU3(eta,0))/(u3::dim(x0)));                      
                           
-                          double conjugation_factor=1;
+                          double conjugation_factor_base=1;
                           if(conjugate)
-                            conjugation_factor*=sqrt(1.*u3::dim(u3::SU3(etap,0))*u3::dim(omega1)*am::dim(S_ket)/(u3::dim(u3::SU3(eta-2,0))*u3::dim(omegap)*am::dim(S_bra)));
+                            conjugation_factor_base=sqrt(1.*u3::dim(u3::SU3(etap,0))*u3::dim(omega1)*am::dim(S_ket)/(u3::dim(u3::SU3(eta-2,0))*u3::dim(omegap)*am::dim(S_bra)));
 
                           // zero initialize blocks for accumulating first term in sum over rhobp
                           std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_rho0bp;
@@ -402,15 +411,15 @@ ComputeUnitTensorHyperblocks(
                           // std::cout<<"rho0p_max "<<rho0p_max<<std::endl;
                           for(int rho0bp=1; rho0bp<=rho0p_max; ++rho0bp)
                             {
-                              int hypersector_index;
+                              int hypersector_index1;
 
                               if(conjugate)
-                                hypersector_index=baby_spncci_hypersectors.LookUpHypersectorIndex(
+                                hypersector_index1=baby_spncci_hypersectors.LookUpHypersectorIndex(
                                     baby_spncci_subspace_index1,baby_spncci_subspace_indexp,
                                     unit_tensor_subspace_index1, rho0bp
                                   );
                               else
-                                hypersector_index=baby_spncci_hypersectors.LookUpHypersectorIndex(
+                                hypersector_index1=baby_spncci_hypersectors.LookUpHypersectorIndex(
                                     baby_spncci_subspace_indexp,baby_spncci_subspace_index1,
                                     unit_tensor_subspace_index1, rho0bp
                                   );
@@ -421,8 +430,8 @@ ComputeUnitTensorHyperblocks(
                               // std::cout<<baby_spncci_space.GetSubspace(baby_spncci_subspace_index1).LabelStr()<<std::endl;
                               // Accumulate
                               // if(conjugate)
-                              //   std::cout<<"hello"<<hypersector_index<<std::endl; 
-                              if(hypersector_index==-1)
+                              std::cout<<"hypersector1 "<<hypersector_index1<<std::endl; 
+                              if(hypersector_index1==-1)
                                 continue;
 
                               // std::cout<<"num blocks "<<num_blocks<<std::endl;
@@ -435,17 +444,19 @@ ComputeUnitTensorHyperblocks(
                                     auto& unit_tensor_subspace1=unit_tensor_space.GetSubspace(unit_tensor_subspace_index1);
                                     int Tbp,Sbp,Sb,Tb;
                                     std::tie(std::ignore,Sbp,Tbp,Sb,Tb)=unit_tensor_subspace1.GetStateLabels(b);
-                                    conjugation_factor*=sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)));
+                                    double conjugation_factor
+                                      =sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)))
+                                       *conjugation_factor_base;
 
                                     unit_tensor_blocks_rho0bp[b]
                                       +=conjugation_grade*conjugation_factor
                                         *u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
-                                        *unit_tensor_hyperblocks[hypersector_index][b].transpose();
+                                        *unit_tensor_hyperblocks[hypersector_index1][b].transpose();
                                   }
                                 else
                                   unit_tensor_blocks_rho0bp[b]
                                     +=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
-                                      *unit_tensor_hyperblocks[hypersector_index][b];
+                                      *unit_tensor_hyperblocks[hypersector_index1][b];
                                 
                                 // std::cout<<"phi "<<u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)<<std::endl;
                                 // std::cout<<unit_tensor_hyperblocks[hypersector_index][b]<<std::endl;
@@ -463,8 +474,11 @@ ComputeUnitTensorHyperblocks(
                         //////////////////////////////////////////////////////////////////////////////////////////////////////////
                         // second term 
                         //////////////////////////////////////////////////////////////////////////////////////////////////////////  
+                        std::cout<<"term 2 "<<std::endl;
+                        std::cout<<"x0p "<<x0p.Str()<<std::endl;
                         if ((u3::OuterMultiplicity(u3::SU3(etap+2,0),u3::SU3(0,eta),x0p)>0) && (etap+2)<=Nmax+2*N1v)
                           {
+                            // std::cout<<"hypersector "<<hypersector_index<<std::endl;
                             // (2,0)x(rbp,0)->(rbp+2,0), (rbp,0)x(0,rb)->x0, (rbp+2,0)x(0,rb)->x0p, x0x(2,0)->x0p
 
                             // look up index of subspace in unit tensor space 
@@ -485,9 +499,9 @@ ComputeUnitTensorHyperblocks(
                                     *u3::UCached(u_coef_cache,u3::SU3(etap+2,0),u3::SU3(0,etap),x0p,x0,
                                             u3::SU3(2,0),1,1,u3::SU3(0,eta),1,1);
 
-                          double conjugation_factor=1;
-                          if(conjugate)
-                            conjugation_factor*=sqrt(1.*u3::dim(u3::SU3(etap+2,0))*u3::dim(omega1)*am::dim(S_ket)/(u3::dim(u3::SU3(eta,0))*u3::dim(omegap)*am::dim(S_bra)));
+                            double conjugation_factor_base=1;
+                            if(conjugate)
+                              conjugation_factor_base=sqrt(1.*u3::dim(u3::SU3(etap+2,0))*u3::dim(omega1)*am::dim(S_ket)/(u3::dim(u3::SU3(eta,0))*u3::dim(omegap)*am::dim(S_bra)));
 
                             // zero initialize blocks for accumulating first term in sum over rhobp
                             std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_rho0bp;
@@ -509,15 +523,15 @@ ComputeUnitTensorHyperblocks(
                                       unit_tensor_subspace_index2, rho0bp
                                     );
 
-                                if(hypersector_index==41)
-                                {
+                                // if(hypersector_index==41)
+                                // {
                                 auto& bra_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_index1);
                                 auto& ket_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
                                 auto& unit_sub=unit_tensor_space.GetSubspace(unit_tensor_subspace_index2);
 
-                                std::cout<<"hypersector "<<hypersector_index2<<" : "<<bra_sub.LabelStr()
+                                std::cout<<"hypersector2 "<<hypersector_index2<<" : "<<bra_sub.LabelStr()
                                 <<"  "<<ket_sub.LabelStr()<<" "<<unit_sub.LabelStr()<<std::endl;
-                                }
+                                // }
 
                                 // Check that this was actually supposed to be baby_spncci_index1.
 
@@ -535,15 +549,24 @@ ComputeUnitTensorHyperblocks(
 
                                 for(int b=0; b<num_blocks; ++b)
                                 {
-                                  if(hypersector_index==41)
+                                  if(conjugate)
                                     {
                                       // Note unit_tensor_subspace_index1 corresponds to conjugate unit tenosr
                                       // So, Tbp->Tb, Sbp->Sb etc. 
                                       auto& unit_tensor_subspace2=unit_tensor_space.GetSubspace(unit_tensor_subspace_index2);
-                                      int Tbp,Sbp,Sb,Tb;
-                                      std::tie(std::ignore,Sbp,Tbp,Sb,Tb)=unit_tensor_subspace2.GetStateLabels(b);
-                                      conjugation_factor*=sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)));
-                                      std::cout<<"hypersector source "<<hypersector_index2<<std::endl;
+                                      int Tbp,Sbp,Sb,Tb,T0;
+                                      // std::tie(std::ignore,Sbp,Tbp,Sb,Tb)=unit_tensor_subspace2.GetStateLabels(b);
+                                      std::tie(T0,Sbp,Tbp,Sb,Tb)=unit_tensor_subspace2.GetStateLabels(b);
+                                      // conjugation_factor*=sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)));
+                                      std::tuple<int,int,int,int,int> conjugate_state(T0,Sb,Tb,Sbp,Tbp);
+                                      int bp=unit_tensor_subspace2.LookUpStateIndex(conjugate_state);
+                                      assert(bp==b);
+                                      std::cout<<"base conjugation factor "<<conjugation_factor_base<<std::endl;
+                                      double conjugation_factor
+                                        =sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)))
+                                          *conjugation_factor_base;
+                                      std::cout<<"additional conj factor "<<sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)))<<std::endl;  
+                                      // std::cout<<"hypersector source "<<hypersector_index2<<std::endl;
                                       std::cout<<fmt::format("unit state labels {} {} {} {}",Sbp,Tbp,Sb,Tb)<<std::endl;
                                       std::cout<<"conjugation_factor "<<conjugation_factor<<"  conjugation_grade "<<conjugation_grade<<std::endl;
                                       std::cout<<unit_tensor_hyperblocks[hypersector_index2][b]<<std::endl;

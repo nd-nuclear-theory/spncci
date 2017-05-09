@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST> two_body_unit_tensor_labels;
   u3shell::GenerateTwoBodyUnitTensorLabelsU3ST(Nmax, two_body_unit_tensor_labels);
   int num_unit=two_body_unit_tensor_labels.size();
-
+  std::cout<<"number of two body "<<num_unit<<std::endl;
   // for(int i=0; i<num_unit; ++i)  
   for(int i=start; i<std::min(stop,num_unit); ++i)
     {
