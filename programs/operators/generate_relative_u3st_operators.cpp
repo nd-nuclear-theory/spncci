@@ -24,6 +24,25 @@
 double zero_threshold=10e-6;
 namespace u3shell
 {
+
+  void Id(int Nmax, u3shell::RelativeRMEsU3ST& Id_operator, int A, double coef=1.0, bool moshinsky_convention=false)
+  {
+    for (int N=0; N<=Nmax; N++)
+      for (int S=0;S<=1; S++)
+        for (int T=0;T<=1; T++)
+          if ((N+S+T)%2==1)
+            {
+              u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
+              int kappa0=1;
+              int L0=0;
+              std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
+              Id_operator[key]+=2./(A*(A-1))*coef;
+            }
+  }
+
+
   void Nintr(int Nmax, u3shell::RelativeRMEsU3ST& Nrel_operator, int A, double coef=1.0, bool moshinsky_convention=false)
   {
     for (int N=0; N<=Nmax; N++)
@@ -331,7 +350,9 @@ int main(int argc, char **argv)
 
     std::cout<<"coef from file "<<coef/b2<<std::endl;
 
-    if(operator_type=="Nintr") 
+    if(operator_type=="ID") 
+      u3shell::Id(Nmax+2*N1B,Operator, A, coef);
+    else if(operator_type=="Nintr") 
       u3shell::Nintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Spin") 
       u3shell::Spin(Nmax+2*N1B,Operator, A, coef);
@@ -357,7 +378,7 @@ int main(int argc, char **argv)
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl
                <<"The allowed operator types are:"<<std::endl
-               <<"    Lintr, k2intr, r2intr, Nintr, Qintr, Tintr, INT"<<std::endl;
+               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Tintr, INT"<<std::endl;
 
         std::exit(EXIT_FAILURE);
       }
