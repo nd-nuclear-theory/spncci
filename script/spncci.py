@@ -61,7 +61,7 @@ def generate_relative_operators(task):
     ]
     mcscript.call(
         command_line,
-        mode=mcscript.call.serial
+        mode=mcscript.CallMode.kSerial
     )
 
 def generate_basis_table(task):
@@ -77,7 +77,7 @@ def generate_basis_table(task):
     command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
     mcscript.call(
         command_line,
-        mode=mcscript.call.serial
+        mode=mcscript.CallMode.kSerial
     )
 
 def read_unit_tensor_list(task):
@@ -116,7 +116,7 @@ def recouple_operators(task,relative_operator_basename_list):
         ]
         mcscript.call(
             command_line,
-            mode=mcscript.call.serial
+            mode=mcscript.CallMode.kSerial
         )
 
 def calculate_rmes(task,relative_operator_basename_list):
@@ -150,7 +150,7 @@ def calculate_rmes(task,relative_operator_basename_list):
     ]
     mcscript.call(
         command_line,
-        mode=mcscript.call.serial
+        mode=mcscript.CallMode.kSerial
     )
 
 def generate_lsu3shell_rmes(task):
@@ -215,7 +215,7 @@ def generate_interaction_rmes(task):
 
         mcscript.call(
             command_line,
-            mode=mcscript.call.serial
+            mode=mcscript.CallMode.kSerial
         )
     #  Generate SU(3) rme files for each of the observables 
     for hw in mcscript.utils.value_range(10,30,2.5):    
@@ -240,7 +240,7 @@ def generate_interaction_rmes(task):
             ]
             mcscript.call(
                 command_line,
-                mode=mcscript.call.serial
+                mode=mcscript.CallMode.kSerial
             )
 
     os.chdir("..")
@@ -290,7 +290,7 @@ def call_spncci(task):
     ]
     mcscript.call(
         command_line,
-        mode=mcscript.call.serial
+        mode=mcscript.CallMode.kSerial
     )
 
 def save_spncci_results(task):
