@@ -30,7 +30,7 @@ import utils
 projects_root = os.path.join(os.environ["HOME"],"projects")
 # ... from lsu3shell
 recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
-su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME")
+su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME_MPI")#changed name
 su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
@@ -127,7 +127,7 @@ def calculate_rmes(relative_operator_basename_list):
             load_filename,
             rme_filename
         ]
-        utils.call(command_line)
+        utils.call(command_line, mode=mcscript.call.hybrid)
 
 ################################################################
 # main program

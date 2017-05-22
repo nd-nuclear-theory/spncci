@@ -7,7 +7,7 @@ $(eval $(begin-module))
 module_units_h :=
 module_units_cpp-h := spncci_common spncci_basis branching_u3s branching_u3lsj
 module_units_cpp-h += unit_tensor
-# module_units_cpp-h += computation_control 
+module_units_cpp-h += computation_control 
 module_units_cpp-h += io_control explicit_construction
 
 # module_units_f := 

@@ -24,7 +24,7 @@ import mcscript
 projects_root = os.path.join(os.environ["HOME"],"projects")
 # ... from lsu3shell
 recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
-su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME")
+su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME_MPI")
 su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
@@ -150,7 +150,7 @@ def calculate_rmes(task,relative_operator_basename_list):
     ]
     mcscript.call(
         command_line,
-        mode=mcscript.CallMode.kSerial
+        mode=mcscript.CallMode.kHybrid
     )
 
 def generate_lsu3shell_rmes(task):
@@ -300,7 +300,7 @@ def save_spncci_results(task):
 
     # results file
     raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
-    new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.run.name,**task))
+    new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.parameters.run.name,**task))
     mcscript.call(
         [
             "cp",
@@ -312,7 +312,7 @@ def save_spncci_results(task):
 
     # log file
     raw_log_filename = "spncci.out"
-    new_log_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.out".format(name=mcscript.run.name,**task))
+    new_log_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task))
     mcscript.call(
         [
             "cp",
