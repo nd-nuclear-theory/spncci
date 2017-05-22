@@ -12,7 +12,8 @@ Installation instructions for lsu3shell package for use with spncci
     current spncci config files (93ec11).
   - 12/22/16 (mac): Revise to serve as generic instructions across clusters,
   following shell/spncci project install.txt.
-  - 1/24/16 (mac): Update path to config files (spncci/config/lsu3shell).
+  - 1/24/17 (mac): Update path to config files (spncci/config/lsu3shell).
+  - 5/22/17 (mac): Update config file description in lsu3shell-install.txt.
 ----------------------------------------------------------------
 
 The compiler and library dependences for LSU3shell are similar to
@@ -86,18 +87,16 @@ a LAPACK-like library (e.g., MKL or ACML).
 
   Recall that, as a shortcut, it is convenient to collect all the
   above module loads and setenv commands into a single file, which can
-  be sourced before attempting a build:
-
-  % source ~/projects/spncci/config/module-load-<my_system>.csh
+  be sourced before attempting a build.
 
   || @NDCRC:
   || 
-  || % source config/module-load-ndcrc.csh
+  || % source config/ndconfig/module-load-ndcrc.csh
 
   || @NERSC: To compile under gnu...
   || 
   || % module swap PrgEnv-intel PrgEnv-gnu
-  || % source config/module-load-nersc.csh
+  || % source config/ndconfig/module-load-nersc.csh
 
   Note: Some, but perhaps not all, of these system-specific module
   load scripts will actually be symlinks to the module load scripts in
