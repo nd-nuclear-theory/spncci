@@ -2,6 +2,8 @@
 
     spncci demonstration run
 
+    DEPRECATED -- outdated syntax
+
     Environment:
       SPNCCI_INTERACTION_DIR -- base directory for relative lsjt interaction files
       SPNCCI_LSU3SHELL_DIR -- base directory for unit tensor rme files

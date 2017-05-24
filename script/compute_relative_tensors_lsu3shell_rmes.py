@@ -1,4 +1,4 @@
-"""compute_relative_tensors_lsu3shell_rmes.py
+"""generate_lsu3shell_rmes_old.py
 
   Calculate each of the relative unit tensors and 
   Brel and Nintr used for obtaining LGI expansion
@@ -16,6 +16,12 @@
   Department of Physics, University of Notre Dame
 
   12/1/16 (aem): Created.
+  5/24/17 (mac): Rename from compute_relative_tensors_lsu3shell_rmes
+      to generate_lsu3shell_rmes_old.  Functionality subsumed by
+      generate_lsu3shell_rmes.
+
+  DEPRECATED
+
 """
 
 import os

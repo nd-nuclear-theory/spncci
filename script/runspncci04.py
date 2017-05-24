@@ -1,4 +1,4 @@
-""" runspncci01.py
+""" runspncci04.py
 
     spncci demonstration run
 
@@ -23,8 +23,9 @@
 """
 
 import mcscript
-import spncci
 import os
+import spncci
+
 # initialize mcscript
 mcscript.init()
 
@@ -38,10 +39,11 @@ interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax2
 # interaction_filename_template = os.path.join(interaction_directory,"coulomb_Nmax20_rel.dat")
 
 unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_ex_max:02d}")
+
 ##################################################################
 # build task list
 ##################################################################
-#J_max for 
+
 task_list = [
     {
         "nuclide" : (3,3),
