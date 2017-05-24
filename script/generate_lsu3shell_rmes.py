@@ -21,7 +21,6 @@
 import glob
 import os
 import sys
-import utils
 
 import mcscript
 import spncci
