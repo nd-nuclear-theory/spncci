@@ -52,11 +52,11 @@ task_list = [
         "Nsigma_ex_max" : Nsigma_ex_max,
         "num_eigenvalues" : 10,
         # "J0" : 0,
-        "J_range" : (0,0,2), #min, max, step
+        "J_range" : (1,3,2), #min, max, step
         "hw_range" : (20,20,2.5), # min, max, step
         "interaction_directory" : interaction_directory,
         "interaction_filename_template" : interaction_filename_template,
-        "use_coulomb" : True,
+        "use_coulomb" : False,
         "observables" : [("r2intr",0),("Qintr",2)],
         "unit_tensor_directory" : unit_tensor_directory_template
     }

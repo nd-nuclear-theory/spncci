@@ -193,8 +193,8 @@ def generate_interaction_rmes(task):
         interaction_filename=task["interaction_filename_template"].format(hw)
         hamiltonian_input_lines = [
             "{}".format(hw),
-            #"Tintr 1.",
-            #"INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
+            "Tintr 1.",
+            "INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
         ]
 
         if task["use_coulomb"]==True:

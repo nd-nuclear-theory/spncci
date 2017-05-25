@@ -488,18 +488,22 @@ void PrintHypersectors(
     int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
     std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
 
+    //REMOVE
+    if(bra_subspace_index!=ket_subspace_index)
+      continue;
+
     const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
     const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
     const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
 
-    // std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
-    // <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+    std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
+    <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
     for(int i=0; i<unit_tensor_subspace.size(); ++i)
     {
       int T0,Sp,Tp,S,T;
       std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(i);
-      // std::cout<<fmt::format("{}  {} {}  {} {}",T0,Sp,Tp,S,T)<<std::endl;
-      // std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
+      std::cout<<fmt::format("{}  {} {}  {} {}",T0,Sp,Tp,S,T)<<std::endl;
+      std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
     }
   }
 
@@ -840,11 +844,15 @@ int main(int argc, char **argv)
   std::cout << fmt::format("  TotalDimensionU3 {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
 
 
-  // build SpNCCI irrep branchings for LGI's
-  spncci::SpNCCISpace lgi_spncci_space;
-  spncci::SigmaIrrepMap lgi_sigma_irrep_map;  // persistent container to store branchings
-  spncci::NmaxTruncator lgi_truncator(run_parameters.Nsigma_0,run_parameters.Nsigma0_ex_max);
-  spncci::GenerateSpNCCISpace(lgi_families,lgi_truncator,lgi_spncci_space,lgi_sigma_irrep_map);
+  // // build SpNCCI irrep branchings for LGI's
+  // spncci::SpNCCISpace lgi_spncci_space;
+  // spncci::SigmaIrrepMap lgi_sigma_irrep_map;  // persistent container to store branchings
+  // spncci::NmaxTruncator lgi_truncator(run_parameters.Nsigma_0,run_parameters.Nsigma0_ex_max);
+  // spncci::GenerateSpNCCISpace(lgi_families,lgi_truncator,lgi_spncci_space,lgi_sigma_irrep_map);
+
+
+  // build baby spncci space 
+  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -877,9 +885,6 @@ int main(int argc, char **argv)
       }
     }
 
-  // build baby spncci space 
-  spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
-
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Enumerate unit tensor space 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -905,12 +910,14 @@ int main(int argc, char **argv)
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //  For testing, get lsu3shell expansion of full spncci basis
   ///////////////////////////////////////////////////////////////////////////////////////////////////        
+  if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+  {
   basis::MatrixVector spncci_expansions;
   spncci::ConstructSpNCCIBasisExplicit(
       lsu3shell_space,spncci_space,lgi_expansions,baby_spncci_space,
       k_matrix_cache,Arel_sectors,Arel_matrices,spncci_expansions
     );
-
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //  Read in observables  
   ///////////////////////////////////////////////////////////////////////////////////////////////////        
@@ -1030,7 +1037,7 @@ int main(int argc, char **argv)
       if(irrep_family_index_bra>irrep_family_index_ket)
         continue;      
 
-      // if(irrep_family_index_bra!=10 || irrep_family_index_ket!=103)
+      // if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
       //   continue;
 
       // get seeds for given lgi pair
@@ -1091,9 +1098,11 @@ int main(int argc, char **argv)
       basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
       basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
 
-      basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
+      if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+      {
+        basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
       basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
-
+      }
       // Populate hypersectors with seeds
       for(int hypersector_index : unit_tensor_hypersector_subsets[0])
         {
@@ -1151,12 +1160,12 @@ int main(int argc, char **argv)
         unit_tensor_hyperblocks
         );
 
-      // std::cout<<"checking hypersectors"<<std::endl;
+      std::cout<<"checking hypersectors"<<std::endl;
 
-      // spncci::PrintHypersectors(
-      //   baby_spncci_space,unit_tensor_space, 
-      //   baby_spncci_hypersectors,unit_tensor_hyperblocks
-      //   );
+      spncci::PrintHypersectors(
+        baby_spncci_space,unit_tensor_space, 
+        baby_spncci_hypersectors,unit_tensor_hyperblocks
+        );
 
       // spncci::CheckUnitTensorRecurrence(
       //   irrep_family_index_bra, irrep_family_index_ket,
@@ -1199,10 +1208,12 @@ int main(int argc, char **argv)
             const auto& bra=space_u3s.GetSubspace(sector.bra_index());
             const auto& ket=space_u3s.GetSubspace(sector.ket_index());
             const auto& op=sector.operator_labels();
-            std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<std::endl;
-            mcutils::ChopMatrix(block, 1e-6);
-            // std::cout<<block<<std::endl<<std::endl;
-      
+            if(not mcutils::IsZero(block))
+            {
+              std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<std::endl;
+              mcutils::ChopMatrix(block, 1e-6);
+              std::cout<<block<<std::endl<<std::endl;
+            }
           }
       }
 

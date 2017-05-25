@@ -150,12 +150,19 @@ namespace spncci
         const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
           =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
+
         const std::vector<double>& relative_rmes=it->second;
 
         int etap,eta;
         u3::SU3 x0; 
         HalfInt S0;
         std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+
+
+        // std::cout<<fmt::format("unit tensor subspace {} {} {} {} ",x0.Str(),S0,etap,eta)<<std::endl;
+        // for(auto rme :relative_rmes)
+        //   std::cout<<"  "<<rme<<std::endl;
+
         // only the N0<=0 unit tensor hypersectors are compute.  
         // The N0>0 hypersectors are obtained via conjugation.
         bool conjugate_hypersector=((etap-eta)>0)?true:false;
@@ -167,7 +174,7 @@ namespace spncci
           unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels_conj);
         }
 
-        // OpenMP parallelize for look over target sectors to avoid race conditions 
+        // OpenMP parallelize for loop over target sectors to avoid race conditions 
         // std::cout<<"for each target sector "<<std::endl;
         for(int target_sector_index=0; target_sector_index<target_sectors_u3s.size(); ++target_sector_index)
           {
@@ -181,6 +188,8 @@ namespace spncci
             if(not allowed)
               continue;
 
+            // std::cout<<"allowed target "<<x0.Str()<<"  "<<S0<<"  "<<etap<<"  "<<eta<<std::endl;
+            // std::cout<<target_blocks_u3s[target_sector_index]<<std::endl;
             const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(target_sector.ket_index());
             const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(target_sector.bra_index());
             int rho0=target_sector.rho0();
@@ -268,6 +277,12 @@ namespace spncci
                     else
                       target_blocks_u3s[target_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
                         +=relative_rmes[unit_tensor_index]*unit_tensor_blocks[unit_tensor_index];
+                  
+                    // if(etap==0 && eta==0)
+                    // {
+                    //   std::cout<<"hi"<<std::endl;
+                    //   std::cout<<target_blocks_u3s[target_sector_index]<<std::endl<<std::endl;
+                    // }
                   }
                   // std::cout<<"finished sector"<<std::endl;
                 }
@@ -353,7 +368,7 @@ namespace spncci
       //           }
       //     }
       // }
-    std::cout<<"exiting contraction "<<std::endl;
+    // std::cout<<"exiting contraction "<<std::endl;
   }// end function
 
 }  // namespace
