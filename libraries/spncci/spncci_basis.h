@@ -386,6 +386,17 @@ namespace spncci
   //
   ////////////////////////////////////////////////////////////////
   //
+  // States
+  //
+  //   No states are actually defined.  The subspace multiplicity
+  //   information (gamma_max,upsilon_max) are instead stored,
+  //   yielding total dimension gamma_max*upsilon_max.
+  //
+  //   The conventional ordering of these states would be
+  //   lexicographic by (gamma,upsilon).
+  //
+  ////////////////////////////////////////////////////////////////
+  //
   // Subspaces
   //
   // Subspaces are ordered by traversal of the SpNCCISpace:

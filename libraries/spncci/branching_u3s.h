@@ -9,6 +9,8 @@
   1/31/17 (mac): Extracted from sp_basis (as spncci_branching_u3s).
   2/17/17 (mac): Extract BabySpNCCISubspace to spncci_basis.
   2/19/17 (mac): Rename to branching_u3s.
+  5/25/17 (mac): Overhaul implementation of U3S subspaces and store
+    parent irrep info.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_
@@ -34,15 +36,21 @@ namespace spncci
   //
   // subspace labels: (omega,S) = U3S
   //
+  // state labels within subspace: (baby_spncci_subspace_index)
+  //
+  //   baby_spncci_subspace_index (int): index of BabySpNCCI subspace
+  //   from which state is drawn
+  //
   ////////////////////////////////////////////////////////////////
   //
   // States
   //
-  // States are indexed by a tuple of an int (to distinguish it from an 
-  // alternative constructor) which corresponds to the index of the
-  // corresponding baby spncci subspace. 
-  // The lgi family index and dimension (nu_max*gamma_max) as well as gamma_max
-  // and nu_max can be extracted from baby spncci. 
+  // Each "state" actually represents a multiplicity of states
+  // governed by (gamma_max,upsilon_max).
+  //
+  // The lgi family index and dimension (upsilon_max*gamma_max) as
+  // well as gamma_max and upsilon_max can be extracted from baby
+  // spncci.
   //
   // Associated with each subspace is a look-up table which can look up
   // the starting index of the particular "state" in the U3S sector.  
@@ -63,6 +71,8 @@ namespace spncci
   // subspace
   ////////////////////////////////////////////////////////////////
 
+  class StateU3S;  // forward declaration (to permit use in "friend")
+
   class SubspaceU3S
     : public basis::BaseSubspace<u3::U3S, std::tuple<int> >
   // Subspace class for two-body states of given U(3)xS.
@@ -71,12 +81,14 @@ namespace spncci
   // StateLabelsType (int) : Baby Spncci index
   {
     public:
-    // constructor
+
+    // constructors
+
     SubspaceU3S() {};
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 
-    SubspaceU3S (const u3::U3S& omegaS,const BabySpNCCISpace& baby_spncci_space);
+    SubspaceU3S(const u3::U3S& omegaS, const BabySpNCCISpace& baby_spncci_space);
 
     // accessors
     u3::U3S omegaS() const {return labels_;}
@@ -84,31 +96,51 @@ namespace spncci
     u3::SU3 x() const {return omegaS().SU3();}
     HalfInt N() const {return omegaS().U3().N();}
     HalfInt S() const {return omegaS().S();}
-    int sector_dim() const {return sector_size_;}
+
+    int full_dimension() const {return full_dimension_;}
+    int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
+
     // diagnostic output
     std::string Str() const;
 
+    // int sector_index(int state_index) const
+    //   {
+    //     int sector_index=-1;
+    //     for(auto it=sector_index_lookup_.begin(); it!=sector_index_lookup_.end(); ++it)
+    //       {
+    //         if(it->first==state_index)
+    //           {
+    //             sector_index=it->second;
+    //             return sector_index;
+    //           }
+    //       }
+    //     // if none, found, then return -1.
+    //     return sector_index;
+    //   }
+
     int sector_index(int state_index) const
+    // DEPRECATED -- in favor of StateU3S::starting_index()
       {
-        int sector_index=-1;
-        for(auto it=sector_index_lookup_.begin(); it!=sector_index_lookup_.end(); ++it)
-          {
-            if(it->first==state_index)
-              {
-                sector_index=it->second;
-                return sector_index;
-              }
-          }
-        // if none, found, then return -1.
-        return sector_index;
+        return state_substate_offset_.at(state_index);
       }
 
     private:
-      int sector_size_;
-      // Look up table to find starting index of state in sectors
-      std::map<int,int> sector_index_lookup_;
 
+    // int sector_size_;
+    // // Look up table to find starting index of state in sectors
+    // std::map<int,int> sector_index_lookup_;
+
+    // state auxiliary data
+    friend class StateU3S;
+    std::vector<int> state_substate_offset_;  // starting index, counting (gamma,upsilon) multiplicity
+    std::vector<int> state_dimension_;  // number of substates, counting (gamma,upsilon) multiplicity
+    std::vector<int> state_gamma_max_;  // gamma_max
+    std::vector<u3shell::U3SPN> state_sigmaSPN_;  // Sp irrep symmetry labels
+
+    int full_dimension_;  // dimension, counting (gamma,upsilon) multiplicity of subspace
+      
   };
+
   ////////////////////////////////////////////////////////////////
   // state
   ////////////////////////////////////////////////////////////////
@@ -118,20 +150,20 @@ namespace spncci
   // State class for two-body states of given U(3)xSxT.
   {
     
-  public:
-    // pass-through constructors
-  
-  StateU3S(const SubspaceType& subspace, int& index)
-    // Construct state by index.
-    : basis::BaseState<SubspaceU3S>(subspace, index) {}
+    public:
 
-  StateU3S(
-    const SubspaceType& subspace,
-    const typename SubspaceType::StateLabelsType& state_labels
-    )
-    // Construct state by reverse lookup on labels.
-    : basis::BaseState<SubspaceU3S> (subspace, state_labels) 
-    {}
+    // pass-through constructors
+    StateU3S(const SubspaceType& subspace, int& index)
+      // Construct state by index.
+      : basis::BaseState<SubspaceU3S>(subspace, index) {}
+
+    StateU3S(
+        const SubspaceType& subspace,
+        const typename SubspaceType::StateLabelsType& state_labels
+      )
+      // Construct state by reverse lookup on labels.
+      : basis::BaseState<SubspaceU3S> (subspace, state_labels) 
+      {}
 
     // pass-through accessors
     u3::U3S omegaS() const {return Subspace().omegaS();}
@@ -139,20 +171,32 @@ namespace spncci
     HalfInt S() const {return Subspace().S();}
     HalfInt N() const {return Subspace().N();}
 
+    // supplemental data accessors
+    int substate_offset() const
+    // Provide offset of first substate into fully expanded listing of
+    // substates in subspace.
+      {
+        return Subspace().state_substate_offset_[index()];
+      }
+    int dimension() const
+    // Provide number of substates of this composite state.
+      {
+        return Subspace().state_dimension_[index()];
+      }
+    u3shell::U3SPN sigmaSPN() const
+    // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
+      {
+        return Subspace().state_sigmaSPN_[index()];
+      }
+    int gamma_max() const
+    // Provide gamma multiplicity of Sp irrep.
+      {
+        return Subspace().state_gamma_max_[index()];
+      }
 
-    // // state label accessors
-    // int gamma() const {return std::get<0>(GetStateLabels());} 
-    // u3::U3 sigma() const {return std::get<1>(GetStateLabels());}
-
-    // int sector_dim() const {return std::get<2>(GetStateLabels());}
-
-
-  private:
+    private:
  
   };
-
-
-
 
   ////////////////////////////////////////////////////////////////
   // space
@@ -175,18 +219,13 @@ namespace spncci
     // diagnostic output
     std::string Str() const;
 
-  private:
-    int dimension_;
   };
-
-
-
-
 
   ////////////////////////////////////////////////////////////////
   // Sector
   // Enumerates omegaS sectors
   ////////////////////////////////////////////////////////////////
+
   class SectorLabelsU3S
   {
   public:
