@@ -18,12 +18,13 @@
   12/1/16 (aem): Created.
 """
 
-import os
 import glob
+import os
 import sys
-import utils
-import spncci
+
 import mcscript
+import spncci
+
 mcscript.init()
 
 ##################################################################
@@ -34,7 +35,6 @@ interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
 unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
 interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
 unit_tensor_filename_template = os.path.join("lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_ex_max:02d}")  
-# TODO label by N and Z; no longer "directory"
 
 ##################################################################
 # build task list
@@ -48,10 +48,8 @@ task_list = [
         "N1v" : 1,
         "Nsigma_0" : 11,
         "Nsigma_ex_max" : Nmax,
-        "num_eigenvalues" : 10,
-        "J0" : 0,
+        "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "unit_tensor_filename_template" : unit_tensor_filename_template
-        
     }
     for Nmax in mcscript.utils.value_range(0,6,2)
 ]
@@ -79,6 +77,7 @@ def do_generate_lsu3shell_rmes(task):
     unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
     mcscript.call(["tar","-zcvf",unit_tensor_directory_archive_filename, "lsu3shell_rme"])
     # mcscript.call(["rm","-r","lsu3shell_rme"])
+
 ##################################################################
 # task control
 ##################################################################

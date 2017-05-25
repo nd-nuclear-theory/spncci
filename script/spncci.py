@@ -1,6 +1,28 @@
-
 """spncci.py -- define scripting for spncci runs
 
+
+    Task parameters:
+
+        # basic space parameters -- for lsu3shell rme evaluation and spncci:
+
+        nuclide (tuple of int): (N,Z)
+        Nmax (int): oscillator Nmax for many-body basis
+        Nstep (int): step in N for many-body basis (1 or 2)
+        N1v (int): valence shell oscillator N
+        Nsigma_0 (float): U(1) quantum number of lowest configuration
+            (in general can be half integer since contains zero-point offset)
+        Nsigma_ex_max (int): maximum oscillator exitation for LGIs
+
+        # unit tensor parameters -- for lsu3shell rme evaluation ONLY
+        J0 (int): restriction on J0 for unit tensors (normally -1 to include
+            all J0 as needed for spncci recurrence)
+        "unit_tensor_filename_template" (str): template for unit tensor output filenames
+
+        # eigenspace parameters -- for spncci runs ONLY
+        num_eigenvalues (int): number of eigenvalues to compute in each J space
+        J_range (tuple of float/int): (min,max,step) for J spaces
+        hw_range (tuple of float): (min,max,step) for oscillator hw
+        ...
           
   Language: Python 3
 
@@ -13,8 +35,8 @@
 """
   
 import glob
-import os
 import mcscript
+import os
 
 ################################################################
 # global configuration
@@ -25,7 +47,7 @@ projects_root = os.path.join(os.environ["HOME"],"projects")
 # ... from lsu3shell
 recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
 su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME_MPI")
-su3basis_executable =os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+su3basis_executable = os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
 generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(projects_root,"spncci","programs","operators","generate_relative_u3st_operators")
@@ -35,20 +57,14 @@ spncci_executable_dir = os.path.join(projects_root,"spncci","programs","spncci")
 ################################################################
 # relative unit tensor evaluation
 ################################################################
-# task parameters
-#     nuclide (tuple of int): (N,Z)
-#     Nmax (int): oscillator Nmax for many-body basis
-#     Nstep (int): step in N for many-body basis (1 or 2)
-#     Nsigma_0 (float): U(1) quantum number of lowest configuration
-#         (in general can be half integer since contains zero-point offset)
-#         (DEPRECATED) 
-#     N1v (int): valence shell oscillator N
-
 
 def generate_relative_operators(task):
-    """ Create recoupler input files.
+    """Create recoupler input files for relative unit
+    tensors and symplectic raising/lowering/N operators.
+
+    Invokes generate_lsu3shell_relative_operators.
     """
-    # call generate_lsu3shell_two_body_unit_tensors
+
     command_line = [
         generate_lsu3shell_relative_operators_executable,
         "{nuclide[0]:d}".format(**task),
@@ -64,21 +80,6 @@ def generate_relative_operators(task):
         mode=mcscript.CallMode.kSerial
     )
 
-def generate_basis_table(task):
-    """Create basis table.
-
-    Depends on model space file created by generate_lsu3shell_relative_operators.
-    """
-
-    print("{nuclide}".format(**task))
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_ex_max:02d}.dat".format(**task)
-    basis_listing_filename = "lsu3shell_basis.dat"
-
-    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
 
 def read_unit_tensor_list(task):
     """ Read list of unit tensor basenames.
@@ -101,6 +102,8 @@ def read_unit_tensor_list(task):
 def recouple_operators(task,relative_operator_basename_list):
     """ Invoke lsu3shell recoupler code on operators.
 
+    Invokes RecoupleSU3Operator.
+
     Arguments:
         relative_operator_basename_list (list) : list of operator names
     """
@@ -121,6 +124,8 @@ def recouple_operators(task,relative_operator_basename_list):
 
 def calculate_rmes(task,relative_operator_basename_list):
     """ Invoke lsu3shell SU3RME code to calculate rmes.
+
+    Invokes SU3RME_MPI.
 
     Arguments:
         relative_operator_basename_list (list) : list of operator file names
@@ -154,28 +159,71 @@ def calculate_rmes(task,relative_operator_basename_list):
     )
 
 def generate_lsu3shell_rmes(task):
-    """ Carry out full task of generating set of relative tensor rmes.
-    """
+    """Generate SU(3)-NCSM RMEs for relative unit tensors and symplectic
+    raising/lowering/N operators.
 
-    ## print(task)
+    Output directory: lsu3shell_rme
+    """
+    
+    # set up data directory
     mcscript.utils.mkdir("lsu3shell_rme")
     os.chdir("lsu3shell_rme")
+
+    # generate operators and their rmes
     generate_relative_operators(task)
-    generate_basis_table(task)
     relative_operator_basename_list = read_unit_tensor_list(task)
     recouple_operators(task,relative_operator_basename_list)
     calculate_rmes(task,relative_operator_basename_list)
+
+    # do cleanup
     delete_filenames=glob.glob('*.recoupler')
     delete_filenames+=glob.glob('*.PN')
     delete_filenames+=glob.glob('*.PPNN')
     delete_filenames+=glob.glob('*.load')
     mcscript.call(["rm"] + delete_filenames)
+
+    # generate basis listing for basis in which rmes were calculated
+    generate_basis_table(task)
+
+    # restore working directory
     os.chdir("..")  
 
+def generate_basis_table(task):
+    """Create SU(3)-NCSM basis table.
 
-def generate_interaction_rmes(task):
-    """ Generate u3st observable rmes.
-            {}_hw{:.1f}_Nmax{:02d}_u3st.dat
+    Invokes ncsmSU3xSU2IrrepsTabular.
+
+    Depends on model space file created by generate_lsu3shell_relative_operators.
+    """
+
+    print("{nuclide}".format(**task))
+    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_ex_max:02d}.dat".format(**task)
+    basis_listing_filename = "lsu3shell_basis.dat"
+
+    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
+    mcscript.call(
+        command_line,
+        mode=mcscript.CallMode.kSerial
+    )
+
+################################################################
+# relative matrix element evalation
+################################################################
+
+def generate_observable_rmes(task):
+    """Generate relative U3ST RMEs of observable operators.
+    
+    This may either be by upcoupling relative RMEs or by analytic
+    expressions.
+
+    Invokes generate_relative_operator_rmes.
+
+    Output directory:
+        relative_observables
+
+    Output filename format:
+        {}_hw{:.1f}_Nmax{:02d}_u3st.dat
+
     """
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
@@ -245,8 +293,14 @@ def generate_interaction_rmes(task):
 
     os.chdir("..")
 
+################################################################
+# spncii execution
+################################################################
+
 def generate_spncci_control_file(task):
-    """ control file for spncci observables 
+    """ Generate control file for spncci run.
+
+    Output file: spncci.load
     """
     hw_min=task["hw_range"][0]
     hw_max=task["hw_range"][1]
@@ -268,7 +322,7 @@ def generate_spncci_control_file(task):
     mcscript.utils.write_input(load_filename,input_lines,verbose=True)
 
 def call_spncci(task):
-    """ compute observable rmes in spncci basis.
+    """ Carry out spncci run.
     """
     A = int(task["nuclide"][0]+task["nuclide"][1])
     twice_Nsigma_0 = int(2*task["Nsigma_0"])
@@ -324,7 +378,8 @@ def save_spncci_results(task):
 
 
 def do_full_spncci_run(task):
-    """ Carry out full task of constructing and diagonalizing hamiltonian and other observables.
+    """ Carry out full task of constructing and diagonalizing
+    Hamiltonian and other observables.
     """
     if ("unit_tensor_directory" in task):
         # LEGACY support for scripts with messed up name
@@ -336,11 +391,10 @@ def do_full_spncci_run(task):
     ## mcscript.call(["cp","--recursive",unit_tensor_directory,"lsu3shell_rme"])
     unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
     mcscript.call(["tar","xf",unit_tensor_directory_archive_filename])
-    generate_interaction_rmes(task)
+    generate_observable_rmes(task)
     generate_spncci_control_file(task)
     call_spncci(task)
     save_spncci_results(task)
-
 
 if (__name__ == "__MAIN__"):
     pass
