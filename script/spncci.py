@@ -1,5 +1,9 @@
 """spncci.py -- define scripting for spncci runs
 
+    Environment variables (and example values):
+        setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/projects"
+        setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
+        setenv SPNCCI_LSU3SHELL_DIR ${HOME}/data/spncci/lsu3shell
 
     Task parameters:
 
@@ -11,7 +15,7 @@
         N1v (int): valence shell oscillator N
         Nsigma_0 (float): U(1) quantum number of lowest configuration
             (in general can be half integer since contains zero-point offset)
-        Nsigma_ex_max (int): maximum oscillator exitation for LGIs
+        Nsigma_max (int): maximum oscillator exitation for LGIs
 
         # unit tensor parameters -- for lsu3shell rme evaluation ONLY
         J0 (int): restriction on J0 for unit tensors (normally -1 to include
@@ -31,7 +35,10 @@
 
   1/8/17 (aem,mac): Created with code from compute_relative_tensors_lsu3shell_rmes.py.
   2/23/17 (aem,mac): Update rme invocation and add spncci handler.
-
+  5/26/17 (mac):
+      + Fix notation "Nsigma_ex_max" to "Nsigma_max".
+      + Add SPNCCI_PROJECT_ROOT_DIR environment variable.
+      + Remove LSU3shell load files.
 """
   
 import glob
@@ -43,15 +50,15 @@ import os
 ################################################################
 
 # executable files
-projects_root = os.path.join(os.environ["HOME"],"projects")
+project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
 # ... from lsu3shell
-recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
-su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME_MPI")
-su3basis_executable = os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
+su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
+su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
-generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
-generate_relative_operator_rmes_executable = os.path.join(projects_root,"spncci","programs","operators","generate_relative_u3st_operators")
-spncci_executable_dir = os.path.join(projects_root,"spncci","programs","spncci")
+generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
+generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
+spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 
 
 ################################################################
@@ -69,7 +76,7 @@ def generate_relative_operators(task):
         generate_lsu3shell_relative_operators_executable,
         "{nuclide[0]:d}".format(**task),
         "{nuclide[1]:d}".format(**task),
-        "{Nsigma_ex_max:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
         "{Nstep:d}".format(**task),
         "{N1v:d}".format(**task),
         "-1",# All J0
@@ -100,7 +107,8 @@ def read_unit_tensor_list(task):
     return relative_operator_basename_list
 
 def recouple_operators(task,relative_operator_basename_list):
-    """ Invoke lsu3shell recoupler code on operators.
+    """ Invoke lsu3shell recoupler code on relative unit
+    tensors and symplectic raising/lowering/N operators.
 
     Invokes RecoupleSU3Operator.
 
@@ -123,7 +131,8 @@ def recouple_operators(task,relative_operator_basename_list):
         )
 
 def calculate_rmes(task,relative_operator_basename_list):
-    """ Invoke lsu3shell SU3RME code to calculate rmes.
+    """ Invoke lsu3shell SU3RME code to calculate rmes of relative unit
+    tensors and symplectic raising/lowering/N operators in SU(3)-NCSM basis.
 
     Invokes SU3RME_MPI.
 
@@ -131,21 +140,8 @@ def calculate_rmes(task,relative_operator_basename_list):
         relative_operator_basename_list (list) : list of operator file names
     """
 
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_ex_max:02d}.dat".format(**task)
+    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
 
-    # iterate over unit tensors
-    for basename in relative_operator_basename_list:
-
-        # generate load file
-        input_lines = [
-            "00",   # dummy hw value
-            "INT {}".format(basename)
-        ]
-        load_filename = "{}.load".format(basename)
-        # rme_filename="{}.rme".format(basename)
-        mcscript.utils.write_input(load_filename,input_lines,verbose=True)
-    
-    print("load_files finished")
     # call SU3RME
     command_line = [
         su3rme_executable,
@@ -159,10 +155,12 @@ def calculate_rmes(task,relative_operator_basename_list):
     )
 
 def generate_lsu3shell_rmes(task):
-    """Generate SU(3)-NCSM RMEs for relative unit tensors and symplectic
-    raising/lowering/N operators.
+    """Control code for full process of defining LSU3shell recoupler files
+    and then generating RMEs in the SU(3)-NCSM basis, for relative
+    unit tensors and symplectic raising/lowering/N operators.
 
     Output directory: lsu3shell_rme
+
     """
     
     # set up data directory
@@ -197,7 +195,7 @@ def generate_basis_table(task):
     """
 
     print("{nuclide}".format(**task))
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_ex_max:02d}.dat".format(**task)
+    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
     basis_listing_filename = "lsu3shell_basis.dat"
 
     command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
@@ -207,7 +205,7 @@ def generate_basis_table(task):
     )
 
 ################################################################
-# relative matrix element evalation
+# generate SU(3)-coupled relative matrix elements of observables
 ################################################################
 
 def generate_observable_rmes(task):
@@ -225,9 +223,11 @@ def generate_observable_rmes(task):
         {}_hw{:.1f}_Nmax{:02d}_u3st.dat
 
     """
+
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
     
+    # generate Hamiltonian RMEs by upcoupling
     A = int(task["nuclide"][0]+task["nuclide"][1])
     Nmax=task["Nmax"]
     J0=0
@@ -265,7 +265,8 @@ def generate_observable_rmes(task):
             command_line,
             mode=mcscript.CallMode.kSerial
         )
-    #  Generate SU(3) rme files for each of the observables 
+
+    # generate RMEs for other observables (e.g., analytically)
     for hw in mcscript.utils.value_range(10,30,2.5):    
         # generate observable load files      
         for observable in task["observables"] :
@@ -294,7 +295,7 @@ def generate_observable_rmes(task):
     os.chdir("..")
 
 ################################################################
-# spncii execution
+# spncci execution
 ################################################################
 
 def generate_spncci_control_file(task):
@@ -336,7 +337,7 @@ def call_spncci(task):
         # TODO determine actual arguments or move into a control file
         "{A:d}".format(A=A,**task) ,   
         "{twice_Nsigma_0:d}".format(twice_Nsigma_0=twice_Nsigma_0,**task),
-        "{Nsigma_ex_max:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
         "{N1v:d}".format(**task),
         "{Nmax:d}".format(**task),
         "{num_eigenvalues:d}".format(**task),
@@ -353,7 +354,7 @@ def save_spncci_results(task):
     """
 
     # results file
-    ## raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
+    ## raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_max:02d}.dat".format(**task)
     ## new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.parameters.run.name,**task))
     ## mcscript.call(
     ##     [

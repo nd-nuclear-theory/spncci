@@ -38,7 +38,7 @@ unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
 interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
 # interaction_filename_template = os.path.join(interaction_directory,"coulomb_Nmax20_rel.dat")
 
-unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_ex_max:02d}")
+unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_max:02d}")
 
 ##################################################################
 # build task list
@@ -51,7 +51,7 @@ task_list = [
         "Nstep" : 2,
         "N1v" : 1,
         "Nsigma_0" : 11,
-        "Nsigma_ex_max" : Nsigma_ex_max,
+        "Nsigma_max" : Nsigma_max,
         "num_eigenvalues" : 10,
         # "J0" : 0,
         "J_range" : (1,3,2), #min, max, step
@@ -62,8 +62,8 @@ task_list = [
         "observables" : [("r2intr",0),("Qintr",2)],
         "unit_tensor_directory" : unit_tensor_directory_template
     }
-    for Nsigma_ex_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
-    for Nmax in mcscript.utils.value_range(Nsigma_ex_max,20,2)
+    for Nsigma_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
+    for Nmax in mcscript.utils.value_range(Nsigma_max,20,2)
 ]
 
 ################################################################
@@ -72,11 +72,11 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nsigmaexmax{Nsigma_ex_max:02d}-Nmax{Nmax:02d}".format(**task))
+    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nsigmaexmax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(**task))
 
 def task_pool(task):
     """"""
-    return ("{Nsigma_ex_max:02d}-{Nmax:02d}".format(**task))
+    return ("{Nsigma_max:02d}-{Nmax:02d}".format(**task))
 
 
 ##################################################################

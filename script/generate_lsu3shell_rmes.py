@@ -34,7 +34,7 @@ mcscript.init()
 interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
 unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
 interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
-unit_tensor_filename_template = os.path.join("lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_ex_max:02d}")  
+unit_tensor_filename_template = os.path.join("lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_max:02d}")  
 
 ##################################################################
 # build task list
@@ -47,7 +47,7 @@ task_list = [
         "Nstep" : 2,
         "N1v" : 1,
         "Nsigma_0" : 11,
-        "Nsigma_ex_max" : Nmax,
+        "Nsigma_max" : Nmax,
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "unit_tensor_filename_template" : unit_tensor_filename_template
     }
