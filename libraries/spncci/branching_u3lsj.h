@@ -29,6 +29,7 @@
 namespace spncci
 {
   typedef std::pair<HalfInt,HalfInt> JPair;
+
   ////////////////////////////////////////////////////////////////
   // basis indexing in LS scheme for spncci basis branching
   ////////////////////////////////////////////////////////////////
@@ -39,16 +40,17 @@ namespace spncci
   //
   // subspace labels: (L,S) = LS
   //
+  //   L (int): orbital angular momentum of *relative* motion (=lr)
+  //   S (HalfInt): total spin
+  //
+  // state labels within subspace: (N)
+  //
+  //   subpace_index (int): index of U3S subspace from which state
+  //     is branched
+  //
   ////////////////////////////////////////////////////////////////
   //
   // States
-  //
-  // States are indexed by a tuple of an int corresponding to 
-  // a U3S subspace. 
-  // 
-  // States are indexed by a tuple of numbers [omegaS, index]
-  // omegaS correspond to subspace in SpaceU3S
-  // index is starting position in sector matrix 
   //
   ////////////////////////////////////////////////////////////////
   //
@@ -57,8 +59,6 @@ namespace spncci
   // Within the full space, subspaces are ordered lexicographically by
   // (L,S).
   // 
-  ////////////////////////////////////////////////////////////////
-  // subspace
   ////////////////////////////////////////////////////////////////
 
   class SubspaceLS
@@ -80,6 +80,7 @@ namespace spncci
       HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
       int L() const{return std::get<0>(GetSubspaceLabels());}
       int sector_dim() const {return sector_size_;}
+
       // diagnostic output
       std::string Str() const;
 
@@ -103,6 +104,7 @@ namespace spncci
       // Look up table to find starting index of state in 
       std::map<int,int> sector_index_lookup_;
     };
+
   ////////////////////////////////////////////////////////////////
   // state
   ////////////////////////////////////////////////////////////////

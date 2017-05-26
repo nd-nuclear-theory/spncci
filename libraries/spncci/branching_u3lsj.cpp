@@ -20,7 +20,7 @@
 namespace spncci
 {
 
-  SubspaceLS::SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space)
+  SubspaceLS::SubspaceLS(const int& L, const HalfInt& S, const SpaceU3S& u3s_space)
   {
     labels_=std::pair<int,HalfInt>(L,S);
     int sector_index=0;

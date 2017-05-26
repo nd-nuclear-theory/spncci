@@ -353,16 +353,16 @@ def save_spncci_results(task):
     """
 
     # results file
-    raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
-    new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.parameters.run.name,**task))
-    mcscript.call(
-        [
-            "cp",
-            "--verbose",
-            raw_results_filename,
-            new_results_filename
-        ]
-    )
+    ## raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
+    ## new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.parameters.run.name,**task))
+    ## mcscript.call(
+    ##     [
+    ##         "cp",
+    ##         "--verbose",
+    ##         raw_results_filename,
+    ##         new_results_filename
+    ##     ]
+    ## )
 
     # log file
     raw_log_filename = "spncci.out"

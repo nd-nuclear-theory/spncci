@@ -1278,7 +1278,7 @@ int main(int argc, char **argv)
                 if(not am::AllowedTriangle(J,J0,Jp))
                   continue;
 
-                const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index].at(std::pair<int,int>(Jp,J));
+                const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index].at(std::make_pair(Jp,J));
 
                 const HalfInt bra_J = Jp;
                 const HalfInt ket_J = J;
@@ -1297,7 +1297,7 @@ int main(int argc, char **argv)
     std::map<HalfInt,spncci::MatrixType> eigenvectors;  // map: J -> eigenvectors
     std::cout<<"solving Hamiltonian"<<std::endl;
     for (const HalfInt J : run_parameters.J_values)
-      spncci::SolveHamiltonian(observable_matrices[0].at(std::pair<int,int>(J,J)),J,
+      spncci::SolveHamiltonian(observable_matrices[0].at(std::make_pair(J,J)),J,
         run_parameters.num_eigenvalues,
         run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
         run_parameters.eigensolver_max_iterations,

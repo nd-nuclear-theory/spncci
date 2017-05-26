@@ -27,34 +27,53 @@ namespace spncci
 
   SubspaceU3S::SubspaceU3S(const u3::U3S& omegaS,const BabySpNCCISpace& baby_spncci_space)
   {
+
+    // save labels
     labels_=omegaS;
-    int sector_index=0;
-    int state_index=0;
-    for(int baby_spncci_index=0; baby_spncci_index<baby_spncci_space.size(); ++baby_spncci_index)
+
+    // scan BabySpNCCI for states to accumulate
+    int substate_offset = 0;  // accumulated offset
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
-        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_index);
-        if(omegaS==baby_spncci_subspace.omegaS())
-          {
-            assert(omegaS==baby_spncci_subspace.omegaS());
-            int state_dim=baby_spncci_subspace.size();
-              
-            PushStateLabels(StateLabelsType(baby_spncci_index));
-            sector_index_lookup_[state_index]=sector_index;
-            // state index
-            ++state_index;
-            // starting position of state in sector row or column. 
-            sector_index+=state_dim;
-          }
+
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+
+        // short circuit if subspace not relevant
+        if (!(omegaS==baby_spncci_subspace.omegaS()))
+          continue;
+
+        // push state
+        PushStateLabels(StateLabelsType(baby_spncci_subspace_index));
+
+        // record state multiplicity indexing information
+        state_substate_offset_.push_back(substate_offset);
+        int state_dimension = baby_spncci_subspace.size();
+        state_dimension_.push_back(state_dimension);
+
+        // store state symplectic irrep information
+        state_sigmaSPN_.push_back(baby_spncci_subspace.omegaSPN());
+        state_gamma_max_.push_back(baby_spncci_subspace.gamma_max());
+
+        // accumulate offset for next state
+        substate_offset += state_dimension;
+        
       }
-    sector_size_=sector_index;
+
+    // store final full dimension
+    full_dimension_ = substate_offset;
 
   }
 
   SpaceU3S::SpaceU3S(const BabySpNCCISpace& baby_spncci_space)
   {
-    for(int baby_spncci_index=0; baby_spncci_index<baby_spncci_space.size(); ++baby_spncci_index)
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
-        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_index);
+
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+
+        // create new subspace -- only if not already constructed for this (omega,S)
         u3::U3S omegaS(baby_spncci_subspace.omega(),baby_spncci_subspace.S());
         if(ContainsSubspace(omegaS))
           continue;

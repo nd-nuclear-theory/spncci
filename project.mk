@@ -124,4 +124,6 @@ FFLAGS += -DSU3LM82
 # special targets
 ################################################################
 
-base: spncci generate_relative_u3st_operators
+# target to generate just codes needed for spncci run (not unit tests)
+.PHONY: base
+base: spncci generate_lsu3shell_relative_operators generate_relative_u3st_operators
