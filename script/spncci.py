@@ -154,6 +154,25 @@ def calculate_rmes(task,relative_operator_basename_list):
         mode=mcscript.CallMode.kHybrid
     )
 
+
+def generate_basis_table(task):
+    """Create SU(3)-NCSM basis table.
+
+    Invokes ncsmSU3xSU2IrrepsTabular.
+
+    Depends on model space file created by generate_lsu3shell_relative_operators.
+    """
+
+    print("{nuclide}".format(**task))
+    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
+    basis_listing_filename = "lsu3shell_basis.dat"
+
+    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
+    mcscript.call(
+        command_line,
+        mode=mcscript.CallMode.kSerial
+    )
+
 def generate_lsu3shell_rmes(task):
     """Control code for full process of defining LSU3shell recoupler files
     and then generating RMEs in the SU(3)-NCSM basis, for relative
@@ -186,23 +205,27 @@ def generate_lsu3shell_rmes(task):
     # restore working directory
     os.chdir("..")  
 
-def generate_basis_table(task):
-    """Create SU(3)-NCSM basis table.
-
-    Invokes ncsmSU3xSU2IrrepsTabular.
-
-    Depends on model space file created by generate_lsu3shell_relative_operators.
+def save_su3rme_results(task):
+    """
+    Ad hoc...
     """
 
-    print("{nuclide}".format(**task))
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
-    basis_listing_filename = "lsu3shell_basis.dat"
+    # create archive of rme directory 
+    unit_tensor_directory=task["unit_tensor_filename_template"].format(**task)
+    unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
+    mcscript.call(["tar","-zcvf",unit_tensor_directory_archive_filename, "lsu3shell_rme"])
 
-    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
+    # cleanup
+    ## mcscript.call(["rm","-r","lsu3shell_rme"])
+
+def do_generate_lsu3shell_rmes(task):
+    """
+    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
+    unit tensors and symplectic raising/lowering/N operators.
+    """
+
+    generate_lsu3shell_rmes(task)
+    save_su3rme_results(task)
 
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables

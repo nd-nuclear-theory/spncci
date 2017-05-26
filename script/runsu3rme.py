@@ -1,21 +1,18 @@
-"""generate_lsu3shell_rmes.py
+"""runsu3rme.py
 
-  Calculate each of the relative unit tensors and 
-  Brel and Nintr used for obtaining LGI expansion
-
-  Arguments:
-    Z N twice_Nsigma_0 Nmax Nstep N1B
-
-  Note: Requires utils subpackage from mcscript.  This should be
-  restructured to load it from within the mcscript package once the
-  overhaul of the mcscript package structure is complete.
+  Example run script to calculate RMEs of relative unit tensors and
+  the symplectic operators (A/B/Nintr) in SU(3)-NCSM many-body basis.
 
   Language: Python 3
 
   A. E. McCoy
   Department of Physics, University of Notre Dame
 
-  12/1/16 (aem): Created.
+  - 12/1/16 (aem): Created.
+  - 5/26/17 (mac):
+      + Rename from generate_lsu3shell_rmes.py to runsu3rme01.py.
+      + Move task handler out to spncci.py.
+
 """
 
 import glob
@@ -67,18 +64,6 @@ def task_pool(task):
     return ("Nmax{Nmax:02d}".format(**task))
 
 ##################################################################
-# get relative unit tensor rmes 
-##################################################################
-def do_generate_lsu3shell_rmes(task):
-    """"""
-    spncci.generate_lsu3shell_rmes(task)
-    ## archiving directory of rmes 
-    unit_tensor_directory=task["unit_tensor_filename_template"].format(**task)
-    unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
-    mcscript.call(["tar","-zcvf",unit_tensor_directory_archive_filename, "lsu3shell_rme"])
-    # mcscript.call(["rm","-r","lsu3shell_rme"])
-
-##################################################################
 # task control
 ##################################################################
 
@@ -87,7 +72,7 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        do_generate_lsu3shell_rmes
+        spncci.do_generate_lsu3shell_rmes
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]
