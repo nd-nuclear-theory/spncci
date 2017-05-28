@@ -13,7 +13,8 @@ Installation instructions for lsu3shell package for use with spncci
   - 12/22/16 (mac): Revise to serve as generic instructions across clusters,
   following shell/spncci project install.txt.
   - 1/24/17 (mac): Update path to config files (spncci/config/lsu3shell).
-  - 5/22/17 (mac): Update config file description in lsu3shell-install.txt.
+  - 5/22/17 (mac): Update config file description.
+  - 5/28/17 (mac): Update config file symlinks.
 ----------------------------------------------------------------
 
 The compiler and library dependences for LSU3shell are similar to
@@ -66,18 +67,18 @@ a LAPACK-like library (e.g., MKL or ACML).
   || @NDCRC: For compiling under gcc:
   || 
   ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell config
-  ||   % ln -s config/config-gnu-ndcrc.mk config.mk
+  ||   % ln -s ${HOME}/projects/spncci/config
+  ||   % ln -s config/lsu3shell/config-gnu-ndcrc.mk config.mk
 
   || @NERSC: For compiling under gcc:
   || 
   ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/config/lsu3shell config
-  ||   % ln -s config/config-gnu-nersc.mk config.mk
+  ||   % ln -s ${HOME}/projects/spncci/config
+  ||   % ln -s config/lsu3shell/config-gnu-nersc.mk config.mk
 
   Note: Some, but perhaps not all, of these system-specific wrapper
   files will actually be symlinks to the system-specific wrapper files
-  in spncci/config.
+  in spncci/config/ndconfig.
 
 3) Build
 
