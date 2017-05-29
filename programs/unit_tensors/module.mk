@@ -11,6 +11,7 @@ module_programs_cpp := generate_lsu3shell_relative_operators generate_lsu3shell_
 module_programs_cpp += check_two_body_unit_tensors generate_nintr check_lsu3shell_rmes lgi_solver_test
 # module_programs_cpp += compute_unit_tensor_rmes 
 module_programs_cpp += generate_krel_squared explicit
+module_programs_cpp += generate_lsu3shell_model_space
 # module_programs_f :=
 # module_generated :=
 

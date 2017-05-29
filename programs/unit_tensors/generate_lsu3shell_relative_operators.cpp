@@ -1,6 +1,29 @@
 /****************************************************************
   generate_lsu3shell_relative_tensors.cpp
 
+  For a given nucleus, Nmax and N_step, generates input files for LSU3Shell 
+  RecoupleSU3Interaction which recouples operators into format
+  required by SU3RME. Input files include 
+
+  Control file (operators.dat) giving
+    The model space file name
+    "operators" number of operators
+    List of front part of operator file names, e.g. if file name is 
+       "unit000001.recoupler", then "unit000001" is given in file. 
+
+  Operator files include:
+     All unit tensors defined on  relative space truncated by Nmax
+     Brel
+     Arel
+     Nintr (proportional to Nrel)
+
+  Command line parameters:
+    Z : number of protons
+    N : number of neutrons
+    Nmax : max number of oscillator quant in relative basis
+    Nstep : indicates if all or only same parity spaces are included
+            in model space.  Can only take values of 1 or 2. 
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -8,6 +31,10 @@
   11/7/16 (aem): Updated documentation.
   12/2/16 (aem): Add bool for U(N)->U(3) restriction on ops.
   2/16/17 (mac): Add Arel to output.
+  5/29/17 (mac): Extract model space file generation.
+
+  TODO remove A dependence of symplectic operators and remove (Z,N)
+  parameters.
 ****************************************************************/
 
 #include <fstream>
@@ -18,29 +45,6 @@
 #include "lsu3shell/lsu3shell_operator.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unit_tensor_expansion.h"
-
-// For a given nucleus, Nmax and N_step, generates input files for LSU3Shell 
-// RecoupleSU3Interaction which recouples operators into format
-// required by SU3RME. Input files include 
-// 
-// Control file (operators.dat) giving
-//   The model space file name
-//   "operators" number of operators
-//   List of front part of operator file names, e.g. if file name is 
-//      "unit000001.recoupler", then "unit000001" is given in file. 
-//
-// Operator files include:
-//    All unit tensors defined on  relative space truncated by Nmax
-//    Brel
-//    Arel
-//    Nintr (proportional to Nrel)
-//
-// Commandline inputs are Z N Nmax Nstep
-//  Z : number of protons
-//  N : number of neutrons
-//  Nmax : max number of oscillator quant in relative basis
-//  Nstep : indicates if all or only same parity spaces are included
-//          in model space.  Can only take values of 1 or 2. 
 
 int main(int argc, char **argv)
 {
@@ -70,9 +74,9 @@ int main(int argc, char **argv)
   if( (N==0) || (Z==0) )
     un_u3_restrict=true;
 
-  // set up lsu3shell model space file for unit tensor calculations
-  int parity=(Nstep==1)?-1:Nmin;
-  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, parity);
+  // // set up lsu3shell model space file for unit tensor calculations
+  // int parity=(Nstep==1)?-1:Nmin;
+  // lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, parity);
 
   // Generate all relative unit tensors up to Nmax cutoff
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;

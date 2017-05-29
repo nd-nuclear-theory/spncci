@@ -56,6 +56,7 @@ recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstrea
 su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
 su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
+generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
 generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
 spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
@@ -64,6 +65,24 @@ spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 ################################################################
 # relative unit tensor evaluation
 ################################################################
+
+def generate_model_space_file(task):
+    """Create LSU3shell model space file for SU3RME.
+
+    Invokes generate_lsu3shell_model_space.
+    """
+
+    command_line = [
+        generate_lsu3shell_model_space_executable,
+        "{nuclide[0]:d}".format(**task),
+        "{nuclide[1]:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
+        "{Nstep:d}".format(**task)
+    ]
+    mcscript.call(
+        command_line,
+        mode=mcscript.CallMode.kSerial
+    )
 
 def generate_relative_operators(task):
     """Create recoupler input files for relative unit
@@ -181,7 +200,7 @@ def generate_lsu3shell_rmes(task):
     Output directory: lsu3shell_rme
 
     """
-    
+
     # set up data directory
     mcscript.utils.mkdir("lsu3shell_rme")
     os.chdir("lsu3shell_rme")
@@ -200,6 +219,7 @@ def generate_lsu3shell_rmes(task):
     mcscript.call(["rm"] + delete_filenames)
 
     # generate basis listing for basis in which rmes were calculated
+    generate_model_space_file(task)
     generate_basis_table(task)
 
     # restore working directory
