@@ -94,7 +94,7 @@ def generate_relative_operators(task):
 
     command_line = [
         generate_lsu3shell_relative_operators_executable,
-        "{Nsigmamax:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
         "{Nstep:d}".format(**task),
         "{N1v:d}".format(**task),
         "-1",# All J0
@@ -167,7 +167,7 @@ def save_operator_files(task):
     archive_filename = "relative-operators-{descriptor:s}.tgz".format(descriptor=descriptor)
     mcscript.call(
         [
-            "tar", "zcvf", archive_filename
+            "tar", "-zcvf", archive_filename
         ] + archive_file_list
     )
 
@@ -261,7 +261,7 @@ def calculate_rmes(task):
     Invokes SU3RME_MPI.
     """
 
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
+    model_space_filename = "model_space.dat".format(**task)
 
     # call SU3RME
     command_line = [
@@ -285,7 +285,7 @@ def generate_basis_table(task):
     """
 
     print("{nuclide}".format(**task))
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
+    model_space_filename = "model_space.dat".format(**task)
     basis_listing_filename = "lsu3shell_basis.dat"
 
     command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
@@ -313,11 +313,11 @@ def save_su3rme_results(task):
     archive_file_list += glob.glob('*.rme')
 
     # generate archive
-    descriptor = relative_operator_descriptor(task)
-    archive_filename = "relative-operators-{descriptor:s}.tgz".format(descriptor=descriptor)
+    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+    su3rme_archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
     mcscript.call(
         [
-            "tar", "zcvf", archive_filename
+            "tar", "-zcvf", su3rme_archive_filename
         ] + archive_file_list
     )
 
@@ -327,15 +327,10 @@ def save_su3rme_results(task):
             [
                 "mv",
                 "--verbose",
-                archive_filename,
+                su3rme_archive_filename,
                 "--target-directory={}".format(mcscript.task.results_dir)
             ]
         )
-
-    # create archive of rme directory 
-    unit_tensor_archive_filename_base =task["unit_tensor_filename_template"].format(**task)
-    unit_tensor_archive_filename = "{}.tgz".format(unit_tensor_archive_filename_base)
-    mcscript.call(["tar","-zcvf",unit_tensor_directory_archive_filename, "lsu3shell_rme"])
 
     # cleanup
     ## mcscript.call(["rm","-r","lsu3shell_rme"])

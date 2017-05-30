@@ -76,10 +76,6 @@ int main(int argc, char **argv)
   // if( (N==0) || (Z==0) )
   //   un_u3_restrict=true;
 
-  // // set up lsu3shell model space file for unit tensor calculations
-  // int parity=(Nstep==1)?-1:Nmin;
-  // lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, parity);
-
   // set up output stream for SU3RME control file
   std::string relative_operator_filename("relative_operators.dat");
   std::ofstream control_stream(relative_operator_filename);

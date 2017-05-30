@@ -37,7 +37,8 @@ int main(int argc, char **argv)
     un_u3_restrict=true;
   
   // set up lsu3shell model space file for unit tensor calculations
-  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmin%2);
+  std::string model_space_filename = fmt::format("model_space_{:02d}_{:02d}_Nmax{:02d}.dat",Z,N,Nmax);
+  lsu3shell::GenerateModelSpaceFile(model_space_filename,Z,N,Nmax,Nmin);
 
   std::string identity_file=fmt::format("Identity_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;

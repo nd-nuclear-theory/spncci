@@ -3,6 +3,17 @@
   Example run script to generate relative unit tensors and symplectic
   operators (Arel/Brel/Nrel) in LSU3shell operator format.
 
+  Example invocation (under csh):
+
+    foreach n (00 01 02 03 04 05 06 07 08 09 10 11)
+      qsubm unittensor01 long 999 --pool="Nsigmamax${n}" --num=2
+    end
+
+  Then manually save the results:
+
+    cd rununittensor01/results
+    cp *.tgz ${SPNCCI_LSU3SHELL_DIR}
+
   Language: Python 3
 
   A. E. McCoy and M. A. Caprio
@@ -30,16 +41,16 @@ mcscript.init()
 ##################################################################
 
 N1v_set = [0,1]
-Nsigmamax_set = mcscript.utils.value_range(0,11,1)
+Nsigma_max_set = mcscript.utils.value_range(0,11,1)
 
 task_list = [
     {
         "N1v" : N1v,
-        "Nsigmamax" : Nsigmamax,
+        "Nsigma_max" : Nsigma_max,
         "Nstep" : 2
     }
     for N1v in N1v_set
-    for Nsigmamax in Nsigmamax_set
+    for Nsigma_max in Nsigma_max_set
 ]
 
 ################################################################
@@ -52,7 +63,7 @@ def task_descriptor(task):
 
 def task_pool(task):
     """"""
-    return ("Nsigmamax{Nsigmamax:02d}".format(**task))
+    return ("Nsigmamax{Nsigma_max:02d}".format(**task))
 
 ##################################################################
 # task control

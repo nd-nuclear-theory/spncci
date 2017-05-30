@@ -13,7 +13,7 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  5/s9/17 (mac): Extracted from generate_lsu3shell_relative_tensors.cpp.
+  5/29/17 (mac): Extracted from generate_lsu3shell_relative_tensors.cpp.
 
 ****************************************************************/
 
@@ -46,6 +46,8 @@ int main(int argc, char **argv)
 
   // set up lsu3shell model space file for unit tensor calculations
   int parity=(Nstep==1)?-1:Nmin;
-  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, parity);
+  // std::string model_space_filename = fmt::format("model_space_{:02d}_{:02d}_Nmax{:02d}.dat",Z,N,Nmax);
+  std::string model_space_filename = "model_space.dat";
+  lsu3shell::GenerateModelSpaceFile(model_space_filename,Z,N,Nmax,parity);
 
 }
