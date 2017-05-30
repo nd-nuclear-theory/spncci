@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   int N1B=std::stoi(argv[4]);
   int Nmin=Nmax%2;
   int A=N+Z;
-  // assert(Nmax>=(N+Z));
+  // assert(Nmax>=(A));
   int T0=0;
   int J0=-1;
 
@@ -41,13 +41,13 @@ int main(int argc, char **argv)
 
   std::string identity_file=fmt::format("Identity_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST identity_operator;
-  u3shell::IdentityRelativeUnitTensorExpansion(Nmin, Nmax+2*N1B, identity_operator, N+Z);
+  u3shell::IdentityRelativeUnitTensorExpansion(Nmin, Nmax+2*N1B, identity_operator, A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, identity_operator, identity_file,un_u3_restrict);
 
   //Generate Nrel operator up to Nmax cutoff
   std::string nrel_file=fmt::format("Nrel_{:02d}_{:02d}_Nmax{:02d}.recoupler",Z,N,Nmax);
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Nrel_operator,N+Z);
+  u3shell::NrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B, Nrel_operator,A);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Nrel_operator, nrel_file, un_u3_restrict);
 
   //Generate Nintr operator up to Nmax cutoff
@@ -63,6 +63,6 @@ int main(int argc, char **argv)
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Arel_operator, arel_file, un_u3_restrict);
 
 
-  // u3shell::BrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Brel_operator, N+Z);
+  // u3shell::BrelRelativeUnitTensorExpansion(0,Nmax+2*N1B, Brel_operator, A);
   // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, Brel_operator, brel_file, un_u3_restrict);
 }

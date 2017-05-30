@@ -52,8 +52,12 @@ import os
 # global configuration
 ################################################################
 
-# executable files
+# environment configuration variables
 project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
+interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
+unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
+
+# executable files
 # ... from lsu3shell
 recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
 su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
@@ -66,26 +70,8 @@ spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 
 
 ################################################################
-# relative unit tensor operator construction
+# relative operator construction (A-independent)
 ################################################################
-
-def generate_model_space_file(task):
-    """Create LSU3shell model space file for SU3RME.
-
-    Invokes generate_lsu3shell_model_space.
-    """
-
-    command_line = [
-        generate_lsu3shell_model_space_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
-        "{Nstep:d}".format(**task)
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
 
 def generate_relative_operators(task):
     """Create recoupler input files for relative unit
@@ -96,9 +82,7 @@ def generate_relative_operators(task):
 
     command_line = [
         generate_lsu3shell_relative_operators_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
+        "{Nmax:d}".format(**task),
         "{Nstep:d}".format(**task),
         "{N1v:d}".format(**task),
         "-1",# All J0
@@ -109,11 +93,11 @@ def generate_relative_operators(task):
         mode=mcscript.CallMode.kSerial
     )
 
-def read_unit_tensor_list(task):
-    """ Read list of unit tensor basenames.
+def read_relative_operator_basenames(task):
+    """ Read list of relative operators basenames.
 
     Returns:
-        (list) : list of unit tensor names
+        (list) : list of relative operators basenames
     """
 
     relative_operator_filename = "relative_operators.dat"
@@ -121,7 +105,8 @@ def read_unit_tensor_list(task):
     # read list of unit tensors
     relative_operator_stream = open(relative_operator_filename,mode="rt")
     relative_operator_basename_list = [
-        line.strip()  # remove trailing newline
+        ## line.strip()  # remove trailing newline
+        (line.split())[0]  # basename is leading element on line
         for line in relative_operator_stream
     ]
     relative_operator_stream.close()
@@ -151,14 +136,88 @@ def recouple_operators(task,relative_operator_basename_list):
             mode=mcscript.CallMode.kSerial
         )
 
-def calculate_rmes(task,relative_operator_basename_list):
+
+def save_operator_results(task):
+    """ Create archive of relative operator files.
+    """
+
+    # select files to save
+    archive_file_list = glob.glob('*.{PN,PPNN}')  # will get quite long
+
+    # generate archive
+    archive_filename = "relative-operators-Nv{:d}-Nmax{:02d}-Nstep{:d}.tgz".format(mcscript.parameters.run.name,descriptor)
+    mcscript.call(
+        [
+            "tar", "zcvf", archive_filename
+        ] + archive_file_list
+    )
+
+    # copy results out (if in multi-task run)
+    if (mcscript.task.results_dir is not None):
+        mcscript.call(
+            [
+                "cp",
+                "--verbose",
+                archive_filename,
+                "--target-directory={}".format(mcscript.task.results_dir)
+            ]
+        )
+
+def do_generate_relative_operators(task):
+    """
+    Control code for generating relative
+    unit tensors and symplectic raising/lowering/N operators.
+    """
+
+    ## # set up data directory
+    ## if (not os.path.exists("lsu3shell_operator")):
+    ##     mcscript.utils.mkdir("lsu3shell_operator")
+    ## os.chdir("lsu3shell_operator")
+
+    # generate operators and their rmes
+    generate_relative_operators(task)
+    relative_operator_basename_list = read_relative_operator_basenames(task)
+    recouple_operators(task,relative_operator_basename_list)
+
+    ## # do cleanup
+    ## deletable_filenames=glob.glob('*.recoupler')
+    ## mcscript.call(["rm"] + deletable_filenames)
+
+    ## # restore working directory
+    ## os.chdir("..")  
+
+    # save results
+    save_operator_results(task)
+    
+
+
+################################################################
+# relative operator SU(3) RME construction
+################################################################
+
+def generate_model_space_file(task):
+    """Create LSU3shell model space file for SU3RME.
+
+    Invokes generate_lsu3shell_model_space.
+    """
+
+    command_line = [
+        generate_lsu3shell_model_space_executable,
+        "{nuclide[0]:d}".format(**task),
+        "{nuclide[1]:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
+        "{Nstep:d}".format(**task)
+    ]
+    mcscript.call(
+        command_line,
+        mode=mcscript.CallMode.kSerial
+    )
+
+def calculate_rmes(task):
     """ Invoke lsu3shell SU3RME code to calculate rmes of relative unit
     tensors and symplectic raising/lowering/N operators in SU(3)-NCSM basis.
 
     Invokes SU3RME_MPI.
-
-    Arguments:
-        relative_operator_basename_list (list) : list of operator file names
     """
 
     model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_max:02d}.dat".format(**task)
@@ -203,29 +262,18 @@ def generate_lsu3shell_rmes(task):
 
     """
 
-    # set up data directory
-    mcscript.utils.mkdir("lsu3shell_rme")
-    os.chdir("lsu3shell_rme")
-
-    # generate operators and their rmes
-    generate_relative_operators(task)
-    relative_operator_basename_list = read_unit_tensor_list(task)
-    recouple_operators(task,relative_operator_basename_list)
-    calculate_rmes(task,relative_operator_basename_list)
+    # generate operators rmes
+    calculate_rmes(task)
 
     # do cleanup
-    delete_filenames=glob.glob('*.recoupler')
     delete_filenames+=glob.glob('*.PN')
     delete_filenames+=glob.glob('*.PPNN')
-    delete_filenames+=glob.glob('*.load')
     mcscript.call(["rm"] + delete_filenames)
 
     # generate basis listing for basis in which rmes were calculated
     generate_model_space_file(task)
     generate_basis_table(task)
 
-    # restore working directory
-    os.chdir("..")  
 
 def save_su3rme_results(task):
     """
@@ -246,8 +294,16 @@ def do_generate_lsu3shell_rmes(task):
     unit tensors and symplectic raising/lowering/N operators.
     """
 
+    # set up data directory
+    if (not os.path.exists("lsu3shell_rme")):
+        mcscript.utils.mkdir("lsu3shell_rme")
+    os.chdir("lsu3shell_rme")
+
     generate_lsu3shell_rmes(task)
     save_su3rme_results(task)
+
+    # restore working directory
+    os.chdir("..")  
 
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables

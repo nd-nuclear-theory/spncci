@@ -37,12 +37,13 @@ namespace u3shell
       u3shell::RelativeUnitTensorLabelsU3ST,
       double,
       boost::hash<u3shell::RelativeUnitTensorLabelsU3ST>
-    >RelativeUnitTensorCoefficientsU3ST;
+    > RelativeUnitTensorCoefficientsU3ST;
 
 
   ////////////////////////////////////////////////////////////////
   // generation of unit tensor label lists
   ///////////////////////////////////////////////////////////////
+
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax,
         int N1v, 
@@ -59,7 +60,7 @@ namespace u3shell
   //  Tensors in vector are ordered by: 
   //    N0, Sp,Tp,S,T,S0,T0,etap (eta=etap-N0)
   //   
-  //  Tensors are subject to trianglarity constrains on 
+  //  Tensors are subject to trianglarity constraints on 
   //    (Sp,S0,S) and (Tp,T0,T)
   //
   //  and parity constraint on bra and ket

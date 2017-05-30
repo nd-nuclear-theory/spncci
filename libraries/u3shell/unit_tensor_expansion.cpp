@@ -67,7 +67,7 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
             }
   }
 
-  void NintrRelativeUnitTensorExpansion(int Nmin, int Nmax, 
+  void NrelRelativeUnitTensorExpansion(int Nmin, int Nmax, 
         u3shell::RelativeUnitTensorCoefficientsU3ST& Nrel_operator, int A)
   {
     for (int N=Nmin; N<=Nmax; N++)
