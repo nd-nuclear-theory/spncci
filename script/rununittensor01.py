@@ -11,8 +11,15 @@
 
   Then manually save the results:
 
-    cd rununittensor01/results
-    cp *.tgz ${SPNCCI_LSU3SHELL_DIR}
+    cp rununittensor01/results/*.tgz ${SPNCCI_LSU3SHELL_DIR}
+
+  Phases:
+
+    0: Generate RMEs.  This is the only phase you need to run.
+
+    1: Attempt readback of RMEs from SPNCCI_LSU3SHELL_DIR.  This is
+        purely for illustrative/testing purposes.
+
 
   Language: Python 3
 

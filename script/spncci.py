@@ -42,6 +42,8 @@
       + Fix notation "Nsigma_ex_max" to "Nsigma_max".
       + Add SPNCCI_PROJECT_ROOT_DIR environment variable.
       + Remove LSU3shell load files.
+  5/20/17 (mac): Split out generation of relative operators and calculation of SU(3)
+      RMEs.
 """
   
 import glob
@@ -165,7 +167,7 @@ def save_operator_files(task):
 
     # generate archive
     descriptor = relative_operator_descriptor(task)
-    archive_filename = "relative-operators-{descriptor:s}.tgz".format(descriptor=descriptor)
+    archive_filename = "relative-operators-{}.tgz".format(descriptor)
     mcscript.call(
         [
             "tar", "-zcvf", archive_filename
@@ -191,7 +193,7 @@ def retrieve_operator_files(task):
     descriptor = relative_operator_descriptor(task)
     archive_filename = os.path.join(
         unit_tensor_directory,
-        "relative-operators-{descriptor:s}.tgz".format(descriptor=descriptor)
+        "relative-operators-{}.tgz".format(descriptor)
     )
     if (not os.path.exists(archive_filename)):
         print("Looking for {}".format(archive_filename))
@@ -295,7 +297,7 @@ def generate_basis_table(task):
         mode=mcscript.CallMode.kSerial
     )
 
-def save_su3rme_results(task):
+def save_su3rme_files(task):
     """Create archive of SU(3) RMEs of relative operators.
 
     Some auxiliary files (e.g., the list of operators) are saved as well.
@@ -315,10 +317,10 @@ def save_su3rme_results(task):
 
     # generate archive
     su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
-    su3rme_archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
+    archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
     mcscript.call(
         [
-            "tar", "-zcvf", su3rme_archive_filename
+            "tar", "-zcvf", archive_filename
         ] + archive_file_list
     )
 
@@ -328,7 +330,7 @@ def save_su3rme_results(task):
             [
                 "mv",
                 "--verbose",
-                su3rme_archive_filename,
+                archive_filename,
                 "--target-directory={}".format(mcscript.task.results_dir)
             ]
         )
@@ -336,16 +338,41 @@ def save_su3rme_results(task):
     # cleanup
     ## mcscript.call(["rm","-r","lsu3shell_rme"])
 
+def retrieve_su3rme_files(task):
+    """ Retrieve archive of relative operator SU(3) RME files.
+
+    Files are retrieved into a subdirectory named lsu3shell_rme.
+    """
+
+    # identify archive file
+    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+    archive_filename = os.path.join(
+        unit_tensor_directory,
+        "su3rme-{}.tgz".format(su3rme_descriptor)
+    )
+    if (not os.path.exists(archive_filename)):
+        print("Looking for {}".format(archive_filename))
+        raise mcscript.exception.ScriptError("su3rme file not found")
+
+    # set up data directory
+    if (not os.path.exists("lsu3shell_rme")):
+        mcscript.utils.mkdir("lsu3shell_rme")
+
+    # extract archive contents
+    mcscript.call(
+        [
+            "tar",
+            "-xvf",
+            archive_filename,
+            "--directory=lsu3shell_rme"
+        ]
+    )
+
 def do_generate_lsu3shell_rmes(task):
     """
     Control code for generating RMEs in the SU(3)-NCSM basis, for relative
     unit tensors and symplectic raising/lowering/N operators.
     """
-
-    # set up data directory
-    if (not os.path.exists("lsu3shell_rme")):
-        mcscript.utils.mkdir("lsu3shell_rme")
-    os.chdir("lsu3shell_rme")
 
     # retrieve relevant operator files
     retrieve_operator_files(task)
@@ -363,10 +390,7 @@ def do_generate_lsu3shell_rmes(task):
     ## mcscript.call(["rm"] + delete_filenames)
 
     # save results
-    save_su3rme_results(task)
-
-    # restore working directory
-    os.chdir("..")  
+    save_su3rme_files(task)
 
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
@@ -546,16 +570,7 @@ def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
-    if ("unit_tensor_directory" in task):
-        # LEGACY support for scripts with messed up name
-        unit_tensor_directory=task["unit_tensor_directory"].format(**task)
-    else:
-        unit_tensor_directory=task["unit_tensor_directory_template"].format(**task)
-    # generate_lsu3shell_rmes(task)
-    ## os.symlink(unit_tensor_directory, "lsu3shell_rme")  # hard to reliably clean up?
-    ## mcscript.call(["cp","--recursive",unit_tensor_directory,"lsu3shell_rme"])
-    unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
-    mcscript.call(["tar","xf",unit_tensor_directory_archive_filename])
+    retrieve_su3rme_files(task)
     generate_observable_rmes(task)
     generate_spncci_control_file(task)
     call_spncci(task)

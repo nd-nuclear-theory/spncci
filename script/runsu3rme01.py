@@ -75,7 +75,8 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        spncci.do_generate_lsu3shell_rmes
+        spncci.do_generate_lsu3shell_rmes,
+        spncci.retrieve_su3rme_files  # for debugging: to test of file retrieval
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]
