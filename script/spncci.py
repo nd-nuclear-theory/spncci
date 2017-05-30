@@ -474,7 +474,7 @@ def generate_observable_rmes(task):
         )
 
     # generate RMEs for other observables (analytically)
-    for hw in mcscript.utils.value_range(10,30,2.5):    
+    for hw in mcscript.utils.value_range(*task["hw_range"]):    
         # generate observable load files      
         for observable in task["observables"] :
             observable_name=observable[0]
