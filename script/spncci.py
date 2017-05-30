@@ -81,7 +81,7 @@ def relative_operator_descriptor(task):
         (string): descriptor
     """
 
-    descriptor = "Nv{N1v:d}-Nsigmamax{Nsigmamax:02d}-Nstep{Nstep:d}".format(**task)
+    descriptor = "Nv{N1v:d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}".format(**task)
     return descriptor
 
 def generate_relative_operators(task):
@@ -193,7 +193,8 @@ def retrieve_operator_files(task):
         "relative-operators-{descriptor:s}.tgz".format(descriptor=descriptor)
     )
     if (not os.path.exists(archive_filename)):
-        raise mcscript.ScriptError("relative operator file not found")
+        print("Looking for {}".format(archive_filename))
+        raise mcscript.exception.ScriptError("relative operator file not found")
 
     # extract archive contents
     mcscript.call(
@@ -225,6 +226,15 @@ def do_generate_relative_operators(task):
 ################################################################
 # relative operator SU(3) RME construction
 ################################################################
+
+# su3rme descriptor string
+#
+# This describes the many-body space on which SU(3) RMEs are being
+# calculated.  It is used, e.g., in the filename of the archive file
+# in which the SU(3) RMEs are stored.
+
+# descriptor string for straightforward case of pure Nsigmamax truncation
+su3rme_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[0]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
 
 def generate_model_space_file(task):
     """Create LSU3shell model space file for SU3RME.
@@ -295,6 +305,7 @@ def save_su3rme_results(task):
     subsequent use.
 
     """
+
     # select files to save
     ## archive_file_list = glob.glob(os.path.join("lsu3shell_rme",'*.dat'))
     ## archive_file_list += glob.glob(os.path.join("lsu3shell_rme",'*.dat'))

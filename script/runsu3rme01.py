@@ -25,15 +25,6 @@ import spncci
 mcscript.init()
 
 ##################################################################
-# directory configuration
-##################################################################
-
-interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
-unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
-interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
-unit_tensor_filename_template = os.path.join("lsu3shell_Z{nuclide[0]:02d}_N{nuclide[1]:02d}_{Nsigma_max:02d}")  
-
-##################################################################
 # build task list
 ##################################################################
 
@@ -46,7 +37,7 @@ task_list = [
         "Nsigma_0" : 11,
         "Nsigma_max" : Nmax,
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
-        "unit_tensor_filename_template" : unit_tensor_filename_template
+        "su3rme_descriptor_template": spncci.su3rme_descriptor_template_Nsigmamax
     }
     for Nmax in mcscript.utils.value_range(0,10,2)
 ]
@@ -57,11 +48,11 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nmax{Nmax:02d}".format(**task))
+    return (spncci.su3rme_descriptor_template_Nsigmamax.format(**task))
 
 def task_pool(task):
     """"""
-    return ("Nmax{Nmax:02d}".format(**task))
+    return ("Nsigmamax{Nsigma_max:02d}".format(**task))
 
 ##################################################################
 # task control
