@@ -3,6 +3,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  (mac): LEGACY???  Absorbed into generate_lsu3shell_relative_operators?
+
   12/1/16 (aem): Created.
   12/2/16 (aem): Added bool for U(N)->U(3) restriction when A=2
 ****************************************************************/

@@ -726,9 +726,9 @@ RunParameters::RunParameters(int argc, char **argv)
   // hard-coded directory structure and filenames
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nsigma0_ex_max);
-  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel_06_Nmax{:02d}.rme",Nsigma0_ex_max);
-  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel_06_Nmax{:02d}.rme",Nsigma0_ex_max);
+  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel.rme",Nsigma0_ex_max);
+  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel.rme",Nsigma0_ex_max);
+  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel.rme",Nsigma0_ex_max);
   relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 
   // hard-coded eigen solver parameters   

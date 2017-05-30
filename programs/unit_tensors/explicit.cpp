@@ -194,9 +194,9 @@ RunParameters::RunParameters()
 
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel_06_Nmax{:02d}.rme",Nmax);
-  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel_06_Nmax{:02d}.rme",Nmax);
-  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel_06_Nmax{:02d}.rme",Nmax);
+  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel.rme",Nmax);
+  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel.rme",Nmax);
+  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel.rme",Nmax);
   relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 
 }

@@ -143,12 +143,12 @@ int main(int argc, char **argv)
   u3shell::ArelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Arel_operator);
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Arel_operator,Arel_file_name,un_u3_restrict);
 
-  // Generate Nintr operator up to Nmax cutoff
-  std::string Nintr_file_name_base="Nrel";
+  // Generate Nrel operator up to Nmax cutoff
+  std::string Nrel_file_name_base="Nrel";
   u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
   u3shell::NrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Nrel_operator);
-  std::string Nintr_file_name=fmt::format("{}.recoupler",Nintr_file_name_base);
-  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Nrel_operator,Nintr_file_name,un_u3_restrict);
+  std::string Nrel_file_name=fmt::format("{}.recoupler",Nrel_file_name_base);
+  lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Nrel_operator,Nrel_file_name,un_u3_restrict);
 
   // generate control file entries for lsu3shell SU3RME
   control_stream
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
   control_stream
     << fmt::format(
         "{:s} {:3d} {:3d} {:3d} {:3d}",
-        Nintr_file_name_base,
+        Nrel_file_name_base,
         0,0,0,0
       )
     << std::endl;
@@ -191,12 +191,12 @@ int main(int argc, char **argv)
   // u3shell::ArelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Arel_operator,A);  // TODO remove A dependence
   // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Arel_operator,Arel_file_name,un_u3_restrict);
   // 
-  // // Generate Nintr operator up to Nmax cutoff
-  // std::string Nintr_file_name_base=fmt::format("Nrel_{:02d}_Nmax{:02d}",A,Nmax);
+  // // Generate Nrel operator up to Nmax cutoff
+  // std::string Nrel_file_name_base=fmt::format("Nrel_{:02d}_Nmax{:02d}",A,Nmax);
   // u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  // u3shell::NintrRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Nrel_operator,A);  // TODO remove A dependence
-  // std::string Nintr_file_name=fmt::format("{}.recoupler",Nintr_file_name_base);
-  // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Nrel_operator,Nintr_file_name,un_u3_restrict);
+  // u3shell::NrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Nrel_operator,A);  // TODO remove A dependence
+  // std::string Nrel_file_name=fmt::format("{}.recoupler",Nrel_file_name_base);
+  // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Nrel_operator,Nrel_file_name,un_u3_restrict);
   // 
   // // generate control file entries for lsu3shell SU3RME
   // control_stream
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
   // control_stream
   //   << fmt::format(
   //       "{:s} {:3d} {:3d} {:3d} {:3d}",
-  //       Nintr_file_name_base,
+  //       Nrel_file_name_base,
   //       0,0,0,0
   //     )
   //   << std::endl;
