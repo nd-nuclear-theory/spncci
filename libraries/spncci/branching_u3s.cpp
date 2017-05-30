@@ -18,26 +18,19 @@
 namespace spncci
 {
 
-
-  std::string SubspaceU3S::Str() const
-  {
-    return fmt::format("{}",labels_.Str());
-  }
-
-
   SubspaceU3S::SubspaceU3S(const u3::U3S& omegaS,const BabySpNCCISpace& baby_spncci_space)
   {
 
     // save labels
-    labels_=omegaS;
+    labels_ = omegaS;
 
-    // scan BabySpNCCI for states to accumulate
+    // scan BabySpNCCISpace for states to accumulate
     int substate_offset = 0;  // accumulated offset
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
 
         // set up alias
-        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+        const BabySpNCCISubspace& baby_spncci_subspace = baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
 
         // short circuit if subspace not relevant
         if (!(omegaS==baby_spncci_subspace.omegaS()))
@@ -63,6 +56,11 @@ namespace spncci
     // store final full dimension
     full_dimension_ = substate_offset;
 
+  }
+
+  std::string SubspaceU3S::Str() const
+  {
+    return fmt::format("{}",labels_.Str());
   }
 
   SpaceU3S::SpaceU3S(const BabySpNCCISpace& baby_spncci_space)

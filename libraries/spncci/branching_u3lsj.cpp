@@ -22,29 +22,36 @@ namespace spncci
 
   SubspaceLS::SubspaceLS(const int& L, const HalfInt& S, const SpaceU3S& u3s_space)
   {
-    labels_=std::pair<int,HalfInt>(L,S);
-    int sector_index=0;
-    int state_index=0;
-    // iterate over U(3)xSU(2) irreps
-    for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
-      {
-        SubspaceU3S u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
-        u3::U3 omega(u3s_subspace.omega());
-        int kappa_max=u3::BranchingMultiplicitySO3(omega.SU3(),L);
-        // if space contains S and omega can branch to L
-        if(kappa_max>0 && u3s_subspace.S()==S)
-          {
-            //Construct subspace
-            int dim=u3s_subspace.sector_dim();
-            PushStateLabels(StateLabelsType(u3s_subspace_index));
-            sector_index_lookup_[state_index]=sector_index;
-            // increment index 
-            ++state_index;
-            sector_index+=kappa_max*dim;
-          }
-      }
 
-    sector_size_=sector_index;
+    // save labels
+    labels_ = std::make_pair(L,S);
+
+    // int sector_index=0;
+    // int state_index=0;
+    // // iterate over U(3)xSU(2) irreps
+    // for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
+    //   {
+    //     SubspaceU3S u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
+    //     u3::U3 omega(u3s_subspace.omega());
+    //     int kappa_max=u3::BranchingMultiplicitySO3(omega.SU3(),L);
+    //     // if space contains S and omega can branch to L
+    //     if(kappa_max>0 && u3s_subspace.S()==S)
+    //       {
+    //         //Construct subspace
+    //         int dim=u3s_subspace.sector_dim();
+    //         PushStateLabels(StateLabelsType(u3s_subspace_index));
+    //         sector_index_lookup_[state_index]=sector_index;
+    //         // increment index 
+    //         ++state_index;
+    //         sector_index+=kappa_max*dim;
+    //       }
+    //   }
+
+    // TODO: EDITS IN PROGRESS
+
+    // scan SpaceU3S for states to accumulate
+    int substate_offset = 0;  // accumulated offset
+
   }
 
   std::string SubspaceLS::Str() const

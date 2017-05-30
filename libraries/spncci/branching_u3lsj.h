@@ -8,6 +8,8 @@
 
   1/31/17 (mac): Extracted from sp_basis (as spncci_branching_u3lsj).
   2/19/17 (mac): Rename to branching_u3lsj.
+  5/27/17 (mac): Overhaul implementation of U3LS subspaces and store
+    parent irrep info.
     
 ****************************************************************/
 
@@ -16,24 +18,21 @@
 
 #include <unordered_map>
 
-
 #include "am/am.h"  
+#include "lgi/lgi.h"
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/branching_u3s.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
 #include "u3shell/upcoupling.h"
-#include "lgi/lgi.h"
 
 namespace spncci
 {
   typedef std::pair<HalfInt,HalfInt> JPair;
 
   ////////////////////////////////////////////////////////////////
-  // basis indexing in LS scheme for spncci basis branching
-  ////////////////////////////////////////////////////////////////
-
+  // basis indexing in U3LS scheme for spncci basis branching
   ////////////////////////////////////////////////////////////////  
   //
   // Labeling
@@ -48,6 +47,40 @@ namespace spncci
   //   subpace_index (int): index of U3S subspace from which state
   //     is branched
   //
+  // ----------------
+  //
+  // The idea is that states are grouped in the hierarchy
+  //
+  //   subspace: (L,S)
+  //     state: (omega)
+  //       substates: (kappa,(sigma,Sp,Sn),gamma,upsilon)
+  //
+  // This unfortunately means we have "thrown away" genuine labels,
+  // and our "states" no longer have good Sp symmetry, but rather are
+  // aggregates of substates with different symmetry, i.e., from
+  // different irrep families.  And it destroys all simple "Cartesian"
+  // product structure to the substate indexing.  Although the kappa
+  // multiplicity is defined by a single kappa_max (from omega->L),
+  // now upsilon_max and gamma_max are no longer constant, but rather
+  // depend on parent Sp irrep family (sigma,Sp,Sn,S).
+  //
+  // A more intuitive scheme, which retains this substate ordering,
+  // but also retains all necessary information for decompositions by
+  // symmetry labels, would be:
+  //
+  //   subspace: (L,S)
+  //     state: (omega,kappa,sigma,Sp,Sn)
+  //       substates: (gamma,upsilon)
+  //
+  // If one wanted to keep only genuine symmetry labels as state
+  // labels, and group the multiplicity indices (kappa,gamma,upsilon)
+  // into blocks determined by a simple "Cartesian" product of size
+  // kappa_max*gamma_max*upsilon_max, one could use the scheme
+  //
+  //   subspace: (L,S)
+  //     state: (omega,sigma,Sp,Sn)
+  //       substates: (kappa,gamma,upsilon)
+  //
   ////////////////////////////////////////////////////////////////
   //
   // States
@@ -58,13 +91,23 @@ namespace spncci
   //
   // Within the full space, subspaces are ordered lexicographically by
   // (L,S).
+  //
+  // NOT TRUE?
+  //
+  // Aren't they just ordered by first appearance of (L,S) as a
+  // possible branching for an (omega,S) subspace, then by L?
   // 
   ////////////////////////////////////////////////////////////////
+  
+  class StateLS;  // forward declaration (to permit use as "friend" of SubspaceU3S)
 
   class SubspaceLS
-    : public basis::BaseSubspace< std::pair<int,HalfInt>,std::tuple<int> >
+    : public basis::BaseSubspace<std::pair<int,HalfInt>,std::tuple<int>>
     // Subspace class for two-body states of given SO(3)xS.
     //
+    // SubspaceLabelsType (std::pair<int,HalfInt>): (L,S)
+    // StateLabelsType (int): index into U3S space
+
     {
       public:
 
@@ -77,32 +120,39 @@ namespace spncci
       SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space);
 
       // accessors
-      HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
       int L() const{return std::get<0>(GetSubspaceLabels());}
-      int sector_dim() const {return sector_size_;}
+      HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
+
+      int full_dimension() const {return sector_size_;}
+      // int full_dimension() const {return full_dimension_;}
+      int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
 
       // diagnostic output
       std::string Str() const;
 
+      // state indexing lookup -- DEPRECATED
       int sector_index(int state_index) const
+      // DEPRECATED -- in favor of StateLS::starting_index()
       {
-        int sector_index=-1;
-        for(auto it=sector_index_lookup_.begin(); it!=sector_index_lookup_.end(); ++it)
-          {
-            if(it->first==state_index)
-              {
-                sector_index=it->second;
-                return sector_index;
-              }
-          }
-        // if none, found, then return -1.
-        return sector_index;
+        return state_substate_offset_.at(state_index);
       }
 
       private:
-      int sector_size_;
-      // Look up table to find starting index of state in 
-      std::map<int,int> sector_index_lookup_;
+
+      // state auxiliary data
+      //
+      // Note: These parallel arrays are getting cumbersome.  Perhaps
+      // this information should be bundled into a struct.
+      friend class StateLS;
+      std::vector<int> state_substate_offset_;  // starting index, counting (gamma,upsilon) multiplicity
+      std::vector<int> state_dimension_;  // number of substates, counting (gamma,upsilon) multiplicity
+      std::vector<int> state_gamma_max_;  // gamma_max
+      std::vector<int> state_kappa_max_;  // kappa_max
+      std::vector<u3shell::U3SPN> state_sigmaSPN_;  // Sp irrep symmetry labels
+      std::vector<u3shell::U3> state_omega_;  // U(3) label
+      
+      // dimension, counting (kappa,gamma,upsilon) multiplicity of subspace
+      int full_dimension_;
     };
 
   ////////////////////////////////////////////////////////////////
@@ -115,8 +165,9 @@ namespace spncci
   {
     
     public:
+
     // pass-through constructors
-  
+
     StateLS(const SubspaceType& subspace, int index)
       // Construct state by index.
       : basis::BaseState<SubspaceLS>(subspace, index) {}
@@ -130,8 +181,47 @@ namespace spncci
       {}
 
     // pass-through accessors
-    HalfInt S() const {return Subspace().S();}
     int L() const {return Subspace().L();}
+    HalfInt S() const {return Subspace().S();}
+
+    // supplemental data accessors
+    int substate_offset() const
+    // Provide offset of first substate into fully expanded listing of
+    // substates in subspace.
+    {
+      return Subspace().state_substate_offset_[index()];
+    }
+    int dimension() const
+    // Provide number of substates of this composite state.
+    {
+      return Subspace().state_dimension_[index()];
+    }
+    int gamma_max() const
+    // Provide gamma multiplicity of Sp irrep.
+    {
+      return Subspace().state_gamma_max_[index()];
+    }
+    int kappa_max() const
+    // Provide kappa branching multiplicity of L irrep.
+    {
+      return Subspace().state_kappa_max_[index()];
+    }
+    u3shell::U3SPN sigmaSPN() const
+      // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
+      {
+        return Subspace().state_sigmaSPN_[index()];
+      }
+    u3shell::U3 sigma() const
+      // Extract sigma label of Sp irrep.
+      {
+        return sigmaSPN().U3();
+      }
+    u3shell::U3 omega() const
+      // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
+      {
+        return Subspace().state_omega_[index()];
+      }
+
   };
 
   ////////////////////////////////////////////////////////////////
@@ -156,7 +246,6 @@ namespace spncci
     std::string Str() const;
 
     private:
-    int dimension_;
   };
 
 
