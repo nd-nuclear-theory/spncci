@@ -91,23 +91,30 @@ int main(int argc, char **argv)
   // Generate all relative unit tensor labels (up to Nmax cutoff)
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1B,relative_unit_tensor_labels,J0,T0,false);
-  std::cout<<"number of relative tensors "<<relative_unit_tensor_labels.size()<<std::endl;
 
-  // // generate debugging output
-  // //REMOVE--TEMP
-  // std::ofstream out("relative_unit_tensor_labels");
-  // for(int i=0; i<relative_unit_tensor_labels.size(); ++i)
-  //   {
-  //     auto& tensor=relative_unit_tensor_labels[i];
-  //     out <<i<<"  "<<tensor.Str()<<std::endl; 
-  //   }
-  // out.close();
+  int num_unit_tensors = relative_unit_tensor_labels.size();
+  std::cout
+    << fmt::format("number of relative tensors: {}",num_unit_tensors)
+    <<std::endl;
+
+  // generate debugging output
+  std::ofstream label_stream("relative_unit_tensor_labels.dat");
+  for(int unit_tensor_index=0; unit_tensor_index<num_unit_tensors; ++unit_tensor_index)
+    {
+      label_stream
+        << fmt::format(
+            "{:06d} {}",
+            unit_tensor_index,
+            relative_unit_tensor_labels[unit_tensor_index].Str()
+          )
+        << std::endl; 
+    }
+  label_stream.close();
 
   // generate unit tensor operator files
   lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B, relative_unit_tensor_labels,un_u3_restrict);
 
   // generate control file entries for lsu3shell SU3RME
-  int num_unit_tensors = relative_unit_tensor_labels.size();
   for(int unit_tensor_index=0; unit_tensor_index<num_unit_tensors; ++unit_tensor_index)
     {
       const u3shell::OperatorLabelsU3ST& operator_labels = relative_unit_tensor_labels[unit_tensor_index];

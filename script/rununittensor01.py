@@ -30,16 +30,16 @@ mcscript.init()
 ##################################################################
 
 N1v_set = [0,1]
-Nmax_set = mcscript.utils.value_range(0,11,1)
+Nsigmamax_set = mcscript.utils.value_range(0,11,1)
 
 task_list = [
     {
         "N1v" : N1v,
-        "Nmax" : Nmax,
+        "Nsigmamax" : Nsigmamax,
         "Nstep" : 2
     }
     for N1v in N1v_set
-    for Nmax in Nmax_set
+    for Nsigmamax in Nsigmamax_set
 ]
 
 ################################################################
@@ -48,11 +48,11 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return ("Nv{N1v:d}-Nmax{Nmax:02d}-Nstep{Nstep:d}".format(**task))
+    return spncci.relative_operator_descriptor(task)
 
 def task_pool(task):
     """"""
-    return ("Nmax{Nmax:02d}".format(**task))
+    return ("Nsigmamax{Nsigmamax:02d}".format(**task))
 
 ##################################################################
 # task control
