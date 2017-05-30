@@ -29,7 +29,6 @@
 
 namespace spncci
 {
-  typedef std::pair<HalfInt,HalfInt> JPair;
 
   ////////////////////////////////////////////////////////////////
   // basis indexing in U3LS scheme for spncci basis branching
@@ -99,10 +98,12 @@ namespace spncci
   // 
   ////////////////////////////////////////////////////////////////
   
+  typedef std::pair<int,HalfInt> LSPair;
+
   class StateLS;  // forward declaration (to permit use as "friend" of SubspaceU3S)
 
   class SubspaceLS
-    : public basis::BaseSubspace<std::pair<int,HalfInt>,std::tuple<int>>
+    : public basis::BaseSubspace<LSPair,std::tuple<int>>
     // Subspace class for two-body states of given SO(3)xS.
     //
     // SubspaceLabelsType (std::pair<int,HalfInt>): (L,S)
@@ -123,7 +124,7 @@ namespace spncci
       int L() const{return std::get<0>(GetSubspaceLabels());}
       HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
 
-      int full_dimension() const {return sector_size_;}
+      int full_dimension() const {return full_dimension_;}
       // int full_dimension() const {return full_dimension_;}
       int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
 
@@ -149,7 +150,7 @@ namespace spncci
       std::vector<int> state_gamma_max_;  // gamma_max
       std::vector<int> state_kappa_max_;  // kappa_max
       std::vector<u3shell::U3SPN> state_sigmaSPN_;  // Sp irrep symmetry labels
-      std::vector<u3shell::U3> state_omega_;  // U(3) label
+      std::vector<u3::U3> state_omega_;  // U(3) label
       
       // dimension, counting (kappa,gamma,upsilon) multiplicity of subspace
       int full_dimension_;
@@ -211,12 +212,12 @@ namespace spncci
       {
         return Subspace().state_sigmaSPN_[index()];
       }
-    u3shell::U3 sigma() const
+    u3::U3 sigma() const
       // Extract sigma label of Sp irrep.
       {
         return sigmaSPN().U3();
       }
-    u3shell::U3 omega() const
+    u3::U3 omega() const
       // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
       {
         return Subspace().state_omega_[index()];

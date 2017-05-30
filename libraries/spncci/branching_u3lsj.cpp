@@ -24,7 +24,7 @@ namespace spncci
   {
 
     // save labels
-    labels_ = std::make_pair(L,S);
+    labels_ = LSPair(L,S);
 
     // int sector_index=0;
     // int state_index=0;
