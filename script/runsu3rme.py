@@ -48,7 +48,7 @@ task_list = [
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "unit_tensor_filename_template" : unit_tensor_filename_template
     }
-    for Nmax in mcscript.utils.value_range(0,6,2)
+    for Nmax in mcscript.utils.value_range(0,10,2)
 ]
 
 ################################################################

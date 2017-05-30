@@ -5,6 +5,9 @@
         setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
         setenv SPNCCI_LSU3SHELL_DIR ${HOME}/data/spncci/lsu3shell
 
+    You will also need this directory to be in your Python path:
+        setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
+
     Task parameters:
 
         # basic space parameters -- for lsu3shell rme evaluation and spncci:
@@ -63,7 +66,7 @@ spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 
 
 ################################################################
-# relative unit tensor evaluation
+# relative unit tensor operator construction
 ################################################################
 
 def generate_model_space_file(task):
@@ -105,7 +108,6 @@ def generate_relative_operators(task):
         command_line,
         mode=mcscript.CallMode.kSerial
     )
-
 
 def read_unit_tensor_list(task):
     """ Read list of unit tensor basenames.
