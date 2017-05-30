@@ -1,17 +1,32 @@
 """spncci.py -- define scripting for spncci runs
 
-    Environment variables (and example values):
-        setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/projects"
-        setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
-        setenv SPNCCI_LSU3SHELL_DIR ${HOME}/data/spncci/lsu3shell
+
+    Environment variables:
+        SPNCCI_INTERACTION_DIR -- base directory for relative lsjt interaction files
+        SPNCCI_LSU3SHELL_DIR -- base directory for unit tensor rme files
+        SPNCCI_PROJECT_ROOT_DIR -- root directory under which lsu3shell and spncci codes are found
+
+        Ex (personal workstation):
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
+            setenv SPNCCI_LSU3SHELL_DIR ${HOME}/data/spncci/lsu3shell
+            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+
+        Ex (NDCRC nuclthy):
+            setenv SPNCCI_INTERACTION_DIR /afs/crc.nd.edu/group/nuclthy/data/interaction/rel
+            setenv SPNCCI_LSU3SHELL_DIR /afs/crc.nd.edu/group/nuclthy/data/spncci/lsu3shell
+            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+
+        Ex (NERSC m2032):
+            setenv SPNCCI_INTERACTION_DIR /project/projectdirs/m2032/data/interaction/rel
+            setenv SPNCCI_LSU3SHELL_DIR /project/projectdirs/m2032/data/spncci/lsu3shell
+            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
 
     You will also need this directory to be in your Python path:
         setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
     Task parameters:
 
-        # basic space parameters -- for lsu3shell rme evaluation and spncci:
-
+        # space parameters
         nuclide (tuple of int): (N,Z)
         Nmax (int): oscillator Nmax for many-body basis
         Nstep (int): step in N for many-body basis (1 or 2)
@@ -20,10 +35,11 @@
             (in general can be half integer since contains zero-point offset)
         Nsigma_max (int): maximum oscillator exitation for LGIs
 
-        # unit tensor parameters -- for lsu3shell rme evaluation ONLY
+        # su3rme parameters
         J0 (int): restriction on J0 for unit tensors (normally -1 to include
             all J0 as needed for spncci recurrence)
-        "unit_tensor_filename_template" (str): template for unit tensor output filenames
+        "su3rme_descriptor_template" (str): template for string describing SU(3)-NCSM
+            space truncation used in SU3RME calculation
 
         # eigenspace parameters -- for spncci runs ONLY
         num_eigenvalues (int): number of eigenvalues to compute in each J space
@@ -415,7 +431,7 @@ def generate_observable_rmes(task):
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
     
-    # generate Hamiltonian RMEs by upcoupling
+    # set parameters
     A = int(task["nuclide"][0]+task["nuclide"][1])
     Nmax=task["Nmax"]
     J0=0
@@ -423,10 +439,15 @@ def generate_observable_rmes(task):
     g0=0
     J_max_jisp=4
     J_max_coulomb=21
-    coulomb_filename=os.path.join(task["interaction_directory"],"coulomb_Nmax20_rel.dat")
-    # generate hamiltonian load file
-    for hw in mcscript.utils.value_range(10,30,2.5):
-        interaction_filename=task["interaction_filename_template"].format(hw)
+
+    # generate Hamiltonian RMEs (by upcoupling)
+    for hw in mcscript.utils.value_range(*task["hw_range"]):    
+
+        # generate load file
+        interaction_filename=os.path.join(
+            interaction_directory,
+            task["interaction_filename_template"].format(hw=hw)
+            )
         hamiltonian_input_lines = [
             "{}".format(hw),
             "Tintr 1.",
@@ -434,9 +455,8 @@ def generate_observable_rmes(task):
         ]
 
         if task["use_coulomb"]==True:
+            coulomb_filename=os.path.join(interaction_directory,task["coulomb_filename"])
             hamiltonian_input_lines+=["INT 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
-
-
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 
@@ -448,13 +468,12 @@ def generate_observable_rmes(task):
                 "{N1v:d}".format(**task),
                 "hamiltonian"
             ]
-
         mcscript.call(
             command_line,
             mode=mcscript.CallMode.kSerial
         )
 
-    # generate RMEs for other observables (e.g., analytically)
+    # generate RMEs for other observables (analytically)
     for hw in mcscript.utils.value_range(10,30,2.5):    
         # generate observable load files      
         for observable in task["observables"] :
@@ -491,6 +510,7 @@ def generate_spncci_control_file(task):
 
     Output file: spncci.load
     """
+
     hw_min=task["hw_range"][0]
     hw_max=task["hw_range"][1]
     hw_step=task["hw_range"][2]
@@ -538,7 +558,7 @@ def call_spncci(task):
 
 def save_spncci_results(task):
     """
-    Ad hoc...
+    Rename and save spncci results files.
     """
 
     # results file
@@ -555,7 +575,10 @@ def save_spncci_results(task):
 
     # log file
     raw_log_filename = "spncci.out"
-    new_log_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task))
+    new_log_filename = os.path.join(
+        mcscript.task.results_dir,
+        "{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task)
+    )
     mcscript.call(
         [
             "cp",
@@ -565,6 +588,19 @@ def save_spncci_results(task):
         ]
     )
 
+    # move archive to results directory (if in multi-task run)
+    # select files to save
+    results_file_list = glob.glob('*.out')
+    results_file_list += glob.glob('*.res')
+    if (mcscript.task.results_dir is not None):
+        mcscript.call(
+            [
+                "mv",
+                "--verbose",
+                "--target-directory={}".format(mcscript.task.results_dir)
+            ]
+            + results_file_list
+        )
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing

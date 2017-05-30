@@ -1,0 +1,96 @@
+"""runspncci05.py
+
+    spncci demonstration run
+
+    See spncci/script/spncci.py for proper settings for environment
+    variables.
+
+    Mark A. Caprio
+    University of Notre Dame
+
+    + 1/8/17 (mac): Created.
+    + 2/23/17 (mac): Implement basic scripting.
+    + 5/30/17 (mac): Update handling of SU(3) RME storage.
+
+"""
+
+import mcscript
+import os
+import spncci
+
+# initialize mcscript
+mcscript.init()
+
+##################################################################
+# directory configuration
+##################################################################
+
+# interaction filename template:
+#   -- file will be sought under SPNCCI_INTERACTION_DIR
+#   -- you can use dummy variable hw in format specification
+interaction_filename_template = os.path.join("JISP16_Nmax20","JISP16_Nmax20_hw{hw:2.1f}_rel.dat")
+
+##################################################################
+# build task list
+##################################################################
+
+task_list = [
+    {
+        # space parameters
+        "nuclide" : (3,3),
+        "Nmax" : Nmax,
+        "Nstep" : 2,
+        "N1v" : 1,
+        "Nsigma_0" : 11,
+        "Nsigma_max" : Nsigma_max,
+
+        # su3rme parameters
+        # "J0" : 0,
+        "su3rme_descriptor_template" : spncci.su3rme_descriptor_template_Nsigmamax,
+
+        # spncce parameters
+        "J_range" : (1,3,2), #min, max, step
+        "hw_range" : (20,20,2.5), # min, max, step
+        "use_coulomb" : False,
+        "observables" : [("r2intr",0),("Qintr",2)],
+        "num_eigenvalues" : 10,
+        "interaction_filename_template" : interaction_filename_template,
+        "coulomb_filename" : "coulomb_Nmax20_rel.dat"
+    }
+    for Nsigma_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
+    for Nmax in mcscript.utils.value_range(Nsigma_max,20,2)
+]
+
+################################################################
+# run control
+################################################################
+
+def task_descriptor(task):
+    """"""
+    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(**task))
+
+def task_pool(task):
+    """"""
+    return ("{Nsigma_max:02d}-{Nmax:02d}".format(**task))
+
+
+##################################################################
+# task control
+##################################################################
+
+mcscript.task.init(
+    task_list,
+    task_descriptor=task_descriptor,
+    task_pool=task_pool,
+    phase_handler_list=[
+        spncci.do_full_spncci_run
+        ],
+    # Note: change to mcscript.task.archive_handler_hsi for tape backup
+    archive_phase_handler_list=[mcscript.task.archive_handler_generic]
+    )
+
+################################################################
+# termination
+################################################################
+
+mcscript.termination()
