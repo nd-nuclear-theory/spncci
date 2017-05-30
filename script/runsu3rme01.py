@@ -1,7 +1,18 @@
-"""runsu3rme.py
+"""runsu3rme01.py
 
   Example run script to calculate RMEs of relative unit tensors and
   the symplectic operators (A/B/Nintr) in SU(3)-NCSM many-body basis.
+
+  Example invocation (under csh):
+
+    foreach n (00 02 04 06 08 10)
+      qsubm su3rme01 long 999 --pool="Nsigmamax${n}" --ranks=2
+    end
+
+  Then manually save the results:
+
+    cd runsu3rme01/results
+    cp *.tgz ${SPNCCI_LSU3SHELL_DIR}
 
   Language: Python 3
 
@@ -12,6 +23,7 @@
   - 5/26/17 (mac):
       + Rename from generate_lsu3shell_rmes.py to runsu3rme01.py.
       + Move task handler out to spncci.py.
+  - 5/30/17 (mac): Split out creation of unit tensors from evaluation of rmes.
 
 """
 

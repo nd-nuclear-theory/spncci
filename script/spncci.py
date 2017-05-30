@@ -159,7 +159,8 @@ def save_operator_files(task):
     """
 
     # select files to save
-    archive_file_list = glob.glob('*.PN')
+    archive_file_list = glob.glob('*.dat')
+    archive_file_list += glob.glob('*.PN')
     archive_file_list += glob.glob('*.PPNN')
 
     # generate archive
