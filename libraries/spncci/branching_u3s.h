@@ -48,7 +48,7 @@ namespace spncci
   // The idea is that states are grouped in the hierarchy
   //
   //   subspace: (omega,S)
-  //     state: (sigma,Sp,Sn)
+  //     state: (sigma,Sp,Sn) => actually baby_spncci_subspace_index stored
   //       substates: (gamma,upsilon)
   //
   // Except this has all been made rather opaque, as the state labels

@@ -51,7 +51,7 @@ namespace spncci
   // The idea is that states are grouped in the hierarchy
   //
   //   subspace: (L,S)
-  //     state: (omega)
+  //     state: (omega) => actually u3s_subspace_index stored
   //       substates: (kappa,(sigma,Sp,Sn),gamma,upsilon)
   //
   // This unfortunately means we have "thrown away" genuine labels,
@@ -125,7 +125,6 @@ namespace spncci
       HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
 
       int full_dimension() const {return full_dimension_;}
-      // int full_dimension() const {return full_dimension_;}
       int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
 
       // diagnostic output
@@ -147,9 +146,9 @@ namespace spncci
       friend class StateLS;
       std::vector<int> state_substate_offset_;  // starting index, counting (gamma,upsilon) multiplicity
       std::vector<int> state_dimension_;  // number of substates, counting (gamma,upsilon) multiplicity
-      std::vector<int> state_gamma_max_;  // gamma_max
-      std::vector<int> state_kappa_max_;  // kappa_max
-      std::vector<u3shell::U3SPN> state_sigmaSPN_;  // Sp irrep symmetry labels
+      // std::vector<int> state_gamma_max_;  // gamma_max
+      // std::vector<int> state_kappa_max_;  // kappa_max
+      // std::vector<u3shell::U3SPN> state_sigmaSPN_;  // Sp irrep symmetry labels
       std::vector<u3::U3> state_omega_;  // U(3) label
       
       // dimension, counting (kappa,gamma,upsilon) multiplicity of subspace
@@ -197,26 +196,26 @@ namespace spncci
     {
       return Subspace().state_dimension_[index()];
     }
-    int gamma_max() const
-    // Provide gamma multiplicity of Sp irrep.
-    {
-      return Subspace().state_gamma_max_[index()];
-    }
-    int kappa_max() const
-    // Provide kappa branching multiplicity of L irrep.
-    {
-      return Subspace().state_kappa_max_[index()];
-    }
-    u3shell::U3SPN sigmaSPN() const
-      // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
-      {
-        return Subspace().state_sigmaSPN_[index()];
-      }
-    u3::U3 sigma() const
-      // Extract sigma label of Sp irrep.
-      {
-        return sigmaSPN().U3();
-      }
+    // int gamma_max() const
+    // // Provide gamma multiplicity of Sp irrep.
+    // {
+    //   return Subspace().state_gamma_max_[index()];
+    // }
+    // int kappa_max() const
+    // // Provide kappa branching multiplicity of L irrep.
+    // {
+    //   return Subspace().state_kappa_max_[index()];
+    // }
+    // u3shell::U3SPN sigmaSPN() const
+    //   // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
+    //   {
+    //     return Subspace().state_sigmaSPN_[index()];
+    //   }
+    // u3::U3 sigma() const
+    //   // Extract sigma label of Sp irrep.
+    //   {
+    //     return sigmaSPN().U3();
+    //   }
     u3::U3 omega() const
       // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
       {

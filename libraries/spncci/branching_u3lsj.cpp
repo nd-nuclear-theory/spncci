@@ -26,6 +26,8 @@ namespace spncci
     // save labels
     labels_ = LSPair(L,S);
 
+    // // old aem code:
+    //
     // int sector_index=0;
     // int state_index=0;
     // // iterate over U(3)xSU(2) irreps
@@ -51,6 +53,41 @@ namespace spncci
 
     // scan SpaceU3S for states to accumulate
     int substate_offset = 0;  // accumulated offset
+    for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
+      {
+
+        // set up alias
+        const SubspaceU3S& u3s_subspace = u3s_space.GetSubspace(u3s_subspace_index);
+
+        // determine branching multiplicity to the specified L
+        int kappa_max=u3::BranchingMultiplicitySO3(u3s_subspace.x(),L);
+
+        // short circuit if subspace not relevant
+        if ((kappa_max==0)||(S!=u3s_subspace.S()))
+          continue;
+
+        // push state
+        PushStateLabels(StateLabelsType(u3s_subspace_index));
+
+        // record state multiplicity indexing information
+        state_substate_offset_.push_back(substate_offset);
+        int state_dimension = u3s_subspace.full_dimension();
+        state_dimension_.push_back(state_dimension);
+
+        // store state U3 irrep information
+        state_omega_.push_back(u3s_subspace.omega());
+
+        // store state symplectic irrep information -- NOT WELL DEFINED
+        // state_sigmaSPN_.push_back(baby_spncci_subspace.omegaSPN());
+        // state_gamma_max_.push_back(baby_spncci_subspace.gamma_max());
+
+        // accumulate offset for next state
+        substate_offset += state_dimension;
+        
+      }
+
+    // store final full dimension
+    full_dimension_ = substate_offset;
 
   }
 
@@ -62,14 +99,20 @@ namespace spncci
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
     // iterate over U(3)xSU(2) irreps
-    for(int subspace_index=0; subspace_index<u3s_space.size(); ++subspace_index)
+    for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
     // for(auto u3s_subspace : u3s_space)
       {
-        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(subspace_index);
+        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
         HalfInt S(u3s_subspace.S());
         // iterate through omega space
         u3::U3 omega(u3s_subspace.omega());
         // interate over possible L values
+        //
+        // CAUTION (mac): I believe we risk creating empty LS spaces.
+        // The (L,S) pairs used in creating LS subspaces are
+        // determined purely by triangularity JxS->L without regard to
+        // whether or not this L exists in the branching of any U3
+        // subspace ottained for that S.
         for(int L=int(abs(S-J)); L<=(S+J); ++L)
           {
             if(lookup_.count(std::pair<int,HalfInt>(L,S)))
