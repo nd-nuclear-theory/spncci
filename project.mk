@@ -34,7 +34,57 @@ modules += programs/linear_algebra
 modules += programs/spncci
 
 ################################################################
-# external template libraries
+# extras -- list of extra files to be included
+# in distribution tar file
+################################################################
+
+extras :=
+
+################################################################
+# project-specific make settings and rules
+################################################################
+
+# gsl
+LDLIBS += -lgsl 
+LDLIBS += -lgslcblas 
+CPPFLAGS += -DHAVE_INLINE
+
+# Eigen
+CPPFLAGS += -DEIGEN_DONT_PARALLELIZE
+
+# verbosity level
+CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
+
+# spline submodule
+#   map vs. hash for space lookup in basis module
+CPPFLAGS += -DBASIS_HASH
+
+# spncci program algorithm choices
+#   map vs. hash unit tensor sectors 
+CPPFLAGS += -DNOHASH_UNIT_TENSOR
+#   precalculation and caching of U coefficients
+CPPFLAGS += -DUSE_U_COEF_CACHE
+
+################################################################
+# SU3LIB settings
+################################################################
+
+## # link to su3lib under lsu3shell
+## LDFLAGS += -L../lsu3shell/libraries/su3lib
+
+# numerical precision
+#   SU3DBL: double precision
+#   SU3QUAD: quad precision for ifort
+#   SU3QUAD_GNU: quad precision for gnu gfortran
+FFLAGS += -DSU3QUAD_GNU
+
+# compile-time setting of irrep range
+#
+#   SU3LM82: lambda+mu<82 instead of <42
+FFLAGS += -DSU3LM82
+
+################################################################
+# spectra -- external template library
 #
 # This should arguably go in config.mk, but it is being placed
 # here temporarily to keep config.mk standardized with the shell
@@ -52,73 +102,11 @@ modules += programs/spncci
 # The spncci project uses the long form for eigen3 includes (e.g.,
 # "eigen3/Eigen/Core"), but Spectra uses short form for eigen3
 # includes (e.g., "Eigen/Core").  We therefore explicitly include the
-# preprocessor option "-I${EIGEN3_DIR}/include/eigen3".
+# preprocessor option "-I${EIGEN3_DIR}/include/eigen3" via
+# search_dirs_include.
 
 search_prefix += $(SPECTRA_DIR)
 search_dirs_include += $(EIGEN3_DIR)/include/eigen3
-
-
-################################################################
-# extras -- list of extra files to be included
-# in distribution tar file
-################################################################
-
-extras :=
-
-################################################################
-# additional project-specific make settings and rules
-################################################################
-
-# Gnu Scientific Library
-LDLIBS += -lgsl 
-LDLIBS += -lgslcblas 
-CPPFLAGS += -DHAVE_INLINE
-
-# Eigen
-CPPFLAGS += -DEIGEN_DONT_PARALLELIZE
-
-# verbosity level
-CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
-
-# program algorithm choices
-#   hash function
-CPPFLAGS += -DBOOSTHASH
-#   map vs. hash unit tensor sectors 
-CPPFLAGS += -DNOHASH_UNIT_TENSOR
-#   precalculation and caching of U coefficients
-CPPFLAGS += -DUSE_U_COEF_CACHE
-#   map vs. hash for space lookup in basis module
-CPPFLAGS += -DBASIS_HASH
-
-# debugging mode
-#
-# Define environment variable DEBUG on make command line to enable.
-ifdef DEBUG
-CXXFLAGS += -g
-endif
-
-# optimiation mode
-CXXFLAGS += -O3
-
-#for lots of output
-# -DVERBOSE 
-
-# SU3LIB numerical precision
-#   Set flag SU3DBL for double precision or SU3QUAD for quad precision.
-#   Note: quad precision requires ifort compiler
-
-# double precision
-# FFLAGS += -DSU3DBL
-# quad precision for ifort
-# FFLAGS += -DSU3QUAD
-# quad precision for gnu gfortran
-FFLAGS += -DSU3QUAD_GNU
-
-# lambda+mu<82 instead of <42
-FFLAGS += -DSU3LM82
-
-# BOOST -- lsu3shell flags
-## LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
 
 ################################################################
 # special targets
