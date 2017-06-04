@@ -9,7 +9,7 @@
   Example invocation (under csh):
 
     foreach nslaves (01 02 04 08 16 32)
-      @nranks = ${nslaves} +1
+      @ nranks = ${nslaves} + 1
       qsubm su3rme02 long 999 --pool="nslaves${nslaves}" --ranks=${nranks}
     end
 
