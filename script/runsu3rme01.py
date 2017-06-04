@@ -6,7 +6,7 @@
   Example invocation (under csh):
 
     foreach n (00 02 04 06 08 10)
-      qsubm su3rme01 long 999 --pool="Nsigmamax${n}" --ranks=2
+      qsubm su3rme01 long 999 --pool="Nsigmamax${n}" --ranks=24
     end
 
   Then manually save the results:
