@@ -1,27 +1,45 @@
 """spncci.py -- define scripting for spncci runs
 
-
     Environment variables:
-        SPNCCI_INTERACTION_DIR -- base directory for relative lsjt interaction files
-        SPNCCI_LSU3SHELL_DIR -- base directory for unit tensor rme files
-        SPNCCI_PROJECT_ROOT_DIR -- root directory under which lsu3shell and spncci codes are found
+
+        SPNCCI_PROJECT_ROOT_DIR -- root directory under which
+            lsu3shell and spncci codes are found
+
+        SPNCCI_OPERATOR_DIR -- base directory for relative operator
+            files (colon-delimited search path); operator files will
+            be sought within subdirectories named in
+            spncci.operator_subdirectory_list
+
+        SPNCCI_SU3RME_DIR -- base directory for su3rme files
+            (colon-delimited search path); su3rme files will be sought
+            within subdirectories named in spncci.su3rme_subdirectory_list
+
+        SPNCCI_INTERACTION_DIR -- base directory for relative lsjt
+            interaction files (colon-delimited search path);
+            interaction files will be sought within subdirectories
+            named in spncci.interaction_subdirectory_list
 
         Ex (personal workstation):
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
-            setenv SPNCCI_LSU3SHELL_DIR ${HOME}/data/spncci/lsu3shell
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
+            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
 
         Ex (NDCRC nuclthy):
-            setenv SPNCCI_INTERACTION_DIR /afs/crc.nd.edu/group/nuclthy/data/interaction/rel
-            setenv SPNCCI_LSU3SHELL_DIR /afs/crc.nd.edu/group/nuclthy/data/spncci/lsu3shell
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/afs/crc.nd.edu/group/nuclthy/data/spncci/operator
+            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/afs/crc.nd.edu/group/nuclthy/data/spncci/su3rme
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
 
         Ex (NERSC m2032):
-            setenv SPNCCI_INTERACTION_DIR /project/projectdirs/m2032/data/interaction/rel
-            setenv SPNCCI_LSU3SHELL_DIR /project/projectdirs/m2032/data/spncci/lsu3shell
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
+            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/project/projectdirs/m2032/data/spncci/su3rme
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
 
-    You will also need this directory to be in your Python path:
+    You will also need the directory containing the present script
+    file (spncci.py) to be in your Python path:
+
         setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
     Task parameters:
@@ -60,6 +78,8 @@
       + Remove LSU3shell load files.
   5/20/17 (mac): Split out generation of relative operators and calculation of SU(3)
       RMEs.
+  6/4/17 (mac): Add search paths for input files.
+
 """
   
 import glob
@@ -72,8 +92,12 @@ import os
 
 # environment configuration variables
 project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
-interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
-unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
+interaction_directory_list = os.environ["SPNCCI_INTERACTION_DIR"].split(":")
+interaction_subdirectory_list = []
+operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
+operator_subdirectory_list = []
+su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
+su3rme_subdirectory_list = []
 
 # executable files
 # ... from lsu3shell
@@ -207,13 +231,12 @@ def retrieve_operator_files(task):
 
     # identify archive file
     descriptor = relative_operator_descriptor(task)
-    archive_filename = os.path.join(
-        unit_tensor_directory,
-        "relative-operators-{}.tgz".format(descriptor)
+    archive_filename = mcscript.utils.search_in_subdirectories(
+        operator_directory_list,
+        operator_subdirectory_list,
+        "relative-operators-{}.tgz".format(descriptor),
+        error_message="relative operator archive file not found"
     )
-    if (not os.path.exists(archive_filename)):
-        print("Looking for {}".format(archive_filename))
-        raise mcscript.exception.ScriptError("relative operator file not found")
 
     # extract archive contents
     mcscript.call(
@@ -362,13 +385,12 @@ def retrieve_su3rme_files(task):
 
     # identify archive file
     su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
-    archive_filename = os.path.join(
-        unit_tensor_directory,
-        "su3rme-{}.tgz".format(su3rme_descriptor)
+    archive_filename = mcscript.utils.search_in_subdirectories(
+        su3rme_directory_list,
+        su3rme_subdirectory_list,
+        "su3rme-{}.tgz".format(su3rme_descriptor),
+        error_message="SU(3) RME archive file not found"
     )
-    if (not os.path.exists(archive_filename)):
-        print("Looking for {}".format(archive_filename))
-        raise mcscript.exception.ScriptError("su3rme file not found")
 
     # set up data directory
     if (not os.path.exists("lsu3shell_rme")):
@@ -444,10 +466,12 @@ def generate_observable_rmes(task):
     for hw in mcscript.utils.value_range(*task["hw_range"]):    
 
         # generate load file
-        interaction_filename=os.path.join(
-            interaction_directory,
-            task["interaction_filename_template"].format(hw=hw)
-            )
+        interaction_filename = mcscript.utils.search_in_subdirectories(
+            interaction_directory_list,
+            interaction_subdirectory_list,
+            task["interaction_filename_template"].format(hw=hw),
+            error_message="relative interaction file not found"
+        )
         hamiltonian_input_lines = [
             "{}".format(hw),
             "Tintr 1.",
@@ -455,7 +479,12 @@ def generate_observable_rmes(task):
         ]
 
         if task["use_coulomb"]==True:
-            coulomb_filename=os.path.join(interaction_directory,task["coulomb_filename"])
+            coulomb_filename = mcscript.utils.search_in_subdirectories(
+                interaction_directory_list,
+                interaction_subdirectory_list,
+                task["coulomb_filename"],
+                error_message="relative interaction file not found (for Coulomb interaction)"
+            )
             hamiltonian_input_lines+=["INT 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)

@@ -22,17 +22,21 @@ import spncci
 mcscript.init()
 
 ##################################################################
-# directory configuration
+# data file search paths
 ##################################################################
 
-# interaction filename template:
-#   -- file will be sought under SPNCCI_INTERACTION_DIR
-#   -- you can use dummy variable hw in format specification
-interaction_filename_template = os.path.join("JISP16_Nmax20","JISP16_Nmax20_hw{hw:2.1f}_rel.dat")
+spncci.su3rme_subdirectory_list += ["runsu3rme01","runsu3rme02"]
+
+spncci.interaction_subdirectory_list += ["JISP16_Nmax20"]
 
 ##################################################################
 # build task list
 ##################################################################
+
+# interaction filename template
+#
+# can use dummy variable hw in format specification
+interaction_filename_template = "JISP16_Nmax20_hw{hw:2.1f}_rel.dat"
 
 task_list = [
     {

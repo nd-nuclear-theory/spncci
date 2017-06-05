@@ -8,9 +8,14 @@
 
   Example invocation (under csh):
 
-    foreach nslaves (01 02 04 08 16 32)
+    foreach nslaves (01 04 16 64)
       @ nranks = ${nslaves} + 1
-      qsubm su3rme02 long 999 --pool="nslaves${nslaves}" --ranks=${nranks}
+      qsubm su3rme02 long 2880 --pool="nslaves${nslaves}" --ranks=${nranks}
+    end
+
+    foreach nslaves (01 04 16 64)
+      @ nranks = ${nslaves} + 1
+      qsubm su3rme02 long 2880 --pool="nslaves${nslaves}" --ranks=${nranks}
     end
 
 
@@ -33,11 +38,17 @@ import spncci
 mcscript.init()
 
 ##################################################################
+# data file search paths
+##################################################################
+
+spncci.operator_subdirectory_list += ["rununittensor01"]
+
+##################################################################
 # build task list
 ##################################################################
 
-Nsigma_max_list = mcscript.utils.value_range(0,10,2)
-nslaves_list = [2**k for k in mcscript.utils.value_range(0,5,1)]
+Nsigma_max_list = mcscript.utils.value_range(0,6,2)
+nslaves_list = [2**k for k in mcscript.utils.value_range(0,6,2)]
 task_list = [
     {
         "nuclide" : (2,2),
@@ -57,12 +68,12 @@ task_list = [
 ]
 
 
-def do_runs(task):
-    """ Do runs iterating over Nmax."""
-
-    for Nsigma_max in Nsigma_max_list:
-        task["Nsigma_max"] = Nsigma_max
-        spncci.do_generate_lsu3shell_rmes(task)
+## def do_runs(task):
+##     """ Do runs iterating over Nmax."""
+## 
+##     for Nsigma_max in Nsigma_max_list:
+##         task["Nsigma_max"] = Nsigma_max
+##         spncci.do_generate_lsu3shell_rmes(task)
 
 ################################################################
 # run control
@@ -85,7 +96,7 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        do_runs
+        spncci.do_generate_lsu3shell_rmes
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]

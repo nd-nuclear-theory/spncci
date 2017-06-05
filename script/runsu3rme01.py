@@ -11,8 +11,10 @@
 
   Then manually save the results:
 
-    cd runsu3rme01/results
-    cp *.tgz ${SPNCCI_LSU3SHELL_DIR}
+    cp -rv runsu3rme01/results ${SPNCCI_SU3RME_DIR}/runsu3rme01
+
+  (Of course, the shorthand ${SPNCCI_SU3RME_DIR} only works if
+  SPNCCI_SU3RME_DIR is a single directory, not a list of directories.)
 
   Language: Python 3
 
@@ -35,6 +37,12 @@ import mcscript
 import spncci
 
 mcscript.init()
+
+##################################################################
+# data file search paths
+##################################################################
+
+spncci.operator_subdirectory_list += ["rununittensor01xx"]
 
 ##################################################################
 # build task list
@@ -77,8 +85,7 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        spncci.do_generate_lsu3shell_rmes,
-        spncci.retrieve_su3rme_files  # for debugging: to test of file retrieval
+        spncci.do_generate_lsu3shell_rmes
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]

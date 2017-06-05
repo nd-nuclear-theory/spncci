@@ -11,15 +11,10 @@
 
   Then manually save the results:
 
-    cp rununittensor01/results/*.tgz ${SPNCCI_LSU3SHELL_DIR}
+    cp -rv rununittensor01/results ${SPNCCI_OPERATOR_DIR}/rununittensor01
 
-  Phases:
-
-    0: Generate RMEs.  This is the only phase you need to run.
-
-    1: Attempt readback of RMEs from SPNCCI_LSU3SHELL_DIR.  This is
-        purely for illustrative/testing purposes.
-
+  (Of course, the shorthand ${SPNCCI_OPERATOR_DIR} only works if
+  SPNCCI_OPERATOR_DIR is a single directory, not a list of directories.)
 
   Language: Python 3
 
