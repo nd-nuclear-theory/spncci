@@ -231,7 +231,7 @@ def generate_observable_rmes(task):
     A = int(task["nuclide"][0]+task["nuclide"][1])
     Nmax=task["Nmax"]
     J0=0
-    T0=-1
+    T0=0
     g0=0
     J_max_jisp=4
     J_max_coulomb=21
