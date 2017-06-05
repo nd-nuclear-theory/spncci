@@ -8,7 +8,8 @@
 
   2/19/17 (mac): Extracted from unit tensor test codes
     (compute_unit_tensor_rmes.cpp and explicit.cpp).
-
+  6/4/17 (mac): Revise to rescale rmes from relative to intrinsic operators
+    on input
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_IO_CONTROL_H_
@@ -32,15 +33,10 @@ namespace spncci
     ReadLSU3ShellSymplecticOperatorRMEs(
         const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
         const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::string& Brel_filename,
-        u3shell::SectorsU3SPN& Brel_sectors,
-        basis::MatrixVector& Brel_matrices,
-        const std::string& Arel_filename,
-        u3shell::SectorsU3SPN& Arel_sectors,
-        basis::MatrixVector& Arel_matrices,
-        const std::string& Nrel_filename,
-        u3shell::SectorsU3SPN& Nrel_sectors,
-        basis::MatrixVector& Nrel_matrices
+        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, basis::MatrixVector& Bintr_matrices,
+        const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, basis::MatrixVector& Aintr_matrices,
+        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, basis::MatrixVector& Nintr_matrices,
+        int A
       );
   // Read lsu3shell RMEs for basic symplectic generator
   // operators.
@@ -50,11 +46,11 @@ namespace spncci
   // Arguments:
   //   lsu3shell_basis_table (input): lsu3shell basis data
   //   lsu3shell_space (input): lsu3shell basis
-  //   <operator>_filename (input): rme filename
-  //     for <operator> in Arel, Brel, Nrel
-  //   <operator>_sectors (output): U3SPN sectors
-  //   <operator>_matrices (output): matrices of RMEs
-
+  //   For <operator> in {A,B,N}:
+  //     <operator>rel_filename (input): rme filename
+  //     <operator>intr_sectors (output): U3SPN sectors
+  //     <operator>intr_matrices (output): matrices of RMEs
+  //   A (input): nucleon number
 
   void
   ReadLSU3ShellSeedUnitTensorRMEs(

@@ -118,7 +118,7 @@ namespace spncci
       // default constructor -- provided since required for certain
       // purposes by STL container classes (e.g., std::vector::resize)
 
-      SubspaceLS(const int& L, const HalfInt& S,const SpaceU3S& u3s_space);
+      SubspaceLS(int L, HalfInt S,const SpaceU3S& u3s_space);
 
       // accessors
       int L() const{return std::get<0>(GetSubspaceLabels());}

@@ -69,6 +69,7 @@
   University of Notre Dame
 
   2/20/17 (mac): Created (starting from explicit.cpp).
+  6/5/17 (mac): Read relative rather than intrinsic symplectic operators.
 ****************************************************************/
 
 #include <cstdio>
@@ -106,10 +107,11 @@ namespace spncci
     std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
     std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>>& observable_symmetries_u3s
     )
-  // Reads in relative observable U(3)xSU(2)xSU(2) tensor components in from files and 
-  // generates a list of observable symmetries (u3shell::IndexedOperatorLabelsU3S) for 
-  // each observable.  Tensor componenets are  accumulated over all hw values 
-  // (interactions may have different tensor componenets depending on hw value). 
+  // Reads in relative observable U(3)xSU(2)xSU(2) tensor components
+  // in from files and generates a list of observable symmetries
+  // (u3shell::IndexedOperatorLabelsU3S) for each observable.  Tensor
+  // components are accumulated over all hw values (interactions may
+  // have different tensor components depending on hw value).
   //
   //  Inputs:
   //    Nmax (int) : Oscillator truncation
@@ -790,19 +792,20 @@ int main(int argc, char **argv)
   Timer timer_lgi;
   timer_lgi.Start();
 
-  u3shell::SectorsU3SPN Brel_sectors, Arel_sectors, Nrel_sectors;
-  basis::MatrixVector Brel_matrices, Arel_matrices, Nrel_matrices;
+  u3shell::SectorsU3SPN Bintr_sectors, Aintr_sectors, Nintr_sectors;
+  basis::MatrixVector Bintr_matrices, Aintr_matrices, Nintr_matrices;
   spncci::ReadLSU3ShellSymplecticOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
-      run_parameters.Brel_filename,Brel_sectors,Brel_matrices,
-      run_parameters.Arel_filename,Arel_sectors,Arel_matrices,
-      run_parameters.Nrel_filename,Nrel_sectors,Nrel_matrices
+      run_parameters.Brel_filename,Bintr_sectors,Bintr_matrices,
+      run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
+      run_parameters.Nrel_filename,Nintr_sectors,Nintr_matrices,
+      run_parameters.A
     );
 
-  const u3shell::SectorsU3SPN& Ncm_sectors = Nrel_sectors;
+  const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
   basis::MatrixVector Ncm_matrices;
   lsu3shell::GenerateLSU3ShellNcmRMEs(
-      lsu3shell_space,Nrel_sectors,Nrel_matrices,
+      lsu3shell_space,Nintr_sectors,Nintr_matrices,
       run_parameters.A,
       Ncm_matrices
     );
@@ -812,7 +815,7 @@ int main(int argc, char **argv)
 
   lgi::GenerateLGIExpansion(
       lsu3shell_space, 
-      Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
+      Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
       run_parameters.Nsigma_0,
       lgi_families,lgi_expansions
     );
@@ -907,17 +910,18 @@ int main(int argc, char **argv)
   u3shell::RelativeUnitTensorSpaceU3S 
     unit_tensor_space(run_parameters.Nmax,run_parameters.N1v,unit_tensor_labels);
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////
-  //  For testing, get lsu3shell expansion of full spncci basis
-  ///////////////////////////////////////////////////////////////////////////////////////////////////        
-  if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
-  {
-  basis::MatrixVector spncci_expansions;
-  spncci::ConstructSpNCCIBasisExplicit(
-      lsu3shell_space,spncci_space,lgi_expansions,baby_spncci_space,
-      k_matrix_cache,Arel_sectors,Arel_matrices,spncci_expansions
-    );
-  }
+  // ///////////////////////////////////////////////////////////////////////////////////////////////////
+  // //  For testing, get lsu3shell expansion of full spncci basis
+  // ///////////////////////////////////////////////////////////////////////////////////////////////////        
+  // if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+  // {
+  // basis::MatrixVector spncci_expansions;
+  // spncci::ConstructSpNCCIBasisExplicit(
+  //     lsu3shell_space,spncci_space,lgi_expansions,baby_spncci_space,
+  //     k_matrix_cache,Aintr_sectors,Aintr_matrices,spncci_expansions
+  //   );
+  // }
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //  Read in observables  
   ///////////////////////////////////////////////////////////////////////////////////////////////////        
@@ -1232,6 +1236,7 @@ int main(int argc, char **argv)
   for (const HalfInt J : run_parameters.J_values)
     {
       spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
+      std::cout << fmt::format("Branching for J={}: LS subspaces {}",J.Str(),spaces_lsj[J].size()) << std::endl;
     }
 
   std::cout << "Construct branched observable matrices..." << std::endl;

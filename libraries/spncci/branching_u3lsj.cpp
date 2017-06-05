@@ -20,8 +20,10 @@
 namespace spncci
 {
 
-  SubspaceLS::SubspaceLS(const int& L, const HalfInt& S, const SpaceU3S& u3s_space)
+  SubspaceLS::SubspaceLS(int L, HalfInt S, const SpaceU3S& u3s_space)
   {
+
+    // std::cout << fmt::format("[Building LS subpsace: (L,S) = ({},{})]",L,S) << std::endl;
 
     // save labels
     labels_ = LSPair(L,S);
@@ -49,8 +51,6 @@ namespace spncci
     //       }
     //   }
 
-    // TODO: EDITS IN PROGRESS
-
     // scan SpaceU3S for states to accumulate
     int substate_offset = 0;  // accumulated offset
     for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
@@ -62,7 +62,7 @@ namespace spncci
         // determine branching multiplicity to the specified L
         int kappa_max=u3::BranchingMultiplicitySO3(u3s_subspace.x(),L);
 
-        // short circuit if subspace not relevant
+        // short circuit if U3S subspace not relevant to current LS subspace
         if ((kappa_max==0)||(S!=u3s_subspace.S()))
           continue;
 
@@ -89,6 +89,8 @@ namespace spncci
     // store final full dimension
     full_dimension_ = substate_offset;
 
+    // std::cout << fmt::format("Subspace: size {}, full_dimension {}",size(),full_dimension()) << std::endl;
+
   }
 
   std::string SubspaceLS::Str() const
@@ -98,14 +100,20 @@ namespace spncci
 
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
-    // iterate over U(3)xSU(2) irreps
+
+    // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
+
+    // iterate over U(3)xSU(2) subspaces
     for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
     // for(auto u3s_subspace : u3s_space)
       {
         const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
-        HalfInt S(u3s_subspace.S());
+        HalfInt S = u3s_subspace.S();
         // iterate through omega space
-        u3::U3 omega(u3s_subspace.omega());
+        u3::U3 omega = u3s_subspace.omega();
+
+        // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
+
         // interate over possible L values
         //
         // CAUTION (mac): I believe we risk creating empty LS spaces.
@@ -113,9 +121,11 @@ namespace spncci
         // determined purely by triangularity JxS->L without regard to
         // whether or not this L exists in the branching of any U3
         // subspace ottained for that S.
-        for(int L=int(abs(S-J)); L<=(S+J); ++L)
+       
+        for(int L=int(abs(S-J)); L<=int(S+J); ++L)
           {
-            if(lookup_.count(std::pair<int,HalfInt>(L,S)))
+            //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
+            if(ContainsSubspace(LSPair(L,S)))
               continue;
             SubspaceLS ls_subspace(L,S,u3s_space);
             PushSubspace(ls_subspace);
