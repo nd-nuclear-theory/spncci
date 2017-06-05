@@ -55,7 +55,7 @@ task_list = [
         ## "Nmax" : None,
         "Nstep" : 2,
         "N1v" : 0,
-        "Nsigma_0" : 11,
+        "Nsigma_0" : 6,
         "Nsigma_max" : Nsigma_max,
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "su3rme_descriptor_template": spncci.su3rme_descriptor_template_Nsigmamax,
