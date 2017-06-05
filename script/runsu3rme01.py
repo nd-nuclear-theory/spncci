@@ -42,7 +42,7 @@ mcscript.init()
 # data file search paths
 ##################################################################
 
-spncci.operator_subdirectory_list += ["rununittensor01xx"]
+spncci.operator_subdirectory_list += ["rununittensor01"]
 
 ##################################################################
 # build task list
