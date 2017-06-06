@@ -422,13 +422,17 @@ def do_generate_lsu3shell_rmes(task):
     # generate basis listing for basis in which rmes were calculated
     generate_basis_table(task)
 
-    ## # do cleanup
-    ## delete_filenames+=glob.glob('*.PN')
-    ## delete_filenames+=glob.glob('*.PPNN')
-    ## mcscript.call(["rm"] + delete_filenames)
-
     # save results
     save_su3rme_files(task)
+
+    # clean up working directory
+    mcscript.call(["du","-hs","."])  # log working directory disk usage
+    delete_filenames=glob.glob('*')
+    ##delete_filenames=glob.glob('*.rme')
+    ##delete_filenames+=glob.glob('*.PN')
+    ##delete_filenames+=glob.glob('*.PPNN')
+    mcscript.call(["rm"] + delete_filenames)
+    
 
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
