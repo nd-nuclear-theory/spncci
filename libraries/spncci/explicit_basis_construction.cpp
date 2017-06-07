@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   //   // std::cout<<omega_matrix<<std::endl;
   //   // std::cout<<"Brel on omega_matrix "<<std::endl;
   //   // std::cout<<Brel*omega_matrix<<std::endl;
-  //   std::cout<<space.GetSubspace(lgi_index).GetSubspaceLabels().Str()<<std::endl;
+  //   std::cout<<space.GetSubspace(lgi_index).labels().Str()<<std::endl;
   //   std::cout<<LGIs.transpose()*Brel*omega_matrix<<std::endl<<std::endl;
 
   // }
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
     Eigen::MatrixXd& Brel=Brel_matrices[j];
     Eigen::MatrixXd omega_matrix=Arel*LGIs;
   }
-  //   std::cout<<space.GetSubspace(lgi_index).GetSubspaceLabels().Str()<<std::endl;
+  //   std::cout<<space.GetSubspace(lgi_index).labels().Str()<<std::endl;
   //   std::cout<<LGIs.transpose()*Brel*omega_matrix<<std::endl<<std::endl;
 
 
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 //   		int family_size=lgi_family.tag;
 //   		for(int i=0; i<irrep.size(); ++i)
 //   		{
-//   			u3::U3 omega(irrep.GetSubspace(i).GetSubspaceLabels());
+//   			u3::U3 omega(irrep.GetSubspace(i).labels());
 //   			int upsilon_max=irrep.GetSubspace(i).size();
 //         int cols=upsilon_max*family_size;
 //         u3shell::U3SPN u3spn_labels(u3::U3S(omega,S),Sp,Sn);
@@ -280,11 +280,11 @@ int main(int argc, char **argv)
 //             continue;
 //           // Get omega labels for lookup in irrep
 //           // Get sigma to identify irrep
-//           u3::U3 omega(space.GetSubspace(bra_index).GetSubspaceLabels().U3());
-//           std::cout<<"bra "<<space.GetSubspace(bra_index).GetSubspaceLabels().Str()<<std::endl;
+//           u3::U3 omega(space.GetSubspace(bra_index).labels().U3());
+//           std::cout<<"bra "<<space.GetSubspace(bra_index).labels().Str()<<std::endl;
 //           // Check that space is still aligned with lgi vector
-//           u3::U3 sigma2(space.GetSubspace(ket_index).GetSubspaceLabels().U3());
-//           std::cout<<"ket "<<space.GetSubspace(ket_index).GetSubspaceLabels().Str()<<std::endl;
+//           u3::U3 sigma2(space.GetSubspace(ket_index).labels().U3());
+//           std::cout<<"ket "<<space.GetSubspace(ket_index).labels().Str()<<std::endl;
 //           // sigma from lgi list and sigma2 from lookup. 
 //           assert(sigma==sigma2);
 //           // Index in sp_irrep_expansion

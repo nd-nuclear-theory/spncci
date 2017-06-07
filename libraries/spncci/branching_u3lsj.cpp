@@ -175,8 +175,8 @@ namespace spncci
           {
             int L,Lp,L0;
             HalfInt S, Sp, S0;
-            std::tie(Lp,Sp)=space_bra.GetSubspace(i).GetSubspaceLabels();
-            std::tie(L,S)=space_ket.GetSubspace(j).GetSubspaceLabels();
+            std::tie(Lp,Sp)=space_bra.GetSubspace(i).labels();
+            std::tie(L,S)=space_ket.GetSubspace(j).labels();
             std::tie(L0,S0)=tensor_label;
             if(am::AllowedTriangle(L,Lp,L0) && am::AllowedTriangle(S,Sp,S0))
               sector_labels.emplace_back(i,j,tensor_label);
@@ -221,8 +221,8 @@ namespace spncci
         int L, Lp;
         HalfInt S,Sp;
 
-        std::tie(Lp,Sp)=bra_subspace.GetSubspaceLabels();
-        std::tie(L,S)=ket_subspace.GetSubspaceLabels();
+        std::tie(Lp,Sp)=bra_subspace.labels();
+        std::tie(L,S)=ket_subspace.labels();
 
         double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
@@ -264,8 +264,8 @@ namespace spncci
             int source_dim=u3s_subspace_ket.sector_dim();
 
             // Extract source state labels 
-            const u3::U3S& omegaSp=u3s_subspace_bra.GetSubspaceLabels();
-            const u3::U3S& omegaS=u3s_subspace_ket.GetSubspaceLabels();
+            const u3::U3S& omegaSp=u3s_subspace_bra.labels();
+            const u3::U3S& omegaS=u3s_subspace_ket.labels();
             assert(omegaSp.S()==Sp);
             assert(omegaS.S()==S);
             u3::SU3 xp(omegaSp.U3().SU3());

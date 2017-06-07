@@ -117,18 +117,18 @@ namespace u3shell {
     : basis::BaseState<RelativeUnitTensorSubspaceU3S> (subspace, state_labels) {}
 
     // pass-through accessors
-    u3::SU3 x0() const {return Subspace().x0();}
-    HalfInt S0() const {return Subspace().S0();}
-    int etap() const {return Subspace().etap();}
-    int eta() const {return Subspace().eta();}
+    u3::SU3 x0() const {return subspace().x0();}
+    HalfInt S0() const {return subspace().S0();}
+    int etap() const {return subspace().etap();}
+    int eta() const {return subspace().eta();}
     int N0() const {return etap()-eta();}
 
     // state label accessors
-    int T0() const {return std::get<0>(GetStateLabels());}
-    int Sp() const {return std::get<1>(GetStateLabels());}
-    int Tp() const {return std::get<2>(GetStateLabels());}
-    int S() const {return std::get<3>(GetStateLabels());}
-    int T() const {return std::get<4>(GetStateLabels());}
+    int T0() const {return std::get<0>(labels());}
+    int Sp() const {return std::get<1>(labels());}
+    int Tp() const {return std::get<2>(labels());}
+    int S() const {return std::get<3>(labels());}
+    int T() const {return std::get<4>(labels());}
 
   };
 

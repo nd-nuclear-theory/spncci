@@ -67,13 +67,13 @@ std::map<int,std::vector<u3shell::TwoBodyUnitTensorLabelsU3ST>>
       u3::U3 omegap;
       HalfInt Sp, Tp;
       int gp;
-      std::tie(omegap,Sp,Tp,gp) =  bra_subspace.GetSubspaceLabels();
+      std::tie(omegap,Sp,Tp,gp) =  bra_subspace.labels();
 
       // extract ket subspace labels
       u3::U3 omega;
       HalfInt S, T;
       int g;
-      std::tie(omega,S,T,g) =  ket_subspace.GetSubspaceLabels();
+      std::tie(omega,S,T,g) =  ket_subspace.labels();
       if(T!=1)    // REMOVE
         continue; // REMOVE
       if(Tp!=1)   // REMOVE

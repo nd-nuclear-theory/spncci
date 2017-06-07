@@ -60,7 +60,7 @@ int main(int argc, char **argv)
       
  //      // Generate S_matrix = K_matrix^2
  //      sp3r::U3Subspace u3_subspace_p=irrep.GetSubspace(i);
- //      u3::U3 omega_p=u3_subspace_p.GetSubspaceLabels();
+ //      u3::U3 omega_p=u3_subspace_p.labels();
 
  //      int dimension_p=u3_subspace_p.size();
  //      std::cout<<omega_p.Str()<<dimension_p<<std::endl;

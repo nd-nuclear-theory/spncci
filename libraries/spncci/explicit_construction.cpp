@@ -34,7 +34,7 @@ namespace spncci
     for(int w=1; w<u3_subspaces.size(); ++w)
       {
         const sp3r::U3Subspace&  omega_subspace=u3_subspaces.GetSubspace(w);
-        u3::U3 omega(omega_subspace.GetSubspaceLabels());
+        u3::U3 omega(omega_subspace.labels());
         MultiplicityTagged<u3::SU3>::vector omegapp_list=KroneckerProduct(omega.SU3(), u3::SU3(0,2));
         // get index for omega in lsu3shell basis
         int omega_lsu3shell_subspace_index
@@ -259,8 +259,8 @@ namespace spncci
           int lsu3shell_ket_index=lsu3shell_sector.ket_subspace_index();
           int rho0=lsu3shell_sector.multiplicity_index();
 
-          u3shell::U3SPN lsu3shell_ket_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_ket_index).GetSubspaceLabels();
-          u3shell::U3SPN lsu3shell_bra_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_bra_index).GetSubspaceLabels();
+          u3shell::U3SPN lsu3shell_ket_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_ket_index).labels();
+          u3shell::U3SPN lsu3shell_bra_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_bra_index).labels();
 
           // look up unit tensor subspace index 
           u3shell::UnitTensorSubspaceLabels unit_tensor_labels(unit_tensor.x0(),unit_tensor.S0(),unit_tensor.bra().eta(),unit_tensor.ket().eta());

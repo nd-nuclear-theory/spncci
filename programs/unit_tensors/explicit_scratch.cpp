@@ -114,8 +114,8 @@ namespace spncci
               auto& sector=sectors.GetSector(s);
               int bra_index=sector.bra_subspace_index();
               int ket_index=sector.ket_subspace_index();
-              u3shell::U3SPN ket_subspace_labels=space.GetSubspace(ket_index).GetSubspaceLabels();
-              u3shell::U3SPN bra_subspace_labels=space.GetSubspace(bra_index).GetSubspaceLabels();
+              u3shell::U3SPN ket_subspace_labels=space.GetSubspace(ket_index).labels();
+              u3shell::U3SPN bra_subspace_labels=space.GetSubspace(bra_index).labels();
               u3::U3 omega=ket_subspace_labels.U3();
               u3::U3 omegap=bra_subspace_labels.U3();
               HalfInt S=ket_subspace_labels.S();
@@ -612,7 +612,7 @@ int main(int argc, char **argv)
 
   std::cout<<"printing"<<std::endl;
   for(int i=0; i<u3s_space.size(); ++i)
-    std::cout<<i<<"  "<<u3s_space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+    std::cout<<i<<"  "<<u3s_space.GetSubspace(i).labels().Str()<<std::endl;
   for(int s=0; s<matrix_vector.size();  ++s)
     {
       if (not CheckIfZeroMatrix(matrix_vector[s], 1e-4))

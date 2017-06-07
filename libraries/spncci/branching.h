@@ -1,17 +1,17 @@
 /****************************************************************
-  spncci_branching.h
+  branching.h
 
-  Basis definitions for U(3)xS and LxS branchings of SpNCCI basis.
+  Basis definitions for U(3)xS, LxS, and J branchings of SpNCCI basis.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  6/3/17 (mac): Created, as reimplementation of branching_u3s and
+  6/6/17 (mac): Created, as reimplementation of branching_u3s and
     branching_u3lsj.
 ****************************************************************/
 
-#ifndef SPNCCI_SPNCCI_SPNCCI_BRANCHING_H_
-#define SPNCCI_SPNCCI_SPNCCI_BRANCHING_H_
+#ifndef SPNCCI_SPNCCI_BRANCHING_H_
+#define SPNCCI_SPNCCI_BRANCHING_H_
 
 #include "basis/basis.h"
 // #include "am/am.h"
@@ -27,23 +27,20 @@ namespace spncci
 {
 
   ////////////////////////////////////////////////////////////////
-  // basis indexing in U3S scheme for spncci basis branching
+  // SpNCCI basis branched to U3S level
   ////////////////////////////////////////////////////////////////  
+  //
+  //   subspace: (omega,S)
+  //     state: (sigma,Sp,Sn)
+  //       substates: (gamma,upsilon)
+  //
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
-  // subspace labels: (omega,S) = u3::U3S
+  // subspace labels: (omega,S) => u3::U3S
   //
-  // state labels: (sigma,Sp,Sn,S) = u3shell::U3SPN
-  //
-  //   baby_spncci_subspace_index (int): index of BabySpNCCI subspace
-  //   from which state is drawn
-  //
-  // The idea is that states are grouped in the hierarchy
-  //
-  //   subspace: (omega,S) = u3::U3S
-  //     state: (sigma,Sp,Sn)
-  //       substates: (gamma,upsilon)
+  // state labels: (sigma,Sp,Sn,S) => u3shell::U3SPN
   //
   ////////////////////////////////////////////////////////////////
   //
@@ -58,6 +55,10 @@ namespace spncci
   //
   // Associated with each subspace is a look-up table which can look up
   // the starting index of the particular "state" in the U3S sector.  
+  //
+  //   baby_spncci_subspace_index (int): index of BabySpNCCI subspace
+  //   from which state is drawn
+  //
   //
   ////////////////////////////////////////////////////////////////
   //
@@ -160,32 +161,32 @@ namespace spncci
       {}
 
     // pass-through accessors
-    u3::U3S omegaS() const {return Subspace().omegaS();}
-    u3::U3 omega() const {return Subspace().omega();}
-    HalfInt S() const {return Subspace().S();}
-    HalfInt N() const {return Subspace().N();}
+    u3::U3S omegaS() const {return subspace().omegaS();}
+    u3::U3 omega() const {return subspace().omega();}
+    HalfInt S() const {return subspace().S();}
+    HalfInt N() const {return subspace().N();}
 
     // supplemental data accessors
     int substate_offset() const
     // Provide offset of first substate into fully expanded listing of
     // substates in subspace.
     {
-      return Subspace().state_substate_offset_[index()];
+      return subspace().state_substate_offset_[index()];
     }
     int dimension() const
     // Provide number of substates of this composite state.
     {
-      return Subspace().state_dimension_[index()];
+      return subspace().state_dimension_[index()];
     }
     u3shell::U3SPN sigmaSPN() const
       // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
       {
-        return Subspace().state_sigmaSPN_[index()];
+        return subspace().state_sigmaSPN_[index()];
       }
     int gamma_max() const
     // Provide gamma multiplicity of Sp irrep.
     {
-      return Subspace().state_gamma_max_[index()];
+      return subspace().state_gamma_max_[index()];
     }
 
     private:

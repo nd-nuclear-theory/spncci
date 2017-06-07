@@ -122,15 +122,15 @@ namespace u3shell {
   //   : basis::BaseState<TwoBodySubspaceU3ST> (subspace, state_labels) {}
 
   //   // pass-through accessors
-  //   u3::U3 omega() const {return Subspace().omega();}
-  //   int S() const {return Subspace().S();}
-  //   int T() const {return Subspace().T();}
-  //   int g() const {return Subspace().g();}
-  //   int N() const {return Subspace().N();}
+  //   u3::U3 omega() const {return subspace().omega();}
+  //   int S() const {return subspace().S();}
+  //   int T() const {return subspace().T();}
+  //   int g() const {return subspace().g();}
+  //   int N() const {return subspace().N();}
 
   //   // state label accessors
-  //   int N1() const {return std::get<0>(GetStateLabels());}
-  //   int N2() const {return std::get<1>(GetStateLabels());}
+  //   int N1() const {return std::get<0>(labels());}
+  //   int N2() const {return std::get<1>(labels());}
   //   // equivalently, int N2() const {return N()-N1();}
 
   // };
@@ -296,15 +296,15 @@ namespace u3shell {
     : basis::BaseState<RelativeCMSubspaceU3ST> (subspace, state_labels) {}
 
     // pass-through accessors
-    u3::U3 omega() const {return Subspace().omega();}
-    int S() const {return Subspace().S();}
-    int T() const {return Subspace().T();}
-    int g() const {return Subspace().g();}
-    int N() const {return Subspace().N();}
+    u3::U3 omega() const {return subspace().omega();}
+    int S() const {return subspace().S();}
+    int T() const {return subspace().T();}
+    int g() const {return subspace().g();}
+    int N() const {return subspace().N();}
 
     // state label accessors
-    int Nr() const {return std::get<0>(GetStateLabels());}
-    int Ncm() const {return std::get<1>(GetStateLabels());}
+    int Nr() const {return std::get<0>(labels());}
+    int Ncm() const {return std::get<1>(labels());}
     // equivalently, int N2() const {return N()-N1();}
 
   };
@@ -511,15 +511,15 @@ namespace u3shell {
     : basis::BaseState<TwoBodySubspaceU3ST> (subspace, state_labels) {}
 
     // pass-through accessors
-    u3::U3 omega() const {return Subspace().omega();}
-    int S() const {return Subspace().S();}
-    int T() const {return Subspace().T();}
-    int g() const {return Subspace().g();}
-    int N() const {return Subspace().N();}
+    u3::U3 omega() const {return subspace().omega();}
+    int S() const {return subspace().S();}
+    int T() const {return subspace().T();}
+    int g() const {return subspace().g();}
+    int N() const {return subspace().N();}
 
     // state label accessors
-    int N1() const {return std::get<0>(GetStateLabels());}
-    int N2() const {return std::get<1>(GetStateLabels());}
+    int N1() const {return std::get<0>(labels());}
+    int N2() const {return std::get<1>(labels());}
     // equivalently, int N2() const {return N()-N1();}
 
   };

@@ -172,32 +172,32 @@ namespace spncci
       {}
 
     // pass-through accessors
-    u3::U3S omegaS() const {return Subspace().omegaS();}
-    u3::U3 omega() const {return Subspace().omega();}
-    HalfInt S() const {return Subspace().S();}
-    HalfInt N() const {return Subspace().N();}
+    u3::U3S omegaS() const {return subspace().omegaS();}
+    u3::U3 omega() const {return subspace().omega();}
+    HalfInt S() const {return subspace().S();}
+    HalfInt N() const {return subspace().N();}
 
     // supplemental data accessors
     int substate_offset() const
     // Provide offset of first substate into fully expanded listing of
     // substates in subspace.
     {
-      return Subspace().state_substate_offset_[index()];
+      return subspace().state_substate_offset_[index()];
     }
     int dimension() const
     // Provide number of substates of this composite state.
     {
-      return Subspace().state_dimension_[index()];
+      return subspace().state_dimension_[index()];
     }
     u3shell::U3SPN sigmaSPN() const
       // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
       {
-        return Subspace().state_sigmaSPN_[index()];
+        return subspace().state_sigmaSPN_[index()];
       }
     int gamma_max() const
     // Provide gamma multiplicity of Sp irrep.
     {
-      return Subspace().state_gamma_max_[index()];
+      return subspace().state_gamma_max_[index()];
     }
 
     private:

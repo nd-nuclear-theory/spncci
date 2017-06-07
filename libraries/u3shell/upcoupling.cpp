@@ -35,8 +35,8 @@ namespace u3shell
           continue;
         Eigen::MatrixXd sector=sector_vector[index];
         auto sector_labels(sectors.GetSector(index));
-        auto bra_lsjt(sector_labels.bra_subspace().GetSubspaceLabels());
-        auto ket_lsjt(sector_labels.ket_subspace().GetSubspaceLabels());
+        auto bra_lsjt(sector_labels.bra_subspace().labels());
+        auto ket_lsjt(sector_labels.ket_subspace().labels());
         
 
         // For now we assume T==Tp for all operators.  If this is not the case, then need to change

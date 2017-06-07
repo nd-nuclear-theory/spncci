@@ -121,8 +121,8 @@ namespace spncci
       SubspaceLS(int L, HalfInt S,const SpaceU3S& u3s_space);
 
       // accessors
-      int L() const{return std::get<0>(GetSubspaceLabels());}
-      HalfInt S() const {return std::get<1>(GetSubspaceLabels());}
+      int L() const{return std::get<0>(labels());}
+      HalfInt S() const {return std::get<1>(labels());}
 
       int full_dimension() const {return full_dimension_;}
       int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
@@ -181,35 +181,35 @@ namespace spncci
       {}
 
     // pass-through accessors
-    int L() const {return Subspace().L();}
-    HalfInt S() const {return Subspace().S();}
+    int L() const {return subspace().L();}
+    HalfInt S() const {return subspace().S();}
 
     // supplemental data accessors
     int substate_offset() const
     // Provide offset of first substate into fully expanded listing of
     // substates in subspace.
     {
-      return Subspace().state_substate_offset_[index()];
+      return subspace().state_substate_offset_[index()];
     }
     int dimension() const
     // Provide number of substates of this composite state.
     {
-      return Subspace().state_dimension_[index()];
+      return subspace().state_dimension_[index()];
     }
     // int gamma_max() const
     // // Provide gamma multiplicity of Sp irrep.
     // {
-    //   return Subspace().state_gamma_max_[index()];
+    //   return subspace().state_gamma_max_[index()];
     // }
     // int kappa_max() const
     // // Provide kappa branching multiplicity of L irrep.
     // {
-    //   return Subspace().state_kappa_max_[index()];
+    //   return subspace().state_kappa_max_[index()];
     // }
     // u3shell::U3SPN sigmaSPN() const
     //   // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
     //   {
-    //     return Subspace().state_sigmaSPN_[index()];
+    //     return subspace().state_sigmaSPN_[index()];
     //   }
     // u3::U3 sigma() const
     //   // Extract sigma label of Sp irrep.
@@ -219,7 +219,7 @@ namespace spncci
     u3::U3 omega() const
       // Provide full symmetry labels (sigma,Sp,Sn,S) of Sp irrep.
       {
-        return Subspace().state_omega_[index()];
+        return subspace().state_omega_[index()];
       }
 
   };
