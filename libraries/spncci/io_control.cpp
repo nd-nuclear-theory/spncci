@@ -21,42 +21,40 @@ namespace spncci
     ReadLSU3ShellSymplecticOperatorRMEs(
         const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
         const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::string& Brel_filename,
-        u3shell::SectorsU3SPN& Brel_sectors,
-        basis::MatrixVector& Brel_matrices,
-        const std::string& Arel_filename,
-        u3shell::SectorsU3SPN& Arel_sectors,
-        basis::MatrixVector& Arel_matrices,
-        const std::string& Nrel_filename,
-        u3shell::SectorsU3SPN& Nrel_sectors,
-        basis::MatrixVector& Nrel_matrices
+        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, basis::MatrixVector& Bintr_matrices,
+        const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, basis::MatrixVector& Aintr_matrices,
+        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, basis::MatrixVector& Nintr_matrices,
+        int A
       )
   {
-    // read Brel
+    // read Brel => Bintr
     u3shell::OperatorLabelsU3ST Brel_labels(-2,u3::SU3(0,2),0,0,0);
-    Brel_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Brel_labels,true);
+    Bintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Brel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(
         Brel_filename,
         lsu3shell_basis_table,lsu3shell_space,
-        Brel_labels,Brel_sectors,Brel_matrices
+        Brel_labels,Bintr_sectors,Bintr_matrices,
+        2./A
       );
-
-    // read Arel
+    
+    // read Arel => Aintr
     u3shell::OperatorLabelsU3ST Arel_labels(2,u3::SU3(2,0),0,0,0);
-    Arel_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Arel_labels,true);
+    Aintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Arel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(
         Arel_filename,
         lsu3shell_basis_table,lsu3shell_space,
-        Arel_labels,Arel_sectors,Arel_matrices
+        Arel_labels,Aintr_sectors,Aintr_matrices,
+        2./A
       );
 
-    // read Nrel
+    // read Nrel => Nintr
     u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
-    Nrel_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Nrel_labels,true);
+    Nintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Nrel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(
         Nrel_filename,
         lsu3shell_basis_table,lsu3shell_space,
-        Nrel_labels,Nrel_sectors,Nrel_matrices
+        Nrel_labels,Nintr_sectors,Nintr_matrices,
+        2./A
       );
 
   }

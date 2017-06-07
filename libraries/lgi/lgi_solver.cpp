@@ -130,7 +130,7 @@ namespace lgi
         int nullity = null_vectors.cols();
 
         // save LGI labels, tagged by nullity as multiplicity
-        u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+        u3shell::U3SPN labels(space.GetSubspace(i).labels());          
         int Nex=int(labels.N()-Nsigma_0);
         lgi_families[i]=MultiplicityTagged<lgi::LGI>(lgi::LGI(labels,Nex),nullity);
         // .emplace_back(lgi::LGI(labels,Nex),nullity);

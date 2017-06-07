@@ -1,22 +1,63 @@
 """spncci.py -- define scripting for spncci runs
 
+    Environment variables:
+
+        SPNCCI_PROJECT_ROOT_DIR -- root directory under which
+            lsu3shell and spncci codes are found
+
+        SPNCCI_OPERATOR_DIR -- base directory for relative operator
+            files (colon-delimited search path); operator files will
+            be sought within subdirectories named in
+            spncci.operator_subdirectory_list
+
+        SPNCCI_SU3RME_DIR -- base directory for su3rme files
+            (colon-delimited search path); su3rme files will be sought
+            within subdirectories named in spncci.su3rme_subdirectory_list
+
+        SPNCCI_INTERACTION_DIR -- base directory for relative lsjt
+            interaction files (colon-delimited search path);
+            interaction files will be sought within subdirectories
+            named in spncci.interaction_subdirectory_list
+
+        Ex (personal workstation):
+            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
+            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
+
+        Ex (NDCRC nuclthy):
+            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/afs/crc.nd.edu/group/nuclthy/data/spncci/operator
+            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/afs/crc.nd.edu/group/nuclthy/data/spncci/su3rme
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
+
+        Ex (NERSC m2032):
+            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
+            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/project/projectdirs/m2032/data/spncci/su3rme
+            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
+
+    You will also need the directory containing the present script
+    file (spncci.py) to be in your Python path:
+
+        setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
     Task parameters:
 
-        # basic space parameters -- for lsu3shell rme evaluation and spncci:
-
+        # space parameters
         nuclide (tuple of int): (N,Z)
         Nmax (int): oscillator Nmax for many-body basis
         Nstep (int): step in N for many-body basis (1 or 2)
         N1v (int): valence shell oscillator N
         Nsigma_0 (float): U(1) quantum number of lowest configuration
             (in general can be half integer since contains zero-point offset)
-        Nsigma_ex_max (int): maximum oscillator exitation for LGIs
+        Nsigma_max (int): maximum oscillator exitation for LGIs
 
-        # unit tensor parameters -- for lsu3shell rme evaluation ONLY
+        # su3rme parameters
         J0 (int): restriction on J0 for unit tensors (normally -1 to include
             all J0 as needed for spncci recurrence)
-        "unit_tensor_filename_template" (str): template for unit tensor output filenames
+        "su3rme_descriptor_template" (str): template for string describing SU(3)-NCSM
+            space truncation used in SU3RME calculation
 
         # eigenspace parameters -- for spncci runs ONLY
         num_eigenvalues (int): number of eigenvalues to compute in each J space
@@ -31,6 +72,13 @@
 
   1/8/17 (aem,mac): Created with code from compute_relative_tensors_lsu3shell_rmes.py.
   2/23/17 (aem,mac): Update rme invocation and add spncci handler.
+  5/26/17 (mac):
+      + Fix notation "Nsigma_ex_max" to "Nsigma_max".
+      + Add SPNCCI_PROJECT_ROOT_DIR environment variable.
+      + Remove LSU3shell load files.
+  5/20/17 (mac): Split out generation of relative operators and calculation of SU(3)
+      RMEs.
+  6/4/17 (mac): Add search paths for input files.
 
 """
   
@@ -42,23 +90,44 @@ import os
 # global configuration
 ################################################################
 
+# environment configuration variables
+project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
+interaction_directory_list = os.environ["SPNCCI_INTERACTION_DIR"].split(":")
+interaction_subdirectory_list = []
+operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
+operator_subdirectory_list = []
+su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
+su3rme_subdirectory_list = []
+
 # executable files
-projects_root = os.path.join(os.environ["HOME"],"projects")
 # ... from lsu3shell
-recoupler_executable = os.path.join(projects_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
-su3rme_executable = os.path.join(projects_root,"lsu3shell","programs","tools","SU3RME_MPI")
-su3basis_executable = os.path.join(projects_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
+su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
+su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci
-generate_lsu3shell_relative_operators_executable = os.path.join(projects_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
-generate_relative_operator_rmes_executable = os.path.join(projects_root,"spncci","programs","operators","generate_relative_u3st_operators")
-spncci_executable_dir = os.path.join(projects_root,"spncci","programs","spncci")
+generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
+generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
+generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
+spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 
 
 ################################################################
-# relative unit tensor evaluation
+# relative operator construction (A-independent)
 ################################################################
+
+def relative_operator_descriptor(task):
+    """Generate descriptor string for use in relative operator archive
+    filename.
+
+    Returns:
+        (string): descriptor
+    """
+
+    descriptor = "Nv{N1v:d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}".format(**task)
+    return descriptor
 
 def generate_relative_operators(task):
+
     """Create recoupler input files for relative unit
     tensors and symplectic raising/lowering/N operators.
 
@@ -67,9 +136,7 @@ def generate_relative_operators(task):
 
     command_line = [
         generate_lsu3shell_relative_operators_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_ex_max:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
         "{Nstep:d}".format(**task),
         "{N1v:d}".format(**task),
         "-1",# All J0
@@ -80,12 +147,11 @@ def generate_relative_operators(task):
         mode=mcscript.CallMode.kSerial
     )
 
-
-def read_unit_tensor_list(task):
-    """ Read list of unit tensor basenames.
+def read_relative_operator_basenames(task):
+    """ Read list of relative operators basenames.
 
     Returns:
-        (list) : list of unit tensor names
+        (list) : list of relative operators basenames
     """
 
     relative_operator_filename = "relative_operators.dat"
@@ -93,14 +159,16 @@ def read_unit_tensor_list(task):
     # read list of unit tensors
     relative_operator_stream = open(relative_operator_filename,mode="rt")
     relative_operator_basename_list = [
-        line.strip()  # remove trailing newline
+        ## line.strip()  # remove trailing newline
+        (line.split())[0]  # basename is leading element on line
         for line in relative_operator_stream
     ]
     relative_operator_stream.close()
     return relative_operator_basename_list
 
 def recouple_operators(task,relative_operator_basename_list):
-    """ Invoke lsu3shell recoupler code on operators.
+    """ Invoke lsu3shell recoupler code on relative unit
+    tensors and symplectic raising/lowering/N operators.
 
     Invokes RecoupleSU3Operator.
 
@@ -122,30 +190,121 @@ def recouple_operators(task,relative_operator_basename_list):
             mode=mcscript.CallMode.kSerial
         )
 
-def calculate_rmes(task,relative_operator_basename_list):
-    """ Invoke lsu3shell SU3RME code to calculate rmes.
 
-    Invokes SU3RME_MPI.
+def save_operator_files(task):
+    """ Create archive of relative operator files.
 
-    Arguments:
-        relative_operator_basename_list (list) : list of operator file names
+    Manual follow-up: The operator files are bundled into tgz files and saved to
+    the current run's results directory.  They should then be moved
+    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
+    subsequent use.
     """
 
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_ex_max:02d}.dat".format(**task)
+    # select files to save
+    archive_file_list = glob.glob('*.dat')
+    archive_file_list += glob.glob('*.PN')
+    archive_file_list += glob.glob('*.PPNN')
 
-    # iterate over unit tensors
-    # for basename in relative_operator_basename_list:
+    # generate archive
+    descriptor = relative_operator_descriptor(task)
+    archive_filename = "relative-operators-{}.tgz".format(descriptor)
+    mcscript.call(
+        [
+            "tar", "-zcvf", archive_filename
+        ] + archive_file_list
+    )
 
-        # # generate load file
-        # input_lines = [
-        #     "00",   # dummy hw value
-        #     "INT {}".format(basename)
-        # ]
-        # load_filename = "{}.load".format(basename)
-        # # rme_filename="{}.rme".format(basename)
-        # mcscript.utils.write_input(load_filename,input_lines,verbose=True)
-    
-    # print("load_files finished")
+    # move archive to results directory (if in multi-task run)
+    if (mcscript.task.results_dir is not None):
+        mcscript.call(
+            [
+                "mv",
+                "--verbose",
+                archive_filename,
+                "--target-directory={}".format(mcscript.task.results_dir)
+            ]
+        )
+
+def retrieve_operator_files(task):
+    """ Retrieve archive of relative operator files.
+    """
+
+    # identify archive file
+    descriptor = relative_operator_descriptor(task)
+    archive_filename = mcscript.utils.search_in_subdirectories(
+        operator_directory_list,
+        operator_subdirectory_list,
+        "relative-operators-{}.tgz".format(descriptor),
+        error_message="relative operator archive file not found"
+    )
+
+    # extract archive contents
+    mcscript.call(
+        [
+            "tar", "xf", archive_filename
+        ]
+    )
+
+
+def do_generate_relative_operators(task):
+    """Control code for generating relative unit tensors and symplectic
+    raising/lowering/N operators.
+
+    """
+
+    # generate operators and their rmes
+    generate_relative_operators(task)
+    relative_operator_basename_list = read_relative_operator_basenames(task)
+    recouple_operators(task,relative_operator_basename_list)
+
+    ## # do cleanup
+    ## deletable_filenames=glob.glob('*.recoupler')
+    ## mcscript.call(["rm"] + deletable_filenames)
+
+    # save results
+    save_operator_files(task)
+
+
+################################################################
+# relative operator SU(3) RME construction
+################################################################
+
+# su3rme descriptor string
+#
+# This describes the many-body space on which SU(3) RMEs are being
+# calculated.  It is used, e.g., in the filename of the archive file
+# in which the SU(3) RMEs are stored.
+
+# descriptor string for straightforward case of pure Nsigmamax truncation
+su3rme_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
+
+def generate_model_space_file(task):
+    """Create LSU3shell model space file for SU3RME.
+
+    Invokes generate_lsu3shell_model_space.
+    """
+
+    command_line = [
+        generate_lsu3shell_model_space_executable,
+        "{nuclide[0]:d}".format(**task),
+        "{nuclide[1]:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
+        "{Nstep:d}".format(**task)
+    ]
+    mcscript.call(
+        command_line,
+        mode=mcscript.CallMode.kSerial
+    )
+
+def calculate_rmes(task):
+    """ Invoke lsu3shell SU3RME code to calculate rmes of relative unit
+    tensors and symplectic raising/lowering/N operators in SU(3)-NCSM basis.
+
+    Invokes SU3RME_MPI.
+    """
+
+    model_space_filename = "model_space.dat".format(**task)
+
     # call SU3RME
     command_line = [
         su3rme_executable,
@@ -158,35 +317,6 @@ def calculate_rmes(task,relative_operator_basename_list):
         mode=mcscript.CallMode.kHybrid
     )
 
-def generate_lsu3shell_rmes(task):
-    """Generate SU(3)-NCSM RMEs for relative unit tensors and symplectic
-    raising/lowering/N operators.
-
-    Output directory: lsu3shell_rme
-    """
-    
-    # set up data directory
-    mcscript.utils.mkdir("lsu3shell_rme")
-    os.chdir("lsu3shell_rme")
-
-    # generate operators and their rmes
-    generate_relative_operators(task)
-    relative_operator_basename_list = read_unit_tensor_list(task)
-    recouple_operators(task,relative_operator_basename_list)
-    calculate_rmes(task,relative_operator_basename_list)
-
-    # do cleanup
-    delete_filenames=glob.glob('*.recoupler')
-    delete_filenames+=glob.glob('*.PN')
-    delete_filenames+=glob.glob('*.PPNN')
-    delete_filenames+=glob.glob('*.load')
-    mcscript.call(["rm"] + delete_filenames)
-
-    # generate basis listing for basis in which rmes were calculated
-    generate_basis_table(task)
-
-    # restore working directory
-    os.chdir("..")  
 
 def generate_basis_table(task):
     """Create SU(3)-NCSM basis table.
@@ -197,7 +327,7 @@ def generate_basis_table(task):
     """
 
     print("{nuclide}".format(**task))
-    model_space_filename = "model_space_{nuclide[0]:02d}_{nuclide[1]:02d}_Nmax{Nsigma_ex_max:02d}.dat".format(**task)
+    model_space_filename = "model_space.dat".format(**task)
     basis_listing_filename = "lsu3shell_basis.dat"
 
     command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
@@ -206,8 +336,106 @@ def generate_basis_table(task):
         mode=mcscript.CallMode.kSerial
     )
 
+def save_su3rme_files(task):
+    """Create archive of SU(3) RMEs of relative operators.
+
+    Some auxiliary files (e.g., the list of operators) are saved as well.
+
+    Manual follow-up: The rme files are bundled into tgz files and saved to
+    the current run's results directory.  They should then be moved
+    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
+    subsequent use.
+
+    """
+
+    # select files to save
+    ## archive_file_list = glob.glob(os.path.join("lsu3shell_rme",'*.dat'))
+    ## archive_file_list += glob.glob(os.path.join("lsu3shell_rme",'*.dat'))
+    archive_file_list = glob.glob('*.dat')
+    archive_file_list += glob.glob('*.rme')
+
+    # generate archive
+    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+    archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
+    mcscript.call(
+        [
+            "tar", "-zcvf", archive_filename
+        ] + archive_file_list
+    )
+
+    # move archive to results directory (if in multi-task run)
+    if (mcscript.task.results_dir is not None):
+        mcscript.call(
+            [
+                "mv",
+                "--verbose",
+                archive_filename,
+                "--target-directory={}".format(mcscript.task.results_dir)
+            ]
+        )
+
+    # cleanup
+    ## mcscript.call(["rm","-r","lsu3shell_rme"])
+
+def retrieve_su3rme_files(task):
+    """ Retrieve archive of relative operator SU(3) RME files.
+
+    Files are retrieved into a subdirectory named lsu3shell_rme.
+    """
+
+    # identify archive file
+    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+    archive_filename = mcscript.utils.search_in_subdirectories(
+        su3rme_directory_list,
+        su3rme_subdirectory_list,
+        "su3rme-{}.tgz".format(su3rme_descriptor),
+        error_message="SU(3) RME archive file not found"
+    )
+
+    # set up data directory
+    if (not os.path.exists("lsu3shell_rme")):
+        mcscript.utils.mkdir("lsu3shell_rme")
+
+    # extract archive contents
+    mcscript.call(
+        [
+            "tar",
+            "-xvf",
+            archive_filename,
+            "--directory=lsu3shell_rme"
+        ]
+    )
+
+def do_generate_lsu3shell_rmes(task):
+    """
+    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
+    unit tensors and symplectic raising/lowering/N operators.
+    """
+
+    # retrieve relevant operator files
+    retrieve_operator_files(task)
+
+    # generate operators rmes
+    generate_model_space_file(task)
+    calculate_rmes(task)
+
+    # generate basis listing for basis in which rmes were calculated
+    generate_basis_table(task)
+
+    # save results
+    save_su3rme_files(task)
+
+    # clean up working directory
+    mcscript.call(["du","-hs","."])  # log working directory disk usage
+    delete_filenames=glob.glob('*')
+    ##delete_filenames=glob.glob('*.rme')
+    ##delete_filenames+=glob.glob('*.PN')
+    ##delete_filenames+=glob.glob('*.PPNN')
+    mcscript.call(["rm"] + delete_filenames)
+    
+
 ################################################################
-# relative matrix element evalation
+# generate SU(3)-coupled relative matrix elements of observables
 ################################################################
 
 def generate_observable_rmes(task):
@@ -225,20 +453,29 @@ def generate_observable_rmes(task):
         {}_hw{:.1f}_Nmax{:02d}_u3st.dat
 
     """
+
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
     
+    # set parameters
     A = int(task["nuclide"][0]+task["nuclide"][1])
     Nmax=task["Nmax"]
     J0=0
-    T0=0
+    T0=-1
     g0=0
     J_max_jisp=4
     J_max_coulomb=21
-    coulomb_filename=os.path.join(task["interaction_directory"],"coulomb_Nmax20_rel.dat")
-    # generate hamiltonian load file
-    for hw in mcscript.utils.value_range(10,30,2.5):
-        interaction_filename=task["interaction_filename_template"].format(hw)
+
+    # generate Hamiltonian RMEs (by upcoupling)
+    for hw in mcscript.utils.value_range(*task["hw_range"]):    
+
+        # generate load file
+        interaction_filename = mcscript.utils.search_in_subdirectories(
+            interaction_directory_list,
+            interaction_subdirectory_list,
+            task["interaction_filename_template"].format(hw=hw),
+            error_message="relative interaction file not found"
+        )
         hamiltonian_input_lines = [
             "{}".format(hw),
             "Tintr 1.",
@@ -246,9 +483,13 @@ def generate_observable_rmes(task):
         ]
 
         if task["use_coulomb"]==True:
+            coulomb_filename = mcscript.utils.search_in_subdirectories(
+                interaction_directory_list,
+                interaction_subdirectory_list,
+                task["coulomb_filename"],
+                error_message="relative interaction file not found (for Coulomb interaction)"
+            )
             hamiltonian_input_lines+=["INT 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
-
-
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 
@@ -260,13 +501,13 @@ def generate_observable_rmes(task):
                 "{N1v:d}".format(**task),
                 "hamiltonian"
             ]
-
         mcscript.call(
             command_line,
             mode=mcscript.CallMode.kSerial
         )
-    #  Generate SU(3) rme files for each of the observables 
-    for hw in mcscript.utils.value_range(10,30,2.5):    
+
+    # generate RMEs for other observables (analytically)
+    for hw in mcscript.utils.value_range(*task["hw_range"]):    
         # generate observable load files      
         for observable in task["observables"] :
             observable_name=observable[0]
@@ -294,7 +535,7 @@ def generate_observable_rmes(task):
     os.chdir("..")
 
 ################################################################
-# spncii execution
+# spncci execution
 ################################################################
 
 def generate_spncci_control_file(task):
@@ -302,6 +543,7 @@ def generate_spncci_control_file(task):
 
     Output file: spncci.load
     """
+
     hw_min=task["hw_range"][0]
     hw_max=task["hw_range"][1]
     hw_step=task["hw_range"][2]
@@ -336,7 +578,7 @@ def call_spncci(task):
         # TODO determine actual arguments or move into a control file
         "{A:d}".format(A=A,**task) ,   
         "{twice_Nsigma_0:d}".format(twice_Nsigma_0=twice_Nsigma_0,**task),
-        "{Nsigma_ex_max:d}".format(**task),
+        "{Nsigma_max:d}".format(**task),
         "{N1v:d}".format(**task),
         "{Nmax:d}".format(**task),
         "{num_eigenvalues:d}".format(**task),
@@ -349,11 +591,11 @@ def call_spncci(task):
 
 def save_spncci_results(task):
     """
-    Ad hoc...
+    Rename and save spncci results files.
     """
 
     # results file
-    ## raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_ex_max:02d}.dat".format(**task)
+    ## raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_max:02d}.dat".format(**task)
     ## new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.parameters.run.name,**task))
     ## mcscript.call(
     ##     [
@@ -366,7 +608,10 @@ def save_spncci_results(task):
 
     # log file
     raw_log_filename = "spncci.out"
-    new_log_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task))
+    new_log_filename = os.path.join(
+        mcscript.task.results_dir,
+        "{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task)
+    )
     mcscript.call(
         [
             "cp",
@@ -376,21 +621,25 @@ def save_spncci_results(task):
         ]
     )
 
+    # move archive to results directory (if in multi-task run)
+    # select files to save
+    results_file_list = glob.glob('*.out')
+    results_file_list += glob.glob('*.res')
+    if (mcscript.task.results_dir is not None):
+        mcscript.call(
+            [
+                "mv",
+                "--verbose",
+                "--target-directory={}".format(mcscript.task.results_dir)
+            ]
+            + results_file_list
+        )
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
-    if ("unit_tensor_directory" in task):
-        # LEGACY support for scripts with messed up name
-        unit_tensor_directory=task["unit_tensor_directory"].format(**task)
-    else:
-        unit_tensor_directory=task["unit_tensor_directory_template"].format(**task)
-    # generate_lsu3shell_rmes(task)
-    ## os.symlink(unit_tensor_directory, "lsu3shell_rme")  # hard to reliably clean up?
-    ## mcscript.call(["cp","--recursive",unit_tensor_directory,"lsu3shell_rme"])
-    unit_tensor_directory_archive_filename = "{}.tgz".format(unit_tensor_directory)
-    mcscript.call(["tar","xf",unit_tensor_directory_archive_filename])
+    retrieve_su3rme_files(task)
     generate_observable_rmes(task)
     generate_spncci_control_file(task)
     call_spncci(task)

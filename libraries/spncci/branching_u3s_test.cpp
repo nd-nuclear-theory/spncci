@@ -281,7 +281,7 @@ int main(int argc, char **argv)
     basis::MatrixVector matrix_vector(sector_vector.size());
     std::cout<<"space"<<std::endl;
     for(int i=0; i<space.size(); ++i)
-      std::cout<<space.GetSubspace(i).GetSubspaceLabels().Str()<<std::endl;
+      std::cout<<space.GetSubspace(i).labels().Str()<<std::endl;
     for(auto& sector : sector_vector)
       {
         // if(i<10)
@@ -289,8 +289,8 @@ int main(int argc, char **argv)
         allowed&=sector.bra_index()<3;
         if(allowed)
         {
-          u3::U3S omegaS_bra=space.GetSubspace(sector.bra_index()).GetSubspaceLabels();
-          u3::U3S omegaS_ket=space.GetSubspace(sector.ket_index()).GetSubspaceLabels();
+          u3::U3S omegaS_bra=space.GetSubspace(sector.bra_index()).labels();
+          u3::U3S omegaS_ket=space.GetSubspace(sector.ket_index()).labels();
           std::cout<<fmt::format(" {}",sector.Str())<<std::endl;
           std::cout<<"  "<<omegaS_bra.Str()<<"  "<< omegaS_ket.Str()<<std::endl;
 

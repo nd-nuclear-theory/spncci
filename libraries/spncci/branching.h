@@ -1,61 +1,46 @@
 /****************************************************************
-  branching_u3s.h
+  branching.h
 
-  U(3)xS layer of SpNCCI basis branching.
+  Basis definitions for U(3)xS, LxS, and J branchings of SpNCCI basis.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  1/31/17 (mac): Extracted from sp_basis (as spncci_branching_u3s).
-  2/17/17 (mac): Extract BabySpNCCISubspace to spncci_basis.
-  2/19/17 (mac): Rename to branching_u3s.
-  5/25/17 (mac): Overhaul implementation of U3S subspaces and store
-    parent irrep info.
+  6/6/17 (mac): Created, as reimplementation of branching_u3s and
+    branching_u3lsj.
 ****************************************************************/
 
-#ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_
-#define SPNCCI_SPNCCI_BRANCHING_U3S_H_
+#ifndef SPNCCI_SPNCCI_BRANCHING_H_
+#define SPNCCI_SPNCCI_BRANCHING_H_
 
-#include <unordered_map>
-
-#include "am/am.h"  
-#include "sp3rlib/sp3r.h"
-#include "spncci/spncci_basis.h"
-#include "spncci/unit_tensor.h"
-#include "u3shell/tensor_labels.h"
-#include "u3shell/u3spn_scheme.h"  
-#include "u3shell/upcoupling.h"
-#include "lgi/lgi.h"
+#include "basis/multibasis.h"
+// #include "am/am.h"
+// #include "sp3rlib/sp3r.h"
+// #include "spncci/spncci_basis.h"
+// #include "spncci/unit_tensor.h"
+// #include "u3shell/tensor_labels.h"
+// #include "u3shell/u3spn_scheme.h"  
+// #include "u3shell/upcoupling.h"
+// #include "lgi/lgi.h"
 
 namespace spncci
 {
 
   ////////////////////////////////////////////////////////////////
-  // basis indexing in U3S scheme for spncci basis branching
+  // SpNCCI basis branched to U3S level
   ////////////////////////////////////////////////////////////////  
+  //
+  //   subspace: (omega,S)
+  //     state: (sigma,Sp,Sn)
+  //       substates: (gamma,upsilon)
+  //
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
-  // subspace labels: (omega,S) = U3S
+  // subspace labels: (omega,S) => u3::U3S
   //
-  // state labels within subspace: (baby_spncci_subspace_index)
-  //
-  //   baby_spncci_subspace_index (int): index of BabySpNCCI subspace
-  //   from which state is drawn
-  //
-  // ----------------
-  //
-  // The idea is that states are grouped in the hierarchy
-  //
-  //   subspace: (omega,S)
-  //     state: (sigma,Sp,Sn) => actually baby_spncci_subspace_index stored
-  //       substates: (gamma,upsilon)
-  //
-  // Except this has all been made rather opaque, as the state labels
-  // are hidden behind an index into the BabySpNCCI space...  Can't we
-  // just label a state by its labels, like shown, and provide an
-  // auxiliary mechanism for looking up and/or looking up by the
-  // corresponding BabySpNCCI subspace???
+  // state labels: (sigma,Sp,Sn,S) => u3shell::U3SPN
   //
   ////////////////////////////////////////////////////////////////
   //
@@ -70,6 +55,10 @@ namespace spncci
   //
   // Associated with each subspace is a look-up table which can look up
   // the starting index of the particular "state" in the U3S sector.  
+  //
+  //   baby_spncci_subspace_index (int): index of BabySpNCCI subspace
+  //   from which state is drawn
+  //
   //
   ////////////////////////////////////////////////////////////////
   //
@@ -89,9 +78,9 @@ namespace spncci
   // subspace
   ////////////////////////////////////////////////////////////////
 
-  class StateU3S;  // forward declaration (to permit use as "friend" of SubspaceU3S)
+  class StateSpU3S;  // forward declaration (to permit use as "friend" of SubspaceU3S)
 
-  class SubspaceU3S
+  class SubspaceSpU3S
     : public basis::BaseSubspace<u3::U3S,std::tuple<int>>
     // Subspace class for two-body states of given U(3)xS.
     //

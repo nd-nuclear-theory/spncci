@@ -11,6 +11,7 @@
   9/8/16 (mac): Add operator RME comparison function.
   2/17/16 (mac): Change functions to take filename and do open
     failure checking.
+  6/4/17 (mac): Provide optional scale factor for rmes on input.
 ****************************************************************/
 
 #ifndef LSU3SHELL_RME_H_
@@ -35,8 +36,15 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector
+      basis::MatrixVector& matrix_vector,
+      double scale_factor = 1.
     );
+  // ...
+  //
+  // Arguments:
+  //   ...
+  //   scale_factor (input,optional): scale factor for rmes on input,
+  //     e.g., for conversion from relative to intrinsic operator
 
   void 
   ReadLSU3ShellRMEs(
@@ -45,12 +53,15 @@ namespace lsu3shell
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector // in operator.h and initial to zero
+      basis::MatrixVector& matrix_vector,
+      double scale_factor = 1.
     );
-  // DEPRECATED: requires external code to do stream open; when
-  // upgrading calling code to use new version, beware that order of
-  // arguments has also been adjusted (to keep all the variables
-  // describing the operator together in the argument list)
+  // DEPRECATED: requires that the calling code take care of the
+  // stream open, which also has the drawback that there is no
+  // standardized error message for file open failures; when upgrading
+  // calling code to use new version, beware that order of arguments
+  // has also been adjusted (to keep all the variables describing the
+  // operator together in the argument list)
 
   bool 
   CompareLSU3ShellRMEs(

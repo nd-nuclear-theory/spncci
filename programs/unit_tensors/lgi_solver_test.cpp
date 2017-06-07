@@ -47,7 +47,7 @@ void NullSpaceCheck(
       // std::cout<<matrix<<std::endl;
       // std::cout<<"null vectors"<<std::endl;
       // std::cout<<null_vectors<<std::endl;
-      u3shell::U3SPN labels(space.GetSubspace(i).GetSubspaceLabels());          
+      u3shell::U3SPN labels(space.GetSubspace(i).labels());          
       // std::cout<<"Doing decomp..." << std::endl;
       int size=space.GetSubspace(i).size();
       // std::cout<<labels.Str()<<"subspace size: "<<size<<std::endl;

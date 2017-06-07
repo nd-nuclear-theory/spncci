@@ -20,31 +20,77 @@
 namespace spncci
 {
 
-  SubspaceLS::SubspaceLS(const int& L, const HalfInt& S, const SpaceU3S& u3s_space)
+  SubspaceLS::SubspaceLS(int L, HalfInt S, const SpaceU3S& u3s_space)
   {
-    labels_=std::pair<int,HalfInt>(L,S);
-    int sector_index=0;
-    int state_index=0;
-    // iterate over U(3)xSU(2) irreps
+
+    // std::cout << fmt::format("[Building LS subpsace: (L,S) = ({},{})]",L,S) << std::endl;
+
+    // save labels
+    labels_ = LSPair(L,S);
+
+    // // old aem code:
+    //
+    // int sector_index=0;
+    // int state_index=0;
+    // // iterate over U(3)xSU(2) irreps
+    // for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
+    //   {
+    //     SubspaceU3S u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
+    //     u3::U3 omega(u3s_subspace.omega());
+    //     int kappa_max=u3::BranchingMultiplicitySO3(omega.SU3(),L);
+    //     // if space contains S and omega can branch to L
+    //     if(kappa_max>0 && u3s_subspace.S()==S)
+    //       {
+    //         //Construct subspace
+    //         int dim=u3s_subspace.sector_dim();
+    //         PushStateLabels(StateLabelsType(u3s_subspace_index));
+    //         sector_index_lookup_[state_index]=sector_index;
+    //         // increment index 
+    //         ++state_index;
+    //         sector_index+=kappa_max*dim;
+    //       }
+    //   }
+
+    // scan SpaceU3S for states to accumulate
+    int substate_offset = 0;  // accumulated offset
     for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
       {
-        SubspaceU3S u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
-        u3::U3 omega(u3s_subspace.omega());
-        int kappa_max=u3::BranchingMultiplicitySO3(omega.SU3(),L);
-        // if space contains S and omega can branch to L
-        if(kappa_max>0 && u3s_subspace.S()==S)
-          {
-            //Construct subspace
-            int dim=u3s_subspace.sector_dim();
-            PushStateLabels(StateLabelsType(u3s_subspace_index));
-            sector_index_lookup_[state_index]=sector_index;
-            // increment index 
-            ++state_index;
-            sector_index+=kappa_max*dim;
-          }
+
+        // set up alias
+        const SubspaceU3S& u3s_subspace = u3s_space.GetSubspace(u3s_subspace_index);
+
+        // determine branching multiplicity to the specified L
+        int kappa_max=u3::BranchingMultiplicitySO3(u3s_subspace.x(),L);
+
+        // short circuit if U3S subspace not relevant to current LS subspace
+        if ((kappa_max==0)||(S!=u3s_subspace.S()))
+          continue;
+
+        // push state
+        PushStateLabels(StateLabelsType(u3s_subspace_index));
+
+        // record state multiplicity indexing information
+        state_substate_offset_.push_back(substate_offset);
+        int state_dimension = u3s_subspace.full_dimension();
+        state_dimension_.push_back(state_dimension);
+
+        // store state U3 irrep information
+        state_omega_.push_back(u3s_subspace.omega());
+
+        // store state symplectic irrep information -- NOT WELL DEFINED
+        // state_sigmaSPN_.push_back(baby_spncci_subspace.omegaSPN());
+        // state_gamma_max_.push_back(baby_spncci_subspace.gamma_max());
+
+        // accumulate offset for next state
+        substate_offset += state_dimension;
+        
       }
 
-    sector_size_=sector_index;
+    // store final full dimension
+    full_dimension_ = substate_offset;
+
+    // std::cout << fmt::format("Subspace: size {}, full_dimension {}",size(),full_dimension()) << std::endl;
+
   }
 
   std::string SubspaceLS::Str() const
@@ -54,18 +100,32 @@ namespace spncci
 
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
-    // iterate over U(3)xSU(2) irreps
-    for(int subspace_index=0; subspace_index<u3s_space.size(); ++subspace_index)
+
+    // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
+
+    // iterate over U(3)xSU(2) subspaces
+    for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
     // for(auto u3s_subspace : u3s_space)
       {
-        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(subspace_index);
-        HalfInt S(u3s_subspace.S());
+        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
+        HalfInt S = u3s_subspace.S();
         // iterate through omega space
-        u3::U3 omega(u3s_subspace.omega());
+        u3::U3 omega = u3s_subspace.omega();
+
+        // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
+
         // interate over possible L values
-        for(int L=int(abs(S-J)); L<=(S+J); ++L)
+        //
+        // CAUTION (mac): I believe we risk creating empty LS spaces.
+        // The (L,S) pairs used in creating LS subspaces are
+        // determined purely by triangularity JxS->L without regard to
+        // whether or not this L exists in the branching of any U3
+        // subspace ottained for that S.
+       
+        for(int L=int(abs(S-J)); L<=int(S+J); ++L)
           {
-            if(lookup_.count(std::pair<int,HalfInt>(L,S)))
+            //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
+            if(ContainsSubspace(LSPair(L,S)))
               continue;
             SubspaceLS ls_subspace(L,S,u3s_space);
             PushSubspace(ls_subspace);
@@ -115,8 +175,8 @@ namespace spncci
           {
             int L,Lp,L0;
             HalfInt S, Sp, S0;
-            std::tie(Lp,Sp)=space_bra.GetSubspace(i).GetSubspaceLabels();
-            std::tie(L,S)=space_ket.GetSubspace(j).GetSubspaceLabels();
+            std::tie(Lp,Sp)=space_bra.GetSubspace(i).labels();
+            std::tie(L,S)=space_ket.GetSubspace(j).labels();
             std::tie(L0,S0)=tensor_label;
             if(am::AllowedTriangle(L,Lp,L0) && am::AllowedTriangle(S,Sp,S0))
               sector_labels.emplace_back(i,j,tensor_label);
@@ -161,8 +221,8 @@ namespace spncci
         int L, Lp;
         HalfInt S,Sp;
 
-        std::tie(Lp,Sp)=bra_subspace.GetSubspaceLabels();
-        std::tie(L,S)=ket_subspace.GetSubspaceLabels();
+        std::tie(Lp,Sp)=bra_subspace.labels();
+        std::tie(L,S)=ket_subspace.labels();
 
         double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
@@ -204,8 +264,8 @@ namespace spncci
             int source_dim=u3s_subspace_ket.sector_dim();
 
             // Extract source state labels 
-            const u3::U3S& omegaSp=u3s_subspace_bra.GetSubspaceLabels();
-            const u3::U3S& omegaS=u3s_subspace_ket.GetSubspaceLabels();
+            const u3::U3S& omegaSp=u3s_subspace_bra.labels();
+            const u3::U3S& omegaS=u3s_subspace_ket.labels();
             assert(omegaSp.S()==Sp);
             assert(omegaS.S()==S);
             u3::SU3 xp(omegaSp.U3().SU3());

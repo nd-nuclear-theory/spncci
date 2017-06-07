@@ -30,6 +30,9 @@
 namespace spncci
 {
 
+  // convenience typedef for use in iteration over J sectors
+  typedef std::pair<HalfInt,HalfInt> JPair;
+
   void 
   ConstructBranchedObservables(
     const spncci::SpaceU3S& space_u3s,

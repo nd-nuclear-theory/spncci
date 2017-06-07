@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     un_u3_restrict=true;
   // Set up unit tensor model space space
 
-  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmin);
+  lsu3shell::GenerateModelSpaceFile(Z, N, Nmax, Nmin);  // (mac) outdated syntax: missing parity and now model space filename
   // std::string model_space=fmt::format("model_space_{}_{}_Nmax{:02d}.dat",Z,N,Nmax);
   // std::ofstream model_stream(model_space);
   // model_stream<<Z<<"  "<<N<<"  "<<-1<<std::endl;

@@ -22,11 +22,14 @@
 
 namespace lsu3shell
 {
-  void GenerateModelSpaceFile(int Z, int N, int Nmax, int parity);
+  void GenerateModelSpaceFile(
+      const std::string& model_space_filename, int Z, int N, int Nmax, int parity
+    );
   // Generates model space for lsu3shell SU3RME with no restrictions on 
   // J taking full parity model space up to Nmax
   //
   // Arguments:
+  //  model_space_filename (str) : model space filename
   //  Z,N (input) : number of protons/neutrons
   //  Nmax (input) : Truncation of oscillator quanta
   //  parity (input) : determines which parity space.

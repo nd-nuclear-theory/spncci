@@ -18,26 +18,19 @@
 namespace spncci
 {
 
-
-  std::string SubspaceU3S::Str() const
-  {
-    return fmt::format("{}",labels_.Str());
-  }
-
-
   SubspaceU3S::SubspaceU3S(const u3::U3S& omegaS,const BabySpNCCISpace& baby_spncci_space)
   {
 
     // save labels
-    labels_=omegaS;
+    labels_ = omegaS;
 
-    // scan BabySpNCCI for states to accumulate
+    // scan BabySpNCCISpace for states to accumulate
     int substate_offset = 0;  // accumulated offset
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
 
         // set up alias
-        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+        const BabySpNCCISubspace& baby_spncci_subspace = baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
 
         // short circuit if subspace not relevant
         if (!(omegaS==baby_spncci_subspace.omegaS()))
@@ -63,6 +56,11 @@ namespace spncci
     // store final full dimension
     full_dimension_ = substate_offset;
 
+  }
+
+  std::string SubspaceU3S::Str() const
+  {
+    return fmt::format("{}",labels_.Str());
   }
 
   SpaceU3S::SpaceU3S(const BabySpNCCISpace& baby_spncci_space)
@@ -104,8 +102,8 @@ namespace spncci
             u3shell::OperatorLabelsU3S op_labels;
             std::tie(op_labels, kappa0,L0)=tensor_labels;
             assert(kappa0!=0);
-            u3::U3S omegapSp(space.GetSubspace(i).GetSubspaceLabels());
-            u3::U3S omegaS(space.GetSubspace(j).GetSubspaceLabels());
+            u3::U3S omegapSp(space.GetSubspace(i).labels());
+            u3::U3S omegaS(space.GetSubspace(j).labels());
             int rho0_max=u3::OuterMultiplicity(omegaS.SU3(), op_labels.x0(),omegapSp.SU3());
             // Check if allowed U(1) coupling
             if(omegaS.U3().N()+op_labels.N0()!=omegapSp.U3().N())
@@ -325,8 +323,8 @@ namespace spncci
       //       //get subspace labels
       //       const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(sector.ket_index());
       //       const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(sector.bra_index());
-      //       const u3::U3& omegap=bra_subspace.GetSubspaceLabels().U3();
-      //       const u3::U3& omega=ket_subspace.GetSubspaceLabels().U3();
+      //       const u3::U3& omegap=bra_subspace.labels().U3();
+      //       const u3::U3& omega=ket_subspace.labels().U3();
       //       int rho0=sector.rho0();
 
       //       // Iterating through U3 subspace "states" which correspond to baby spncci subspaces.

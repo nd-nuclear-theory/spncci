@@ -192,7 +192,7 @@
       std::ostringstream ss;
       
     // print subspace labels
-      u3::U3 omega = GetSubspaceLabels();
+      u3::U3 omega = labels();
       ss << "subspace " << omega.Str() << std::endl;
 
     // enumerate state labels within subspace
@@ -308,12 +308,12 @@
   std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
   {
     // partition irreps by Nn
-    HalfInt Ns=irrep.GetSubspace(0).GetSubspaceLabels().N();
+    HalfInt Ns=irrep.GetSubspace(0).labels().N();
     int Nn_last=-1;
     std::vector<int> IrrepPartionN;
     for(int i=0; i<irrep.size(); i++ )
       {
-        u3::U3 omega=irrep.GetSubspace(i).GetSubspaceLabels();     
+        u3::U3 omega=irrep.GetSubspace(i).labels();     
 
         if ( Nn_last!=int(omega.N()-Ns) )
           {

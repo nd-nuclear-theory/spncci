@@ -74,7 +74,7 @@ namespace vcs{
       
         // Generate S_matrix = K_matrix^2
         sp3r::U3Subspace u3_subspace_p=irrep.GetSubspace(i);
-        u3::U3 omega_p=u3_subspace_p.GetSubspaceLabels();
+        u3::U3 omega_p=u3_subspace_p.labels();
 
         int dimension_p=u3_subspace_p.size();
         Eigen::MatrixXd S_matrix_p=Eigen::MatrixXd::Zero(dimension_p,dimension_p);
@@ -178,10 +178,10 @@ namespace vcs{
         #pragma omp for 
         for(int i=start; i<stop; i++)
           {
-            HalfInt N_start=irrep.GetSubspace(start).GetSubspaceLabels().N();
+            HalfInt N_start=irrep.GetSubspace(start).labels().N();
             // Generate S_matrix = K_matrix^2
             sp3r::U3Subspace u3_subspace_p=irrep.GetSubspace(i);
-            u3::U3 omega_p=u3_subspace_p.GetSubspaceLabels();
+            u3::U3 omega_p=u3_subspace_p.labels();
             assert(omega_p.N()==N_start);
             int dimension_p=u3_subspace_p.size();
             Eigen::MatrixXd S_matrix_p=Eigen::MatrixXd::Zero(dimension_p,dimension_p);

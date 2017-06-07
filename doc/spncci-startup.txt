@@ -1,0 +1,55 @@
+Startup guide for spncci
+
+Anna E. McCoy and Mark A. Caprio
+University of Notre Dame
+
++ 6/5/17 (mac): Created.
+
+----------------------------------------------------------------
+
+1) You will need to have cloned the following repositories (for
+spncci, lsu3shell, and mcscript):
+
+   git clone --recursive https://github.com/nd-nuclear-theory/spncci.git
+
+   git clone git://git.code.sf.net/p/lsu3shell/code lsu3shell --branch LSU3develop
+
+   git clone https://github.com/nd-nuclear-theory/mcscript.git
+
+2) For basic installation of these projects, please see the following
+instruction files:
+
+  - spncci/config/ndconfig/install.txt: instructions on building
+    the spncci project (these are generic instructions which apply to
+    several ND Nuclear Theory projects)
+
+  - spncci/config/lsu3shell/lsu3shell-install.txt: instructions on
+    building the lsu3shell project (these instructions are oriented
+    towards installing lsu3shell for use in conjunction with spncci)
+
+  - mcscript/install.txt: instructions on setting up the mcscript
+    scripting system (be sure to work through the examples outlined in
+    those instructions before proceeding, since you will need that
+    background in order to understand the spncci run scripts)
+
+3) You will need to configure some environment variables for spncci.
+Please see the instructions at the start of:
+
+   spncci/script/spncci.py
+
+4) Work through the basic example runs in spncci/script (see the
+instructions at the start of each script file):
+
+   spncci/script/rununittensor01.py
+
+   spncci/script/runsu3rme01.py
+
+   spncci/script/runspncci05.py
+
+----------------------------------------------------------------
+
+Tips and tricks:
+
+  - The spncci makefile defines a special target "make base", which
+    builds only the production codes, not the test codes.  This is
+    faster than "make all".

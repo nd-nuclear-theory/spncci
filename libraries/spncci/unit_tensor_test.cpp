@@ -278,8 +278,8 @@ int main(int argc, char **argv)
   //       //get subspace labels
   //       const spncci::SubspaceU3S& ket_subspace=space.GetSubspace(sector.ket_index());
   //       const spncci::SubspaceU3S& bra_subspace=space.GetSubspace(sector.bra_index());
-  //       u3::U3 omegap=bra_subspace.GetSubspaceLabels().U3();
-  //       u3::U3 omega=ket_subspace.GetSubspaceLabels().U3();
+  //       u3::U3 omegap=bra_subspace.labels().U3();
+  //       u3::U3 omega=ket_subspace.labels().U3();
   //       int rho0=sector.rho0();
   //       int sector_dim_bra=bra_subspace.sector_dim();
   //       int sector_dim_ket=ket_subspace.sector_dim();

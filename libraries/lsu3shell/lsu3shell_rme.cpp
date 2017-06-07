@@ -30,7 +30,8 @@ namespace lsu3shell
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector 
+      basis::MatrixVector& matrix_vector,
+      double scale_factor
     )
   // DEPRECATED version taking streams; but used internally by new
   // version; so this code should actually be inserted into new
@@ -83,7 +84,7 @@ namespace lsu3shell
                 //   sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
                 //   matrix_vector[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
-                matrix_vector[sector_index](row_index,column_index)=rme;
+                matrix_vector[sector_index](row_index,column_index)=scale_factor*rme;
                 // std::cout<<matrix_vector[sector_index]<<std::endl;
               }
     // std::cout<<"finished reading in "<<std::endl;
@@ -103,7 +104,8 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector
+      basis::MatrixVector& matrix_vector,
+      double scale_factor
     )
   {
     // open file
@@ -120,7 +122,8 @@ namespace lsu3shell
         lsu3_basis_table,
         space, 
         sectors,
-        matrix_vector
+        matrix_vector,
+        scale_factor
       );
 
     // close file
