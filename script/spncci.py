@@ -276,7 +276,7 @@ def do_generate_relative_operators(task):
 # in which the SU(3) RMEs are stored.
 
 # descriptor string for straightforward case of pure Nsigmamax truncation
-su3rme_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[0]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
+su3rme_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
 
 def generate_model_space_file(task):
     """Create LSU3shell model space file for SU3RME.
