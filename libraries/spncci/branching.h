@@ -13,7 +13,7 @@
 #ifndef SPNCCI_SPNCCI_BRANCHING_H_
 #define SPNCCI_SPNCCI_BRANCHING_H_
 
-#include "basis/basis.h"
+#include "basis/multibasis.h"
 // #include "am/am.h"
 // #include "sp3rlib/sp3r.h"
 // #include "spncci/spncci_basis.h"
