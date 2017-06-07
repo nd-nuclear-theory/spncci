@@ -258,28 +258,29 @@ int main(int argc, char **argv)
     // diagnostics
     // std::cout << "Arel operator..." << std::endl;
     // std::cout << "Arel sectors" << std::endl;
-    // std::cout << Arel_sectors.DebugStr();
+    // std::cout << Aintr_sectors.DebugStr();
     // std::cout << "Arel matrices" << std::endl;
-    // for (int sector_index=0; sector_index<Arel_sectors.size(); ++sector_index)
+    // for (int sector_index=0; sector_index<Aintr_sectors.size(); ++sector_index)
     //   {
     //     std::cout << fmt::format("  sector {}",sector_index) << std::endl;
-    //     std::cout << mcutils::FormatMatrix(Arel_matrices[sector_index],"8.5f","  ") << std::endl;
+    //     std::cout << mcutils::FormatMatrix(Aintr_matrices[sector_index],"8.5f","  ") << std::endl;
     //   }
 
 
-  u3shell::SectorsU3SPN Brel_sectors, Arel_sectors, Nrel_sectors;
-  basis::MatrixVector Brel_matrices, Arel_matrices, Nrel_matrices;
+  u3shell::SectorsU3SPN Bintr_sectors, Aintr_sectors, Nintr_sectors;
+  basis::MatrixVector Bintr_matrices, Aintr_matrices, Nintr_matrices;
   spncci::ReadLSU3ShellSymplecticOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
-      run_parameters.Brel_filename,Brel_sectors,Brel_matrices,
-      run_parameters.Arel_filename,Arel_sectors,Arel_matrices,
-      run_parameters.Nrel_filename,Nrel_sectors,Nrel_matrices
+      run_parameters.Brel_filename,Bintr_sectors,Bintr_matrices,
+      run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
+      run_parameters.Nrel_filename,Nintr_sectors,Nintr_matrices,
+      run_parameters.A
     );
 
-  const u3shell::SectorsU3SPN& Ncm_sectors = Nrel_sectors;
+  const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
   basis::MatrixVector Ncm_matrices;
   lsu3shell::GenerateLSU3ShellNcmRMEs(
-      lsu3shell_space,Nrel_sectors,Nrel_matrices,
+      lsu3shell_space,Nintr_sectors,Nintr_matrices,
       run_parameters.A,
       Ncm_matrices
     );
@@ -289,7 +290,7 @@ int main(int argc, char **argv)
   basis::MatrixVector lgi_expansions;
   lgi::GenerateLGIExpansion(
       lsu3shell_space, 
-      Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
+      Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
       run_parameters.Nsigma_0,
       lgi_families,lgi_expansions
     );
@@ -368,7 +369,7 @@ int main(int argc, char **argv)
   spncci::ConstructSpNCCIBasisExplicit(
       lsu3shell_space,spncci_space,lgi_expansions,
       baby_spncci_space,k_matrix_cache,
-      Arel_sectors,Arel_matrices,spncci_expansions
+      Aintr_sectors,Aintr_matrices,spncci_expansions
     );
 
   std::cout << "Check orthonormality for all SpNCCI subspaces sharing same underlying lsu3shell subspace..." << std::endl;
