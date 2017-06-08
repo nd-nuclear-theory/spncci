@@ -29,6 +29,7 @@
 
 #include "basis/operator.h"
 #include "spncci/spncci_basis.h"
+#include "spncci/vcs_cache.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/vcs.h"
 #include "u3shell/tensor_labels.h"

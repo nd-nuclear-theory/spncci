@@ -1,5 +1,5 @@
 /****************************************************************
-  spncci_basis.h
+  spncci_space.h
 
   SpNCCI basis storage at Sp(3,R) irrep level.
 
@@ -27,6 +27,9 @@
   2/21/17 (mac):
     - Add intrinsic coordinate mode for PrecomputeKMatrices.
     - Impose explicit attribute on SpNCCI space constructor.
+  6/7/17 (mac): 
+    - Extract PrecomputeKMatrices to vcs_cache.
+    - Extract legacy GenerateSpNCCIIrrepFamilyPairs to unit_tensor_test.
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -34,10 +37,8 @@
 
 #include <unordered_map>
 
-#include "am/am.h"  
 #include "basis/hypersector.h"    
 #include "sp3rlib/sp3r.h"
-#include "sp3rlib/vcs.h"
 #include "spncci/spncci_common.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"
@@ -328,27 +329,6 @@ namespace spncci
   // This is equivalent to the M-space dimension for the universal
   // donor value of M (M=0 or 1/2).
 
-  ////////////////////////////////////////////////////////////////
-  // SpNCCI irrep family pair enumeration
-  ////////////////////////////////////////////////////////////////
-
-  std::vector< std::pair<int,int> >
-    GenerateSpNCCIIrrepFamilyPairs(spncci::SpNCCISpace spncci_space);
-  // Enumerate pairs of Sp NCCI irrep families connected under
-  // two-body allowed spin selection rules.
-  //
-  // Given a vector of SpIrrep's, apply angular momentum selection
-  // rules to return a list of SpIrrep pairs which will have non-zero
-  // matrix elements between states in their irreps.  Mapping is all
-  // to all.
-  //
-  // Selection rules are based on fact that a two-body operator (or
-  // relative operator) can carry at most 2 units of spin, by species
-  // or in total.
-  //
-  // Selection rules: abs(Si-Sf)<=2 for total spin, neutron spin and proton spin.
-  //
-  // DEPRECATED (but still used in some test code)
 
   ////////////////////////////////////////////////////////////////
   // linearized indexing for SpNCCI space
@@ -567,36 +547,6 @@ namespace spncci
       //   unit_tensor_hypersectors is a vector of vectors of indices for unit tensor
       //   subsets indexed first by Nsum=Nnp+Nn and then by random order. 
   };
-
-
-  ////////////////////////////////////////////////////////////////
-  // precomputation of K matrices
-  ////////////////////////////////////////////////////////////////
-
-  typedef std::unordered_map<u3::U3,vcs::MatrixCache,boost::hash<u3::U3>> KMatrixCache;
-  // storage for K matrices
-  //
-  // maps sigma -> K matrix cache for that Sp irrep (vcs::MatrixCache),
-  // where then vcs::MatrixCache maps omega to K matrix
-  //
-  // Usage: k_matrix_cache[sigma][omega]
-
-  void
-  PrecomputeKMatrices(
-      const spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::KMatrixCache& k_matrix_cache,
-      bool intrinsic
-    );
-  // Precompute and cache K matrices for all symplectic irreps
-  // occurring in SpNCCI space.
-  //
-  // May be used either in SpNCCI RME recurrence or in explicit construction of states.
-  //
-  // Arguments:
-  //   sigma_irrep_map (input): container for distinct symplectic irreps
-  //   k_matrix_cache (output): container for corresponding K matrices
-  //   intrinsic (input): whether to compute K matrices for intrinsic (A-1)
-  //     or lab (A) coordinates
 
 
 }  // namespace

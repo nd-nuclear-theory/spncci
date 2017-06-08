@@ -23,6 +23,33 @@
 #include "sp3rlib/vcs.h" 
 #include "spncci/branching_u3s.h"
 
+namespace spncci
+{
+
+  ////////////////////////////////////////////////////////////////
+  // SpNCCI irrep family pair enumeration
+  ////////////////////////////////////////////////////////////////
+
+  std::vector< std::pair<int,int> >
+    GenerateSpNCCIIrrepFamilyPairs(spncci::SpNCCISpace spncci_space);
+  // Enumerate pairs of Sp NCCI irrep families connected under
+  // two-body allowed spin selection rules.
+  //
+  // Given a vector of SpIrrep's, apply angular momentum selection
+  // rules to return a list of SpIrrep pairs which will have non-zero
+  // matrix elements between states in their irreps.  Mapping is all
+  // to all.
+  //
+  // Selection rules are based on fact that a two-body operator (or
+  // relative operator) can carry at most 2 units of spin, by species
+  // or in total.
+  //
+  // Selection rules: abs(Si-Sf)<=2 for total spin, neutron spin and proton spin.
+  //
+  // DEPRECATED (but still used in some test code)
+
+}  // namespace
+
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
