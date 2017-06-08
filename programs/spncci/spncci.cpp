@@ -86,6 +86,7 @@
 #include "spncci/computation_control.h"
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
+#include "spncci/branching.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/branching_u3lsj.h"
 // to vett as moved into computation_control 
@@ -853,9 +854,16 @@ int main(int argc, char **argv)
   // spncci::NmaxTruncator lgi_truncator(run_parameters.Nsigma_0,run_parameters.Nsigma0_ex_max);
   // spncci::GenerateSpNCCISpace(lgi_families,lgi_truncator,lgi_spncci_space,lgi_sigma_irrep_map);
 
-
   // build baby spncci space 
   spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
+
+  // build U3S gathered space
+  std::cout << "Build SpaceSpU3S..." << std::endl;
+  spncci::SpaceSpU3S space_spu3s(baby_spncci_space);
+  std::cout << fmt::format("  subspaces {} full_dimension {}",space_spu3s.size(),space_spu3s.TotalFullDimension())
+            << std::endl;
+  // std::cout << space_spu3s.DebugStr(true);
+
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -971,8 +979,8 @@ int main(int argc, char **argv)
           blocks.resize(sectors_u3s.size());
           for(int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
             {
-              int rows=space_u3s.GetSubspace(sectors_u3s[sector_index].bra_index()).sector_dim();
-              int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).sector_dim();
+              int rows=space_u3s.GetSubspace(sectors_u3s[sector_index].bra_index()).full_dimension();
+              int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
               blocks[sector_index]=basis::OperatorBlock<double>::Zero(rows,cols);
             }
         }
@@ -1155,7 +1163,7 @@ int main(int argc, char **argv)
       //       std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
       //   }
 
-      // Recurse over unit tensor hyper sectors 
+      // Recurse over unit tensor hypersectors 
       // std::cout<<"entering the recurrence for "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
       spncci::ComputeUnitTensorHyperblocks(
         run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,k_matrix_cache,

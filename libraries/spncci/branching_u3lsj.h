@@ -104,8 +104,6 @@ namespace spncci
 
   class SubspaceLS
     : public basis::BaseSubspace<LSPair,std::tuple<int>>
-    // Subspace class for two-body states of given SO(3)xS.
-    //
     // SubspaceLabelsType (std::pair<int,HalfInt>): (L,S)
     // StateLabelsType (int): index into U3S space
 
@@ -125,7 +123,7 @@ namespace spncci
       HalfInt S() const {return std::get<1>(labels());}
 
       int full_dimension() const {return full_dimension_;}
-      int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
+      // int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
 
       // diagnostic output
       std::string Str() const;
@@ -161,7 +159,6 @@ namespace spncci
 
   class StateLS
     : public basis::BaseState<SubspaceLS>
-  // State class for two-body states of given U(3)xSxT.
   {
     
     public:
@@ -229,7 +226,6 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
   class SpaceLS
     : public basis::BaseSpace<SubspaceLS>
-  // Space class for two-body states of given U(3)xS.
   {
     
     public:

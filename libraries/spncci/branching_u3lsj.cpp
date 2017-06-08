@@ -42,7 +42,7 @@ namespace spncci
     //     if(kappa_max>0 && u3s_subspace.S()==S)
     //       {
     //         //Construct subspace
-    //         int dim=u3s_subspace.sector_dim();
+    //         int dim=u3s_subspace.full_dimension();
     //         PushStateLabels(StateLabelsType(u3s_subspace_index));
     //         sector_index_lookup_[state_index]=sector_index;
     //         // increment index 
@@ -137,7 +137,7 @@ namespace spncci
     // u3::U3 omega=std::get<0>(subspace.GetStateLabels(subspace.size()-1));
     // int index=std::get<2>(subspace.GetStateLabels(subspace.size()-1));
     // u3::U3S omegaS(omega,S);
-    // int dim=u3s_space.LookUpSubspace(omegaS).sector_dim();
+    // int dim=u3s_space.LookUpSubspace(omegaS).full_dimension();
     // dimension_=dim+index;
   }
 
@@ -208,8 +208,8 @@ namespace spncci
         const spncci::SubspaceLS& 
           bra_subspace=target_space_bra.GetSubspace(sector_labels.bra_index());
         
-        int target_dim_bra=bra_subspace.sector_dim();
-        int target_dim_ket=ket_subspace.sector_dim();
+        int target_dim_bra=bra_subspace.full_dimension();
+        int target_dim_ket=ket_subspace.full_dimension();
         // Zero initialize
         Eigen::MatrixXd& target_sector=target_sectors[t];
         target_sector=Eigen::MatrixXd::Zero(target_dim_bra,target_dim_ket);
@@ -260,8 +260,8 @@ namespace spncci
               u3s_subspace_ket=u3s_space.GetSubspace(source_index_ket);
 
             //source sector dimensions 
-            int source_dimp=u3s_subspace_bra.sector_dim();
-            int source_dim=u3s_subspace_ket.sector_dim();
+            int source_dimp=u3s_subspace_bra.full_dimension();
+            int source_dim=u3s_subspace_ket.full_dimension();
 
             // Extract source state labels 
             const u3::U3S& omegaSp=u3s_subspace_bra.labels();
@@ -311,9 +311,9 @@ namespace spncci
     for(int s=0; s<bra_source_space.size(); ++s)
       {
         const spncci::SubspaceLS& subspace=bra_source_space.GetSubspace(s);
-        int sector_dim=subspace.sector_dim();
+        int full_dimension=subspace.full_dimension();
         bra_matrix_index_lookup[s]=bra_index;
-        bra_index+=sector_dim;
+        bra_index+=full_dimension;
       }
     
     int bra_matrix_dim=bra_index;
@@ -323,9 +323,9 @@ namespace spncci
     for(int s=0; s<ket_source_space.size(); ++s)
       {
         const spncci::SubspaceLS& subspace=ket_source_space.GetSubspace(s);
-        int sector_dim=subspace.sector_dim();
+        int full_dimension=subspace.full_dimension();
         ket_matrix_index_lookup[s]=ket_index;
-        ket_index+=sector_dim;
+        ket_index+=full_dimension;
       }
 
     int ket_matrix_dim=ket_index;

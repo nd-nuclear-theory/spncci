@@ -93,8 +93,6 @@ namespace spncci
 
   class SubspaceU3S
     : public basis::BaseSubspace<u3::U3S,std::tuple<int>>
-    // Subspace class for two-body states of given U(3)xS.
-    //
     // SubspaceLabelsType (u3shell::U3S): (omega,S)
     // StateLabelsType (int): index into BabySpNCCI space
     {
@@ -116,7 +114,7 @@ namespace spncci
       HalfInt S() const {return omegaS().S();}
 
       int full_dimension() const {return full_dimension_;}
-      int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
+      // int sector_dim() const {return full_dimension();} // DEPRECATED in favor of full_dimension
 
       // diagnostic output
       std::string Str() const;
@@ -152,7 +150,6 @@ namespace spncci
 
   class StateU3S
     : public basis::BaseState<SubspaceU3S>
-  // State class for two-body states of given U(3)xSxT.
   {
     
     public:
@@ -210,7 +207,6 @@ namespace spncci
 
   class SpaceU3S
     : public basis::BaseSpace<SubspaceU3S>
-  // Space class for two-body states of given U(3)xS.
   {
     
     public:

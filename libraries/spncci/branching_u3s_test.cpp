@@ -239,7 +239,7 @@ int main(int argc, char **argv)
         {
           const spncci::SubspaceU3S& subspace = space.GetSubspace(subspace_index);
           std::cout << fmt::format("subspace {}  {}",subspace_index,subspace.Str())
-                    << " with dimension "<< subspace.sector_dim()
+                    << " with dimension "<< subspace.full_dimension()
                     <<"  and subspace size "<<subspace.size()<<std::endl;
           for (int state_index=0; state_index<subspace.size(); ++state_index)
             {
@@ -297,9 +297,9 @@ int main(int argc, char **argv)
           
           const spncci::SubspaceU3S& ket_subspace=space.GetSubspace(sector.ket_index());
           const spncci::SubspaceU3S& bra_subspace=space.GetSubspace(sector.bra_index());
-          int sector_dim_bra=bra_subspace.sector_dim();
-          int sector_dim_ket=ket_subspace.sector_dim();
-          matrix_vector[i]=Eigen::MatrixXd::Zero(sector_dim_bra,sector_dim_ket);
+          int full_dimension_bra=bra_subspace.full_dimension();
+          int full_dimension_ket=ket_subspace.full_dimension();
+          matrix_vector[i]=Eigen::MatrixXd::Zero(full_dimension_bra,full_dimension_ket);
           // std::cout<<matrix_vector[i]<<std::endl;
 
         }
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
         {
           const spncci::SubspaceLS& subspace_ls = space_ls.GetSubspace(subspace_index);
           std::cout << fmt::format("subspace {}",subspace_ls.Str())
-                    << "with dimension "<< subspace_ls.sector_dim()
+                    << "with dimension "<< subspace_ls.full_dimension()
                     <<"  "<<subspace_ls.size()<<std::endl;
           for (int state_index=0; state_index<subspace_ls.size(); ++state_index)
             {

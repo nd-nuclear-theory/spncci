@@ -148,9 +148,9 @@ namespace spncci
     //     const spncci::SectorLabelsU3S& sector=target_sectors_u3s[s];
     //     const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(sector.ket_index());
     //     const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(sector.bra_index());
-    //     int sector_dim_bra=bra_subspace.sector_dim();
-    //     int sector_dim_ket=ket_subspace.sector_dim();
-    //     target_blocks_u3s.emplace_back(Eigen::MatrixXd::Zero(sector_dim_bra,sector_dim_ket));
+    //     int full_dimension_bra=bra_subspace.full_dimension();
+    //     int full_dimension_ket=ket_subspace.full_dimension();
+    //     target_blocks_u3s.emplace_back(Eigen::MatrixXd::Zero(full_dimension_bra,full_dimension_ket));
     //   }
 
     // iterate over interaction get unit tensor family index,kappa0,L0
