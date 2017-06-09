@@ -58,6 +58,7 @@
             all J0 as needed for spncci recurrence)
         "su3rme_descriptor_template" (str): template for string describing SU(3)-NCSM
             space truncation used in SU3RME calculation
+        "su3rme_mode" (str): mode argument for SU3RME
 
         # eigenspace parameters -- for spncci runs ONLY
         num_eigenvalues (int): number of eigenvalues to compute in each J space
@@ -305,12 +306,16 @@ def calculate_rmes(task):
 
     model_space_filename = "model_space.dat".format(**task)
 
+    if ("su3rme_mode" not in task):
+        task["su3rme_mode"] = "text"
+
     # call SU3RME
     command_line = [
         su3rme_executable,
         model_space_filename,
         model_space_filename,
-        "relative_operators.dat"
+        "relative_operators.dat",
+        task["su3rme_mode"]
     ]
     mcscript.call(
         command_line,

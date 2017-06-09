@@ -38,7 +38,7 @@ namespace spncci
   //
   // subspace labels: (L,S) = LS
   //
-  //   L (int): orbital angular momentum of *relative* motion (=lr)
+  //   L (int): orbital angular momentum
   //   S (HalfInt): total spin
   //
   // state labels within subspace: (N)
@@ -71,15 +71,6 @@ namespace spncci
   //     state: (omega,kappa,sigma,Sp,Sn)
   //       substates: (gamma,upsilon)
   //
-  // If one wanted to keep only genuine symmetry labels as state
-  // labels, and group the multiplicity indices (kappa,gamma,upsilon)
-  // into blocks determined by a simple "Cartesian" product of size
-  // kappa_max*gamma_max*upsilon_max, one could use the scheme
-  //
-  //   subspace: (L,S)
-  //     state: (omega,sigma,Sp,Sn)
-  //       substates: (kappa,gamma,upsilon)
-  //
   ////////////////////////////////////////////////////////////////
   //
   // States
@@ -95,6 +86,14 @@ namespace spncci
   //
   // Aren't they just ordered by first appearance of (L,S) as a
   // possible branching for an (omega,S) subspace, then by L?
+  //
+  // RATHER...
+  //
+  // Ordered by first occurrence of S in an (omega,S) subspace, then
+  // by increasing L, subject to triangularity to target J value, but
+  // without regard to whether or not L actually exists in the
+  // branching of this (or any) (omega,S).  An empty subspace is
+  // therefore possible.
   // 
   ////////////////////////////////////////////////////////////////
   

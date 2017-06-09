@@ -175,6 +175,57 @@ namespace spncci
 
   };
 
+  ////////////////////////////////////////////////////////////////
+  // SpNCCI basis branched to LS level
+  ////////////////////////////////////////////////////////////////  
+  //
+  //   subspace: (L,S)
+  //     state: (omega,kappa,sigma,Sp,Sn)
+  //       substates: (gamma,upsilon)
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Labeling
+  //
+  // subspace labels: (L,S) => spncci::LSPair
+  //
+  // state labels within subspace: (omega,kappa,(sigma,Sp,Sn,[S]))
+  //   => (u3::U3,int,u3shell::U3SPN)
+  //
+  // substate labels (implied): (gamma,upsilon)
+  //
+  //   (See BabySpNCCI docstring in spncci_basis for definitions of
+  //   these basis labels.)
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // States
+  //
+  // Within a subspace, states are ordered by:
+  //
+  //   - ordering of (omega,S) subspaces in SpaceSpU3S, and thus by
+  //     first appearance of (omega,S) label in traveral of the
+  //     BabySpNCCI basis
+  //
+  //   - increasing kappa
+  //
+  //   - ordering of irrep family labels within (omega,S) subspace,
+  //     which follows first appearance of irrep family label in
+  //     traveral of the BabySpNCCI basis, which in turn follows irrep
+  //     family ordering in SpNCCISpace
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered by first appearance
+  // of (L,S) in branching of an (omega,S) subspace in SpaceSpU3S.
+  //
+  // MAYBE... 
+  //
+  ////////////////////////////////////////////////////////////////
+
+
 }  // namespace
 
 #endif

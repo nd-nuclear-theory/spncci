@@ -117,10 +117,10 @@ namespace spncci
         // interate over possible L values
         //
         // CAUTION (mac): I believe we risk creating empty LS spaces.
-        // The (L,S) pairs used in creating LS subspaces are
-        // determined purely by triangularity JxS->L without regard to
-        // whether or not this L exists in the branching of any U3
-        // subspace ottained for that S.
+        // In the following code, the (L,S) pairs used in creating LS
+        // subspaces are determined purely by triangularity JxS->L
+        // without regard to whether or not this L exists in the
+        // branching of any U3 subspace obtained for that S.
        
         for(int L=int(abs(S-J)); L<=int(S+J); ++L)
           {
