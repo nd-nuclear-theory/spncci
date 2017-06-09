@@ -55,9 +55,13 @@ CPPFLAGS += -DEIGEN_DONT_PARALLELIZE
 # verbosity level
 CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
 
-# spline submodule
+# basis submodule
 #   map vs. hash for space lookup in basis module
 CPPFLAGS += -DBASIS_HASH
+
+# mcutils submodule
+#   allow legacy global access to variables now wrapped in mcutils namespace
+CPPFLAGS += -DMCUTILS_ALLOW_LEGACY_GLOBAL
 
 # spncci program algorithm choices
 #   map vs. hash unit tensor sectors 

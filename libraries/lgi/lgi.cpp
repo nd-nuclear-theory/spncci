@@ -53,8 +53,8 @@ namespace lgi
   void ReadLGISet(MultiplicityTaggedLGIVector& lgi_vector, const std::string& lgi_filename)
   {
     // open input file
-    std::ifstream lgi_stream(lgi_filename.c_str());
-    OpenCheck(bool(lgi_stream),lgi_filename);  // explicit cast to bool required in gcc 5
+    std::ifstream lgi_stream(lgi_filename);
+    StreamCheck(bool(lgi_stream),lgi_filename,"Failed to open LGI input file");
 
     // scan input file
     std::string line;

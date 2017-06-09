@@ -95,8 +95,8 @@ namespace u3shell
     // set size of vector 
     sector_vector.resize(sectors.size());
     // Reading in matrix elements 
-    std::ifstream interaction_stream(interaction_file.c_str());
-    OpenCheck(bool(interaction_stream),interaction_file);
+    std::ifstream interaction_stream(interaction_file);
+    StreamCheck(bool(interaction_stream),interaction_file,"Failed to open interaction file");
     std::string line;
     int J, S, Lp, L, dim,ipcut, indent, nmax;
     dim=0;
