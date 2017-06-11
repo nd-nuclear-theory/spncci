@@ -27,6 +27,12 @@ namespace spncci
 {
 
   ////////////////////////////////////////////////////////////////
+  // convenience typedef for (L,S)
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::tuple<int,HalfInt> LSLabels;
+
+  ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to U3S level
   ////////////////////////////////////////////////////////////////  
   //
@@ -187,7 +193,7 @@ namespace spncci
   //
   // Labeling
   //
-  // subspace labels: (L,S) => spncci::LSPair
+  // subspace labels: (L,S) => spncci::LSLabels
   //
   // state labels within subspace: (omega,kappa,(sigma,Sp,Sn,[S]))
   //   => (u3::U3,int,u3shell::U3SPN)
@@ -224,6 +230,45 @@ namespace spncci
   // MAYBE... 
   //
   ////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////
+  // subspace
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::tuple<u3::U3,int,u3shell::U3SPN> StateLabelsSpLS;
+  class SubspaceSpLS
+    : public basis::BaseMultiSubspace<spncci::LSLabels,spncci::StateLabelsSpLS>
+    {
+      public:
+
+      // constructors
+      SubspaceSpLS() {};
+      // default constructor -- provided since required for certain
+      // purposes by STL container classes (e.g., std::vector::resize)
+
+      SubspaceSpLS(const spncci::LSLabels& ls_labels, const SpaceSpU3S& spu3s_space);
+
+      // subspace label accessors
+      int L() const {return std::get<0>(labels_);}
+      HalfInt S() const {return std::get<1>(labels_);}
+
+      // state auxiliary data accessors
+      const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
+      const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
+      const std::vector<int>& state_baby_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
+
+      // diagnostic output
+      std::string LabelStr() const;
+      std::string DebugStr() const;
+
+      private:
+
+      // state auxiliary data
+      std::vector<int> state_gamma_max_;
+      std::vector<int> state_baby_spncci_subspace_index_;
+      std::vector<int> state_spu3s_subspace_index_;
+    };
+
 
 
 }  // namespace

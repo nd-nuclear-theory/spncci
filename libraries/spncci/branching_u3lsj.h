@@ -97,7 +97,7 @@ namespace spncci
   // 
   ////////////////////////////////////////////////////////////////
   
-  typedef std::pair<int,HalfInt> LSPair;
+  typedef std::pair<int,HalfInt> LSPair;  // DEPRECATED in favor of LSLabels in new branching code
 
   class StateLS;  // forward declaration (to permit use as "friend" of SubspaceU3S)
 
