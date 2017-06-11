@@ -2,6 +2,9 @@
   compute_unit_tensor_rmes.cpp
 
   compute relative unit tensor rmes in spncci basis using recurrance
+
+  WARNING: Will not build since requires old version of
+  lgi::GenerateLGIExpansion with stream arguments.
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame

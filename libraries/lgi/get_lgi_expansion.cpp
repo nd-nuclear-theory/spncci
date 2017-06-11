@@ -3,6 +3,8 @@
 
   Apparently old testbed code not in current use? (mac)
 
+  Build will fail since requires legacy GenerateNcmMatrixVector with stream argument.
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 

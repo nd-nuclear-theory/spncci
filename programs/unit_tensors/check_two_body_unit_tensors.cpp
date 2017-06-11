@@ -1,6 +1,11 @@
 /****************************************************************
   check_two_body_unit_tensors.cpp
 
+  WARNING: Will not build since requires old versions of
+  lsu3shell::ReadLSU3ShellRMEs and/or lgi::GenerateLGIExpansion with
+  stream arguments.
+
+
   Read in RMEs for two body tensors and check against expected
   values.
 

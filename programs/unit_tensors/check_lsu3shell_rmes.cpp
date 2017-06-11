@@ -1,5 +1,10 @@
 /****************************************************************
   check_lsu3shell_rme.cpp
+
+  WARNING: Will not build since requires old versions of
+  lsu3shell::ReadLSU3ShellRMEs and/or lgi::GenerateLGIExpansion with
+  stream arguments.
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 

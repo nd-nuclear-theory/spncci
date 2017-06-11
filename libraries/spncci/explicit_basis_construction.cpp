@@ -4,6 +4,9 @@
   Generating the symplectic basis by explicit laddering with
   raising polynomials 
 
+  WARNING: Will not build since requires old version of
+  lgi::GenerateLGIExpansion with stream arguments.
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 

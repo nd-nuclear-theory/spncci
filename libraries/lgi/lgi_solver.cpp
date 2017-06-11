@@ -142,53 +142,56 @@ namespace lgi
   }
 
 
-  void 
-    GenerateLGIExpansion(
-        int A,
-        HalfInt Nsigma_0,
-        const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
-        std::ifstream& is_Brel,
-        std::ifstream& is_Nrel,
-        lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions
-        // bool keep_empty_subspaces
-      )
-  // DEPRECATED
-  {
-
-    // provide wrapper for clean, I/O-free version
-
-    // read Brel -- DEPRECATED stream-based ReadLSU3ShellRMEs
-    u3shell::OperatorLabelsU3ST Brel_labels(-2,u3::SU3(0,2),0,0,0);
-    u3shell::SectorsU3SPN Brel_sectors(lsu3shell_space,Brel_labels,true);
-    basis::MatrixVector Brel_matrices;
-    lsu3shell::ReadLSU3ShellRMEs(
-        is_Brel,Brel_labels,
-        lsu3shell_basis_table,lsu3shell_space,
-        Brel_sectors,Brel_matrices
-      );
-
-    // read Nrel as Ncm -- DEPRECATED stream-based GenerateNcmMatrixVector
-    u3shell::OperatorLabelsU3ST Ncm_labels(0,u3::SU3(0,0),0,0,0);
-    u3shell::SectorsU3SPN Ncm_sectors(lsu3shell_space,Ncm_labels,true);
-    basis::MatrixVector Ncm_matrices;
-    lsu3shell::GenerateNcmMatrixVector(
-        A,
-        is_Nrel,
-        lsu3shell_basis_table,lsu3shell_space,
-        Ncm_matrices
-      );
-
-    // call matrix-based version
-    lgi::GenerateLGIExpansion(
-        lsu3shell_space, 
-        Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
-        Nsigma_0,
-        lgi_families,lgi_expansions
-      );
-
-  }
+  // void 
+  //   GenerateLGIExpansion(
+  //       int A,
+  //       HalfInt Nsigma_0,
+  //       const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+  //       const u3shell::SpaceU3SPN& lsu3shell_space, 
+  //       std::ifstream& is_Brel,
+  //       std::ifstream& is_Nrel,
+  //       lgi::MultiplicityTaggedLGIVector& lgi_families,
+  //       basis::MatrixVector& lgi_expansions
+  //       // bool keep_empty_subspaces
+  //     )
+  // // DEPRECATED
+  // //
+  // // WARNING: No longer will build since requires stream-based versions of
+  // // ReadLSU3ShellRMEs and GenerateNcmMatrixVector
+  // {
+  // 
+  //   // provide wrapper for clean, I/O-free version
+  // 
+  //   // read Brel -- DEPRECATED stream-based ReadLSU3ShellRMEs
+  //   u3shell::OperatorLabelsU3ST Brel_labels(-2,u3::SU3(0,2),0,0,0);
+  //   u3shell::SectorsU3SPN Brel_sectors(lsu3shell_space,Brel_labels,true);
+  //   basis::MatrixVector Brel_matrices;
+  //   lsu3shell::ReadLSU3ShellRMEs(
+  //       is_Brel,Brel_labels,
+  //       lsu3shell_basis_table,lsu3shell_space,
+  //       Brel_sectors,Brel_matrices
+  //     );
+  // 
+  //   // read Nrel as Ncm -- DEPRECATED stream-based GenerateNcmMatrixVector
+  //   u3shell::OperatorLabelsU3ST Ncm_labels(0,u3::SU3(0,0),0,0,0);
+  //   u3shell::SectorsU3SPN Ncm_sectors(lsu3shell_space,Ncm_labels,true);
+  //   basis::MatrixVector Ncm_matrices;
+  //   lsu3shell::GenerateNcmMatrixVector(
+  //       A,
+  //       is_Nrel,
+  //       lsu3shell_basis_table,lsu3shell_space,
+  //       Ncm_matrices
+  //     );
+  // 
+  //   // call matrix-based version
+  //   lgi::GenerateLGIExpansion(
+  //       lsu3shell_space, 
+  //       Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
+  //       Nsigma_0,
+  //       lgi_families,lgi_expansions
+  //     );
+  // 
+  // }
 
   void
   TransformOperatorToSpBasis(
