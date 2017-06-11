@@ -20,7 +20,7 @@
  
 #include <boost/functional/hash.hpp>
 
-template <typename IRREP>
+template <typename tIrrep>
 struct MultiplicityTagged
 // Container classes for irrep labels with multiplicity.
 //
@@ -35,7 +35,7 @@ struct MultiplicityTagged
   ////////////////////////////////////////////////////////////////
 
   // convenience typedef for container class
-  typedef std::vector<MultiplicityTagged<IRREP> > vector;
+  typedef std::vector<MultiplicityTagged<tIrrep> > vector;
       
   ////////////////////////////////////////////////////////////////
   // constructors
@@ -49,33 +49,33 @@ struct MultiplicityTagged
     : tag(0) {}
 
   // construct by (irrep, tag)
-  inline MultiplicityTagged(const IRREP& irrep_, int tag_) 
+  inline MultiplicityTagged(const tIrrep& irrep_, int tag_) 
     : irrep(irrep_), tag(tag_) {}
 
   ////////////////////////////////////////////////////////////////
   // key tuple, comparisons, and hashing
   ////////////////////////////////////////////////////////////////
 
-  typedef std::pair<IRREP,int> KeyType;
+  typedef std::pair<tIrrep,int> KeyType;
 
   inline KeyType Key() const
   {
     return KeyType(irrep,tag);
   }
 
-  inline friend bool operator == (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
+  inline friend bool operator == (const MultiplicityTagged<tIrrep>& x1, const MultiplicityTagged<tIrrep>& x2)
   {
     return x1.Key() == x2.Key();
   }
   
-  inline friend bool operator < (const MultiplicityTagged<IRREP>& x1, const MultiplicityTagged<IRREP>& x2)
+  inline friend bool operator < (const MultiplicityTagged<tIrrep>& x1, const MultiplicityTagged<tIrrep>& x2)
   {
     return x1.Key() < x2.Key();
   }
 
-  inline friend std::size_t hash_value(const MultiplicityTagged<IRREP>& v)
+  inline friend std::size_t hash_value(const MultiplicityTagged<tIrrep>& v)
   {
-    boost::hash<MultiplicityTagged<IRREP>::KeyType> hasher;
+    boost::hash<MultiplicityTagged<tIrrep>::KeyType> hasher;
     return hasher(v.Key());
   }
 
@@ -89,12 +89,12 @@ struct MultiplicityTagged
   // labels
   ////////////////////////////////////////////////////////////////
       
-  IRREP irrep;
+  tIrrep irrep;
   int tag;
 };
 
-template <typename IRREP>
-std::string MultiplicityTagged<IRREP>::Str() const
+template <typename tIrrep>
+std::string MultiplicityTagged<tIrrep>::Str() const
 // Generate string output relying on Str() method of irrep.
 //
 // Note: Will fail if irrep type does not have Str() method, e.g.,
@@ -110,7 +110,7 @@ std::string MultiplicityTagged<IRREP>::Str() const
 
 // template <>
 //   std::string MultiplicityTagged<int>::Str() const
-//   // Template specialization for IRREP->int.
+//   // Template specialization for tIrrep->int.
 //   {
 //     std::ostringstream ss;
 // 	

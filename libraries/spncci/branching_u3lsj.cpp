@@ -20,13 +20,13 @@
 namespace spncci
 {
 
-  SubspaceLS::SubspaceLS(int L, HalfInt S, const SpaceU3S& u3s_space)
+  SubspaceLS::SubspaceLS(const spncci::LSLabels& ls_labels, const SpaceU3S& u3s_space)
   {
 
     // std::cout << fmt::format("[Building LS subpsace: (L,S) = ({},{})]",L,S) << std::endl;
 
     // save labels
-    labels_ = LSPair(L,S);
+    labels_ = ls_labels;
 
     // // old aem code:
     //
@@ -60,10 +60,10 @@ namespace spncci
         const SubspaceU3S& u3s_subspace = u3s_space.GetSubspace(u3s_subspace_index);
 
         // determine branching multiplicity to the specified L
-        int kappa_max=u3::BranchingMultiplicitySO3(u3s_subspace.x(),L);
+        int kappa_max=u3::BranchingMultiplicitySO3(u3s_subspace.x(),L());
 
         // short circuit if U3S subspace not relevant to current LS subspace
-        if ((kappa_max==0)||(S!=u3s_subspace.S()))
+        if ((kappa_max==0)||(S()!=u3s_subspace.S()))
           continue;
 
         // push state
@@ -98,49 +98,82 @@ namespace spncci
     return fmt::format("[{} {}]",L(),S());
   }
 
+  // (mac): aem implementation, with ad hoc sorting order and risk of empty LS spaces
+  //
+  // SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
+  // {
+  // 
+  //   // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
+  // 
+  //   // iterate over U(3)xSU(2) subspaces
+  //   for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
+  //   // for(auto u3s_subspace : u3s_space)
+  //     {
+  //       const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
+  //       HalfInt S = u3s_subspace.S();
+  //       // iterate through omega space
+  //       u3::U3 omega = u3s_subspace.omega();
+  // 
+  //       // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
+  // 
+  //       // interate over possible L values
+  //       //
+  //       // CAUTION (mac): I believe we risk creating empty LS spaces.
+  //       // In the following code, the (L,S) pairs used in creating LS
+  //       // subspaces are determined purely by triangularity JxS->L
+  //       // without regard to whether or not this L exists in the
+  //       // branching of any U3 subspace obtained for that S.
+  //      
+  //       for(int L=int(abs(S-J)); L<=int(S+J); ++L)
+  //         {
+  //           //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
+  //           if(ContainsSubspace(LSLabels(L,S)))
+  //             continue;
+  //           SubspaceLS ls_subspace(L,S,u3s_space);
+  //           PushSubspace(ls_subspace);
+  //         }
+  //      }
+  //   // // get dimension and starting index of last subspace
+  //   // const SubspaceType& subspace=GetSubspace(subspaces_.size()-1);
+  //   // HalfInt S=subspace.S();
+  //   // u3::U3 omega=std::get<0>(subspace.GetStateLabels(subspace.size()-1));
+  //   // int index=std::get<2>(subspace.GetStateLabels(subspace.size()-1));
+  //   // u3::U3S omegaS(omega,S);
+  //   // int dim=u3s_space.LookUpSubspace(omegaS).full_dimension();
+  //   // dimension_=dim+index;
+  // }
+  
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
 
-    // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
-
-    // iterate over U(3)xSU(2) subspaces
+    // collect (L,S) branchings
+    std::set<LSLabels> ls_labels_set;
     for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
-    // for(auto u3s_subspace : u3s_space)
       {
-        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
+
+        // set up alias
+        const SubspaceU3S& u3s_subspace = u3s_space.GetSubspace(u3s_subspace_index);
+
+        // find branching L values yielding given J
+        u3::SU3 x = u3s_subspace.omega().SU3();
         HalfInt S = u3s_subspace.S();
-        // iterate through omega space
-        u3::U3 omega = u3s_subspace.omega();
+        HalfInt::pair l_range = am::ProductAngularMomentumRange(J,S);
+        MultiplicityTagged<int>::vector branching = u3::BranchingSO3Constrained(x,l_range);
 
-        // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
-
-        // interate over possible L values
-        //
-        // CAUTION (mac): I believe we risk creating empty LS spaces.
-        // In the following code, the (L,S) pairs used in creating LS
-        // subspaces are determined purely by triangularity JxS->L
-        // without regard to whether or not this L exists in the
-        // branching of any U3 subspace obtained for that S.
-       
-        for(int L=int(abs(S-J)); L<=int(S+J); ++L)
+        // accumulate (L,S) pairs from U3S subspace
+        for (const MultiplicityTagged<int>& l_kappa_max : branching)
           {
-            //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
-            if(ContainsSubspace(LSPair(L,S)))
-              continue;
-            SubspaceLS ls_subspace(L,S,u3s_space);
-            PushSubspace(ls_subspace);
+            int L = l_kappa_max.irrep;
+            ls_labels_set.insert(LSLabels(L,S));
           }
-       }
-    // // get dimension and starting index of last subspace
-    // const SubspaceType& subspace=GetSubspace(subspaces_.size()-1);
-    // HalfInt S=subspace.S();
-    // u3::U3 omega=std::get<0>(subspace.GetStateLabels(subspace.size()-1));
-    // int index=std::get<2>(subspace.GetStateLabels(subspace.size()-1));
-    // u3::U3S omegaS(omega,S);
-    // int dim=u3s_space.LookUpSubspace(omegaS).full_dimension();
-    // dimension_=dim+index;
+      }
+    
+    // create subspaces
+    for (const LSLabels& ls_labels : ls_labels_set)
+      {
+        PushSubspace(SubspaceLS(ls_labels,u3s_space));
+      }
   }
-
 
   std::string SectorLabelsLS::Str() const
   {

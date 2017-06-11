@@ -857,12 +857,33 @@ int main(int argc, char **argv)
   // build baby spncci space 
   spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
 
-  // build U3S gathered space
-  std::cout << "Build SpaceSpU3S..." << std::endl;
-  spncci::SpaceSpU3S space_spu3s(baby_spncci_space);
-  std::cout << fmt::format("  subspaces {} full_dimension {}",space_spu3s.size(),space_spu3s.FullDimension())
-            << std::endl;
-  // std::cout << space_spu3s.DebugStr(true);
+  // build SpU3S gathered space
+  std::cout << "Build SpU3S space..." << std::endl;
+  spncci::SpaceSpU3S spu3s_space(baby_spncci_space);
+  std::cout
+    << fmt::format("  subspaces {} dimension {} full_dimension {}",
+                   spu3s_space.size(),spu3s_space.Dimension(),spu3s_space.FullDimension()
+      )
+    << std::endl;
+  std::cout
+    << fmt::format("  compare... TotalDimensionU3S {}",
+                   TotalDimensionU3S(spncci_space)
+      )
+    << std::endl;
+  // std::cout << spu3s_space.DebugStr(true);
+
+  // build SpLS branched space
+  std::cout << "Build SpLS space..." << std::endl;
+  spncci::SpaceSpLS spls_space(spu3s_space);
+  std::cout
+    << fmt::format("  subspaces {} dimension {} full_dimension {}",
+                   spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
+      )
+    << std::endl;
+  std::cout
+    << fmt::format("  compare... TotalDimensionU3LS {}",TotalDimensionU3LS(spncci_space))
+    << std::endl;
+  // std::cout << splss_space.DebugStr(true);
 
 
   ////////////////////////////////////////////////////////////////
@@ -1243,9 +1264,30 @@ int main(int argc, char **argv)
   std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
   for (const HalfInt J : run_parameters.J_values)
     {
+
+      std::cout << fmt::format("Build LS space for J={}...",J.Str()) << std::endl;
       spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
-      std::cout << fmt::format("Branching for J={}: LS subspaces {}",J.Str(),spaces_lsj[J].size()) << std::endl;
+      std::cout
+        << fmt::format(
+            "  subspaces {} dimension {}",
+            J.Str(),
+            spaces_lsj[J].size(),spaces_lsj[J].Dimension()
+          ) << std::endl;
+
+      // comparison tests with new basis branching construction
+      std::cout << fmt::format("Build SpLS space for J={}...",J.Str()) << std::endl;
+      spncci::SpaceSpLS spls_space(spu3s_space,J);
+      std::cout
+        << fmt::format("  subspaces {} dimension {} full_dimension {}",
+                       spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
+          )
+        << std::endl;
+      std::cout
+        << fmt::format("  compare... TotalDimensionU3LSJConstrained {}",TotalDimensionU3LSJConstrained(spncci_space,J))
+        << std::endl;
     }
+
+
 
   std::cout << "Construct branched observable matrices..." << std::endl;
 

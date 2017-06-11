@@ -8,6 +8,7 @@
 
 #include "spncci/branching.h"
 
+#include <set>
 #include <sstream>
 #include <iostream>
 
@@ -29,7 +30,6 @@ namespace spncci
     labels_ = omegaS;
 
     // scan BabySpNCCISpace for states to accumulate
-    int substate_offset = 0;  // accumulated offset
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
 
@@ -52,7 +52,7 @@ namespace spncci
 
   std::string SubspaceSpU3S::LabelStr() const
   {
-    return labels().Str();
+    return omegaS().Str();
   }
 
   std::string SubspaceSpU3S::DebugStr() const
@@ -100,9 +100,9 @@ namespace spncci
         const SubspaceSpU3S& subspace = GetSubspace(subspace_index);
 
         os << fmt::format(
-            "index {} omegaS {} full_dimension {}",
+            "index {} omegaS {} size {} full_dimension {}",
             subspace_index,
-            subspace.omegaS().Str(),subspace.full_dimension()
+            subspace.omegaS().Str(),subspace.size(),subspace.full_dimension()
           ) << std::endl;
         if (show_subspaces)
           os << subspace.DebugStr();
@@ -123,7 +123,6 @@ namespace spncci
     labels_ = ls_labels;
 
     // scan SpU3S space for states to accumulate
-    int substate_offset = 0;  // accumulated offset
     for(int spu3s_subspace_index=0; spu3s_subspace_index<spu3s_space.size(); ++spu3s_subspace_index)
       {
 
@@ -162,5 +161,113 @@ namespace spncci
 
       }
   }
+
+  std::string SubspaceSpLS::LabelStr() const
+  {
+    return fmt::format("({},{})",L(),S().Str());
+  }
+
+  std::string SubspaceSpLS::DebugStr() const
+  {
+    std::ostringstream os;
+
+    for (int state_index=0; state_index<size(); ++state_index)
+      {
+        const StateSpLS state(*this,state_index);
+
+        os << fmt::format(
+            "  index {} omegaS {} kappa {} sigmaSPN {} multiplicity {} offset {}",
+            state_index,
+            state.omegaS().Str(),state.kappa(),state.sigmaSPN().Str(),
+            state.multiplicity(),state.offset()
+          ) << std::endl;
+      }
+
+    return os.str();
+  }
+
+
+  SpaceSpLS::SpaceSpLS(const SpaceSpU3S& spu3s_space)
+  {
+
+    // collect (L,S) branchings
+    std::set<LSLabels> ls_labels_set;
+    for(int spu3s_subspace_index=0; spu3s_subspace_index<spu3s_space.size(); ++spu3s_subspace_index)
+      {
+
+        // set up alias
+        const SubspaceSpU3S& spu3s_subspace = spu3s_space.GetSubspace(spu3s_subspace_index);
+
+        // find branching L values
+        u3::SU3 x = spu3s_subspace.omega().SU3();
+        HalfInt S = spu3s_subspace.S();
+        MultiplicityTagged<int>::vector branching = u3::BranchingSO3(x);
+
+        // accumulate (L,S) pairs from U3S subspace
+        for (const MultiplicityTagged<int>& l_kappa_max : branching)
+          {
+            int L = l_kappa_max.irrep;
+            ls_labels_set.insert(LSLabels(L,S));
+          }
+      }
+    
+    // create subspaces
+    for (const LSLabels& ls_labels : ls_labels_set)
+      PushSubspace(SubspaceSpLS(ls_labels,spu3s_space));
+  }
+
+  SpaceSpLS::SpaceSpLS(const SpaceSpU3S& spu3s_space, HalfInt J)
+  {
+
+    // collect (L,S) branchings
+    std::set<LSLabels> ls_labels_set;
+    for(int spu3s_subspace_index=0; spu3s_subspace_index<spu3s_space.size(); ++spu3s_subspace_index)
+      {
+
+        // set up alias
+        const SubspaceSpU3S& spu3s_subspace = spu3s_space.GetSubspace(spu3s_subspace_index);
+
+        // find branching L values
+        u3::SU3 x = spu3s_subspace.omega().SU3();
+        HalfInt S = spu3s_subspace.S();
+        HalfInt::pair l_range = am::ProductAngularMomentumRange(J,S);
+        MultiplicityTagged<int>::vector branching = u3::BranchingSO3Constrained(x,l_range);
+
+        // accumulate (L,S) pairs from U3S subspace
+        for (const MultiplicityTagged<int>& l_kappa_max : branching)
+          {
+            int L = l_kappa_max.irrep;
+            ls_labels_set.insert(LSLabels(L,S));
+          }
+      }
+    
+    // create subspaces
+    for (const LSLabels& ls_labels : ls_labels_set)
+      PushSubspace(SubspaceSpLS(ls_labels,spu3s_space));
+  }
+
+  std::string SpaceSpLS::DebugStr(bool show_subspaces) const
+  {
+    std::ostringstream os;
+
+    for (int subspace_index=0; subspace_index<size(); ++subspace_index)
+      {
+        // set up alias
+        const SubspaceSpLS& subspace = GetSubspace(subspace_index);
+
+        os << fmt::format(
+            "index {} (L,S) ({},{}) size {} full_dimension {}",
+            subspace_index,
+            subspace.L(),
+            subspace.S().Str(),subspace.size(),subspace.full_dimension()
+          ) << std::endl;
+        if (show_subspaces)
+          os << subspace.DebugStr();
+
+      }
+
+    return os.str();
+  }
+
 
 }  // namespace

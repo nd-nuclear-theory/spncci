@@ -224,10 +224,9 @@ namespace spncci
   //
   // Subspaces
   //
-  // Within the full space, subspaces are ordered by first appearance
-  // of (L,S) in branching of an (omega,S) subspace in SpaceSpU3S.
-  //
-  // MAYBE... 
+  // Within the full space, subspaces are ordered lexicographically by
+  // (L,S).  Only (L,S) values appearing by branching of an (omega,S)
+  // subspace are included.
   //
   ////////////////////////////////////////////////////////////////
 
@@ -255,7 +254,7 @@ namespace spncci
       // state auxiliary data accessors
       const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
       const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
-      const std::vector<int>& state_baby_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
+      const std::vector<int>& state_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
 
       // diagnostic output
       std::string LabelStr() const;
@@ -269,6 +268,100 @@ namespace spncci
       std::vector<int> state_spu3s_subspace_index_;
     };
 
+
+  ////////////////////////////////////////////////////////////////
+  // state
+  ////////////////////////////////////////////////////////////////
+
+  class StateSpLS
+    : public basis::BaseMultiState<SubspaceSpLS>
+  {
+    
+    public:
+
+    // pass-through constructors
+
+    StateSpLS(const SubspaceType& subspace, int& index)
+      // Construct state by index.
+      : basis::BaseMultiState<SubspaceSpLS>(subspace,index) {}
+
+    StateSpLS(
+        const SubspaceType& subspace,
+        const typename SubspaceType::StateLabelsType& state_labels
+      )
+      // Construct state by reverse lookup on labels.
+      : basis::BaseMultiState<SubspaceSpLS>(subspace,state_labels) 
+      {}
+
+    // pass-through accessors
+    int L() const {return subspace().L();}
+    HalfInt S() const {return subspace().S();}
+
+    // state label accessors -- (Sp,Sn)
+    HalfInt Sp() const {return sigmaSPN().Sp();}
+    HalfInt Sn() const {return sigmaSPN().Sn();}
+
+    // state label accessors -- omega
+    u3::U3 omega() const {return std::get<0>(labels());}
+    u3::U3S omegaS() const {return u3::U3S(omega(),S());}
+    u3shell::U3SPN omegaSPN() const {return u3shell::U3SPN(omega(),Sp(),Sn(),S());}
+    HalfInt N() const {return omega().N();}
+    // int Nex() const {return int(N()-Nsigma_0);}
+
+    // state label accessors -- kappa
+    int kappa() const {return std::get<1>(labels());}
+
+    // state label accessors -- sigma
+    u3::U3 sigma() const {return sigmaSPN().U3();}
+    u3::U3S sigmaS() const {return sigmaSPN().U3S();}
+    u3shell::U3SPN sigmaSPN() const {return std::get<2>(labels());}
+    HalfInt Nsigma() const {return sigmaSPN().N();}
+    // int Nsigmaex() const {return int(Nsigma()-Nsigma_0);}
+
+    // state auxiliary data accessors
+    int gamma_max() const
+    {
+      return subspace().state_gamma_max()[index()];
+    }
+    int baby_spncci_subspace_index() const
+    {
+      return subspace().state_baby_spncci_subspace_index()[index()];
+    }
+    int spu3s_subspace_index() const
+    {
+      return subspace().state_spu3s_subspace_index()[index()];
+    }
+
+    private:
+ 
+  };
+
+  ////////////////////////////////////////////////////////////////
+  // space
+  ////////////////////////////////////////////////////////////////
+
+  class SpaceSpLS
+    : public basis::BaseMultiSpace<SubspaceSpLS>
+  {
+    
+    public:
+
+    // constructor
+    SpaceSpLS() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SpaceSpLS(const SpaceSpU3S& spu3s_space);
+    // Construct full LS space.
+
+    SpaceSpLS(const SpaceSpU3S& spu3s_space, HalfInt J);
+    // Construct J-constrained LS space.
+
+
+    // diagnostic output
+    std::string DebugStr(bool show_subspaces=false) const;
+
+  };
 
 
 }  // namespace

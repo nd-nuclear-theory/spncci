@@ -10,6 +10,7 @@
   2/19/17 (mac): Rename to branching_u3lsj.
   5/27/17 (mac): Overhaul implementation of U3LS subspaces and store
     parent irrep info.
+  6/11/17 (mac): Impose SU(3)->L branching rule and sort LS subspaces.
     
 ****************************************************************/
 
@@ -22,6 +23,7 @@
 #include "lgi/lgi.h"
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
+#include "spncci/branching.h"  // for LSLabels
 #include "spncci/branching_u3s.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
@@ -79,30 +81,26 @@ namespace spncci
   //
   // Subspaces
   //
-  // Within the full space, subspaces are ordered lexicographically by
-  // (L,S).
-  //
-  // NOT TRUE?
-  //
-  // Aren't they just ordered by first appearance of (L,S) as a
-  // possible branching for an (omega,S) subspace, then by L?
-  //
-  // RATHER...
+  // WAS...
   //
   // Ordered by first occurrence of S in an (omega,S) subspace, then
   // by increasing L, subject to triangularity to target J value, but
   // without regard to whether or not L actually exists in the
   // branching of this (or any) (omega,S).  An empty subspace is
   // therefore possible.
+  //
+  // NOW...
+  //
+  // Within the full space, subspaces are ordered lexicographically by
+  // (L,S).  Only (L,S) values appearing by branching of an (omega,S)
+  // subspace are included.
   // 
   ////////////////////////////////////////////////////////////////
   
-  typedef std::pair<int,HalfInt> LSPair;  // DEPRECATED in favor of LSLabels in new branching code
-
   class StateLS;  // forward declaration (to permit use as "friend" of SubspaceU3S)
 
   class SubspaceLS
-    : public basis::BaseSubspace<LSPair,std::tuple<int>>
+    : public basis::BaseSubspace<LSLabels,std::tuple<int>>
     // SubspaceLabelsType (std::pair<int,HalfInt>): (L,S)
     // StateLabelsType (int): index into U3S space
 
@@ -115,7 +113,7 @@ namespace spncci
       // default constructor -- provided since required for certain
       // purposes by STL container classes (e.g., std::vector::resize)
 
-      SubspaceLS(int L, HalfInt S,const SpaceU3S& u3s_space);
+      SubspaceLS(const spncci::LSLabels& ls_labels, const SpaceU3S& u3s_space);
 
       // accessors
       int L() const{return std::get<0>(labels());}
