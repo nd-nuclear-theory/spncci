@@ -860,7 +860,7 @@ int main(int argc, char **argv)
   // build U3S gathered space
   std::cout << "Build SpaceSpU3S..." << std::endl;
   spncci::SpaceSpU3S space_spu3s(baby_spncci_space);
-  std::cout << fmt::format("  subspaces {} full_dimension {}",space_spu3s.size(),space_spu3s.TotalFullDimension())
+  std::cout << fmt::format("  subspaces {} full_dimension {}",space_spu3s.size(),space_spu3s.FullDimension())
             << std::endl;
   // std::cout << space_spu3s.DebugStr(true);
 
