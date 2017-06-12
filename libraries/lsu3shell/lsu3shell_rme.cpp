@@ -19,8 +19,6 @@
 #include "mcutils/io.h"
 #include "mcutils/parsing.h"
 
-extern double zero_threshold;  // TODO: FIX ME PLEASE!!!!! (mac)
-
 namespace lsu3shell
 {
 
@@ -150,8 +148,11 @@ namespace lsu3shell
                 double rme;
                 // std::cout<<"getting rme"<<std::endl;
                 line_stream >> rme;
-                if(fabs(rme)<zero_threshold)
-                  continue;
+
+                // suppress zero values -- no longer appropriate/necessary
+                // if(fabs(rme)<zero_threshold)
+                //   continue;
+
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
@@ -201,6 +202,10 @@ namespace lsu3shell
         mcutils::ReadBinary<int>(in_stream,j);
         // std::cout<<i<<" "<<j<<std::endl;
 
+        // quit if this has brought us past end of file
+        if (!in_stream)
+          break;
+
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         const LSU3BasisGroupData& group_i = lsu3_basis_table[i];
@@ -210,23 +215,31 @@ namespace lsu3shell
         // std::cout<<fmt::format("{}  {}  {}", group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
         // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
-        mcutils::VerifyBinary<int>(in_stream,rho0_max,"Unexpected value encountered reading binary rme file","rho0_max");
-        int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
-        int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
+        int i_subspace_index=space.LookUpSubspaceIndex(group_i.omegaSPN);
+        int j_subspace_index=space.LookUpSubspaceIndex(group_j.omegaSPN);
 
+        // verify multiplicity given in file
+        mcutils::VerifyBinary<int>(in_stream,rho0_max,"Unexpected value encountered reading binary rme file "+filename,"rho0_max");
+        
         // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
           for(int gj=0; gj<group_j.dim; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
+                // read rme
                 float rme;
                 mcutils::ReadBinary<float>(in_stream,rme);
-                if(fabs(rme)<zero_threshold)
-                  continue;
-                // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
+                // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_subspace_index,j_subspace_index,rho0,rme)<<std::endl;
+
+                // suppress zero values -- no longer appropriate/necessary
+                // if(fabs(rme)<zero_threshold)
+                //   continue;
+
+                // store rme
+
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
-                int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
+                int sector_index=sectors.LookUpSectorIndex(i_subspace_index,j_subspace_index,rho0);
                 assert(sector_index!=basis::kNone);
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
