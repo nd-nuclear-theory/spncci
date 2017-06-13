@@ -98,51 +98,54 @@ namespace spncci
     return fmt::format("[{} {}]",L(),S());
   }
 
+#if 1
   // (mac): aem implementation, with ad hoc sorting order and risk of empty LS spaces
-  //
-  // SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
-  // {
-  // 
-  //   // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
-  // 
-  //   // iterate over U(3)xSU(2) subspaces
-  //   for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
-  //   // for(auto u3s_subspace : u3s_space)
-  //     {
-  //       const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
-  //       HalfInt S = u3s_subspace.S();
-  //       // iterate through omega space
-  //       u3::U3 omega = u3s_subspace.omega();
-  // 
-  //       // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
-  // 
-  //       // interate over possible L values
-  //       //
-  //       // CAUTION (mac): I believe we risk creating empty LS spaces.
-  //       // In the following code, the (L,S) pairs used in creating LS
-  //       // subspaces are determined purely by triangularity JxS->L
-  //       // without regard to whether or not this L exists in the
-  //       // branching of any U3 subspace obtained for that S.
-  //      
-  //       for(int L=int(abs(S-J)); L<=int(S+J); ++L)
-  //         {
-  //           //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
-  //           if(ContainsSubspace(LSLabels(L,S)))
-  //             continue;
-  //           SubspaceLS ls_subspace(L,S,u3s_space);
-  //           PushSubspace(ls_subspace);
-  //         }
-  //      }
-  //   // // get dimension and starting index of last subspace
-  //   // const SubspaceType& subspace=GetSubspace(subspaces_.size()-1);
-  //   // HalfInt S=subspace.S();
-  //   // u3::U3 omega=std::get<0>(subspace.GetStateLabels(subspace.size()-1));
-  //   // int index=std::get<2>(subspace.GetStateLabels(subspace.size()-1));
-  //   // u3::U3S omegaS(omega,S);
-  //   // int dim=u3s_space.LookUpSubspace(omegaS).full_dimension();
-  //   // dimension_=dim+index;
-  // }
-  
+  SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
+  {
+ 
+    // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
+ 
+    // iterate over U(3)xSU(2) subspaces
+    for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
+      // for(auto u3s_subspace : u3s_space)
+      {
+        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
+        HalfInt S = u3s_subspace.S();
+        // iterate through omega space
+        u3::U3 omega = u3s_subspace.omega();
+ 
+        // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
+ 
+        // interate over possible L values
+        //
+        // CAUTION (mac): I believe we risk creating empty LS spaces.
+        // In the following code, the (L,S) pairs used in creating LS
+        // subspaces are determined purely by triangularity JxS->L
+        // without regard to whether or not this L exists in the
+        // branching of any U3 subspace obtained for that S.
+      
+        for(int L=int(abs(S-J)); L<=int(S+J); ++L)
+          {
+            //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
+            if(ContainsSubspace(LSLabels(L,S)))
+              continue;
+            SubspaceLS ls_subspace(LSLabels(L,S),u3s_space);
+            PushSubspace(ls_subspace);
+          }
+      }
+    // // get dimension and starting index of last subspace
+    // const SubspaceType& subspace=GetSubspace(subspaces_.size()-1);
+    // HalfInt S=subspace.S();
+    // u3::U3 omega=std::get<0>(subspace.GetStateLabels(subspace.size()-1));
+    // int index=std::get<2>(subspace.GetStateLabels(subspace.size()-1));
+    // u3::U3S omegaS(omega,S);
+    // int dim=u3s_space.LookUpSubspace(omegaS).full_dimension();
+    // dimension_=dim+index;
+  }
+#endif
+
+#if 0  
+  // (mac): clean implementation, with sorted LS spaces
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
 
@@ -174,6 +177,8 @@ namespace spncci
         PushSubspace(SubspaceLS(ls_labels,u3s_space));
       }
   }
+#endif
+
 
   std::string SectorLabelsLS::Str() const
   {
