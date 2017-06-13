@@ -6,16 +6,18 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  8/1/16 (aem,mac): Created.
-  9/7/16 (mac): Split from lsu3shell_interface.
-  9/8/16 (mac): Add operator RME comparison function.
-  2/17/16 (mac): Change functions to take filename and do open
+  - 8/1/16 (aem,mac): Created.
+  - 9/7/16 (mac): Split from lsu3shell_interface.
+  - 9/8/16 (mac): Add operator RME comparison function.
+  - 2/17/16 (mac): Change functions to take filename and do open
     failure checking.
-  6/4/17 (mac): Provide optional scale factor for rmes on input.
-  6/11/17 (mac):
+  - 6/4/17 (mac): Provide optional scale factor for rmes on input.
+  - 6/11/17 (mac):
     + Update for binary rme file format.
     + Eliminate deprecated forms of ReadLSU3ShellRMEs and
       GenerateLSU3ShellNcmRMEs taking stream arguments.
+  - 6/12/19 (mac): Make text/binary switchable by global mode flag
+    g_rme_binary_format.
 ****************************************************************/
 
 #ifndef LSU3SHELL_RME_H_
@@ -33,41 +35,8 @@
 namespace lsu3shell
 {
 
-  void 
-  ReadLSU3ShellRMEsText(
-      const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
-      const u3shell::OperatorLabelsU3ST& operator_labels,
-      const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector,
-      double scale_factor = 1.
-    );
-  // Legacy text input of LSU3Shell RMEs.
-  //
-  // DEPRECATED in favor of binary format.
-  //
-  // Arguments:
-  //   ...
-  //   scale_factor (input,optional): scale factor for rmes on input,
-  //     e.g., for conversion from relative to intrinsic operator
-
-  // void 
-  // ReadLSU3ShellRMEsText(
-  //     std::ifstream& is,
-  //     const u3shell::OperatorLabelsU3ST& operator_labels,
-  //     const LSU3BasisTable& lsu3_basis_table,
-  //     const u3shell::SpaceU3SPN& space, 
-  //     const u3shell::SectorsU3SPN& sectors,
-  //     basis::MatrixVector& matrix_vector,
-  //     double scale_factor = 1.
-  //   );
-  // // DEPRECATED: requires that the calling code take care of the
-  // // stream open, which also has the drawback that there is no
-  // // standardized error message for file open failures; when upgrading
-  // // calling code to use new version, beware that order of arguments
-  // // has also been adjusted (to keep all the variables describing the
-  // // operator together in the argument list)
+  // global configuration
+  extern bool g_rme_binary_format;
 
   void 
   ReadLSU3ShellRMEs(
@@ -81,6 +50,9 @@ namespace lsu3shell
     );
   // Read LSU3Shell RMEs.
   //
+  // Global mode:
+  //   g_rme_binary_format: false = ascii format; true = binary format
+  //
   // Arguments:
   //   filename (input): name of binary rme file
   //   lsu3_basis_table (input): information on LSU3shell basis states
@@ -90,6 +62,28 @@ namespace lsu3shell
   //   matrix_vector (output): matrices for operator blocks
   //   scale_factor (input,optional): scale factor for rmes on input,
   //     e.g., for conversion from relative to intrinsic operator
+
+
+  // For reference, here is the old syntax:
+  //
+  // void 
+  // ReadLSU3ShellRMEs(
+  //     std::ifstream& is,
+  //     const u3shell::OperatorLabelsU3ST& operator_labels,
+  //     const LSU3BasisTable& lsu3_basis_table,
+  //     const u3shell::SpaceU3SPN& space, 
+  //     const u3shell::SectorsU3SPN& sectors,
+  //     basis::MatrixVector& matrix_vector,
+  //     double scale_factor = 1.
+  //   );
+  //
+  // This required that the calling code take care of the stream open,
+  // which also had the drawback that there is no standardized error
+  // message for file open failures.
+  //
+  // When upgrading calling code to use new version, beware that order
+  // of the other arguments has also been adjusted.
+
 
   bool 
   CompareLSU3ShellRMEs(
@@ -134,6 +128,8 @@ namespace lsu3shell
   //  A (input): atomic mass number
   //  matrix_vector (output): container for Ncm matrix sectors.
 
+  // For reference, here is the old syntax:
+  //
   // void GenerateNcmMatrixVector(
   //   int A,      
   //   std::ifstream& is_Nrel,
@@ -141,17 +137,6 @@ namespace lsu3shell
   //   const u3shell::SpaceU3SPN& space, 
   //   basis::MatrixVector& matrix_vector 
   // );
-  // // DEPRECATED: requires external code to do stream open
-  // //
-  // // Generates the Ncm matrix elements from Nrel matrix elements
-  // // and stores them in a vector of lsu3shell basis sectors
-  // //
-  // // Arguments:
-  // //  A (input): atomic mass number
-  // //  is_Nrel (input): stream from file containing Nrel rmes
-  // //  lsu3_basis_table (input): table of lsu3shell basis states
-  // //  space (input): space defined by lsu3shell basis
-  // //  matrix_vector (output): container for Ncm matrix sectors.
 
 }
 #endif

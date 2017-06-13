@@ -748,6 +748,7 @@ RunParameters::RunParameters(int argc, char **argv)
 int main(int argc, char **argv)
 {
   std::cout<<"entering spncci"<<std::endl;
+
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
@@ -758,10 +759,12 @@ int main(int argc, char **argv)
   u3::PhiCoefCache phi_coef_cache;
   u3::g_u_cache_enabled = true;
 
-  // numerical parameter for certain calculations
-  double zero_threshold=1e-8;  // DEPRECATED but still may be used some places
+  // parameters for certain calculations
   spncci::g_zero_tolerance = 1e-6;
   spncci::g_suppress_zero_sectors = true;
+
+  // rme input mode
+  lsu3shell::g_rme_binary_format = false;
 
   // run parameters
   RunParameters run_parameters(argc,argv);

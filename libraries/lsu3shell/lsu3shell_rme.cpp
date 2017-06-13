@@ -22,81 +22,8 @@
 namespace lsu3shell
 {
 
-
-
-  // void 
-  // ReadLSU3ShellRMEsText_DEPRECATED_TakesStream(
-  //     std::ifstream& is,
-  //     const u3shell::OperatorLabelsU3ST& operator_labels,
-  //     const LSU3BasisTable& lsu3_basis_table,
-  //     const u3shell::SpaceU3SPN& space, 
-  //     const u3shell::SectorsU3SPN& sectors,
-  //     basis::MatrixVector& matrix_vector,
-  //     double scale_factor
-  //   )
-  // // DEPRECATED version taking streams; but used internally by new
-  // // version; so this code should actually be inserted into new
-  // // version when the deprecated version is no longer needed
-  // {    
-  //   int i,j;
-  //   double rme;
-  //   basis::SetOperatorToZero(sectors,matrix_vector);
-  //   std::string line;
-  //   while(std::getline(is,line))
-  //     {
-  //       // skip initial header line
-  //       if(not std::isdigit(line[0]))
-  //         continue;
-  //       // extract bra/ket lsu3shell basis multiplicity group indices
-  //       std::istringstream line_stream(line);
-  //       line_stream >> i >> j;
-  //       // std::cout<<i<<" "<<j<<std::endl;
-  //       // retrieve lsu3shell basis multiplicity group information
-  //       u3shell::U3SPN omegaSPNi, omegaSPNj;
-  //       // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
-  //       // std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
-  //       const LSU3BasisGroupData& group_i = lsu3_basis_table[i];
-  //       const LSU3BasisGroupData& group_j = lsu3_basis_table[j];
-  // 
-  //       u3::SU3 xi(group_i.omegaSPN.SU3());
-  //       u3::SU3 xj(group_j.omegaSPN.SU3());
-  //       // std::cout<<fmt::format("{}  {}  {}", group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
-  //       int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
-  //       // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
-  //       // extract and store matrix elements
-  //       int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
-  //       int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
-  //       for(int gi=0; gi<group_i.dim; ++gi)
-  //         for(int gj=0; gj<group_j.dim; ++gj)
-  //           for(int rho0=1; rho0<=rho0_max; ++rho0)
-  //             {
-  //               // std::cout<<"getting rme"<<std::endl;
-  //               line_stream >> rme;
-  //               if(fabs(rme)<zero_threshold)
-  //                 continue;
-  //               // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
-  //               // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
-  //               // calculate the sector_index by offsetting from the sector with rho0=1.
-  //               int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
-  //               assert(sector_index!=-1);
-  //               int row_index=group_i.start_index+gi;
-  //               int column_index=group_j.start_index+gj;
-  //               // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
-  //               //   sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
-  //               //   matrix_vector[sector_index].cols(),rme)<<std::endl;
-  //               // std::cout<<"sector index "<<sector_index<<std::endl;
-  //               matrix_vector[sector_index](row_index,column_index)=scale_factor*rme;
-  //               // std::cout<<matrix_vector[sector_index]<<std::endl;
-  //             }
-  //       // std::cout<<"finished reading in "<<std::endl;
-  //       // for(int i=0; i<matrix_vector.size(); ++i)
-  //       //   std::cout<<matrix_vector[i]<<std::endl;
-  //       
-  //     }
-  //   // std::cout<<"finished reading in "<<std::endl;
-  //   // for(int i=0; i<matrix_vector.size(); ++i)
-  //   //   std::cout<<matrix_vector[i]<<std::endl;
-  // }
+  // global mode setting for rme I/O
+  bool g_rme_binary_format = true;
 
   void 
   ReadLSU3ShellRMEsText(
@@ -121,11 +48,13 @@ namespace lsu3shell
         // skip initial header line
         if(not std::isdigit(line[0]))
           continue;
-        // extract bra/ket lsu3shell basis multiplicity group indices
+
+        // read bra/ket lsu3shell basis multiplicity group indices
         int i,j;
         std::istringstream line_stream(line);
         line_stream >> i >> j;
         // std::cout<<i<<" "<<j<<std::endl;
+
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
@@ -141,6 +70,23 @@ namespace lsu3shell
         // extract and store matrix elements
         int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
         int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
+
+        // warn if file provides an rme of multiplicity zero
+        //
+        // This still falls short of verifying the the multiplicity
+        // given in the file, but at least it's something...
+        if (rho0_max==0)
+          {
+            std::cout
+              << "WARN: input rme entry present for rme with expected zero rho0_max"
+              << std::endl
+              << fmt::format("i {} j {}:  {}  {}  {}",i,j,group_i.omegaSPN.Str(),operator_labels.Str(),group_j.omegaSPN.Str())
+              << std::endl
+              << fmt::format("{}: {}",filename,line)
+              <<std::endl;
+          }
+
+        // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
           for(int gj=0; gj<group_j.dim; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
@@ -178,7 +124,7 @@ namespace lsu3shell
   };
 
   void 
-  ReadLSU3ShellRMEs(
+  ReadLSU3ShellRMEsBinary(
       const std::string& filename,
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
@@ -262,6 +208,25 @@ namespace lsu3shell
     // close file
     in_stream.close();
   };
+
+  void 
+  ReadLSU3ShellRMEs(
+      const std::string& filename,
+      const LSU3BasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      basis::MatrixVector& matrix_vector,
+      double scale_factor
+    )
+  {
+    if (g_rme_binary_format)
+      // binary format
+      ReadLSU3ShellRMEsBinary(filename,lsu3_basis_table,space,operator_labels,sectors,matrix_vector,scale_factor);
+    else
+      // text format
+      ReadLSU3ShellRMEsText(filename,lsu3_basis_table,space,operator_labels,sectors,matrix_vector,scale_factor);
+  }
 
 
 
