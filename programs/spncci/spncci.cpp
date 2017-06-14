@@ -1073,8 +1073,8 @@ int main(int argc, char **argv)
       if(irrep_family_index_bra>irrep_family_index_ket)
         continue;      
 
-      if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
-        continue;
+      // if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
+      //   continue;
 
       // get seeds for given lgi pair
       auto& seed_blocks=it->second;  
