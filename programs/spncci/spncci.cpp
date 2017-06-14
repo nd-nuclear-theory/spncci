@@ -764,7 +764,7 @@ int main(int argc, char **argv)
   spncci::g_suppress_zero_sectors = true;
 
   // rme input mode
-  lsu3shell::g_rme_binary_format = false;
+  lsu3shell::g_rme_binary_format = true;
 
   // run parameters
   RunParameters run_parameters(argc,argv);

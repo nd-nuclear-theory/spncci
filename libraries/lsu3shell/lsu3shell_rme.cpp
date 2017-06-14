@@ -154,6 +154,7 @@ namespace lsu3shell
 
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
+        assert((i<lsu3_basis_table.size())&&(j<lsu3_basis_table.size()));
         const LSU3BasisGroupData& group_i = lsu3_basis_table[i];
         const LSU3BasisGroupData& group_j = lsu3_basis_table[j];
         u3::SU3 xi(group_i.omegaSPN.SU3());
@@ -163,9 +164,13 @@ namespace lsu3shell
         // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
         int i_subspace_index=space.LookUpSubspaceIndex(group_i.omegaSPN);
         int j_subspace_index=space.LookUpSubspaceIndex(group_j.omegaSPN);
+        assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
 
         // verify multiplicity given in file
-        mcutils::VerifyBinary<int>(in_stream,rho0_max,"Unexpected value encountered reading binary rme file "+filename,"rho0_max");
+        mcutils::VerifyBinary<int>(
+            in_stream,rho0_max,
+            fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
+          );
         
         // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
