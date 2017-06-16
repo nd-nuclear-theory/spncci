@@ -98,7 +98,7 @@ namespace spncci
     return fmt::format("[{} {}]",L(),S());
   }
 
-#if 1
+#if 0
   // (mac): aem implementation, with ad hoc sorting order and risk of empty LS spaces
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
@@ -144,7 +144,7 @@ namespace spncci
   }
 #endif
 
-#if 0  
+#if 1  
   // (mac): clean implementation, with sorted LS spaces
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {

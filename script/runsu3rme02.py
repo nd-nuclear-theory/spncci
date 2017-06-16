@@ -8,14 +8,10 @@
 
   Example invocation (under csh):
 
-    foreach nslaves (01 04 16 64)
+    foreach nslaves (01 02 04 32)
       @ nranks = ${nslaves} + 1
-      qsubm su3rme02 long 2880 --pool="nslaves${nslaves}" --ranks=${nranks}
-    end
-
-    foreach nslaves (01 04 16 64)
-      @ nranks = ${nslaves} + 1
-      qsubm su3rme02 long 2880 --pool="nslaves${nslaves}" --ranks=${nranks}
+      qsubm su3rme02 debug 2880 --pool="nslaves${nslaves}-c" --ranks=${nranks}
+      qsubm su3rme02 debug 2880 --pool="nslaves${nslaves}-b" --ranks=${nranks}
     end
 
 
@@ -47,8 +43,9 @@ spncci.operator_subdirectory_list += ["rununittensor01"]
 # build task list
 ##################################################################
 
-Nsigma_max_list = mcscript.utils.value_range(0,6,2)
-nslaves_list = [2**k for k in mcscript.utils.value_range(0,6,2)]
+Nsigma_max_list = mcscript.utils.value_range(6,10,4)
+nslaves_list = [1,2,4,8,23,32]
+su3rme_mode_list = ["count","binary"]
 task_list = [
     {
         "nuclide" : (2,2),
@@ -58,14 +55,15 @@ task_list = [
         "Nsigma_0" : 6,
         "Nsigma_max" : Nsigma_max,
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
-        "su3rme_descriptor_template": spncci.su3rme_descriptor_template_Nsigmamax,
-        "su3rme_mode": "count",
+        "su3rme_descriptor_template" : spncci.su3rme_descriptor_template_Nsigmamax,
+        "su3rme_mode" : su3rme_mode,
 
         # for timing pool
         "nslaves" : nslaves
     }
-    for Nsigma_max in Nsigma_max_list
     for nslaves in nslaves_list
+    for Nsigma_max in Nsigma_max_list
+    for su3rme_mode in su3rme_mode_list
 ]
 
 
@@ -86,7 +84,7 @@ def task_descriptor(task):
 
 def task_pool(task):
     """"""
-    return ("nslaves{nslaves:02d}".format(**task))
+    return ("nslaves{nslaves:02d}-{su3rme_mode[0]}".format(**task))
 
 ##################################################################
 # task control

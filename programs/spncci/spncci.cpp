@@ -787,7 +787,7 @@ int main(int argc, char **argv)
   spncci::g_suppress_zero_sectors = true;
 
   // rme input mode
-  lsu3shell::g_rme_binary_format = false;
+  lsu3shell::g_rme_binary_format = true;
 
   // run parameters
   RunParameters run_parameters(argc,argv);
@@ -1098,14 +1098,6 @@ int main(int argc, char **argv)
       
       if(irrep_family_index_bra>irrep_family_index_ket)
         continue;      
-
-
-      // if(irrep_family_index_bra!=1 || irrep_family_index_ket!=24)
-      //   continue;
-
-      // if(irrep_family_index_bra>0 || irrep_family_index_ket>0)
-      //   continue;
-
 
       // get seeds for given lgi pair
       auto& seed_blocks=it->second;  
