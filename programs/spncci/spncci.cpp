@@ -165,6 +165,29 @@ namespace spncci
           u3shell::ReadRelativeOperatorU3ST(Nmax, N1v,observable_filename,unit_tensor_space,relative_rmes);
           std::cout<<"finished reading "<<std::endl;
           // turn into function
+
+          // Print out observable rmes 
+          for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); ++it)
+            {
+              int unit_tensor_subspace_index,kappa0,L0;
+              std::tie(unit_tensor_subspace_index,kappa0,L0)=it->first;
+              // std::cout<<"hi "<<unit_tensor_subspace_index<<"  "<<kappa0<<"  "<<L0<<std::endl;
+
+              const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
+                =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+              const std::vector<double>& rmes=it->second;
+              // std::cout<<unit_tensor_subspace.LabelStr()<<"  "<<kappa0<<"  "<<L0<<std::endl;
+              for(int unit_tensor_index=0; unit_tensor_index<unit_tensor_subspace.size(); ++unit_tensor_index)
+                  {
+                    int T0, S,T,Sp,Tp;
+                    std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(unit_tensor_index);
+                    // std::cout<<fmt::format("{}   {} {}  {} {}  {}",T0,Sp,Tp,S,T,rmes[unit_tensor_index])<<std::endl;
+                  }
+     
+            }
+
+
+
           for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); ++it)
             {
               int unit_tensor_subspace_index, kappa0,L0,etap,eta;
@@ -491,9 +514,9 @@ void PrintHypersectors(
     int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
     std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
 
-    //REMOVE
-    if(bra_subspace_index!=ket_subspace_index)
-      continue;
+    // //REMOVE
+    // if(bra_subspace_index!=ket_subspace_index)
+    //   continue;
 
     const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
     const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
@@ -845,6 +868,9 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(run_parameters.Nsigma_0,run_parameters.Nmax);
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
 
+  for(int i=0; i<spncci_space.size(); ++i)
+    std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
+
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
   std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
@@ -1073,8 +1099,13 @@ int main(int argc, char **argv)
       if(irrep_family_index_bra>irrep_family_index_ket)
         continue;      
 
-      if(irrep_family_index_bra!=0 || irrep_family_index_ket!=0)
-        continue;
+
+      // if(irrep_family_index_bra!=1 || irrep_family_index_ket!=24)
+      //   continue;
+
+      // if(irrep_family_index_bra>0 || irrep_family_index_ket>0)
+      //   continue;
+
 
       // get seeds for given lgi pair
       auto& seed_blocks=it->second;  
@@ -1196,12 +1227,17 @@ int main(int argc, char **argv)
         unit_tensor_hyperblocks
         );
 
-      std::cout<<"checking hypersectors"<<std::endl;
 
-      spncci::PrintHypersectors(
-        baby_spncci_space,unit_tensor_space, 
-        baby_spncci_hypersectors,unit_tensor_hyperblocks
-        );
+
+      // std::cout<<"checking hypersectors"<<std::endl;
+
+      // spncci::PrintHypersectors(
+      //   baby_spncci_space,unit_tensor_space, 
+      //   baby_spncci_hypersectors,unit_tensor_hyperblocks
+      //   );
+
+
+
 
       // spncci::CheckUnitTensorRecurrence(
       //   irrep_family_index_bra, irrep_family_index_ket,
@@ -1230,28 +1266,29 @@ int main(int argc, char **argv)
           }
     }// end lgi_pair
 
-  for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    for(int h=0; h<run_parameters.hw_values.size(); ++h)
-      {
-        std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[h]<<std::endl;
-        const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[h][observable_index];
-        const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-        basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
-        for(int i=0; i<blocks_u3s.size(); ++i)
-          {
-            auto& block=blocks_u3s[i];
-            const auto& sector=sectors_u3s[i];            
-            const auto& bra=space_u3s.GetSubspace(sector.bra_index());
-            const auto& ket=space_u3s.GetSubspace(sector.ket_index());
-            const auto& op=sector.operator_labels();
-            if(not mcutils::IsZero(block))
-            {
-              std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<std::endl;
-              mcutils::ChopMatrix(block, 1e-6);
-              std::cout<<block<<std::endl<<std::endl;
-            }
-          }
-      }
+  // for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+  //   for(int h=0; h<run_parameters.hw_values.size(); ++h)
+  //     {
+  //       std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[h]<<std::endl;
+  //       const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[h][observable_index];
+  //       const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+  //       basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
+  //       for(int i=0; i<blocks_u3s.size(); ++i)
+  //         {
+  //           auto& block=blocks_u3s[i];
+  //           const auto& sector=sectors_u3s[i];            
+  //           const auto& bra=space_u3s.GetSubspace(sector.bra_index());
+  //           const auto& ket=space_u3s.GetSubspace(sector.ket_index());
+  //           const auto& op=sector.operator_labels();
+  //           if(not mcutils::IsZero(block))
+  //           {
+  //             std::cout<<"block number "<<i<<std::endl;
+  //             std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<"  "<<sector.kappa0()<<"  "<<sector.L0()<<"  "<<sector.rho0()<<std::endl;
+  //             mcutils::ChopMatrix(block, 1e-6);
+  //             std::cout<<block<<std::endl<<std::endl;
+  //           }
+  //         }
+  //     }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // At this point observable rmes should be fully computed and unit tensor cache, Ucoef cache and Kmatrix cache deleted 
@@ -1354,7 +1391,15 @@ int main(int argc, char **argv)
     std::map<HalfInt,Eigen::VectorXd> eigenvalues;  // map: J -> eigenvalues
     std::map<HalfInt,spncci::MatrixType> eigenvectors;  // map: J -> eigenvectors
     std::cout<<"solving Hamiltonian"<<std::endl;
+
     for (const HalfInt J : run_parameters.J_values)
+    {
+      // auto& matrix=observable_matrices[0].at(std::make_pair(J,J));
+      // for(int i=0; i<matrix.rows(); ++i)
+      //   for(int j=0; j<matrix.cols(); ++j)
+      //     if(fabs(matrix(i,j)-matrix(j,i))>10e-6)
+      //       std::cout<<i<<"  "<<j<<"  "<<matrix(i,j)<<"  "<<matrix(j,i)<<std::endl;
+
       spncci::SolveHamiltonian(observable_matrices[0].at(std::make_pair(J,J)),J,
         run_parameters.num_eigenvalues,
         run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
@@ -1362,7 +1407,7 @@ int main(int argc, char **argv)
         run_parameters.eigensolver_tolerance,
         eigenvalues, eigenvectors
         );
-
+    }
 
   }
 

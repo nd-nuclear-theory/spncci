@@ -133,7 +133,7 @@ void
         const double norm_tolerance=1e-8;
         assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
       }
-      if (false)
+      if (true)
         {
           std::cout << fmt::format("  Norms (J={}):",J) << std::endl
                     << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")

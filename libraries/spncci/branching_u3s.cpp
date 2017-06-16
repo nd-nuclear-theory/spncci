@@ -234,6 +234,39 @@ namespace spncci
                   int dimp=baby_spncci_subspace_bra.size();
                   int dim=baby_spncci_subspace_ket.size();
 
+                  // //REMOVE
+                  // if(not
+                  //     (
+                  //       (baby_spncci_subspace_bra.irrep_family_index()==0 && baby_spncci_subspace_ket.irrep_family_index()==0)
+                  //       // ||
+                  //       // (baby_spncci_subspace_bra.irrep_family_index()==24 && baby_spncci_subspace_ket.irrep_family_index()==1)
+                  //     )
+                  //   )
+                  //   continue;
+
+
+                  // Recurrence computes Nnp<=Nn sectors for lgi_bra<=lgi_ket and Nnp>Nn sectors for lgi_bra>lgi_ket.
+                  // The remaining unit tensor blocks are obtained by conjugation, i.e., those satisfying
+                  //    If Nnp-Nn>0
+                  //    If Nnp-Nn=0, lgi_bra>lgi_ket
+                  // 
+                  int Nnp=baby_spncci_subspace_bra.Nn();
+                  int Nn=baby_spncci_subspace_ket.Nn();
+                  int unit_tensor_subspace_index_conj=-1;
+                  bool conjugate_hypersector=(Nnp-Nn)>0;
+                  
+                  if(
+                      ((Nnp-Nn)==0)
+                      &&
+                      (baby_spncci_subspace_bra.irrep_family_index()>baby_spncci_subspace_ket.irrep_family_index())
+                    )
+                    conjugate_hypersector=true;
+
+                  if(conjugate_hypersector)
+                    {
+                      u3shell::UnitTensorSubspaceLabels unit_tensor_labels_conj(u3::Conjugate(x0),S0,eta,etap);
+                      unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels_conj);
+                    }
                   
                   int baby_spncci_hypersector_index
                         =conjugate_hypersector?
@@ -294,12 +327,6 @@ namespace spncci
                     else
                       target_blocks_u3s[target_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
                         +=relative_rmes[unit_tensor_index]*unit_tensor_blocks[unit_tensor_index];
-                  
-                    // if(etap==0 && eta==0)
-                    // {
-                    //   std::cout<<"hi"<<std::endl;
-                    //   std::cout<<target_blocks_u3s[target_sector_index]<<std::endl<<std::endl;
-                    // }
                   }
                   // std::cout<<"finished sector"<<std::endl;
                 }
