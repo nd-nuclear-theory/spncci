@@ -38,6 +38,7 @@
   2/16/17 (mac): Created.  Based on compute_unit_tensor_rmes.cpp.
   2/18/17 (mac): Implement normalization test.
   2/20/17 (mac): Branch off spncci diagonalization code.
+  6/17/17 (aem): Updated to use new symplectic operator i/o
 ****************************************************************/
 
 #include <cstdio>
@@ -272,10 +273,17 @@ int main(int argc, char **argv)
   spncci::ReadLSU3ShellSymplecticOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
       run_parameters.Brel_filename,Bintr_sectors,Bintr_matrices,
-      run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
+      // run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
       run_parameters.Nrel_filename,Nintr_sectors,Nintr_matrices,
       run_parameters.A
     );
+
+  spncci::ReadLSU3ShellSymplecticRaisingOperatorRMEs(
+      lsu3shell_basis_table,lsu3shell_space, 
+      run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
+      run_parameters.A
+    );
+
 
   const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
   basis::MatrixVector Ncm_matrices;

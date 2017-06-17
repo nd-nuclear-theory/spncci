@@ -10,8 +10,9 @@
     (compute_unit_tensor_rmes.cpp and explicit.cpp).
   6/4/17 (mac): Revise to rescale rmes from relative to intrinsic operators
     on input
-  6/16/17 (aem) : Extracted from spncci.cpp :
-      + ReadRelativeObservables, 
+  6/16/17 (aem) : Extracted from spncci.cpp :ReadRelativeObservables 
+  6/16/17 (aem) : Factored i/o for symplectic generators into function for
+      Brel+Nrel and one for Arel
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_IO_CONTROL_H_

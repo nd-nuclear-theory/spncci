@@ -11,6 +11,10 @@
     (compute_unit_tensor_rmes.cpp and explicit.cpp).
   6/16/17 (aem) : Extracted from spncci.cpp
       + GetUnitTensorSeedBlocks
+      + GetLGIExpansion
+      + GenerateRecurenceUnitTensors
+      + GenerateRecurrenceHypersectors
+      + PopulateHypersectorsWithSeeds
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_
@@ -19,14 +23,15 @@
 #include "lgi/lgi.h"
 #include "lsu3shell/lsu3shell_basis.h"
 #include "lsu3shell/lsu3shell_rme.h"
+#include "spncci/branching_u3s.h"
+#include "spncci/branching_u3lsj.h"
+#include "spncci/explicit_construction.h"
+#include "spncci/io_control.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/unit_tensor.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/relative_operator.h"
-#include "spncci/io_control.h"
 #include "u3shell/u3spn_scheme.h"
-#include "spncci/branching_u3s.h"
-#include "spncci/branching_u3lsj.h"
 
 namespace spncci
 {
@@ -155,6 +160,29 @@ void PopulateHypersectorsWithSeeds(
   //  outputs:
   //    unit_tensor_hyperblocks : container holding rmes of unit tensor hypersectors (to be populated with seeds)
   //
+
+  void CheckUnitTensorRecurrence(
+    int irrep_family_index_bra, int irrep_family_index_ket,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+    const std::string& relative_unit_tensor_filename_template,
+    const u3shell::SpaceU3SPN& lsu3shell_space, 
+    const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+    const spncci::SpNCCISpace& spncci_space,
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const basis::MatrixVector& spncci_expansions,
+    const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+    const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+  );
+  // Computes unit tensor hyperblocks in spncci basis which is constructed explicitly in terms of lsu3shell irreps
+  // and compares unit tensor hyperblocks computed recursively to explicitly computed unit tensor hyperblocks 
+  // If difference between hyperblocks is found exceeding tolerance of 1e-4, print error message
+  // Otherwise, print "no errors".
+  //
+  // Inputs:
+  //    
+  //
+  // Outputs:
 
 
   void 

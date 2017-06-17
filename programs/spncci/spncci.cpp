@@ -69,7 +69,9 @@
   University of Notre Dame
 
   2/20/17 (mac): Created (starting from explicit.cpp).
+  4/9/17 (aem): Incorporated baby spncci hypersectors
   6/5/17 (mac): Read relative rather than intrinsic symplectic operators.
+  6/16/17 (aem) : offload to computation and io control
 ****************************************************************/
 
 #include <cstdio>
@@ -78,19 +80,16 @@
 #include <sys/resource.h>
 
 #include "SymEigsSolver.h"  // from spectra
-
 #include "cppformat/format.h"
-#include "mcutils/parsing.h"
+
 #include "lgi/lgi_solver.h"
-#include "mcutils/profiling.h"
-#include "spncci/computation_control.h"
-#include "spncci/explicit_construction.h"
-#include "spncci/io_control.h"
-#include "spncci/branching.h"
-#include "spncci/branching_u3s.h"
-#include "spncci/branching_u3lsj.h"
 // to vett as moved into computation_control 
 #include "mcutils/eigen.h"
+#include "mcutils/parsing.h"
+#include "mcutils/profiling.h"
+#include "spncci/branching.h"
+#include "spncci/computation_control.h"
+
 
 ////////////////////////////////////////////////////////////////
 // WIP code
@@ -100,112 +99,6 @@
   
 namespace spncci
 {
-
-void CheckUnitTensorRecurrence(
-  int irrep_family_index_bra, int irrep_family_index_ket,
-  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-  const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-  const std::string& relative_unit_tensor_filename_template,
-  const u3shell::SpaceU3SPN& lsu3shell_space, 
-  const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
-  const spncci::SpNCCISpace& spncci_space,
-  const spncci::BabySpNCCISpace& baby_spncci_space,
-  const basis::MatrixVector& spncci_expansions,
-  const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
-  const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
-)
-{
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Checking unit tensors
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
-  basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
-
-  const u3::U3& sigmap=spncci_space[irrep_family_index_bra].sigma();
-  const u3::U3& sigma =spncci_space[irrep_family_index_ket].sigma();
-
-  // basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
-  // basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
-  for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
-    {
-      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor = lgi_unit_tensor_labels[unit_tensor_index];
-
-      // get hypersector index 
-      u3::SU3 x0; 
-      HalfInt S0,T0,Sp,Tp,S,T;
-      int etap,eta;
-      std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor.FlatKey();
-
-      u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
-      int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
-
-      auto& subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
-      int unit_tensor_state_index
-        =subspace.LookUpStateIndex(std::tuple<int,int,int,int,int>(int(T0), int(Sp),int(Tp),int(S),int(T)));
-
-      const bool spin_scalar = false;
-      u3shell::SectorsU3SPN unit_tensor_sectors;
-      unit_tensor_sectors = u3shell::SectorsU3SPN(lsu3shell_space,unit_tensor,spin_scalar);
-      
-      // read in lsu3shell rms for unit tensor 
-      basis::MatrixVector unit_tensor_lsu3shell_blocks;
-      std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
-      lsu3shell::ReadLSU3ShellRMEs(
-          filename,
-          lsu3shell_basis_table,lsu3shell_space,
-          unit_tensor,unit_tensor_sectors,unit_tensor_lsu3shell_blocks
-        );
-
-      spncci::ComputeUnitTensorSectorsExplicit(
-        sigmap, sigma, unit_tensor,unit_tensor_space,
-        lsu3shell_space,unit_tensor_sectors,unit_tensor_lsu3shell_blocks,
-        baby_spncci_space, spncci_expansions,baby_spncci_hypersectors,
-        unit_tensor_hyperblocks_explicit
-      );
-
-      if(not (sigmap==sigma))
-      {
-        spncci::ComputeUnitTensorSectorsExplicit(
-          sigma, sigmap, unit_tensor,unit_tensor_space,
-          lsu3shell_space,unit_tensor_sectors,unit_tensor_lsu3shell_blocks,
-          baby_spncci_space, spncci_expansions,baby_spncci_hypersectors,
-          unit_tensor_hyperblocks_explicit
-        );
-      }
-    }
-  bool errors=false;
-  for(int i=0; i<unit_tensor_hyperblocks.size(); ++i)
-    for(int j=0; j<unit_tensor_hyperblocks[i].size(); ++j)
-      {
-        auto& hypersector=baby_spncci_hypersectors.GetHypersector(i);
-        int bra, ket, tensor, rho0;
-        std::tie(bra,ket,tensor,rho0)=hypersector.Key();
-        auto& bra_subspace=baby_spncci_space.GetSubspace(bra);
-        auto& ket_subspace=baby_spncci_space.GetSubspace(ket);
-        auto& tensor_subspace=unit_tensor_space.GetSubspace(tensor);
-        const Eigen::MatrixXd matrix1=unit_tensor_hyperblocks[i][j];
-        const Eigen::MatrixXd matrix2=unit_tensor_hyperblocks_explicit[i][j];
-        // std::cout<<"hyperblock "<<i<<std::endl;
-        // std::cout<<matrix1-matrix2<<std::endl;
-        if(not mcutils::IsZero(matrix1-matrix2, 1e-4))
-          {
-            errors=true;
-            std::cout<<"hyperblock "<<i<<" sub-block "<<j<<" is not correct"<<std::endl;
-            std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
-            << rho0<<std::endl;
-            std::cout<<"the matrix should be "<<bra_subspace.size()<<" x "<<ket_subspace.size()<<std::endl;
-            std::cout<<"gammma_max: "<<ket_subspace.gamma_max()<<" upsilon_max "<<ket_subspace.upsilon_max()<<std::endl;
-            std::cout<<"matrix1"<<std::endl<<matrix1<<std::endl<<"matrix2"
-            <<std::endl<<matrix2<<std::endl;
-          }
-      }
-  assert(not errors);
-  if(not errors)
-    std::cout<<"no errors"<<std::endl;
-
-}
-
 void PrintHypersectors(
   const spncci::BabySpNCCISpace& baby_spncci_space,
   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
@@ -219,10 +112,6 @@ void PrintHypersectors(
     
     int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
     std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
-
-    // //REMOVE
-    // if(bra_subspace_index!=ket_subspace_index)
-    //   continue;
 
     const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
     const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
@@ -239,6 +128,39 @@ void PrintHypersectors(
     }
   }
 
+}
+
+void PrintU3SSector(
+  const std::vector<double>& hw_values,
+  const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
+  std::vector<std::vector<basis::OperatorBlocks<double>>>& observables_blocks_u3s, //can't be constant because of chop function
+  const spncci::SpaceU3S& space_u3s,
+  int num_observables
+  )
+// Prints out U3SSectors and blocks 
+{
+  for(int observable_index=0; observable_index<num_observables; ++observable_index)
+    for(int h=0; h<hw_values.size(); ++h)
+      {
+        std::cout<<"observable "<<observable_index<<" hw "<<hw_values[h]<<std::endl;
+        const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+        basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
+        for(int i=0; i<blocks_u3s.size(); ++i)
+          {
+            auto& block=blocks_u3s[i];
+            const auto& sector=sectors_u3s[i];            
+            const auto& bra=space_u3s.GetSubspace(sector.bra_index());
+            const auto& ket=space_u3s.GetSubspace(sector.ket_index());
+            const auto& op=sector.operator_labels();
+            if(not mcutils::IsZero(block))
+            {
+              std::cout<<"block number "<<i<<std::endl;
+              std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<"  "<<sector.kappa0()<<"  "<<sector.L0()<<"  "<<sector.rho0()<<std::endl;
+              mcutils::ChopMatrix(block, 1e-6);
+              std::cout<<block<<std::endl<<std::endl;
+            }
+          }
+      }
 }
 
   void
@@ -614,17 +536,16 @@ int main(int argc, char **argv)
   timer_k_matrices.Stop();
   std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
 
-  std::cout<<"Kmatrices "<<std::endl;
-
-  for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
-    {
-      std::cout<<"sigma "<<it->first.Str()<<std::endl;
-      for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
-      {
-        std::cout<<"  omega"<<it2->first.Str()<<std::endl;
-        std::cout<<it2->second<<std::endl;
-      }
-    }
+  // std::cout<<"Kmatrices "<<std::endl;
+  // for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
+  //   {
+  //     std::cout<<"sigma "<<it->first.Str()<<std::endl;
+  //     for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
+  //     {
+  //       std::cout<<"  omega"<<it2->first.Str()<<std::endl;
+  //       std::cout<<it2->second<<std::endl;
+  //     }
+  //   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Enumerate unit tensor space 
@@ -757,6 +678,7 @@ int main(int argc, char **argv)
     // Container for lgi unit tensor blocks 
   std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>> lgi_unit_tensor_blocks;
   
+  // Get unit tensor seeds obtained from lsu3shell rmes transformed to spncci basis.
   spncci::GetUnitTensorSeedBlocks(
     lgi_unit_tensor_labels,unit_tensor_space,
     run_parameters.relative_unit_tensor_filename_template,
@@ -822,11 +744,14 @@ int main(int argc, char **argv)
       basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
       basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
 
-      if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
-      {
-        basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
-      basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
-      }
+
+      // For testing with explicit construction
+      // TODO: extract into separate loop
+      // if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+      // {
+      //   basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
+      // basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
+      // }
       ///////////////////////////////////////////////////////////////////////////////////////////////
       
       // Populate hypersectors with seeds
@@ -837,25 +762,6 @@ int main(int argc, char **argv)
         lgi_unit_tensor_blocks,unit_tensor_hyperblocks
         );
 
-      // std::cout<<"lgi pair "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
-      // std::cout<<"checking seed hypersectors"<<std::endl;
-      // for(int hypersector_index : unit_tensor_hypersector_subsets[0])
-      //   {
-      //     const auto& hypersector
-      //       =baby_spncci_hypersectors.GetHypersector(hypersector_index);
-          
-      //     int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
-      //     std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
-  
-      //     const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
-      //     const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
-      //     const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
-
-      //     std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
-      //     <<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
-      //     for(int i=0; i<unit_tensor_subspace.size(); ++i)
-      //       std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
-      //   }
 
       // Recurse over unit tensor hypersectors 
       // std::cout<<"entering the recurrence for "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
@@ -900,29 +806,13 @@ int main(int argc, char **argv)
           }
     }// end lgi_pair
 
-  // for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-  //   for(int h=0; h<run_parameters.hw_values.size(); ++h)
-  //     {
-  //       std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[h]<<std::endl;
-  //       const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[h][observable_index];
-  //       const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-  //       basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
-  //       for(int i=0; i<blocks_u3s.size(); ++i)
-  //         {
-  //           auto& block=blocks_u3s[i];
-  //           const auto& sector=sectors_u3s[i];            
-  //           const auto& bra=space_u3s.GetSubspace(sector.bra_index());
-  //           const auto& ket=space_u3s.GetSubspace(sector.ket_index());
-  //           const auto& op=sector.operator_labels();
-  //           if(not mcutils::IsZero(block))
-  //           {
-  //             std::cout<<"block number "<<i<<std::endl;
-  //             std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<"  "<<sector.kappa0()<<"  "<<sector.L0()<<"  "<<sector.rho0()<<std::endl;
-  //             mcutils::ChopMatrix(block, 1e-6);
-  //             std::cout<<block<<std::endl<<std::endl;
-  //           }
-  //         }
-  //     }
+
+    // spncci::PrintU3SSector(
+    //   run_parameters.hw_values,
+    //   observables_sectors_u3s,observables_blocks_u3s,  
+    //   space_u3s, run_parameters.num_observables
+    // );
+
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // At this point observable rmes should be fully computed and unit tensor cache, Ucoef cache and Kmatrix cache deleted 
