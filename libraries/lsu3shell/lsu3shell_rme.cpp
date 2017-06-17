@@ -24,6 +24,7 @@ namespace lsu3shell
 
   // global mode setting for rme I/O
   bool g_rme_binary_format = true;
+  bool g_verbose_rme_diagnostics = false;
 
   void 
   ReadLSU3ShellRMEsText(
@@ -86,6 +87,14 @@ namespace lsu3shell
               <<std::endl;
           }
 
+        // verbose rme diagnostics
+        if (g_verbose_rme_diagnostics)
+          {
+            std::cout
+              << fmt::format("{}: i {:3d} j {:3d} rho0_max {:3d}:  {}  {}  {}",filename,i,j,rho0_max,group_i.omegaSPN.Str(),operator_labels.Str(),group_j.omegaSPN.Str())
+              << std::endl;
+          }
+
         // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
           for(int gj=0; gj<group_j.dim; ++gj)
@@ -94,6 +103,14 @@ namespace lsu3shell
                 double rme;
                 // std::cout<<"getting rme"<<std::endl;
                 line_stream >> rme;
+
+                // verbose rme diagnostics
+                if (g_verbose_rme_diagnostics)
+                  {
+                    std::cout
+                      << fmt::format("  {:e}",rme)
+                      << std::endl;
+                  }
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
@@ -112,6 +129,8 @@ namespace lsu3shell
                 // std::cout<<"sector index "<<sector_index<<std::endl;
                 matrix_vector[sector_index](row_index,column_index)=scale_factor*rme;
                 // std::cout<<matrix_vector[sector_index]<<std::endl;
+
+
               }
         // std::cout<<"finished reading in "<<std::endl;
         // for(int i=0; i<matrix_vector.size(); ++i)
@@ -172,6 +191,14 @@ namespace lsu3shell
             fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
           );
         
+        // verbose rme diagnostics
+        if (g_verbose_rme_diagnostics)
+          {
+            std::cout
+              << fmt::format("{}: i {:3d} j {:3d} rho0_max {:3d}:  {}  {}  {}",filename,i,j,rho0_max,group_i.omegaSPN.Str(),operator_labels.Str(),group_j.omegaSPN.Str())
+              << std::endl;
+          }
+
         // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
           for(int gj=0; gj<group_j.dim; ++gj)
@@ -181,6 +208,15 @@ namespace lsu3shell
                 float rme;
                 mcutils::ReadBinary<float>(in_stream,rme);
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_subspace_index,j_subspace_index,rho0,rme)<<std::endl;
+
+                // verbose rme diagnostics
+                if (g_verbose_rme_diagnostics)
+                  {
+                    std::cout
+                      << fmt::format("  {:e}",rme)
+                      << std::endl;
+                  }
+
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
@@ -225,6 +261,11 @@ namespace lsu3shell
       double scale_factor
     )
   {
+
+    // std::ios_base::openmode mode_argument = std::ios_base::in;
+    // if (g_rme_binary_format)
+    //   mode_argument |= std::ios_base::binary;
+
     if (g_rme_binary_format)
       // binary format
       ReadLSU3ShellRMEsBinary(filename,lsu3_basis_table,space,operator_labels,sectors,matrix_vector,scale_factor);
