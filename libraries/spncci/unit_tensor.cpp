@@ -60,6 +60,96 @@ void ZeroInitBlocks(int number, int rows, int cols,std::vector<basis::OperatorBl
 //   return statistics;
 // }
 
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Construct KBUK matrix
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
+  void ConsructKBUK(
+    u3::UCoefCache& u_coef_cache, int Nn,
+    const u3::U3& sigma, const u3::U3& omega, const u3::U3& omega1,
+    const sp3r::U3Subspace& u3_subspace,
+    const sp3r::U3Subspace& u3_subspace1,
+    const Eigen::MatrixXd& K1, const Eigen::MatrixXd& K_inv,
+    Eigen::MatrixXd& KBUK
+    )
+  {
+    int upsilon_max1=KBUK.rows();
+    int upsilon_max=KBUK.cols();
+
+    Eigen::MatrixXd BU(upsilon_max1, upsilon_max);
+    for(int u3_state_index=0; u3_state_index<upsilon_max; ++u3_state_index)
+      {
+        MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(u3_state_index);
+        u3::U3 n(n_rho.irrep);
+        // iterate over (n1,rho1)
+        for (int u3_state_index1=0; u3_state_index1<upsilon_max1; u3_state_index1++)
+          {
+            MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
+            u3::U3 n1(n1_rho1.irrep);
+            if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
+                BU(u3_state_index1,u3_state_index)
+                  =2./Nn*vcs::BosonCreationRME(n,n1)
+                   *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
+                      n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1
+                    );
+            else
+              BU(u3_state_index1,u3_state_index)=0;
+
+          }
+      }
+    // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
+    KBUK.noalias()=K1*BU*K_inv;
+    // std::cout<<"KBUK "<<KBUK<<std::endl;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Amatrix(
+  u3::UCoefCache& u_coef_cache,
+  const sp3r::U3Subspace& u3_subspacep,
+  const sp3r::U3Subspace& u3_subspacepp,
+  const u3::U3& sigmap, const u3::U3& omegap, const u3::U3& omegapp,
+  const vcs::MatrixCache& K_matrix_map_bra,
+  int upsilon_maxp, int upsilon_maxpp,
+  Eigen::MatrixXd& A
+  )
+{
+  Eigen::MatrixXd boson_matrix(upsilon_maxp,upsilon_maxpp);
+  const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
+  const Eigen::MatrixXd& Kpp_inv=K_matrix_map_bra.at(omegapp).inverse();
+  for(int vpp=0; vpp<upsilon_maxpp; vpp++)
+    {
+      MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
+      const u3::U3& npp(npp_rhopp.irrep);
+      int rhopp=npp_rhopp.tag;
+      for(int vp=0; vp<upsilon_maxp; vp++)
+        {
+          MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
+          const u3::U3& np(np_rhop.irrep);
+          int rhop=np_rhop.tag; 
+          if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
+            {
+              boson_matrix(vp,vpp)=
+                vcs::BosonCreationRME(np,npp)
+                *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
+                *u3::UCached(
+                    u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
+                    np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
+            }
+          else
+            boson_matrix(vp,vpp)=0;
+        } //end vp
+    } //end vpp
+  // Matrix of symplectic raising operator A
+  A=Kp*boson_matrix*Kpp_inv;
+
+}
+
+
+
+
+
 void 
 ComputeUnitTensorHyperblocks(
   int Nmax, int N1v,
@@ -81,13 +171,21 @@ ComputeUnitTensorHyperblocks(
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   for(int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
     {
-      // std::cout<<std::endl<<std::endl<< "Nsum "<<Nsum<<std::endl;
       const std::vector<int>& unit_tensor_hypersectors=unit_tensor_hypersector_subsets[Nsum/2];
-      // std::cout<<"for each of the "<<unit_tensor_hypersectors.size()<<" hypersectors "<<std::endl;
-      for(int hypersector_index : unit_tensor_hypersectors)
+
+      // Parallelize here 
+      // unit_tensor_hyperblocks are zero initalized so there should be no race conditions in 
+      // writing each hyperbock to unit_tensor_hyperblocks
+      #pragma omp parallel
+      {
+        // #pragma omp single
+        // std::cout << "omp_get_num_threads " << omp_get_num_threads() << std::endl;
+
+      #pragma omp for schedule(runtime)
+      for(int i=0; i<unit_tensor_hypersectors.size(); ++i)  
+      // for(int hypersector_index : unit_tensor_hypersectors)
         {
-          // std::cout<<"baby_spncci_hypersectors.GetHypersector(hypersector_index)"<<std::endl;
-          // std::cout<<std::endl<<std::endl<<"hypersector "<<hypersector_index<<std::endl;
+          int hypersector_index=unit_tensor_hypersectors[i];
           auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
 
           int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
@@ -101,9 +199,6 @@ ComputeUnitTensorHyperblocks(
           
           const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
               =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
-          
-          // std::cout<<baby_spncci_subspace_bra.LabelStr()<<"  "<<baby_spncci_subspace_ket.LabelStr()<<"  "
-          // <<unit_tensor_subspace.LabelStr()<<"  "<<rho0<<std::endl;
 
           // If Nnp<Nn, will need to look up and use conjugate sectors 
           // std::cout<<"Nnp, Nn "<<baby_spncci_subspace_bra.Nn()<<"  "<<baby_spncci_subspace_ket.Nn()<<std::endl;
@@ -157,14 +252,12 @@ ComputeUnitTensorHyperblocks(
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
           //  Calculate unit tensor matrix
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          // std::cout<<"begin tensor calculation "<<std::endl;
           int num_blocks=unit_tensor_blocks.size();
 
           for(auto& omega1_mult :omega1_set)
             {
               u3::U3 omega1(omega1_mult.irrep);
-              // std::cout<<"omega1 "<<omega1.Str()<<" of "<<omega1_set.size()<<std::endl;
-              // std::cout<<"irreps "<<irrep_ket.sigma().Str()<<std::endl;
+
               if (not irrep_ket.ContainsSubspace(omega1))
                 continue;
               
@@ -174,9 +267,7 @@ ComputeUnitTensorHyperblocks(
                 conjugation_grade*=ParitySign(
                     u3::ConjugationGrade(omegap)+S_bra
                     +u3::ConjugationGrade(omega1)+S_ket
-                    // +u3::ConjugationGrade(x0)
                   );
-                // std::cout<<"conjugation_grade "<<conjugation_grade<<std::endl;
                 }
      
               spncci::BabySpNCCISubspaceLabels baby_spncci_labels1(sigma,Sp_ket,Sn_ket,S_ket,omega1);
@@ -189,43 +280,19 @@ ComputeUnitTensorHyperblocks(
               int dim1=upsilon_max1*gamma_max;
               std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_omega1;
 
-              // std::cout<<"initializing blocks"<<std::endl;
               // Initializing blocks for sum over omega1
               ZeroInitBlocks(num_blocks,dimp,dim1,unit_tensor_blocks_omega1);
               ////////////////////////////////////////////////////////////////////////////////////////////////////////
               // Construct KBUK matrix
               ////////////////////////////////////////////////////////////////////////////////////////////////////////
-              // Input KBUK matrix
-              // u3_subspace
-              // ucoef cache 
-              // get dims for BU from KBUK
-              //
-              // std::cout<<"begin constructing KBUK matrix "<<std::endl;
-              Eigen::MatrixXd BU(upsilon_max1, upsilon_max);
-              for(int u3_state_index=0; u3_state_index<upsilon_max; ++u3_state_index)
-                {
-                  MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(u3_state_index);
-                  u3::U3 n(n_rho.irrep);
-                  // iterate over (n1,rho1)
-                  for (int u3_state_index1=0; u3_state_index1<upsilon_max1; u3_state_index1++)
-                    {
-                      MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
-                      u3::U3 n1(n1_rho1.irrep);
-                      if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
-                          BU(u3_state_index1,u3_state_index)
-                            =2./Nn*vcs::BosonCreationRME(n,n1)
-                             *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
-                                n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1
-                              );
-                      else
-                        BU(u3_state_index1,u3_state_index)=0;
-
-                    }
-                }
               Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-              KBUK.noalias()=K1*BU*K_inv;
-              // std::cout<<"KBUK "<<KBUK<<std::endl;
-              ////////////////////////////////////////////////////////////////////////////////////////////////////////
+              
+              spncci::ConsructKBUK(
+                u_coef_cache, Nn,sigma, omega, omega1,
+                u3_subspace,u3_subspace1,K1,K_inv,KBUK
+              );
+              
+              // ////////////////////////////////////////////////////////////////////////////////////////////////////////
               //summing over x0'
               // std::cout<<"sum over x0"<<std::endl;
               for (auto& x0p_mult : x0p_set)
@@ -285,46 +352,18 @@ ComputeUnitTensorHyperblocks(
                           int upsilon_maxpp=u3_subspacepp.size();
                           int dimpp=upsilon_maxpp*gamma_maxp;
                           // Obtaining K matrix for omega''
-                          Eigen::MatrixXd Kpp_inv=K_matrix_map_bra.at(omegapp).inverse();
                           
-                          //Constructing a^\dagger U(3) boson matrix for A matrix
-                          Eigen::MatrixXd boson_matrix(upsilon_maxp,upsilon_maxpp);
-                          for(int vpp=0; vpp<upsilon_maxpp; vpp++)
-                            {
-                              MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
-                              const u3::U3& npp(npp_rhopp.irrep);
-                              int rhopp=npp_rhopp.tag;
-                              for(int vp=0; vp<upsilon_maxp; vp++)
-                                {
-                                  MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
-                                  const u3::U3& np(np_rhop.irrep);
-                                  int rhop=np_rhop.tag; 
-                                  // std::cout<<"A matrix"<<std::endl;
-                                  // std::cout<<"getting the A matrix "<<vp<<" of "<<boson_matrix.cols()<<vpp<<" of "<<boson_matrix.rows()<<std::endl;
-                                  if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
-                                    {
-                                      boson_matrix(vp,vpp)=
-                                        vcs::BosonCreationRME(np,npp)
-                                        *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
-                                        *u3::UCached(
-                                            u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
-                                            np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
-                                    }
-                                  else
-                                    boson_matrix(vp,vpp)=0;
-                                } //end vp
-                            } //end vpp
-                          // finished construction boson matrix 
-                          // Matrix of symplectic raising operator A
-                          // std::cout<<Kp.rows()<<"  "<<boson_matrix.cols()<<"  "<<boson_matrix.rows()<<
-                          Eigen::MatrixXd A=Kp*boson_matrix*Kpp_inv;
-                          // std::cout<<A<<std::endl;
-                          // Zero initialze blocks accumulating sum over rho0pp and rho0bp
+                          Eigen::MatrixXd A;
+                          spncci::Amatrix(u_coef_cache,
+                            u3_subspacep,u3_subspacepp,sigmap, omegap, omegapp,
+                            K_matrix_map_bra,upsilon_maxp, upsilon_maxpp,A
+                          );
+
+                           // Zero initialze blocks accumulating sum over rho0pp and rho0bp
                           std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_rhobp;
                           ZeroInitBlocks(num_blocks,dimpp,dim1,unit_tensor_blocks_rhobp);
 
                           // Summing over rho0bp
-                          // std::cout<<"sum over rho0bp"<<std::endl;
                           int rho0bp_max=u3::OuterMultiplicity(omega1.SU3(),x0,omegapp.SU3());
                           for(int rho0bp=1; rho0bp<=rho0bp_max; ++rho0bp)
                             {
@@ -334,7 +373,6 @@ ComputeUnitTensorHyperblocks(
                               // std::cout<<"hypersector3 "<<hypersector_index3<<std::endl;
                               if(hypersector_index3==-1)
                                 continue;
-
 
                               double coef3=0;
                               for (int rho0pp=1; rho0pp<=rho0p_max; rho0pp++)
@@ -411,7 +449,6 @@ ComputeUnitTensorHyperblocks(
                             ZeroInitBlocks(num_blocks,dimp,dim1,unit_tensor_blocks_rho0bp);
 
                           // summing over rho0bp and accumulating sectors in unit1_matrix. 
-                          // std::cout<<"rho0p_max "<<rho0p_max<<std::endl;
                           for(int rho0bp=1; rho0bp<=rho0p_max; ++rho0bp)
                             {
                               int hypersector_index1;
@@ -427,13 +464,7 @@ ComputeUnitTensorHyperblocks(
                                     unit_tensor_subspace_index1, rho0bp
                                   );
 
-                              // std::cout<<"hypersector "<<hypersector_index<<std::endl;                        
-                              // std::cout<<unit_tensor_space.GetSubspace(unit_tensor_subspace_index1).Str()<<std::endl;
-                              // std::cout<<baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp).LabelStr()<<std::endl;
-                              // std::cout<<baby_spncci_space.GetSubspace(baby_spncci_subspace_index1).LabelStr()<<std::endl;
                               // Accumulate
-                              // if(conjugate)
-                              // std::cout<<"hypersector1 "<<hypersector_index1<<std::endl; 
                               if(hypersector_index1==-1)
                                 continue;
 
@@ -465,8 +496,6 @@ ComputeUnitTensorHyperblocks(
                                     +=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
                                       *unit_tensor_hyperblocks[hypersector_index1][b];
                                 
-                                // std::cout<<"phi "<<u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)<<std::endl;
-                                // std::cout<<unit_tensor_hyperblocks[hypersector_index][b]<<std::endl;
                               }
                             } //end rho0bp
 
@@ -485,9 +514,7 @@ ComputeUnitTensorHyperblocks(
                         // std::cout<<"x0p "<<x0p.Str()<<std::endl;
                         if ((u3::OuterMultiplicity(u3::SU3(etap+2,0),u3::SU3(0,eta),x0p)>0) && (etap+2)<=Nmax+2*N1v)
                           {
-                            // std::cout<<"hypersector "<<hypersector_index<<std::endl;
                             // (2,0)x(rbp,0)->(rbp+2,0), (rbp,0)x(0,rb)->x0, (rbp+2,0)x(0,rb)->x0p, x0x(2,0)->x0p
-
                             // look up index of subspace in unit tensor space 
                             u3shell::UnitTensorSubspaceLabels unit_tensor_labels;
                             if(conjugate)
@@ -530,26 +557,10 @@ ComputeUnitTensorHyperblocks(
                                       unit_tensor_subspace_index2, rho0bp
                                     );
 
-                                // if(hypersector_index==41)
-                                // {
                                 auto& bra_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_index1);
                                 auto& ket_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
                                 auto& unit_sub=unit_tensor_space.GetSubspace(unit_tensor_subspace_index2);
 
-                                // std::cout<<"hypersector2 "<<hypersector_index2<<" : "<<bra_sub.LabelStr()
-                                // <<"  "<<ket_sub.LabelStr()<<" "<<unit_sub.LabelStr()<<std::endl;
-                                // }
-
-                                // Check that this was actually supposed to be baby_spncci_index1.
-
-                                // int hypersector_index
-                                //   =baby_spncci_hypersectors.LookUpHypersectorIndex(
-                                //     baby_spncci_subspace_indexp,baby_spncci_index,
-                                //     unit_tensor_subspace_index2, rho0bp
-                                //   );
-                                
-                                // if(conjugate)
-                                //   std::cout<<"hello there "<<hypersector_index<<std::endl;
                                 // Accumulate
                                 if(hypersector_index2==-1)
                                 continue;
@@ -562,21 +573,16 @@ ComputeUnitTensorHyperblocks(
                                       // So, Tbp->Tb, Sbp->Sb etc. 
                                       auto& unit_tensor_subspace2=unit_tensor_space.GetSubspace(unit_tensor_subspace_index2);
                                       int Tbp,Sbp,Sb,Tb,T0;
-                                      // std::tie(std::ignore,Sbp,Tbp,Sb,Tb)=unit_tensor_subspace2.GetStateLabels(b);
+
                                       std::tie(T0,Sbp,Tbp,Sb,Tb)=unit_tensor_subspace2.GetStateLabels(b);
-                                      // conjugation_factor*=sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)));
+
                                       std::tuple<int,int,int,int,int> conjugate_state(T0,Sb,Tb,Sbp,Tbp);
                                       int bp=unit_tensor_subspace2.LookUpStateIndex(conjugate_state);
-                                      // assert(bp==b);
-                                      // std::cout<<"base conjugation factor "<<conjugation_factor_base<<std::endl;
+
                                       double conjugation_factor
                                         =sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)))
                                           *conjugation_factor_base;
-                                      // std::cout<<"additional conj factor "<<sqrt(1.*am::dim(Sb)*am::dim(Tb)/(am::dim(Sbp)*am::dim(Tbp)))<<std::endl;  
-                                      // std::cout<<"hypersector source "<<hypersector_index2<<std::endl;
-                                      // std::cout<<fmt::format("unit state labels {} {} {} {}",Sbp,Tbp,Sb,Tb)<<std::endl;
-                                      // std::cout<<"conjugation_factor "<<conjugation_factor<<"  conjugation_grade "<<conjugation_grade<<std::endl;
-                                      // std::cout<<unit_tensor_hyperblocks[hypersector_index2][b]<<std::endl;
+
                                       unit_tensor_blocks_rho0bp[bp]
                                         +=conjugation_grade*conjugation_factor
                                           *u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
@@ -586,15 +592,7 @@ ComputeUnitTensorHyperblocks(
                                     unit_tensor_blocks_rho0bp[b]
                                       +=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
                                         *unit_tensor_hyperblocks[hypersector_index2][b];
-                                  
-                                  // std::cout<<"phi "<<u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)<<std::endl;
-                                  // std::cout<<unit_tensor_hyperblocks[hypersector_index][b]<<std::endl;
                                 }
-
-                                // for(int b=0; b<num_blocks; ++b)
-                                //   unit_tensor_blocks_rho0bp[b]
-                                //     +=u3::PhiCached(phi_coef_cache,x0p,omega1.SU3(),omegap.SU3(),rho0p,rho0bp)
-                                //       *unit_tensor_hyperblocks[hypersector_index][b];
                               } //end rho0bp
 
                             for(int b=0; b<num_blocks; ++b)
@@ -605,25 +603,16 @@ ComputeUnitTensorHyperblocks(
                           unit_tensor_blocks_omega1[b]+=coef*unit_tensor_blocks_x0p[b];
                       }//end rho0p
                   }// end x0p sum 
-                // std::cout<<"summing over n, rho, n1,rho1,upsilon1"<<std::endl;
                 // summing over n, rho, n1, rho1, v1
                 for(int b=0; b<num_blocks; ++b)
                   for(int i=0; i<gamma_maxp; ++i)
                     for(int j=0; j<gamma_max; ++j)
                     {
-                      // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}",
-                      //   i,gamma_maxp,dimp,j, gamma_max,dim, upsilon_maxp,upsilon_max, upsilon_max1)
-                      // <<std::endl;
                       int it=i*upsilon_maxp;
                       int jt=j*upsilon_max;
                       int is=i*upsilon_maxp;
                       int js=j*upsilon_max1;
                       // (v'v1) (v1 v)
-                      // std::cout<<it<<"  "<<jt<<"  "<<is<<"  "<<js<<std::endl;
-                      // std::cout<<unit_tensor_blocks[b]<<std::endl;
-                      // std::cout<<unit_tensor_blocks[b].block(it,jt,upsilon_maxp,upsilon_max)<<std::endl<<std::endl;
-                      // std::cout<<unit_tensor_blocks_omega1[b].block(is,js,upsilon_maxp,upsilon_max1)*KBUK<<std::endl<<std::endl;
-                      // std::cout<<unit_tensor_blocks[b].block(it,jt,dimp,dim)+unit_tensor_blocks_omega1[b].block(is,js,dimp,dim1)*KBUK<<std::endl<<std::endl;
                       unit_tensor_blocks[b].block(it,jt,upsilon_maxp,upsilon_max)
                         +=unit_tensor_blocks_omega1[b].block(is,js,upsilon_maxp,upsilon_max1)*KBUK;
                         
@@ -631,6 +620,7 @@ ComputeUnitTensorHyperblocks(
                 // std::cout<<"done with blocks"<<std::endl;
               }// end omega1_mult 
         }// end hypersector index 
+      }//end pragma
     }// end Nsum
   // std::cout<<"end recurrence"<<std::endl;
   }

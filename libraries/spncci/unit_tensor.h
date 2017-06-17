@@ -16,6 +16,8 @@
   2/20/17 (mac): Update argument types on GenerateUnitTensorMatrix.
   2/23/17 (aem): Add conjugate sector flag to GenerateUnitTensorU3SectorLabels.
   2/23/17 (aem): Removed redundent calculation of edge sectors in recurrence.
+  5/5/17 (aem) : Update from souffle to baby spncci
+  6/16/17 (aem) : Reimplement omp parallization
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
