@@ -420,9 +420,13 @@ int main(int argc, char **argv)
   //
   // This is meant as an ad hoc interface until text mode i/o is abolished.
   lsu3shell::g_rme_binary_format = true;
-  const std::string spncci_rme_mode = std::getenv("SPNCCI_RME_MODE");
-  if (spncci_rme_mode=="text")
-    lsu3shell::g_rme_binary_format = false;
+  char* spncci_rme_mode_cstr = std::getenv("SPNCCI_RME_MODE");
+  if (spncci_rme_mode_cstr!=NULL)
+    {
+      const std::string spncci_rme_mode = std::getenv("SPNCCI_RME_MODE");
+      if (spncci_rme_mode=="text")
+        lsu3shell::g_rme_binary_format = false;
+    }
 
   // run parameters
   RunParameters run_parameters(argc,argv);

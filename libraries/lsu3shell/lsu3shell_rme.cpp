@@ -24,6 +24,7 @@ namespace lsu3shell
 
   // global mode setting for rme I/O
   bool g_rme_binary_format = true;
+  typedef short unsigned int RMEIndexType;
 
   // debugging flags
   bool g_verbose_rme_listing = false;
@@ -160,14 +161,28 @@ namespace lsu3shell
     std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
     StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
 
-    // process stream
+    // read file header
+    int format_code;
+    mcutils::ReadBinary<int>(in_stream,format_code);
+    assert(format_code==1);
+    int float_precision;
+    mcutils::ReadBinary<int>(in_stream,float_precision);
+    assert((float_precision==4)||(float_precision==8));
+    std::cout
+      << fmt::format("RME input: filename {}, format_code {}, float_precision {}",filename,format_code,float_precision)
+      << std::endl;
+
+    // allocate matrices for operator
     basis::SetOperatorToZero(sectors,blocks);
+
+    // read rmes
     while(in_stream)
       {
         // read bra/ket lsu3shell basis multiplicity group indices
-        int i,j;
-        mcutils::ReadBinary<int>(in_stream,i);
-        mcutils::ReadBinary<int>(in_stream,j);
+        RMEIndexType i, j;
+        mcutils::ReadBinary<RMEIndexType>(in_stream,i);
+        mcutils::ReadBinary<RMEIndexType>(in_stream,j);
+
         // std::cout<<i<<" "<<j<<std::endl;
 
         // quit if this has brought us past end of file
@@ -189,7 +204,7 @@ namespace lsu3shell
         assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
 
         // verify multiplicity given in file
-        mcutils::VerifyBinary<int>(
+        mcutils::VerifyBinary<RMEIndexType>(
             in_stream,rho0_max,
             fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
           );
@@ -208,8 +223,17 @@ namespace lsu3shell
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
                 // read rme
-                float rme;
-                mcutils::ReadBinary<float>(in_stream,rme);
+                double rme;
+                if (float_precision==4)
+                  {
+                    float rme_float;
+                    mcutils::ReadBinary<float>(in_stream,rme_float);
+                    rme = rme_float;
+                  }
+                else if (float_precision==8)
+                  {
+                    mcutils::ReadBinary<double>(in_stream,rme);
+                  }
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_subspace_index,j_subspace_index,rho0,rme)<<std::endl;
 
                 // verbose rme diagnostics
