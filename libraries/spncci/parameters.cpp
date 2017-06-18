@@ -23,21 +23,21 @@ namespace spncci
     // TODO reorder filenames 
     if (argc<5)
       {
-        std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1v Nmax num_eigenvalues <load file>"
+        std::cout << "Syntax: A twice_Nsigma0 Nsigmamax N1v Nmax num_eigenvalues <load file>"
           // <basis filename> <Nrel filename> <Brel filename> <Arel filename>" 
                   << std::endl;
         std::exit(1);
       }
     A = std::stoi(argv[1]); 
     int twice_Nsigma0= std::stoi(argv[2]);
-    Nsigma0_ex_max=std::stoi(argv[3]);
-    Nsigma_0=HalfInt(twice_Nsigma0,2);
+    Nsigmamax=std::stoi(argv[3]);
+    Nsigma0=HalfInt(twice_Nsigma0,2);
     N1v=std::stoi(argv[4]);
     Nmax = std::stoi(argv[5]);
     num_eigenvalues=std::stoi(argv[6]);
     std::string load_file=argv[7];
 
-    // std::cout<< fmt::format("{} {} {} {} {} {}",A, twice_Nsigma0, Nsigma_0, Nsigma0_ex_max, N1v, Nmax)<<std::endl;
+    // std::cout<< fmt::format("{} {} {} {} {} {}",A, twice_Nsigma0, Nsigma0, Nsigmamax, N1v, Nmax)<<std::endl;
   
     // many-body problem
     // observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat"});
@@ -99,9 +99,9 @@ namespace spncci
     // hard-coded directory structure and filenames
     lsu3shell_rme_directory = "lsu3shell_rme";
     lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-    Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel.rme",Nsigma0_ex_max);
-    Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel.rme",Nsigma0_ex_max);
-    Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel.rme",Nsigma0_ex_max);
+    Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel.rme",Nsigmamax);
+    Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel.rme",Nsigmamax);
+    Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel.rme",Nsigmamax);
     relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
 
     // hard-coded eigen solver parameters   

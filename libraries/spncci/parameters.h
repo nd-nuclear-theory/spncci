@@ -32,8 +32,8 @@ namespace spncci
 
     // basis parameters
     int A;
-    HalfInt Nsigma_0;
-    int Nsigma0_ex_max;
+    HalfInt Nsigma0;
+    int Nsigmamax;
     int N1v;
     int Nmax;
 

@@ -90,7 +90,7 @@
 #include "spncci/branching.h"
 #include "spncci/computation_control.h"
 #include "spncci/parameters.h"
-// #include "spncci/results_output.h"
+#include "spncci/results_output.h"
 
 
 ////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ void PrintU3SSector(
   void
   WriteEigenValues(
     const std::vector<HalfInt>& J_values, double hw, 
-    int Nmax, int Nsigma0_ex_max,
+    int Nmax, int Nsigmamax,
     std::map<HalfInt,Eigen::VectorXd>& eigenvalues,
     std::vector<std::string>& observable_filenames,
     std::vector<int>& scalar_observable_indices,
@@ -179,7 +179,7 @@ void PrintU3SSector(
   // for observables with J0=0, line them up with energy eigenvalue and read off diagonal matrix elements 
   // for observables with J0!=0, then have their own section --probably do this in the code as well, i.e.,
   {
-    std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigma0_ex_max);
+    std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigmamax);
     std::cout<<"writing to file"<<std::endl;
     std::fstream fs;
     const int width=3;
@@ -296,10 +296,9 @@ int main(int argc, char **argv)
   Eigen::initParallel();
   // Eigen::setNbThreads(0);
 
-  // open results output file
-   //std::ofstream results_stream("spncci.res");
-   //spncci::WriteResultsFileHeader(results_stream);
-   //results_stream.close();
+  // open output files
+  std::ofstream results_stream("spncci.res");
+  spncci::WriteResultsHeader(results_stream,run_parameters);
 
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
@@ -311,7 +310,7 @@ int main(int argc, char **argv)
   lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
   u3shell::SpaceU3SPN lsu3shell_space;
   lsu3shell::ReadLSU3Basis(
-      run_parameters.Nsigma_0,run_parameters.lsu3shell_basis_filename,
+      run_parameters.Nsigma0,run_parameters.lsu3shell_basis_filename,
       lsu3shell_basis_table,lsu3shell_basis_provenance,lsu3shell_space
     );
 
@@ -330,7 +329,7 @@ int main(int argc, char **argv)
   spncci::GetLGIExpansion(
       lsu3shell_space,lsu3shell_basis_table,
       run_parameters.Brel_filename,run_parameters.Nrel_filename,
-      run_parameters.A, run_parameters.Nsigma_0,
+      run_parameters.A, run_parameters.Nsigma0,
       lgi_families, lgi_expansions
     );
 
@@ -352,7 +351,7 @@ int main(int argc, char **argv)
   // build SpNCCI irrep branchings
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;  // persistent container to store branchings
-  spncci::NmaxTruncator truncator(run_parameters.Nsigma_0,run_parameters.Nmax);
+  spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
 
   for(int i=0; i<spncci_space.size(); ++i)
@@ -361,7 +360,7 @@ int main(int argc, char **argv)
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
   std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
-  std::cout << fmt::format("  TotalDimensionU3 {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
+  std::cout << fmt::format("  TotalDimensionU3S {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
 
   // build baby spncci space 
   spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
@@ -393,6 +392,9 @@ int main(int argc, char **argv)
     << fmt::format("  compare... TotalDimensionU3LS {}",TotalDimensionU3LS(spncci_space))
     << std::endl;
   // std::cout << splss_space.DebugStr(true);
+
+  // save basis information
+  WriteResultsBasis(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space);
 
 
   ////////////////////////////////////////////////////////////////
@@ -460,7 +462,7 @@ int main(int argc, char **argv)
   //     run_parameters.A
   //   );
 
-  // if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+  // if(run_parameters.Nmax==run_parameters.Nsigmamax)
   // {
   // basis::MatrixVector spncci_expansions;
   // spncci::ConstructSpNCCIBasisExplicit(
@@ -537,7 +539,7 @@ int main(int argc, char **argv)
   // Get list of unit tensor labels between lgi's 
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
-    run_parameters.Nsigma0_ex_max, run_parameters.N1v,
+    run_parameters.Nsigmamax, run_parameters.N1v,
     lgi_unit_tensor_labels,J0_for_unit_tensors,T0_for_unit_tensors,
     restrict_positive_N0
     );
@@ -625,7 +627,7 @@ int main(int argc, char **argv)
 
       // For testing with explicit construction
       // TODO: extract into separate loop
-      // if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+      // if(run_parameters.Nmax==run_parameters.Nsigmamax)
       // {
       //   basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
       // basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
@@ -741,7 +743,7 @@ int main(int argc, char **argv)
   timer_branching.Start();
 
   // for each hw value, solve eigen problem and get expectation values 
-  for(int h=0; h<run_parameters.hw_values.size(); ++h)
+  for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
   {
 
     ////////////////////////////////////////////////////////////////
@@ -755,7 +757,7 @@ int main(int argc, char **argv)
     spncci::ConstructBranchedObservables(
       space_u3s,
       observables_sectors_u3s,
-      observables_blocks_u3s[h], 
+      observables_blocks_u3s[hw_index], 
       spaces_lsj,
       run_parameters.num_observables,
       run_parameters.J_values,
@@ -816,6 +818,9 @@ int main(int argc, char **argv)
 
   }
 
+  // termination
+  // spncci::log_stream.close();
+  results_stream.close();
 
 
 }
