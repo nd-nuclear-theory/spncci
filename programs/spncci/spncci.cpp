@@ -414,7 +414,15 @@ int main(int argc, char **argv)
   spncci::g_suppress_zero_sectors = true;
 
   // rme input mode
-  lsu3shell::g_rme_binary_format = false;
+  //
+  // Default binary mode, unless environment variable SPNCCI_RME_MODE
+  // set to "text".
+  //
+  // This is meant as an ad hoc interface until text mode i/o is abolished.
+  lsu3shell::g_rme_binary_format = true;
+  const std::string spncci_rme_mode = std::getenv("SPNCCI_RME_MODE");
+  if (spncci_rme_mode=="text")
+    lsu3shell::g_rme_binary_format = false;
 
   // run parameters
   RunParameters run_parameters(argc,argv);
