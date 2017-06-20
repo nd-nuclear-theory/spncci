@@ -90,6 +90,8 @@
 #include "mcutils/profiling.h"
 #include "spncci/branching.h"
 #include "spncci/computation_control.h"
+#include "spncci/parameters.h"
+#include "spncci/results_output.h"
 
 
 ////////////////////////////////////////////////////////////////
@@ -167,7 +169,7 @@ void PrintU3SSector(
   void
   WriteEigenValues(
     const std::vector<HalfInt>& J_values, double hw, 
-    int Nmax, int Nsigma0_ex_max,
+    int Nmax, int Nsigmamax,
     std::map<HalfInt,Eigen::VectorXd>& eigenvalues,
     std::vector<std::string>& observable_filenames,
     std::vector<int>& scalar_observable_indices,
@@ -178,7 +180,7 @@ void PrintU3SSector(
   // for observables with J0=0, line them up with energy eigenvalue and read off diagonal matrix elements 
   // for observables with J0!=0, then have their own section --probably do this in the code as well, i.e.,
   {
-    std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigma0_ex_max);
+    std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigmamax);
     std::cout<<"writing to file"<<std::endl;
     std::fstream fs;
     const int width=3;
@@ -252,147 +254,6 @@ void PrintU3SSector(
 }// end namespace
 
 ////////////////////////////////////////////////////////////////
-// run parameters
-////////////////////////////////////////////////////////////////
-
-struct RunParameters
-// Structure to store input parameters for run.
-//
-// Data members:
-//   A (int): Atomic mass.
-//   ...
-{
-
-  // constructor
-  RunParameters(int argc, char **argv); 
-
-  // basis parameters
-  int A;
-  HalfInt Nsigma_0;
-  int Nsigma0_ex_max;
-  int N1v;
-  int Nmax;
-
-  // filenames
-  std::string lsu3shell_rme_directory;
-  std::string lsu3shell_basis_filename;
-  std::string Brel_filename;
-  std::string Arel_filename;
-  std::string Nrel_filename;
-  std::string relative_unit_tensor_filename_template;
-
-  // many-body problem
-  std::string observable_directory;
-  std::vector<std::string> observable_filenames;  // first observable is used as Hamiltonian
-  std::vector<int> observable_Jvalues;
-  int num_observables;
-  std::vector<HalfInt> J_values;
-  std::vector<double> hw_values;
-
-  // eigensolver
-  int num_eigenvalues;
-  int eigensolver_num_convergence;  // whatever exactly this is...
-  int eigensolver_max_iterations;
-  double eigensolver_tolerance;
-
-};
-
-RunParameters::RunParameters(int argc, char **argv)
-{
-  // read from command line arguments
-  //
-  // TODO reorder filenames 
-  if (argc<5)
-    {
-      std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1v Nmax num_eigenvalues <load file>"
-       // <basis filename> <Nrel filename> <Brel filename> <Arel filename>" 
-                << std::endl;
-      std::exit(1);
-    }
-  A = std::stoi(argv[1]); 
-  int twice_Nsigma0= std::stoi(argv[2]);
-  Nsigma0_ex_max=std::stoi(argv[3]);
-  Nsigma_0=HalfInt(twice_Nsigma0,2);
-  N1v=std::stoi(argv[4]);
-  Nmax = std::stoi(argv[5]);
-  num_eigenvalues=std::stoi(argv[6]);
-  std::string load_file=argv[7];
-
-  // std::cout<< fmt::format("{} {} {} {} {} {}",A, twice_Nsigma0, Nsigma_0, Nsigma0_ex_max, N1v, Nmax)<<std::endl;
-  
-  // many-body problem
-  // observable_filenames = std::vector<std::string>({"hamiltonian_u3st.dat"});
-
-  // Reading in from load life 
-  int line_count=0;
-  int twice_Jmin, twice_Jmax, J_step;
-  double hw_min, hw_max, hw_step;
-  std::string line, observable;
-  std::ifstream is(fmt::format("{}.load",load_file));
-  
-  assert(is);
-  int J0;
-  while(std::getline(is,line))
-    {
-      std::istringstream line_stream(line);
-      ++line_count;
-      if(line_count==1)
-      {
-        line_stream >> twice_Jmin >> twice_Jmax >> J_step;
-        ParsingCheck(line_stream,line_count,line);
-      }
-      else if(line_count==2)
-      {
-        line_stream >> hw_min >> hw_max >> hw_step;
-        ParsingCheck(line_stream,line_count,line);
-      }
-      else
-      {
-        line_stream >> observable >> J0;
-        ParsingCheck(line_stream,line_count,line);
-        observable_filenames.push_back(observable);
-        observable_Jvalues.push_back(J0);
-      }
-    }
-
-  num_observables = observable_filenames.size();
-  observable_directory="relative_observables";
-  // generate list of J values 
-  HalfInt Jmin(twice_Jmin,2);
-  HalfInt Jmax(twice_Jmax,2);
-  for(HalfInt J=Jmin; J<=Jmax; J+=J_step)
-    J_values.push_back(J);
-
-  std::cout<<"J values are: ";
-  for(auto J : J_values)
-    std::cout<<J<<"  ";
-  std::cout<<std::endl;
-
-  for(double hw=hw_min; hw<=hw_max; hw+=hw_step)
-    hw_values.push_back(hw);
-
-  std::cout<<"hw values are: ";
-  for(auto hw : hw_values)
-    std::cout<<hw<<"  ";
-  std::cout<<std::endl;
-
-
-  // hard-coded directory structure and filenames
-  lsu3shell_rme_directory = "lsu3shell_rme";
-  lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
-  Brel_filename = lsu3shell_rme_directory + "/" + fmt::format("Brel.rme",Nsigma0_ex_max);
-  Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel.rme",Nsigma0_ex_max);
-  Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel.rme",Nsigma0_ex_max);
-  relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
-
-  // hard-coded eigen solver parameters   
-  eigensolver_num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
-  eigensolver_max_iterations = 100*num_eigenvalues;
-  eigensolver_tolerance = 1e-8;
-}
-
-
-////////////////////////////////////////////////////////////////
 // main body
 ////////////////////////////////////////////////////////////////
 
@@ -414,15 +275,30 @@ int main(int argc, char **argv)
   spncci::g_zero_tolerance = 1e-6;
   spncci::g_suppress_zero_sectors = true;
 
-  // rme input mode
+
+  // Default binary mode, unless environment variable SPNCCI_RME_MODE
+  // set to "text".
+  //
+  // This is meant as an ad hoc interface until text mode i/o is abolished.
   lsu3shell::g_rme_binary_format = true;
+  char* spncci_rme_mode_cstr = std::getenv("SPNCCI_RME_MODE");
+  if (spncci_rme_mode_cstr!=NULL)
+    {
+      const std::string spncci_rme_mode = std::getenv("SPNCCI_RME_MODE");
+      if (spncci_rme_mode=="text")
+        lsu3shell::g_rme_binary_format = false;
+    }
 
   // run parameters
-  RunParameters run_parameters(argc,argv);
+  spncci::RunParameters run_parameters(argc,argv);
 
   // Eigen OpenMP multithreading mode
   Eigen::initParallel();
   // Eigen::setNbThreads(0);
+
+  // open output files
+  std::ofstream results_stream("spncci.res");
+  spncci::WriteResultsHeader(results_stream,run_parameters);
 
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
@@ -434,7 +310,7 @@ int main(int argc, char **argv)
   lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
   u3shell::SpaceU3SPN lsu3shell_space;
   lsu3shell::ReadLSU3Basis(
-      run_parameters.Nsigma_0,run_parameters.lsu3shell_basis_filename,
+      run_parameters.Nsigma0,run_parameters.lsu3shell_basis_filename,
       lsu3shell_basis_table,lsu3shell_basis_provenance,lsu3shell_space
     );
 
@@ -453,7 +329,7 @@ int main(int argc, char **argv)
   spncci::GetLGIExpansion(
       lsu3shell_space,lsu3shell_basis_table,
       run_parameters.Brel_filename,run_parameters.Nrel_filename,
-      run_parameters.A, run_parameters.Nsigma_0,
+      run_parameters.A, run_parameters.Nsigma0,
       lgi_families, lgi_expansions
     );
 
@@ -475,7 +351,7 @@ int main(int argc, char **argv)
   // build SpNCCI irrep branchings
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;  // persistent container to store branchings
-  spncci::NmaxTruncator truncator(run_parameters.Nsigma_0,run_parameters.Nmax);
+  spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
 
   for(int i=0; i<spncci_space.size(); ++i)
@@ -484,7 +360,7 @@ int main(int argc, char **argv)
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
   std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
-  std::cout << fmt::format("  TotalDimensionU3 {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
+  std::cout << fmt::format("  TotalDimensionU3S {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
 
   // build baby spncci space 
   spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
@@ -516,6 +392,9 @@ int main(int argc, char **argv)
     << fmt::format("  compare... TotalDimensionU3LS {}",TotalDimensionU3LS(spncci_space))
     << std::endl;
   // std::cout << splss_space.DebugStr(true);
+
+  // save basis information
+  WriteResultsBasis(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space);
 
 
   ////////////////////////////////////////////////////////////////
@@ -583,7 +462,7 @@ int main(int argc, char **argv)
   //     run_parameters.A
   //   );
 
-  // if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+  // if(run_parameters.Nmax==run_parameters.Nsigmamax)
   // {
   // basis::MatrixVector spncci_expansions;
   // spncci::ConstructSpNCCIBasisExplicit(
@@ -660,7 +539,7 @@ int main(int argc, char **argv)
   // Get list of unit tensor labels between lgi's 
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
-    run_parameters.Nsigma0_ex_max, run_parameters.N1v,
+    run_parameters.Nsigmamax, run_parameters.N1v,
     lgi_unit_tensor_labels,J0_for_unit_tensors,T0_for_unit_tensors,
     restrict_positive_N0
     );
@@ -795,7 +674,7 @@ int main(int argc, char **argv)
 
       // For testing with explicit construction
       // TODO: extract into separate loop
-      // if(run_parameters.Nmax==run_parameters.Nsigma0_ex_max)
+      // if(run_parameters.Nmax==run_parameters.Nsigmamax)
       // {
       //   basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
       // basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
@@ -917,7 +796,7 @@ int main(int argc, char **argv)
   u3::WCoefCache w_cache;
 
   // for each hw value, solve eigen problem and get expectation values 
-  for(int h=0; h<run_parameters.hw_values.size(); ++h)
+  for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
   {
 
     ////////////////////////////////////////////////////////////////
@@ -932,7 +811,7 @@ int main(int argc, char **argv)
       w_cache,
       space_u3s,
       observables_sectors_u3s,
-      observables_blocks_u3s[h], 
+      observables_blocks_u3s[hw_index], 
       spaces_lsj,
       run_parameters.num_observables,
       run_parameters.J_values,
@@ -993,6 +872,9 @@ int main(int argc, char **argv)
 
   }
 
+  // termination
+  // spncci::log_stream.close();
+  results_stream.close();
 
 
 }

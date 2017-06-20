@@ -13,7 +13,7 @@
 #ifndef SPNCCI_BRANCHING_H_
 #define SPNCCI_BRANCHING_H_
 
-#include "basis/multibasis.h"
+#include "basis/degenerate.h"
 // #include "am/am.h"
 #include "sp3rlib/u3.h"
 #include "spncci/spncci_basis.h"
@@ -76,7 +76,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   class SubspaceSpU3S
-    : public basis::BaseMultiSubspace<u3::U3S,u3shell::U3SPN>
+    : public basis::BaseDegenerateSubspace<u3::U3S,u3shell::U3SPN>
     // SubspaceLabelsType (u3::U3S): (omega,S)
     // StateLabelsType (u3shell::U3SPN): (sigma,Sp,Sn,S)
     {
@@ -119,7 +119,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   class StateSpU3S
-    : public basis::BaseMultiState<SubspaceSpU3S>
+    : public basis::BaseDegenerateState<SubspaceSpU3S>
   {
     
     public:
@@ -128,14 +128,14 @@ namespace spncci
 
     StateSpU3S(const SubspaceType& subspace, int& index)
       // Construct state by index.
-      : basis::BaseMultiState<SubspaceSpU3S>(subspace,index) {}
+      : basis::BaseDegenerateState<SubspaceSpU3S>(subspace,index) {}
 
     StateSpU3S(
         const SubspaceType& subspace,
         const typename SubspaceType::StateLabelsType& state_labels
       )
       // Construct state by reverse lookup on labels.
-      : basis::BaseMultiState<SubspaceSpU3S>(subspace,state_labels) 
+      : basis::BaseDegenerateState<SubspaceSpU3S>(subspace,state_labels) 
       {}
 
     // pass-through accessors
@@ -177,7 +177,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   class SpaceSpU3S
-    : public basis::BaseMultiSpace<SubspaceSpU3S>
+    : public basis::BaseDegenerateSpace<SubspaceSpU3S>
   {
     
     public:
@@ -361,7 +361,7 @@ namespace spncci
 
   typedef std::tuple<u3::U3,int,u3shell::U3SPN> StateLabelsSpLS;
   class SubspaceSpLS
-    : public basis::BaseMultiSubspace<spncci::LSLabels,spncci::StateLabelsSpLS>
+    : public basis::BaseDegenerateSubspace<spncci::LSLabels,spncci::StateLabelsSpLS>
     {
       public:
 
@@ -399,7 +399,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   class StateSpLS
-    : public basis::BaseMultiState<SubspaceSpLS>
+    : public basis::BaseDegenerateState<SubspaceSpLS>
   {
     
     public:
@@ -408,14 +408,14 @@ namespace spncci
 
     StateSpLS(const SubspaceType& subspace, int& index)
       // Construct state by index.
-      : basis::BaseMultiState<SubspaceSpLS>(subspace,index) {}
+      : basis::BaseDegenerateState<SubspaceSpLS>(subspace,index) {}
 
     StateSpLS(
         const SubspaceType& subspace,
         const typename SubspaceType::StateLabelsType& state_labels
       )
       // Construct state by reverse lookup on labels.
-      : basis::BaseMultiState<SubspaceSpLS>(subspace,state_labels) 
+      : basis::BaseDegenerateState<SubspaceSpLS>(subspace,state_labels) 
       {}
 
     // pass-through accessors
@@ -470,7 +470,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   class SpaceSpLS
-    : public basis::BaseMultiSpace<SubspaceSpLS>
+    : public basis::BaseDegenerateSpace<SubspaceSpLS>
   {
     
     public:

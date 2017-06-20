@@ -65,7 +65,7 @@ namespace spncci
         const StateSpU3S state(*this,state_index);
 
         os << fmt::format(
-            "  index {} omegaS {} sigmaSPN {} multiplicity {} offset {}",
+            "  index {} omegaS {} sigmaSPN {} degeneracy {} offset {}",
             state_index,
             state.omegaS().Str(),state.sigmaSPN().Str(),
             state.degeneracy(),state.offset()
@@ -231,7 +231,7 @@ namespace spncci
         const StateSpLS state(*this,state_index);
 
         os << fmt::format(
-            "  index {} omegaS {} kappa {} sigmaSPN {} multiplicity {} offset {}",
+            "  index {} omegaS {} kappa {} sigmaSPN {} degeneracy {} offset {}",
             state_index,
             state.omegaS().Str(),state.kappa(),state.sigmaSPN().Str(),
             state.degeneracy(),state.offset()

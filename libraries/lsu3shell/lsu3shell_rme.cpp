@@ -24,6 +24,11 @@ namespace lsu3shell
 
   // global mode setting for rme I/O
   bool g_rme_binary_format = true;
+  typedef short unsigned int RMEIndexType;
+
+  // debugging flags
+  bool g_verbose_rme_listing = false;
+  bool g_verbose_rme_block_statistics = false;
 
   void 
   ReadLSU3ShellRMEsText(
@@ -32,7 +37,7 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector,
+      basis::MatrixVector& blocks,
       double scale_factor
     )
   {
@@ -41,7 +46,7 @@ namespace lsu3shell
     StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
 
     // process stream
-    basis::SetOperatorToZero(sectors,matrix_vector);
+    basis::SetOperatorToZero(sectors,blocks);
     std::string line;
     while(std::getline(in_stream,line))
       {
@@ -86,6 +91,14 @@ namespace lsu3shell
               <<std::endl;
           }
 
+        // verbose rme diagnostics
+        if (g_verbose_rme_listing)
+          {
+            std::cout
+              << fmt::format("{}: i {:3d} j {:3d} rho0_max {:3d}:  {}  {}  {}",filename,i,j,rho0_max,group_i.omegaSPN.Str(),operator_labels.Str(),group_j.omegaSPN.Str())
+              << std::endl;
+          }
+
         // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
           for(int gj=0; gj<group_j.dim; ++gj)
@@ -94,6 +107,14 @@ namespace lsu3shell
                 double rme;
                 // std::cout<<"getting rme"<<std::endl;
                 line_stream >> rme;
+
+                // verbose rme diagnostics
+                if (g_verbose_rme_listing)
+                  {
+                    std::cout
+                      << fmt::format("  {:e}",rme)
+                      << std::endl;
+                  }
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
@@ -107,15 +128,17 @@ namespace lsu3shell
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
                 // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
-                //   sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
-                //   matrix_vector[sector_index].cols(),rme)<<std::endl;
+                //   sector_index, row_index,column_index, blocks[sector_index].rows(),
+                //   blocks[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
-                matrix_vector[sector_index](row_index,column_index)=scale_factor*rme;
-                // std::cout<<matrix_vector[sector_index]<<std::endl;
+                blocks[sector_index](row_index,column_index)=scale_factor*rme;
+                // std::cout<<blocks[sector_index]<<std::endl;
+
+
               }
         // std::cout<<"finished reading in "<<std::endl;
-        // for(int i=0; i<matrix_vector.size(); ++i)
-        //   std::cout<<matrix_vector[i]<<std::endl;
+        // for(int i=0; i<blocks.size(); ++i)
+        //   std::cout<<blocks[i]<<std::endl;
         
       }
 
@@ -130,7 +153,7 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector,
+      basis::MatrixVector& blocks,
       double scale_factor
     )
   {
@@ -138,14 +161,28 @@ namespace lsu3shell
     std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
     StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
 
-    // process stream
-    basis::SetOperatorToZero(sectors,matrix_vector);
+    // read file header
+    int format_code;
+    mcutils::ReadBinary<int>(in_stream,format_code);
+    assert(format_code==1);
+    int float_precision;
+    mcutils::ReadBinary<int>(in_stream,float_precision);
+    assert((float_precision==4)||(float_precision==8));
+    std::cout
+      << fmt::format("RME input: filename {}, format_code {}, float_precision {}",filename,format_code,float_precision)
+      << std::endl;
+
+    // allocate matrices for operator
+    basis::SetOperatorToZero(sectors,blocks);
+
+    // read rmes
     while(in_stream)
       {
         // read bra/ket lsu3shell basis multiplicity group indices
-        int i,j;
-        mcutils::ReadBinary<int>(in_stream,i);
-        mcutils::ReadBinary<int>(in_stream,j);
+        RMEIndexType i, j;
+        mcutils::ReadBinary<RMEIndexType>(in_stream,i);
+        mcutils::ReadBinary<RMEIndexType>(in_stream,j);
+
         // std::cout<<i<<" "<<j<<std::endl;
 
         // quit if this has brought us past end of file
@@ -167,20 +204,46 @@ namespace lsu3shell
         assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
 
         // verify multiplicity given in file
-        mcutils::VerifyBinary<int>(
+        mcutils::VerifyBinary<RMEIndexType>(
             in_stream,rho0_max,
             fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
           );
         
+        // verbose rme diagnostics
+        if (g_verbose_rme_listing)
+          {
+            std::cout
+              << fmt::format("{}: i {:3d} j {:3d} rho0_max {:3d}:  {}  {}  {}",filename,i,j,rho0_max,group_i.omegaSPN.Str(),operator_labels.Str(),group_j.omegaSPN.Str())
+              << std::endl;
+          }
+
         // extract and store matrix elements
         for(int gi=0; gi<group_i.dim; ++gi)
           for(int gj=0; gj<group_j.dim; ++gj)
             for(int rho0=1; rho0<=rho0_max; ++rho0)
               {
                 // read rme
-                float rme;
-                mcutils::ReadBinary<float>(in_stream,rme);
+                double rme;
+                if (float_precision==4)
+                  {
+                    float rme_float;
+                    mcutils::ReadBinary<float>(in_stream,rme_float);
+                    rme = rme_float;
+                  }
+                else if (float_precision==8)
+                  {
+                    mcutils::ReadBinary<double>(in_stream,rme);
+                  }
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_subspace_index,j_subspace_index,rho0,rme)<<std::endl;
+
+                // verbose rme diagnostics
+                if (g_verbose_rme_listing)
+                  {
+                    std::cout
+                      << fmt::format("  {:e}",rme)
+                      << std::endl;
+                  }
+
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
@@ -195,20 +258,20 @@ namespace lsu3shell
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
                 // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
-                //   sector_index, row_index,column_index, matrix_vector[sector_index].rows(),
-                //   matrix_vector[sector_index].cols(),rme)<<std::endl;
+                //   sector_index, row_index,column_index, blocks[sector_index].rows(),
+                //   blocks[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
-                matrix_vector[sector_index](row_index,column_index)=scale_factor*rme;
-                // std::cout<<matrix_vector[sector_index]<<std::endl;
+                blocks[sector_index](row_index,column_index)=scale_factor*rme;
+                // std::cout<<blocks[sector_index]<<std::endl;
               }
         // std::cout<<"finished reading in "<<std::endl;
-        // for(int i=0; i<matrix_vector.size(); ++i)
-        //   std::cout<<matrix_vector[i]<<std::endl;
+        // for(int i=0; i<blocks.size(); ++i)
+        //   std::cout<<blocks[i]<<std::endl;
         
       }
     // std::cout<<"finished reading in "<<std::endl;
-    // for(int i=0; i<matrix_vector.size(); ++i)
-    //   std::cout<<matrix_vector[i]<<std::endl;
+    // for(int i=0; i<blocks.size(); ++i)
+    //   std::cout<<blocks[i]<<std::endl;
 
     // close file
     in_stream.close();
@@ -221,16 +284,37 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector,
+      basis::MatrixVector& blocks,
       double scale_factor
     )
   {
+
+    // std::ios_base::openmode mode_argument = std::ios_base::in;
+    // if (g_rme_binary_format)
+    //   mode_argument |= std::ios_base::binary;
+
     if (g_rme_binary_format)
       // binary format
-      ReadLSU3ShellRMEsBinary(filename,lsu3_basis_table,space,operator_labels,sectors,matrix_vector,scale_factor);
+      ReadLSU3ShellRMEsBinary(filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
     else
       // text format
-      ReadLSU3ShellRMEsText(filename,lsu3_basis_table,space,operator_labels,sectors,matrix_vector,scale_factor);
+      ReadLSU3ShellRMEsText(filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
+
+    if (g_verbose_rme_block_statistics)
+      {
+        std::cout << fmt::format("OPERATOR {}: sectors {} ",filename,blocks.size()) << std::endl;
+        for(int sector_index=0; sector_index<blocks.size(); ++sector_index)
+          {
+            auto& block = blocks[sector_index];
+            std::cout
+              << fmt::format(
+                  "  sector_index {:d} {:d}x{:d}: norm {:e}",
+                  sector_index,block.rows(),block.cols(),block.norm()
+                )
+              << std::endl;
+          }
+      }                         
+                                 
   }
 
 
@@ -330,7 +414,7 @@ namespace lsu3shell
   //     std::ifstream& is_Nrel,
   //     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
   //     const u3shell::SpaceU3SPN& space,
-  //     basis::MatrixVector& matrix_vector
+  //     basis::MatrixVector& blocks
   //   )
   // // DEPRECATED
   // {
@@ -340,30 +424,30 @@ namespace lsu3shell
   // 
   //   // Read in Nrel matrix elements and populate sectors
   //   u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
-  //   basis::MatrixVector Nrel_matrix_vector;
+  //   basis::MatrixVector Nrel_blocks;
   //   u3shell::SectorsU3SPN Nrel_sectors(space,Nrel_labels,true);
   //   lsu3shell::ReadLSU3ShellRMEsText_DEPRECATED_TakesStream(
   //       is_Nrel,Nrel_labels,lsu3_basis_table,space, 
-  //       Nrel_sectors,Nrel_matrix_vector
+  //       Nrel_sectors,Nrel_blocks
   //     );
   // 
   //   // Resize vector
-  //   matrix_vector.resize(Nrel_matrix_vector.size());
+  //   blocks.resize(Nrel_blocks.size());
   // 
-  //   // Iterate over Nrel subspaces and populate Ncm sectors in matrix_vector
-  //   for(int i=0; i<Nrel_matrix_vector.size(); ++i)
+  //   // Iterate over Nrel subspaces and populate Ncm sectors in blocks
+  //   for(int i=0; i<Nrel_blocks.size(); ++i)
   //     {
   //       auto subspace=space.GetSubspace(i);
   //       // eigenvalue of N is given by total number of oscilator quanta minus
   //       // the zero point energy boson 3A/2. 
   //       HalfInt N=subspace.N()-3.*A/2;
-  //       // std::cout<<N<<std::endl<<Nrel_matrix_vector[i]<<std::endl;
+  //       // std::cout<<N<<std::endl<<Nrel_blocks[i]<<std::endl;
   //       int dim=subspace.size();
-  //       // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<Nrel_matrix_vector[i]<<std::endl;
-  //       // std::cout<<"Nrel"<<std::endl<<Nrel_matrix_vector[i]<<std::endl;
+  //       // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<Nrel_blocks[i]<<std::endl;
+  //       // std::cout<<"Nrel"<<std::endl<<Nrel_blocks[i]<<std::endl;
   //   
   //       // Ncm=N-Nrel
-  //       matrix_vector[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrix_vector[i];
+  //       blocks[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_blocks[i];
   //     }
   // }
 

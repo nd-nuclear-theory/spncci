@@ -599,18 +599,6 @@ def save_spncci_results(task):
     Rename and save spncci results files.
     """
 
-    # results file
-    ## raw_results_filename = "eigenvalues_Nmax{Nmax:02d}_Nsigma_ex{Nsigma_max:02d}.dat".format(**task)
-    ## new_results_filename = os.path.join(mcscript.task.results_dir,"{name}-{descriptor}.dat".format(name=mcscript.parameters.run.name,**task))
-    ## mcscript.call(
-    ##     [
-    ##         "cp",
-    ##         "--verbose",
-    ##         raw_results_filename,
-    ##         new_results_filename
-    ##     ]
-    ## )
-
     # log file
     raw_log_filename = "spncci.out"
     new_log_filename = os.path.join(
@@ -626,19 +614,20 @@ def save_spncci_results(task):
         ]
     )
 
-    # move archive to results directory (if in multi-task run)
-    # select files to save
-    results_file_list = glob.glob('*.out')
-    results_file_list += glob.glob('*.res')
-    if (mcscript.task.results_dir is not None):
-        mcscript.call(
-            [
-                "mv",
-                "--verbose",
-                "--target-directory={}".format(mcscript.task.results_dir)
-            ]
-            + results_file_list
-        )
+    # results file
+    raw_log_filename = "spncci.res"
+    new_log_filename = os.path.join(
+        mcscript.task.results_dir,
+        "{name}-{descriptor}.res".format(name=mcscript.parameters.run.name,**task)
+    )
+    mcscript.call(
+        [
+            "cp",
+            "--verbose",
+            raw_log_filename,
+            new_log_filename
+        ]
+    )
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
