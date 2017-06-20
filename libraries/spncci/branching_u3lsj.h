@@ -338,6 +338,7 @@ namespace spncci
   void 
     ContractAndRegroupLSJ(
         const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
+        u3::WCoefCache& w_cache,
         const spncci::SpaceU3S& u3s_space,
         const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
         const basis::MatrixVector& source_sectors,

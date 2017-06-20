@@ -100,6 +100,7 @@ namespace spncci
       // state auxiliary data accessors
       const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
       const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
+      const std::vector<int>& state_irrep_family_index() const {return state_irrep_family_index_;}
 
       // diagnostic output
       std::string LabelStr() const;
@@ -110,6 +111,7 @@ namespace spncci
       // state auxiliary data
       std::vector<int> state_gamma_max_;
       std::vector<int> state_baby_spncci_subspace_index_;
+      std::vector<int> state_irrep_family_index_;
     };
 
   ////////////////////////////////////////////////////////////////
@@ -142,8 +144,13 @@ namespace spncci
     HalfInt S() const {return subspace().S();}
     HalfInt N() const {return subspace().N();}
 
+
     // state label accessors
     u3shell::U3SPN sigmaSPN() const {return labels();}
+    int Nn() const 
+    {
+      return int(subspace().N()-sigmaSPN().U3().N());
+    }
 
     // state auxiliary data accessors
     int gamma_max() const
@@ -154,6 +161,12 @@ namespace spncci
     {
       return subspace().state_baby_spncci_subspace_index()[index()];
     }
+
+    int irrep_family_index() const
+    {
+      return subspace().state_irrep_family_index()[index()];
+    }
+
 
     private:
  
@@ -180,6 +193,118 @@ namespace spncci
     std::string DebugStr(bool show_subspaces=false) const;
 
   };
+
+
+
+  ////////////////////////////////////////////////////////////////
+  // Sector
+  // Enumerates omegaS sectors
+  ////////////////////////////////////////////////////////////////
+
+  class SectorLabelsSpU3S
+  {
+    public:
+    // Need N0,x0,S0,kappa0,L0, rho0
+    typedef std::tuple<int,int,u3shell::OperatorLabelsU3S,int,int,int> KeyType;
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+    //default constructor
+    inline SectorLabelsSpU3S()
+      :rho0_(0), kappa0_(0), L0_(0){}
+
+    // construction from labels
+    inline 
+      SectorLabelsSpU3S(
+          int bra_index, int ket_index, 
+          const u3shell::OperatorLabelsU3S& tensor_labels,
+          int kappa0, int L0, int rho0
+        )
+      : bra_index_( bra_index), ket_index_(ket_index), tensor_labels_(tensor_labels),kappa0_(kappa0), L0_(L0), rho0_(rho0)
+    {}
+
+    inline
+      SectorLabelsSpU3S(
+          int bra_index, int ket_index, 
+          const u3shell::IndexedOperatorLabelsU3S& tensor_labels,
+          int rho0
+        )
+      : bra_index_( bra_index), ket_index_(ket_index), rho0_(rho0)
+    {
+      std::tie(tensor_labels_,kappa0_,L0_)=tensor_labels; 
+    }
+
+    inline 
+      SectorLabelsSpU3S(
+          int bra_index, int ket_index, 
+          const u3shell::OperatorLabelsU3ST& tensor_labels,
+          int kappa0, int L0, int rho0
+        )
+      : bra_index_( bra_index), ket_index_(ket_index),kappa0_(kappa0), L0_(L0), rho0_(rho0)
+    {
+      tensor_labels_=u3shell::OperatorLabelsU3S(tensor_labels);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+    int bra_index() const {return bra_index_;}
+    int ket_index() const {return ket_index_;}
+    u3shell::OperatorLabelsU3S 
+      operator_labels() const {return tensor_labels_;}
+    int N0() const {return tensor_labels_.N0();}
+    u3::SU3 x0() const {return tensor_labels_.x0();}
+    HalfInt S0() const {return tensor_labels_.S0();}
+    int L0() const {return L0_;}
+    int kappa0() const {return kappa0_;}
+    int rho0() const {return rho0_;}
+
+    inline KeyType Key() const
+    {
+      return KeyType(bra_index_,ket_index_,tensor_labels_,kappa0_,L0_,rho0_);
+    }
+
+    inline friend bool operator == (const SectorLabelsSpU3S& sector1, const SectorLabelsSpU3S& sector2)
+    {
+      return sector1.Key() == sector2.Key();
+    }
+
+    inline friend bool operator < (const SectorLabelsSpU3S& sector1, const SectorLabelsSpU3S& sector2)
+    {
+      return sector1.Key() < sector2.Key();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
+
+    inline friend std::size_t hash_value(const SectorLabelsSpU3S& sector)
+    {
+      boost::hash<SectorLabelsSpU3S::KeyType> hasher;
+      return hasher(sector.Key());
+    }
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+
+    std::string Str() const;
+
+    private:
+    int bra_index_, ket_index_, kappa0_, L0_,rho0_;
+    u3shell::OperatorLabelsU3S tensor_labels_;
+  };
+
+  // typedef std::unordered_map<spncci::SectorLabelsU3S,int,boost::hash<spncci::SectorLabelsU3S>> SectorLabelsU3SCache;
+
+  void GetSectorsSpU3S(
+      const spncci::SpaceSpU3S& space, 
+      const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
+      std::vector<spncci::SectorLabelsSpU3S>& sector_vector
+    );
+
+
+
+
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to LS level
@@ -323,11 +448,15 @@ namespace spncci
     {
       return subspace().state_gamma_max()[index()];
     }
+
     int baby_spncci_subspace_index() const
+    // which baby_spncci_subspace it came from
     {
       return subspace().state_baby_spncci_subspace_index()[index()];
     }
+
     int spu3s_subspace_index() const
+    // which spu3s_subspace it came from
     {
       return subspace().state_spu3s_subspace_index()[index()];
     }

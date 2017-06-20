@@ -483,6 +483,7 @@ void PopulateHypersectorsWithSeeds(
 
 
   void ConstructBranchedObservables(
+    u3::WCoefCache& w_cache,
     const spncci::SpaceU3S& space_u3s,
     const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
     const std::vector<basis::MatrixVector>& observable_matrices_u3s,
@@ -528,6 +529,7 @@ void PopulateHypersectorsWithSeeds(
               basis::MatrixVector matrices_lsj;  
               spncci::ContractAndRegroupLSJ(
                   bra_J,J0,ket_J,
+                  w_cache,
                   space_u3s,sectors_u3s,matrices_u3s,
                   bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
                 );
