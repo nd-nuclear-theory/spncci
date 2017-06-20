@@ -27,7 +27,7 @@ namespace spncci
 {
 
   ////////////////////////////////////////////////////////////////
-  // convenience typedef for (L,S)
+  // convenience typedef for (L,S) labels
   ////////////////////////////////////////////////////////////////
 
   typedef std::tuple<int,HalfInt> LSLabels;
@@ -363,6 +363,86 @@ namespace spncci
 
   };
 
+  ////////////////////////////////////////////////////////////////
+  // SpNCCI basis branched to J level
+  ////////////////////////////////////////////////////////////////  
+  //
+  //   subspace: (J,gex)
+  //     state: ((L,S),omega,kappa,sigma,Sp,Sn)
+  //       substates: (gamma,upsilon)
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Labeling
+  //
+  // subspace labels: (J,gex) => spncci::JgLabels
+  //
+  // state labels within subspace: ((L,S),omega,kappa,(sigma,Sp,Sn,[S]))
+  //   => (spncci::LSLabels,u3::U3,int,u3shell::U3SPN)
+  //
+  // substate labels (implied): (gamma,upsilon)
+  //
+  //   (See BabySpNCCI docstring in spncci_basis for definitions of
+  //   these basis labels.)
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // States
+  //
+  // Within a subspace, states are ordered by:
+  //
+  //   TODO once ordering of prior bases is resolved!
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered lexicographically by
+  // (J,gex).
+  //
+  ////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////
+  // subspace
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::tuple<HalfInt,int> SubspaceLabelsSpJg;
+  typedef std::tuple<spncci::LSLabels,u3::U3,int,u3shell::U3SPN> StateLabelsSpJg;
+
+  // WIP
+#if 0
+  class SubspaceSpJg
+    : public basis::BaseDegenerateSubspace<spncci::SubspaceLabelsSpJg,spncci::StateLabelsSpJg>
+    {
+      public:
+
+      // constructors
+      SubspaceSpJg() {};
+      // default constructor -- provided since required for certain
+      // purposes by STL container classes (e.g., std::vector::resize)
+
+      SubspaceSpJg(const spncci::SubspaceLabelsSpJg& subspace_labels, const SpaceSpLS& spls_space);
+
+      // subspace label accessors
+      HalfInt () const {return std::get<1>(labels_);}
+
+      // state auxiliary data accessors
+      const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
+      const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
+      const std::vector<int>& state_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
+
+      // diagnostic output
+      std::string LabelStr() const;
+      std::string DebugStr() const;
+
+      private:
+
+      // state auxiliary data
+      std::vector<int> state_gamma_max_;
+      std::vector<int> state_baby_spncci_subspace_index_;
+      std::vector<int> state_spu3s_subspace_index_;
+    };
+#endif
 
 }  // namespace
 
