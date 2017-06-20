@@ -37,6 +37,14 @@ namespace spncci
     num_eigenvalues=std::stoi(argv[6]);
     std::string load_file=argv[7];
 
+    // upstream information
+    //
+    // needed for results file -- TODO
+    nuclide[0] = 0;
+    nuclide[1] = 0;
+    interaction_name = "RESERVED";
+    use_coulomb = false;
+
     // std::cout<< fmt::format("{} {} {} {} {} {}",A, twice_Nsigma0, Nsigma0, Nsigmamax, N1v, Nmax)<<std::endl;
   
     // many-body problem

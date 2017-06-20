@@ -21,10 +21,6 @@ namespace spncci
 
   struct RunParameters
   // Structure to store input parameters for run.
-  //
-  // Data members:
-  //   A (int): Atomic mass.
-  //   ...
   {
 
     // constructor
@@ -36,6 +32,11 @@ namespace spncci
     int Nsigmamax;
     int N1v;
     int Nmax;
+
+    // upstream information
+    std::array<int,2> nuclide;  // (N,Z): proton and neutron numbers
+    std::string interaction_name;
+    bool use_coulomb;
 
     // filenames
     std::string lsu3shell_rme_directory;

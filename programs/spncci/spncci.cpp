@@ -298,7 +298,14 @@ int main(int argc, char **argv)
 
   // open output files
   std::ofstream results_stream("spncci.res");
-  spncci::WriteResultsHeader(results_stream,run_parameters);
+
+  // results output: code information
+  spncci::StartNewSection(results_stream,"CODE");
+  spncci::WriteCodeInformation(results_stream,run_parameters);
+
+  // results output: run parameters
+  spncci::StartNewSection(results_stream,"PARAMETERS");
+  spncci::WriteRunParameters(results_stream,run_parameters);
 
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
@@ -393,8 +400,9 @@ int main(int argc, char **argv)
     << std::endl;
   // std::cout << splss_space.DebugStr(true);
 
-  // save basis information
-  WriteResultsBasis(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space);
+  // results output: basis information
+  spncci::StartNewSection(results_stream,"BASIS");
+  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space);
 
 
   ////////////////////////////////////////////////////////////////
@@ -798,6 +806,14 @@ int main(int argc, char **argv)
   // for each hw value, solve eigen problem and get expectation values 
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
   {
+    // retrieve mesh parameters
+    double hw = run_parameters.hw_values[hw_index];
+
+    // results output: log start of individual mesh calculation
+    spncci::StartNewSection(results_stream,"RESULTS");
+    spncci::WriteCalculationParameters(results_stream,hw);
+
+
 
     ////////////////////////////////////////////////////////////////
     // Formerly computational_control ConstructBranchedObservables
@@ -869,6 +885,9 @@ int main(int argc, char **argv)
         eigenvalues, eigenvectors
         );
     }
+
+    // results output: eigenvalues
+    spncci::WriteEigenvalues(results_stream,eigenvalues);
 
   }
 
