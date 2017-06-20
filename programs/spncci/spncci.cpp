@@ -78,6 +78,7 @@
 #include <ctime>
 #include <fstream>
 #include <sys/resource.h>
+#include <omp.h>  
 
 #include "SymEigsSolver.h"  // from spectra
 #include "cppformat/format.h"
@@ -414,7 +415,7 @@ int main(int argc, char **argv)
   spncci::g_suppress_zero_sectors = true;
 
   // rme input mode
-  lsu3shell::g_rme_binary_format = false;
+  lsu3shell::g_rme_binary_format = true;
 
   // run parameters
   RunParameters run_parameters(argc,argv);
@@ -701,9 +702,56 @@ int main(int argc, char **argv)
   // the conjugate hypersectors for Nnp>Nn, i.e., compute <lgi1 Nnp=0 | |lgi2 Nn=2> and 
   // <lgi2 Nn=0| |lgi1 Nnp=2> etc. 
 
+  // timing start
+  std::cout<<"Starting recurrence and contraction"<<std::endl;
+  Timer timer_recurrence;
+  timer_recurrence.Start();
+
+
+  // Nested parallel regions (region 1 is lgi pairs, region 2 is recurrence.   )
+
   // Need to add seeds for both lgi pair and conjugate lgi pair
-  for(auto it=lgi_unit_tensor_blocks.begin(); it!=lgi_unit_tensor_blocks.end(); ++it)
+
+  // // if nested parallel
+  // num_lgi_pair=lgi_unit_tensor_blocks.size()
+  // int chunk_size=30;
+  int total_num_threads;
+  #pragma omp parallel 
+  {
+    total_num_threads=omp_get_num_threads();
+  }
+  
+  int num_threads_outer_loop=int(sqrt(total_num_threads));
+  // int num_threads_outer_loop=total_num_threads/num_threads_inner_loop;
+  int num_threads_inner_loop=total_num_threads/num_threads_outer_loop;
+  std::cout<<"total "<<total_num_threads<<" "<<num_threads_outer_loop<<"  "<<num_threads_inner_loop<<std::endl;
+  // num_outerloop_threads=min(num_threads,num_lgi_pair/2/chunk_size);
+  // num_innerloop_threads=num_threads/num_outerloop_threads;
+  //
+  // Will need to pass optional parameter to recurrence
+
+  // Parallel region?
+
+  std::map<std::pair<int,int>, 
+    std::map<std::pair<int,int>,basis::OperatorBlocks<double>>
+  >::iterator it;
+  std::vector<
+      std::map<std::pair<int,int>, 
+          std::map<std::pair<int,int>,basis::OperatorBlocks<double>>
+        >::iterator
+    > iterators;
+  for(it=lgi_unit_tensor_blocks.begin(); it!=lgi_unit_tensor_blocks.end(); ++it)
+    iterators.push_back(it);
+  #pragma omp parallel  num_threads(num_threads_outer_loop)
+  {
+    // #pragma omp single
+    // std::cout << "omp_get_num_threads " << omp_get_num_threads() << std::endl;
+
+  #pragma omp for schedule(dynamic)
+  for(int i=0; i<lgi_unit_tensor_blocks.size(); ++i)
+  // for(it=lgi_unit_tensor_blocks.begin(); it!=lgi_unit_tensor_blocks.end(); ++it)
     {
+      it=iterators[i];
       int irrep_family_index_bra,irrep_family_index_ket;
       std::tie(irrep_family_index_bra,irrep_family_index_ket)=it->first;
       
@@ -769,7 +817,8 @@ int main(int argc, char **argv)
         run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,k_matrix_cache,
         spncci_space,baby_spncci_space,unit_tensor_space,
         baby_spncci_hypersectors, unit_tensor_hypersector_subsets,
-        unit_tensor_hyperblocks
+        unit_tensor_hyperblocks,
+        num_threads_inner_loop
         );
 
       // std::cout<<"checking hypersectors"<<std::endl;
@@ -805,7 +854,7 @@ int main(int argc, char **argv)
               );      
           }
     }// end lgi_pair
-
+  }//end parallel region
 
     // spncci::PrintU3SSector(
     //   run_parameters.hw_values,
@@ -813,6 +862,9 @@ int main(int argc, char **argv)
     //   space_u3s, run_parameters.num_observables
     // );
 
+  timer_recurrence.Stop();
+  
+  std::cout << fmt::format("(Task time: {})",timer_recurrence.ElapsedTime()) << std::endl;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // At this point observable rmes should be fully computed and unit tensor cache, Ucoef cache and Kmatrix cache deleted 
@@ -862,6 +914,8 @@ int main(int argc, char **argv)
   Timer timer_branching;
   timer_branching.Start();
 
+  u3::WCoefCache w_cache;
+
   // for each hw value, solve eigen problem and get expectation values 
   for(int h=0; h<run_parameters.hw_values.size(); ++h)
   {
@@ -875,6 +929,7 @@ int main(int argc, char **argv)
     std::vector<std::map<std::pair<HalfInt, HalfInt>,Eigen::MatrixXd>> observable_matrices;  
     observable_matrices.resize(run_parameters.num_observables);
     spncci::ConstructBranchedObservables(
+      w_cache,
       space_u3s,
       observables_sectors_u3s,
       observables_blocks_u3s[h], 

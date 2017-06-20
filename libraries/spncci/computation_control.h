@@ -187,6 +187,7 @@ void PopulateHypersectorsWithSeeds(
 
   void 
   ConstructBranchedObservables(
+    u3::WCoefCache& w_cache,
     const spncci::SpaceU3S& space_u3s,
     const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
     const std::vector<basis::MatrixVector>& observable_matrices_u3s,

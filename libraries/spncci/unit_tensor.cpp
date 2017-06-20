@@ -8,7 +8,7 @@
 
 #include "spncci/unit_tensor.h"
 
-#include <omp.h>
+#include <omp.h>  
 
 #include "cppformat/format.h"
 #include "mcutils/eigen.h"
@@ -161,7 +161,8 @@ ComputeUnitTensorHyperblocks(
   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
   const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
   const std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
-  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+  int number_of_threads
   )
 // compute hyperblocks for unit tensors recursively
 {
@@ -176,12 +177,14 @@ ComputeUnitTensorHyperblocks(
       // Parallelize here 
       // unit_tensor_hyperblocks are zero initalized so there should be no race conditions in 
       // writing each hyperbock to unit_tensor_hyperblocks
-      #pragma omp parallel
+      // std::cout<<"omp_get_num_threads "<<omp_get_num_threads()<<std::endl;
+      
+      #pragma omp parallel num_threads(number_of_threads)
       {
         // #pragma omp single
-        // std::cout << "omp_get_num_threads " << omp_get_num_threads() << std::endl;
+        // std::cout << "omp_get_num_threads region " << omp_get_num_threads() << std::endl;
 
-      #pragma omp for schedule(runtime)
+      #pragma omp for schedule(dynamic)
       for(int i=0; i<unit_tensor_hypersectors.size(); ++i)  
       // for(int hypersector_index : unit_tensor_hypersectors)
         {

@@ -82,7 +82,7 @@ namespace spncci
         // state_gamma_max_.push_back(baby_spncci_subspace.gamma_max());
 
         // accumulate offset for next state
-        substate_offset += state_dimension;
+        substate_offset += kappa_max*state_dimension;
         
       }
 
@@ -225,6 +225,7 @@ namespace spncci
   void 
   ContractAndRegroupLSJ(
         const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
+        u3::WCoefCache& w_cache,
         const spncci::SpaceU3S& u3s_space,
         const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
         const basis::MatrixVector& source_sectors,
@@ -240,6 +241,8 @@ namespace spncci
     target_sectors.resize(target_sector_labels.size());
     for(int t=0; t<target_sector_labels.size(); ++t)
       {
+        // std::cout<<"t "<<t<<std::endl;
+
         const spncci::SectorLabelsLS& sector_labels=target_sector_labels[t];
         const spncci::SubspaceLS& 
           ket_subspace=target_space_ket.GetSubspace(sector_labels.ket_index());
@@ -265,6 +268,7 @@ namespace spncci
         double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
         
+        // std::cout<<"starting loop over sources "<<std::endl;
         for(int s=0; s<source_sector_labels.size(); ++s)
           {
             const spncci::SectorLabelsU3S& source_labels=source_sector_labels[s];
@@ -312,6 +316,8 @@ namespace spncci
             // Get branching multiplicity
             int kappa_max_p=u3::BranchingMultiplicitySO3(xp,Lp);
             int kappa_max=u3::BranchingMultiplicitySO3(x,L);
+            
+            // std::cout<<"starting loop over kappap"<<std::endl;
             for(int kappa_p=1; kappa_p<=kappa_max_p; ++kappa_p)
               for(int kappa=1; kappa<=kappa_max; ++kappa)
                 {
@@ -319,14 +325,16 @@ namespace spncci
                   // target sector. Source sector dimensions are source_dimp x source_dim
                   // starting position given by :
                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
-                  double Wcoef=u3::W(x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
+                  double Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
                   // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
-                  //           <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
+                            // <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
                   int start_indexp=(kappa_p-1)*source_dimp+indexp;
                   int start_index=(kappa-1)*source_dim+index;
                   // std::cout<<"branching"<<std::endl
                   //   <<"W "<<Wcoef<<"  Jcoef "<<Jcoef<<std::endl
                   //   <<source_sector<<std::endl<<std::endl;
+                  // std::cout<<" target "<<start_indexp<<"  "<< start_index<<"  "<< source_dimp<<"  "<< source_dim<<std::endl
+                  // <<target_sector.rows()<<"  "<<target_sector.cols()<<std::endl<<std::endl;
                   target_sector.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_sector;
                 }
           }

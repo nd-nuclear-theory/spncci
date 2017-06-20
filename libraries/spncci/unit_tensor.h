@@ -79,7 +79,8 @@ ComputeUnitTensorHyperblocks(
   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
   const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
   const std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
-  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+  int number_of_threads=1
   );
 } //namespace 
 
