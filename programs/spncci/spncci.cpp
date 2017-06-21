@@ -394,7 +394,14 @@ int main(int argc, char **argv)
 
   // open output files
   std::ofstream results_stream("spncci.res");
-  // spncci::WriteResultsHeader(results_stream,run_parameters);
+
+  // results output: code information
+  spncci::StartNewSection(results_stream,"CODE");
+  spncci::WriteCodeInformation(results_stream,run_parameters);
+
+  // results output: run parameters
+  spncci::StartNewSection(results_stream,"PARAMETERS");
+  spncci::WriteRunParameters(results_stream,run_parameters);
 
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
@@ -489,9 +496,20 @@ int main(int argc, char **argv)
     << std::endl;
   // std::cout << splss_space.DebugStr(true);
 
-  // save basis information
-  // WriteResultsBasis(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space);
+  // build SpJ branched space
+  std::cout << "Build SpJ space..." << std::endl;
+  spncci::SpaceSpJ spj_space(run_parameters.J_values,spls_space);
+  std::cout
+    << spj_space.DebugStr(false)
+    << std::endl;
+  std::cout
+    << fmt::format("  subspaces {}",spj_space.size())
+    << std::endl;
 
+
+  // results output: basis information
+  spncci::StartNewSection(results_stream,"BASIS");
+  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space);
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -811,16 +829,17 @@ int main(int argc, char **argv)
       
       // std::cout<<"contracting over observables "<<std::endl;
       for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-        for(int h=0; h<run_parameters.hw_values.size(); ++h)
+        for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
           {
-            // std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[h]<<std::endl;
-            const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[h][observable_index];
+
+            // std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[hw_index]<<std::endl;
+            const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[hw_index][observable_index];
             const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-            basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
+            basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
       
 
             // const std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
-            // basis::OperatorBlocks<double>& blocks_spu3s=observables_blocks_spu3s[h][observable_index];
+            // basis::OperatorBlocks<double>& blocks_spu3s=observables_blocks_spu3s[hw_index][observable_index];
 
             ContractAndRegroupU3S(
                 unit_tensor_space,baby_spncci_space,
@@ -915,6 +934,13 @@ int main(int argc, char **argv)
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
   {
 
+    // retrieve mesh parameters
+    double hw = run_parameters.hw_values[hw_index];
+            
+    // results output: log start of individual mesh calculation
+    spncci::StartNewSection(results_stream,"RESULTS");
+    spncci::WriteCalculationParameters(results_stream,hw);
+
     ////////////////////////////////////////////////////////////////
     // Formerly computational_control ConstructBranchedObservables
     ////////////////////////////////////////////////////////////////
@@ -999,6 +1025,9 @@ int main(int argc, char **argv)
         eigenvalues, eigenvectors
         );
     }
+
+    // results output: eigenvalues
+    spncci::WriteEigenvalues(results_stream,eigenvalues);
 
   }
 

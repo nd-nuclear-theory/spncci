@@ -8,6 +8,8 @@
 
   6/6/17 (mac): Created, as reimplementation of branching_u3s and
     branching_u3lsj.
+  6/21/17 (mac): Add SpJ basis definitions.
+
 ****************************************************************/
 
 #ifndef SPNCCI_BRANCHING_H_
@@ -59,7 +61,7 @@ namespace spncci
   // States
   //
   // Within a subspace, states are ordered by first appearance of
-  // irrep family label in traveral of the BabySpNCCI basis, which in
+  // irrep family label in traversal of the BabySpNCCI basis, which in
   // turn follows irrep family ordering in SpNCCISpace.
   //
   ////////////////////////////////////////////////////////////////
@@ -69,6 +71,11 @@ namespace spncci
   // Within the full space, subspaces are ordered by first appearance
   // of (omega,S) in traveral of the BabySpNCCI basis.
   //
+  // ALTERNATE CODE AVAILABLE BUT NOT SELECTED:
+  //
+  // Within the full space, subspaces are ordered lexicographically by
+  // (omega,S).
+
   ////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////
@@ -99,8 +106,8 @@ namespace spncci
 
       // state auxiliary data accessors
       const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
-      const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
       const std::vector<int>& state_irrep_family_index() const {return state_irrep_family_index_;}
+      const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
 
       // diagnostic output
       std::string LabelStr() const;
@@ -110,8 +117,8 @@ namespace spncci
 
       // state auxiliary data
       std::vector<int> state_gamma_max_;
-      std::vector<int> state_baby_spncci_subspace_index_;
       std::vector<int> state_irrep_family_index_;
+      std::vector<int> state_baby_spncci_subspace_index_;
     };
 
   ////////////////////////////////////////////////////////////////
@@ -138,7 +145,7 @@ namespace spncci
       : basis::BaseDegenerateState<SubspaceSpU3S>(subspace,state_labels) 
       {}
 
-    // pass-through accessors
+    // pass-through accessors for subspace labels
     u3::U3S omegaS() const {return subspace().omegaS();}
     u3::U3 omega() const {return subspace().omega();}
     HalfInt S() const {return subspace().S();}
@@ -149,24 +156,25 @@ namespace spncci
     u3shell::U3SPN sigmaSPN() const {return labels();}
     int Nn() const 
     {
-      return int(subspace().N()-sigmaSPN().U3().N());
+      return int(N()-sigmaSPN().U3().N());
     }
+
+    // diagnostic output
+    // std::string LabelStr() const;
 
     // state auxiliary data accessors
     int gamma_max() const
     {
       return subspace().state_gamma_max()[index()];
     }
-    int baby_spncci_subspace_index() const
-    {
-      return subspace().state_baby_spncci_subspace_index()[index()];
-    }
-
     int irrep_family_index() const
     {
       return subspace().state_irrep_family_index()[index()];
     }
-
+    int baby_spncci_subspace_index() const
+    {
+      return subspace().state_baby_spncci_subspace_index()[index()];
+    }
 
     private:
  
@@ -373,11 +381,13 @@ namespace spncci
       SubspaceSpLS(const spncci::LSLabels& ls_labels, const SpaceSpU3S& spu3s_space);
 
       // subspace label accessors
-      int L() const {return std::get<0>(labels_);}
-      HalfInt S() const {return std::get<1>(labels_);}
+      spncci::LSLabels LS() const {return labels();}
+      int L() const {return std::get<0>(LS());}
+      HalfInt S() const {return std::get<1>(LS());}
 
       // state auxiliary data accessors
       const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
+      const std::vector<int>& state_irrep_family_index() const {return state_irrep_family_index_;}
       const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
       const std::vector<int>& state_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
 
@@ -389,6 +399,7 @@ namespace spncci
 
       // state auxiliary data
       std::vector<int> state_gamma_max_;
+      std::vector<int> state_irrep_family_index_;
       std::vector<int> state_baby_spncci_subspace_index_;
       std::vector<int> state_spu3s_subspace_index_;
     };
@@ -418,45 +429,54 @@ namespace spncci
       : basis::BaseDegenerateState<SubspaceSpLS>(subspace,state_labels) 
       {}
 
-    // pass-through accessors
+    // pass-through accessors for subspace labels
+    spncci::LSLabels LS() const {return subspace().LS();}
     int L() const {return subspace().L();}
     HalfInt S() const {return subspace().S();}
 
-    // state label accessors -- (Sp,Sn)
-    HalfInt Sp() const {return sigmaSPN().Sp();}
-    HalfInt Sn() const {return sigmaSPN().Sn();}
-
-    // state label accessors -- omega
+    // state label accessors -- fundamental
     u3::U3 omega() const {return std::get<0>(labels());}
+    int kappa() const {return std::get<1>(labels());}
+    u3shell::U3SPN sigmaSPN() const {return std::get<2>(labels());}
+
+    // state label accessors -- derived from omega
     u3::U3S omegaS() const {return u3::U3S(omega(),S());}
     u3shell::U3SPN omegaSPN() const {return u3shell::U3SPN(omega(),Sp(),Sn(),S());}
     HalfInt N() const {return omega().N();}
     // int Nex() const {return int(N()-Nsigma_0);}
 
-    // state label accessors -- kappa
-    int kappa() const {return std::get<1>(labels());}
-
-    // state label accessors -- sigma
+    // state label accessors -- derived from sigmaSPN
+    HalfInt Sp() const {return sigmaSPN().Sp();}
+    HalfInt Sn() const {return sigmaSPN().Sn();}
     u3::U3 sigma() const {return sigmaSPN().U3();}
     u3::U3S sigmaS() const {return sigmaSPN().U3S();}
-    u3shell::U3SPN sigmaSPN() const {return std::get<2>(labels());}
     HalfInt Nsigma() const {return sigmaSPN().N();}
     // int Nsigmaex() const {return int(Nsigma()-Nsigma_0);}
 
+    // diagnostic output
+    // std::string LabelStr() const;
+
     // state auxiliary data accessors
+
     int gamma_max() const
     {
       return subspace().state_gamma_max()[index()];
     }
 
+    int irrep_family_index() const
+    // Retrieve which irrep family the state came from.
+    {
+      return subspace().state_irrep_family_index()[index()];
+    }
+
     int baby_spncci_subspace_index() const
-    // which baby_spncci_subspace it came from
+    // Retrieve which BabySpNCCI subspace the state came from.
     {
       return subspace().state_baby_spncci_subspace_index()[index()];
     }
 
     int spu3s_subspace_index() const
-    // which spu3s_subspace it came from
+    // Retrieve which SpU3S subspace the state came from.
     {
       return subspace().state_spu3s_subspace_index()[index()];
     }
@@ -585,7 +605,7 @@ namespace spncci
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsSpU3S keys and index values
 
-//////////////////////////////
+  //////////////////////////////
   void 
   ContractAndRegroupSpU3S(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
@@ -623,6 +643,230 @@ namespace spncci
   //   basis::MatrixVector& source_sectors,
   //   Eigen::MatrixXd& operator_matrix
   //   );
+
+  ////////////////////////////////////////////////////////////////
+  // SpNCCI basis branched to J level
+  ////////////////////////////////////////////////////////////////  
+  //
+  //   subspace: J
+  //     state: ((L,S),omega,kappa,sigma,Sp,Sn)
+  //       substates: (gamma,upsilon)
+  //
+  //   Note: In the future we might wish to accommodate different
+  //   parities simultaneously, in which case labeling could be by
+  //   (J,gex), with gex=Nex%2.
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Labeling
+  //
+  // subspace labels: J
+  //
+  // state labels within subspace: ((L,S),omega,kappa,(sigma,Sp,Sn,[S]))
+  //   => (spncci::LSLabels,u3::U3,int,u3shell::U3SPN)
+  //
+  // substate labels (implied): (gamma,upsilon)
+  //
+  //   (See BabySpNCCI docstring in spncci_basis for definitions of
+  //   these basis labels.)
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // States
+  //
+  // Within a subspace, states are ordered by:
+  //
+  //   - ordering of (L,S) subspaces in SpaceSpLS, i.e.,
+  //     lexicographically in (L,S)
+  //
+  //   - ordering of (omega,kappa,(sigma,Sp,Sn,[S])) states within
+  //     SubspaceSpLS
+  //
+  ////////////////////////////////////////////////////////////////
+  //
+  // Subspaces
+  //
+  // Within the full space, subspaces are ordered by J.
+  //
+  ////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////
+  // subspace
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::tuple<spncci::LSLabels,u3::U3,int,u3shell::U3SPN> StateLabelsSpJ;
+
+  class SubspaceSpJ
+    : public basis::BaseDegenerateSubspace<HalfInt,spncci::StateLabelsSpJ>
+    {
+      public:
+
+      // constructors
+      SubspaceSpJ() {};
+      // default constructor -- provided since required for certain
+      // purposes by STL container classes (e.g., std::vector::resize)
+
+      SubspaceSpJ(HalfInt J, const SpaceSpLS& spls_space);
+
+      // subspace label accessors
+      HalfInt J() const {return labels_;}
+
+      // state auxiliary data accessors
+      const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
+      const std::vector<int>& state_irrep_family_index() const {return state_irrep_family_index_;}
+      const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
+      const std::vector<int>& state_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
+      const std::vector<int>& state_spls_subspace_index() const {return state_spls_subspace_index_;}
+
+      // diagnostic output
+      std::string LabelStr() const;
+      std::string DebugStr() const;
+
+      private:
+
+      // state auxiliary data
+      std::vector<int> state_gamma_max_;
+      std::vector<int> state_irrep_family_index_;
+      std::vector<int> state_baby_spncci_subspace_index_;
+      std::vector<int> state_spu3s_subspace_index_;
+      std::vector<int> state_spls_subspace_index_;
+    };
+
+  ////////////////////////////////////////////////////////////////
+  // state
+  ////////////////////////////////////////////////////////////////
+
+  class StateSpJ
+    : public basis::BaseDegenerateState<SubspaceSpJ>
+  {
+    
+    public:
+
+    // pass-through constructors
+
+    StateSpJ(const SubspaceType& subspace, int& index)
+      // Construct state by index.
+      : basis::BaseDegenerateState<SubspaceSpJ>(subspace,index) {}
+
+    StateSpJ(
+        const SubspaceType& subspace,
+        const typename SubspaceType::StateLabelsType& state_labels
+      )
+      // Construct state by reverse lookup on labels.
+      : basis::BaseDegenerateState<SubspaceSpJ>(subspace,state_labels) 
+      {}
+
+    // pass-through accessors for subspace labels
+    HalfInt J() const {return subspace().J();}
+
+    // state label accessors -- fundamental
+    spncci::LSLabels LS() const {return std::get<0>(labels());}
+    u3::U3 omega() const {return std::get<1>(labels());}
+    int kappa() const {return std::get<2>(labels());}
+    u3shell::U3SPN sigmaSPN() const {return std::get<3>(labels());}
+
+    // state label accessors -- derived
+    int L() const {return std::get<0>(LS());}
+    HalfInt S() const {return std::get<1>(LS());}
+    HalfInt N() const {return omega().N();}
+    int Nn() const 
+    {
+      return int(N()-sigmaSPN().U3().N());
+    }
+
+    // diagnostic output
+    std::string LabelStr() const;
+
+    // state auxiliary data accessors
+
+    int gamma_max() const
+    {
+      return subspace().state_gamma_max()[index()];
+    }
+
+    int irrep_family_index() const
+    // Retrieve which irrep family the state came from.
+    {
+      return subspace().state_irrep_family_index()[index()];
+    }
+
+    int baby_spncci_subspace_index() const
+    // Retrieve which BabySpNCCI subspace the state came from.
+    {
+      return subspace().state_baby_spncci_subspace_index()[index()];
+    }
+
+    int spu3s_subspace_index() const
+    // Retrieve which SpU3S subspace the state came from.
+    {
+      return subspace().state_spu3s_subspace_index()[index()];
+    }
+
+    int spls_subspace_index() const
+    // Retrieve which SpLS subspace the state came from.
+    {
+      return subspace().state_spls_subspace_index()[index()];
+    }
+
+    private:
+ 
+  };
+
+  ////////////////////////////////////////////////////////////////
+  // space
+  ////////////////////////////////////////////////////////////////
+
+  class SpaceSpJ
+    : public basis::BaseDegenerateSpace<SubspaceSpJ>
+  {
+    
+    public:
+
+    // constructor
+    SpaceSpJ() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SpaceSpJ(const std::vector<HalfInt>& J_values, const SpaceSpLS& spls_space);
+    // Construct J space for selected target J values.
+    //
+    // Precondition: spls_space is assumed to contain all necessary LS
+    // spaces, i.e., this is for use with an SpLS space constructed
+    // with the full constructor, not the J-restricted constructor.
+
+    // diagnostic output
+    std::string DebugStr(bool show_subspaces=false) const;
+
+  };
+
+  ////////////////////////////////////////////////////////////////
+  // sectors
+  ////////////////////////////////////////////////////////////////
+
+  class SectorsSpJ
+    : public basis::BaseSectors<SpaceSpJ>
+  {
+
+    public:
+
+    // constructor
+
+    SectorsSpJ() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes (e.g., std::vector::resize)
+
+    SectorsSpJ(
+        const SpaceSpJ& space,
+        HalfInt J0,
+        basis::SectorDirection sector_direction = basis::SectorDirection::kCanonical
+      );
+    // Enumerate sector pairs connected by an operator of given
+    // tensorial character.
+
+  };
+
+
+
 
 }  // namespace
 

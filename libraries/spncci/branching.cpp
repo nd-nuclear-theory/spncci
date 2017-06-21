@@ -46,8 +46,8 @@ namespace spncci
 
         // record auxiliary state information
         state_gamma_max_.push_back(baby_spncci_subspace.gamma_max());
-        state_baby_spncci_subspace_index_.push_back(baby_spncci_subspace_index);
         state_irrep_family_index_.push_back(baby_spncci_subspace.irrep_family_index());
+        state_baby_spncci_subspace_index_.push_back(baby_spncci_subspace_index);
       }
 
   }
@@ -80,10 +80,10 @@ namespace spncci
   {
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
-
+  
         // set up alias
         const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
-
+  
         // create new subspace -- only if not already constructed for this (omega,S)
         u3::U3S omegaS = u3::U3S(baby_spncci_subspace.omega(),baby_spncci_subspace.S());
         if(ContainsSubspace(omegaS))
@@ -92,6 +92,31 @@ namespace spncci
       }
   }
 
+#if 0
+  // FOR FUTURE USE: constructor with sorted (omega,S) labels
+
+  SpaceSpU3S::SpaceSpU3S(const BabySpNCCISpace& baby_spncci_space)
+  {
+
+    // collect (omega,S) labels
+    std::set<u3::U3S> omegaS_set;
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
+      {
+
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+
+        // accumulate (omega,S) label
+        u3::U3S omegaS = u3::U3S(baby_spncci_subspace.omega(),baby_spncci_subspace.S());
+        omegaS_set.insert(omegaS);
+      }
+    
+    // create subspaces
+    for (const u3::U3S& omegaS : omegaS_set)
+        PushSubspace(SubspaceSpU3S(omegaS,baby_spncci_space));
+  }
+#endif
+
   std::string SpaceSpU3S::DebugStr(bool show_subspaces) const
   {
     std::ostringstream os;
@@ -99,12 +124,11 @@ namespace spncci
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
         // set up alias
-        const SubspaceSpU3S& subspace = GetSubspace(subspace_index);
+        const SubspaceType& subspace = GetSubspace(subspace_index);
 
         os << fmt::format(
-            "index {} omegaS {} size {} full_dimension {}",
-            subspace_index,
-            subspace.omegaS().Str(),subspace.size(),subspace.full_dimension()
+            "subspace_index {} labels {} size {} full_dimension {}",
+            subspace_index,subspace.LabelStr(),subspace.size(),subspace.full_dimension()
           ) << std::endl;
         if (show_subspaces)
           os << subspace.DebugStr();
@@ -207,6 +231,7 @@ namespace spncci
 
               // record auxiliary state information
               state_gamma_max_.push_back(spu3s_state.gamma_max());
+              state_irrep_family_index_.push_back(spu3s_state.irrep_family_index());
               state_baby_spncci_subspace_index_.push_back(spu3s_state.baby_spncci_subspace_index());
               state_spu3s_subspace_index_.push_back(spu3s_subspace_index);
             }
@@ -305,13 +330,11 @@ namespace spncci
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
         // set up alias
-        const SubspaceSpLS& subspace = GetSubspace(subspace_index);
+        const SubspaceType& subspace = GetSubspace(subspace_index);
 
         os << fmt::format(
-            "index {} (L,S) ({},{}) size {} full_dimension {}",
-            subspace_index,
-            subspace.L(),
-            subspace.S().Str(),subspace.size(),subspace.full_dimension()
+            "subspace_index {} labels {} size {} full_dimension {}",
+            subspace_index,subspace.LabelStr(),subspace.size(),subspace.full_dimension()
           ) << std::endl;
         if (show_subspaces)
           os << subspace.DebugStr();
@@ -698,6 +721,138 @@ namespace spncci
   //     }
   // }
 
+  ////////////////////////////////////////////////////////////////
+  // SpNCCI basis branched to J level
+  ////////////////////////////////////////////////////////////////  
+
+  SubspaceSpJ::SubspaceSpJ(HalfInt J, const SpaceSpLS& spls_space)
+  {
+
+    // save labels
+    labels_ = J;
+
+    // scan SpLS space for states to accumulate
+    //
+    // If LS subspace is triangular with J, then all states in that LS
+    // subspace are simply "copied" as states in this J subspace.
+    for(int spls_subspace_index=0; spls_subspace_index<spls_space.size(); ++spls_subspace_index)
+      {
+
+        // set up alias
+        const SubspaceSpLS& spls_subspace = spls_space.GetSubspace(spls_subspace_index);
+
+        // short circuit if LS subspace not relevant to current J subspace
+        if (!am::AllowedTriangle(spls_subspace.L(),spls_subspace.S(),J))
+          continue;
+
+        // accumulate J-branched states
+        for (int spls_state_index=0; spls_state_index<spls_subspace.size(); ++spls_state_index)
+          {
+            // push state
+            StateSpLS spls_state(spls_subspace,spls_state_index);
+            StateLabelsSpJ spj_state_labels = StateLabelsSpJ(
+                spls_state.LS(),
+                spls_state.omega(),
+                spls_state.kappa(),
+                spls_state.sigmaSPN()
+                );
+            PushStateLabels(spj_state_labels,spls_state.degeneracy());
+
+            // record auxiliary state information
+            state_gamma_max_.push_back(spls_state.gamma_max());
+            state_irrep_family_index_.push_back(spls_state.irrep_family_index());
+            state_baby_spncci_subspace_index_.push_back(spls_state.baby_spncci_subspace_index());
+            state_spu3s_subspace_index_.push_back(spls_state.spu3s_subspace_index());
+            state_spls_subspace_index_.push_back(spls_subspace_index);
+          }
+
+      }
+  }
+
+  std::string SubspaceSpJ::LabelStr() const
+  {
+    return J().Str();
+  }
+
+  std::string SubspaceSpJ::DebugStr() const
+  {
+    std::ostringstream os;
+
+    for (int state_index=0; state_index<size(); ++state_index)
+      {
+        const StateSpJ state(*this,state_index);
+
+        os << fmt::format(
+            "  index {} labels {} degeneracy {} offset {}",
+            state_index,state.LabelStr(),state.degeneracy(),state.offset()
+          ) << std::endl;
+      }
+
+    return os.str();
+  }
+
+  std::string StateSpJ::LabelStr() const
+  {
+    return fmt::format("[{} {} {} {} {} {}]",L(),S().Str(),omega().Str(),kappa(),sigmaSPN().Str(),J().Str());
+  }
+
+  SpaceSpJ::SpaceSpJ(const std::vector<HalfInt>& J_values, const SpaceSpLS& spls_space)
+  {
+    for (HalfInt J : J_values)
+      PushSubspace(SubspaceSpJ(J,spls_space));
+  }
+
+  std::string SpaceSpJ::DebugStr(bool show_subspaces) const
+  {
+    std::ostringstream os;
+
+    for (int subspace_index=0; subspace_index<size(); ++subspace_index)
+      {
+        // set up alias
+        const SubspaceType& subspace = GetSubspace(subspace_index);
+
+        os << fmt::format(
+            "subspace_index {} labels {} size {} full_dimension {}",
+            subspace_index,subspace.LabelStr(),subspace.size(),subspace.full_dimension()
+          ) << std::endl;
+        if (show_subspaces)
+          os << subspace.DebugStr();
+
+      }
+
+    return os.str();
+  }
+
+  SectorsSpJ::SectorsSpJ(
+        const SpaceSpJ& space,
+        HalfInt J0,
+        basis::SectorDirection sector_direction
+    )
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+	{
+          // enforce canonical ordering
+          if (
+              (sector_direction == basis::SectorDirection::kCanonical)
+              && !(bra_subspace_index<=ket_subspace_index)
+            )
+            continue;
+
+          // retrieve subspaces
+          const SubspaceType& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const SubspaceType& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+          // verify angular momentum selection rule
+          bool allowed = true;
+          allowed &= am::AllowedTriangle(ket_subspace.J(),J0,bra_subspace.J());
+          // to add parity selection: allowed &= ((ket_subspace.g()+g0+bra_subspace.g())%2==0);
+
+          // push sector
+	  if (allowed)
+            PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace));
+        }
+  }
 
   // void
   // ConstructOperatorMatrix(
