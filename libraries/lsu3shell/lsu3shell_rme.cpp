@@ -244,6 +244,10 @@ namespace lsu3shell
                       << std::endl;
                   }
 
+                std::stringstream ss;
+                ss << rme;
+                double text_rme;
+                ss >> text_rme;
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
@@ -261,7 +265,8 @@ namespace lsu3shell
                 //   sector_index, row_index,column_index, blocks[sector_index].rows(),
                 //   blocks[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
-                blocks[sector_index](row_index,column_index)=scale_factor*rme;
+                blocks[sector_index](row_index,column_index)=scale_factor*text_rme;
+                // blocks[sector_index](row_index,column_index)=scale_factor*rme;
                 // std::cout<<blocks[sector_index]<<std::endl;
               }
         // std::cout<<"finished reading in "<<std::endl;
