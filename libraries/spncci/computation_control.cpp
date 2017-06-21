@@ -546,6 +546,71 @@ void PopulateHypersectorsWithSeeds(
   }
 
 
+  // void ConstructBranchedObservables(
+  //   u3::WCoefCache& w_cache,
+  //   const spncci::SpaceSpU3S& space_spu3s,
+  //   const std::vector<std::vector<spncci::SectorLabelsSpU3S>>& observable_sectors_spu3s,
+  //   const std::vector<basis::MatrixVector>& observable_matrices_spu3s,
+  //   std::map<HalfInt,spncci::SpaceSpLS>& spaces_splsj,
+  //   int num_observables,
+  //   const std::vector<HalfInt>& J_values,
+  //   const std::vector<int>& observable_Jvalues,
+  //   std::vector<std::map<spncci::JPair,spncci::MatrixType>>& observable_matrices
+  //   )
+  // {
+  //   // populate fully-branched many-body matrices for observables
+  //   // map: observable -> J ->  matrix
+  //   // std::vector<std::map<HalfInt,Eigen::MatrixXd>> observable_matrices;  
+  //   observable_matrices.resize(num_observables);
+  //   for (int observable_index=0; observable_index<num_observables; ++observable_index)
+  //     {
+  //       int J0=observable_Jvalues[observable_index];
+  //       for (const HalfInt bra_J : J_values)
+  //         for (const HalfInt ket_J : J_values)  
+  //           {
+  //             if(not am::AllowedTriangle(bra_J,J0,ket_J))
+  //               continue;
+  //             spncci::JPair JpJ(bra_J,ket_J);
+  //             // set up aliases (for current observable and J space)
+  //             const std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s = observable_sectors_spu3s[observable_index];
+  //             const basis::MatrixVector& matrices_spu3s = observable_matrices_spu3s[observable_index];
+              
+  //             // determine allowed LS sectors
+  //             const spncci::SpaceSpLS& bra_space_splsj = spaces_splsj[bra_J];
+  //             const spncci::SpaceSpLS& ket_space_splsj = spaces_splsj[ket_J];
+
+  //             Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][JpJ];
+
+  //             // determine set of (L0,S0) labels for this observable (triangular with J0)
+  //             std::vector<spncci::OperatorLabelsLS> operator_labels_spls;
+  //             // Note: to update when J0 varies by observable
+  //             spncci::GenerateOperatorLabelsSpLS(J0,operator_labels_spls);
+
+  //             std::vector<spncci::SectorLabelsSpLS> sectors_splsj;
+  //             spncci::GetSectorsSpLS(bra_space_splsj,ket_space_splsj,operator_labels_spls,sectors_splsj);
+
+  //             // branch LS sectors to LSJ
+  //             basis::MatrixVector matrices_splsj;  
+  //             spncci::ContractAndRegroupLSJ(
+  //                 bra_J,J0,ket_J,
+  //                 w_cache,
+  //                 space_spu3s,sectors_spu3s,matrices_spu3s,
+  //                 bra_space_splsj,ket_space_splsj,sectors_splsj,matrices_splsj
+  //               );
+
+  //             // collect LSJ sectors into J matrix
+  //             //
+  //             // Note: Interface needs to be generalized to handle J_bra != J_ket.
+  //             ConstructOperatorMatrix(
+  //                 bra_space_splsj,ket_space_splsj,sectors_splsj,matrices_splsj,
+  //                 observable_matrix
+  //               );
+  //           }
+  //     }
+  // }
+
+
+
 void 
   SolveHamiltonian(
       const spncci::MatrixType& hamiltonian_matrix,

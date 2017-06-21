@@ -171,6 +171,7 @@ namespace spncci
         // only the N0<=0 unit tensor hypersectors are compute.  
         // The N0>0 hypersectors are obtained via conjugation.
         bool conjugate_hypersector=((etap-eta)>0)?true:false;
+
         int unit_tensor_subspace_index_conj=-1;
         
         if(conjugate_hypersector)
@@ -193,8 +194,6 @@ namespace spncci
             if(not allowed)
               continue;
 
-            // std::cout<<"allowed target "<<x0.Str()<<"  "<<S0<<"  "<<etap<<"  "<<eta<<std::endl;
-            // std::cout<<target_blocks_u3s[target_sector_index]<<std::endl;
             const spncci::SubspaceU3S& ket_subspace=target_space.GetSubspace(target_sector.ket_index());
             const spncci::SubspaceU3S& bra_subspace=target_space.GetSubspace(target_sector.bra_index());
             int rho0=target_sector.rho0();
@@ -231,7 +230,7 @@ namespace spncci
                   int Nn=baby_spncci_subspace_ket.Nn();
                   int unit_tensor_subspace_index_conj=-1;
                   bool conjugate_hypersector=(Nnp-Nn)>0;
-                  
+
                   if(
                       ((Nnp-Nn)==0)
                       &&
@@ -244,7 +243,7 @@ namespace spncci
                       u3shell::UnitTensorSubspaceLabels unit_tensor_labels_conj(u3::Conjugate(x0),S0,eta,etap);
                       unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels_conj);
                     }
-                  
+
                   int baby_spncci_hypersector_index
                         =conjugate_hypersector?
                         baby_spncci_hypersectors.LookUpHypersectorIndex(
@@ -258,6 +257,7 @@ namespace spncci
                   // if(baby_spncci_hypersector_index!=-1)
                   //   std::cout<<"hyper sector index "<<baby_spncci_hypersector_index<<std::endl;
                   // assert(baby_spncci_hypersector_index!=-1);
+
                   if(baby_spncci_hypersector_index==-1)
                     continue;
 
@@ -304,6 +304,7 @@ namespace spncci
                     else
                       target_blocks_u3s[target_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
                         +=relative_rmes[unit_tensor_index]*unit_tensor_blocks[unit_tensor_index];
+                    
                   }
                   // std::cout<<"finished sector"<<std::endl;
                 }

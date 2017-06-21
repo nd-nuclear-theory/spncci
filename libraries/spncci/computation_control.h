@@ -25,6 +25,7 @@
 #include "lsu3shell/lsu3shell_rme.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/branching_u3lsj.h"
+#include "spncci/branching.h"
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
 #include "spncci/spncci_basis.h"
@@ -199,6 +200,18 @@ void PopulateHypersectorsWithSeeds(
     );
   // Construct J branched observable matrices 
 
+
+  // void ConstructBranchedObservables(
+  //   u3::WCoefCache& w_cache,
+  //   const spncci::SpaceSpU3S& space_spu3s,
+  //   const std::vector<std::vector<spncci::SectorLabelsSpU3S>>& observable_sectors_spu3s,
+  //   const std::vector<basis::MatrixVector>& observable_matrices_spu3s,
+  //   std::map<HalfInt,spncci::SpaceSpLS>& spaces_splsj,
+  //   int num_observables,
+  //   const std::vector<HalfInt>& J_values,
+  //   const std::vector<int>& observable_Jvalues,
+  //   std::vector<std::map<spncci::JPair,spncci::MatrixType>>& observable_matrices
+  //   );
 
   void 
   SolveHamiltonian(
