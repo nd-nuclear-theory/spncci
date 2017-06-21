@@ -27,7 +27,7 @@ namespace spncci
 {
 
   ////////////////////////////////////////////////////////////////
-  // convenience typedef for (L,S) labels
+  // convenience typedef for (L,S)
   ////////////////////////////////////////////////////////////////
 
   typedef std::tuple<int,HalfInt> LSLabels;
@@ -493,85 +493,136 @@ namespace spncci
   };
 
   ////////////////////////////////////////////////////////////////
-  // SpNCCI basis branched to J level
-  ////////////////////////////////////////////////////////////////  
-  //
-  //   subspace: (J,gex)
-  //     state: ((L,S),omega,kappa,sigma,Sp,Sn)
-  //       substates: (gamma,upsilon)
-  //
+  // Sector
+  // Enumerates sectors LS
   ////////////////////////////////////////////////////////////////
-  //
-  // Labeling
-  //
-  // subspace labels: (J,gex) => spncci::JgLabels
-  //
-  // state labels within subspace: ((L,S),omega,kappa,(sigma,Sp,Sn,[S]))
-  //   => (spncci::LSLabels,u3::U3,int,u3shell::U3SPN)
-  //
-  // substate labels (implied): (gamma,upsilon)
-  //
-  //   (See BabySpNCCI docstring in spncci_basis for definitions of
-  //   these basis labels.)
-  //
-  ////////////////////////////////////////////////////////////////
-  //
-  // States
-  //
-  // Within a subspace, states are ordered by:
-  //
-  //   TODO once ordering of prior bases is resolved!
-  //
-  ////////////////////////////////////////////////////////////////
-  //
-  // Subspaces
-  //
-  // Within the full space, subspaces are ordered lexicographically by
-  // (J,gex).
-  //
-  ////////////////////////////////////////////////////////////////
+  typedef std::pair<int,int> OperatorLabelsLS;  // (L0,S0)
 
-  ////////////////////////////////////////////////////////////////
-  // subspace
-  ////////////////////////////////////////////////////////////////
+  class SectorLabelsSpLS
+  {
+    public:
+    // Need N0,x0,S0,kappa0,L0, rho0
+    typedef std::tuple<int,int,int,HalfInt> KeyType;
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+    //default constructor
+    inline SectorLabelsSpLS()
+      :bra_index_(-1), ket_index_(-1){}
 
-  typedef std::tuple<HalfInt,int> SubspaceLabelsSpJg;
-  typedef std::tuple<spncci::LSLabels,u3::U3,int,u3shell::U3SPN> StateLabelsSpJg;
+    // construction from labels
+    inline 
+      SectorLabelsSpLS(
+          int bra_index, int ket_index, 
+          const OperatorLabelsLS& tensor_labels
+        )
+      : bra_index_( bra_index), ket_index_(ket_index),tensor_labels_(tensor_labels)
+    {}
 
-  // WIP
-#if 0
-  class SubspaceSpJg
-    : public basis::BaseDegenerateSubspace<spncci::SubspaceLabelsSpJg,spncci::StateLabelsSpJg>
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+    int bra_index() const {return bra_index_;}
+    int ket_index() const {return ket_index_;}
+    OperatorLabelsLS operator_labels() const {return tensor_labels_;}
+    int L0() const {return tensor_labels_.first;}
+    HalfInt S0() const {return tensor_labels_.second;}
+
+    inline KeyType Key() const
     {
-      public:
+      return KeyType(bra_index_,ket_index_,tensor_labels_.first,tensor_labels_.second);
+    }
 
-      // constructors
-      SubspaceSpJg() {};
-      // default constructor -- provided since required for certain
-      // purposes by STL container classes (e.g., std::vector::resize)
+    inline friend bool operator == (const SectorLabelsSpLS& sector1, const SectorLabelsSpLS& sector2)
+    {
+      return sector1.Key() == sector2.Key();
+    }
 
-      SubspaceSpJg(const spncci::SubspaceLabelsSpJg& subspace_labels, const SpaceSpLS& spls_space);
+    inline friend bool operator < (const SectorLabelsSpLS& sector1, const SectorLabelsSpLS& sector2)
+    {
+      return sector1.Key() < sector2.Key();
+    }
 
-      // subspace label accessors
-      HalfInt () const {return std::get<1>(labels_);}
+    ////////////////////////////////////////////////////////////////
+    // hashing
+    ////////////////////////////////////////////////////////////////
 
-      // state auxiliary data accessors
-      const std::vector<int>& state_gamma_max() const {return state_gamma_max_;}
-      const std::vector<int>& state_baby_spncci_subspace_index() const {return state_baby_spncci_subspace_index_;}
-      const std::vector<int>& state_spu3s_subspace_index() const {return state_spu3s_subspace_index_;}
+    inline friend std::size_t hash_value(const SectorLabelsSpLS& sector)
+    {
+      boost::hash<SectorLabelsSpLS::KeyType> hasher;
+      return hasher(sector.Key());
+    }
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
 
-      // diagnostic output
-      std::string LabelStr() const;
-      std::string DebugStr() const;
+    std::string Str() const;
 
-      private:
+    private:
+    int bra_index_, ket_index_, L0_;
+    OperatorLabelsLS tensor_labels_;
+  };
 
-      // state auxiliary data
-      std::vector<int> state_gamma_max_;
-      std::vector<int> state_baby_spncci_subspace_index_;
-      std::vector<int> state_spu3s_subspace_index_;
-    };
-#endif
+
+  void GenerateOperatorLabelsSpLS(const HalfInt& J0, std::vector<OperatorLabelsLS>& tensor_labels);
+  // Generate a list of two-body tensor labels given the triangular restriction on L0,S0, and J0
+  // and the two-body limit on S0<=2.
+
+
+  void GetSectorsSpLS(
+      const spncci::SpaceSpLS& space_bra, 
+      const spncci::SpaceSpLS& space_ket,
+      const std::vector<OperatorLabelsLS>& tensor_labels,
+      std::vector<spncci::SectorLabelsSpLS>& sector_labels
+    );
+  // Generates a cache of SectorLabelsU3S from operator labels given in 
+  // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
+  // by (N0,x0,S0,kappa0,L0). 
+  // 
+  // space_bra (input) : space for bra used to define sectors
+  // space_ket (input) : space for ket used to define sectors
+  // relative_tensor_rmes (input) : container of rme labels keys and rme values
+  //                                RelativeRMEsU3ST defined in upcoupling.h
+  // u3_sectors (output) : container with SectorLabelsSpU3S keys and index values
+
+//////////////////////////////
+  void 
+  ContractAndRegroupSpU3S(
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::SpaceSpU3S& target_space,
+      const u3shell::RelativeRMEsU3SSubspaces& relative_observable,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+      const std::vector<spncci::SectorLabelsSpU3S>& target_sectors_u3s,
+      basis::OperatorBlocks<double>& target_blocks_u3s
+    );
+  // Sum over observables relative rmes and unit tensor baby spncci hyperblocks. 
+  // Resulting matrix blocks accumulated in corser-grain SpU3S blocks 
+
+
+  // void 
+  // ContractAndRegroupLSJ(
+  //       const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
+  //       u3::WCoefCache& w_cache,
+  //       const spncci::SpaceSpU3S& u3s_space,
+  //       const std::vector<spncci::SectorLabelsSpU3S>& source_sector_labels,
+  //       const basis::MatrixVector& source_sectors,
+  //       const spncci::SpaceSpLS& target_space_bra,
+  //       const spncci::SpaceSpLS& target_space_ket,
+  //       const std::vector<spncci::SectorLabelsSpLS>& target_sector_labels,
+  //       basis::MatrixVector& target_blocks
+  //   );
+
+
+  // void
+  // ConstructOperatorMatrix(
+  //   const spncci::SpaceSpLS& bra_source_space,
+  //   const spncci::SpaceSpLS& ket_source_space,
+  //   std::vector<spncci::SectorLabelsSpLS>& source_sector_labels,
+  //   basis::MatrixVector& source_sectors,
+  //   Eigen::MatrixXd& operator_matrix
+  //   );
 
 }  // namespace
 
