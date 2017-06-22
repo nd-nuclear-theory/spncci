@@ -314,7 +314,7 @@ namespace spncci
 
   std::string BabySpNCCISubspace::DebugStr() const
   {
-    return fmt::format("{}: gamma_max {} upsilon_max {} -> dim {}",LabelStr(),gamma_max_,upsilon_max_,size());
+    return fmt::format("{}: gamma_max {} upsilon_max {} -> dim {}",LabelStr(),gamma_max(),upsilon_max(),size());
   }
 
   BabySpNCCISpace::BabySpNCCISpace(const spncci::SpNCCISpace& spncci_space)

@@ -86,7 +86,7 @@ namespace spncci
     )
   {
     // SpNCCISpace
-    StartNewSection(out_stream,"SpNCCISpace");
+    StartNewSection(out_stream,"SpNCCI");
     WriteKeyValue(out_stream,"irrep_families",":d",spncci_space.size());
 
     // BabySpNCCI
@@ -109,6 +109,12 @@ namespace spncci
 
     // SpJ
     StartNewSection(out_stream,"SpJ");
+    WriteKeyValue(out_stream,"subspaces",":d",spj_space.size());
+    WriteKeyValue(out_stream,"dimension",":d",spj_space.Dimension());
+    WriteKeyValue(out_stream,"full_dimension",":d",spj_space.FullDimension());
+
+    // SpJ
+    StartNewSection(out_stream,"SpJ (listing)");
     out_stream << "# subspace_index J dim" << std::endl;
     for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
       {
@@ -120,7 +126,48 @@ namespace spncci
             )
           << std::endl;
       }
-      
+
+  }
+
+  void WriteBabySpNCCIBasisListing(
+      std::ostream& out_stream,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      HalfInt Nsigma0
+    )
+  {
+
+    // BabySpNCCI
+    StartNewSection(out_stream,"BabySpNCCI (listing)");
+    out_stream
+      << "# subspace_index irrep_family_index" << std::endl
+      << "# Nsigmaex sigma.N sigma.lambda sigma.mu" << std::endl
+      << "# Sp Sn S " << std::endl
+      << "# Nex omega.N omega.lambda omega.mu" << std::endl
+      << "# gamma_max upsilon_max dim" << std::endl;
+    for (int subspace_index=0; subspace_index<baby_spncci_space.size(); ++subspace_index)
+      {
+        const BabySpNCCISubspace& baby_spncci_subspace = baby_spncci_space.GetSubspace(subspace_index);
+        const u3::U3 sigma = baby_spncci_subspace.sigma();
+        const u3::U3 omega = baby_spncci_subspace.omega();
+        int Nsigmaex = int(baby_spncci_subspace.sigma().N()-Nsigma0);
+        int Nex = int(baby_spncci_subspace.omega().N()-Nsigma0);
+        out_stream
+          << fmt::format(
+              "{:5d} {:5d}   "
+              "{:2d} {:5.1f} {:3d} {:3d}   "
+              "{:5.1f} {:5.1f} {:5.1f}   "
+              "{:2d} {:5.1f} {:3d} {:3d}   "
+              "{:3d} {:3d} {:4d}",
+              subspace_index,baby_spncci_subspace.irrep_family_index(),
+              Nsigmaex,float(sigma.N()),sigma.SU3().lambda(),sigma.SU3().mu(),
+              float(baby_spncci_subspace.Sp()),float(baby_spncci_subspace.Sn()),float(baby_spncci_subspace.S()),
+              Nex,float(omega.N()),omega.SU3().lambda(),omega.SU3().mu(),
+              baby_spncci_subspace.gamma_max(),baby_spncci_subspace.upsilon_max(),baby_spncci_subspace.size()
+            )
+          << std::endl;
+      }
+
+
   }
 
   void WriteCalculationParameters(std::ostream& out_stream, double hw)

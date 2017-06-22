@@ -93,6 +93,12 @@ namespace spncci
       const spncci::SpaceSpJ& spj_space
     );
 
+  void WriteBabySpNCCIBasisListing(
+      std::ostream& out_stream,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      HalfInt Nsigma0
+    );
+
   void WriteCalculationParameters(
       std::ostream& out_stream,
       double hw
