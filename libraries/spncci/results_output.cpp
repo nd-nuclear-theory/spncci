@@ -178,7 +178,7 @@ namespace spncci
 
   void WriteEigenvalues(
       std::ostream& out_stream,
-      const spncci::SpaceSpJ spj_space,
+      const spncci::SpaceSpJ& spj_space,
       const std::vector<spncci::VectorType>& eigenvalues,
       int gex
     )
@@ -200,8 +200,8 @@ namespace spncci
 
   void WriteObservables(
       std::ostream& out_stream,
-      const std::vector<spncci::SectorsSpJ> observable_sectors,
-      const std::vector<basis::MatrixVector> observable_results_matrices,
+      const std::vector<spncci::SectorsSpJ>& observable_sectors,
+      const std::vector<basis::MatrixVector>& observable_results_matrices,
       int gex
     )
   {
@@ -238,6 +238,26 @@ namespace spncci
 
           }
       }
+  }
+
+  void WriteNexDecompositions(
+      std::ostream& out_stream,
+      const spncci::SpaceSpJ& spj_space,
+      const std::vector<basis::MatrixVector>& Nex_decompositions,
+      int gex
+    )
+  {
+    StartNewSection(out_stream,"Decompositions: Nex");
+  }
+
+  void WriteBabySpNCCIDecompositions(
+      std::ostream& out_stream,
+      const spncci::SpaceSpJ& spj_space,
+      const std::vector<basis::MatrixVector>& baby_spncci_decompositions,
+      int gex
+    )
+  {
+    StartNewSection(out_stream,"Decompositions: BabySpNCCI");
   }
 
 

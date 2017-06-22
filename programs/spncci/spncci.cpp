@@ -90,6 +90,7 @@
 #include "mcutils/profiling.h"
 #include "spncci/branching.h"
 #include "spncci/computation_control.h"
+#include "spncci/decomposition.h"
 #include "spncci/parameters.h"
 #include "spncci/results_output.h"
 
@@ -986,8 +987,8 @@ int main(int argc, char **argv)
 
     std::cout<<"Solve eigenproblem..."<<std::endl;
 
-    std::vector<spncci::VectorType> eigenvalues;  // eigenvalues by J-space
-    std::vector<spncci::MatrixType> eigenvectors;  // eigenvectors by J-space
+    std::vector<spncci::VectorType> eigenvalues;  // eigenvalues by J subspace
+    std::vector<spncci::MatrixType> eigenvectors;  // eigenvectors by J subspace
     eigenvalues.resize(spj_space.size());
     eigenvectors.resize(spj_space.size());
     for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
@@ -1020,6 +1021,47 @@ int main(int argc, char **argv)
     ////////////////////////////////////////////////////////////////
     // do decompositions
     ////////////////////////////////////////////////////////////////
+
+    std::cout << "Calculate eigenstate decompositions..." << std::endl;
+
+    // decomposition matrices:
+    //   - vector over J subspace index
+    //   - matrix over (basis_subspace_index,eigenstate_index)
+    //
+    // That is, decompositions are stored as column vectors, within a
+    // matrix, much like the eigenstates themselves.
+    std::vector<basis::MatrixVector> Nex_decompositions;
+    std::vector<basis::MatrixVector> baby_spncci_decompositions;
+    Nex_decompositions.resize(spj_space.size());
+    baby_spncci_decompositions.resize(spj_space.size());
+
+    // calculate decompositions
+    spncci::CalculateNexDecompositions(
+        spj_space,
+        eigenvectors,
+        Nex_decompositions
+      );
+
+    spncci::CalculateBabySpNCCIDecompositions(
+        spj_space,
+        eigenvectors,
+        baby_spncci_decompositions
+      );
+
+    // results output: decompositions
+    spncci::WriteNexDecompositions(
+        results_stream,
+        spj_space,
+        Nex_decompositions,
+        gex   // TODO fix placeholder value for parity
+      );
+
+    spncci::WriteBabySpNCCIDecompositions(
+        results_stream,
+        spj_space,
+        baby_spncci_decompositions,
+        gex   // TODO fix placeholder value for parity
+      );
 
     ////////////////////////////////////////////////////////////////
     // calculate observable RMEs
@@ -1083,7 +1125,7 @@ int main(int argc, char **argv)
       }
 
     // results output: observables
-    WriteObservables(
+    spncci::WriteObservables(
         results_stream,
         observable_sectors,
         observable_results_matrices,

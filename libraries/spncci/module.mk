@@ -9,7 +9,7 @@ module_units_cpp-h := spncci_common spncci_basis
 module_units_cpp-h += branching_u3s branching_u3lsj
 module_units_cpp-h += branching
 module_units_cpp-h += unit_tensor vcs_cache
-module_units_cpp-h += computation_control io_control parameters results_output 
+module_units_cpp-h += computation_control io_control parameters results_output decomposition
 module_units_cpp-h += explicit_construction
 
 # module_units_f := 
