@@ -81,20 +81,46 @@ namespace spncci
       const spncci::SpNCCISpace& spncci_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::SpaceSpU3S& spu3s_space,
-      const spncci::SpaceSpLS spls_space
+      const spncci::SpaceSpLS& spls_space,
+      const spncci::SpaceSpJ& spj_space
     )
   {
-    StartNewSection(out_stream,"Irreps");
+    // SpNCCISpace
+    StartNewSection(out_stream,"SpNCCISpace");
+    WriteKeyValue(out_stream,"irrep_families",":d",spncci_space.size());
 
+    // BabySpNCCI
     StartNewSection(out_stream,"BabySpNCCI");
+    WriteKeyValue(out_stream,"subspaces",":d",baby_spncci_space.size());
+    // WriteKeyValue(out_stream,"dimension",":d",baby_spncci_space.Dimension());
+    // WriteKeyValue(out_stream,"full_dimension",":d",baby_spncci_space.FullDimension());
 
+    // SpU3S
     StartNewSection(out_stream,"SpU3S");
     WriteKeyValue(out_stream,"subspaces",":d",spu3s_space.size());
     WriteKeyValue(out_stream,"dimension",":d",spu3s_space.Dimension());
     WriteKeyValue(out_stream,"full_dimension",":d",spu3s_space.FullDimension());
 
+    // SpLS
     StartNewSection(out_stream,"SpLS");
+    WriteKeyValue(out_stream,"subspaces",":d",spls_space.size());
+    WriteKeyValue(out_stream,"dimension",":d",spls_space.Dimension());
+    WriteKeyValue(out_stream,"full_dimension",":d",spls_space.FullDimension());
 
+    // SpJ
+    StartNewSection(out_stream,"SpJ");
+    out_stream << "# subspace_index J dim" << std::endl;
+    for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
+      {
+        const SubspaceSpJ& spj_subspace = spj_space.GetSubspace(subspace_index);
+        out_stream
+          << fmt::format(
+              "{:3d} {:4.1f} {:10d}",
+              subspace_index,double(spj_subspace.J()),spj_subspace.full_dimension()
+            )
+          << std::endl;
+      }
+      
   }
 
   void WriteCalculationParameters(std::ostream& out_stream, double hw)

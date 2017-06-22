@@ -89,7 +89,8 @@ namespace spncci
       const spncci::SpNCCISpace& spncci_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::SpaceSpU3S& spu3s_space,
-      const spncci::SpaceSpLS spls_space
+      const spncci::SpaceSpLS& spls_space,
+      const spncci::SpaceSpJ& spj_space
     );
 
   void WriteCalculationParameters(
