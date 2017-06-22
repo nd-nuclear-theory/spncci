@@ -1092,7 +1092,6 @@ int main(int argc, char **argv)
   }
 
   // termination
-  // spncci::log_stream.close();
   results_stream.close();
 
 

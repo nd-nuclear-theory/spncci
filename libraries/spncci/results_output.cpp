@@ -137,10 +137,6 @@ namespace spncci
     for (int observable_index=0; observable_index<observable_results_matrices.size(); ++observable_index)
       {
         
-        out_stream
-          << fmt::format("# observable {:d}",observable_index)
-          << std::endl;
-
         // retrieve sectors
         const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
 

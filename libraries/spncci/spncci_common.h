@@ -27,10 +27,6 @@ namespace spncci
   extern MatrixFloatType g_zero_tolerance;
   extern bool g_suppress_zero_sectors;
 
-  // logging
-  extern std::ofstream log_stream;
-  void WriteLog(const std::string& message);
-
 }  // namespace
 
 #endif
