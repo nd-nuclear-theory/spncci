@@ -194,9 +194,9 @@ void PopulateHypersectorsWithSeeds(
     const std::vector<basis::MatrixVector>& observable_matrices_u3s,
     std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
     int num_observables,
-    const std::vector<HalfInt>& J_values,
-    const std::vector<int>& observable_Jvalues,
-    std::vector<std::map<spncci::JPair,spncci::MatrixType>>& observable_matrices
+    const std::vector<int>& observable_J_values,
+    const std::vector<spncci::SectorsSpJ>& observable_sectors,
+    std::vector<basis::MatrixVector>& observable_matrices
     );
   // Construct J branched observable matrices 
 
@@ -221,10 +221,10 @@ void PopulateHypersectorsWithSeeds(
       int eigensolver_num_convergence,  // whatever exactly this is...
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
-      std::map<HalfInt,Eigen::VectorXd>& eigenvalues,  // map: J -> eigenvalues
-      std::map<HalfInt,spncci::MatrixType>& eigenvectors  // map: J -> eigenvectors
+      spncci::VectorType& eigenvalues,  // eigenvalues for J-subspace
+      spncci::MatrixType& eigenvectors  // eigenvectors for J-subspace
     );
-  // Solve the hamiltonian matrix for energy eigenvalues and vectors 
+  // Solve the Hamiltonian matrix (in a single J-space) for energy eigenvalues and vectors 
 
 
 }  // namespace

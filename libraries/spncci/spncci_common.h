@@ -21,7 +21,7 @@ namespace spncci
   // numerics
   typedef double MatrixFloatType;
   typedef Eigen::VectorXd VectorType;
-  typedef Eigen::MatrixXd MatrixType;
+  typedef Eigen::MatrixXd MatrixType; // => basis::OperatorBlock<spncci::MatrixFloatType>
 
   // tolerance for zero-testing of SpNCCI matrix elements
   extern MatrixFloatType g_zero_tolerance;

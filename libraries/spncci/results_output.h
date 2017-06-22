@@ -99,19 +99,34 @@ namespace spncci
 
   void WriteEigenvalues(
       std::ostream& out_stream,
-      const std::map<HalfInt,Eigen::VectorXd>& eigenvalues
+      const spncci::SpaceSpJ spj_space,
+      const std::vector<spncci::VectorType>& eigenvalues,
+      int gex
     );
   // Write table of eigenvalues.
   //
-  // CAVEAT: parity quantum number in output is hard-coded to natural
-  // parity
-  //
-  // TODO: revise to take SpJSpace and std::vector<Eigen::VectorXd>,
-  // and then take J and gex from SpJSubspace labels
+  // CAVEAT: parity quantum number is now simply taken as a given from
+  // parameter rather than determined in some way from space
   //
   // Arguments:
   //   out_stream (input): output stream
-  //   eigenvalues (input): map of J -> eigenvalues
+  //   ...
+
+  void WriteObservables(
+      std::ostream& out_stream,
+      const std::vector<spncci::SectorsSpJ> observable_sectors,
+      const std::vector<basis::MatrixVector> observable_results_matrices,
+      int gex
+    );
+  // Write matrices of RMEs for observables.
+  //
+  // CAVEAT: parity quantum number is now simply taken as a given from
+  // parameter rather than determined in some way from bra and ket subspaces
+  //
+  // Arguments:
+  //   out_stream (input): output stream
+  //   ...
+
 
 }  // namespace
 

@@ -8,6 +8,7 @@
 
 #include "spncci/results_output.h"
 
+#include "mcutils/eigen.h"
 #include "spncci/parameters.h"
 #include "spncci/spncci_common.h"
 
@@ -104,25 +105,72 @@ namespace spncci
 
   void WriteEigenvalues(
       std::ostream& out_stream,
-      const std::map<HalfInt,Eigen::VectorXd>& eigenvalues
+      const spncci::SpaceSpJ spj_space,
+      const std::vector<spncci::VectorType>& eigenvalues,
+      int gex
     )
   {
     StartNewSection(out_stream,"Energies");
     out_stream << "# J gex i E" << std::endl;
-    for (const auto& J_eigenvalues_J : eigenvalues)
+    for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
       {
-        // extract results for J subspace
-        HalfInt J = J_eigenvalues_J.first;
-        const Eigen::VectorXd& eigenvalues_J = J_eigenvalues_J.second;
-        int gex = 0;  // CAVEAT: placeholder value
+        HalfInt J = spj_space.GetSubspace(subspace_index).J();
+        const Eigen::VectorXd& eigenvalues_J = eigenvalues[subspace_index];
 
         // iterate over eigenvalues in J subspace
-        for (int eigenstate_index=0; eigenstate_index<eigenvalues_J.size(); ++eigenstate_index)
+        for (int eigenstate_index=0; eigenstate_index<eigenvalues.size(); ++eigenstate_index)
           out_stream
             << fmt::format("{:4.1f} {:1d} {:3d} {:+9.4f}",double(J),gex,eigenstate_index,eigenvalues_J[eigenstate_index])
             << std::endl;
       }
   }
+
+  void WriteObservables(
+      std::ostream& out_stream,
+      const std::vector<spncci::SectorsSpJ> observable_sectors,
+      const std::vector<basis::MatrixVector> observable_results_matrices,
+      int gex
+    )
+  {
+    StartNewSection(out_stream,"Observables");
+    out_stream << "# observable_index sector_index J_bra gex_bra J_ket gex_ket rows cols" << std::endl;
+    for (int observable_index=0; observable_index<observable_results_matrices.size(); ++observable_index)
+      {
+        
+        out_stream
+          << fmt::format("# observable {:d}",observable_index)
+          << std::endl;
+
+        // retrieve sectors
+        const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
+
+        // tabulate observable on each sector
+        for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
+          {
+            
+            // retrieve sector information
+            const spncci::SectorsSpJ::SectorType& sector = sectors.GetSector(sector_index);
+            const HalfInt bra_J = sector.bra_subspace().J();
+            const HalfInt ket_J = sector.ket_subspace().J();
+
+            // retrieve block
+            const Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
+
+            out_stream
+              << fmt::format(
+                "{:d} {:d} {:.1f} {:d} {:.1f} {:d} {:d} {:d} ",
+                observable_index,sector_index,double(bra_J),gex,double(ket_J),gex,
+                observable_results_matrix.rows(),observable_results_matrix.cols()
+                )
+              << std::endl;
+            out_stream
+              << mcutils::FormatMatrix(observable_results_matrix,"13.6e")
+              << std::endl;
+
+          }
+      }
+  }
+
 
 
 }  // namespace
