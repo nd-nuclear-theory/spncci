@@ -420,12 +420,14 @@ def do_generate_lsu3shell_rmes(task):
     # retrieve relevant operator files
     retrieve_operator_files(task)
 
-    # generate operators rmes
+    # generate model space file needed by lsu3shell codes
     generate_model_space_file(task)
-    calculate_rmes(task)
 
-    # generate basis listing for basis in which rmes were calculated
+    # generate basis listing for basis in which rmes are calculated
     generate_basis_table(task)
+
+    # generate operators rmes
+    calculate_rmes(task)
 
     # save results
     save_su3rme_files(task)
