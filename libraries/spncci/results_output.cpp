@@ -240,25 +240,36 @@ namespace spncci
       }
   }
 
-  void WriteNexDecompositions(
+  void WriteDecompositions(
       std::ostream& out_stream,
+      const std::string& decomposition_name,
+      const std::string& format_string,
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<basis::MatrixVector>& Nex_decompositions,
+      const std::vector<spncci::MatrixType>& decompositions,
       int gex
     )
   {
-    StartNewSection(out_stream,"Decompositions: Nex");
+    StartNewSection(out_stream,fmt::format("Decompositions: {}",decomposition_name));
+
+    for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
+      {
+        // retrieve information for subspace
+        HalfInt J = spj_space.GetSubspace(subspace_index).J();
+        const spncci::MatrixType& decompositions_J = decompositions[subspace_index];
+
+        // write header comment for subspace
+        out_stream
+          << fmt::format(
+              "# decompositions for subspace J={:.1f}, gex={:1d} ({:d}x{:d})",
+              float(J),gex,decompositions_J.rows(),decompositions_J.cols()
+            )
+          << std::endl;
+
+        // write decompositions
+        out_stream << mcutils::FormatMatrix(decompositions_J,format_string) << std::endl;
+      }
   }
 
-  void WriteBabySpNCCIDecompositions(
-      std::ostream& out_stream,
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<basis::MatrixVector>& baby_spncci_decompositions,
-      int gex
-    )
-  {
-    StartNewSection(out_stream,"Decompositions: BabySpNCCI");
-  }
 
 
 

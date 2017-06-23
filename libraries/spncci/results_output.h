@@ -25,7 +25,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
   // version stamp
   ////////////////////////////////////////////////////////////////
-  const int g_results_version = 201706200; // "yyyymmddv" (v=version w/in day)
+  const int g_results_version = 201706230; // "yyyymmddv" (v=version w/in day)
 
   ////////////////////////////////////////////////////////////////
   // output utilities
@@ -127,27 +127,36 @@ namespace spncci
     );
   // Write matrices of RMEs for observables.
   //
-  // CAVEAT: parity quantum number is now simply taken as a given from
-  // parameter rather than determined in some way from bra and ket subspaces
+  // CAVEAT: For now, parity quantum number is taken as a given from
+  // parameter rather than determined in some way from the bra and ket
+  // SpJ subspaces.
   //
   // Arguments:
   //   out_stream (input): output stream
   //   ...
 
-  void WriteNexDecompositions(
+  void WriteDecompositions(
       std::ostream& out_stream,
+      const std::string& decomposition_name,
+      const std::string& format_string,
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<basis::MatrixVector>& Nex_decompositions,
+      const std::vector<spncci::MatrixType>& decompositions,
       int gex
     );
-
-  void WriteBabySpNCCIDecompositions(
-      std::ostream& out_stream,
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<basis::MatrixVector>& baby_spncci_decompositions,
-      int gex
-    );
-
+  // Write tables of eigenfunction probability distributions.
+  //
+  // CAVEAT: For now, parity quantum number is now simply taken as a
+  // given from parameter rather than determined in some way from the
+  // SpJ subspaces.
+  //
+  // Arguments:
+  //   out_stream (input): output stream
+  //   decomposition_name (input): decompsition name for use in res file section title
+  //   format_string (input): floating point format string for matrix entries
+  //   spj_space (input): SpJ basis (for use in retrieving J value for use in results
+  //     file comment line)
+  //   decompositions (input): the decompositions, by J subspace
+  //   gex (input): excitation parity grade (for use in results file comment line)  
 
 }  // namespace
 

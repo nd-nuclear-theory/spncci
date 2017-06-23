@@ -1030,8 +1030,8 @@ int main(int argc, char **argv)
     //
     // That is, decompositions are stored as column vectors, within a
     // matrix, much like the eigenstates themselves.
-    std::vector<basis::MatrixVector> Nex_decompositions;
-    std::vector<basis::MatrixVector> baby_spncci_decompositions;
+    std::vector<spncci::MatrixType> Nex_decompositions;
+    std::vector<spncci::MatrixType> baby_spncci_decompositions;
     Nex_decompositions.resize(spj_space.size());
     baby_spncci_decompositions.resize(spj_space.size());
 
@@ -1039,25 +1039,29 @@ int main(int argc, char **argv)
     spncci::CalculateNexDecompositions(
         spj_space,
         eigenvectors,
-        Nex_decompositions
+        Nex_decompositions,
+        run_parameters.Nsigma0,run_parameters.Nmax
       );
 
     spncci::CalculateBabySpNCCIDecompositions(
         spj_space,
         eigenvectors,
-        baby_spncci_decompositions
+        baby_spncci_decompositions,
+        baby_spncci_space.size()
       );
 
     // results output: decompositions
-    spncci::WriteNexDecompositions(
+    spncci::WriteDecompositions(
         results_stream,
+        "Nex",".6f",
         spj_space,
         Nex_decompositions,
         gex   // TODO fix placeholder value for parity
       );
 
-    spncci::WriteBabySpNCCIDecompositions(
+    spncci::WriteDecompositions(
         results_stream,
+        "BabySpNCCI",".4e",
         spj_space,
         baby_spncci_decompositions,
         gex   // TODO fix placeholder value for parity
