@@ -603,20 +603,20 @@ def save_spncci_results(task):
     Rename and save spncci results files.
     """
 
-    # log file
-    raw_log_filename = "spncci.out"
-    new_log_filename = os.path.join(
-        mcscript.task.results_dir,
-        "{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task)
-    )
-    mcscript.call(
-        [
-            "cp",
-            "--verbose",
-            raw_log_filename,
-            new_log_filename
-        ]
-    )
+    ## # log file
+    ## raw_log_filename = "spncci.out"
+    ## new_log_filename = os.path.join(
+    ##     mcscript.task.results_dir,
+    ##     "{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task)
+    ## )
+    ## mcscript.call(
+    ##     [
+    ##         "cp",
+    ##         "--verbose",
+    ##         raw_log_filename,
+    ##         new_log_filename
+    ##     ]
+    ## )
 
     # results file
     raw_log_filename = "spncci.res"
