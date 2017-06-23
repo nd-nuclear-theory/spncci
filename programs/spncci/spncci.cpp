@@ -514,6 +514,25 @@ int main(int argc, char **argv)
   spncci::WriteBabySpNCCIBasisListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
 
   ////////////////////////////////////////////////////////////////
+  // terminate counting only run
+  ////////////////////////////////////////////////////////////////
+
+  // We now have to do all termination manually.  But, when the
+  // control code is properly refactored, we can just have a single
+  // termination, and the rest of the run can be in an "if
+  // (!count_only)"...
+
+  if (run_parameters.count_only)
+    {
+
+      // termination
+      results_stream.close();
+
+      std::cout << "End of counting-only run" << std::endl;
+      std::exit(EXIT_SUCCESS);
+    }
+
+  ////////////////////////////////////////////////////////////////
   // precompute K matrices
   ////////////////////////////////////////////////////////////////
   std::cout << "Precompute K matrices..." << std::endl;
@@ -1015,8 +1034,7 @@ int main(int argc, char **argv)
     }
 
     // results output: eigenvalues
-    int gex = 0; // TODO fix placeholder value for parity
-    spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,gex);
+    spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,run_parameters.gex);
 
     ////////////////////////////////////////////////////////////////
     // do decompositions
@@ -1056,7 +1074,7 @@ int main(int argc, char **argv)
         "Nex",".6f",
         spj_space,
         Nex_decompositions,
-        gex   // TODO fix placeholder value for parity
+        run_parameters.gex
       );
 
     spncci::WriteDecompositions(
@@ -1064,7 +1082,7 @@ int main(int argc, char **argv)
         "BabySpNCCI",".4e",
         spj_space,
         baby_spncci_decompositions,
-        gex   // TODO fix placeholder value for parity
+        run_parameters.gex
       );
 
     ////////////////////////////////////////////////////////////////
@@ -1133,7 +1151,7 @@ int main(int argc, char **argv)
         results_stream,
         observable_sectors,
         observable_results_matrices,
-        gex   // TODO fix placeholder value for parity
+        run_parameters.gex
       );
 
   }

@@ -35,6 +35,7 @@
 #ifndef SPNCCI_BASIS_H_
 #define SPNCCI_BASIS_H_
 
+#include <array>
 #include <unordered_map>
 
 #include "basis/hypersector.h"    
@@ -50,6 +51,65 @@ namespace spncci
 {
 
   typedef std::pair<int,int> NnPair;
+
+  ////////////////////////////////////////////////////////////////
+  // Calculation of Nsigma0
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::array<int,2> NuclideType;
+
+  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide);
+  // Calculate Nsigma0 for nuclide.
+  //
+  // This may be thought of as the dimensionless "oscillator energy in
+  // the lowest Pauli-allowed configuration", including zero-point
+  // energy.
+  //
+  // Example:
+  //
+  //   spncci::Nsigma0ForNuclide({3,3});
+  //
+  //      => returns 11
+  //
+  // Note that this is shorthand for
+  //
+  //   spncci::Nsigma0ForNuclide(spncci::NuclideType({3,3}))
+  //
+  // made possible by automatic conversion from initializer list to
+  // array.
+  //
+  // Arguments:
+  //   nuclide (input): (N,Z) for nucleus
+  //
+  // Returns:
+  //   Nsigma0
+
+  int ValenceShellForNuclide(const NuclideType& nuclide);
+  // Calculate valence shell for nuclide.
+  //
+  // This is the highest oscillator shell occupied in the lowest
+  // Pauli-allowed configuration (i.e., N1v).
+  //
+  // Example:
+  //
+  //   spncci::ValenceShellForNuclide({3,3});
+  //
+  //      => returns 1
+  //
+  // Note that this is shorthand for
+  //
+  //   spncci::ValenceShell(spncci::NuclideType({3,3}))
+  //
+  // made possible by automatic conversion from initializer list to
+  // array.
+  //
+  //
+  // Arguments:
+  //   nuclide (input): (N,Z) for nucleus
+  //
+  // Returns:
+  //   N1v
+
   ////////////////////////////////////////////////////////////////
   // Sp irrep truncation scheme definition
   ////////////////////////////////////////////////////////////////

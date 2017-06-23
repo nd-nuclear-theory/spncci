@@ -12,6 +12,7 @@
 
 #include "cppformat/format.h"
 #include "mcutils/parsing.h"
+#include "spncci/spncci_basis.h"
 
 namespace spncci
 {
@@ -23,25 +24,33 @@ namespace spncci
     // TODO reorder filenames 
     if (argc<5)
       {
-        std::cout << "Syntax: A twice_Nsigma0 Nsigmamax N1v Nmax num_eigenvalues <load file>"
+        std::cout << "Syntax: N Z Nsigmamax Nmax num_eigenvalues <load file>"
           // <basis filename> <Nrel filename> <Brel filename> <Arel filename>" 
                   << std::endl;
         std::exit(1);
       }
-    A = std::stoi(argv[1]); 
-    int twice_Nsigma0= std::stoi(argv[2]);
+    nuclide[0] = std::stoi(argv[1]); 
+    nuclide[1] = std::stoi(argv[2]);
     Nsigmamax=std::stoi(argv[3]);
-    Nsigma0=HalfInt(twice_Nsigma0,2);
-    N1v=std::stoi(argv[4]);
-    Nmax = std::stoi(argv[5]);
-    num_eigenvalues=std::stoi(argv[6]);
-    std::string load_file=argv[7];
+    Nmax = std::stoi(argv[4]);
+    num_eigenvalues=std::stoi(argv[5]);
+    std::string load_file=argv[6];
+
+
+    // derived
+    A = nuclide[0]+nuclide[1];
+    Nsigma0 = spncci::Nsigma0ForNuclide(nuclide);
+    N1v = spncci::ValenceShellForNuclide(nuclide);
+
+    // parity (currently ad hoc treatment assuming single parity run)
+    gex = Nmax%2;
+    
+    // run mode
+    count_only = (num_eigenvalues==0);
 
     // upstream information
     //
     // needed for results file -- TODO
-    nuclide[0] = 0;
-    nuclide[1] = 0;
     interaction_name = "RESERVED";
     use_coulomb = false;
 

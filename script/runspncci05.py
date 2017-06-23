@@ -45,7 +45,6 @@ task_list = [
         "Nmax" : Nmax,
         "Nstep" : 2,
         "N1v" : 1,
-        "Nsigma_0" : 11,
         "Nsigma_max" : Nsigma_max,
 
         # su3rme parameters

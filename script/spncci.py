@@ -49,8 +49,8 @@
         Nmax (int): oscillator Nmax for many-body basis
         Nstep (int): step in N for many-body basis (1 or 2)
         N1v (int): valence shell oscillator N
-        Nsigma_0 (float): U(1) quantum number of lowest configuration
-            (in general can be half integer since contains zero-point offset)
+        ## Nsigma_0 (float): U(1) quantum number of lowest configuration
+        ##     (in general can be half integer since contains zero-point offset)
         Nsigma_max (int): maximum oscillator exitation for LGIs
 
         # su3rme parameters
@@ -500,7 +500,9 @@ def generate_observable_rmes(task):
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 
-        # Call code to upcouple and generate input file for hamiltonian 
+        # Call code to upcouple and generate input file for hamiltonian
+        #
+        # TODO: fix to take (N,Z) instead of (A,N1v), and remove N1v from task dictionary
         command_line = [
                 generate_relative_operator_rmes_executable,
                 "{}".format(A) ,   
@@ -573,8 +575,9 @@ def generate_spncci_control_file(task):
 def call_spncci(task):
     """ Carry out spncci run.
     """
-    A = int(task["nuclide"][0]+task["nuclide"][1])
-    twice_Nsigma_0 = int(2*task["Nsigma_0"])
+
+    ## A = int(task["nuclide"][0]+task["nuclide"][1])  # why cast to int???
+    ## twice_Nsigma_0 = int(2*task["Nsigma_0"])
 
     if ("spncci_variant" not in task):
         task["spncci_variant"] = "spncci"
@@ -583,10 +586,9 @@ def call_spncci(task):
     command_line = [
         spncci_executable,
         # TODO determine actual arguments or move into a control file
-        "{A:d}".format(A=A,**task) ,   
-        "{twice_Nsigma_0:d}".format(twice_Nsigma_0=twice_Nsigma_0,**task),
+        "{nuclide[0]:d}".format(**task),
+        "{nuclide[1]:d}".format(**task),
         "{Nsigma_max:d}".format(**task),
-        "{N1v:d}".format(**task),
         "{Nmax:d}".format(**task),
         "{num_eigenvalues:d}".format(**task),
         "spncci"

@@ -32,6 +32,10 @@ namespace spncci
     int Nsigmamax;
     int N1v;
     int Nmax;
+    int gex;  // assumes single parity runs for now (to revisit later)
+
+    // run mode
+    bool count_only;  // basis counting run
 
     // upstream information
     std::array<int,2> nuclide;  // (N,Z): proton and neutron numbers

@@ -45,14 +45,14 @@ namespace spncci
   void WriteRunParameters(std::ostream& out_stream, const spncci::RunParameters& run_parameters)
   {
     StartNewSection(out_stream,"Space");
+    WriteKeyValueList(out_stream,"nuclide",":d",run_parameters.nuclide);
     WriteKeyValue(out_stream,"A",":d",run_parameters.A);
     WriteKeyValue(out_stream,"Nsigma0",":.1f",float(run_parameters.Nsigma0));
     WriteKeyValue(out_stream,"Nsigmamax",":d",run_parameters.Nsigmamax);
     WriteKeyValue(out_stream,"N1v",":d",run_parameters.N1v);
     WriteKeyValue(out_stream,"Nmax",":d",run_parameters.Nmax);
 
-    StartNewSection(out_stream,"Upstream");
-    WriteKeyValueList(out_stream,"nuclide",":d",run_parameters.nuclide);
+    StartNewSection(out_stream,"Interaction");
     WriteKeyValue(out_stream,"interaction",":s",run_parameters.interaction_name);
     WriteKeyValue(out_stream,"use_coulomb",":d",run_parameters.use_coulomb);
 
