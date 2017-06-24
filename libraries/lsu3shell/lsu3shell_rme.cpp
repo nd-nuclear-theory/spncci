@@ -124,7 +124,7 @@ namespace lsu3shell
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
                 int sector_index=sectors.LookUpSectorIndex(i_space,j_space,rho0);
-                assert(sector_index!=-1);
+                assert(sector_index!=basis::kNone);
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
                 // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
@@ -204,8 +204,9 @@ namespace lsu3shell
         assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
 
         // verify multiplicity given in file
+        RMEIndexType num_rmes = group_i.dim*group_j.dim*rho0_max;
         mcutils::VerifyBinary<RMEIndexType>(
-            in_stream,rho0_max,
+            in_stream,num_rmes,
             fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
           );
         
@@ -322,8 +323,6 @@ namespace lsu3shell
                                  
   }
 
-
-
   bool 
   CompareLSU3ShellRMEs(
       std::ostream& log_stream,
@@ -414,48 +413,6 @@ namespace lsu3shell
     return success;
   }
 
-  // void GenerateNcmMatrixVector_DEPRECATED_TakesStream(
-  //     int A,
-  //     std::ifstream& is_Nrel,
-  //     const lsu3shell::LSU3BasisTable& lsu3_basis_table,
-  //     const u3shell::SpaceU3SPN& space,
-  //     basis::MatrixVector& blocks
-  //   )
-  // // DEPRECATED
-  // {
-  // 
-  //   assert(false);  // this deprecated version will fail on binary rme file since only uses ReadLSU3ShellRMEsText_DEPRECATED_TakesStream
-  //   assert(is_Nrel.is_open());
-  // 
-  //   // Read in Nrel matrix elements and populate sectors
-  //   u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
-  //   basis::MatrixVector Nrel_blocks;
-  //   u3shell::SectorsU3SPN Nrel_sectors(space,Nrel_labels,true);
-  //   lsu3shell::ReadLSU3ShellRMEsText_DEPRECATED_TakesStream(
-  //       is_Nrel,Nrel_labels,lsu3_basis_table,space, 
-  //       Nrel_sectors,Nrel_blocks
-  //     );
-  // 
-  //   // Resize vector
-  //   blocks.resize(Nrel_blocks.size());
-  // 
-  //   // Iterate over Nrel subspaces and populate Ncm sectors in blocks
-  //   for(int i=0; i<Nrel_blocks.size(); ++i)
-  //     {
-  //       auto subspace=space.GetSubspace(i);
-  //       // eigenvalue of N is given by total number of oscilator quanta minus
-  //       // the zero point energy boson 3A/2. 
-  //       HalfInt N=subspace.N()-3.*A/2;
-  //       // std::cout<<N<<std::endl<<Nrel_blocks[i]<<std::endl;
-  //       int dim=subspace.size();
-  //       // std::cout<< Eigen::MatrixXd::Identity(dim,dim)*double(N) <<"     "<<Nrel_blocks[i]<<std::endl;
-  //       // std::cout<<"Nrel"<<std::endl<<Nrel_blocks[i]<<std::endl;
-  //   
-  //       // Ncm=N-Nrel
-  //       blocks[i]=Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_blocks[i];
-  //     }
-  // }
-
   void GenerateLSU3ShellNcmRMEs(
       const u3shell::SpaceU3SPN& space,
       const u3shell::SectorsU3SPN& Nrel_sectors,
@@ -482,7 +439,8 @@ namespace lsu3shell
         // Obtain as Ncm=N-Nrel, where eigenvalue of N is given by
         // total number of oscilator quanta minus the zero point
         // energy 3A/2.
-        HalfInt N = subspace.N()-3.*A/2;
+        
+        HalfInt N = subspace.N()-HalfInt(3*A,2);
         int dim = subspace.size();
         Ncm_matrices[sector_index]
           = Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrices[sector_index];
