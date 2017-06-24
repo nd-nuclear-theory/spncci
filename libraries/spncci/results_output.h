@@ -7,6 +7,7 @@
   University of Notre Dame
 
   6/17/17 (mac): Created.
+  6/24/17 (mac): Add SpU3S subspace listing.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_RESULTS_OUTPUT_H_
@@ -93,7 +94,13 @@ namespace spncci
       const spncci::SpaceSpJ& spj_space
     );
 
-  void WriteBabySpNCCIBasisListing(
+  void WriteSpU3SSubspaceListing(
+      std::ostream& out_stream,
+      const spncci::SpaceSpU3S& spu3s_space,
+      HalfInt Nsigma0
+    );
+
+  void WriteBabySpNCCISubspaceListing(
       std::ostream& out_stream,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       HalfInt Nsigma0

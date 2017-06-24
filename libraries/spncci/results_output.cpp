@@ -129,7 +129,43 @@ namespace spncci
 
   }
 
-  void WriteBabySpNCCIBasisListing(
+  void WriteSpU3SSubspaceListing(
+      std::ostream& out_stream,
+      const spncci::SpaceSpU3S& spu3s_space,
+      HalfInt Nsigma0
+    )
+  {
+
+    // SpU3S
+    StartNewSection(out_stream,"SpU3S (listing)");
+    out_stream
+      << "# subspace_index " << std::endl
+      << "# Nex omega.N omega.lambda omega.mu" << std::endl
+      << "# S " << std::endl
+      << "# dim" << std::endl;
+    for (int subspace_index=0; subspace_index<spu3s_space.size(); ++subspace_index)
+      {
+        const SubspaceSpU3S& spu3s_subspace = spu3s_space.GetSubspace(subspace_index);
+        const u3::U3 omega = spu3s_subspace.omega();
+        int Nex = int(spu3s_subspace.omega().N()-Nsigma0);
+        out_stream
+          << fmt::format(
+              "{:5d}   "
+              "{:2d} {:5.1f} {:3d} {:3d}   "
+              "{:5.1f}   "
+              "{:5d}",
+              subspace_index,
+              Nex,float(omega.N()),omega.SU3().lambda(),omega.SU3().mu(),
+              float(spu3s_subspace.S()),
+              spu3s_subspace.full_dimension()
+            )
+          << std::endl;
+      }
+
+
+  }
+
+  void WriteBabySpNCCISubspaceListing(
       std::ostream& out_stream,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       HalfInt Nsigma0
@@ -166,7 +202,6 @@ namespace spncci
             )
           << std::endl;
       }
-
 
   }
 

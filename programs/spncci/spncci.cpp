@@ -511,7 +511,8 @@ int main(int argc, char **argv)
   // results output: basis information
   spncci::StartNewSection(results_stream,"BASIS");
   spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
-  spncci::WriteBabySpNCCIBasisListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
+  spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
+  spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
 
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
