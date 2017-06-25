@@ -4,7 +4,9 @@
   Calculate and output SU(3) quantities, e.g., product of two SU(3)
   irreps.
 
-  Examples:
+  Syntax and examples:
+
+    product lambda1 mu1 lambda2 mu2
 
     >>> product 1 1 1 1
     (1,1) x (1,1):
@@ -14,6 +16,8 @@
       ((2,2),1)
       ((3,0),1)
 
+    branching lambda mu
+
     >>> branching 2 2
     (2,2):
       (0,1)
@@ -21,9 +25,13 @@
       (3,1)
       (4,1)
 
+    W lambda1 mu1 kappa1 L1 lambda2 mu2 kappa2 L2 lambda3 mu3 kappa3 L3 rho0
+
     >>> W 2 0 1 0 0 0 1 0 2 0 1 0 1
     (2,0) 1 0 x (0,0) 1 0 -> (0,0) 1 0 1
   
+    U lambda1 mu1 lambda2 mu2 lambda mu lambda3 mu3 lambda12 mu12 rho12 rho12_3 lambda23 mu23 rho23 rho1_23
+
     >>> U 0 0 2 0 2 0 0 0 2 0 1 1 2 0 1 1
     U[(0,0),(2,0),(2,0),(0,0),(2,0),1,1,(2,0),1,1
     +1.00000000
@@ -169,7 +177,8 @@ int main(int argc, char **argv)
       line_stream >> keyword;
 
       // terminate on "exit"
-      if ((keyword=="exit") || (keyword=="exit()") || (keyword=="bye") || (keyword==":q!"))
+      if ((keyword=="exit") || (keyword=="exit()") || (keyword=="bye")
+          || (keyword=="q") || (keyword==":q!"))
         break;
 
       // skip blank line or hash comment line
