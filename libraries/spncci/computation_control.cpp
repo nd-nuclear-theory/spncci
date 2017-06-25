@@ -635,62 +635,117 @@ void
     // spncci::MatrixType& hamiltonian_matrix = observable_matrices[0][J];
     std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
 
-    // define eigensolver and compute
-    typedef spncci::MatrixType MatrixType;  // allow for possible future switch to more compact single-precision matrix
-    typedef double FloatType;
-    Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
-    Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
-      eigensolver(
-          &matvec,
-          num_eigenvalues,
-          eigensolver_num_convergence
-        );
-    eigensolver.init();
-    int converged_eigenvectors = eigensolver.compute(
-        eigensolver_max_iterations,
-        eigensolver_tolerance,
-        Spectra::SMALLEST_ALGE  // sorting rule
-      );
-    int eigensolver_status = eigensolver.info();
-    std::cout
-      << fmt::format("  Eigensolver reports: eigenvectors {} status {}",converged_eigenvectors,eigensolver_status)
-      << std::endl;
-    assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
-    assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
+    // handle low-dimensional exceptions
+    //
+    // Determine appropriate solver:
+    //
+    // -- iterative solver requires number of eigenvalues to be
+    // strictly less than matrix dimension.
+    //
+    // -- iterative solver also requires the ncv parameter to be less
+    // than or equal to the matrix dimension ("ncv must satisfy nev <
+    // ncv <= n, n is the size of matrix")
 
-    // save eigenresults
-    eigenvalues = eigensolver.eigenvalues();
-    eigenvectors = eigensolver.eigenvectors();
+    int hamiltonian_dimension = hamiltonian_matrix.rows();
+    int actual_num_eigenvalues = std::min(num_eigenvalues,hamiltonian_dimension);
+    if (hamiltonian_dimension==0)
+      {
+        std::cout << "  Skipping space of dimension zero" << std::endl;
+        return;
+      }
+    bool revert_to_full_solver = !(
+        (num_eigenvalues<hamiltonian_dimension)
+        &&(eigensolver_num_convergence<=hamiltonian_dimension)
+      );
+
+    if (revert_to_full_solver)
+      // use Eigen::SelfAdjointEigenSolver
+      {
+
+        std::cout << "  Using solver: Eigen::SelfAdjointEigenSolver" << std::endl;
+
+        // define eigensolver and compute
+        Eigen::SelfAdjointEigenSolver<MatrixType> eigensolver(hamiltonian_matrix);
+
+        // verify status
+        int eigensolver_status = eigensolver.info();
+        std::cout
+          << fmt::format("  Eigensolver reports: status {}",eigensolver_status)
+          << std::endl;
+        assert(eigensolver_status==Eigen::Success);
+
+        // save eigenresults
+        eigenvalues = eigensolver.eigenvalues();
+        eigenvectors = eigensolver.eigenvectors();
+      }
+    else
+      // use Spectra::SymEigsSolver
+      {
+
+        std::cout << "  Using solver: Spectra::SymEigsSolver" << std::endl;
+
+        // define eigensolver and compute
+        typedef spncci::MatrixType MatrixType;  // allow for possible future switch to more compact single-precision matrix
+        typedef double FloatType;
+        Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
+        Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
+          eigensolver(
+              &matvec,
+              num_eigenvalues,
+              eigensolver_num_convergence
+            );
+        eigensolver.init();
+        int converged_eigenvectors = eigensolver.compute(
+            eigensolver_max_iterations,
+            eigensolver_tolerance,
+            Spectra::SMALLEST_ALGE  // sorting rule
+          );
+
+        // verify status
+        int eigensolver_status = eigensolver.info();
+        std::cout
+          << fmt::format("  Eigensolver reports: eigenvectors {} status {}",converged_eigenvectors,eigensolver_status)
+          << std::endl;
+        assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
+        assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
+        assert(converged_eigenvectors==num_eigenvalues);  // require that expected number of eigenvectors
+
+        // save eigenresults
+        eigenvalues = eigensolver.eigenvalues();
+        eigenvectors = eigensolver.eigenvectors();
+      }
+
+    // diagnostic output: eigenvalues
     std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
               << mcutils::FormatMatrix(eigenvalues,"8.5f","    ")
               << std::endl;
-
+    
     // check eigenvector norms
     Eigen::VectorXd eigenvector_norms(eigenvectors.cols());
-    for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
+    for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
       {
         eigenvector_norms(eigenvector_index) = eigenvectors.col(eigenvector_index).norm();
         const double norm_tolerance=1e-8;
         assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
       }
-      if (true)
-        {
-          std::cout << fmt::format("  Norms (J={}):",J) << std::endl
-                    << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")
-                    << std::endl;
-        }
+    if (true)
+      {
+        std::cout << fmt::format("  Norms (J={}):",J) << std::endl
+                  << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")
+                  << std::endl;
+      }
 
-      // normalize eigenvectors -- redundant with Spectra eigensolver
-      for (int eigenvector_index=0; eigenvector_index<converged_eigenvectors; ++eigenvector_index)
-        eigenvectors.col(eigenvector_index).normalize();
+    // normalize eigenvectors -- redundant with Spectra eigensolver
+    for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
+      eigenvectors.col(eigenvector_index).normalize();
 
-      // diagnostics
-      if (false)
-        {
-          std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
-                    << mcutils::FormatMatrix(eigenvectors,"8.5f","    ")
-                    << std::endl;
-        }
+    // diagnostics
+    if (false)
+      {
+        std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
+                  << mcutils::FormatMatrix(eigenvectors,"8.5f","    ")
+                  << std::endl;
+      }
   }
 
 
