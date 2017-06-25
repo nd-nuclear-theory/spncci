@@ -7,6 +7,8 @@
   University of Notre Dame
 
   3/9/16 (aem,mac): Extracted from u3.h.
+  6/25/17 (mac): Restore and fix template specialization for
+    MultiplicityTagged<int>::Str().
 
 ****************************************************************/
 
@@ -15,7 +17,7 @@
 
 #include <sstream>
 #include <string>
-#include <utility>
+// #include <utility>
 #include <vector>
  
 #include <boost/functional/hash.hpp>
@@ -97,10 +99,9 @@ template <typename tIrrep>
 std::string MultiplicityTagged<tIrrep>::Str() const
 // Generate string output relying on Str() method of irrep.
 //
-// Note: Will fail if irrep type does not have Str() method, e.g.,
-// if the irrep is just and int.  This problem may, in principle,
-// be overcome via template specialization, but this leads to
-// link-time errors (gcc 4.5).
+// Note: Will fail if irrep type does not have Str() method, e.g., if
+// the irrep is just and int.  This problem may be overcome via
+// template specialization (see <int> specialization below).
 {
   std::ostringstream ss;
 	
@@ -108,15 +109,23 @@ std::string MultiplicityTagged<tIrrep>::Str() const
   return ss.str();
 }
 
-// template <>
-//   std::string MultiplicityTagged<int>::Str() const
-//   // Template specialization for tIrrep->int.
-//   {
-//     std::ostringstream ss;
-// 	
-//     ss << "(" << irrep << "," << tag << ")";
-//     return ss.str();
-//   }
+template <>
+inline
+std::string MultiplicityTagged<int>::Str() const
+// Template specialization for tIrrep->int.
+//
+// Programming note: Beware that a fully specialized template no
+// longer is treated as a template under the "one definition rule" and
+// must therefore be explicitly inlined to avoid link-time errors
+// "multiple definition of `MultiplicityTagged<int>::Str() const".
+// 
+//   https://stackoverflow.com/questions/4445654/multiple-definition-of-template-specialization-when-using-different-objects
+{
+  std::ostringstream ss;
+	
+  ss << "(" << irrep << "," << tag << ")";
+  return ss.str();
+}
 
 
 #endif

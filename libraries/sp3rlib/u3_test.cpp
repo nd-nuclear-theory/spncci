@@ -16,8 +16,6 @@
 #include <algorithm>
 
 #include "am/am.h"
-#include "utilities/multiplicity_tagged.h"
-
 
 int main(int argc, char **argv)
 {

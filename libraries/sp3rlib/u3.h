@@ -25,7 +25,7 @@
 
 #include "am/halfint.h"
 #include "am/am.h"
-#include "utilities/multiplicity_tagged.h"
+#include "sp3rlib/multiplicity_tagged.h"
 #include "utilities/utilities.h"
 
 namespace u3 
