@@ -379,9 +379,6 @@ def save_su3rme_files(task):
             ]
         )
 
-    # cleanup
-    ## mcscript.call(["rm","-r","lsu3shell_rme"])
-
 def retrieve_su3rme_files(task):
     """ Retrieve archive of relative operator SU(3) RME files.
 
@@ -597,6 +594,9 @@ def call_spncci(task):
         command_line,
         mode=mcscript.CallMode.kSerial
     )
+
+    # cleanup
+    mcscript.call(["rm","-r","lsu3shell_rme","relative_observables"])
 
 def save_spncci_results(task):
     """
