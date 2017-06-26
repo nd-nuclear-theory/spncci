@@ -547,27 +547,32 @@ def generate_observable_rmes(task):
 def generate_spncci_control_file(task):
     """ Generate control file for spncci run.
 
-    Output file: spncci.load
+    Output file: spncci.dat
     """
 
     hw_min=task["hw_range"][0]
     hw_max=task["hw_range"][1]
     hw_step=task["hw_range"][2]
-    twice_J_min=2*task["J_range"][0]
-    twice_J_max=2*task["J_range"][1]
+    twice_J_min=int(2*task["J_range"][0])
+    twice_J_max=int(2*task["J_range"][1])
     J_step=task["J_range"][2]
     J0=0#task["J0"]
 
+    # write basic parameters
     input_lines = [
-            "{} {} {}".format(twice_J_min,twice_J_max,J_step),
-            "{} {} {}".format(hw_min,hw_max,hw_step),   # dummy hw value
-            "hamiltonian {}".format(J0)
-        ]
-    for observable in task["observables"]:
-        input_lines.append("{} {}".format(observable[0],observable[1]))
+        "{nuclide[0]:d} {nuclide[1]:d} {Nsigma_max:d} {Nmax:d}".format(**task),
+        "{num_eigenvalues:d}".format(**task),
+        "{:d} {:d} {:d}".format(twice_J_min,twice_J_max,J_step),
+        "{:f} {:f} {:f}".format(hw_min,hw_max,hw_step)
+    ]
 
-    load_filename = "spncci.load"
-    mcscript.utils.write_input(load_filename,input_lines,verbose=True)
+    # write observables
+    full_observables = [("hamiltonian",0)] + task["observables"]
+    for observable in full_observables:
+        input_lines.append("{:s} {:d}".format(observable[0],observable[1]))
+
+    control_filename = "spncci.dat"
+    mcscript.utils.write_input(control_filename,input_lines,verbose=True)
 
 def call_spncci(task):
     """ Carry out spncci run.
@@ -581,14 +586,7 @@ def call_spncci(task):
     spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
     command_line = [
-        spncci_executable,
-        # TODO determine actual arguments or move into a control file
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
-        "{Nmax:d}".format(**task),
-        "{num_eigenvalues:d}".format(**task),
-        "spncci"
+        spncci_executable
     ]
     mcscript.call(
         command_line,

@@ -387,7 +387,8 @@ int main(int argc, char **argv)
     }
 
   // run parameters
-  spncci::RunParameters run_parameters(argc,argv);
+  std::cout << "Reading control file..." << std::endl;
+  spncci::RunParameters run_parameters;
 
   // Eigen OpenMP multithreading mode
   Eigen::initParallel();
@@ -1019,7 +1020,6 @@ int main(int argc, char **argv)
         std::cout
           << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
           << std::endl;
-        
 
         spncci::VectorType& eigenvalues_J = eigenvalues[subspace_index];
         spncci::MatrixType& eigenvectors_J = eigenvectors[subspace_index];

@@ -7,6 +7,7 @@
   University of Notre Dame
 
   6/17/17 (mac): Created, extracted from spncci.cpp.
+  6/26/17 (mac): Remove dependence of parameters on command line arguments.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_PARAMETERS_H_
@@ -24,7 +25,7 @@ namespace spncci
   {
 
     // constructor
-    RunParameters(int argc, char **argv); 
+    RunParameters(); 
 
     // basis parameters
     int A;
