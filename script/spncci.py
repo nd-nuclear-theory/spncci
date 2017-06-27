@@ -80,6 +80,7 @@
   5/20/17 (mac): Split out generation of relative operators and calculation of SU(3)
       RMEs.
   6/4/17 (mac): Add search paths for input files.
+  6/27/17 (mac): Split out copy of lsu3shell basis listing from su3rme tarball.
 
 """
   
@@ -353,19 +354,31 @@ def save_su3rme_files(task):
 
     """
 
+    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+
     # select files to save
-    ## archive_file_list = glob.glob(os.path.join("lsu3shell_rme",'*.dat'))
-    ## archive_file_list += glob.glob(os.path.join("lsu3shell_rme",'*.dat'))
-    archive_file_list = glob.glob('*.dat')
+    archive_file_list = [
+        "model_space.dat",
+        "relative_operators.dat",
+        "lsu3shell_basis.dat",
+        "relative_unit_tensor_labels.dat"
+    ]
     archive_file_list += glob.glob('*.rme')
 
     # generate archive
-    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
     archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
     mcscript.call(
         [
             "tar", "-zcvf", archive_filename
         ] + archive_file_list
+    )
+
+    # save independent copy of basis listing outside tarball for easy inspection
+    basis_filename = "lsu3shell_basis_{}.dat".format(su3rme_descriptor)
+    mcscript.call(
+        [
+            "cp", "lsu3shell_basis.dat", basis_filename
+        ]
     )
 
     # move archive to results directory (if in multi-task run)
@@ -374,10 +387,12 @@ def save_su3rme_files(task):
             [
                 "mv",
                 "--verbose",
-                archive_filename,
+                basis_filename,archive_filename,
                 "--target-directory={}".format(mcscript.task.results_dir)
             ]
         )
+
+
 
 def retrieve_su3rme_files(task):
     """ Retrieve archive of relative operator SU(3) RME files.
