@@ -59,7 +59,14 @@ namespace lsu3shell
         HalfInt Sp=HalfInt(twice_Sp,2);
         HalfInt Sn=HalfInt(twice_Sn,2);
         HalfInt S=HalfInt(twice_S,2);
+        u3::SU3 xp(lambda_p,mu_p);
+        u3::SU3 xn(lambda_n,mu_n);
         u3::SU3 x(lambda,mu);
+
+        // perform sanity checks on input basis labels
+        assert(am::AllowedTriangle(Sp,Sn,S));
+        assert(u3::OuterMultiplicity(xp,xn,x)==rho0_max);
+
         // std::cout<<fmt::format("Nex {}  Nsigma_0 {}  x {}",Nex, Nsigma_0,x.Str())<<std::endl;
         u3::U3 omega(Nsigma_0+Nex,x);
         u3::U3S omegaS(omega,S);

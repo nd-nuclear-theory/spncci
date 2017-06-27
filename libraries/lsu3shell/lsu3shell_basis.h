@@ -8,6 +8,7 @@
 
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
+  6/26/17 (mac): Add sanity checks on input basis labels.
 
 ****************************************************************/
 
@@ -22,6 +23,11 @@ namespace lsu3shell
   ////////////////////////////////////////////////////////////////
   // data structures for lsu3shell basis labels
   ////////////////////////////////////////////////////////////////
+
+  // TODO: Abolish confusingly abbreviated "LSU3" in favor of
+  // "LSU3Shell" in all names.
+  //
+  // grep -r LSU3Basis . --include="*.h" --include="*.cpp" -l   
 
   struct LSU3BasisGroupLabels
   // Data on the "multiplicity group" underlying an lsu3shell basis state.
@@ -50,6 +56,10 @@ namespace lsu3shell
   struct LSU3BasisGroupData
     : LSU3BasisGroupLabels
   // Indexing information for lsu3shell multiplicity group.
+  //
+  // TODO: This inheritance LSU3BasisGroupData : LSU3BasisGroupLabels
+  // violates the "is a type of" rule for inheritance.  Consider
+  // restructuring/abolishing.
   //
   // Fields:
   //   dim : group size
