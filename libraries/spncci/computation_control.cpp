@@ -153,6 +153,7 @@ void GetUnitTensorSeedBlocks(
             // If multiplicity tagged unit tensor subspace not already initialized in container,
             //  need to resize container for given unit tensor subspace.
             std::pair<int,int> multiplicity_tagged_unit_tensor_subspace(unit_tensor_subspace_index,rho0);
+            
             if(not subspace_blocks.count(multiplicity_tagged_unit_tensor_subspace))
               subspace_blocks[multiplicity_tagged_unit_tensor_subspace].resize(unit_tensor_space.GetSubspace(unit_tensor_subspace_index).size());
 
@@ -353,10 +354,21 @@ void PopulateHypersectorsWithSeeds(
       // If conjugate then get blocks from seed_blocks_conjugate
       // otherwise, get seeds from seed blocks.
       bool is_conjugate=(bra_subspace.irrep_family_index()>ket_subspace.irrep_family_index());
+      
+      // Check if there exists non-zero seeds 
+      bool seeds_nonzero=
+      is_conjugate?
+      seed_blocks_conjugate.count(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
+      seed_blocks.count(std::pair<int,int>(unit_tensor_subspace_index,rho0));
+
+      // if no non-zero seeds, then continue
+      if(not seeds_nonzero)
+        continue;
+
       const basis::OperatorBlocks<double>& seeds=is_conjugate?
       seed_blocks_conjugate.at(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
       seed_blocks.at(std::pair<int,int>(unit_tensor_subspace_index,rho0));
-      
+
       for(int i=0; i<seeds.size(); ++i)
         {
           if(seeds[i].rows()==0)
