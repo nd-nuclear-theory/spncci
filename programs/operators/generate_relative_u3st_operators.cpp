@@ -182,7 +182,7 @@ namespace u3shell
             // Crel term
             Np=N;
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,0),0,0,bra,ket);
+            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Nrme=N+3/2.;
             Qintr[key]+=sqrt(3)*std::sqrt(2./3*(N*N+3*N))*intrinsic_factor*coef;
@@ -365,7 +365,7 @@ int main(int argc, char **argv)
     else if(operator_type=="Lintr")
       u3shell::Lintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Qintr")
-      u3shell::Qintr(Nmax+2*N1B,Operator, A, sqrt(5./16*pi)*coef*b2);
+      u3shell::Qintr(Nmax+2*N1B,Operator, A, sqrt(5./8*pi)*coef*b2);
     else if(operator_type=="Tintr")
       u3shell::Tintr(Nmax+2*N1B,Operator, A, hbar_omega, coef);
     else if(operator_type=="INT")
