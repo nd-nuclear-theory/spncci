@@ -357,7 +357,6 @@ void PrintU3SSector(
 int main(int argc, char **argv)
 {
   std::cout<<"entering spncci"<<std::endl;
-
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
@@ -405,6 +404,7 @@ int main(int argc, char **argv)
   spncci::StartNewSection(results_stream,"PARAMETERS");
   spncci::WriteRunParameters(results_stream,run_parameters);
 
+  std::cout<<"Nmax="<<run_parameters.Nmax<<std::endl;
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
   ////////////////////////////////////////////////////////////////
@@ -459,8 +459,8 @@ int main(int argc, char **argv)
   spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
 
-  for(int i=0; i<spncci_space.size(); ++i)
-    std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
+  // for(int i=0; i<spncci_space.size(); ++i)
+  //   std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
 
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
@@ -737,7 +737,7 @@ int main(int argc, char **argv)
   int num_threads_outer_loop=int(sqrt(total_num_threads));
   // int num_threads_outer_loop=total_num_threads/num_threads_inner_loop;
   int num_threads_inner_loop=total_num_threads/num_threads_outer_loop;
-  std::cout<<"total "<<total_num_threads<<" "<<num_threads_outer_loop<<"  "<<num_threads_inner_loop<<std::endl;
+  // std::cout<<"total "<<total_num_threads<<" "<<num_threads_outer_loop<<"  "<<num_threads_inner_loop<<std::endl;
   // num_outerloop_threads=min(num_threads,num_lgi_pair/2/chunk_size);
   // num_innerloop_threads=num_threads/num_outerloop_threads;
   //
@@ -755,6 +755,8 @@ int main(int argc, char **argv)
     > iterators;
   for(it=lgi_unit_tensor_blocks.begin(); it!=lgi_unit_tensor_blocks.end(); ++it)
     iterators.push_back(it);
+
+
   #pragma omp parallel  num_threads(num_threads_outer_loop)
   {
     // #pragma omp single
@@ -826,6 +828,7 @@ int main(int argc, char **argv)
 
       // Recurse over unit tensor hypersectors 
       // std::cout<<"entering the recurrence for "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
+
       spncci::ComputeUnitTensorHyperblocks(
         run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,k_matrix_cache,
         spncci_space,baby_spncci_space,unit_tensor_space,
