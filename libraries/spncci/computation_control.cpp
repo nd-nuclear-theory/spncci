@@ -308,7 +308,8 @@ void GenerateRecurrenceHypersectors(
 
   // generate baby spncci hypersectors for given irrep family from unit tensor subspace
   // Resize 
-  unit_tensor_hypersector_subsets.resize(2*Nmax);
+  // unit_tensor_hypersector_subsets.resize(2*Nmax);
+  unit_tensor_hypersector_subsets.resize(Nmax+1);
   baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
       baby_spncci_space, unit_tensor_space, 
       unit_tensor_subsets, unit_tensor_hypersector_subsets,

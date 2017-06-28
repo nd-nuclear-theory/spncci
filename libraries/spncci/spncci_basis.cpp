@@ -497,7 +497,6 @@ namespace spncci
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
         {
-
           // retrieve subspaces
           const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
           const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
@@ -507,7 +506,6 @@ namespace spncci
 
           if(Nnp>Nn)
             continue;
-
 
           bool in_irrep_families=(
             (ket_subspace.irrep_family_index()== irrep_family_index_1)
