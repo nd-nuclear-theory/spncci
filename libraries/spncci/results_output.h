@@ -8,6 +8,7 @@
 
   6/17/17 (mac): Created.
   6/24/17 (mac): Add SpU3S subspace listing.
+  6/27/17 (mac): Suppress output for empty subspaces or sectors.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_RESULTS_OUTPUT_H_
@@ -26,7 +27,7 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
   // version stamp
   ////////////////////////////////////////////////////////////////
-  const int g_results_version = 201706230; // "yyyymmddv" (v=version w/in day)
+  const int g_results_version = 201706270; // "yyyymmddv" (v=version w/in day)
 
   ////////////////////////////////////////////////////////////////
   // output utilities
@@ -99,6 +100,16 @@ namespace spncci
       const spncci::SpaceSpU3S& spu3s_space,
       HalfInt Nsigma0
     );
+  // Write listing of SpU3S basis subspaces.
+  //
+  // This is technically superfluous, since all information on SpU3S
+  // subspaces can be deduced from the listing of BabySpNCCI
+  // subspaces.  Therefore, reliance on this listing is discouraged.
+  //
+  // Arguments:
+  //     out_stream (input): output stream
+  //     spu3s_space (input): SpU3S basis
+  //     Nsigma0 (input): U(1) label of lowest configuration
 
   void WriteBabySpNCCISubspaceListing(
       std::ostream& out_stream,
@@ -126,22 +137,6 @@ namespace spncci
   //   out_stream (input): output stream
   //   ...
 
-  void WriteObservables(
-      std::ostream& out_stream,
-      const std::vector<spncci::SectorsSpJ>& observable_sectors,
-      const std::vector<basis::MatrixVector>& observable_results_matrices,
-      int gex
-    );
-  // Write matrices of RMEs for observables.
-  //
-  // CAVEAT: For now, parity quantum number is taken as a given from
-  // parameter rather than determined in some way from the bra and ket
-  // SpJ subspaces.
-  //
-  // Arguments:
-  //   out_stream (input): output stream
-  //   ...
-
   void WriteDecompositions(
       std::ostream& out_stream,
       const std::string& decomposition_name,
@@ -164,6 +159,22 @@ namespace spncci
   //     file comment line)
   //   decompositions (input): the decompositions, by J subspace
   //   gex (input): excitation parity grade (for use in results file comment line)  
+
+  void WriteObservables(
+      std::ostream& out_stream,
+      const std::vector<spncci::SectorsSpJ>& observable_sectors,
+      const std::vector<basis::MatrixVector>& observable_results_matrices,
+      int gex
+    );
+  // Write matrices of RMEs for observables.
+  //
+  // CAVEAT: For now, parity quantum number is taken as a given from
+  // parameter rather than determined in some way from the bra and ket
+  // SpJ subspaces.
+  //
+  // Arguments:
+  //   out_stream (input): output stream
+  //   ...
 
 }  // namespace
 
