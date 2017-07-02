@@ -226,10 +226,44 @@ namespace spncci
         const Eigen::VectorXd& eigenvalues_J = eigenvalues[subspace_index];
 
         // iterate over eigenvalues in J subspace
-        for (int eigenstate_index=0; eigenstate_index<eigenvalues.size(); ++eigenstate_index)
+        for (int eigenstate_index=0; eigenstate_index<eigenvalues_J.size(); ++eigenstate_index)
           out_stream
             << fmt::format("{:4.1f} {:1d} {:3d} {:+9.4f}",double(J),gex,eigenstate_index,eigenvalues_J[eigenstate_index])
             << std::endl;
+      }
+  }
+
+  void WriteDecompositions(
+      std::ostream& out_stream,
+      const std::string& decomposition_name,
+      const std::string& format_string,
+      const spncci::SpaceSpJ& spj_space,
+      const std::vector<spncci::MatrixType>& decompositions,
+      int gex
+    )
+  {
+    StartNewSection(out_stream,fmt::format("Decompositions: {}",decomposition_name));
+
+    for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
+      {
+        // retrieve information for subspace
+        HalfInt J = spj_space.GetSubspace(subspace_index).J();
+        const spncci::MatrixType& decompositions_J = decompositions[subspace_index];
+
+        // short circuit empty subspace
+        if (decompositions_J.cols()==0)
+          continue;
+
+        // write header comment for subspace
+        out_stream
+          << fmt::format(
+              "# decompositions for subspace J={:.1f}, gex={:1d} ({:d}x{:d})",
+              float(J),gex,decompositions_J.rows(),decompositions_J.cols()
+            )
+          << std::endl;
+
+        // write decompositions
+        out_stream << mcutils::FormatMatrix(decompositions_J,format_string) << std::endl;
       }
   }
 
@@ -260,6 +294,10 @@ namespace spncci
             // retrieve block
             const Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
+            // short circuit empty block
+            if ((observable_results_matrix.rows()==0)||(observable_results_matrix.cols()==0))
+              continue;
+
             out_stream
               << fmt::format(
                 "{:d} {:d} {:.1f} {:d} {:.1f} {:d} {:d} {:d} ",
@@ -274,38 +312,6 @@ namespace spncci
           }
       }
   }
-
-  void WriteDecompositions(
-      std::ostream& out_stream,
-      const std::string& decomposition_name,
-      const std::string& format_string,
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& decompositions,
-      int gex
-    )
-  {
-    StartNewSection(out_stream,fmt::format("Decompositions: {}",decomposition_name));
-
-    for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
-      {
-        // retrieve information for subspace
-        HalfInt J = spj_space.GetSubspace(subspace_index).J();
-        const spncci::MatrixType& decompositions_J = decompositions[subspace_index];
-
-        // write header comment for subspace
-        out_stream
-          << fmt::format(
-              "# decompositions for subspace J={:.1f}, gex={:1d} ({:d}x{:d})",
-              float(J),gex,decompositions_J.rows(),decompositions_J.cols()
-            )
-          << std::endl;
-
-        // write decompositions
-        out_stream << mcutils::FormatMatrix(decompositions_J,format_string) << std::endl;
-      }
-  }
-
-
 
 
 }  // namespace
