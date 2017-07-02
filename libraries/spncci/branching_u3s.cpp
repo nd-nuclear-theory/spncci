@@ -121,6 +121,8 @@ namespace spncci
                 //     u3s_sectors[sector]=u3s_sector_vector_index;
                 //     ++u3s_sector_vector_index;
                 //   }
+                // std::cout<<omegaS.Str()<<std::endl;
+                
                 sector_vector.push_back(sector);
               }
           }
@@ -279,7 +281,7 @@ namespace spncci
 
                         int conjugation_grade=ParitySign(
                           u3::ConjugationGrade(omega)
-                          +baby_spncci_subspace_ket.S()
+                          -baby_spncci_subspace_ket.S()
                           +u3::ConjugationGrade(omegap)
                           +baby_spncci_subspace_bra.S()
                           );

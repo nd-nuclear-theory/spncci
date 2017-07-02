@@ -269,7 +269,7 @@ ComputeUnitTensorHyperblocks(
                 {
                 conjugation_grade*=ParitySign(
                     u3::ConjugationGrade(omegap)+S_bra
-                    +u3::ConjugationGrade(omega1)+S_ket
+                    +u3::ConjugationGrade(omega1)-S_ket
                   );
                 }
      
