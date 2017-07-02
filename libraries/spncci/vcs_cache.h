@@ -30,8 +30,7 @@ namespace spncci
   void
   PrecomputeKMatrices(
       const spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::KMatrixCache& k_matrix_cache,
-      bool intrinsic
+      spncci::KMatrixCache& k_matrix_cache
     );
   // Precompute and cache K matrices for all symplectic irreps
   // occurring in SpNCCI space.

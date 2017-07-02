@@ -11,6 +11,7 @@
   2/19/17 (mac): Rename to branching_u3s.
   5/25/17 (mac): Overhaul implementation of U3S subspaces and store
     parent irrep info.
+  7/1/17 (aem): Fix incorrect spin conjugation phase
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_

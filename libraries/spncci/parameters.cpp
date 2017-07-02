@@ -86,7 +86,9 @@ namespace spncci
 
     // derived
     A = nuclide[0]+nuclide[1];
-    Nsigma0 = spncci::Nsigma0ForNuclide(nuclide);
+    bool intrinsic=true;
+    Nsigma0 = spncci::Nsigma0ForNuclide(nuclide,intrinsic);
+    std::cout<<"Nsigma0 "<<Nsigma0<<std::endl;
     N1v = spncci::ValenceShellForNuclide(nuclide);
 
     // parity (currently ad hoc treatment assuming single parity run)

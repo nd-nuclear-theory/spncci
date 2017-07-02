@@ -52,8 +52,8 @@ int main(int argc, char **argv)
 
 
 	vcs::MatrixCache K_matrix_map;
-
-  	vcs::GenerateKMatrices(irrep,K_matrix_map);
+	vcs::GenerateKMatrices(irrep,K_matrix_map);
+  	// vcs::GenerateKMatrices(irrep,K_matrix_map);
 
 	// for(int i=0; i<irrep.size(); i++ )
  //    {
@@ -70,12 +70,31 @@ int main(int argc, char **argv)
 
 
 
-  	vcs::MatrixCache::const_iterator it;
-  	// std::cout<<K_matrix_map.begin()<<std::endl;
-    for (auto it=K_matrix_map.begin(); it !=K_matrix_map.end(); ++it)
-  		{
-  			std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
-  		}
+	vcs::MatrixCache::const_iterator it;
+	// std::cout<<K_matrix_map.begin()<<std::endl;
+  for (auto it=K_matrix_map.begin(); it !=K_matrix_map.end(); ++it)
+		{
+			std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
+		}
+
+
+	std::cout<<std::endl<<"checking restricted irreps"<<std::endl;
+	HalfInt Nsigma(10,2);
+	bool restrict_sp3r_to_u3_branching=true;
+	u3::U3 sigma(Nsigma, u3::SU3(0,1));
+	sp3r::Sp3RSpace irrep_restricted(sigma,2,restrict_sp3r_to_u3_branching);
+	std::cout<<irrep_restricted.DebugStr()<<std::endl;
+
+	vcs::MatrixCache K_matrix_map_restricted;
+
+ 	vcs::GenerateKMatrices(irrep_restricted,K_matrix_map_restricted);
+  for (auto it=K_matrix_map_restricted.begin(); it !=K_matrix_map_restricted.end(); ++it)
+		{
+			std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
+			std::cout<<"inverse "<<std::endl;
+			std::cout<<it->second.inverse()<<std::endl;
+		}
+
 
 
 

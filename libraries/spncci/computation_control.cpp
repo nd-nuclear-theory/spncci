@@ -37,9 +37,11 @@ void GetLGIExpansion(
 
   const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
   basis::MatrixVector Ncm_matrices;
+  // Note that A-1 is used here since we are generating Ncm using an
+  // instric space 
   lsu3shell::GenerateLSU3ShellNcmRMEs(
       lsu3shell_space,Nintr_sectors,Nintr_matrices,
-      A,Ncm_matrices
+      A-1,Ncm_matrices
     );
 
   lgi::GenerateLGIExpansion(
@@ -48,8 +50,6 @@ void GetLGIExpansion(
       Nsigma_0,lgi_families,lgi_expansions
     );
 }
-
-
 
 void GetUnitTensorSeedBlocks(
   const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,

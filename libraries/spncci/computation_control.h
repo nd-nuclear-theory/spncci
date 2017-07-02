@@ -15,6 +15,7 @@
       + GenerateRecurenceUnitTensors
       + GenerateRecurrenceHypersectors
       + PopulateHypersectorsWithSeeds
+  7/1/17 (aem) : Updated GetLGIExpansion for intrinsic basis
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_

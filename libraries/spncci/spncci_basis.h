@@ -30,6 +30,7 @@
   6/7/17 (mac): 
     - Extract PrecomputeKMatrices to vcs_cache.
     - Extract legacy GenerateSpNCCIIrrepFamilyPairs to unit_tensor_test.
+  7/1/17 (aem) : Added intrinsic option for Nsigma0ForNuclide. 
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -58,7 +59,7 @@ namespace spncci
 
   typedef std::array<int,2> NuclideType;
 
-  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide);
+  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false);
   // Calculate Nsigma0 for nuclide.
   //
   // This may be thought of as the dimensionless "oscillator energy in
@@ -290,7 +291,8 @@ namespace spncci
       const lgi::MultiplicityTaggedLGIVector& lgi_vector,
       const TruncatorInterface& truncator,
       SpNCCISpace& spncci_space,
-      SigmaIrrepMap& sigma_irrep_map
+      SigmaIrrepMap& sigma_irrep_map,
+      bool restrict_sp3r_to_u3_branching=false
     );
   // Generate Sp(3,R) irrep branching information required for given
   // set of LGIs.

@@ -13,18 +13,17 @@
                 R->L to L->R.
   2/20/17 (aem): Added is_intrinsic option to Kmatrices to allow
     for computation of normalization for intrinsic operators
+  7/1/17 (aem): Removed intrinsic option.  Normalization of
+    intrinsic operators is now enforced by choice of Nsigma0.
 ****************************************************************/
 
 #ifndef VCS_H_
 #define VCS_H_
 
-
 #include <eigen3/Eigen/Eigen>
 #include <unordered_map>
   
 #include "sp3rlib/sp3r.h"  
-  
-
 
 namespace vcs
 {
@@ -68,9 +67,9 @@ namespace vcs
   const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop, const u3::U3& omegap,
   const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega);
 
-  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map, bool is_intrinsic=false);
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map);
   //Calculates the K matrix 	
-  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, vcs::MatrixCache& K_matrix_map, bool is_intrinsic=false);
+  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, vcs::MatrixCache& K_matrix_map);
 
 
 }  //  namespace

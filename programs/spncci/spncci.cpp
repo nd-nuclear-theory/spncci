@@ -152,7 +152,7 @@ void InitializeSectorsSpU3S(
     } 
 }
 
-void SetUpU3SSectors(
+void InitializeU3SSectors(
     const spncci::SpaceU3S& space_u3s, int num_observables, 
     const std::vector<double>& hw_values,
     std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
@@ -457,10 +457,14 @@ int main(int argc, char **argv)
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;  // persistent container to store branchings
   spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
-  spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
+  bool restrict_sp3r_to_u3_branching=false;
+  if(run_parameters.A<6)
+    restrict_sp3r_to_u3_branching=true;
 
-  // for(int i=0; i<spncci_space.size(); ++i)
-  //   std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
+  spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
+
+  for(int i=0; i<spncci_space.size(); ++i)
+    std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
 
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
@@ -546,8 +550,7 @@ int main(int argc, char **argv)
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
   spncci::KMatrixCache k_matrix_cache;
-  bool intrinsic = true;
-  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,intrinsic);
+  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache);
 
   // timing stop
   timer_k_matrices.Stop();
@@ -560,7 +563,9 @@ int main(int argc, char **argv)
   //     for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
   //     {
   //       std::cout<<"  omega"<<it2->first.Str()<<std::endl;
-  //       std::cout<<it2->second<<std::endl;
+  //       auto matrix=it2->second;
+  //       std::cout<<matrix<<std::endl;
+  //       std::cout<<matrix.inverse()<<std::endl;
   //     }
   //   }
 
@@ -636,23 +641,23 @@ int main(int argc, char **argv)
   std::vector<std::vector<basis::OperatorBlocks<double>>> observables_blocks_u3s;//(run_parameters.hw_values.size());
 
 
-  spncci::SetUpU3SSectors(
+  spncci::InitializeU3SSectors(
     space_u3s, run_parameters.num_observables, 
     run_parameters.hw_values,observables_sectors_u3s,
     observables_blocks_u3s,observable_symmetries_u3s);
 
 
-  // vector of sectors for each observable
-  std::vector<std::vector<spncci::SectorLabelsSpU3S>> observables_sectors_spu3s;//(run_parameters.num_observables);
+  // // vector of sectors for each observable
+  // std::vector<std::vector<spncci::SectorLabelsSpU3S>> observables_sectors_spu3s;//(run_parameters.num_observables);
   
-  // vector of blocks for u3 sectors for each hbar omega,for each observable
-  std::vector<std::vector<basis::OperatorBlocks<double>>> observables_blocks_spu3s;//(run_parameters.hw_values.size());
-  spncci::InitializeSectorsSpU3S(spu3s_space, run_parameters.num_observables, 
-    run_parameters.hw_values,
-    observables_sectors_spu3s,
-    observables_blocks_spu3s,
-    observable_symmetries_u3s
-  );
+  // // vector of blocks for u3 sectors for each hbar omega,for each observable
+  // std::vector<std::vector<basis::OperatorBlocks<double>>> observables_blocks_spu3s;//(run_parameters.hw_values.size());
+  // spncci::InitializeSectorsSpU3S(spu3s_space, run_parameters.num_observables, 
+  //   run_parameters.hw_values,
+  //   observables_sectors_spu3s,
+  //   observables_blocks_spu3s,
+  //   observable_symmetries_u3s
+  // );
 
   // std::cout<<"checking initialize sectors spu3s "<<std::endl;
   // for(int h=0; h<run_parameters.hw_values.size(); ++h)
@@ -1023,6 +1028,8 @@ int main(int argc, char **argv)
         std::cout
           << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
           << std::endl;
+
+        // std::cout<<hamiltonian_matrix<<std::endl<<std::endl;
 
         spncci::VectorType& eigenvalues_J = eigenvalues[subspace_index];
         spncci::MatrixType& eigenvectors_J = eigenvectors[subspace_index];

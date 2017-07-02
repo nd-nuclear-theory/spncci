@@ -345,8 +345,7 @@ int main(int argc, char **argv)
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
   spncci::KMatrixCache k_matrix_cache;
-  bool intrinsic = true;
-  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,intrinsic);
+  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache);
 
   // diagnostics
   for (const auto& sigma_irrep_pair : sigma_irrep_map)

@@ -18,6 +18,7 @@
   2/23/17 (aem): Removed redundent calculation of edge sectors in recurrence.
   5/5/17 (aem) : Update from souffle to baby spncci
   6/16/17 (aem) : Reimplement omp parallization
+  7/1/17 (aem): Fix spin conjugation phase
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_

@@ -17,7 +17,7 @@
 namespace spncci
 {
 
-  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide)
+  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic)
   {
     // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
     HalfInt Nsigma0 = 0;
@@ -36,7 +36,9 @@ namespace spncci
             num_particles -= num_particles_in_shell;
           }
       }
-
+    // If intrinsic remove cm zero point energy 3/2
+    if(intrinsic)
+      Nsigma0=Nsigma0-HalfInt(3,2);
     return Nsigma0;
   }
 
@@ -105,7 +107,8 @@ namespace spncci
       const lgi::MultiplicityTaggedLGIVector& multiplicity_tagged_lgi_vector,
       const TruncatorInterface& truncator,
       SpNCCISpace& spncci_space,
-      SigmaIrrepMap& sigma_irrep_map
+      SigmaIrrepMap& sigma_irrep_map,
+      bool restrict_sp3r_to_u3_branching
     )
   {
 
@@ -159,7 +162,7 @@ namespace spncci
         //                         );
 
         if (sigma_irrep_map.count(sigma) == 0)
-          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);
+          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max,restrict_sp3r_to_u3_branching);
           
         // save info back to SpNCCIIrrepFamily
         const sp3r::Sp3RSpace& irrep_space = sigma_irrep_map[sigma];

@@ -174,7 +174,7 @@ namespace u3shell
             std::cout<<relative_unit_tensor.Str()<<std::endl;
 
             double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-            std::cout<<Brme<<std::endl;
+            // std::cout<<Brme<<std::endl;
 
             if (fabs(Brme)>zero_threshold)
               Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
@@ -184,8 +184,10 @@ namespace u3shell
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Nrme=N+3/2.;
-            Qintr[key]+=sqrt(3)*std::sqrt(2./3*(N*N+3*N))*intrinsic_factor*coef;
+            double Crme=std::sqrt(2.*(N*N+3*N));
+            
+            if(fabs(Crme)>zero_threshold)
+              Qintr[key]+=std::sqrt(2.*(N*N+3*N))*intrinsic_factor*coef;
 
             // Arel term
             Np=N+2;

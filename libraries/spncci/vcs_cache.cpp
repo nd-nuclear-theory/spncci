@@ -13,8 +13,7 @@ namespace spncci
   void
   PrecomputeKMatrices(
       const spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::KMatrixCache& k_matrix_cache,
-      bool intrinsic
+      spncci::KMatrixCache& k_matrix_cache
     )
   {
     for (const auto& sigma_irrep_pair : sigma_irrep_map)
@@ -24,7 +23,7 @@ namespace spncci
         const sp3r::Sp3RSpace& sp_irrep = sigma_irrep_pair.second;
 
         // populate K matrix cache for this irrep
-        vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma],intrinsic);
+        vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma]);
       }
 
   }
