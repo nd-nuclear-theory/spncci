@@ -40,6 +40,14 @@ int main(int argc, char **argv)
   std::cout << irrep.DebugStr();
   std::cout<<irrep.size()<<std::endl;
 
+  std::cout<<"Restricted irrep"<<std::endl;
+  HalfInt Nsigma(9,2);
+  u3::U3 sigma1 = u3::U3(Nsigma,u3::SU3(0,0));
+  bool restrict_sp3r_to_u3_branching=true;
+  sp3r::Sp3RSpace irrep1(sigma1,Nn_max,restrict_sp3r_to_u3_branching);
+  std::cout << irrep1.DebugStr();
+  std::cout<<irrep1.size()<<std::endl;
+
 
   std::cout<<"Bcoef cache check"<<std::endl;
   Nn_max=8;

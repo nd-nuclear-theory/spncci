@@ -9,6 +9,7 @@
   3/9/16 (aem,mac): Created based on prototype spstates.py, sp3r.py,
     and coefficients.py.
   2/1/17 (mac): Rename DebugString to DebugStr.
+  7/1/17 (aem): Add modified branching rule for sp3r->u3 for A<6
 ****************************************************************/
 
 #ifndef SP3R_H_
@@ -147,7 +148,7 @@ namespace sp3r
     inline Sp3RSpace() : Nn_max_(-999) {}
 
     // constructor
-    Sp3RSpace(const u3::U3& sigma, int Nn_max);
+    Sp3RSpace(const u3::U3& sigma, int Nn_max, bool restrict_sp3r_to_u3_branching=false);
     // Constructs all U3 subspaces up to given Nn_max.
 
     // diagnostic output

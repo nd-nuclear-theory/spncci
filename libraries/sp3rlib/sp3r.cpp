@@ -156,6 +156,56 @@
     }
    
 
+  void RestrictUNU3Branching(SpanakopitaType& states,const u3::U3& sigma,const u3::U3& omega,const MultiplicityTagged<u3::U3>& n_rho_max)
+  // Pass container, pass omega nrho in question, check if allowed
+    {
+      u3::U3 n(n_rho_max.irrep);
+      int rho_max=n_rho_max.tag;
+
+      if(sigma==omega)
+        {
+          states.insert(SpanakopitaType::value_type(omega,MultiplicityTagged<u3::U3>(n,rho_max)));
+
+        }
+      else
+        {
+          MultiplicityTagged<u3::U3>::vector omega1_tagged_vec = KroneckerProduct(omega,u3::U3(-2,u3::SU3(0,2)));
+
+          for(int rho=1; rho<=rho_max; ++rho)
+            for(const auto& omega1_tagged : omega1_tagged_vec)
+              {
+                u3::U3 omega1(omega1_tagged.irrep);
+                SpanakopitaRangeType state_range = states.equal_range(omega1);
+                for (auto it = state_range.first; it != state_range.second; ++it)
+                  {
+                    MultiplicityTagged<u3::U3> n1_rho1_max = it->second;
+                    u3::U3 n1 = n1_rho1_max.irrep;
+                    int rho1_max = n1_rho1_max.tag;
+                    if(u3::OuterMultiplicity(n1.SU3(),u3::SU3(2,0),n.SU3())==0)
+                      continue;
+
+                    for(int rho1=1; rho1<=rho1_max; ++rho1)
+                      {
+                        MultiplicityTagged<u3::U3> n_rho(n,rho);
+                        MultiplicityTagged<u3::U3> n1_rho1(n1,rho1);
+
+                        // If U(3)-boson rme is non-zero, and at least on of the n,rho have non-zero value, add omega and 
+                        // n,rho_max to map
+                        if(fabs(vcs::U3BosonCreationRME(sigma,n_rho,omega,sigma,n1_rho1,omega1))>1e-10)
+                          //Check if (Omega-Omega)!=0
+                          if((vcs::Omega(n,omega)-vcs::Omega(n1,omega1))>1e-10)
+                            {
+                              // Then the state is allowed and we add it to our set of states in the multi-map and
+                              // exit the function
+                              states.insert(SpanakopitaType::value_type(omega,MultiplicityTagged<u3::U3>(n,rho_max)));
+                              return;
+                            }       
+                      }
+                  } 
+              }  
+          }
+    }
+
 
   ////////////////////////////////////////////////////////////////
   // space and subspace indexing
@@ -205,7 +255,7 @@
       return ss.str();
     }
 
-    Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max)
+    Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, bool restrict_sp3r_to_u3_branching)
     {
 
     // set space labels
@@ -237,11 +287,14 @@
         )
        {
 	    // convert (omega,rho_max) to omega -> (n,rho_max)
-         MultiplicityTagged<u3::U3> omega_tagged = (*omega_tagged_iter);
-         u3::U3 omega = omega_tagged.irrep;
-         int rho_max = omega_tagged.tag;
-         states.insert(SpanakopitaType::value_type(omega,MultiplicityTagged<u3::U3>(n,rho_max)));
-         
+        MultiplicityTagged<u3::U3> omega_tagged = (*omega_tagged_iter);
+        u3::U3 omega = omega_tagged.irrep;
+        int rho_max = omega_tagged.tag;
+        MultiplicityTagged<u3::U3>n_rho_max(n,rho_max);
+        if(restrict_sp3r_to_u3_branching)
+          RestrictUNU3Branching(states,sigma,omega,n_rho_max);
+        else
+           states.insert(SpanakopitaType::value_type(omega,n_rho_max));         
        }
      }
 
@@ -323,5 +376,8 @@
       }
     return IrrepPartionN;
   }
+
+
+
 
 }  // namespace
