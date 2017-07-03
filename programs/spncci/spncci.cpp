@@ -217,15 +217,15 @@ void PrintHypersectors(
     const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
     const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
 
-    std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
-    <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
-    for(int i=0; i<unit_tensor_subspace.size(); ++i)
-    {
-      int T0,Sp,Tp,S,T;
-      std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(i);
-      std::cout<<fmt::format("{}  {} {}  {} {}",T0,Sp,Tp,S,T)<<std::endl;
-      std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
-    }
+    // std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
+    // <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+    // for(int i=0; i<unit_tensor_subspace.size(); ++i)
+    // {
+    //   int T0,Sp,Tp,S,T;
+    //   std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(i);
+    //   std::cout<<fmt::format("{}  {} {}  {} {}",T0,Sp,Tp,S,T)<<std::endl;
+    //   std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
+    // }
   }
 
 }
@@ -739,7 +739,12 @@ int main(int argc, char **argv)
     total_num_threads=omp_get_num_threads();
   }
   
-  int num_threads_outer_loop=int(sqrt(total_num_threads));
+  int num_threads_outer_loop;
+  if(run_parameters.Nmax>run_parameters.Nsigmamax+2)
+    num_threads_outer_loop=int(sqrt(total_num_threads));
+  else
+    num_threads_outer_loop=total_num_threads;
+  
   // int num_threads_outer_loop=total_num_threads/num_threads_inner_loop;
   int num_threads_inner_loop=total_num_threads/num_threads_outer_loop;
   // std::cout<<"total "<<total_num_threads<<" "<<num_threads_outer_loop<<"  "<<num_threads_inner_loop<<std::endl;
