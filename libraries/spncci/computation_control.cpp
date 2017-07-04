@@ -16,109 +16,109 @@
 namespace spncci
 {
 
-void GetLGIExpansion(
-    const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
-    const std::string& Brel_filename,
-    const std::string& Nrel_filename,
-    int A, HalfInt Nsigma_0,
-    lgi::MultiplicityTaggedLGIVector& lgi_families,
-    basis::MatrixVector& lgi_expansions
-  )
+  void GetLGIExpansion(
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const std::string& Brel_filename,
+      const std::string& Nrel_filename,
+      int A, HalfInt Nsigma_0,
+      lgi::MultiplicityTaggedLGIVector& lgi_families,
+      basis::MatrixVector& lgi_expansions
+    )
   {
-  u3shell::SectorsU3SPN Bintr_sectors, Nintr_sectors;
-  basis::MatrixVector Bintr_matrices, Nintr_matrices;
-  bool sp3r_generators=true;
-  spncci::ReadLSU3ShellSymplecticOperatorRMEs(
-      lsu3shell_basis_table,lsu3shell_space, 
-      Brel_filename,Bintr_sectors,Bintr_matrices,
-      Nrel_filename,Nintr_sectors,Nintr_matrices,
-      A
-    );
+    u3shell::SectorsU3SPN Bintr_sectors, Nintr_sectors;
+    basis::MatrixVector Bintr_matrices, Nintr_matrices;
+    bool sp3r_generators=true;
+    spncci::ReadLSU3ShellSymplecticOperatorRMEs(
+        lsu3shell_basis_table,lsu3shell_space, 
+        Brel_filename,Bintr_sectors,Bintr_matrices,
+        Nrel_filename,Nintr_sectors,Nintr_matrices,
+        A
+      );
 
-  const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
-  basis::MatrixVector Ncm_matrices;
-  // Note that A-1 is used here since we are generating Ncm using an
-  // instric space 
-  lsu3shell::GenerateLSU3ShellNcmRMEs(
-      lsu3shell_space,Nintr_sectors,Nintr_matrices,
-      A-1,Ncm_matrices
-    );
+    const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
+    basis::MatrixVector Ncm_matrices;
+    // Note that A-1 is used here since we are generating Ncm using an
+    // instric space 
+    lsu3shell::GenerateLSU3ShellNcmRMEs(
+        lsu3shell_space,Nintr_sectors,Nintr_matrices,
+        A-1,Ncm_matrices
+      );
 
-  lgi::GenerateLGIExpansion(
-      lsu3shell_space, 
-      Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
-      Nsigma_0,lgi_families,lgi_expansions
-    );
-}
+    lgi::GenerateLGIExpansion(
+        lsu3shell_space, 
+        Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
+        Nsigma_0,lgi_families,lgi_expansions
+      );
+  }
 
-void GetUnitTensorSeedBlocks(
-  const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-  const std::string& relative_unit_tensor_filename_template,
-  const u3shell::SpaceU3SPN& lsu3shell_space, 
-  const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
-  const basis::MatrixVector& lgi_expansions,
-  const spncci::BabySpNCCISpace& baby_spncci_space,
-  std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& lgi_unit_tensor_blocks
-  )
-{
-  //If parallellize, iterate first over unit_tensor_index in parallel and then write to new map in serial?, maybe
-  // Alternatively, we zero initalize lgi_unit_tensor_blocks
-  // std::unordered_map<u3shell::SectorsU3SPN,basis::MatrixVector, boost::hash<u3shell::SectorsU3SPN>> unit_tensor_spncci_blocks;
-  for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
-    {
-      // Get labels of corresponding unit tensor 
-      const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+  void GetUnitTensorSeedBlocks(
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const std::string& relative_unit_tensor_filename_template,
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const basis::MatrixVector& lgi_expansions,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& lgi_unit_tensor_blocks
+    )
+  {
+    //If parallellize, iterate first over unit_tensor_index in parallel and then write to new map in serial?, maybe
+    // Alternatively, we zero initalize lgi_unit_tensor_blocks
+    // std::unordered_map<u3shell::SectorsU3SPN,basis::MatrixVector, boost::hash<u3shell::SectorsU3SPN>> unit_tensor_spncci_blocks;
+    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+      {
+        // Get labels of corresponding unit tensor 
+        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
 
-      // File name containing lsu3shell rmes of unit tensor 
-      std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
+        // File name containing lsu3shell rmes of unit tensor 
+        std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
 
-      // generate unit tensor sectors in lsu3shell basis 
-      const bool spin_scalar = false; // All spin values allowed
-      u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
+        // generate unit tensor sectors in lsu3shell basis 
+        const bool spin_scalar = false; // All spin values allowed
+        u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
       
-      // read in lsu3shell rms of unit tensor 
-      basis::MatrixVector unit_tensor_lsu3shell_matrices;
-      lsu3shell::ReadLSU3ShellRMEs(
-          filename,
-          lsu3shell_basis_table,lsu3shell_space,
-          unit_tensor_labels,unit_tensor_sectors,unit_tensor_lsu3shell_matrices
-        );
+        // read in lsu3shell rms of unit tensor 
+        basis::MatrixVector unit_tensor_lsu3shell_matrices;
+        lsu3shell::ReadLSU3ShellRMEs(
+            filename,
+            lsu3shell_basis_table,lsu3shell_space,
+            unit_tensor_labels,unit_tensor_sectors,unit_tensor_lsu3shell_matrices
+          );
 
-      // transform seed rmes to SpNCCI basis (among LGIs)
-      // basis::MatrixVector unit_tensor_spncci_matrices=unit_tensor_spncci_blocks[unit_tensor_sectors]; // temporary container if omp?
-      basis::MatrixVector unit_tensor_spncci_matrices; // temporary
-      lgi::TransformOperatorToSpBasis(
-          unit_tensor_sectors,lgi_expansions,
-          unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
-        );
+        // transform seed rmes to SpNCCI basis (among LGIs)
+        // basis::MatrixVector unit_tensor_spncci_matrices=unit_tensor_spncci_blocks[unit_tensor_sectors]; // temporary container if omp?
+        basis::MatrixVector unit_tensor_spncci_matrices; // temporary
+        lgi::TransformOperatorToSpBasis(
+            unit_tensor_sectors,lgi_expansions,
+            unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
+          );
 
-      // Extract unit tensor labels 
-      u3::SU3 x0; 
-      HalfInt S0,T0,Sp,Tp,S,T;
-      int etap,eta;
-      std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor_labels.FlatKey();
+        // Extract unit tensor labels 
+        u3::SU3 x0; 
+        HalfInt S0,T0,Sp,Tp,S,T;
+        int etap,eta;
+        std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor_labels.FlatKey();
 
-      // Look up unit tensor subspace
-      u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
-      int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
-      auto& subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        // Look up unit tensor subspace
+        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
+        int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
+        auto& subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
-      // Look up index of unit tensor in subspace
-      int unit_tensor_state_index=subspace.LookUpStateIndex(std::tuple<int,int,int,int,int>(int(T0), int(Sp),int(Tp),int(S),int(T)));
-
-
-      //unit_tensor_spncci_matrices
-      //baby_spncci_space
-      //unit_tensor_sectors
-      //lgi_unit_tensor_blocks
-
-      // Turn into function, iterate over map, then over sector index
+        // Look up index of unit tensor in subspace
+        int unit_tensor_state_index=subspace.LookUpStateIndex(std::tuple<int,int,int,int,int>(int(T0), int(Sp),int(Tp),int(S),int(T)));
 
 
-      // transfer spncci unit tensor rmes from temporary container to lgi hyperblocks container for use in spncci recurrence
-      for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
+        //unit_tensor_spncci_matrices
+        //baby_spncci_space
+        //unit_tensor_sectors
+        //lgi_unit_tensor_blocks
+
+        // Turn into function, iterate over map, then over sector index
+
+
+        // transfer spncci unit tensor rmes from temporary container to lgi hyperblocks container for use in spncci recurrence
+        for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
           {
             // Check that the sector has non-zero rmes as defined by the zero_tolerance
             // If not, then don't need to copy over rmes.
@@ -160,12 +160,12 @@ void GetUnitTensorSeedBlocks(
 
             // Transfer unit tensor rme blocks from temporary container to hypersector container
             subspace_blocks[multiplicity_tagged_unit_tensor_subspace][unit_tensor_state_index]=unit_tensor_spncci_matrices[sector_index];
-           }
-    }
-}
+          }
+      }
+  }
 
 
-void
+  void
   GenerateRecurrenceUnitTensors(
       int Nmax,
       const std::set<int>& lgi_operator_subset,
@@ -181,7 +181,7 @@ void
     // Initialize operator_subsets with indices of unit tensor subspace whose rme's were computed between lgi
     std::set<int>& operator_subset=operator_subsets[spncci::NnPair(0,0)];
     for(int unit_tensor_subspace_index : lgi_operator_subset)
-        operator_subset.insert(unit_tensor_subspace_index);
+      operator_subset.insert(unit_tensor_subspace_index);
 
     // Recursively generate unit tensor family labels which will appear in recurrence and get corresponding
     // unit tensor subspace indices for each <Nnp,Nn> pair 
@@ -271,129 +271,129 @@ void
   }
 
 
-void GenerateRecurrenceHypersectors(
-    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const std::map<std::pair<int,int>,std::set<int>>& lgi_unit_tensor_subset,
-    int Nmax, int irrep_family_index_bra, int irrep_family_index_ket,
-    std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
-    spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors
-  )
-{
-  //////////////////////////////////////////////////////////////////////////////////////////
-  // get seeds and their labels for lgi pair
-  std::pair<int,int> lgi_pair(irrep_family_index_bra,irrep_family_index_ket);    
+  void GenerateRecurrenceHypersectors(
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const std::map<std::pair<int,int>,std::set<int>>& lgi_unit_tensor_subset,
+      int Nmax, int irrep_family_index_bra, int irrep_family_index_ket,
+      std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
+      spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors
+    )
+  {
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // get seeds and their labels for lgi pair
+    std::pair<int,int> lgi_pair(irrep_family_index_bra,irrep_family_index_ket);    
 
-  // Generate set of recurrence unit tensors for given starting seed subset 
-  //
-  // get starting set
-  const std::set<int>& lgi_unit_tensors=lgi_unit_tensor_subset.at(lgi_pair);
-  // Gereate set
-  std::map<spncci::NnPair,std::set<int>> unit_tensor_subsets;
-  spncci::GenerateRecurrenceUnitTensors(
-    Nmax,lgi_unit_tensors,
-    unit_tensor_space,unit_tensor_subsets
-    );
+    // Generate set of recurrence unit tensors for given starting seed subset 
+    //
+    // get starting set
+    const std::set<int>& lgi_unit_tensors=lgi_unit_tensor_subset.at(lgi_pair);
+    // Gereate set
+    std::map<spncci::NnPair,std::set<int>> unit_tensor_subsets;
+    spncci::GenerateRecurrenceUnitTensors(
+        Nmax,lgi_unit_tensors,
+        unit_tensor_space,unit_tensor_subsets
+      );
 
-  // Repeat for conjugate lgi pair 
-  //
-  // Define conjugate pair 
-  std::pair<int,int> lgi_pair_conjugate(irrep_family_index_ket,irrep_family_index_bra);
+    // Repeat for conjugate lgi pair 
+    //
+    // Define conjugate pair 
+    std::pair<int,int> lgi_pair_conjugate(irrep_family_index_ket,irrep_family_index_bra);
   
-  // get set of unit tensors for conjugate pair
-  const std::set<int>& lgi_unit_tensors_conjugate=lgi_unit_tensor_subset.at(lgi_pair_conjugate);
-  // Generate recurrence for conjugate, accumulating in unit_tensor_subset.
-  spncci::GenerateRecurrenceUnitTensors(
-    Nmax,lgi_unit_tensors_conjugate,
-    unit_tensor_space,unit_tensor_subsets
-    );
+    // get set of unit tensors for conjugate pair
+    const std::set<int>& lgi_unit_tensors_conjugate=lgi_unit_tensor_subset.at(lgi_pair_conjugate);
+    // Generate recurrence for conjugate, accumulating in unit_tensor_subset.
+    spncci::GenerateRecurrenceUnitTensors(
+        Nmax,lgi_unit_tensors_conjugate,
+        unit_tensor_space,unit_tensor_subsets
+      );
 
-  // generate baby spncci hypersectors for given irrep family from unit tensor subspace
-  // Resize 
-  // unit_tensor_hypersector_subsets.resize(2*Nmax);
-  unit_tensor_hypersector_subsets.resize(Nmax+1);
-  baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
-      baby_spncci_space, unit_tensor_space, 
-      unit_tensor_subsets, unit_tensor_hypersector_subsets,
-      irrep_family_index_bra, irrep_family_index_ket
-    );
-}
+    // generate baby spncci hypersectors for given irrep family from unit tensor subspace
+    // Resize 
+    // unit_tensor_hypersector_subsets.resize(2*Nmax);
+    unit_tensor_hypersector_subsets.resize(Nmax+1);
+    baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
+        baby_spncci_space, unit_tensor_space, 
+        unit_tensor_subsets, unit_tensor_hypersector_subsets,
+        irrep_family_index_bra, irrep_family_index_ket
+      );
+  }
 
 
 
-void PopulateHypersectorsWithSeeds(
-    int irrep_family_index_bra, int irrep_family_index_ket,
-    const std::vector<int>& unit_tensor_hypersector_subset,
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
-    const std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& 
+  void PopulateHypersectorsWithSeeds(
+      int irrep_family_index_bra, int irrep_family_index_ket,
+      const std::vector<int>& unit_tensor_hypersector_subset,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& 
       lgi_unit_tensor_blocks,
-    basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
-  )
-{
-  // get seeds for given lgi pair
-  std::pair<int,int> lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
-  auto& seed_blocks=lgi_unit_tensor_blocks.at(lgi_pair);
+      basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+    )
+  {
+    // get seeds for given lgi pair
+    std::pair<int,int> lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
+    auto& seed_blocks=lgi_unit_tensor_blocks.at(lgi_pair);
 
-  // get set of unit tensors for conjugate pair
-  // conjugate lgi
-  std::pair<int,int> lgi_pair_conjugate(irrep_family_index_ket,irrep_family_index_bra);
-  const auto& seed_blocks_conjugate=lgi_unit_tensor_blocks.at(lgi_pair_conjugate);
+    // get set of unit tensors for conjugate pair
+    // conjugate lgi
+    std::pair<int,int> lgi_pair_conjugate(irrep_family_index_ket,irrep_family_index_bra);
+    const auto& seed_blocks_conjugate=lgi_unit_tensor_blocks.at(lgi_pair_conjugate);
 
-  // Populate hypersectors with seeds
-  for(int hypersector_index : unit_tensor_hypersector_subset)
-    {
-      const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
-      int unit_tensor_subspace_index=hypersector.operator_subspace_index();
-      int rho0=hypersector.multiplicity_index();
-      std::pair<int,int> seed_unit_tensor_key(unit_tensor_subspace_index,rho0);
+    // Populate hypersectors with seeds
+    for(int hypersector_index : unit_tensor_hypersector_subset)
+      {
+        const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
+        int unit_tensor_subspace_index=hypersector.operator_subspace_index();
+        int rho0=hypersector.multiplicity_index();
+        std::pair<int,int> seed_unit_tensor_key(unit_tensor_subspace_index,rho0);
       
-      // Check if hypersector is conjugate
-      const auto& bra_subspace=baby_spncci_space.GetSubspace(hypersector.bra_subspace_index());
-      const auto& ket_subspace=baby_spncci_space.GetSubspace(hypersector.ket_subspace_index());
+        // Check if hypersector is conjugate
+        const auto& bra_subspace=baby_spncci_space.GetSubspace(hypersector.bra_subspace_index());
+        const auto& ket_subspace=baby_spncci_space.GetSubspace(hypersector.ket_subspace_index());
 
-      // If conjugate then get blocks from seed_blocks_conjugate
-      // otherwise, get seeds from seed blocks.
-      bool is_conjugate=(bra_subspace.irrep_family_index()>ket_subspace.irrep_family_index());
+        // If conjugate then get blocks from seed_blocks_conjugate
+        // otherwise, get seeds from seed blocks.
+        bool is_conjugate=(bra_subspace.irrep_family_index()>ket_subspace.irrep_family_index());
       
-      // Check if there exists non-zero seeds 
-      bool seeds_nonzero=
-      is_conjugate?
-      seed_blocks_conjugate.count(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
-      seed_blocks.count(std::pair<int,int>(unit_tensor_subspace_index,rho0));
+        // Check if there exists non-zero seeds 
+        bool seeds_nonzero=
+          is_conjugate?
+          seed_blocks_conjugate.count(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
+          seed_blocks.count(std::pair<int,int>(unit_tensor_subspace_index,rho0));
 
-      // if no non-zero seeds, then continue
-      if(not seeds_nonzero)
-        continue;
+        // if no non-zero seeds, then continue
+        if(not seeds_nonzero)
+          continue;
 
-      const basis::OperatorBlocks<double>& seeds=is_conjugate?
-      seed_blocks_conjugate.at(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
-      seed_blocks.at(std::pair<int,int>(unit_tensor_subspace_index,rho0));
+        const basis::OperatorBlocks<double>& seeds=is_conjugate?
+          seed_blocks_conjugate.at(std::pair<int,int>(unit_tensor_subspace_index,rho0)):
+          seed_blocks.at(std::pair<int,int>(unit_tensor_subspace_index,rho0));
 
-      for(int i=0; i<seeds.size(); ++i)
-        {
-          if(seeds[i].rows()==0)
-            continue;
+        for(int i=0; i<seeds.size(); ++i)
+          {
+            if(seeds[i].rows()==0)
+              continue;
           
-          unit_tensor_hyperblocks[hypersector_index][i]=seeds[i];
-        }
-    }
-}
+            unit_tensor_hyperblocks[hypersector_index][i]=seeds[i];
+          }
+      }
+  }
 
 
   void CheckUnitTensorRecurrence(
-    int irrep_family_index_bra, int irrep_family_index_ket,
-    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
-    const std::string& relative_unit_tensor_filename_template,
-    const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
-    const spncci::SpNCCISpace& spncci_space,
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const basis::MatrixVector& spncci_expansions,
-    const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
-    const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
-  )
+      int irrep_family_index_bra, int irrep_family_index_ket,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      const std::string& relative_unit_tensor_filename_template,
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const basis::MatrixVector& spncci_expansions,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+    )
   {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Checking unit tensors
@@ -441,22 +441,22 @@ void PopulateHypersectorsWithSeeds(
 
         // Compute unit tensor hyperblocks from lsu3shell rmes using explicit basis construction
         spncci::ComputeUnitTensorSectorsExplicit(
-          sigmap, sigma, unit_tensor,unit_tensor_space,
-          lsu3shell_space,unit_tensor_sectors,unit_tensor_lsu3shell_blocks,
-          baby_spncci_space, spncci_expansions,baby_spncci_hypersectors,
-          unit_tensor_hyperblocks_explicit
-        );
-
-        // Compute conjugate unit tensor hyperblocks if not diagonal sectors 
-        if(not (sigmap==sigma))
-        {
-          spncci::ComputeUnitTensorSectorsExplicit(
-            sigma, sigmap, unit_tensor,unit_tensor_space,
+            sigmap, sigma, unit_tensor,unit_tensor_space,
             lsu3shell_space,unit_tensor_sectors,unit_tensor_lsu3shell_blocks,
             baby_spncci_space, spncci_expansions,baby_spncci_hypersectors,
             unit_tensor_hyperblocks_explicit
           );
-        }
+
+        // Compute conjugate unit tensor hyperblocks if not diagonal sectors 
+        if(not (sigmap==sigma))
+          {
+            spncci::ComputeUnitTensorSectorsExplicit(
+                sigma, sigmap, unit_tensor,unit_tensor_space,
+                lsu3shell_space,unit_tensor_sectors,unit_tensor_lsu3shell_blocks,
+                baby_spncci_space, spncci_expansions,baby_spncci_hypersectors,
+                unit_tensor_hyperblocks_explicit
+              );
+          }
       } // end unit tensor index 
 
     // Comparing recurrence to explicit hyperblocks and printing error message if difference between
@@ -479,11 +479,11 @@ void PopulateHypersectorsWithSeeds(
               errors=true;
               std::cout<<"hyperblock "<<i<<" sub-block "<<j<<" is not correct"<<std::endl;
               std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
-              << rho0<<std::endl;
+                       << rho0<<std::endl;
               std::cout<<"the matrix should be "<<bra_subspace.size()<<" x "<<ket_subspace.size()<<std::endl;
               std::cout<<"gammma_max: "<<ket_subspace.gamma_max()<<" upsilon_max "<<ket_subspace.upsilon_max()<<std::endl;
               std::cout<<"matrix1"<<std::endl<<matrix1<<std::endl<<"matrix2"
-              <<std::endl<<matrix2<<std::endl;
+                       <<std::endl<<matrix2<<std::endl;
             }
         }
     // If no error found, print no errors.
@@ -497,15 +497,15 @@ void PopulateHypersectorsWithSeeds(
 
 
   void ConstructBranchedObservables(
-    u3::WCoefCache& w_cache,
-    const spncci::SpaceU3S& space_u3s,
-    const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
-    const std::vector<basis::MatrixVector>& observable_matrices_u3s,
-    std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
-    int num_observables,
-    const std::vector<int>& observable_J_values,
-    const std::vector<spncci::SectorsSpJ>& observable_sectors,
-    std::vector<basis::MatrixVector>& observable_matrices
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
+      const std::vector<basis::MatrixVector>& observable_blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int num_observables,
+      const std::vector<int>& observable_J0_values,
+      const std::vector<spncci::SectorsSpJ>& observable_sectors_spj,
+      std::vector<basis::MatrixVector>& observable_blocks_spj
     )
   {
     for (int observable_index=0; observable_index<num_observables; ++observable_index)
@@ -513,10 +513,10 @@ void PopulateHypersectorsWithSeeds(
 
         std::cout << fmt::format("observable_index {}",observable_index) << std::endl;
         // retrieve sectors
-        const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
+        const spncci::SectorsSpJ& sectors = observable_sectors_spj[observable_index];
 
         // calculate observable on sectors
-        observable_matrices[observable_index].resize(sectors.size());
+        observable_blocks_spj[observable_index].resize(sectors.size());
         for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
           {
 
@@ -526,12 +526,12 @@ void PopulateHypersectorsWithSeeds(
             const HalfInt ket_J = sector.ket_subspace().J();
 
             // set up alias to matrix
-            spncci::MatrixType& observable_matrix = observable_matrices[observable_index][sector_index];
+            spncci::MatrixType& observable_matrix = observable_blocks_spj[observable_index][sector_index];
 
 
             // set up aliases (for current observable and J space)
             const std::vector<spncci::SectorLabelsU3S>& sectors_u3s = observable_sectors_u3s[observable_index];
-            const basis::MatrixVector& matrices_u3s = observable_matrices_u3s[observable_index];
+            const basis::MatrixVector& matrices_u3s = observable_blocks_u3s[observable_index];
               
             // determine allowed LS sectors
             const spncci::SpaceLS& bra_space_lsj = spaces_lsj[bra_J];
@@ -539,7 +539,7 @@ void PopulateHypersectorsWithSeeds(
 
             // determine set of (L0,S0) labels for this observable (triangular with J0)
             std::vector<spncci::OperatorLabelsLS> operator_labels_ls;
-            const HalfInt J0 = observable_J_values[observable_index];
+            const HalfInt J0 = observable_J0_values[observable_index];
             spncci::GenerateOperatorLabelsLS(J0,operator_labels_ls);
 
             std::vector<spncci::SectorLabelsLS> sectors_lsj;
@@ -557,82 +557,61 @@ void PopulateHypersectorsWithSeeds(
             // collect LSJ sectors into J matrix
             //
             // Note: Interface needs to be generalized to handle J_bra != J_ket.
-            ConstructOperatorMatrix(
+            spncci::ConstructOperatorMatrix(
                 bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj,
                 observable_matrix
               );
+            
 
           }
       }
   }
 
+  void ConstructBranchedBlock(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      const basis::MatrixVector& blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int J0,
+      const typename spncci::SectorsSpJ::SectorType& sector_spj,
+      spncci::MatrixType& block_spj
+    )
+  {
+    // read off J values
+    const HalfInt bra_J = sector_spj.bra_subspace().J();
+    const HalfInt ket_J = sector_spj.ket_subspace().J();
 
-  // void ConstructBranchedObservables(
-  //   u3::WCoefCache& w_cache,
-  //   const spncci::SpaceSpU3S& space_spu3s,
-  //   const std::vector<std::vector<spncci::SectorLabelsSpU3S>>& observable_sectors_spu3s,
-  //   const std::vector<basis::MatrixVector>& observable_matrices_spu3s,
-  //   std::map<HalfInt,spncci::SpaceSpLS>& spaces_splsj,
-  //   int num_observables,
-  //   const std::vector<HalfInt>& J_values,
-  //   const std::vector<int>& observable_Jvalues,
-  //   std::vector<std::map<spncci::JPair,spncci::MatrixType>>& observable_matrices
-  //   )
-  // {
-  //   // populate fully-branched many-body matrices for observables
-  //   // map: observable -> J ->  matrix
-  //   // std::vector<std::map<HalfInt,Eigen::MatrixXd>> observable_matrices;  
-  //   observable_matrices.resize(num_observables);
-  //   for (int observable_index=0; observable_index<num_observables; ++observable_index)
-  //     {
-  //       int J0=observable_Jvalues[observable_index];
-  //       for (const HalfInt bra_J : J_values)
-  //         for (const HalfInt ket_J : J_values)  
-  //           {
-  //             if(not am::AllowedTriangle(bra_J,J0,ket_J))
-  //               continue;
-  //             spncci::JPair JpJ(bra_J,ket_J);
-  //             // set up aliases (for current observable and J space)
-  //             const std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s = observable_sectors_spu3s[observable_index];
-  //             const basis::MatrixVector& matrices_spu3s = observable_matrices_spu3s[observable_index];
-              
-  //             // determine allowed LS sectors
-  //             const spncci::SpaceSpLS& bra_space_splsj = spaces_splsj[bra_J];
-  //             const spncci::SpaceSpLS& ket_space_splsj = spaces_splsj[ket_J];
+    // determine allowed LS sectors
+    const spncci::SpaceLS& bra_space_lsj = spaces_lsj[bra_J];
+    const spncci::SpaceLS& ket_space_lsj = spaces_lsj[ket_J];
 
-  //             Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][JpJ];
+    // determine set of (L0,S0) labels for this observable (triangular with J0)
+    std::vector<spncci::OperatorLabelsLS> operator_labels_ls;
+    spncci::GenerateOperatorLabelsLS(J0,operator_labels_ls);
 
-  //             // determine set of (L0,S0) labels for this observable (triangular with J0)
-  //             std::vector<spncci::OperatorLabelsLS> operator_labels_spls;
-  //             // Note: to update when J0 varies by observable
-  //             spncci::GenerateOperatorLabelsSpLS(J0,operator_labels_spls);
+    // ...
+    std::vector<spncci::SectorLabelsLS> sectors_lsj;
+    spncci::GetSectorsLS(bra_space_lsj,ket_space_lsj,operator_labels_ls,sectors_lsj);
 
-  //             std::vector<spncci::SectorLabelsSpLS> sectors_splsj;
-  //             spncci::GetSectorsSpLS(bra_space_splsj,ket_space_splsj,operator_labels_spls,sectors_splsj);
+    // branch LS sectors to LSJ
+    basis::MatrixVector matrices_lsj;  
+    spncci::ContractAndRegroupLSJ(
+        bra_J,J0,ket_J,
+        w_cache,
+        space_u3s,sectors_u3s,blocks_u3s,
+        bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
+      );
 
-  //             // branch LS sectors to LSJ
-  //             basis::MatrixVector matrices_splsj;  
-  //             spncci::ContractAndRegroupLSJ(
-  //                 bra_J,J0,ket_J,
-  //                 w_cache,
-  //                 space_spu3s,sectors_spu3s,matrices_spu3s,
-  //                 bra_space_splsj,ket_space_splsj,sectors_splsj,matrices_splsj
-  //               );
+    // collect LSJ sectors into J matrix
+    spncci::ConstructOperatorMatrix(
+        bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj,
+        block_spj
+      );
 
-  //             // collect LSJ sectors into J matrix
-  //             //
-  //             // Note: Interface needs to be generalized to handle J_bra != J_ket.
-  //             ConstructOperatorMatrix(
-  //                 bra_space_splsj,ket_space_splsj,sectors_splsj,matrices_splsj,
-  //                 observable_matrix
-  //               );
-  //           }
-  //     }
-  // }
+  }
 
-
-
-void 
+  void 
   SolveHamiltonian(
       const spncci::MatrixType& hamiltonian_matrix,
       const HalfInt& J,
