@@ -247,11 +247,11 @@ namespace lsu3shell
                   }
 
                 if(sp3r_generators)
-                {
-                  std::stringstream ss;
-                  ss << rme;
-                  ss >> rme;
-                }
+                  {
+                    std::stringstream ss;
+                    ss << rme;
+                    ss >> rme;
+                  }
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
