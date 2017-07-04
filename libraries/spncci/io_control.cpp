@@ -42,6 +42,7 @@ namespace spncci
     u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
     Nintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Nrel_labels,true);
     lsu3shell::ReadLSU3ShellRMEs(
+        sp3r_generators,
         Nrel_filename,
         lsu3shell_basis_table,lsu3shell_space,
         Nrel_labels,Nintr_sectors,Nintr_matrices,
@@ -72,7 +73,6 @@ namespace spncci
       );
 
   }
-
 
 
   void
