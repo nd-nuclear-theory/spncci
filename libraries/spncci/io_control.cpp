@@ -29,7 +29,9 @@ namespace spncci
     // read Brel => Bintr
     u3shell::OperatorLabelsU3ST Brel_labels(-2,u3::SU3(0,2),0,0,0);
     Bintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Brel_labels,true);
+    bool sp3r_generators=true;
     lsu3shell::ReadLSU3ShellRMEs(
+      sp3r_generators,
         Brel_filename,
         lsu3shell_basis_table,lsu3shell_space,
         Brel_labels,Bintr_sectors,Bintr_matrices,
@@ -60,7 +62,9 @@ namespace spncci
     // read Arel => Aintr
     u3shell::OperatorLabelsU3ST Arel_labels(2,u3::SU3(2,0),0,0,0);
     Aintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Arel_labels,true);
+    bool sp3r_generators=true;
     lsu3shell::ReadLSU3ShellRMEs(
+        sp3r_generators,
         Arel_filename,
         lsu3shell_basis_table,lsu3shell_space,
         Arel_labels,Aintr_sectors,Aintr_matrices,

@@ -148,6 +148,7 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEsBinary(
+      bool sp3r_generators,
       const std::string& filename,
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
@@ -245,10 +246,12 @@ namespace lsu3shell
                       << std::endl;
                   }
 
-                std::stringstream ss;
-                ss << rme;
-                double text_rme;
-                ss >> text_rme;
+                if(sp3r_generators)
+                {
+                  std::stringstream ss;
+                  ss << rme;
+                  ss >> rme;
+                }
 
                 // suppress zero values -- no longer appropriate/necessary
                 // if(fabs(rme)<zero_threshold)
@@ -266,7 +269,7 @@ namespace lsu3shell
                 //   sector_index, row_index,column_index, blocks[sector_index].rows(),
                 //   blocks[sector_index].cols(),rme)<<std::endl;
                 // std::cout<<"sector index "<<sector_index<<std::endl;
-                blocks[sector_index](row_index,column_index)=scale_factor*text_rme;
+                blocks[sector_index](row_index,column_index)=scale_factor*rme;
                 // blocks[sector_index](row_index,column_index)=scale_factor*rme;
                 // std::cout<<blocks[sector_index]<<std::endl;
               }
@@ -285,6 +288,7 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEs(
+      bool sp3r_generators,
       const std::string& filename,
       const LSU3BasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
@@ -301,7 +305,7 @@ namespace lsu3shell
 
     if (g_rme_binary_format)
       // binary format
-      ReadLSU3ShellRMEsBinary(filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
+      ReadLSU3ShellRMEsBinary(sp3r_generators,filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
     else
       // text format
       ReadLSU3ShellRMEsText(filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
@@ -322,6 +326,26 @@ namespace lsu3shell
       }                         
                                  
   }
+
+  void 
+  ReadLSU3ShellRMEs(
+      const std::string& filename,
+      const LSU3BasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      basis::MatrixVector& blocks,
+      double scale_factor
+    )
+  {
+    bool sp3r_generators=false;
+    lsu3shell::ReadLSU3ShellRMEs(
+      sp3r_generators,filename,lsu3_basis_table,space, 
+      operator_labels, sectors,blocks,scale_factor
+    );
+
+  }
+
 
   bool 
   CompareLSU3ShellRMEs(

@@ -87,6 +87,18 @@ namespace lsu3shell
   // When upgrading calling code to use new version, beware that order
   // of the other arguments has also been adjusted.
 
+  void 
+  ReadLSU3ShellRMEs(
+      bool sp3r_generators,
+      const std::string& filename,
+      const LSU3BasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      basis::MatrixVector& blocks,
+      double scale_factor=1.
+    );
+
 
   bool 
   CompareLSU3ShellRMEs(

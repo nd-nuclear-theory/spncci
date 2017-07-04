@@ -28,6 +28,7 @@ void GetLGIExpansion(
   {
   u3shell::SectorsU3SPN Bintr_sectors, Nintr_sectors;
   basis::MatrixVector Bintr_matrices, Nintr_matrices;
+  bool sp3r_generators=true;
   spncci::ReadLSU3ShellSymplecticOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
       Brel_filename,Bintr_sectors,Bintr_matrices,
