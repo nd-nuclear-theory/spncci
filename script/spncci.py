@@ -81,6 +81,7 @@
       RMEs.
   6/4/17 (mac): Add search paths for input files.
   6/27/17 (mac): Split out copy of lsu3shell basis listing from su3rme tarball.
+  7/4/17 (mac): Add support for using pre-staged expanded archive of su3rmes.
 
 """
   
@@ -397,31 +398,74 @@ def save_su3rme_files(task):
 def retrieve_su3rme_files(task):
     """ Retrieve archive of relative operator SU(3) RME files.
 
-    Files are retrieved into a subdirectory named lsu3shell_rme.
+    (1) Directory is symlinked as a subdirectory named lsu3shell_rme, or...
+    (2) Files are retrieved into a subdirectory named lsu3shell_rme.
     """
 
-    # identify archive file
+
+    # identify su3rme data directory
     su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+    directory_name = mcscript.utils.search_in_subdirectories(
+        su3rme_directory_list,
+        su3rme_subdirectory_list,
+        "su3rme-{}".format(su3rme_descriptor),
+        error_message="Data directory for SU(3) RMEs not found",
+        fail_on_not_found=False
+    )
     archive_filename = mcscript.utils.search_in_subdirectories(
         su3rme_directory_list,
         su3rme_subdirectory_list,
         "su3rme-{}.tgz".format(su3rme_descriptor),
-        error_message="SU(3) RME archive file not found"
+        error_message="Archive file for SU(3) RMEs not found",
+        fail_on_not_found=False
     )
 
-    # set up data directory
-    if (not os.path.exists("lsu3shell_rme")):
-        mcscript.utils.mkdir("lsu3shell_rme")
+    if (directory_name is not None):
 
-    # extract archive contents
-    mcscript.call(
-        [
-            "tar",
-            "-xvf",
-            archive_filename,
-            "--directory=lsu3shell_rme"
-        ]
-    )
+        # remove any existing symlink or data directory
+        #
+        # Notes: On a symlink to a directory: rmdir fails; rm or "rm -r"
+        # removes symlink.  But "rm -r" will also work if tar file had
+        # been directly expanded before and needs to be replaced by a
+        # symlink.
+        if (os.path.exists("lsu3shell_rme")):
+            mcscript.call(["rm","-r","lsu3shell_rme"])
+
+        # link to data su3rme directory
+        mcscript.call(
+            [
+                "ln",
+                "-s",
+                directory_name,
+                "lsu3shell_rme"
+            ]
+        )
+
+    elif (archive_filename is not None):
+
+        # set up data directory
+        if (not os.path.exists("lsu3shell_rme")):
+            mcscript.utils.mkdir("lsu3shell_rme")
+
+        # extract archive contents
+        mcscript.call(
+            [
+                "tar",
+                "-xvf",
+                archive_filename,
+                "--directory=lsu3shell_rme"
+            ]
+        )
+
+    else:
+        raise(mcscript.exception.ScriptError("Cannot find SU(3) RME data"))
+
+def link_su3rme_files(task):
+    """ Search for expanded archive of relative operator SU(3) RME files.
+
+    
+    """
+
 
 def do_generate_lsu3shell_rmes(task):
     """
