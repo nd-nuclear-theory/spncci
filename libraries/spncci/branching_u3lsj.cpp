@@ -238,6 +238,7 @@ namespace spncci
     // For a given Jp,J0,J sector
     // spncci::SpaceLS ls_space(u3s_space, J);
     //for each target, get sources and multiply by appropriate coefficient.
+    // std::cout<<"target sector "<<Jp<<"  "<<J0<<"  "<<J<<"  ............................................................."<<std::endl;
     target_sectors.resize(target_sector_labels.size());
     for(int t=0; t<target_sector_labels.size(); ++t)
       {
@@ -255,6 +256,8 @@ namespace spncci
         Eigen::MatrixXd& target_sector=target_sectors[t];
         target_sector=Eigen::MatrixXd::Zero(target_dim_bra,target_dim_ket);
        
+
+
         // Extract target labels 
         int L0(sector_labels.L0());
         HalfInt S0(sector_labels.S0());
@@ -277,6 +280,9 @@ namespace spncci
             if(L0!=source_labels.L0())
               continue;
             
+            if(S0!=source_labels.S0())
+              continue;
+
             int source_index_ket=source_labels.ket_index();
             int source_index_bra=source_labels.bra_index();
             
@@ -333,9 +339,10 @@ namespace spncci
                   // std::cout<<"branching"<<std::endl
                   //   <<"W "<<Wcoef<<"  Jcoef "<<Jcoef<<std::endl
                   //   <<source_sector<<std::endl<<std::endl;
-                  // std::cout<<" target "<<start_indexp<<"  "<< start_index<<"  "<< source_dimp<<"  "<< source_dim<<std::endl
+                  // std::cout<<" target "<<start_indexp<<"  "<< start_index<<"  "<< source_dimp<<"  "<< source_dim<<std::endl;
                   // <<target_sector.rows()<<"  "<<target_sector.cols()<<std::endl<<std::endl;
                   target_sector.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_sector;
+                  // std::cout<<target_sector<<std::endl<<std::endl;
                 }
           }
       }

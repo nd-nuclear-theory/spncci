@@ -141,12 +141,13 @@ namespace u3shell
             u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(1,1),0,0,bra,ket);
             std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
           
-            double Lrme=std::sqrt(2./3*(N*N+3*N));
+            double Lrme=std::sqrt(4./3*(N*N+3*N));
 
             if(fabs(Lrme)>zero_threshold)
               Lintr[key]+=Lrme*intrinsic_factor*coef;
           }
   }
+
 
   void Qintr(int Nmax,u3shell::RelativeRMEsU3ST& Qintr, int A, double coef=1.0, bool moshinsky_convention=false)
   {
@@ -157,8 +158,7 @@ namespace u3shell
     int kappa0=1; 
     int L0=2;
 
-    double intrinsic_factor=(1.+KroneckerDelta(moshinsky_convention,true))/A;
-    // std::cout<<"coef "<<coef<<std::endl;
+    double intrinsic_factor=2./A;
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
         for(int T=0; T<=1; ++T)
@@ -168,35 +168,37 @@ namespace u3shell
 
             // Brel term
             Np=N-2;
-            bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
-            key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            std::cout<<relative_unit_tensor.Str()<<std::endl;
+            if(Np>=0)
+            {
+              bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
+              key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
 
-            double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
-            // std::cout<<Brme<<std::endl;
-
-            if (fabs(Brme)>zero_threshold)
-              Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
-
+              if (fabs(Brme)>zero_threshold)
+                Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
+            }
             // Crel term
             Np=N;
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Crme=std::sqrt(2.*(N*N+3*N));
+            double Crme=std::sqrt(4.*(N*N+3*N)/3);
             
             if(fabs(Crme)>zero_threshold)
-              Qintr[key]+=std::sqrt(2.*(N*N+3*N))*intrinsic_factor*coef;
+              Qintr[key]+=std::sqrt(3)*Crme*intrinsic_factor*coef;
 
             // Arel term
             Np=N+2;
-            bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
-            key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
-            if (fabs(Arme)>zero_threshold)
-              Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef;
+            if(Np<=Nmax)
+            {
+              bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
+              key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              if (fabs(Arme)>zero_threshold)
+                Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef;
+            }
           }
   }
 
@@ -240,12 +242,15 @@ namespace u3shell
 
             // Arel term
             Np=N+2;
-            bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
-            key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
-            if (fabs(Arme)>zero_threshold)
-              R2intr[key]+=sqrt(1.5)*Arme*intrinsic_factor*coef;
+            if(Np<=Nmax)
+            {
+              bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
+              key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              if (fabs(Arme)>zero_threshold)
+                R2intr[key]+=sqrt(1.5)*Arme*intrinsic_factor*coef;
+            }
           }
   }
 
@@ -367,7 +372,7 @@ int main(int argc, char **argv)
     else if(operator_type=="Lintr")
       u3shell::Lintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Qintr")
-      u3shell::Qintr(Nmax+2*N1B,Operator, A, sqrt(5./8*pi)*coef*b2);
+      u3shell::Qintr(Nmax+2*N1B,Operator, A, sqrt(5./(16*pi))*coef*b2);
     else if(operator_type=="Tintr")
       u3shell::Tintr(Nmax+2*N1B,Operator, A, hbar_omega, coef);
     else if(operator_type=="INT")
