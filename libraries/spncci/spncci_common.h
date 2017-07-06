@@ -7,6 +7,7 @@
   University of Notre Dame
 
   2/27/17 (mac): Created.
+  7/5/17 (mac): Overhaul switchable matrix precision typedefs.
 ****************************************************************/
 
 #ifndef SPNCCI_COMMON_H_
@@ -16,12 +17,22 @@
 
 #include "eigen3/Eigen/Core"
 
+#include "basis/hypersector.h"
+#include "basis/operator.h"
+
 namespace spncci
 {
-  // numerics
+  // matrix precision
   typedef double MatrixFloatType;
-  typedef Eigen::VectorXd VectorType;
-  typedef Eigen::MatrixXd MatrixType; // => basis::OperatorBlock<spncci::MatrixFloatType>
+  typedef Eigen::Matrix<MatrixFloatType,Eigen::Dynamic,1> Vector;   // e.g., for vector of eigenvalues
+  typedef Eigen::Matrix<MatrixFloatType,Eigen::Dynamic,Eigen::Dynamic> Matrix;  // for matrix which is not semantically an operator block, e.g., matrix of eigenvectors
+  typedef basis::OperatorBlock<MatrixFloatType> OperatorBlock;
+  typedef basis::OperatorBlocks<MatrixFloatType> OperatorBlocks;
+  typedef basis::OperatorHyperblocks<MatrixFloatType> OperatorHyperblocks;
+
+  // old names -- DEPRECATED
+  typedef Vector VectorType;   // e.g., for vector of eigenvalues
+  typedef Matrix MatrixType;  // for matrix which is not semantically an operator block, e.g., matrix of eigenvectors
 
   // tolerance for zero-testing of SpNCCI matrix elements
   extern MatrixFloatType g_zero_tolerance;
