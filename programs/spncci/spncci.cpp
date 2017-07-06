@@ -131,9 +131,10 @@ void InitializeSectorsSpU3S(
 
   // For each hbar omega, zero initialize block for each observable
   // based on basis::SetOperatorToZero in operator.h
-  for(int h=0; h<hw_values.size(); ++h)
+  int total_entries = 0;
+  for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
     {
-      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_spu3s[h];
+      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_spu3s[hw_index];
       observables_blocks.resize(num_observables);
 
       for(int observable_index=0; observable_index<num_observables; ++observable_index)
@@ -141,12 +142,23 @@ void InitializeSectorsSpU3S(
           basis::OperatorBlocks<double>& blocks=observables_blocks[observable_index];
           std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
           blocks.resize(sectors_spu3s.size());
+
           for(int sector_index=0; sector_index<sectors_spu3s.size(); ++sector_index)
             {
               int rows=space_spu3s.GetSubspace(sectors_spu3s[sector_index].bra_index()).full_dimension();
               int cols=space_spu3s.GetSubspace(sectors_spu3s[sector_index].ket_index()).full_dimension();
               blocks[sector_index]=basis::OperatorBlock<double>::Zero(rows,cols);
             }
+
+          // tally allocated matrix elements
+          int entries = basis::AllocatedEntries(blocks);
+          total_entries += entries;
+          std::cout
+            << fmt::format(
+                "  hw_index {:2d} observable_index {:2d} sectors {:d} entries {:d}",
+                hw_index,observable_index,sectors_spu3s.size(),entries
+              )
+            << std::endl;
         }
 
     } 
@@ -178,9 +190,10 @@ void InitializeU3SSectors(
 
   // For each hbar omega, zero initialize block for each observable
   // based on basis::SetOperatorToZero in operator.h
-  for(int h=0; h<hw_values.size(); ++h)
+  int total_entries = 0;
+  for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
     {
-      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_u3s[h];
+      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_u3s[hw_index];
       observables_blocks.resize(num_observables);
 
       for(int observable_index=0; observable_index<num_observables; ++observable_index)
@@ -194,6 +207,16 @@ void InitializeU3SSectors(
               int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
               blocks[sector_index]=basis::OperatorBlock<double>::Zero(rows,cols);
             }
+
+          // tally allocated matrix elements
+          int entries = basis::AllocatedEntries(blocks);
+          total_entries += entries;
+          std::cout
+            << fmt::format(
+                "  hw_index {:2d} observable_index {:2d} sectors {:4d} entries {:d} = {:e}",
+                hw_index,observable_index,sectors_u3s.size(),entries,double(entries)
+              )
+            << std::endl;
         }
 
     } 
@@ -240,11 +263,11 @@ void PrintU3SSector(
 // Prints out U3SSectors and blocks 
 {
   for(int observable_index=0; observable_index<num_observables; ++observable_index)
-    for(int h=0; h<hw_values.size(); ++h)
+    for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
       {
-        std::cout<<"observable "<<observable_index<<" hw "<<hw_values[h]<<std::endl;
+        std::cout<<"observable "<<observable_index<<" hw "<<hw_values[hw_index]<<std::endl;
         const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-        basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
+        basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
         for(int i=0; i<blocks_u3s.size(); ++i)
           {
             auto& block=blocks_u3s[i];
@@ -263,90 +286,6 @@ void PrintU3SSector(
       }
 }
 
-  void
-  WriteEigenValues(
-    const std::vector<HalfInt>& J_values, double hw, 
-    int Nmax, int Nsigmamax,
-    std::map<HalfInt,Eigen::VectorXd>& eigenvalues,
-    std::vector<std::string>& observable_filenames,
-    std::vector<int>& scalar_observable_indices,
-    std::vector<std::map<HalfInt,Eigen::VectorXd>>& scalar_observable_expectations,
-    std::vector<int>& nonscalar_observable_indices,
-    std::vector<std::map<spncci::JPair,Eigen::MatrixXd>>& nonscalar_observable_expectations
-  )
-  // for observables with J0=0, line them up with energy eigenvalue and read off diagonal matrix elements 
-  // for observables with J0!=0, then have their own section --probably do this in the code as well, i.e.,
-  {
-    std::string filename=fmt::format("eigenvalues_Nmax{:02d}_Nsigma_ex{:02d}.dat",Nmax,Nsigmamax);
-    std::cout<<"writing to file"<<std::endl;
-    std::fstream fs;
-    const int width=3;
-    const int precision=16;
-    fs.open (filename, std::fstream::out | std::fstream::app);
-    fs << std::setprecision(precision);
-
-    fs << "OUPTPUT from spncci Version 1"<<std::endl<<std::endl;;
-    fs << "Scalar observables:";
-    for(int i=0; i<scalar_observable_indices.size(); ++i)
-      fs <<"  "<<observable_filenames[scalar_observable_indices[i]];
-    fs << std::endl;
-
-    fs <<"Nonscalar observables:";
-    for(int i=0; i<nonscalar_observable_indices.size(); ++i)
-      fs <<"  "<<observable_filenames[nonscalar_observable_indices[i]];
-
-    fs << std::endl<<fmt::format("hw {:2.1f}", hw)<<std::endl;
-
-    for(HalfInt J : J_values)
-      {
-        Eigen::VectorXd& eigenvalues_J=eigenvalues[J];
-        // Eigen::VectorXd& observables=observable_expectations[J];
-
-        for(int i=0; i<eigenvalues_J.size(); ++i)
-          {
-            double eigenvalue=eigenvalues_J(i);
-            std::cout<<fmt::format("{:2d}   {}   {:8.5f}",i, J,eigenvalue);
-            fs << fmt::format("{:2d}   {}   {:8.5f}",i, J,eigenvalue);
-            
-            for(int j=0; j<scalar_observable_indices.size(); ++j)  
-            {          
-              std::cout<<fmt::format("   {:8.5f}",scalar_observable_expectations[j][J](i))
-              <<std::endl<<std::endl;
-              fs <<fmt::format("   {:8.5f}",scalar_observable_expectations[j][J](i))
-              <<std::endl<<std::endl;
-            }
-          }
-      }
-    for(HalfInt J : J_values)
-      {
-        Eigen::VectorXd& eigenvalues_J_initial=eigenvalues[J];
-        for(int i=0; i<eigenvalues_J_initial.size(); ++i)
-          for(HalfInt Jp :J_values)
-          {
-            Eigen::VectorXd& eigenvalues_J_final=eigenvalues[Jp];
-            spncci::JPair J_pair(Jp,J);
-            for(int ip=0; ip<eigenvalues_J_final.size(); ++ip)
-              {
-                double eigenvalue_initial=eigenvalues_J_initial(i);
-                double eigenvalue_final=eigenvalues_J_final(ip);
-                fs << fmt::format("{:2d}   {}   {:2d}   {}   {:8.5f}   {:8.5f}",
-                      i,J,ip,Jp,eigenvalue_initial,eigenvalue_final);
-
-                for(int j=0; j<nonscalar_observable_indices.size(); ++j)
-                  {
-                    // std::cout<<"(ip, i) ("<<ip<<","<<i<<")"<<std::endl;
-                    Eigen::MatrixXd& obserable_matrix=nonscalar_observable_expectations[j][J_pair];
-                    // std::cout<<obserable_matrix<<std::endl;
-                    double observable=obserable_matrix(ip,i);
-                    fs<<fmt::format("  {:8.5f}",observable);
-                  }
-                fs<<std::endl;
-              }
-          }
-      }
-    fs<<std::endl<<std::endl;
-    fs.close();
-  }
 
 }// end namespace
 
@@ -630,7 +569,7 @@ int main(int argc, char **argv)
   // // set up U3S sectors for each of the observables 
   // // Was the function ConstructObservablesU3S
   ///////////////////////////////////////////////////////////////////////////////////////////////
-  std::cout<<"setting up u3 sectors "<<std::endl;
+  std::cout<<"setting up u3s sectors "<<std::endl;
   // enumerate u3S space from baby spncci for each observable 
   spncci::SpaceU3S space_u3s(baby_spncci_space);
 

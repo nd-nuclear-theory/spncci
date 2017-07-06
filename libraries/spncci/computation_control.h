@@ -187,19 +187,30 @@ void PopulateHypersectorsWithSeeds(
   // Outputs:
 
 
-  void 
-  ConstructBranchedObservables(
-    u3::WCoefCache& w_cache,
-    const spncci::SpaceU3S& space_u3s,
-    const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
-    const std::vector<basis::MatrixVector>& observable_matrices_u3s,
-    std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
-    int num_observables,
-    const std::vector<int>& observable_J_values,
-    const std::vector<spncci::SectorsSpJ>& observable_sectors,
-    std::vector<basis::MatrixVector>& observable_matrices
+  void ConstructBranchedObservables(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
+      const std::vector<basis::MatrixVector>& observable_blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int num_observables,
+      const std::vector<int>& observable_J0_values,
+      const std::vector<spncci::SectorsSpJ>& observable_sectors_spj,
+      std::vector<basis::MatrixVector>& observable_blocks_spj
     );
-  // Construct J branched observable matrices 
+  // Construct J branched observable matrices.
+
+  void ConstructBranchedBlock(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      const basis::MatrixVector& blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int J0,
+      const typename spncci::SectorsSpJ::SectorType& sector_spj,
+      spncci::MatrixType& block_spj
+    );
+  // Construct J branched observable block.
 
 
   // void ConstructBranchedObservables(
