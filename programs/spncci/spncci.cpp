@@ -131,9 +131,10 @@ void InitializeSectorsSpU3S(
 
   // For each hbar omega, zero initialize block for each observable
   // based on basis::SetOperatorToZero in operator.h
-  for(int h=0; h<hw_values.size(); ++h)
+  int total_entries = 0;
+  for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
     {
-      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_spu3s[h];
+      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_spu3s[hw_index];
       observables_blocks.resize(num_observables);
 
       for(int observable_index=0; observable_index<num_observables; ++observable_index)
@@ -141,12 +142,23 @@ void InitializeSectorsSpU3S(
           basis::OperatorBlocks<double>& blocks=observables_blocks[observable_index];
           std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
           blocks.resize(sectors_spu3s.size());
+
           for(int sector_index=0; sector_index<sectors_spu3s.size(); ++sector_index)
             {
               int rows=space_spu3s.GetSubspace(sectors_spu3s[sector_index].bra_index()).full_dimension();
               int cols=space_spu3s.GetSubspace(sectors_spu3s[sector_index].ket_index()).full_dimension();
               blocks[sector_index]=basis::OperatorBlock<double>::Zero(rows,cols);
             }
+
+          // tally allocated matrix elements
+          int entries = basis::AllocatedEntries(blocks);
+          total_entries += entries;
+          std::cout
+            << fmt::format(
+                "  hw_index {:2d} observable_index {:2d} sectors {:d} entries {:d}",
+                hw_index,observable_index,sectors_spu3s.size(),entries
+              )
+            << std::endl;
         }
 
     } 
@@ -178,9 +190,10 @@ void InitializeU3SSectors(
 
   // For each hbar omega, zero initialize block for each observable
   // based on basis::SetOperatorToZero in operator.h
-  for(int h=0; h<hw_values.size(); ++h)
+  int total_entries = 0;
+  for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
     {
-      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_u3s[h];
+      std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_u3s[hw_index];
       observables_blocks.resize(num_observables);
 
       for(int observable_index=0; observable_index<num_observables; ++observable_index)
@@ -194,6 +207,16 @@ void InitializeU3SSectors(
               int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
               blocks[sector_index]=basis::OperatorBlock<double>::Zero(rows,cols);
             }
+
+          // tally allocated matrix elements
+          int entries = basis::AllocatedEntries(blocks);
+          total_entries += entries;
+          std::cout
+            << fmt::format(
+                "  hw_index {:2d} observable_index {:2d} sectors {:4d} entries {:d} = {:e}",
+                hw_index,observable_index,sectors_u3s.size(),entries,double(entries)
+              )
+            << std::endl;
         }
 
     } 
@@ -240,11 +263,11 @@ void PrintU3SSector(
 // Prints out U3SSectors and blocks 
 {
   for(int observable_index=0; observable_index<num_observables; ++observable_index)
-    for(int h=0; h<hw_values.size(); ++h)
+    for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
       {
-        std::cout<<"observable "<<observable_index<<" hw "<<hw_values[h]<<std::endl;
+        std::cout<<"observable "<<observable_index<<" hw "<<hw_values[hw_index]<<std::endl;
         const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-        basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[h][observable_index];
+        basis::OperatorBlocks<double>& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
         for(int i=0; i<blocks_u3s.size(); ++i)
           {
             auto& block=blocks_u3s[i];
@@ -546,7 +569,7 @@ int main(int argc, char **argv)
   // // set up U3S sectors for each of the observables 
   // // Was the function ConstructObservablesU3S
   ///////////////////////////////////////////////////////////////////////////////////////////////
-  std::cout<<"setting up u3 sectors "<<std::endl;
+  std::cout<<"setting up u3s sectors "<<std::endl;
   // enumerate u3S space from baby spncci for each observable 
   spncci::SpaceU3S space_u3s(baby_spncci_space);
 

@@ -265,7 +265,7 @@ namespace spncci
         std::tie(Lp,Sp)=bra_subspace.labels();
         std::tie(L,S)=ket_subspace.labels();
 
-        double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
+        double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);  // FLOAT_TYPE
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
         
         // std::cout<<"starting loop over sources "<<std::endl;
@@ -325,7 +325,7 @@ namespace spncci
                   // target sector. Source sector dimensions are source_dimp x source_dim
                   // starting position given by :
                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
-                  double Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
+                  double Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);  // FLOAT_TYPE
                   // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
                             // <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
                   int start_indexp=(kappa_p-1)*source_dimp+indexp;
