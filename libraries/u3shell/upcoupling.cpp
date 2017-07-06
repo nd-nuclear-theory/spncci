@@ -69,24 +69,23 @@ namespace u3shell
         for (int S0=0; S0<=2; ++S0)  
           for (int L0=abs(S0-J0); L0<=(S0+J0); ++L0)
             {
-              // RelativeSectorNLST key=make_tuple(L0,S0,bra_nlst,ket_nlst);
               RelativeSectorNLST key(L0,S0,T0,bra_nlst,ket_nlst);
               // upcoupling factor
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
-                              *(2.*Jp+1)*(2.*S0+1)*(2.*L0+1)/(2.*J0+1)/(2.*Sp+1)/(2.*Lp+1);
+                              *am::dim(Jp)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(Sp)/am::dim(Lp);
               
               if (fabs(so3_coef)<zero_threshold)
                 continue;
 
               double so3_coef_conj=0;
               RelativeSectorNLST key_conj;
+              // To get conjugate rme (L,S,T||L0 S0 T0||L'S'T')
               if(not diagonal_sector)
                 {
                   so3_coef_conj=am::Unitary9J(Lp,Sp,Jp,L0,S0,J0,L,S,J)
                     *am::dim(J)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(S)/am::dim(L)
-                    //*(2.*J+1)*(2.*S0+1)*(2.*L0+1)/(2.*J0+1)/(2.*S+1)/(2.*L+1)
-                    *ParitySign(Tp-T)*Hat(Tp)/Hat(T)
-                    *ParitySign(Jp-J)*Hat(Jp)/Hat(J);
+                    *ParitySign(Tp+T0-T)*Hat(Tp)/Hat(T)
+                    *ParitySign(Jp+J0-J)*Hat(Jp)/Hat(J);
                   key_conj=RelativeSectorNLST(L0,S0,T0,ket_nlst,bra_nlst);
                 }
               
