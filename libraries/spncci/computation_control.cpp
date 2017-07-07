@@ -500,12 +500,12 @@ namespace spncci
       u3::WCoefCache& w_cache,
       const spncci::SpaceU3S& space_u3s,
       const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
-      const std::vector<basis::MatrixVector>& observable_blocks_u3s,
+      const std::vector<spncci::OperatorBlocks>& observable_blocks_u3s,
       std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
       int num_observables,
       const std::vector<int>& observable_J0_values,
       const std::vector<spncci::SectorsSpJ>& observable_sectors_spj,
-      std::vector<basis::MatrixVector>& observable_blocks_spj
+      std::vector<spncci::OperatorBlocks>& observable_blocks_spj
     )
   {
     for (int observable_index=0; observable_index<num_observables; ++observable_index)
@@ -526,7 +526,7 @@ namespace spncci
             const HalfInt ket_J = sector.ket_subspace().J();
 
             // set up alias to matrix
-            spncci::MatrixType& observable_matrix = observable_blocks_spj[observable_index][sector_index];
+            spncci::Matrix& observable_matrix = observable_blocks_spj[observable_index][sector_index];
 
 
             // set up aliases (for current observable and J space)
@@ -571,11 +571,11 @@ namespace spncci
       u3::WCoefCache& w_cache,
       const spncci::SpaceU3S& space_u3s,
       const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
-      const basis::MatrixVector& blocks_u3s,
+      const spncci::OperatorBlocks& blocks_u3s,
       std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
       int J0,
       const typename spncci::SectorsSpJ::SectorType& sector_spj,
-      spncci::MatrixType& block_spj
+      spncci::OperatorBlock& block_spj
     )
   {
     // read off J values
@@ -595,7 +595,7 @@ namespace spncci
     spncci::GetSectorsLS(bra_space_lsj,ket_space_lsj,operator_labels_ls,sectors_lsj);
 
     // branch LS sectors to LSJ
-    basis::MatrixVector matrices_lsj;  
+    spncci::OperatorBlocks matrices_lsj;  
     spncci::ContractAndRegroupLSJ(
         bra_J,J0,ket_J,
         w_cache,
@@ -613,19 +613,18 @@ namespace spncci
 
   void 
   SolveHamiltonian(
-      const spncci::MatrixType& hamiltonian_matrix,
+      const spncci::OperatorBlock& hamiltonian_matrix,
       const HalfInt& J,
       int num_eigenvalues,
       int eigensolver_num_convergence,  // whatever exactly this is...
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
-      spncci::VectorType& eigenvalues,  // eigenvalues for J-subspace
-      spncci::MatrixType& eigenvectors  // eigenvectors for J-subspace
+      spncci::Vector& eigenvalues,  // eigenvalues for J-subspace
+      spncci::Matrix& eigenvectors  // eigenvectors for J-subspace
     )
   {    
 
     // set up aliases
-    // spncci::MatrixType& hamiltonian_matrix = observable_matrices[0][J];
     std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
 
     // handle low-dimensional exceptions
@@ -658,7 +657,7 @@ namespace spncci
         std::cout << "  Using solver: Eigen::SelfAdjointEigenSolver" << std::endl;
 
         // define eigensolver and compute
-        Eigen::SelfAdjointEigenSolver<MatrixType> eigensolver(hamiltonian_matrix);
+        Eigen::SelfAdjointEigenSolver<spncci::OperatorBlock> eigensolver(hamiltonian_matrix);
 
         // verify status
         int eigensolver_status = eigensolver.info();
@@ -678,10 +677,8 @@ namespace spncci
         std::cout << "  Using solver: Spectra::SymEigsSolver" << std::endl;
 
         // define eigensolver and compute
-        typedef spncci::MatrixType MatrixType;  // allow for possible future switch to more compact single-precision matrix
-        typedef double FloatType;
-        Spectra::DenseSymMatProd<FloatType> matvec(hamiltonian_matrix);
-        Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>>
+        Spectra::DenseSymMatProd<spncci::MatrixFloatType> matvec(hamiltonian_matrix);
+        Spectra::SymEigsSolver<spncci::MatrixFloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<spncci::MatrixFloatType>>
           eigensolver(
               &matvec,
               num_eigenvalues,
@@ -714,7 +711,7 @@ namespace spncci
               << std::endl;
     
     // check eigenvector norms
-    Eigen::VectorXd eigenvector_norms(eigenvectors.cols());
+    spncci::Vector eigenvector_norms(eigenvectors.cols());
     for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
       {
         eigenvector_norms(eigenvector_index) = eigenvectors.col(eigenvector_index).norm();

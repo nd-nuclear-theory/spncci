@@ -19,8 +19,8 @@ namespace spncci
 
   void CalculateNexDecompositions(
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& eigenvectors,
-      std::vector<spncci::MatrixType>& Nex_decompositions,
+      const std::vector<spncci::Matrix>& eigenvectors,
+      std::vector<spncci::Matrix>& Nex_decompositions,
       HalfInt Nsigma0,
       int Nmax
     );
@@ -54,8 +54,8 @@ namespace spncci
 
   void CalculateBabySpNCCIDecompositions(
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& eigenvectors,
-      std::vector<spncci::MatrixType>& baby_spncci_decompositions,
+      const std::vector<spncci::Matrix>& eigenvectors,
+      std::vector<spncci::Matrix>& baby_spncci_decompositions,
       int baby_spncci_space_size
     );
   // Calculate decompositions of eigenstates w.r.t. BabySpNCCI

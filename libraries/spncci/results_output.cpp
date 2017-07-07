@@ -214,7 +214,7 @@ namespace spncci
   void WriteEigenvalues(
       std::ostream& out_stream,
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::VectorType>& eigenvalues,
+      const std::vector<spncci::Vector>& eigenvalues,
       int gex
     )
   {
@@ -238,7 +238,7 @@ namespace spncci
       const std::string& decomposition_name,
       const std::string& format_string,
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& decompositions,
+      const std::vector<spncci::Matrix>& decompositions,
       int gex
     )
   {
@@ -248,7 +248,7 @@ namespace spncci
       {
         // retrieve information for subspace
         HalfInt J = spj_space.GetSubspace(subspace_index).J();
-        const spncci::MatrixType& decompositions_J = decompositions[subspace_index];
+        const spncci::Matrix& decompositions_J = decompositions[subspace_index];
 
         // short circuit empty subspace
         if (decompositions_J.cols()==0)
@@ -270,7 +270,7 @@ namespace spncci
   void WriteObservables(
       std::ostream& out_stream,
       const std::vector<spncci::SectorsSpJ>& observable_sectors,
-      const std::vector<basis::MatrixVector>& observable_results_matrices,
+      const std::vector<spncci::OperatorBlocks>& observable_results_matrices,
       int gex
     )
   {
@@ -292,7 +292,7 @@ namespace spncci
             const HalfInt ket_J = sector.ket_subspace().J();
 
             // retrieve block
-            const Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
+            const spncci::OperatorBlock& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
             // short circuit empty block
             if ((observable_results_matrix.rows()==0)||(observable_results_matrix.cols()==0))

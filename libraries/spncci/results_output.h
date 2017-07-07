@@ -125,7 +125,7 @@ namespace spncci
   void WriteEigenvalues(
       std::ostream& out_stream,
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::VectorType>& eigenvalues,
+      const std::vector<spncci::Vector>& eigenvalues,
       int gex
     );
   // Write table of eigenvalues.
@@ -142,7 +142,7 @@ namespace spncci
       const std::string& decomposition_name,
       const std::string& format_string,
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& decompositions,
+      const std::vector<spncci::Matrix>& decompositions,
       int gex
     );
   // Write tables of eigenfunction probability distributions.
@@ -163,7 +163,7 @@ namespace spncci
   void WriteObservables(
       std::ostream& out_stream,
       const std::vector<spncci::SectorsSpJ>& observable_sectors,
-      const std::vector<basis::MatrixVector>& observable_results_matrices,
+      const std::vector<spncci::OperatorBlocks>& observable_results_matrices,
       int gex
     );
   // Write matrices of RMEs for observables.

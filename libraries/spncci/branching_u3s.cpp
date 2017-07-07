@@ -140,7 +140,7 @@ namespace spncci
       const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
       const std::vector<spncci::SectorLabelsU3S>& target_sectors_u3s,
-      basis::OperatorBlocks<double>& target_blocks_u3s
+      spncci::OperatorBlocks& target_blocks_u3s
     )
   {
     // iterate over interaction get unit tensor family index,kappa0,L0

@@ -341,11 +341,11 @@ namespace spncci
         u3::WCoefCache& w_cache,
         const spncci::SpaceU3S& u3s_space,
         const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-        const basis::MatrixVector& source_sectors,
+        const spncci::OperatorBlocks& source_blocks,
         const spncci::SpaceLS& target_space_bra,
         const spncci::SpaceLS& target_space_ket,
         const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-        basis::MatrixVector& target_sectors
+        spncci::OperatorBlocks& target_blocks
       );
 
   // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
@@ -355,9 +355,9 @@ namespace spncci
   ConstructOperatorMatrix(
     const spncci::SpaceLS& bra_source_space,
     const spncci::SpaceLS& ket_source_space,
-    std::vector<spncci::SectorLabelsLS>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    Eigen::MatrixXd& operator_matrix
+    const std::vector<spncci::SectorLabelsLS>& source_sector_labels,
+    const spncci::OperatorBlocks& source_blocks,
+    spncci::OperatorBlock& operator_matrix
     );
   
 
