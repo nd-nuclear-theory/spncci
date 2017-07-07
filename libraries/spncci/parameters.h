@@ -54,7 +54,7 @@ namespace spncci
     // many-body problem
     std::string observable_directory;
     std::vector<std::string> observable_filenames;  // first observable is used as Hamiltonian
-    std::vector<int> observable_Jvalues;
+    std::vector<int> observable_J0_values;
     int num_observables;
     std::vector<HalfInt> J_values;
     std::vector<double> hw_values;

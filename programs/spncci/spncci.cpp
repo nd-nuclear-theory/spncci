@@ -367,8 +367,7 @@ int main(int argc, char **argv)
   std::cout << "Solve for LGIs..." << std::endl;
 
   // timing start
-  Timer timer_lgi;
-  timer_lgi.Start();
+  mcutils::Timer timer_lgi;
 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
@@ -486,8 +485,7 @@ int main(int argc, char **argv)
   std::cout << "Precompute K matrices..." << std::endl;
 
   // timing start
-  Timer timer_k_matrices;
-  timer_k_matrices.Start();
+  mcutils::Timer timer_k_matrices;
 
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
@@ -630,8 +628,7 @@ int main(int argc, char **argv)
   // for each unit tensor, read in unit tensor lsu3shell rmes and transform to spncci basis
   //////////////////////////////////////////////////////////////////////////////////////////
   // timing start
-  Timer timer_read_seeds;
-  timer_read_seeds.Start();
+  mcutils::Timer timer_read_seeds;
 
   std::cout << "Get seed unit tensor rmes..." << std::endl;
   // diagnostic
@@ -665,8 +662,7 @@ int main(int argc, char **argv)
 
   // timing start
   std::cout<<"Starting recurrence and contraction"<<std::endl;
-  Timer timer_recurrence;
-  timer_recurrence.Start();
+  mcutils::Timer timer_recurrence;
 
 
   // Nested parallel regions (region 1 is lgi pairs, region 2 is recurrence.   )
@@ -824,7 +820,8 @@ int main(int argc, char **argv)
                   unit_tensor_space,baby_spncci_space,
                   space_u3s,relative_observable,
                   baby_spncci_hypersectors,unit_tensor_hyperblocks,
-                  sectors_u3s,blocks_u3s);
+                  sectors_u3s,blocks_u3s
+                );
 
 
               // spncci::ContractAndRegroupSpU3S(
@@ -861,24 +858,36 @@ int main(int argc, char **argv)
   // Delete Unit tensor Cache
   // Delete Ucoef Cache 
   //
-  // Note: The clean way to do that is to encapsulate the setup phase
-  // of the code in a subroutine...  That breaks the problem up into
-  // clean, structured subunits.  Anything that should persist is
-  // clearly marked by the fact that it is passed in as a reference.
-  // And anything that is no longer needed automatically gets
-  // destroyed as it goes out of scope.
+  // Note: The clean way to do that is to encapsulate the unit tensor
+  // setup phase of the code in a subroutine...  That breaks the
+  // problem up into clean, structured subunits.  Anything that should
+  // persist is clearly marked by the fact that it is passed in as a
+  // reference.  And anything that is no longer needed automatically
+  // gets destroyed as it goes out of scope.
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // loop over hw values, branch matrix sectors and compute eigenvalues
   
   ////////////////////////////////////////////////////////////////
-  // branch observables
+  // set up indexing for branching
   ////////////////////////////////////////////////////////////////
+
   std::cout << "Set up basis indexing for branching..." << std::endl;
+
+  // W coefficient cache -- needed for observable branching
+  u3::WCoefCache w_cache;
+
+  // determine J sectors for each observable
+  std::vector<spncci::SectorsSpJ> observable_sectors;
+  observable_sectors.resize(run_parameters.num_observables);
+  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+    {
+      const int J0=run_parameters.observable_J0_values[observable_index];
+      observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
+    }
 
   // set up basis indexing for branching
   std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
   std::map<HalfInt,spncci::SpaceSpLS> spaces_splsj;
-
   for (const HalfInt J : run_parameters.J_values)
     {
 
@@ -907,14 +916,15 @@ int main(int argc, char **argv)
     }
 
 
+  ////////////////////////////////////////////////////////////////
+  // calculation mesh master loop
+  ////////////////////////////////////////////////////////////////
 
-  std::cout << "Construct branched observable matrices..." << std::endl;
+
+  std::cout << "Calculation mesh master loop..." << std::endl;
 
   // timing start
-  Timer timer_branching;
-  timer_branching.Start();
-
-  u3::WCoefCache w_cache;
+  mcutils::Timer timer_mesh;
 
   // for each hw value, solve eigen problem and get expectation values 
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
@@ -928,49 +938,11 @@ int main(int argc, char **argv)
       spncci::WriteCalculationParameters(results_stream,hw);
 
       ////////////////////////////////////////////////////////////////
-      // Formerly computational_control ConstructBranchedObservables
-      ////////////////////////////////////////////////////////////////
-      // populate fully-branched many-body matrices for observables
-
-      // determine J sectors for each observable
-      std::vector<spncci::SectorsSpJ> observable_sectors;
-      observable_sectors.resize(run_parameters.num_observables);
-      for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-        {
-          const HalfInt J0=run_parameters.observable_Jvalues[observable_index];
-          observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
-        }
-
-      // observable_matrices:
-      //   - vector over observable_index
-      //   - vector over sector_index
-      //   - matrix over (bra_eigenstate_index,ket_eigenstate_index)
-      std::vector<basis::MatrixVector> observable_matrices;
-      observable_matrices.resize(run_parameters.num_observables);
-
-      // construct all branched observable blocks
-      spncci::ConstructBranchedObservables(
-          w_cache,
-          space_u3s,
-          observables_sectors_u3s,
-          observables_blocks_u3s[hw_index], 
-          spaces_lsj,
-          run_parameters.num_observables,
-          run_parameters.observable_Jvalues,
-          observable_sectors,
-          observable_matrices
-        );
-
-      // timing stop
-      // assert(0);
-      timer_branching.Stop();
-      std::cout << fmt::format("(Task time: {})",timer_branching.ElapsedTime()) << std::endl;
-
-      ////////////////////////////////////////////////////////////////
-      // solve eigenproblem
+      // eigenproblem
       ////////////////////////////////////////////////////////////////
 
       std::cout<<"Solve eigenproblem..."<<std::endl;
+      mcutils::Timer timer_eigenproblem;
 
       std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
       std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
@@ -979,14 +951,33 @@ int main(int argc, char **argv)
       for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
         {
           HalfInt J = spj_space.GetSubspace(subspace_index).J();
-          const spncci::OperatorBlock& hamiltonian_matrix = observable_matrices[0][subspace_index];
+          std::cout
+            << fmt::format("J = {}",J)
+            << std::endl;
+          
+          // branch Hamiltonian
+          spncci::OperatorBlock hamiltonian_matrix;
+          const int observable_index = 0;  // for Hamiltonian
+          const int sector_index = subspace_index;  // for Hamiltonian (scalar)
+          const int J0 = run_parameters.observable_J0_values[observable_index];
+          assert(J0==0);
+          spncci::ConstructBranchedBlock(
+              w_cache,
+              space_u3s,
+              observables_sectors_u3s[observable_index],
+              observables_blocks_u3s[hw_index][observable_index],
+              spaces_lsj,
+              J0,
+              observable_sectors[observable_index].GetSector(sector_index),
+              hamiltonian_matrix
+            );
 
           std::cout
             << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
             << std::endl;
-
           // std::cout<<hamiltonian_matrix<<std::endl<<std::endl;
 
+          // solve eigenproblem
           spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
           spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
           spncci::SolveHamiltonian(
@@ -1000,6 +991,10 @@ int main(int argc, char **argv)
             );
         }
 
+      // end timing
+      timer_eigenproblem.Stop();
+      std::cout << fmt::format("  (Eigenproblem: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
+
       // results output: eigenvalues
       spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,run_parameters.gex);
 
@@ -1008,6 +1003,7 @@ int main(int argc, char **argv)
       ////////////////////////////////////////////////////////////////
 
       std::cout << "Calculate eigenstate decompositions..." << std::endl;
+      mcutils::Timer timer_decompositions;
 
       // decomposition matrices:
       //   - vector over J subspace index
@@ -1035,6 +1031,10 @@ int main(int argc, char **argv)
           baby_spncci_space.size()
         );
 
+      // end timing
+      timer_decompositions.Stop();
+      std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
+
       // results output: decompositions
       spncci::WriteDecompositions(
           results_stream,
@@ -1052,11 +1052,13 @@ int main(int argc, char **argv)
           run_parameters.gex
         );
 
+
       ////////////////////////////////////////////////////////////////
       // calculate observable RMEs
       ////////////////////////////////////////////////////////////////
 
       std::cout << "Calculate observable results..." << std::endl;
+      mcutils::Timer timer_observables;
 
       // observable_results_matrices:
       //   - vector over observable_index
@@ -1082,35 +1084,25 @@ int main(int argc, char **argv)
               const int bra_subspace_index = sector.bra_subspace_index();
               const int ket_subspace_index = sector.ket_subspace_index();
 
+              // branch observable block
+              spncci::OperatorBlock observable_block;
+              const int J0 = run_parameters.observable_J0_values[observable_index];  // well, J0 had better be 0!
+              spncci::ConstructBranchedBlock(
+                  w_cache,
+                  space_u3s,
+                  observables_sectors_u3s[observable_index],
+                  observables_blocks_u3s[hw_index][observable_index],
+                  spaces_lsj,
+                  J0,
+                  observable_sectors[observable_index].GetSector(sector_index),
+                  observable_block
+                );
+
               // calculate observable results
-              const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][sector_index];
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
-              if(observable_index==2 && (bra_subspace_index==ket_subspace_index)) 
-                {
-                  // Eigen::MatrixXd observable_matrix2=observable_matrix;
-                  // mcutils::ChopMatrix(observable_matrix2, 1e-5);
-                  std::cout<<"Quadrupole "<<std::endl;
-                  for(int i=0; i<observable_matrix.rows(); ++i)
-                    for(int j=0; j<observable_matrix.cols(); ++j)
-                      if(fabs(observable_matrix(i,j)-observable_matrix(j,i))>1e-6)
-                        {
-                          std::cout<<observable_matrix(i,j)<<"  "<<observable_matrix(j,i)<<std::endl;
-                          assert(0);
-                        }
-                }
-              // std::cout
-              //   << fmt::format(
-              //       "dimensions: {}x{}^T {}x{} {}x{}",
-              //       eigenvectors[bra_subspace_index].rows(),eigenvectors[bra_subspace_index].cols(),
-              //       observable_matrix.rows(),observable_matrix.cols(),
-              //       eigenvectors[ket_subspace_index].rows(),eigenvectors[ket_subspace_index].cols()
-              //     )
-              //   << std::endl;
-
               observable_results_matrix = eigenvectors[bra_subspace_index].transpose()
-                * observable_matrix
+                * observable_block
                 * eigenvectors[ket_subspace_index];
-
 
               // print diagnostics
               const HalfInt bra_J = sector.bra_subspace().J();
@@ -1126,6 +1118,10 @@ int main(int argc, char **argv)
 
         }
 
+      // end timing
+      timer_observables.Stop();
+      std::cout << fmt::format("  (Observables: {})",timer_observables.ElapsedTime()) << std::endl;
+
       // results output: observables
       spncci::WriteObservables(
           results_stream,
@@ -1136,8 +1132,13 @@ int main(int argc, char **argv)
 
     }
 
+  // timing stop
+  timer_mesh.Stop();
+  std::cout << fmt::format("(Mesh master loop: {})",timer_mesh.ElapsedTime()) << std::endl;
+
+  ////////////////////////////////////////////////////////////////
   // termination
+  ////////////////////////////////////////////////////////////////
   results_stream.close();
-  // assert(0);
 
 }

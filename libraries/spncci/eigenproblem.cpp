@@ -121,7 +121,7 @@ namespace spncci
     for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
       {
         eigenvector_norms(eigenvector_index) = eigenvectors.col(eigenvector_index).norm();
-        const double norm_tolerance=1e-8;
+        const spncci::MatrixFloatType norm_tolerance=1e-8;
         assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
       }
     if (true)
@@ -134,14 +134,6 @@ namespace spncci
     // normalize eigenvectors -- redundant with Spectra eigensolver
     for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
       eigenvectors.col(eigenvector_index).normalize();
-
-    // diagnostics
-    if (false)
-      {
-        std::cout << fmt::format("  Eigenvectors -- norm (J={}):",J) << std::endl
-                  << mcutils::FormatMatrix(eigenvectors,"8.5f","    ")
-                  << std::endl;
-      }
   }
 
 
