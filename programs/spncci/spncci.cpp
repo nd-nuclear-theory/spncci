@@ -91,9 +91,9 @@
 #include "spncci/branching.h"
 #include "spncci/computation_control.h"
 #include "spncci/decomposition.h"
+#include "spncci/eigenproblem.h"
 #include "spncci/parameters.h"
 #include "spncci/results_output.h"
-
 
 ////////////////////////////////////////////////////////////////
 // WIP code

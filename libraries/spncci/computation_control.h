@@ -4,6 +4,9 @@
   High-level control code for computations in SpNCCI calculation
   programs.
                                   
+  DEPRECATED CODE STRUCTURE -- instead split up routines
+  thematically...  rename to "recurrence.h"???
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -16,6 +19,8 @@
       + GenerateRecurrenceHypersectors
       + PopulateHypersectorsWithSeeds
   7/1/17 (aem) : Updated GetLGIExpansion for intrinsic basis
+  7/6/17 (mac): Move out branching routines and eigenproblem control.
+
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_
@@ -186,45 +191,6 @@ void PopulateHypersectorsWithSeeds(
   //    
   //
   // Outputs:
-
-
-  void ConstructBranchedObservables(
-      u3::WCoefCache& w_cache,
-      const spncci::SpaceU3S& space_u3s,
-      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
-      const std::vector<spncci::OperatorBlocks>& observable_blocks_u3s,
-      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
-      int num_observables,
-      const std::vector<int>& observable_J0_values,
-      const std::vector<spncci::SectorsSpJ>& observable_sectors_spj,
-      std::vector<spncci::OperatorBlocks>& observable_blocks_spj
-    );
-  // Construct J branched observable matrices.
-
-  void ConstructBranchedBlock(
-      u3::WCoefCache& w_cache,
-      const spncci::SpaceU3S& space_u3s,
-      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
-      const spncci::OperatorBlocks& blocks_u3s,
-      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
-      int J0,
-      const typename spncci::SectorsSpJ::SectorType& sector_spj,
-      spncci::OperatorBlock& block_spj
-    );
-  // Construct J branched observable block.
-
-
-  // void ConstructBranchedObservables(
-  //   u3::WCoefCache& w_cache,
-  //   const spncci::SpaceSpU3S& space_spu3s,
-  //   const std::vector<std::vector<spncci::SectorLabelsSpU3S>>& observable_sectors_spu3s,
-  //   const std::vector<basis::MatrixVector>& observable_matrices_spu3s,
-  //   std::map<HalfInt,spncci::SpaceSpLS>& spaces_splsj,
-  //   int num_observables,
-  //   const std::vector<HalfInt>& J_values,
-  //   const std::vector<int>& observable_Jvalues,
-  //   std::vector<std::map<spncci::JPair,spncci::Matrix>>& observable_matrices
-  //   );
 
   void 
   SolveHamiltonian(

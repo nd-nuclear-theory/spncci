@@ -359,6 +359,35 @@ namespace spncci
     const spncci::OperatorBlocks& source_blocks,
     spncci::OperatorBlock& operator_matrix
     );
+
+
+
+  void ConstructBranchedObservables(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
+      const std::vector<spncci::OperatorBlocks>& observable_blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int num_observables,
+      const std::vector<int>& observable_J0_values,
+      const std::vector<spncci::SectorsSpJ>& observable_sectors_spj,
+      std::vector<spncci::OperatorBlocks>& observable_blocks_spj
+    );
+  // Construct J branched observable matrices.
+  //
+  // DEPRECATED -- precalculation of all observable J blocks wastes memory
+
+  void ConstructBranchedBlock(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      const spncci::OperatorBlocks& blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int J0,
+      const typename spncci::SectorsSpJ::SectorType& sector_spj,
+      spncci::OperatorBlock& block_spj
+    );
+  // Construct J branched observable block.
   
 
 }  // namespace
