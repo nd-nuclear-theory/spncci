@@ -111,7 +111,7 @@ namespace spncci
       std::vector<std::vector<basis::OperatorBlocks<double>>>& observables_blocks_spu3s,
       const std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>>& observable_symmetries_u3s
     )
-
+  // NO! THIS IS NOT THE ONE YOU WANT TO BE EDITING!  YOU ARE LOOKING FOR InitializeSectorsU3S BELOW!
   {
     // enumerate u3S space from baby spncci for each observable 
     // spncci::SpaceU3S space_u3s(baby_spncci_space);
@@ -122,16 +122,34 @@ namespace spncci
     // vector of blocks for u3 sectors for each hbar omega,for each observable
     observables_blocks_spu3s.resize(hw_values.size());
 
-    // for each observable, enumerate sectors 
-    for(int observable_index=0; observable_index< num_observables; ++observable_index) 
+    // for each observable, enumerate sectors
+    int total_entries = 0;  // total across observables, but not across hw
+    int max_sector_entries = 0;
+    int max_observable_entries = 0;
+    for(int observable_index=0; observable_index<num_observables; ++observable_index) 
       {
         std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
         spncci::GetSectorsSpU3S(space_spu3s,observable_symmetries_u3s[observable_index],sectors_spu3s);
+
+
+        // do counting for this observable
+        int observable_entries = 0;
+        for(int sector_index=0; sector_index<sectors_spu3s.size(); ++sector_index)
+          {
+            int rows=space_spu3s.GetSubspace(sectors_spu3s[sector_index].bra_index()).full_dimension();
+            int cols=space_spu3s.GetSubspace(sectors_spu3s[sector_index].ket_index()).full_dimension();
+            int sector_entries = rows*cols;
+            max_sector_entries = std::max(max_sector_entries,sector_entries);
+            observable_entries += sector_entries;
+          }
+
+        // accumulate counting from this observable
+        max_observable_entries = std::max(max_observable_entries,observable_entries);
+        total_entries += observable_entries;
       }
 
     // For each hbar omega, zero initialize block for each observable
     // based on basis::SetOperatorToZero in operator.h
-    int total_entries = 0;
     for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
       {
         std::vector<basis::OperatorBlocks<double>>& observables_blocks=observables_blocks_spu3s[hw_index];
@@ -149,48 +167,90 @@ namespace spncci
                 int cols=space_spu3s.GetSubspace(sectors_spu3s[sector_index].ket_index()).full_dimension();
                 blocks[sector_index]=basis::OperatorBlock<double>::Zero(rows,cols);
               }
-
-            // tally allocated matrix elements
-            int entries = basis::AllocatedEntries(blocks);
-            total_entries += entries;
-            std::cout
-              << fmt::format(
-                  "  hw_index {:2d} observable_index {:2d} sectors {:d} entries {:d}",
-                  hw_index,observable_index,sectors_spu3s.size(),entries
-                )
-              << std::endl;
           }
 
       } 
   }
 
   void InitializeU3SSectors(
-      const spncci::SpaceU3S& space_u3s, int num_observables, 
-      const std::vector<double>& hw_values,
-      std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
-      std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_u3s,
-      const std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>>& observable_symmetries_u3s
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>>& observable_symmetries_u3s,
+      std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
     )
   {
-    // enumerate u3S space from baby spncci for each observable 
-    // spncci::SpaceU3S space_u3s(baby_spncci_space);
-
     // vector of sectors for each observable
     observables_sectors_u3s.resize(num_observables);
-  
-    // vector of blocks for u3 sectors for each hbar omega,for each observable
-    observables_blocks_u3s.resize(hw_values.size());
 
     // for each observable, enumerate sectors 
-    for(int observable_index=0; observable_index< num_observables; ++observable_index) 
+    for(int observable_index=0; observable_index<num_observables; ++observable_index) 
       {
         std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
         spncci::GetSectorsU3S(space_u3s,observable_symmetries_u3s[observable_index],sectors_u3s);
       }
+  }
+
+  void WriteU3SSectorInformation(
+      std::ostream& out_stream,
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
+    )
+  {
+
+    StartNewSection(out_stream,"U3S sector dimensions");
+    out_stream
+      << "# observable_index num_sectors max_sector_entries observable_entries"
+      << std::endl;
+
+    // for each observable, enumerate sectors 
+    int total_entries = 0;  // total across observables, but not across hw
+    int max_sector_entries = 0;
+    int max_observable_entries = 0;
+    for(int observable_index=0; observable_index<num_observables; ++observable_index) 
+      {
+        const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+
+        // do counting for this observable
+        int observable_entries = 0;
+        for(int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+          {
+            int rows=space_u3s.GetSubspace(sectors_u3s[sector_index].bra_index()).full_dimension();
+            int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
+            int sector_entries = rows*cols;
+            max_sector_entries = std::max(max_sector_entries,sector_entries);
+            observable_entries += sector_entries;
+          }
+
+        // write statistics for this observable
+        out_stream
+          << fmt::format(
+              "{:2d} {:5d} {:10d} {:10d}",
+              observable_index,sectors_u3s.size(),max_sector_entries,observable_entries
+            )
+          << std::endl;
+
+
+        // accumulate counting from this observable -- totals across observables are not currently output
+        max_observable_entries = std::max(max_observable_entries,observable_entries);
+        total_entries += observable_entries;
+      }
+  }
+
+  void InitializeU3SBlocks(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<double>& hw_values,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
+      std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_u3s
+    )
+  {
+    // vector of blocks for u3 sectors for each hbar omega,for each observable
+    observables_blocks_u3s.resize(hw_values.size());
 
     // For each hbar omega, zero initialize block for each observable
     // based on basis::SetOperatorToZero in operator.h
-    int total_entries = 0;
+    // int total_entries = 0;
     for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
       {
         std::vector<spncci::OperatorBlocks>& observables_blocks=observables_blocks_u3s[hw_index];
@@ -201,7 +261,7 @@ namespace spncci
             // Note: this would all be a one-liner call to basis::SetOperatorToZero,
             // if sectors_u3s were a proper Sectors object
             spncci::OperatorBlocks& blocks=observables_blocks[observable_index];
-            std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+            const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
             blocks.resize(sectors_u3s.size());
             for(int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
               {
@@ -210,19 +270,20 @@ namespace spncci
                 blocks[sector_index]=spncci::OperatorBlock::Zero(rows,cols);
               }
 
-            // tally allocated matrix elements
-            int entries = basis::AllocatedEntries(blocks);
-            total_entries += entries;
-            std::cout
-              << fmt::format(
-                  "  hw_index {:2d} observable_index {:2d} sectors {:4d} entries {:d} = {:e}",
-                  hw_index,observable_index,sectors_u3s.size(),entries,double(entries)
-                )
-              << std::endl;
+            // // tally allocated matrix elements
+            // int entries = basis::AllocatedEntries(blocks);
+            // total_entries += entries;
+            // std::cout
+            //   << fmt::format(
+            //       "  hw_index {:2d} observable_index {:2d} sectors {:4d} entries {:d} = {:e}",
+            //       hw_index,observable_index,sectors_u3s.size(),entries,double(entries)
+            //     )
+            //   << std::endl;
           }
 
       } 
   }
+
 
   void PrintHypersectors(
       const spncci::BabySpNCCISpace& baby_spncci_space,
@@ -460,6 +521,75 @@ int main(int argc, char **argv)
   spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
   spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  // Enumerate unit tensor space 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  int J0_for_unit_tensors = -1;  // all J0
+  int T0_for_unit_tensors = -1;  // all T0
+  const bool restrict_positive_N0 = false;  // don't restrict to N0 positive
+
+  // get full set of possible unit tensor labels up to Nmax, N1v truncation
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;  
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(
+      run_parameters.Nmax, run_parameters.N1v,
+      unit_tensor_labels,J0_for_unit_tensors,T0_for_unit_tensors,
+      restrict_positive_N0
+    );
+
+  // for(auto tensor :unit_tensor_labels)
+  //   std::cout<<tensor.Str()<<std::endl;
+
+  // generate unit tensor subspaces 
+  u3shell::RelativeUnitTensorSpaceU3S 
+    unit_tensor_space(run_parameters.Nmax,run_parameters.N1v,unit_tensor_labels);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  //  Read in observables  
+  ///////////////////////////////////////////////////////////////////////////////////////////////////        
+
+  std::cout << "Reading observables..." << std::endl;
+
+  // Initialize containers for rmes and their symmetries 
+  // Stored by hw, then by observable
+  std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>> observables_relative_rmes(run_parameters.hw_values.size());
+  std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>> observable_symmetries_u3s(run_parameters.num_observables); 
+
+  spncci::ReadRelativeObservables(
+      run_parameters.Nmax, run_parameters.N1v, run_parameters.hw_values,
+      run_parameters.observable_directory,run_parameters.observable_filenames, 
+      unit_tensor_space, observables_relative_rmes, observable_symmetries_u3s
+    );
+
+  ////////////////////////////////////////////////////////////////
+  // Enumerate U3S sectors for observables 
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Enumerating u3s sectors..." << std::endl;
+
+  // enumerate u3S space from baby spncci for each observable 
+  spncci::SpaceU3S space_u3s(baby_spncci_space);
+
+  // vector of sectors for each observable
+  std::vector<std::vector<spncci::SectorLabelsU3S>> observables_sectors_u3s;//(run_parameters.num_observables);
+  
+  // vector of blocks for u3 sectors for each hbar omega,for each observable
+  std::vector<std::vector<spncci::OperatorBlocks>> observables_blocks_u3s;//(run_parameters.hw_values.size());
+
+
+  spncci::InitializeU3SSectors(
+      space_u3s,
+      run_parameters.num_observables, 
+      observable_symmetries_u3s,
+      observables_sectors_u3s
+    );
+  spncci::WriteU3SSectorInformation(
+      results_stream, 
+      space_u3s,
+      run_parameters.num_observables, 
+      observables_sectors_u3s
+    );
+
+
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
   ////////////////////////////////////////////////////////////////
@@ -478,6 +608,22 @@ int main(int argc, char **argv)
       std::cout << "End of counting-only run" << std::endl;
       std::exit(EXIT_SUCCESS);
     }
+
+
+  ////////////////////////////////////////////////////////////////
+  // Allocate U3S sectors for observables 
+  ////////////////////////////////////////////////////////////////
+
+  std::cout << "Allocating u3s blocks..." << std::endl;
+
+  spncci::InitializeU3SBlocks(
+      space_u3s,
+      run_parameters.num_observables, 
+      run_parameters.hw_values,
+      observables_sectors_u3s,
+      observables_blocks_u3s
+    );
+
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -509,28 +655,6 @@ int main(int argc, char **argv)
   //     }
   //   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // Enumerate unit tensor space 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////
-  int J0_for_unit_tensors = -1;  // all J0
-  int T0_for_unit_tensors = -1;  // all T0
-  const bool restrict_positive_N0 = false;  // don't restrict to N0 positive
-
-  // get full set of possible unit tensor labels up to Nmax, N1v truncation
-  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;  
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(
-      run_parameters.Nmax, run_parameters.N1v,
-      unit_tensor_labels,J0_for_unit_tensors,T0_for_unit_tensors,
-      restrict_positive_N0
-    );
-
-  // for(auto tensor :unit_tensor_labels)
-  //   std::cout<<tensor.Str()<<std::endl;
-
-  // generate unit tensor subspaces 
-  u3shell::RelativeUnitTensorSpaceU3S 
-    unit_tensor_space(run_parameters.Nmax,run_parameters.N1v,unit_tensor_labels);
-
   // ///////////////////////////////////////////////////////////////////////////////////////////////////
   // //  For testing, get lsu3shell expansion of full spncci basis
   // ///////////////////////////////////////////////////////////////////////////////////////////////////        
@@ -553,61 +677,8 @@ int main(int argc, char **argv)
   //   );
   // }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////
-  //  Read in observables  
-  ///////////////////////////////////////////////////////////////////////////////////////////////////        
-  // Initialize containers for rmes and their symmetries 
-  // Stored by hw, then by observable
-  std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>> observables_relative_rmes(run_parameters.hw_values.size());
-  std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>> observable_symmetries_u3s(run_parameters.num_observables); 
-
-  spncci::ReadRelativeObservables(
-      run_parameters.Nmax, run_parameters.N1v, run_parameters.hw_values,
-      run_parameters.observable_directory,run_parameters.observable_filenames, 
-      unit_tensor_space, observables_relative_rmes, observable_symmetries_u3s
-    );
-
-  // // set up U3S sectors for each of the observables 
-  // // Was the function ConstructObservablesU3S
   ///////////////////////////////////////////////////////////////////////////////////////////////
-  std::cout<<"setting up u3s sectors "<<std::endl;
-  // enumerate u3S space from baby spncci for each observable 
-  spncci::SpaceU3S space_u3s(baby_spncci_space);
-
-  // vector of sectors for each observable
-  std::vector<std::vector<spncci::SectorLabelsU3S>> observables_sectors_u3s;//(run_parameters.num_observables);
-  
-  // vector of blocks for u3 sectors for each hbar omega,for each observable
-  std::vector<std::vector<spncci::OperatorBlocks>> observables_blocks_u3s;//(run_parameters.hw_values.size());
-
-
-  spncci::InitializeU3SSectors(
-      space_u3s, run_parameters.num_observables, 
-      run_parameters.hw_values,observables_sectors_u3s,
-      observables_blocks_u3s,observable_symmetries_u3s
-    );
-
-
-  // // vector of sectors for each observable
-  // std::vector<std::vector<spncci::SectorLabelsSpU3S>> observables_sectors_spu3s;//(run_parameters.num_observables);
-  
-  // // vector of blocks for u3 sectors for each hbar omega,for each observable
-  // std::vector<std::vector<basis::OperatorBlocks<double>>> observables_blocks_spu3s;//(run_parameters.hw_values.size());
-  // spncci::InitializeSectorsSpU3S(spu3s_space, run_parameters.num_observables, 
-  //   run_parameters.hw_values,
-  //   observables_sectors_spu3s,
-  //   observables_blocks_spu3s,
-  //   observable_symmetries_u3s
-  // );
-
-  // std::cout<<"checking initialize sectors spu3s "<<std::endl;
-  // for(int h=0; h<run_parameters.hw_values.size(); ++h)
-  //   for(int o=0; o<run_parameters.num_observables; ++o)
-  //     for(int i=0; i<observables_blocks_spu3s[h][o].size(); ++i)
-  //       if(not mcutils::IsZero(observables_blocks_spu3s[h][o][i]-observables_blocks_u3s[h][o][i]))
-  //         std::cout<<" block "<<h<<"  "<<o<<" doesn't match"<<std::endl;
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  std::cout<<"seting up lgi unit tensor blocks"<<std::endl;
+  std::cout<<"setting up lgi unit tensor blocks"<<std::endl;
   
   // map of {lgi pair : list of hypersector indices organized by Nsum}
   // Read in lsu3shell unit tensors
