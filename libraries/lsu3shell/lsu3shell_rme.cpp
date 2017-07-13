@@ -169,9 +169,9 @@ namespace lsu3shell
     int float_precision;
     mcutils::ReadBinary<int>(in_stream,float_precision);
     assert((float_precision==4)||(float_precision==8));
-    std::cout
-      << fmt::format("RME input: filename {}, format_code {}, float_precision {}",filename,format_code,float_precision)
-      << std::endl;
+    // std::cout
+    //   << fmt::format("RME input: filename {}, format_code {}, float_precision {}",filename,format_code,float_precision)
+    //   << std::endl;
 
     // allocate matrices for operator
     basis::SetOperatorToZero(sectors,blocks);

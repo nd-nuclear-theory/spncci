@@ -113,7 +113,7 @@ namespace spncci
 
     // diagnostic output: eigenvalues
     std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
-              << mcutils::FormatMatrix(eigenvalues,"8.5f","    ")
+              << mcutils::FormatMatrix(eigenvalues.transpose(),"8.5f","    ")
               << std::endl;
     
     // check eigenvector norms
@@ -123,12 +123,6 @@ namespace spncci
         eigenvector_norms(eigenvector_index) = eigenvectors.col(eigenvector_index).norm();
         const spncci::MatrixFloatType norm_tolerance=1e-8;
         assert(fabs(eigenvector_norms(eigenvector_index)-1)<norm_tolerance);
-      }
-    if (true)
-      {
-        std::cout << fmt::format("  Norms (J={}):",J) << std::endl
-                  << mcutils::FormatMatrix(eigenvector_norms,"8.5f","    ")
-                  << std::endl;
       }
 
     // normalize eigenvectors -- redundant with Spectra eigensolver

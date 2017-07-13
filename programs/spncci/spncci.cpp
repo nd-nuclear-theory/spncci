@@ -465,8 +465,8 @@ int main(int argc, char **argv)
 
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
 
-  for(int i=0; i<spncci_space.size(); ++i)
-    std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
+  // for(int i=0; i<spncci_space.size(); ++i)
+  //   std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
 
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
@@ -1181,10 +1181,10 @@ int main(int argc, char **argv)
               std::cout
                 << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
                 << std::endl;
-              std::cout
-                << mcutils::FormatMatrix(observable_results_matrix,"8.5f")
-                << std::endl
-                << std::endl;
+              // std::cout
+              //   << mcutils::FormatMatrix(observable_results_matrix,"8.5f")
+              //   << std::endl
+              //   << std::endl;
             }
 
         }
