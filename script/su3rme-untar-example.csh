@@ -4,7 +4,7 @@
 #SBATCH -t 12:00:00
 #SBATCH -J untar
 
-foreach run (mac0408 mac0411 416)
+foreach run (mac0408 mac0411 mac0416)
 cd /project/projectdirs/m2032/data/spncci/su3rme/run${run}
 foreach f (*.tgz)
   echo "Tar file: ${f}"
