@@ -49,20 +49,23 @@ int main(int argc, char **argv)
   std::cout<<irrep1.size()<<std::endl;
 
 
-  std::cout<<"Bcoef cache check"<<std::endl;
-  Nn_max=8;
-  sp3r::BCoefCache cache;
-  sp3r::GenerateBCoefCache(cache, Nn_max);
-  u3::U3 n1,n2,n3;
-  int rho;
+  // std::cout<<"Bcoef cache check"<<std::endl;
+  // Nn_max=8;
+  // sp3r::BCoefCache cache;
+  // sp3r::GenerateBCoefCache(cache, Nn_max);
+  // u3::U3 n1,n2,n3;
+  // int rho;
   
-  for(auto it=cache.begin(); it!=cache.end(); ++it)
-    {
-      std::tie(n1,n2,n3,rho)=it->first;
-      double coef_flip=cache[sp3r::BCoefLabels(n2,n1,n3,rho)];
-      double coef=it->second;
-      if((fabs(coef_flip-coef)>1e-8)||(fabs(coef)<1e-8))
-        std::cout<<fmt::format("B({} {} {} {})  {}  {}  {}",n1.Str(), n2.Str(),n3.Str(),rho,coef,coef_flip,fabs(coef_flip-coef))<<std::endl;
-    }
-
+  // for(auto it=cache.begin(); it!=cache.end(); ++it)
+  //   {
+  //     std::tie(n1,n2,n3,rho)=it->first;
+  //     double coef_flip=cache[sp3r::BCoefLabels(n2,n1,n3,rho)];
+  //     double coef=it->second;
+  //     if((fabs(coef_flip-coef)>1e-8)||(fabs(coef)<1e-8))
+  //       std::cout<<fmt::format("B({} {} {} {})  {}  {}  {}",n1.Str(), n2.Str(),n3.Str(),rho,coef,coef_flip,fabs(coef_flip-coef))<<std::endl;
+  //   }
+  
+  sp3r::Sp3RSpace irrep_restricted;
+  sp3r::ConstructRestrictedSp3RSpace(sigma1,Nn_max,irrep_restricted);
+  std::cout << irrep_restricted.DebugStr();
 } //main

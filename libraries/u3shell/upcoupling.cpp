@@ -404,6 +404,69 @@ namespace u3shell
   }
 
 
+  double SU3Casimir(const u3::SU3& x0)
+    {
+      int lm=x0.lambda();
+      int mu=x0.mu();
+      return 2./3*(lm*lm+mu*mu+lm*mu+3*lm+3*mu);
+    }
+
+  void U3DecomposeRelativeOperatorU3ST(
+    int Nmax,
+    double hbar_omega,
+    const std::string& filename
+    )
+  {
+    int etap,eta,lambda0,mu0,kappa0, L0;
+    int Sp,Tp,S,T,S0,T0;
+    double rme;
+    std::string line;
+    std::map<std::pair<int,u3::SU3>,double> u3_decomposition;
+    std::ifstream in_stream(filename);
+    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+    std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
+
+    int line_count = 0;
+    double total; 
+    while(std::getline(in_stream,line))
+      {
+        std::istringstream(line)>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
+        if (fabs(rme)>zero_threshold)
+          {
+            int N0=etap-eta;
+            u3::SU3 x0(lambda0,mu0);
+            std::pair<int,u3::SU3> key(N0,x0);
+            u3_decomposition[key]+=rme*rme;
+            total+=rme*rme;
+          }
+      }
+    std::ofstream os(fmt::format("u3_decomposition_hw{:.1f}_Nmax{:02d}_u3st.dat",hbar_omega,Nmax));
+
+    for(auto it=u3_decomposition.begin(); it!=u3_decomposition.end(); it++)
+      {
+        u3::SU3 x0; 
+        int N0;
+        std::tie(N0,x0)=it->first;
+        double casimir=SU3Casimir(x0);
+        double amplitude=it->second/total;
+        const int width=3;
+        const int precision=16;
+        os << std::setprecision(precision);
+        os
+          << " " << std::setw(width) << N0
+          << " " << std::setw(width) << x0.lambda()
+          << " " << std::setw(width) << x0.mu()
+          << " " << "  "
+          << " " << std::showpoint << casimir
+          << " " << std::showpoint << std::scientific << amplitude
+          << std::endl;
+      }
+
+
+  }
+
+
+
   void Upcoupling(    
       const basis::RelativeSpaceLSJT& space,
       const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,

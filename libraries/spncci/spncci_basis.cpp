@@ -112,14 +112,24 @@ namespace spncci
     )
   {
 
-    // populate SpNCCI space with irrep families
+    // populate SpNCCI space with irrep families if gamma_max>0
+    // int num_lgi=multiplicity_tagged_lgi_vector.size();
+    // for(int lgi_index=0; lgi_index<multiplicity_tagged_lgi_vector.size(); ++lgi_index);
+    //   {
+    //     const auto& lgi_tag=multiplicity_tagged_lgi_vector[lgi_index];
+    //   }
     for(auto& lgi_tag : multiplicity_tagged_lgi_vector)
-      spncci_space.emplace_back(lgi_tag.irrep, lgi_tag.tag);
+    {
+      if(lgi_tag.tag>0)
+        spncci_space.emplace_back(lgi_tag.irrep, lgi_tag.tag);
+    }
 
     // build up the irrep for each irrep family
     for (spncci::SpNCCIIrrepFamily& spncci_irrep_family : spncci_space)
       {
 
+        // if(spncci_irrep_family.gamma_max()==0)
+        //   continue;
         // find truncation
         //
         // Note: Even if a subspace is truncated into oblivion
@@ -161,9 +171,18 @@ namespace spncci
         //                         std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
         //                         );
 
+                
         if (sigma_irrep_map.count(sigma) == 0)
-          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max,restrict_sp3r_to_u3_branching);
-          
+          {
+            if(restrict_sp3r_to_u3_branching)
+              {
+                sp3r::Sp3RSpace irrep_restricted;
+                sp3r::ConstructRestrictedSp3RSpace(sigma,Nn_max,irrep_restricted);
+                sigma_irrep_map[sigma]=irrep_restricted;
+              }
+            else
+              sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max,restrict_sp3r_to_u3_branching);
+          }
         // save info back to SpNCCIIrrepFamily
         const sp3r::Sp3RSpace& irrep_space = sigma_irrep_map[sigma];
         spncci_irrep_family.SaveSpaceReference(irrep_space);

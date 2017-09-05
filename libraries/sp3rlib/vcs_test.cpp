@@ -77,27 +77,62 @@ int main(int argc, char **argv)
 			std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
 		}
 
+	{
+		std::cout<<std::endl<<"checking restricted irreps"<<std::endl;
+		HalfInt Nsigma(10,2);
+		bool restrict_sp3r_to_u3_branching=true;
+		u3::U3 sigma(Nsigma, u3::SU3(2,0));
 
-	std::cout<<std::endl<<"checking restricted irreps"<<std::endl;
-	HalfInt Nsigma(10,2);
-	bool restrict_sp3r_to_u3_branching=true;
-	u3::U3 sigma(Nsigma, u3::SU3(0,1));
-	sp3r::Sp3RSpace irrep_restricted(sigma,2,restrict_sp3r_to_u3_branching);
-	std::cout<<irrep_restricted.DebugStr()<<std::endl;
+		sp3r::Sp3RSpace irrep_restricted;
+		sp3r::ConstructRestrictedSp3RSpace(sigma,4,irrep_restricted);
+		sp3r::Sp3RSpace irrep(sigma,4);
 
-	vcs::MatrixCache K_matrix_map_restricted;
+		std::cout<<irrep.DebugStr()<<std::endl;
+		std::cout<<irrep_restricted.DebugStr()<<std::endl;
 
- 	vcs::GenerateKMatrices(irrep_restricted,K_matrix_map_restricted);
-  for (auto it=K_matrix_map_restricted.begin(); it !=K_matrix_map_restricted.end(); ++it)
-		{
-			std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
-			std::cout<<"inverse "<<std::endl;
-			std::cout<<it->second.inverse()<<std::endl;
-		}
+		vcs::MatrixCache K_matrix_map_restricted;
+	 	vcs::GenerateKMatrices(irrep_restricted,K_matrix_map_restricted);
+
+		vcs::MatrixCache K_matrix_map;
+	 	vcs::GenerateKMatrices(irrep,K_matrix_map);
 
 
+		for (auto it=K_matrix_map.begin(); it !=K_matrix_map.end(); ++it)
+			{
+				std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
+				if(K_matrix_map_restricted.count(it->first))
+					std::cout<<"Restricted K "<<std::endl<<K_matrix_map_restricted[it->first]<<std::endl;
+
+				std::cout<<"inverse "<<std::endl;
+				std::cout<<it->second.inverse()<<std::endl;
+				Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen_system(it->second);
+	      std::cout<<"eigenvalues"<<std::endl;
+	      const Eigen::VectorXd& eigen_values=eigen_system.eigenvalues();
+	      std::cout<<eigen_values<<std::endl;
+
+			}
+
+		u3::U3 w1(7,u3::SU3(2,1));
+		u3::U3 w2(7,u3::SU3(4,0));
+		u3::U3 n(2,u3::SU3(2,0));
+		
+		u3::U3 wp(9,u3::SU3(2,2));
+		u3::U3 np(2,u3::SU3(2,0));
+		std::cout<<w1.Str()<<"  "<<vcs::Omega(np,wp)-vcs::Omega(n,w1)<<std::endl;
+		std::cout<<w2.Str()<<"  "<<vcs::Omega(np,wp)-vcs::Omega(n,w2)<<std::endl;
 
 
+		// for (auto it=K_matrix_map_restricted.begin(); it !=K_matrix_map_restricted.end(); ++it)
+		// 	{
+		// 		std::cout <<it->first.Str()<<std::endl<<it->second<<std::endl;
+		// 		std::cout<<"inverse "<<std::endl;
+		// 		std::cout<<it->second.inverse()<<std::endl;
+		// 		Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen_system(it->second);
+	 //      std::cout<<"eigenvalues"<<std::endl;
+	 //      const Eigen::VectorXd& eigen_values=eigen_system.eigenvalues();
+	 //      std::cout<<eigen_values<<std::endl;
+		// 	}
+	}
 } // main 
 
 

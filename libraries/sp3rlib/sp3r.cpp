@@ -156,56 +156,6 @@
     }
    
 
-  void RestrictUNU3Branching(SpanakopitaType& states,const u3::U3& sigma,const u3::U3& omega,const MultiplicityTagged<u3::U3>& n_rho_max)
-  // Pass container, pass omega nrho in question, check if allowed
-    {
-      u3::U3 n(n_rho_max.irrep);
-      int rho_max=n_rho_max.tag;
-
-      if(sigma==omega)
-        {
-          states.insert(SpanakopitaType::value_type(omega,MultiplicityTagged<u3::U3>(n,rho_max)));
-
-        }
-      else
-        {
-          MultiplicityTagged<u3::U3>::vector omega1_tagged_vec = KroneckerProduct(omega,u3::U3(-2,u3::SU3(0,2)));
-
-          for(int rho=1; rho<=rho_max; ++rho)
-            for(const auto& omega1_tagged : omega1_tagged_vec)
-              {
-                u3::U3 omega1(omega1_tagged.irrep);
-                SpanakopitaRangeType state_range = states.equal_range(omega1);
-                for (auto it = state_range.first; it != state_range.second; ++it)
-                  {
-                    MultiplicityTagged<u3::U3> n1_rho1_max = it->second;
-                    u3::U3 n1 = n1_rho1_max.irrep;
-                    int rho1_max = n1_rho1_max.tag;
-                    if(u3::OuterMultiplicity(n1.SU3(),u3::SU3(2,0),n.SU3())==0)
-                      continue;
-
-                    for(int rho1=1; rho1<=rho1_max; ++rho1)
-                      {
-                        MultiplicityTagged<u3::U3> n_rho(n,rho);
-                        MultiplicityTagged<u3::U3> n1_rho1(n1,rho1);
-
-                        // If U(3)-boson rme is non-zero, and at least on of the n,rho have non-zero value, add omega and 
-                        // n,rho_max to map
-                        if(fabs(vcs::U3BosonCreationRME(sigma,n_rho,omega,sigma,n1_rho1,omega1))>1e-10)
-                          //Check if (Omega-Omega)!=0
-                          if((vcs::Omega(n,omega)-vcs::Omega(n1,omega1))>1e-10)
-                            {
-                              // Then the state is allowed and we add it to our set of states in the multi-map and
-                              // exit the function
-                              states.insert(SpanakopitaType::value_type(omega,MultiplicityTagged<u3::U3>(n,rho_max)));
-                              return;
-                            }       
-                      }
-                  } 
-              }  
-          }
-    }
-
 
   ////////////////////////////////////////////////////////////////
   // space and subspace indexing
@@ -236,6 +186,14 @@
          }
        }
      }
+
+      void U3Subspace::Init(const std::vector<MultiplicityTagged<u3::U3>>& state_set)
+      {
+        // for each (n,rho_max) entry belonging to this omega subspace
+        for (auto state : state_set)
+          PushStateLabels(state);
+      }
+
 
      std::string U3Subspace::DebugStr() const
      {
@@ -291,10 +249,10 @@
         u3::U3 omega = omega_tagged.irrep;
         int rho_max = omega_tagged.tag;
         MultiplicityTagged<u3::U3>n_rho_max(n,rho_max);
-        if(restrict_sp3r_to_u3_branching)
-          RestrictUNU3Branching(states,sigma,omega,n_rho_max);
-        else
-           states.insert(SpanakopitaType::value_type(omega,n_rho_max));         
+        // if(restrict_sp3r_to_u3_branching)
+        //   RestrictUNU3Branching(states,sigma,omega,n_rho_max);
+        // else
+        states.insert(SpanakopitaType::value_type(omega,n_rho_max));         
        }
      }
 
@@ -333,6 +291,27 @@
      }
 
    }
+
+  Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
+    {
+      // set space labels
+      sigma_ = sigma;
+      Nn_max_ = Nn_max;
+
+      // scan through spanakopita for subspaces
+      for(auto it=spanakopita.begin(); it!=spanakopita.end(); ++it)
+        {
+          // retrieve omega key of this group of states
+          u3::U3 omega = it->first;
+          const auto& states = it->second;
+          PushSubspace(U3Subspace(omega));
+          subspaces_.back().Init(states);
+        }
+   }
+
+
+
+
 
    std::string Sp3RSpace::DebugStr() const
    {
@@ -377,6 +356,68 @@
     return IrrepPartionN;
   }
 
+  // typedef std::map<u3::U3,std::vector<MultiplicityTagged<u3::U3>> SpStatesMap;
+  
+  void ConstructRestrictedSp3RSpace(const u3::U3& sigma, int Nn_max, sp3r::Sp3RSpace& irrep)
+  // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
+    {
+      sp3r::RestrictedSpanakopitaType spanakopita;
+      spanakopita[sigma].push_back(MultiplicityTagged<u3::U3>(u3::U3(0,u3::SU3(0,0)),1));
+
+      // Temporary container that's updated with each new Nn is trial states 
+      sp3r::RestrictedSpanakopitaType spanakopita_temp=spanakopita;
+      
+
+      // from set of temporary states construct irrep
+      sp3r::Sp3RSpace irrep_init(sigma,Nn_max);
+
+      // Add in next potential set of states 
+      for(int Nn=2; Nn<=Nn_max; Nn+=2)
+        {
+          for(int subspace_index=0; subspace_index<irrep_init.size(); ++subspace_index)
+            {
+              const sp3r::U3Subspace& subspace=irrep_init.GetSubspace(subspace_index);
+              const u3::U3& omega=subspace.U3();
+              if(int(omega.N()-sigma.N())==Nn)
+                for(int state_index=0; state_index<subspace.size(); ++state_index)
+                    spanakopita_temp[omega].push_back(subspace.GetStateLabels(state_index));
+                
+            }
+
+          // from set of temporary states construct irrep
+          sp3r::Sp3RSpace irrep_temp(sigma,Nn_max,spanakopita_temp);
+          
+          //Compute Kmatrices 
+          vcs::MatrixCache K_matrix_map;
+          vcs::GenerateKMatrices(irrep_temp,K_matrix_map);
+
+          // Iterate through K matrix
+          for(auto it=K_matrix_map.begin(); it!=K_matrix_map.end(); ++it)
+            {
+              const u3::U3& omega=it->first;
+              if(int(omega.N()-sigma.N())!=Nn)
+                continue;
+              const sp3r::U3Subspace& subspace=irrep_temp.GetSubspace(irrep_temp.LookUpSubspaceIndex(omega));
+              auto& Kmatrix=it->second;
+              
+              // Check for zero.  If any non-zero element in K matrix, add state to final map.
+              for(int state_index=0; state_index<Kmatrix.rows(); ++state_index)
+                {
+                  bool valid=false;
+                  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen_system(Kmatrix);
+                  Eigen::VectorXd eigen_values=eigen_system.eigenvalues();
+                    // TODO: remove hard coded zero threshold
+                  
+                  if(fabs(eigen_values(state_index))>1e-4)
+                    spanakopita[omega].push_back(subspace.GetStateLabels(state_index));
+                }
+            }
+          // Update temp map to match states and repeat process. 
+          spanakopita_temp=spanakopita;
+ 
+        }
+      irrep=sp3r::Sp3RSpace(sigma,Nn_max,spanakopita);
+    }
 
 
 

@@ -495,18 +495,18 @@ int main(int argc, char **argv)
   timer_k_matrices.Stop();
   std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
 
-  // std::cout<<"Kmatrices "<<std::endl;
-  // for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
-  //   {
-  //     std::cout<<"sigma "<<it->first.Str()<<std::endl;
-  //     for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
-  //     {
-  //       std::cout<<"  omega"<<it2->first.Str()<<std::endl;
-  //       auto matrix=it2->second;
-  //       std::cout<<matrix<<std::endl;
-  //       std::cout<<matrix.inverse()<<std::endl;
-  //     }
-  //   }
+  std::cout<<"Kmatrices "<<std::endl;
+  for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
+    {
+      std::cout<<"sigma "<<it->first.Str()<<std::endl;
+      for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
+      {
+        std::cout<<"  omega"<<it2->first.Str()<<std::endl;
+        auto matrix=it2->second;
+        std::cout<<matrix<<std::endl;
+        std::cout<<matrix.inverse()<<std::endl;
+      }
+    }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Enumerate unit tensor space 
@@ -1074,11 +1074,11 @@ int main(int argc, char **argv)
             // calculate observable results
             const Eigen::MatrixXd& observable_matrix = observable_matrices[observable_index][sector_index];
             Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
-            if(observable_index==2 && (bra_subspace_index==ket_subspace_index)) 
+            if(bra_subspace_index==ket_subspace_index) 
               {
               // Eigen::MatrixXd observable_matrix2=observable_matrix;
               // mcutils::ChopMatrix(observable_matrix2, 1e-5);
-              std::cout<<"Quadrupole "<<std::endl;
+              std::cout<<"observable  "<<observable_index<<std::endl;
               for(int i=0; i<observable_matrix.rows(); ++i)
                 for(int j=0; j<observable_matrix.cols(); ++j)
                   if(fabs(observable_matrix(i,j)-observable_matrix(j,i))>1e-6)
