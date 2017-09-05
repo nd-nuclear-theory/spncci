@@ -30,10 +30,6 @@ namespace spncci
   typedef basis::OperatorBlocks<MatrixFloatType> OperatorBlocks;
   typedef basis::OperatorHyperblocks<MatrixFloatType> OperatorHyperblocks;
 
-  // old names -- DEPRECATED
-  typedef Vector VectorType;   // e.g., for vector of eigenvalues
-  typedef Matrix MatrixType;  // for matrix which is not semantically an operator block, e.g., matrix of eigenvectors
-
   // tolerance for zero-testing of SpNCCI matrix elements
   extern MatrixFloatType g_zero_tolerance;
   extern bool g_suppress_zero_sectors;

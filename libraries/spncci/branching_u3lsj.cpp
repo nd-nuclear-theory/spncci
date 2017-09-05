@@ -228,18 +228,18 @@ namespace spncci
         u3::WCoefCache& w_cache,
         const spncci::SpaceU3S& u3s_space,
         const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-        const basis::MatrixVector& source_sectors,
+        const spncci::OperatorBlocks& source_blocks,
         const spncci::SpaceLS& target_space_bra,
         const spncci::SpaceLS& target_space_ket,
         const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-        basis::MatrixVector& target_sectors
+        spncci::OperatorBlocks& target_blocks
     )
   {
     // For a given Jp,J0,J sector
     // spncci::SpaceLS ls_space(u3s_space, J);
     //for each target, get sources and multiply by appropriate coefficient.
     // std::cout<<"target sector "<<Jp<<"  "<<J0<<"  "<<J<<"  ............................................................."<<std::endl;
-    target_sectors.resize(target_sector_labels.size());
+    target_blocks.resize(target_sector_labels.size());
     for(int t=0; t<target_sector_labels.size(); ++t)
       {
         // std::cout<<"t "<<t<<std::endl;
@@ -253,8 +253,8 @@ namespace spncci
         int target_dim_bra=bra_subspace.full_dimension();
         int target_dim_ket=ket_subspace.full_dimension();
         // Zero initialize
-        Eigen::MatrixXd& target_sector=target_sectors[t];
-        target_sector=Eigen::MatrixXd::Zero(target_dim_bra,target_dim_ket);
+        spncci::OperatorBlock& target_block=target_blocks[t];
+        target_block=spncci::OperatorBlock::Zero(target_dim_bra,target_dim_ket);
        
 
 
@@ -268,14 +268,14 @@ namespace spncci
         std::tie(Lp,Sp)=bra_subspace.labels();
         std::tie(L,S)=ket_subspace.labels();
 
-        double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);  // FLOAT_TYPE
+        spncci::MatrixFloatType Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
         
         // std::cout<<"starting loop over sources "<<std::endl;
         for(int s=0; s<source_sector_labels.size(); ++s)
           {
             const spncci::SectorLabelsU3S& source_labels=source_sector_labels[s];
-            const Eigen::MatrixXd& source_sector=source_sectors.at(s);
+            const spncci::OperatorBlock& source_block=source_blocks.at(s);
 
             if(L0!=source_labels.L0())
               continue;
@@ -331,18 +331,18 @@ namespace spncci
                   // target sector. Source sector dimensions are source_dimp x source_dim
                   // starting position given by :
                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
-                  double Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);  // FLOAT_TYPE
+                  spncci::MatrixFloatType Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
                   // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
                             // <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
                   int start_indexp=(kappa_p-1)*source_dimp+indexp;
                   int start_index=(kappa-1)*source_dim+index;
                   // std::cout<<"branching"<<std::endl
                   //   <<"W "<<Wcoef<<"  Jcoef "<<Jcoef<<std::endl
-                  //   <<source_sector<<std::endl<<std::endl;
+                  //   <<source_block<<std::endl<<std::endl;
                   // std::cout<<" target "<<start_indexp<<"  "<< start_index<<"  "<< source_dimp<<"  "<< source_dim<<std::endl;
                   // <<target_sector.rows()<<"  "<<target_sector.cols()<<std::endl<<std::endl;
-                  target_sector.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_sector;
-                  // std::cout<<target_sector<<std::endl<<std::endl;
+                  target_block.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_block;
+                  // std::cout<<target_block<<std::endl<<std::endl;
                 }
           }
       }
@@ -352,9 +352,9 @@ namespace spncci
   ConstructOperatorMatrix(
     const spncci::SpaceLS& bra_source_space,
     const spncci::SpaceLS& ket_source_space,
-    std::vector<spncci::SectorLabelsLS>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    Eigen::MatrixXd& operator_matrix
+    const std::vector<spncci::SectorLabelsLS>& source_sector_labels,
+    const spncci::OperatorBlocks& source_blocks,
+    spncci::OperatorBlock& operator_matrix
     )
   {
     // Get size of matrix
@@ -383,11 +383,11 @@ namespace spncci
 
     int ket_matrix_dim=ket_index;
     
-    operator_matrix=Eigen::MatrixXd::Zero(bra_matrix_dim,ket_matrix_dim);
+    operator_matrix=spncci::OperatorBlock::Zero(bra_matrix_dim,ket_matrix_dim);
     
     // For each sector in source sectors, get bra and ket indices, look-up matrix index
     // and accumulate in full matrix 
-    for(int s=0; s<source_sectors.size(); ++s)
+    for(int s=0; s<source_blocks.size(); ++s)
       {
         const spncci::SectorLabelsLS& sector_labels=source_sector_labels[s];
         int subspace_index_bra=sector_labels.bra_index();
@@ -396,11 +396,54 @@ namespace spncci
         int matrix_index_bra=bra_matrix_index_lookup[subspace_index_bra];
         int matrix_index_ket=ket_matrix_index_lookup[subspace_index_ket];
 
-        Eigen::MatrixXd& sector=source_sectors[s];
-        operator_matrix.block(matrix_index_bra,matrix_index_ket,sector.rows(),sector.cols())
-          +=sector;
+        const spncci::OperatorBlock& block=source_blocks[s];
+        operator_matrix.block(matrix_index_bra,matrix_index_ket,block.rows(),block.cols())
+          +=block;
       }
   }
 
+  void ConstructBranchedBlock(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      const spncci::OperatorBlocks& blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int J0,
+      const typename spncci::SectorsSpJ::SectorType& sector_spj,
+      spncci::OperatorBlock& block_spj
+    )
+  {
+    // read off J values
+    const HalfInt bra_J = sector_spj.bra_subspace().J();
+    const HalfInt ket_J = sector_spj.ket_subspace().J();
+
+    // determine allowed LS sectors
+    const spncci::SpaceLS& bra_space_lsj = spaces_lsj[bra_J];
+    const spncci::SpaceLS& ket_space_lsj = spaces_lsj[ket_J];
+
+    // determine set of (L0,S0) labels for this observable (triangular with J0)
+    std::vector<spncci::OperatorLabelsLS> operator_labels_ls;
+    spncci::GenerateOperatorLabelsLS(J0,operator_labels_ls);
+
+    // ...
+    std::vector<spncci::SectorLabelsLS> sectors_lsj;
+    spncci::GetSectorsLS(bra_space_lsj,ket_space_lsj,operator_labels_ls,sectors_lsj);
+
+    // branch LS sectors to LSJ
+    spncci::OperatorBlocks matrices_lsj;  
+    spncci::ContractAndRegroupLSJ(
+        bra_J,J0,ket_J,
+        w_cache,
+        space_u3s,sectors_u3s,blocks_u3s,
+        bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
+      );
+
+    // collect LSJ sectors into J matrix
+    spncci::ConstructOperatorMatrix(
+        bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj,
+        block_spj
+      );
+
+  }
 
 }  // namespace

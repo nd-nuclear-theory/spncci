@@ -58,8 +58,8 @@ namespace spncci
 
   void CalculateNexDecompositions(
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& eigenvectors,
-      std::vector<spncci::MatrixType>& Nex_decompositions,
+      const std::vector<spncci::Matrix>& eigenvectors,
+      std::vector<spncci::Matrix>& Nex_decompositions,
       HalfInt Nsigma0,
       int Nmax
     )
@@ -69,13 +69,13 @@ namespace spncci
       {
         // set up aliases for current J subspace
         const SubspaceSpJ& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
-        const spncci::MatrixType& eigenvectors_J = eigenvectors[spj_subspace_index];
-        spncci::MatrixType& Nex_decompositions_J = Nex_decompositions[spj_subspace_index];
+        const spncci::Matrix& eigenvectors_J = eigenvectors[spj_subspace_index];
+        spncci::Matrix& Nex_decompositions_J = Nex_decompositions[spj_subspace_index];
 
         // initialize decomposition matrix
         const int decomposition_size = Nmax+1;
         const int num_eigenvectors = eigenvectors_J.cols();
-        Nex_decompositions_J = spncci::MatrixType::Zero(decomposition_size,num_eigenvectors);
+        Nex_decompositions_J = spncci::Matrix::Zero(decomposition_size,num_eigenvectors);
 
         // accumulate probability
         for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
@@ -98,8 +98,8 @@ namespace spncci
 
   void CalculateBabySpNCCIDecompositions(
       const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::MatrixType>& eigenvectors,
-      std::vector<spncci::MatrixType>& baby_spncci_decompositions,
+      const std::vector<spncci::Matrix>& eigenvectors,
+      std::vector<spncci::Matrix>& baby_spncci_decompositions,
       int baby_spncci_space_size
     )
   {
@@ -108,13 +108,13 @@ namespace spncci
       {
         // set up aliases for current J subspace
         const SubspaceSpJ& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
-        const spncci::MatrixType& eigenvectors_J = eigenvectors[spj_subspace_index];
-        spncci::MatrixType& baby_spncci_decompositions_J = baby_spncci_decompositions[spj_subspace_index];
+        const spncci::Matrix& eigenvectors_J = eigenvectors[spj_subspace_index];
+        spncci::Matrix& baby_spncci_decompositions_J = baby_spncci_decompositions[spj_subspace_index];
 
         // initialize decomposition matrix
         const int decomposition_size = baby_spncci_space_size;
         const int num_eigenvectors = eigenvectors_J.cols();
-        baby_spncci_decompositions_J = spncci::MatrixType::Zero(decomposition_size,num_eigenvectors);
+        baby_spncci_decompositions_J = spncci::Matrix::Zero(decomposition_size,num_eigenvectors);
 
         // accumulate probability
         for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)

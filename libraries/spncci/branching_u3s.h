@@ -22,6 +22,7 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
+#include "spncci/spncci_common.h"
 #include "spncci/unit_tensor.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
@@ -370,7 +371,7 @@ namespace spncci
         const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
         const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
         const std::vector<spncci::SectorLabelsU3S>& target_sectors_u3s,
-        basis::OperatorBlocks<double>& target_blocks_u3s
+        spncci::OperatorBlocks& target_blocks_u3s
       );
 
 

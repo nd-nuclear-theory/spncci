@@ -11,7 +11,8 @@
   5/27/17 (mac): Overhaul implementation of U3LS subspaces and store
     parent irrep info.
   6/11/17 (mac): Impose SU(3)->L branching rule and sort LS subspaces.
-    
+  7/7/17 (mac): Replace all-at-once observable branching with on-demand
+    branching of each (J',J) block (ConstructBranchedBlock).
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_BRANCHING_U3LSJ_H_
@@ -341,11 +342,11 @@ namespace spncci
         u3::WCoefCache& w_cache,
         const spncci::SpaceU3S& u3s_space,
         const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-        const basis::MatrixVector& source_sectors,
+        const spncci::OperatorBlocks& source_blocks,
         const spncci::SpaceLS& target_space_bra,
         const spncci::SpaceLS& target_space_ket,
         const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-        basis::MatrixVector& target_sectors
+        spncci::OperatorBlocks& target_blocks
       );
 
   // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
@@ -355,10 +356,22 @@ namespace spncci
   ConstructOperatorMatrix(
     const spncci::SpaceLS& bra_source_space,
     const spncci::SpaceLS& ket_source_space,
-    std::vector<spncci::SectorLabelsLS>& source_sector_labels,
-    basis::MatrixVector& source_sectors,
-    Eigen::MatrixXd& operator_matrix
+    const std::vector<spncci::SectorLabelsLS>& source_sector_labels,
+    const spncci::OperatorBlocks& source_blocks,
+    spncci::OperatorBlock& operator_matrix
     );
+
+  void ConstructBranchedBlock(
+      u3::WCoefCache& w_cache,
+      const spncci::SpaceU3S& space_u3s,
+      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
+      const spncci::OperatorBlocks& blocks_u3s,
+      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
+      int J0,
+      const typename spncci::SectorsSpJ::SectorType& sector_spj,
+      spncci::OperatorBlock& block_spj
+    );
+  // Construct J branched observable block.
   
 
 }  // namespace

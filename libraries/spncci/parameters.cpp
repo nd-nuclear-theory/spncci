@@ -59,7 +59,7 @@ namespace spncci
             line_stream >> observable >> J0;
             ParsingCheck(line_stream,line_count,line);
             observable_filenames.push_back(observable);
-            observable_Jvalues.push_back(J0);
+            observable_J0_values.push_back(J0);
           }
       }
 

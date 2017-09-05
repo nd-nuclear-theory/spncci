@@ -4,6 +4,9 @@
   High-level control code for computations in SpNCCI calculation
   programs.
                                   
+  DEPRECATED CODE STRUCTURE -- instead split up routines
+  thematically...  rename to "recurrence.h"???
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -16,6 +19,8 @@
       + GenerateRecurrenceHypersectors
       + PopulateHypersectorsWithSeeds
   7/1/17 (aem) : Updated GetLGIExpansion for intrinsic basis
+  7/6/17 (mac): Move out branching routines and eigenproblem control.
+
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_
@@ -30,6 +35,7 @@
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
 #include "spncci/spncci_basis.h"
+#include "spncci/spncci_common.h"
 #include "spncci/unit_tensor.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/relative_operator.h"
@@ -186,55 +192,16 @@ void PopulateHypersectorsWithSeeds(
   //
   // Outputs:
 
-
-  void ConstructBranchedObservables(
-      u3::WCoefCache& w_cache,
-      const spncci::SpaceU3S& space_u3s,
-      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observable_sectors_u3s,
-      const std::vector<basis::MatrixVector>& observable_blocks_u3s,
-      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
-      int num_observables,
-      const std::vector<int>& observable_J0_values,
-      const std::vector<spncci::SectorsSpJ>& observable_sectors_spj,
-      std::vector<basis::MatrixVector>& observable_blocks_spj
-    );
-  // Construct J branched observable matrices.
-
-  void ConstructBranchedBlock(
-      u3::WCoefCache& w_cache,
-      const spncci::SpaceU3S& space_u3s,
-      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
-      const basis::MatrixVector& blocks_u3s,
-      std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
-      int J0,
-      const typename spncci::SectorsSpJ::SectorType& sector_spj,
-      spncci::MatrixType& block_spj
-    );
-  // Construct J branched observable block.
-
-
-  // void ConstructBranchedObservables(
-  //   u3::WCoefCache& w_cache,
-  //   const spncci::SpaceSpU3S& space_spu3s,
-  //   const std::vector<std::vector<spncci::SectorLabelsSpU3S>>& observable_sectors_spu3s,
-  //   const std::vector<basis::MatrixVector>& observable_matrices_spu3s,
-  //   std::map<HalfInt,spncci::SpaceSpLS>& spaces_splsj,
-  //   int num_observables,
-  //   const std::vector<HalfInt>& J_values,
-  //   const std::vector<int>& observable_Jvalues,
-  //   std::vector<std::map<spncci::JPair,spncci::MatrixType>>& observable_matrices
-  //   );
-
   void 
   SolveHamiltonian(
-      const spncci::MatrixType& hamiltonian_matrix,
+      const spncci::OperatorBlock& hamiltonian_matrix,
       const HalfInt& J,
       int num_eigenvalues,
       int eigensolver_num_convergence,  // whatever exactly this is...
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
-      spncci::VectorType& eigenvalues,  // eigenvalues for J-subspace
-      spncci::MatrixType& eigenvectors  // eigenvectors for J-subspace
+      spncci::Vector& eigenvalues,  // eigenvalues for J-subspace
+      spncci::Matrix& eigenvectors  // eigenvectors for J-subspace
     );
   // Solve the Hamiltonian matrix (in a single J-space) for energy eigenvalues and vectors 
 
