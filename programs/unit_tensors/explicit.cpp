@@ -237,10 +237,10 @@ int main(int argc, char **argv)
   std::cout << "Read lsu3shell basis..." << std::endl;
 
   // read lsu3shell basis (regroup into U3SPN subspaces)
-  lsu3shell::LSU3BasisTable lsu3shell_basis_table;
+  lsu3shell::LSU3ShellBasisTable lsu3shell_basis_table;
   lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
   u3shell::SpaceU3SPN lsu3shell_space;
-  lsu3shell::ReadLSU3Basis(
+  lsu3shell::ReadLSU3ShellBasis(
       run_parameters.Nsigma_0,run_parameters.lsu3shell_basis_filename,
       lsu3shell_basis_table,lsu3shell_basis_provenance,lsu3shell_space
     );

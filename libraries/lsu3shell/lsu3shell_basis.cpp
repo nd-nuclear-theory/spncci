@@ -18,10 +18,10 @@
 namespace lsu3shell
 {
 
-  void ReadLSU3Basis(
+  void ReadLSU3ShellBasis(
       HalfInt Nsigma_0, 
       const std::string& filename, 
-      LSU3BasisTable& lsu3_basis_table,
+      LSU3ShellBasisTable& lsu3_basis_table,
       U3SPNBasisLSU3Labels& basis_provenance,
       u3shell::SpaceU3SPN& space
     )
@@ -34,7 +34,7 @@ namespace lsu3shell
 
     // set up temporary storage
     std::map<u3shell::U3SPN,int> subspace_dimensions;
-    std::map<u3shell::U3SPN,std::vector<LSU3BasisGroupLabels>> subspace_provenances;
+    std::map<u3shell::U3SPN,std::vector<LSU3ShellBasisGroupLabels>> subspace_provenances;
 
     // read basis table entries
     std::string line;
@@ -78,12 +78,12 @@ namespace lsu3shell
         subspace_dimensions[omegaSPN]+=dim;
         
         // store entry
-        LSU3BasisGroupLabels lsu3_basis_group_labels(omegaSPN,ip,in,Np,Nn,Nex);
-        LSU3BasisGroupData mult_group(lsu3_basis_group_labels,dim,start_index);
+        LSU3ShellBasisGroupLabels lsu3_basis_group_labels(omegaSPN,ip,in,Np,Nn,Nex);
+        LSU3ShellBasisGroupData mult_group(lsu3_basis_group_labels,dim,start_index);
         lsu3_basis_table.push_back(mult_group);
 
         // store provenence records
-        std::vector<LSU3BasisGroupLabels>& subspace_provenance_list = subspace_provenances[omegaSPN];
+        std::vector<LSU3ShellBasisGroupLabels>& subspace_provenance_list = subspace_provenances[omegaSPN];
         for (int multiplicity_index=0; multiplicity_index < dim; ++multiplicity_index)
           subspace_provenance_list.push_back(lsu3_basis_group_labels);
       }
@@ -100,7 +100,7 @@ namespace lsu3shell
 
         // define aliases for key and value
         const u3shell::U3SPN& omegaSPN = omegaSPN_provenance.first;
-        const std::vector<LSU3BasisGroupLabels>& subspace_provenance_list = omegaSPN_provenance.second;
+        const std::vector<LSU3ShellBasisGroupLabels>& subspace_provenance_list = omegaSPN_provenance.second;
         
         // re-save provenance data for subspace
         basis_provenance.push_back(subspace_provenance_list);

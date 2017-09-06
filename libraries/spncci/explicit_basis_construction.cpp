@@ -47,10 +47,10 @@ int main(int argc, char **argv)
   std::string arel_filename = argv[8];
   int i=std::stoi(argv[9]);
   // Set up lsu3shell basis
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
 
   // Get lgi expansions
   std::cout<<"Generating LGI expansion"<<std::endl;

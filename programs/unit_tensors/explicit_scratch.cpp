@@ -328,11 +328,11 @@ int main(int argc, char **argv)
   // Get LGI's and populate sector map with LGI rme's
   //////////////////////////////////////////////////////////////////////////////////////////
   // Generating LGI matrix elements 
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
   // Read in lsu3shell basis 
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3shell_basis_filename, basis_table, basis_provenance, space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3shell_basis_filename, basis_table, basis_provenance, space);
 
   // // Writing out lsu3shell basis
   // std::cout<<"lsu3shell basis"<<std::endl;

@@ -36,7 +36,7 @@ namespace spncci
 
   void
     ReadLSU3ShellSymplecticOperatorRMEs(
-        const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
         const u3shell::SpaceU3SPN& lsu3shell_space, 
         const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, basis::MatrixVector& Bintr_matrices,
         const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, basis::MatrixVector& Nintr_matrices,
@@ -59,7 +59,7 @@ namespace spncci
 
   void
     ReadLSU3ShellSymplecticRaisingOperatorRMEs(
-        const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
         const u3shell::SpaceU3SPN& lsu3shell_space, 
         const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, basis::MatrixVector& Aintr_matrices,
         int A

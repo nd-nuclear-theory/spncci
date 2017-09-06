@@ -50,7 +50,7 @@ namespace spncci
 
 void GetLGIExpansion(
     const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
     const std::string& Brel_filename,
     const std::string& Nrel_filename,
     int A, HalfInt Nsigma_0,
@@ -72,7 +72,7 @@ void GetLGIExpansion(
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     const std::string& relative_unit_tensor_filename_template,
     const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
     const basis::MatrixVector& lgi_expansions,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& lgi_unit_tensor_blocks
@@ -175,7 +175,7 @@ void PopulateHypersectorsWithSeeds(
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
     const std::string& relative_unit_tensor_filename_template,
     const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
     const spncci::SpNCCISpace& spncci_space,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const basis::MatrixVector& spncci_expansions,

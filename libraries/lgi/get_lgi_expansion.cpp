@@ -38,11 +38,11 @@ int main(int argc, char **argv)
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
   // e.g. "../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat"
   std::string lsu3_filename(basis_filename.c_str());
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
   // Filling out basis_table, basis_provenance and space;
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   std::cout<<"Read Basis complete"<<std::endl;
 
  // Operator information

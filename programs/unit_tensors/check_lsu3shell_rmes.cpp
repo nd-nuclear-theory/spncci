@@ -35,10 +35,10 @@ int main(int argc, char **argv)
 	std::string operators=argv[4];
 
   // Generate basis
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
-  lsu3shell::ReadLSU3Basis(Nsigma_0,basis_filename,basis_table,basis_provenance,space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,basis_filename,basis_table,basis_provenance,space);
   std::cout<<"Read in basis"<<std::endl;
 
 	int N1,lambda1,mu1,S1,T1,N2,lambda2,mu2,S2,T2;

@@ -26,11 +26,11 @@ int main(int argc, char **argv)
   int A=2;
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
   std::string lsu3_filename("../../data/lsu3shell/lsu3shell_basis_2H_Nmax02.dat");
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
   // Populate, basis_table, basis_provenance and space. 
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   std::cout<<"Read Basis complete"<<std::endl;
   // Generate sectors
   u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);

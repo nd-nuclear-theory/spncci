@@ -146,7 +146,7 @@ namespace lgi
   //   GenerateLGIExpansion(
   //       int A,
   //       HalfInt Nsigma_0,
-  //       const lsu3shell::LSU3BasisTable& lsu3shell_basis_table,
+  //       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
   //       const u3shell::SpaceU3SPN& lsu3shell_space, 
   //       std::ifstream& is_Brel,
   //       std::ifstream& is_Nrel,

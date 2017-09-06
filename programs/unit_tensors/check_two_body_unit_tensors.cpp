@@ -113,8 +113,8 @@
             {
 
               // retrieve state shell labels
-              const lsu3shell::LSU3BasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];
-              const lsu3shell::LSU3BasisGroupLabels& ket_labels = basis_provenance[sector.ket_subspace_index()][ket_index];
+              const lsu3shell::LSU3ShellBasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];
+              const lsu3shell::LSU3ShellBasisGroupLabels& ket_labels = basis_provenance[sector.ket_subspace_index()][ket_index];
               int eta1p = bra_labels.Np;
               int eta2p = bra_labels.Nn;
               int eta1 = ket_labels.Np;
@@ -239,10 +239,10 @@ int main(int argc, char **argv)
 
   // read lsu3shell basis table and construct basis mapping
   std::string lsu3shell_basis_filename("lsu3shell_basis.dat");
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3shell_basis_filename,basis_table,basis_provenance,space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3shell_basis_filename,basis_table,basis_provenance,space);
   
   // iterate over unit tensors
   int num_unit = two_body_unit_tensor_labels_list.size();

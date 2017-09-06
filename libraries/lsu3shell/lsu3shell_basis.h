@@ -27,9 +27,9 @@ namespace lsu3shell
   // TODO: Abolish confusingly abbreviated "LSU3" in favor of
   // "LSU3Shell" in all names.
   //
-  // grep -r LSU3Basis . --include="*.h" --include="*.cpp" -l   
+  // grep -r LSU3ShellBasis . --include="*.h" --include="*.cpp" -l   
 
-  struct LSU3BasisGroupLabels
+  struct LSU3ShellBasisGroupLabels
   // Data on the "multiplicity group" underlying an lsu3shell basis state.
   //
   // Fields:
@@ -38,7 +38,7 @@ namespace lsu3shell
   //   Np, Nn, Nex (int) : configuration excitation quanta
   {
 
-    LSU3BasisGroupLabels(
+    LSU3ShellBasisGroupLabels(
         const u3shell::U3SPN& omegaSPN_,
         int ip_, int in_, int Np_, int Nn_, int Nex_
       )
@@ -49,15 +49,15 @@ namespace lsu3shell
     int ip, in, Np, Nn, Nex;
   };
 
-  typedef std::vector<std::vector<LSU3BasisGroupLabels>> U3SPNBasisLSU3Labels;
+  typedef std::vector<std::vector<LSU3ShellBasisGroupLabels>> U3SPNBasisLSU3Labels;
   // Container to hold lsu3shell basis provenance info (entries for each U3SPN
   // subspace, for each basis state).
 
-  struct LSU3BasisGroupData
-    : LSU3BasisGroupLabels
+  struct LSU3ShellBasisGroupData
+    : LSU3ShellBasisGroupLabels
   // Indexing information for lsu3shell multiplicity group.
   //
-  // TODO: This inheritance LSU3BasisGroupData : LSU3BasisGroupLabels
+  // TODO: This inheritance LSU3ShellBasisGroupData : LSU3ShellBasisGroupLabels
   // violates the "is a type of" rule for inheritance.  Consider
   // restructuring/abolishing.
   //
@@ -65,25 +65,25 @@ namespace lsu3shell
   //   dim : group size
   //   start_index : starting index within U3SPN subspace
   {
-    LSU3BasisGroupData (const LSU3BasisGroupLabels& lsu3_basis_group_labels_, int dim_, int start_index_)
-      : LSU3BasisGroupLabels(lsu3_basis_group_labels_), dim(dim_), start_index(start_index_)
+    LSU3ShellBasisGroupData (const LSU3ShellBasisGroupLabels& lsu3_basis_group_labels_, int dim_, int start_index_)
+      : LSU3ShellBasisGroupLabels(lsu3_basis_group_labels_), dim(dim_), start_index(start_index_)
     {}
 
     int dim;
     int start_index;
   };
 
-  typedef std::vector<LSU3BasisGroupData> LSU3BasisTable;
+  typedef std::vector<LSU3ShellBasisGroupData> LSU3ShellBasisTable;
   // Container to hold basis group information for each basis group.
 
   ////////////////////////////////////////////////////////////////
   // lsu3shell basis input
   ////////////////////////////////////////////////////////////////
   
-  void ReadLSU3Basis(
+  void ReadLSU3ShellBasis(
       HalfInt Nsigma_0, 
       const std::string& filename, 
-      LSU3BasisTable& lsu3_basis_table,
+      LSU3ShellBasisTable& lsu3_basis_table,
       U3SPNBasisLSU3Labels& basis_provenance,
       u3shell::SpaceU3SPN& space
     );

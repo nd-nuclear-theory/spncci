@@ -44,7 +44,7 @@ namespace lsu3shell
   void 
   ReadLSU3ShellRMEs(
       const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
+      const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
@@ -73,7 +73,7 @@ namespace lsu3shell
   // ReadLSU3ShellRMEs(
   //     std::ifstream& is,
   //     const u3shell::OperatorLabelsU3ST& operator_labels,
-  //     const LSU3BasisTable& lsu3_basis_table,
+  //     const LSU3ShellBasisTable& lsu3_basis_table,
   //     const u3shell::SpaceU3SPN& space, 
   //     const u3shell::SectorsU3SPN& sectors,
   //     basis::MatrixVector& matrix_vector,
@@ -91,7 +91,7 @@ namespace lsu3shell
   ReadLSU3ShellRMEs(
       bool sp3r_generators,
       const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
+      const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
@@ -148,7 +148,7 @@ namespace lsu3shell
   // void GenerateNcmMatrixVector(
   //   int A,      
   //   std::ifstream& is_Nrel,
-  //   const lsu3shell::LSU3BasisTable& lsu3_basis_table,
+  //   const lsu3shell::LSU3ShellBasisTable& lsu3_basis_table,
   //   const u3shell::SpaceU3SPN& space, 
   //   basis::MatrixVector& matrix_vector 
   // );

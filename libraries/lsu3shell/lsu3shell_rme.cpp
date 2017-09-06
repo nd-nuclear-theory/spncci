@@ -33,7 +33,7 @@ namespace lsu3shell
   void 
   ReadLSU3ShellRMEsText(
       const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
+      const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
@@ -64,8 +64,8 @@ namespace lsu3shell
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
         // std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
-        const LSU3BasisGroupData& group_i = lsu3_basis_table[i];
-        const LSU3BasisGroupData& group_j = lsu3_basis_table[j];
+        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table[i];
+        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table[j];
 
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
@@ -150,7 +150,7 @@ namespace lsu3shell
   ReadLSU3ShellRMEsBinary(
       bool sp3r_generators,
       const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
+      const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
@@ -193,8 +193,8 @@ namespace lsu3shell
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         assert((i<lsu3_basis_table.size())&&(j<lsu3_basis_table.size()));
-        const LSU3BasisGroupData& group_i = lsu3_basis_table[i];
-        const LSU3BasisGroupData& group_j = lsu3_basis_table[j];
+        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table[i];
+        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table[j];
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
         // std::cout<<fmt::format("{}  {}  {}", group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
@@ -290,7 +290,7 @@ namespace lsu3shell
   ReadLSU3ShellRMEs(
       bool sp3r_generators,
       const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
+      const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
@@ -330,7 +330,7 @@ namespace lsu3shell
   void 
   ReadLSU3ShellRMEs(
       const std::string& filename,
-      const LSU3BasisTable& lsu3_basis_table,
+      const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
@@ -411,8 +411,8 @@ namespace lsu3shell
                         rme1,rme2,residual
                       )
                     << std::endl;
-                  const lsu3shell::LSU3BasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];
-                  const lsu3shell::LSU3BasisGroupLabels& ket_labels = basis_provenance[sector.ket_subspace_index()][ket_index];
+                  const lsu3shell::LSU3ShellBasisGroupLabels& bra_labels = basis_provenance[sector.bra_subspace_index()][bra_index];
+                  const lsu3shell::LSU3ShellBasisGroupLabels& ket_labels = basis_provenance[sector.ket_subspace_index()][ket_index];
                   log_stream
                     << fmt::format(
                         "  bra ip {} in {} Np {} Nn {} ; ket ip {} in {} Np {} Nn {}",

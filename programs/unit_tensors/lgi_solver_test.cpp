@@ -111,12 +111,12 @@ int main(int argc, char **argv)
   std::string brel_filename = argv[7];
   std::string arel_filename = argv[8];
 
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
 
   // Read in the basis
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   int num_states=CountBasisIrreps(space);
   std::cout<<"LSU3Shell basis  states : "<<num_states<<std::endl;
   

@@ -28,16 +28,16 @@ int main(int argc, char **argv)
   int Nsigma_0=11;  // 11 for 6Li
 
   // reading in basis table obtained using ncsmSU3xSU2BasisLSU3Tabular
-  // std::string lsu3_filename("lsu3basis_table.dat");
+  // std::string lsu3_filename("LSU3ShellBasis_table.dat");
   std::string lsu3_filename("basis_table.dat");
 
-  lsu3shell::LSU3BasisTable basis_table;
+  lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
-  lsu3shell::ReadLSU3Basis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
+  lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
 
   // dump lsu3shell basis information
-  for(const lsu3shell::LSU3BasisGroupData& group : basis_table)
+  for(const lsu3shell::LSU3ShellBasisGroupData& group : basis_table)
     {
       std::cout
         << fmt::format(
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
         << std::endl;
       for (int state_index=0; state_index < subspace.size(); ++state_index)
         {
-          const lsu3shell::LSU3BasisGroupLabels& basis_group_labels = basis_provenance[subspace_index][state_index];
+          const lsu3shell::LSU3ShellBasisGroupLabels& basis_group_labels = basis_provenance[subspace_index][state_index];
           std::cout
             << fmt::format("  state {} Np {} Nn {}",state_index,basis_group_labels.Np,basis_group_labels.Nn)
             << std::endl;
