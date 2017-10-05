@@ -37,11 +37,6 @@ namespace u3shell
         auto sector_labels(sectors.GetSector(index));
         auto bra_lsjt(sector_labels.bra_subspace().labels());
         auto ket_lsjt(sector_labels.ket_subspace().labels());
-        
-
-        // For now we assume T==Tp for all operators.  If this is not the case, then need to change
-        // symmetry relations 
-        // assert(T==Tp);
 
         bool diagonal_sector=(bra_lsjt==ket_lsjt);
         // If the sector is diagonal, then fill in lower triangle of the sector
@@ -61,12 +56,16 @@ namespace u3shell
         std::tie(Lp,Sp,Jp,Tp,gp)=bra_lsjt;
         u3shell::RelativeSubspaceLabelsNLST bra_nlst(Lp,Sp,Tp);              
         u3shell::RelativeSubspaceLabelsNLST ket_nlst(L,S,T);
-  
-        // if((T0<abs(T-Tp))||(T0>(T+Tp)))
-        //   continue;
 
+        // if((L==20)&&(S==1)&& T==0 && L==Lp && S==Sp && T==Tp && T0==0)
+        //   {
+        //     std::cout<<"hi "<<Jp<<"  "<<J<<"  "<<J0<<std::endl;
+        //     std::cout<<sector<<std::endl<<std::endl;
+        //   }
+
+  
         // Iterate over possible S0 and L0 values and accumulate tensor components 
-        for (int S0=0; S0<=2; ++S0)  
+        for (int S0=0; S0<=2; ++S0)            
           for (int L0=abs(S0-J0); L0<=(S0+J0); ++L0)
             {
               RelativeSectorNLST key(L0,S0,T0,bra_nlst,ket_nlst);
@@ -74,35 +73,44 @@ namespace u3shell
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
                               *am::dim(Jp)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(Sp)/am::dim(Lp);
               
+              // if((L==20)&&(S==1)&& T==0 && L==Lp && S==Sp && T==Tp && L0==2 && S0==1 && T0==0)
+              //   std::cout<<J0<<"  "<<so3_coef<<"  "<<am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)<<std::endl;
+
               if (fabs(so3_coef)<zero_threshold)
                 continue;
 
               double so3_coef_conj=0;
               RelativeSectorNLST key_conj;
-              // To get conjugate rme (L,S,T||L0 S0 T0||L'S'T')
+              // See notes on conjugation in basis:lsjt_operator.h 
               if(not diagonal_sector)
                 {
                   so3_coef_conj=am::Unitary9J(Lp,Sp,Jp,L0,S0,J0,L,S,J)
                     *am::dim(J)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(S)/am::dim(L)
-                    *ParitySign(Tp+T0-T)*Hat(Tp)/Hat(T)
-                    *ParitySign(Jp+J0-J)*Hat(Jp)/Hat(J);
+                    *ParitySign(Tp-T)*Hat(Tp)/Hat(T)
+                    *ParitySign(Jp-J)*Hat(Jp)/Hat(J);
                   key_conj=RelativeSectorNLST(L0,S0,T0,ket_nlst,bra_nlst);
                 }
               
+              // if((L==20)&&(S==1)&& T==0 && L==Lp && S==Sp && T==Tp && L0==2 && S0==1 && T0==0)
+              //   {
+              //     std::cout<<Jp<<"  "<<J<<"  "<<so3_coef<<"  "<<so3_coef_conj<<std::endl;
+              //     std::cout<<so3_coef*sector<<std::endl<<so3_coef_conj*sector.transpose()<<std::endl<<std::endl;
+              //   }
               // If lst sector is not in map, initialize to value
               if(not rme_nlst_map.count(key))
-                {
-                  rme_nlst_map[key]=so3_coef*sector;
-                  if(not diagonal_sector)
-                    rme_nlst_map[key_conj]=so3_coef_conj*sector.transpose();
-                }
-              // Otherwise, accumulate
+                rme_nlst_map[key]=so3_coef*sector;
               else
+                rme_nlst_map[key]+=so3_coef*sector;
+
+              if(not diagonal_sector)
                 {
-                  rme_nlst_map[key]+=so3_coef*sector;
-                  if(not diagonal_sector)
+                  if(not rme_nlst_map.count(key_conj))
+                    rme_nlst_map[key_conj]=so3_coef_conj*sector.transpose();
+                  else
                     rme_nlst_map[key_conj]+=so3_coef_conj*sector.transpose();
                 }
+              // if((L==20)&&(S==1)&& T==0 && L==Lp && S==Sp && T==Tp && L0==2 && S0==1 && T0==0)
+              //   std::cout<<rme_nlst_map[key_conj]<<"  "<<rme_nlst_map[key]<<std::endl;
             }
       }
   }
@@ -156,7 +164,7 @@ namespace u3shell
                     for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
                       {
                         double u3_coef=u3::WCached(w_cache,ket.x(), 1,L, x0, kappa0, L0, bra.x(),1,Lp,1)
-                          *u3::dim(x0)*(2.*Lp+1)/(u3::dim(bra.x())*(2.*L0+1));
+                          *u3::dim(x0)*am::dim(Lp)/(u3::dim(bra.x())*am::dim(L0));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(operator_labels,kappa0,L0);
                         rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
                       }
@@ -164,15 +172,6 @@ namespace u3shell
               }
           }
       }
-    // // Removing zeros 
-    // std::vector<std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>> remove_list;
-    // for(auto it=rme_map.begin(); it!=rme_map.end(); it++)
-    //   {
-    //     if(fabs(it->second)<zero_threshold)
-    //       remove_list.push_back(it->first);
-    //   }
-    // for(auto tensor : remove_list)
-    //   rme_map.erase(tensor);
   }
 
   // If no cache is passed as an arguemnt, creates cache for use in calculations
@@ -186,9 +185,45 @@ namespace u3shell
     UpcouplingU3ST(rme_nlst_map,Nmax,w_cache,rme_map);
   }
 
+  void Upcoupling(    
+      const basis::RelativeSpaceLSJT& space,
+      const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
+      const std::array<basis::MatrixVector,3>& T0_sectors,
+      u3::WCoefCache& w_cache, 
+      int J0, int g0, int T0,int Nmax,
+      RelativeRMEsU3ST& rme_map
+    )
+  {
 
+    // if T0=-1, then upcouple all possible values of T0, i.e., T0=0,1,2;
+    // otherwise upcouple just the desired T0 sector. 
+    int T0_min=(T0==-1)?0:T0;
+    int T0_max=(T0==-1)?2:T0;
 
-  void UpcoupleCMU3ST(
+    std::map<RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
+    for(int T00=T0_min; T00<=T0_max; ++T00)
+      {
+        const basis::RelativeSectorsLSJT& sector_labels=T0_sector_labels[T00];
+        const basis::MatrixVector& sectors=T0_sectors[T00];
+        u3shell::UpcouplingNLST(space,sector_labels,sectors,J0,g0,T00,Nmax,rme_nlst_map);
+      }
+    
+    u3shell::UpcouplingU3ST(rme_nlst_map,Nmax,w_cache,rme_map);
+  }
+
+  void Upcoupling(    
+      const basis::RelativeSpaceLSJT& space,
+      const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
+      const std::array<basis::MatrixVector,3>& T0_sectors,
+      int J0, int g0, int T0,int Nmax,
+      RelativeRMEsU3ST& rme_map
+    )
+  {
+    u3::WCoefCache w_cache;
+    Upcoupling(space, T0_sector_labels, T0_sectors, w_cache,J0, g0, T0, Nmax,rme_map);
+  }
+
+ void UpcoupleCMU3ST(
       std::map<RelativeCMBraketNLST,double>& rel_cm_lst_map,
       u3::WCoefCache& w_cache,
       RelativeCMUnitTensorCache& rel_cm_u3st_map
@@ -292,9 +327,16 @@ namespace u3shell
           << std::endl;
       }
   }
-  void ReadRelativeOperatorU3ST(std::istream& in_stream, RelativeRMEsU3ST& relative_rmes)
-  // DEPRECATED for using stream but currently used inside preferred form below
+
+  void ReadRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes)
   {
+    // open file
+    std::ifstream in_stream(filename);
+    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+    std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
+
+    // process stream
+    //
     int etap,eta,lambda0,mu0,kappa0, L0;
     int Sp,Tp,S,T,S0,T0;
     double rme;
@@ -315,20 +357,6 @@ namespace u3shell
             relative_rmes[key]=rme;
           }
       }
-  }
-
-
-  void ReadRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes)
-  {
-    // open file
-    std::ifstream in_stream(filename);
-    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
-    std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
-
-    // process stream
-    //
-    // Currently implemented as wrapper to deprecated form.
-    ReadRelativeOperatorU3ST(in_stream,relative_rmes);
 
     // close file
     in_stream.close();
@@ -377,31 +405,8 @@ namespace u3shell
   }
 
 
-
-
-
   typedef std::unordered_map<RelativeUnitTensorLabelsU3ST,std::tuple<int,int,double>,boost::hash<RelativeUnitTensorLabelsU3ST>>
                     InteractionCache;
-
-  void ReadRelativeOperatorU3ST(std::istream& is, InteractionCache& relative_rmes)
-  {
-    int etap,eta,lambda0,mu0,kappa0, L0;
-    int Sp,Tp,S,T,S0,T0;
-    double rme;
-    std::string line;
-
-    while(std::getline(is,line))
-      {
-        std::istringstream(line)>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
-        if (fabs(rme)>zero_threshold)
-          {
-            u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp), ket(eta,S,T);
-            RelativeUnitTensorLabelsU3ST key(u3::SU3(lambda0,mu0),S0,T0,bra,ket);
-            std::tuple<int,int,double> value(kappa0,L0,rme);
-            relative_rmes[key]=value;
-          }
-      }
-  }
 
 
   double SU3Casimir(const u3::SU3& x0)
@@ -467,96 +472,5 @@ namespace u3shell
 
 
 
-  void Upcoupling(    
-      const basis::RelativeSpaceLSJT& space,
-      const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
-      const std::array<basis::MatrixVector,3>& T0_sectors,
-      // const basis::RelativeSectorsLSJT& sectors,
-      // const basis::MatrixVector& sector_vector,
-      u3::WCoefCache& w_cache, 
-      int J0, int g0, int T0,int Nmax,
-      RelativeRMEsU3ST& rme_map
-    )
-  {
-
-    // std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels;
-    // std::array<basis::MatrixVector,3> T0_sectors;
-
-    // if T0=-1, then upcouple all possible values of T0, i.e., T0=0,1,2;
-    // otherwise upcouple just the desired T0 sector. 
-    int T0_min=(T0==-1)?0:T0;
-    int T0_max=(T0==-1)?2:T0;
-
-    std::map<RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
-    for(int T00=T0_min; T00<=T0_max; ++T00)
-      {
-        const basis::RelativeSectorsLSJT& sector_labels=T0_sector_labels[T00];
-        const basis::MatrixVector& sectors=T0_sectors[T00];
-        u3shell::UpcouplingNLST(space,sector_labels,sectors,J0,g0,T00,Nmax,rme_nlst_map);
-      }
-    
-    u3shell::UpcouplingU3ST(rme_nlst_map,Nmax,w_cache,rme_map);
-  }
-
-  void Upcoupling(    
-      const basis::RelativeSpaceLSJT& space,
-      const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
-      const std::array<basis::MatrixVector,3>& T0_sectors,
-
-      // const basis::RelativeSectorsLSJT& sectors,
-      // const std::vector<Eigen::MatrixXd>& sector_vector, 
-      int J0, int g0, int T0,int Nmax,
-      RelativeRMEsU3ST& rme_map
-    )
-  {
-    u3::WCoefCache w_cache;
-    Upcoupling(space, T0_sector_labels, T0_sectors, w_cache,J0, g0, T0, Nmax,rme_map);
-  }
-
-  void GetInteractionMatrix(
-      std::string interaction_file, 
-      basis::RelativeSpaceLSJT& relative_lsjt_space,
-      basis::RelativeSectorsLSJT& relative_lsjt_sectors,
-      basis::MatrixVector& sector_vector
-    )
-  {
-    basis::OperatorLabelsJT operator_labels;
-    std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
-    std::array<basis::MatrixVector,3> relative_component_matrices;
-    //Read interaction and store sector information in relative_component_sectors
-    // and matrix elements in relative_component_matrices
-    basis::ReadRelativeOperatorLSJT(
-        interaction_file,relative_lsjt_space,operator_labels,
-        relative_component_sectors,relative_component_matrices, true
-      );
-
-    // Extract out T0=0 sectors and matrix elements
-    sector_vector=relative_component_matrices[0];
-    relative_lsjt_sectors=relative_component_sectors[0];
-  }
-
-
-  void 
-  GetInteractionTensorsU3S(
-      const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
-      std::vector<u3shell::IndexedOperatorLabelsU3S>& operator_u3s_list
-    )
-  {
-    // Get list of operators for U3S sector construction
-    std::unordered_set<u3shell::IndexedOperatorLabelsU3S,boost::hash<u3shell::IndexedOperatorLabelsU3S>>
-      temp_operator_u3s_list;
-    for(auto it=interaction_rme_cache.begin(); it!=interaction_rme_cache.end(); ++it)
-      {
-        int kappa0,L0;
-        u3shell::RelativeUnitTensorLabelsU3ST tensor_u3st;
-        std::tie(tensor_u3st,kappa0,L0)=it->first;
-        assert(kappa0!=0);
-        u3shell::OperatorLabelsU3S operator_labels_u3s(tensor_u3st.operator_labels());
-        temp_operator_u3s_list.emplace(operator_labels_u3s,kappa0,L0);
-      }
-
-    for(auto tensor : temp_operator_u3s_list)
-      operator_u3s_list.push_back(tensor);
-  }
 
 }//end namespace

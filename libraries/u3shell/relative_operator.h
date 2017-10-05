@@ -95,6 +95,7 @@ namespace u3shell
 
   double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
+  double RelativeMassQuadrupoleOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
 
 }  // namespace
 

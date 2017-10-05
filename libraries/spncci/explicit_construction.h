@@ -13,6 +13,7 @@
     basis
   4/20/17 (aem): Updated to use hyperblock structure.
   Validated using programs/unit_tensors/explicit for Nmax=4
+  10/4/17 (aem): Adapted for all A (including A<6)
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_EXPLICIT_CONSTRUCTION_H_
@@ -31,9 +32,11 @@ namespace spncci
       const basis::MatrixVector& lgi_expansions,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::KMatrixCache& k_matrix_cache,
+      const spncci::KMatrixCache& kinv_matrix_cache,
       const u3shell::SectorsU3SPN& Arel_sectors,
       const basis::MatrixVector& Arel_matrices,
-      basis::MatrixVector& spncci_expansions
+      basis::MatrixVector& spncci_expansions,
+      bool restrict_sp3r_u3_branching=false
     );
 
   // void 

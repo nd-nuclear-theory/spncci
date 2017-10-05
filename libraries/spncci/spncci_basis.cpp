@@ -14,6 +14,8 @@
 #include "mcutils/parsing.h"
 #include "cppformat/format.h"
 
+#include "sp3rlib/vcs.h"
+
 namespace spncci
 {
 
@@ -103,6 +105,38 @@ namespace spncci
     return value;
   }
 
+
+  void ConstructRestrictedSp3RSpace(const u3::U3& sigma, int Nn_max, sp3r::Sp3RSpace& irrep)
+    // Contruct an Sp(3,R) irrep applying necessary restrictions for A<6
+  // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
+    {
+      // create irrep with no restrictions 
+      sp3r::Sp3RSpace irrep_temp(sigma,Nn_max);
+
+      // Generate K matrices for irrep
+      vcs::MatrixCache K_matrix_cache;
+      vcs::MatrixCache Kinv_matrix_cache;
+      vcs::GenerateKMatrices(irrep_temp,K_matrix_cache, Kinv_matrix_cache);
+
+      // set up container for states 
+      std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> spanakopita;
+      // Iterate through K matrix identifying omega subspaces which are contained in irrep along with upsilon_max
+      for(auto it=K_matrix_cache.begin(); it!=K_matrix_cache.end(); ++it)
+        {
+          const u3::U3& omega=it->first;
+          auto& Kmatrix=it->second;
+          int upsilon_max=Kmatrix.rows();
+          MultiplicityTagged<u3::U3> omega_tagged(omega,upsilon_max);
+          const auto& subspace=irrep_temp.GetSubspace(irrep_temp.LookUpSubspaceIndex(omega));
+          MultiplicityTagged<u3::U3>::vector& states=spanakopita[omega_tagged];
+          for(int i=0; i<subspace.size(); ++i)
+            states.push_back(subspace.GetStateLabels(i));
+        }
+
+      // Create restricted irrep  
+      irrep=sp3r::Sp3RSpace(sigma,Nn_max,spanakopita);
+    }
+
   void GenerateSpNCCISpace(
       const lgi::MultiplicityTaggedLGIVector& multiplicity_tagged_lgi_vector,
       const TruncatorInterface& truncator,
@@ -177,7 +211,8 @@ namespace spncci
             if(restrict_sp3r_to_u3_branching)
               {
                 sp3r::Sp3RSpace irrep_restricted;
-                sp3r::ConstructRestrictedSp3RSpace(sigma,Nn_max,irrep_restricted);
+                
+                ConstructRestrictedSp3RSpace(sigma,Nn_max,irrep_restricted);
                 sigma_irrep_map[sigma]=irrep_restricted;
               }
             else
@@ -373,6 +408,7 @@ namespace spncci
     // save dimension info
     gamma_max_ = spncci_irrep_family.gamma_max();
     upsilon_max_ = u3_subspace.size();
+    upsilon_max_ = u3_subspace.upsilon_max();
     irrep_family_index_=irrep_family_index;
     dimension_ = gamma_max_*upsilon_max_;
   }

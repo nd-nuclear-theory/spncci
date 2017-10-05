@@ -65,7 +65,5 @@ int main(int argc, char **argv)
   //       std::cout<<fmt::format("B({} {} {} {})  {}  {}  {}",n1.Str(), n2.Str(),n3.Str(),rho,coef,coef_flip,fabs(coef_flip-coef))<<std::endl;
   //   }
   
-  sp3r::Sp3RSpace irrep_restricted;
-  sp3r::ConstructRestrictedSp3RSpace(sigma1,Nn_max,irrep_restricted);
-  std::cout << irrep_restricted.DebugStr();
+
 } //main

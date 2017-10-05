@@ -39,6 +39,8 @@
   2/18/17 (mac): Implement normalization test.
   2/20/17 (mac): Branch off spncci diagonalization code.
   6/17/17 (aem): Updated to use new symplectic operator i/o
+  9/27/17 (aem): Updated to use intrinic definition of lgi
+  10/4/17 (aem): Adapted for all A (including A<6)
 ****************************************************************/
 
 #include <cstdio>
@@ -49,7 +51,7 @@
 #include "cppformat/format.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/profiling.h"
-// #include "spncci/computation_control.h"
+
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
 
@@ -59,18 +61,6 @@
 #include "spncci/branching_u3lsj.h"
 #include "u3shell/upcoupling.h"
 
-////////////////////////////////////////////////////////////////
-// WIP code
-//
-// to extract to spncci library when ready
-////////////////////////////////////////////////////////////////
-
-namespace spncci
-{
-
-
-
-}// end namespace
 
 ////////////////////////////////////////////////////////////////
 // explicit construction checks
@@ -148,8 +138,8 @@ struct RunParameters
 
   // basis parameters
   int A;
-  HalfInt Nsigma_0;
-  int Nsigma0_ex_max;
+  HalfInt Nsigma0;
+  // int Nsigma0_ex_max;
   int N1v;
   int Nmax;
 
@@ -164,34 +154,20 @@ struct RunParameters
 
 RunParameters::RunParameters()
 {
-  // read from command line arguments
-  //
-  // TODO reorder filenames 
-  // if (argc<8)
-  //   {
-  //     std::cout << "Syntax: A twice_Nsigma0 Nsigma0_ex_max N1B Nmax <basis filename> <Nrel filename> <Brel filename> <Arel filename>" 
-  //               << std::endl;
-  //     std::exit(1);
-  //   }
-  // int A = std::stoi(argv[1]); 
-  // int twice_Nsigma0= std::stoi(argv[2]);
-  // int Nsigma0_ex_max=std::stoi(argv[3]);
-  // int N1v=std::stoi(argv[4]);
-  // int Nmax = std::stoi(argv[5]);
-  // std::string lsu3shell_basis_filename = argv[6];
-  // std::string Nrel_filename = argv[7];
-  // std::string Brel_filename = argv[8];
-  // std::string Arel_filename = argv[9];
-  // HalfInt Nsigma_0=HalfInt(twice_Nsigma0,2);
-
   // basis parameters
-  A = 6;
-  int twice_Nsigma0 = 22;
-  Nsigma_0=HalfInt(twice_Nsigma0,2);
+  
+  std::array<int,2> nuclide;
+  nuclide[0]=2;
+  nuclide[1]=1;
+  A =nuclide[0]+nuclide[1];
 
-  Nsigma0_ex_max = 4;
+  bool intrinsic=true;
+  Nsigma0 = spncci::Nsigma0ForNuclide(nuclide,intrinsic);
+  std::cout<<"nuclide ("<<nuclide[0]<<","<<nuclide[1]<<")  Nsigma0 "<<Nsigma0<<std::endl;
+
+  // Nsigma0_ex_max = 2;
   N1v = 1;
-  Nmax = 4;
+  Nmax = 6;
 
   lsu3shell_rme_directory = "lsu3shell_rme";
   lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
@@ -241,7 +217,7 @@ int main(int argc, char **argv)
   lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
   u3shell::SpaceU3SPN lsu3shell_space;
   lsu3shell::ReadLSU3ShellBasis(
-      run_parameters.Nsigma_0,run_parameters.lsu3shell_basis_filename,
+      run_parameters.Nsigma0,run_parameters.lsu3shell_basis_filename,
       lsu3shell_basis_table,lsu3shell_basis_provenance,lsu3shell_space
     );
 
@@ -273,7 +249,6 @@ int main(int argc, char **argv)
   spncci::ReadLSU3ShellSymplecticOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
       run_parameters.Brel_filename,Bintr_sectors,Bintr_matrices,
-      // run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
       run_parameters.Nrel_filename,Nintr_sectors,Nintr_matrices,
       run_parameters.A
     );
@@ -289,7 +264,7 @@ int main(int argc, char **argv)
   basis::MatrixVector Ncm_matrices;
   lsu3shell::GenerateLSU3ShellNcmRMEs(
       lsu3shell_space,Nintr_sectors,Nintr_matrices,
-      run_parameters.A,
+      run_parameters.A-1,
       Ncm_matrices
     );
 
@@ -299,7 +274,7 @@ int main(int argc, char **argv)
   lgi::GenerateLGIExpansion(
       lsu3shell_space, 
       Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
-      run_parameters.Nsigma_0,
+      run_parameters.Nsigma0,
       lgi_families,lgi_expansions
     );
 
@@ -320,8 +295,14 @@ int main(int argc, char **argv)
   // build SpNCCI irrep branchings
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;  // persistent container to store branchings
-  spncci::NmaxTruncator truncator(run_parameters.Nsigma_0,run_parameters.Nmax);
-  spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map);
+  spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
+
+  // If A<6, construct restricted space 
+  bool restrict_sp3r_to_u3_branching=false;
+  if(run_parameters.A<6)
+    restrict_sp3r_to_u3_branching=true;
+
+  spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
 
   // put SpNCCI space into standard linearized container
   spncci::BabySpNCCISpace baby_spncci_space(spncci_space);
@@ -345,7 +326,9 @@ int main(int argc, char **argv)
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
   spncci::KMatrixCache k_matrix_cache;
-  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache);
+  spncci::KMatrixCache kinv_matrix_cache;
+  
+  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache, kinv_matrix_cache, restrict_sp3r_to_u3_branching);
 
   // diagnostics
   for (const auto& sigma_irrep_pair : sigma_irrep_map)
@@ -375,8 +358,9 @@ int main(int argc, char **argv)
   
   spncci::ConstructSpNCCIBasisExplicit(
       lsu3shell_space,spncci_space,lgi_expansions,
-      baby_spncci_space,k_matrix_cache,
-      Aintr_sectors,Aintr_matrices,spncci_expansions
+      baby_spncci_space,k_matrix_cache,kinv_matrix_cache,
+      Aintr_sectors,Aintr_matrices,spncci_expansions,
+      restrict_sp3r_to_u3_branching
     );
 
   std::cout << "Check orthonormality for all SpNCCI subspaces sharing same underlying lsu3shell subspace..." << std::endl;

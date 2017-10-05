@@ -72,6 +72,7 @@
   4/9/17 (aem): Incorporated baby spncci hypersectors
   6/5/17 (mac): Read relative rather than intrinsic symplectic operators.
   6/16/17 (aem) : offload to computation and io control
+  10/4/17 (aem) : Fixed basis construction and recurrence for A<6
 ****************************************************************/
 
 #include <cstdio>
@@ -103,6 +104,29 @@
   
 namespace spncci
 {
+
+  void ImportLGIFamilies(
+    const std::string& filename, HalfInt Nsigma0, 
+    lgi::MultiplicityTaggedLGIVector& lgi_families
+    )
+    {
+      std::ifstream in_stream(filename);
+      StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+      std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
+      int Nsigma_ex,lambda,mu,twice_Sp, twice_Sn, twice_S,gamma_max;
+      std::string line;
+      while(std::getline(in_stream,line))
+        {
+          std::istringstream line_stream(line);
+          line_stream>>Nsigma_ex>>lambda>>mu>>twice_Sp>> twice_Sn>> twice_S>>gamma_max;
+          u3::U3 omega(Nsigma0+Nsigma_ex,u3::SU3(lambda,mu));
+          HalfInt Sp(twice_Sp,2);
+          HalfInt Sn(twice_Sn,2);
+          HalfInt S(twice_S,2);
+          u3shell::U3SPN omegaSPN(omega,Sp,Sn,S);
+          lgi_families.push_back(MultiplicityTagged<lgi::LGI>(lgi::LGI(omegaSPN,Nsigma_ex),gamma_max));
+        }
+    }
 
   void InitializeSectorsSpU3S(
       const spncci::SpaceSpU3S& space_spu3s, int num_observables, 
@@ -440,10 +464,23 @@ int main(int argc, char **argv)
       lgi_families, lgi_expansions
     );
 
-  // diagnostics
-  std::cout << fmt::format("  LGI families {}",lgi_families.size()) << std::endl;
-  if (false)
-    lgi::WriteLGILabels(lgi_families,std::cout);
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // // If no truncation by irrep family, then lgi_families can be used directly from GetLGIExpansion
+  // // otherwise, read in list of allowed irrep families and generate new lgi_families vector 
+  // std::string lgi_filename=fmt::format("/Users/amccoy/research/spncci/data/lgi_set/truncations/irrep_families_Z03_N03-JISP16-0-0{}-full.dat",run_parameters.Nsigmamax);
+  // std::cout<<(lgi_filename)<<std::endl;
+  // lgi::MultiplicityTaggedLGIVector lgi_families_truncated;
+  // spncci::ImportLGIFamilies(lgi_filename, run_parameters.Nsigma0, lgi_families_truncated);
+
+  // // diagnostics
+  // std::cout << fmt::format("  LGI families {}",lgi_families.size()) << std::endl;
+  
+  // if (true)
+  //   lgi::WriteLGILabels(lgi_families_truncated,std::cout);
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // timing stop
   timer_lgi.Stop();
@@ -463,10 +500,11 @@ int main(int argc, char **argv)
   if(run_parameters.A<6)
     restrict_sp3r_to_u3_branching=true;
 
+  // spncci::GenerateSpNCCISpace(lgi_families_truncated,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
   spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
 
-  // for(int i=0; i<spncci_space.size(); ++i)
-  //   std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
+  for(int i=0; i<spncci_space.size(); ++i)
+    std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
 
   // diagnostics
   std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
@@ -563,7 +601,6 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // Enumerate U3S sectors for observables 
   ////////////////////////////////////////////////////////////////
-
   std::cout << "Enumerating u3s sectors..." << std::endl;
 
   // enumerate u3S space from baby spncci for each observable 
@@ -575,25 +612,19 @@ int main(int argc, char **argv)
   // vector of blocks for u3 sectors for each hbar omega,for each observable
   std::vector<std::vector<spncci::OperatorBlocks>> observables_blocks_u3s;//(run_parameters.hw_values.size());
 
-
   spncci::InitializeU3SSectors(
-      space_u3s,
-      run_parameters.num_observables, 
-      observable_symmetries_u3s,
-      observables_sectors_u3s
-    );
-  spncci::WriteU3SSectorInformation(
-      results_stream, 
-      space_u3s,
-      run_parameters.num_observables, 
-      observables_sectors_u3s
+      space_u3s,run_parameters.num_observables, 
+      observable_symmetries_u3s,observables_sectors_u3s
     );
 
+  spncci::WriteU3SSectorInformation(
+      results_stream, space_u3s,run_parameters.num_observables, 
+      observables_sectors_u3s
+      );
 
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
   ////////////////////////////////////////////////////////////////
-
   // We now have to do all termination manually.  But, when the
   // control code is properly refactored, we can just have a single
   // termination, and the rest of the run can be in an "if
@@ -613,7 +644,6 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // Allocate U3S sectors for observables 
   ////////////////////////////////////////////////////////////////
-
   std::cout << "Allocating u3s blocks..." << std::endl;
 
   spncci::InitializeU3SBlocks(
@@ -623,7 +653,6 @@ int main(int argc, char **argv)
       observables_sectors_u3s,
       observables_blocks_u3s
     );
-
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -635,8 +664,9 @@ int main(int argc, char **argv)
 
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
-  spncci::KMatrixCache k_matrix_cache;
-  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache);
+  // spncci::KMatrixCache k_matrix_cache;
+  spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
+  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,kinv_matrix_cache,restrict_sp3r_to_u3_branching);
 
   // timing stop
   timer_k_matrices.Stop();
@@ -651,14 +681,14 @@ int main(int argc, char **argv)
         std::cout<<"  omega"<<it2->first.Str()<<std::endl;
         auto matrix=it2->second;
         std::cout<<matrix<<std::endl;
-        std::cout<<matrix.inverse()<<std::endl;
+        // std::cout<<matrix.inverse()<<std::endl;
       }
     }
 
-  // ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // //  For testing, get lsu3shell expansion of full spncci basis
-  // ///////////////////////////////////////////////////////////////////////////////////////////////////        
-  /////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  //  For testing, get lsu3shell expansion of full spncci basis
+  ///////////////////////////////////////////////////////////////////////////////////////////////////        
+  ///////////////////////////////////////////////////////////////////////////////////
   // // For explicit construction 
   // u3shell::SectorsU3SPN Aintr_sectors;
   // basis::MatrixVector Aintr_matrices;
@@ -668,12 +698,14 @@ int main(int argc, char **argv)
   //     run_parameters.A
   //   );
 
+  // basis::MatrixVector spncci_expansions;
   // if(run_parameters.Nmax==run_parameters.Nsigmamax)
   // {
-  // basis::MatrixVector spncci_expansions;
+  
   // spncci::ConstructSpNCCIBasisExplicit(
   //     lsu3shell_space,spncci_space,lgi_expansions,baby_spncci_space,
-  //     k_matrix_cache,Aintr_sectors,Aintr_matrices,spncci_expansions
+  //     k_matrix_cache,kinv_matrix_cache,Aintr_sectors,Aintr_matrices,spncci_expansions,
+  //     restrict_sp3r_to_u3_branching
   //   );
   // }
 
@@ -713,19 +745,18 @@ int main(int argc, char **argv)
       lgi_unit_tensor_labels,unit_tensor_space,
       run_parameters.relative_unit_tensor_filename_template,
       lsu3shell_space, lsu3shell_basis_table,
-      lgi_expansions, baby_spncci_space,
-      lgi_unit_tensor_blocks
+      lgi_expansions, baby_spncci_space,lgi_unit_tensor_blocks
     );
 
   timer_read_seeds.Stop();
   std::cout << fmt::format("(Task time: {})",timer_read_seeds.ElapsedTime()) << std::endl;
-
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //create a map of vectors of unit tensor subspace indices keyed by spncci irrep pairs 
   std::map<std::pair<int,int>,std::set<int>>lgi_unit_tensor_subset;
   for(auto it=lgi_unit_tensor_blocks.begin(); it!=lgi_unit_tensor_blocks.end(); ++it)
     for(auto it2=it->second.begin(); it2!=it->second.end(); ++it2)
       lgi_unit_tensor_subset[it->first].insert(it2->first.first);
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // for each lgi pair lgi1, lgi2 compute all unit tensor hypersectors for which Nnp<=Nn and 
   // the conjugate hypersectors for Nnp>Nn, i.e., compute <lgi1 Nnp=0 | |lgi2 Nn=2> and 
@@ -824,6 +855,7 @@ int main(int argc, char **argv)
         //     }
 
         // zero initialize hypersectors 
+        // std::cout<<"zero initialize hypersectors"<<std::endl;
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
         basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
 
@@ -836,7 +868,7 @@ int main(int argc, char **argv)
         // basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
         // }
         ///////////////////////////////////////////////////////////////////////////////////////////////
-      
+        // std::cout<<"populating hyperblocks with seeds"<<std::endl;
         // Populate hypersectors with seeds
         spncci::PopulateHypersectorsWithSeeds(
             irrep_family_index_bra, irrep_family_index_ket,
@@ -850,10 +882,13 @@ int main(int argc, char **argv)
         // std::cout<<"entering the recurrence for "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
 
         spncci::ComputeUnitTensorHyperblocks(
-            run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,k_matrix_cache,
+            run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,
+            k_matrix_cache,
+            kinv_matrix_cache,
             spncci_space,baby_spncci_space,unit_tensor_space,
             baby_spncci_hypersectors, unit_tensor_hypersector_subsets,
             unit_tensor_hyperblocks,
+            restrict_sp3r_to_u3_branching,
             num_threads_inner_loop
           );
 
@@ -1046,7 +1081,7 @@ int main(int argc, char **argv)
           std::cout
             << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
             << std::endl;
-          // std::cout<<hamiltonian_matrix<<std::endl<<std::endl;
+          // std::cout<<mcutils::FormatMatrix(hamiltonian_matrix, ".1f")<<std::endl<<std::endl;
 
           // solve eigenproblem
           spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];

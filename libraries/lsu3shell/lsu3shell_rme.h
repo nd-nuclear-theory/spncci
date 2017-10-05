@@ -20,7 +20,6 @@
     g_rme_binary_format.
   - 6/17/19 (mac): Update binary mode output: add header, shorten indexing
     integer type, make storage single/double switchable.
-
 ****************************************************************/
 
 #ifndef LSU3SHELL_RME_H_

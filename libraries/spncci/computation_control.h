@@ -20,7 +20,7 @@
       + PopulateHypersectorsWithSeeds
   7/1/17 (aem) : Updated GetLGIExpansion for intrinsic basis
   7/6/17 (mac): Move out branching routines and eigenproblem control.
-
+  10/4/17 (aem) : Updated CheckUnitTensorRecurrence to work for A<6
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_

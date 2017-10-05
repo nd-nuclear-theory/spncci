@@ -13,7 +13,6 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-//#include <functional>
 
 #include "cppformat/format.h"
 #include "mcutils/io.h"
@@ -253,11 +252,6 @@ namespace lsu3shell
                     ss >> rme;
                   }
 
-                // suppress zero values -- no longer appropriate/necessary
-                // if(fabs(rme)<zero_threshold)
-                //   continue;
-
-                // store rme
 
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.

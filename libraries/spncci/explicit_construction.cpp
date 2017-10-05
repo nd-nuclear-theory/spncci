@@ -69,8 +69,9 @@ namespace spncci
                 // get Aintr matrix 
                 int Arel_sector_index
                   =Arel_sectors.LookUpSectorIndex(omega_lsu3shell_subspace_index,omega_bar_lsu3shell_subspace_index);
-                const Eigen::MatrixXd& A=Arel_matrices[Arel_sector_index];
 
+                const Eigen::MatrixXd& A=Arel_matrices[Arel_sector_index];
+                
                 // special case: if Nn=2, then polynomial is A
                 if((omega.N()-sigmaSPN.N())==2)
                   { 
@@ -100,6 +101,9 @@ namespace spncci
                           *u3::U(sigmaSPN.U3().SU3(),n_bar.SU3(), omega.SU3(),u3::SU3(2,0),
                                   omega_bar.SU3(),rho_bar,1,n.SU3(),1,1);
                   
+                    // std::cout<<polynomial_matrices[omega_bar_index][j].rows()<<std::endl<<std::endl;
+                    // std::cout<<"A "<<A.rows()<<" "<<A.cols()<<std::endl<<A<<std::endl;
+                    // std::cout<<polynomial_matrices[w][i].rows()<<std::endl<<std::endl;
                     polynomial_matrices[w][i]+=coef*A*polynomial_matrices[omega_bar_index][j];
                   }
               }
@@ -115,14 +119,17 @@ namespace spncci
       const basis::MatrixVector& lgi_expansions,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::KMatrixCache& k_matrix_cache,
+      const spncci::KMatrixCache& kinv_matrix_cache,
       const u3shell::SectorsU3SPN& Arel_sectors,
       const basis::MatrixVector& Arel_matrices,
-      basis::MatrixVector& spncci_expansions
+      basis::MatrixVector& spncci_expansions,
+      bool restrict_sp3r_u3_branching
     )
   {
    
     u3::UCoefCache u_coef_cache;
     // Generate raising polynomials
+    // std::cout<<"generate polynomial matrices"<<std::endl;
     std::vector<PolynomialMatrices> polynomial_matrices_by_lgi_family(sp_irrep_families.size()); 
     for(int p=0; p<sp_irrep_families.size(); ++p)
       {
@@ -133,6 +140,7 @@ namespace spncci
           polynomial_matrices_by_lgi_family[p]
           );
       }
+    // std::cout<<"get spncci expansions "<<std::endl;
     spncci_expansions.resize(baby_spncci_space.size());
     for (int subspace_index=0; subspace_index<baby_spncci_space.size(); ++subspace_index)
       {
@@ -144,6 +152,7 @@ namespace spncci
         // extract sp3r properties
         const sp3r::Sp3RSpace& u3_subspaces=sp_irrep_families[irrep_family_index].Sp3RSpace();
         int omega_index=u3_subspaces.LookUpSubspaceIndex(subspace.omega());
+        const auto& u3_subspace=u3_subspaces.GetSubspace(omega_index); 
         basis::MatrixVector& raising_polynomials=polynomial_matrices_by_lgi_family[irrep_family_index][omega_index];
 
         // define aliases to the relevant lsu3shell subspaces
@@ -176,7 +185,9 @@ namespace spncci
         //   << std::endl;
 
         // define aliases to expansion matrices
-        const Eigen::MatrixXd& lgi_expansion = lgi_expansions[irrep_family_index];
+        // std::cout<<"get lgi expansion "<<std::endl;
+        // const Eigen::MatrixXd& lgi_expansion = lgi_expansions[irrep_family_index];
+        const Eigen::MatrixXd& lgi_expansion = lgi_expansions[lgi_lsu3shell_subspace_index];
         Eigen::MatrixXd& spncci_expansion = spncci_expansions[subspace_index];
 
         // diagnostics
@@ -192,25 +203,30 @@ namespace spncci
         else
           {
             int upsilon_max=subspace.upsilon_max();
+            int u3_subspace_dim=u3_subspace.size();
             int gamma_max=subspace.gamma_max();
             int rows=raising_polynomials[0].rows();
             int cols=lgi_expansion.cols();
-            
+
             spncci_expansion=Eigen::MatrixXd::Zero(rows,upsilon_max*gamma_max);
-            Eigen::MatrixXd k_matrix_inverse = k_matrix_cache.at(subspace.sigma()).at(subspace.omega()).inverse();
+            Eigen::MatrixXd k_matrix_inverse = restrict_sp3r_u3_branching?
+              kinv_matrix_cache.at(subspace.sigma()).at(subspace.omega()):
+              k_matrix_cache.at(subspace.sigma()).at(subspace.omega()).inverse();
+            // mcutils::RightInverse(k_matrix_cache.at(subspace.sigma()).at(subspace.omega()));
             
             int phase = ParitySign(
                 u3::ConjugationGrade(subspace.sigma().SU3())
                 +u3::ConjugationGrade(subspace.omega().SU3())
               );
-
-            assert(raising_polynomials.size()==upsilon_max);
+            assert(raising_polynomials.size()==u3_subspace_dim);
             for(int u=0; u<upsilon_max; ++u)
             {
               Eigen::MatrixXd omega_expansion_temp=Eigen::MatrixXd::Zero(rows,cols);
-              for(int u_bar=0; u_bar<raising_polynomials.size(); ++u_bar)
+              for(int u_bar=0; u_bar<u3_subspace_dim; ++u_bar)
               {
-                omega_expansion_temp+=phase*k_matrix_inverse(u,u_bar)*raising_polynomials[u_bar]*lgi_expansion;
+                // std::cout<<u<<" "<<u_bar<<" "<<k_matrix_inverse.rows()<<" "<<k_matrix_inverse.cols()
+                // <<" "<<raising_polynomials[u_bar].rows()<<"  "<<raising_polynomials[u_bar].rows()<<std::endl;
+                omega_expansion_temp+=phase*k_matrix_inverse(u_bar,u)*raising_polynomials[u_bar]*lgi_expansion;
               }
 
               // Populating spncci_expansion with omega expansions. 

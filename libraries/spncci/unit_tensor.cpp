@@ -70,20 +70,24 @@ void ZeroInitBlocks(int number, int rows, int cols,std::vector<basis::OperatorBl
     const u3::U3& sigma, const u3::U3& omega, const u3::U3& omega1,
     const sp3r::U3Subspace& u3_subspace,
     const sp3r::U3Subspace& u3_subspace1,
-    const Eigen::MatrixXd& K1, const Eigen::MatrixXd& K_inv,
-    Eigen::MatrixXd& KBUK
+    const Eigen::MatrixXd& K1, //(upsilon_max1,dim1)
+    const Eigen::MatrixXd& K_inv,//(dim,upsilon_max)
+    bool restrict_sp3r_to_u3_branching,
+    Eigen::MatrixXd& KBUK //(upislon1_max,upsilon)
     )
   {
-    int upsilon_max1=KBUK.rows();
-    int upsilon_max=KBUK.cols();
+    int upsilon_max1=u3_subspace1.upsilon_max();
+    int upsilon_max=u3_subspace.upsilon_max();
+    int dim1=u3_subspace1.size();
+    int dim=u3_subspace.size();
 
-    Eigen::MatrixXd BU(upsilon_max1, upsilon_max);
-    for(int u3_state_index=0; u3_state_index<upsilon_max; ++u3_state_index)
+    Eigen::MatrixXd BU(dim1, dim);
+    for(int u3_state_index=0; u3_state_index<dim; ++u3_state_index)
       {
         MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(u3_state_index);
         u3::U3 n(n_rho.irrep);
         // iterate over (n1,rho1)
-        for (int u3_state_index1=0; u3_state_index1<upsilon_max1; u3_state_index1++)
+        for (int u3_state_index1=0; u3_state_index1<dim1; u3_state_index1++)
           {
             MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
             u3::U3 n1(n1_rho1.irrep);
@@ -111,19 +115,28 @@ void Amatrix(
   const sp3r::U3Subspace& u3_subspacepp,
   const u3::U3& sigmap, const u3::U3& omegap, const u3::U3& omegapp,
   const vcs::MatrixCache& K_matrix_map_bra,
+  const vcs::MatrixCache& Kinv_matrix_map_bra,
   int upsilon_maxp, int upsilon_maxpp,
+  bool restrict_sp3r_to_u3_branching,
   Eigen::MatrixXd& A
   )
 {
-  Eigen::MatrixXd boson_matrix(upsilon_maxp,upsilon_maxpp);
+  // underlying u3boson subspace dimensions
+  int dimp=u3_subspacep.size();
+  int dimpp=u3_subspacepp.size();
+
+  Eigen::MatrixXd boson_matrix(dimp,dimpp);
+  
+  // Extracting K matrices 
   const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
-  const Eigen::MatrixXd& Kpp_inv=K_matrix_map_bra.at(omegapp).inverse();
-  for(int vpp=0; vpp<upsilon_maxpp; vpp++)
+  Eigen::MatrixXd Kpp_inv=restrict_sp3r_to_u3_branching?Kinv_matrix_map_bra.at(omegapp):K_matrix_map_bra.at(omegapp).inverse();
+
+  for(int vpp=0; vpp<dimpp; vpp++)
     {
       MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
       const u3::U3& npp(npp_rhopp.irrep);
       int rhopp=npp_rhopp.tag;
-      for(int vp=0; vp<upsilon_maxp; vp++)
+      for(int vp=0; vp<dimp; vp++)
         {
           MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
           const u3::U3& np(np_rhop.irrep);
@@ -143,11 +156,7 @@ void Amatrix(
     } //end vpp
   // Matrix of symplectic raising operator A
   A=Kp*boson_matrix*Kpp_inv;
-
 }
-
-
-
 
 
 void 
@@ -156,12 +165,14 @@ ComputeUnitTensorHyperblocks(
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
   const spncci::KMatrixCache& k_matrix_map,
+  const spncci::KMatrixCache& kinv_matrix_map,
   const spncci::SpNCCISpace& spncci_space,
   const spncci::BabySpNCCISpace& baby_spncci_space,
   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
   const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
   const std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
   basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+  bool restrict_sp3r_to_u3_branching,
   int number_of_threads
   )
 // compute hyperblocks for unit tensors recursively
@@ -207,17 +218,22 @@ ComputeUnitTensorHyperblocks(
           // std::cout<<"Nnp, Nn "<<baby_spncci_subspace_bra.Nn()<<"  "<<baby_spncci_subspace_ket.Nn()<<std::endl;
           bool conjugate=(baby_spncci_subspace_bra.Nn()>(baby_spncci_subspace_ket.Nn()-2));
           // std::cout<<"conjugate "<<conjugate<<std::endl;
+
+          // Extract ket dimensions and mulitplicities 
           int dim=baby_spncci_subspace_ket.size();
           int gamma_max=baby_spncci_subspace_ket.gamma_max();
           int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
 
+          // Extract bra dimensions and mulitplicities 
           int dimp=baby_spncci_subspace_bra.size();
           int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
           int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
-          // extract Sp(3,R) space
+          
+          // Extract Sp(3,R) space
           int irrep_family_index_bra=baby_spncci_subspace_bra.irrep_family_index();
           int irrep_family_index_ket=baby_spncci_subspace_ket.irrep_family_index();
 
+          // std::cout<<"irrep_family_index_bra "<<irrep_family_index_bra<<" irrep_family_index_ket"<<irrep_family_index_ket<<std::endl;
           const sp3r::Sp3RSpace& irrep_bra = spncci_space[irrep_family_index_bra].Sp3RSpace();
           const sp3r::Sp3RSpace& irrep_ket = spncci_space[irrep_family_index_ket].Sp3RSpace();
 
@@ -228,6 +244,7 @@ ComputeUnitTensorHyperblocks(
           int etap,eta;
 
           // Extracting labels
+          // std::cout<<"extracting labels"<<std::endl;
           std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
           std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
           std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
@@ -237,11 +254,21 @@ ComputeUnitTensorHyperblocks(
           const sp3r::U3Subspace& u3_subspace=irrep_ket.LookUpSubspace(omega);
           const sp3r::U3Subspace& u3_subspacep=irrep_bra.LookUpSubspace(omegap);
           // Extracting K matrices for sp_irrep and sp_irrepp from the K_matrix_maps 
+          // std::cout<<"bunny1"<<std::endl;
           const vcs::MatrixCache& K_matrix_map_bra=k_matrix_map.at(sigmap);
+          // std::cout<<"bunny2"<<std::endl;
+          // Temporary fix for debug purposes
+          vcs::MatrixCache null_cache;
+          const vcs::MatrixCache& Kinv_matrix_map_bra=restrict_sp3r_to_u3_branching?kinv_matrix_map.at(sigmap):null_cache;
+          // std::cout<<"bunny3"<<std::endl;
           const vcs::MatrixCache& K_matrix_map_ket=k_matrix_map.at(sigma);
-
-          Eigen::MatrixXd Kp=K_matrix_map_bra.at(omegap);
-          Eigen::MatrixXd K_inv=K_matrix_map_ket.at(omega).inverse();
+          // std::cout<<"bunny4"<<std::endl;
+          const vcs::MatrixCache& Kinv_matrix_map_ket=restrict_sp3r_to_u3_branching?kinv_matrix_map.at(sigma):null_cache;
+          // std::cout<<"bunny5"<<std::endl;
+          const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
+          // std::cout<<"bunny6"<<std::endl;
+          // std::cout<<sigma.Str()<<". "<<omega.Str()<<std::endl;
+          const Eigen::MatrixXd& K_inv=restrict_sp3r_to_u3_branching?Kinv_matrix_map_ket.at(omega):K_matrix_map_ket.at(omega).inverse();
 
           // Generate labels to sum over 
           int rho0_max=u3::OuterMultiplicity(omega.SU3(),x0,omegap.SU3());
@@ -251,6 +278,7 @@ ComputeUnitTensorHyperblocks(
           MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
           MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(x0, u3::SU3(2,0));
 
+          // std::cout<<"hypersector_index "<<hypersector_index<<std::endl;
            std::vector<basis::OperatorBlock<double>>& unit_tensor_blocks=unit_tensor_hyperblocks[hypersector_index];
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
           //  Calculate unit tensor matrix
@@ -275,10 +303,10 @@ ComputeUnitTensorHyperblocks(
      
               spncci::BabySpNCCISubspaceLabels baby_spncci_labels1(sigma,Sp_ket,Sn_ket,S_ket,omega1);
               int baby_spncci_subspace_index1=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels1);
-
+              // std::cout<<"bunny rabbit 1"<<std::endl;
               Eigen::MatrixXd K1=K_matrix_map_ket.at(omega1);
               const sp3r::U3Subspace& u3_subspace1=irrep_ket.LookUpSubspace(omega1);
-              int upsilon_max1=u3_subspace1.size();
+              int upsilon_max1=u3_subspace1.upsilon_max();
 
               int dim1=upsilon_max1*gamma_max;
               std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_omega1;
@@ -292,7 +320,9 @@ ComputeUnitTensorHyperblocks(
               
               spncci::ConsructKBUK(
                 u_coef_cache, Nn,sigma, omega, omega1,
-                u3_subspace,u3_subspace1,K1,K_inv,KBUK
+                u3_subspace,u3_subspace1,K1,K_inv,
+                restrict_sp3r_to_u3_branching,
+                KBUK
               );
               
               // ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,14 +382,16 @@ ComputeUnitTensorHyperblocks(
 
                           // omega'' subspace (v'')
                           sp3r::U3Subspace u3_subspacepp=irrep_bra.LookUpSubspace(omegapp);
-                          int upsilon_maxpp=u3_subspacepp.size();
+                          int upsilon_maxpp=u3_subspacepp.upsilon_max();
                           int dimpp=upsilon_maxpp*gamma_maxp;
                           // Obtaining K matrix for omega''
                           
                           Eigen::MatrixXd A;
                           spncci::Amatrix(u_coef_cache,
                             u3_subspacep,u3_subspacepp,sigmap, omegap, omegapp,
-                            K_matrix_map_bra,upsilon_maxp, upsilon_maxpp,A
+                            K_matrix_map_bra,Kinv_matrix_map_bra,upsilon_maxp, upsilon_maxpp,
+                            restrict_sp3r_to_u3_branching,
+                            A
                           );
 
                            // Zero initialze blocks accumulating sum over rho0pp and rho0bp
@@ -421,7 +453,6 @@ ComputeUnitTensorHyperblocks(
 
                       // std::cout<<"term 1"<<std::endl;
                       // std::cout<<unit_tensor_blocks_x0p[0]<<std::endl;
-                      
                       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
                       //first term 
                       //////////////////////////////////////////////////////////////////////////////////////////////////////////

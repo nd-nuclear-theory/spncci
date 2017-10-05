@@ -31,7 +31,7 @@ modules += libraries/basis libraries/am libraries/mcutils  # ordering note: mcut
 modules += programs/operators programs/unit_tensors programs/su3calc programs/validation
 #modules += programs/test
 modules += programs/linear_algebra
-modules += programs/spncci
+modules += programs/spncci programs/lgi
 
 ################################################################
 # extras -- list of extra files to be included

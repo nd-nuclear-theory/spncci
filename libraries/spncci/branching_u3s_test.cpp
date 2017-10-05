@@ -71,10 +71,8 @@ int main(int argc, char **argv)
   //   u3shell::RelativeStateLabelsU3ST ket
 
     std::string interaction_filename = "unit.dat";
-    std::ifstream interaction_stream(interaction_filename);
-    assert(interaction_stream);
     u3shell::RelativeRMEsU3ST relative_rmes;
-    u3shell::ReadRelativeOperatorU3ST(interaction_stream,relative_rmes);
+    u3shell::ReadRelativeOperatorU3ST(interaction_filename,relative_rmes);
 
     // diagnostic -- relative rme contents
     std::cout << "relative rme list" << std::endl;

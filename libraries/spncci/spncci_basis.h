@@ -31,6 +31,8 @@
     - Extract PrecomputeKMatrices to vcs_cache.
     - Extract legacy GenerateSpNCCIIrrepFamilyPairs to unit_tensor_test.
   7/1/17 (aem) : Added intrinsic option for Nsigma0ForNuclide. 
+  9/27/17 (aem) : Removed gamma_max=0 lgi from spncci space
+  10/4/17 (aem): Modified Sp3r->U(3) branching restriction
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_

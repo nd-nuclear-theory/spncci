@@ -7,7 +7,8 @@
   University of Notre Dame
 
   6/7/17 (mac): Extracted from spncci_basis.
-
+  10/4/17 (aem): Add option for K matrices computed in basis with
+    restricted sp3r->u3 branching (A<6)
 ****************************************************************/
 
 #ifndef SPNCCI_VCS_CACHE_H_
@@ -30,7 +31,9 @@ namespace spncci
   void
   PrecomputeKMatrices(
       const spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::KMatrixCache& k_matrix_cache
+      spncci::KMatrixCache& k_matrix_cache,
+      spncci::KMatrixCache& kinv_matrix_cache,
+      bool restrict_sp3r_u3_branching=false
     );
   // Precompute and cache K matrices for all symplectic irreps
   // occurring in SpNCCI space.

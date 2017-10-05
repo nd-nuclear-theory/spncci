@@ -15,6 +15,11 @@
     for computation of normalization for intrinsic operators
   7/1/17 (aem): Removed intrinsic option.  Normalization of
     intrinsic operators is now enforced by choice of Nsigma0.
+  10/4/17 (aem): 
+    + Factored Kmatrix and Smatrix calculations
+    + Implemented construction of Kmatrix in basis with
+      redundent subspaces 
+    + Removed broken OpenMP version of K matrix calculation
 ****************************************************************/
 
 #ifndef VCS_H_
@@ -69,8 +74,8 @@ namespace vcs
 
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map);
   //Calculates the K matrix 	
-  void GenerateKMatricesOpenMP(const sp3r::Sp3RSpace& irrep, const int Nmax, vcs::MatrixCache& K_matrix_map);
-
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, MatrixCache& K_matrix_map, MatrixCache& Kinv_matrix_map);
+  // Generates K matrices and Kinv matrices, for A<6
 
 }  //  namespace
 

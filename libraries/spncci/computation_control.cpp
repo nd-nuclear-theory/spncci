@@ -29,6 +29,8 @@ namespace spncci
     u3shell::SectorsU3SPN Bintr_sectors, Nintr_sectors;
     basis::MatrixVector Bintr_matrices, Nintr_matrices;
     bool sp3r_generators=true;
+
+    // Read in Brel and Nrel calculated in the lsu3shell basis 
     spncci::ReadLSU3ShellSymplecticOperatorRMEs(
         lsu3shell_basis_table,lsu3shell_space, 
         Brel_filename,Bintr_sectors,Bintr_matrices,
@@ -36,6 +38,7 @@ namespace spncci
         A
       );
 
+    // From Nintr construct Ncm
     const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
     basis::MatrixVector Ncm_matrices;
     // Note that A-1 is used here since we are generating Ncm using an
@@ -45,6 +48,7 @@ namespace spncci
         A-1,Ncm_matrices
       );
 
+    // Apply the lgi solver to obtain lgi_families and their expansions in the lsu3shell basis 
     lgi::GenerateLGIExpansion(
         lsu3shell_space, 
         Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
@@ -60,12 +64,13 @@ namespace spncci
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
       const basis::MatrixVector& lgi_expansions,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& lgi_unit_tensor_blocks
+      std::map<std::pair<int,int>,std::map<std::pair<int,int>,basis::OperatorBlocks<double>>>& lgi_unit_tensor_blocks
     )
   {
     //If parallellize, iterate first over unit_tensor_index in parallel and then write to new map in serial?, maybe
     // Alternatively, we zero initalize lgi_unit_tensor_blocks
-    // std::unordered_map<u3shell::SectorsU3SPN,basis::MatrixVector, boost::hash<u3shell::SectorsU3SPN>> unit_tensor_spncci_blocks;
+    // std::unordered_map<u3shell::SectorsU3SPN,basis::MatrixVector, boost::hash<u3shell::SectorsU3SPN>> 
+    //    unit_tensor_spncci_blocks;
     for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
       {
         // Get labels of corresponding unit tensor 
@@ -74,11 +79,11 @@ namespace spncci
         // File name containing lsu3shell rmes of unit tensor 
         std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
 
-        // generate unit tensor sectors in lsu3shell basis 
+        // generate unit tensor sectors in lsu3shell basis
         const bool spin_scalar = false; // All spin values allowed
         u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
       
-        // read in lsu3shell rms of unit tensor 
+        // read in lsu3shell rmes of unit tensor 
         basis::MatrixVector unit_tensor_lsu3shell_matrices;
         lsu3shell::ReadLSU3ShellRMEs(
             filename,
@@ -87,8 +92,7 @@ namespace spncci
           );
 
         // transform seed rmes to SpNCCI basis (among LGIs)
-        // basis::MatrixVector unit_tensor_spncci_matrices=unit_tensor_spncci_blocks[unit_tensor_sectors]; // temporary container if omp?
-        basis::MatrixVector unit_tensor_spncci_matrices; // temporary
+        basis::MatrixVector unit_tensor_spncci_matrices; // temporary container
         lgi::TransformOperatorToSpBasis(
             unit_tensor_sectors,lgi_expansions,
             unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
@@ -106,26 +110,17 @@ namespace spncci
         auto& subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
         // Look up index of unit tensor in subspace
-        int unit_tensor_state_index=subspace.LookUpStateIndex(std::tuple<int,int,int,int,int>(int(T0), int(Sp),int(Tp),int(S),int(T)));
+        int unit_tensor_state_index
+              =subspace.LookUpStateIndex(std::tuple<int,int,int,int,int>(int(T0),int(Sp),int(Tp),int(S),int(T)));
 
-
-        //unit_tensor_spncci_matrices
-        //baby_spncci_space
-        //unit_tensor_sectors
-        //lgi_unit_tensor_blocks
-
-        // Turn into function, iterate over map, then over sector index
-
-
-        // transfer spncci unit tensor rmes from temporary container to lgi hyperblocks container for use in spncci recurrence
+        // transfer spncci unit tensor rmes from temporary container to lgi hyperblocks for use in spncci recurrence
         for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
           {
             // Check that the sector has non-zero rmes as defined by the zero_tolerance
-            // If not, then don't need to copy over rmes.
             if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],spncci::g_zero_tolerance))
               continue;
             
-            // extract U3SPN sector information
+            // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
             const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
             const int bra_subspace_index = sector.bra_subspace_index();
             const int ket_subspace_index = sector.ket_subspace_index();
@@ -134,9 +129,8 @@ namespace spncci
             const u3::U3& bra_sigma = bra_subspace.U3();
             const u3::U3& ket_sigma = ket_subspace.U3();
             const int rho0 = sector.multiplicity_index();
-            // const int rho0 = unit_tensor_sectors.GetSector(sector_index).multiplicity_index();
 
-            // Get baby spncci index 
+            // Look up baby spncci index from labels
             spncci::BabySpNCCISubspaceLabels 
               baby_spncci_bra(bra_sigma,bra_subspace.Sp(),bra_subspace.Sn(), bra_subspace.S(),bra_sigma);
             spncci::BabySpNCCISubspaceLabels 
@@ -144,6 +138,11 @@ namespace spncci
 
             int baby_spncci_index_bra=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_bra);
             int baby_spncci_index_ket=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_ket);
+
+            // if baby_spncci_index_bra or baby_spncci_index_ket not found, then subspace belongs to an irrep which
+            // is not part of the truncated spncci space, so sector is ignored
+            if(baby_spncci_index_bra==-1 || baby_spncci_index_ket==-1)
+              continue;
 
             int irrep_family_index_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra).irrep_family_index();
             int irrep_family_index_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket).irrep_family_index();

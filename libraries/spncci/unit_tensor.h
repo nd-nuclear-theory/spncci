@@ -19,6 +19,7 @@
   5/5/17 (aem) : Update from souffle to baby spncci
   6/16/17 (aem) : Reimplement omp parallization
   7/1/17 (aem): Fix spin conjugation phase
+  10/4/17 (aem): Adjusted recurrence to work for A<6
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
@@ -75,13 +76,16 @@ ComputeUnitTensorHyperblocks(
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
   const spncci::KMatrixCache& k_matrix_map,
+  const spncci::KMatrixCache& kinv_matrix_map,
   const spncci::SpNCCISpace& spncci_space,
   const spncci::BabySpNCCISpace& baby_spncci_space,
   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
   const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
   const std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
   basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+  bool restrict_sp3r_to_u3_branching,
   int number_of_threads=1
+
   );
 } //namespace 
 

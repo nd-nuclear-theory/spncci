@@ -188,4 +188,19 @@ namespace u3shell {
     return rme;
   }
 
+  double RelativeMassQuadrupoleOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+  {
+    double rme=0;
+    if (bra.eta()==ket.eta())
+      rme=std::sqrt(4.*(ket.eta()*ket.eta()+3*ket.eta()));
+    if (bra.eta()==(ket.eta()+2))
+      rme=sqrt(3)*u3shell::RelativeSp3rRaisingOperator(bra,ket);
+    if (bra.eta()==(ket.eta()-2))
+      rme=sqrt(3)*u3shell::RelativeSp3rLoweringOperator(bra,ket);
+
+    return rme;
+  }
+
+
+
 } // namespace
