@@ -15,7 +15,7 @@
 #include "am/wigner_gsl.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
-#include "u3shell/import_interaction.h"
+// #include "u3shell/import_interaction.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/two_body_operator.h"
 #include "moshinsky/moshinsky_xform.h"

@@ -34,19 +34,6 @@
 namespace lgi
 {
 
-  // void 
-  //   GenerateLGIExpansion(
-  //       int A,
-  //       HalfInt Nsigma_0,
-  //       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-  //       const u3shell::SpaceU3SPN& lsu3shell_space, 
-  //       std::ifstream& is_Brel,
-  //       std::ifstream& is_Nrel,
-  //       lgi::MultiplicityTaggedLGIVector& lgi_families,
-  //       basis::MatrixVector& lgi_expansions
-  //     );
-  // // DEPRECATED -- now just a wrapper to the preferred version which accepts matrices for Brel and Nrel
-
   void 
     GenerateLGIExpansion(
         const u3shell::SpaceU3SPN& space, 
