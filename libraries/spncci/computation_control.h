@@ -48,23 +48,23 @@ namespace spncci
   typedef std::pair<HalfInt,HalfInt> JPair;
 
 
-void GetLGIExpansion(
-    const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-    const std::string& Brel_filename,
-    const std::string& Nrel_filename,
-    int A, HalfInt Nsigma_0,
-    lgi::MultiplicityTaggedLGIVector& lgi_families,
-    basis::MatrixVector& lgi_expansions
-  );
-  // Get list of LGI labels, multiplicities and expansion in lsu3shell basis
-  //
-  // Inputs
-  //  lsu3shell_basis_table,lsu3shell_space,  Filenames and A
-  // 
-  // Outputs 
-  //   lgi::MultiplicityTaggedLGIVector lgi_families;
-  //    basis::MatrixVector lgi_expansions;
+// void GetLGIExpansion(
+//     const u3shell::SpaceU3SPN& lsu3shell_space, 
+//     const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+//     const std::string& Brel_filename,
+//     const std::string& Nrel_filename,
+//     int A, HalfInt Nsigma_0,
+//     lgi::MultiplicityTaggedLGIVector& lgi_families,
+//     basis::MatrixVector& lgi_expansions
+//   );
+//   // Get list of LGI labels, multiplicities and expansion in lsu3shell basis
+//   //
+//   // Inputs
+//   //  lsu3shell_basis_table,lsu3shell_space,  Filenames and A
+//   // 
+//   // Outputs 
+//   //   lgi::MultiplicityTaggedLGIVector lgi_families;
+//   //    basis::MatrixVector lgi_expansions;
 
   void 
   GetUnitTensorSeedBlocks(

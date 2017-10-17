@@ -39,7 +39,7 @@ namespace spncci
     bool count_only;  // basis counting run
 
     // upstream information
-    std::array<int,2> nuclide;  // (N,Z): proton and neutron numbers
+    std::array<int,2> nuclide;  // (Z,N): proton and neutron numbers
     std::string interaction_name;
     bool use_coulomb;
 

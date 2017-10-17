@@ -19,6 +19,7 @@
     - Extract WriteLGILabels to lgi.h.
   6/11/17 (mac): Remove deprecated form of GenerateLGIExpansion with
     stream arguments.
+  10/11/17 (aem) : Extract GetLGIExpansion from spncci/computation_control
 ****************************************************************/
 
 #ifndef LGI_PROB_H_
@@ -43,7 +44,7 @@ namespace lgi
         const basis::MatrixVector& Ncm_matrices,
         HalfInt Nsigma_0,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions
+        lsu3shell::OperatorBlocks& lgi_expansions
         // bool keep_empty_subspaces=false
       );
   // Generate the LGI Expansion in terms of lsu3shell SU(3)xSU(2)
@@ -63,6 +64,26 @@ namespace lgi
   //    space (input) : space on which Brel and Nrel rme's are calculated
   //    Brel_filename (input) : file containing lsu3shell rme's of Brel
   //    Nrel_filename (input) : file containing lsu3shell rme's of Nrel
+
+
+void GetLGIExpansion(
+    const u3shell::SpaceU3SPN& lsu3shell_space, 
+    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+    const std::string& Brel_filename,
+    const std::string& Nrel_filename,
+    int A, HalfInt Nsigma_0,
+    lgi::MultiplicityTaggedLGIVector& lgi_families,
+    lsu3shell::OperatorBlocks& lgi_expansions
+  );
+  // Get list of LGI labels, multiplicities and expansion in lsu3shell basis
+  //
+  // Inputs
+  //  lsu3shell_basis_table,lsu3shell_space,  Filenames and A
+  // 
+  // Outputs 
+  //   lgi::MultiplicityTaggedLGIVector lgi_families;
+  //    basis::MatrixVector lgi_expansions;
+
 
   void
     TransformOperatorToSpBasis(

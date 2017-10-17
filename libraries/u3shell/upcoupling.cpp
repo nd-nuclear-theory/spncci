@@ -56,13 +56,6 @@ namespace u3shell
         std::tie(Lp,Sp,Jp,Tp,gp)=bra_lsjt;
         u3shell::RelativeSubspaceLabelsNLST bra_nlst(Lp,Sp,Tp);              
         u3shell::RelativeSubspaceLabelsNLST ket_nlst(L,S,T);
-
-        // if((L==20)&&(S==1)&& T==0 && L==Lp && S==Sp && T==Tp && T0==0)
-        //   {
-        //     std::cout<<"hi "<<Jp<<"  "<<J<<"  "<<J0<<std::endl;
-        //     std::cout<<sector<<std::endl<<std::endl;
-        //   }
-
   
         // Iterate over possible S0 and L0 values and accumulate tensor components 
         for (int S0=0; S0<=2; ++S0)            
@@ -73,9 +66,6 @@ namespace u3shell
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
                               *am::dim(Jp)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(Sp)/am::dim(Lp);
               
-              // if((L==20)&&(S==1)&& T==0 && L==Lp && S==Sp && T==Tp && L0==2 && S0==1 && T0==0)
-              //   std::cout<<J0<<"  "<<so3_coef<<"  "<<am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)<<std::endl;
-
               if (fabs(so3_coef)<zero_threshold)
                 continue;
 

@@ -162,7 +162,7 @@ RunParameters::RunParameters()
   A =nuclide[0]+nuclide[1];
 
   bool intrinsic=true;
-  Nsigma0 = spncci::Nsigma0ForNuclide(nuclide,intrinsic);
+  Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
   std::cout<<"nuclide ("<<nuclide[0]<<","<<nuclide[1]<<")  Nsigma0 "<<Nsigma0<<std::endl;
 
   // Nsigma0_ex_max = 2;
@@ -246,14 +246,14 @@ int main(int argc, char **argv)
 
   u3shell::SectorsU3SPN Bintr_sectors, Aintr_sectors, Nintr_sectors;
   basis::MatrixVector Bintr_matrices, Aintr_matrices, Nintr_matrices;
-  spncci::ReadLSU3ShellSymplecticOperatorRMEs(
+  lsu3shell::ReadLSU3ShellSymplecticOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
       run_parameters.Brel_filename,Bintr_sectors,Bintr_matrices,
       run_parameters.Nrel_filename,Nintr_sectors,Nintr_matrices,
       run_parameters.A
     );
 
-  spncci::ReadLSU3ShellSymplecticRaisingOperatorRMEs(
+  lsu3shell::ReadLSU3ShellSymplecticRaisingOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
       run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
       run_parameters.A

@@ -11,7 +11,7 @@ module_units_cpp-h +=
 
 # module_units_f := 
 module_programs_cpp :=  moshinsky_xform_test moshinsky_coefficient_test relative_to_twobody moshinsky_unitarity
-module_programs_cpp +=  relative_cm_xform_test
+module_programs_cpp +=  relative_cm_xform_test shell_comparison
 # module_programs_f :=
 # module_generated :=
 

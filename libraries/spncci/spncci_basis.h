@@ -33,6 +33,7 @@
   7/1/17 (aem) : Added intrinsic option for Nsigma0ForNuclide. 
   9/27/17 (aem) : Removed gamma_max=0 lgi from spncci space
   10/4/17 (aem): Modified Sp3r->U(3) branching restriction
+  10/11/17 (aem) : Moved Nsigma0ForNuclide to lgi.h
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -55,39 +56,8 @@ namespace spncci
 
   typedef std::pair<int,int> NnPair;
 
-  ////////////////////////////////////////////////////////////////
-  // Calculation of Nsigma0
-  ////////////////////////////////////////////////////////////////
 
-  typedef std::array<int,2> NuclideType;
-
-  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false);
-  // Calculate Nsigma0 for nuclide.
-  //
-  // This may be thought of as the dimensionless "oscillator energy in
-  // the lowest Pauli-allowed configuration", including zero-point
-  // energy.
-  //
-  // Example:
-  //
-  //   spncci::Nsigma0ForNuclide({3,3});
-  //
-  //      => returns 11
-  //
-  // Note that this is shorthand for
-  //
-  //   spncci::Nsigma0ForNuclide(spncci::NuclideType({3,3}))
-  //
-  // made possible by automatic conversion from initializer list to
-  // array.
-  //
-  // Arguments:
-  //   nuclide (input): (N,Z) for nucleus
-  //
-  // Returns:
-  //   Nsigma0
-
-  int ValenceShellForNuclide(const NuclideType& nuclide);
+  int ValenceShellForNuclide(const lgi::NuclideType& nuclide);
   // Calculate valence shell for nuclide.
   //
   // This is the highest oscillator shell occupied in the lowest

@@ -10,7 +10,7 @@
   1/31/17 (mac): Rename LGIVector to MultiplicityTaggedLGIVector.
   2/17/17 (mac): Extract WriteLGILabels from lgi_solver and change
     to accept std::ostream for output and extract to lgi.
-
+  10/11/17 (aem) : Extract Nsigma0ForNuclide from spncci_basis
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
@@ -18,9 +18,43 @@
 #include "am/am.h"  
 #include "sp3rlib/sp3r.h"
 #include "u3shell/u3spn_scheme.h"  
-
+#include "lsu3shell/lsu3shell_rme.h"
 namespace lgi
 {
+
+  ////////////////////////////////////////////////////////////////
+  // Calculation of Nsigma0
+  ////////////////////////////////////////////////////////////////
+
+  typedef std::array<int,2> NuclideType;
+
+  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false);
+  // Calculate Nsigma0 for nuclide.
+  //
+  // This may be thought of as the dimensionless "oscillator energy in
+  // the lowest Pauli-allowed configuration", including zero-point
+  // energy.
+  //
+  // Example:
+  //
+  //   spncci::Nsigma0ForNuclide({3,3});
+  //
+  //      => returns 11
+  //
+  // Note that this is shorthand for
+  //
+  //   spncci::Nsigma0ForNuclide(spncci::NuclideType({3,3}))
+  //
+  // made possible by automatic conversion from initializer list to
+  // array.
+  //
+  // Arguments:
+  //   nuclide (input): (N,Z) for nucleus
+  //
+  // Returns:
+  //   Nsigma0
+
+
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
   // Sp(3,R) LGI enumeration
@@ -117,6 +151,20 @@ namespace lgi
 
   void
     WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families,std::ostream& os);
+
+  void
+    WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families, const std::string& filename);
+
+
+  void 
+  WriteLGIExpansion(
+    int Z, int N, int Nmax,
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    lsu3shell::OperatorBlocks&lgi_expansions,
+    const std::string& filename
+  );
+
+
 
   void ReadLGISet(MultiplicityTaggedLGIVector& lgi_families, const std::string& lgi_filename);
 

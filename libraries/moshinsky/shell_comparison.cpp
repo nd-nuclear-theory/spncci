@@ -7,156 +7,137 @@
 ****************************************************************/
 #include <cmath>
 #include "cppformat/format.h"
-
+#include "am/wigner_gsl.h"
 #include "sp3rlib/u3coef.h"
 #include "moshinsky/moshinsky_xform.h"
-
+#include "u3shell/upcoupling.h"
 extern double zero_threshold;
 
 namespace u3shell
 {
-void
-MoshinskyTransformTensor(
-  const OperatorLabelsU3ST& operator_labels,
-  int etap, int eta,
-  const u3shell::TwoBodySubspaceU3ST& bra_subspace, 
-  const u3shell::TwoBodySubspaceU3ST& ket_subspace,
-  int rho0, 
-  std::string normalization,
-  double coef,
-  u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion
-  )
-{
-      u3::SU3 x0(operator_labels.x0());
-      u3::SU3 xp(bra_subspace.omega().SU3());
-      u3::SU3 x(ket_subspace.omega().SU3());      
-      HalfInt Sp(bra_subspace.S());
-      HalfInt S(ket_subspace.S());
-      HalfInt Tp(bra_subspace.T());
-      HalfInt T(bra_subspace.T());
-
-      int dimb=bra_subspace.size();
-      int dimk=ket_subspace.size();
-      // set up two-body sector for given operator,(omegap,Sp,Tp),(omega,S,T), rho0
-      Eigen::MatrixXd sector(dimk,dimb);
-      sector=MoshinskyTransform(x0, etap, eta, bra_subspace, ket_subspace, rho0, normalization);
-      // Accumluating the moshinsky transformed coeffcients 
-      for (int i=0; i<dimb; ++i)
-      {
-        const u3shell::TwoBodyStateU3ST bra_state(bra_subspace,i);
-        int eta1p=bra_state.N1();
-        int eta2p=bra_state.N2();
-        u3shell::TwoBodyStateLabelsU3ST bra(eta1p, eta2p, xp, Sp, Tp);
-        for (int j=0; j<dimk; ++j)
-          {
-            const u3shell::TwoBodyStateU3ST ket_state(ket_subspace,j);
-            int eta1=ket_state.N1();
-            int eta2=ket_state.N2();
-            u3shell::TwoBodyStateLabelsU3ST ket(eta1, eta2, x, S, T);
-
-            double rme=coef*sector(i,j);      
-            TwoBodyUnitTensorLabelsU3ST tboperator(operator_labels,rho0,bra,ket);
-            two_body_expansion[tboperator]+=rme;                
-           }
-        }
-      // remove unit tensors with coefficient zero
-      std::vector<TwoBodyUnitTensorLabelsU3ST> delete_list;
-      for(auto key_value : two_body_expansion)
-      {
-        if(fabs(key_value.second)<zero_threshold)
-          delete_list.push_back(key_value.first);
-      }
-      for(int i=0; i<delete_list.size(); ++i)
-        {
-          auto key=delete_list[i];
-          two_body_expansion.erase(key);
-        }
-}
-
-void 
-  MoshinskyTransformUnitTensor(
-    const u3shell::RelativeUnitTensorLabelsU3ST& tensor, 
-    u3shell::RelativeCMUnitTensorCache& unit_relative_cm_expansion,
-    u3shell::TwoBodySpaceU3ST& space,
-    u3shell::TwoBodyUnitTensorCoefficientsU3ST& two_body_expansion,
-    std::string normalization,
-    double expansion_coef
-  )
+  void Q(int Nmax,u3shell::RelativeRMEsU3ST& Qintr, int A, double coef=1.0, bool moshinsky_convention=false)
   {
-    //extract operator labels 
-    int etap=tensor.bra().eta();
-    int eta=tensor.ket().eta();
-    HalfInt S=tensor.ket().S();
-    HalfInt T=tensor.ket().T();
-    HalfInt Sp=tensor.bra().S();
-    HalfInt Tp=tensor.bra().T();
-    u3::SU3 x0(tensor.x0());
-    HalfInt S0(tensor.S0());
-    HalfInt T0(tensor.T0());
+    u3shell::RelativeStateLabelsU3ST bra,ket;
+    int Np, rho_max;
+    u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor;
+    std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key;
+    int kappa0=1; 
+    int L0=2;
 
-    u3shell::OperatorLabelsU3ST operator_labels(etap-eta,x0,tensor.S0(), tensor.T0(), tensor.g0());
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Sectors are generated subject to the constraints that 
-    // omega.N()+N0=omegap.N()
-    // omega x x0 -> omegap
-    // S x S0 ->Sp
-    // T x T0 ->Tp
-    u3shell::TwoBodySectorsU3ST sector_labels_list(space,tensor);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // For each two-body sector, moshinsky transform the relative-cm matrix element
-    // and accumulate values in container two_body_expansion.
-    for (int sector_index=0; sector_index<sector_labels_list.size(); sector_index++)
-    {
-      // for a given sector, extract bra and ket subspace information
-      auto sector_labels=sector_labels_list.GetSector(sector_index);
-      const u3shell::TwoBodySubspaceU3ST& bra_subspace(sector_labels.bra_subspace());
-      const u3shell::TwoBodySubspaceU3ST& ket_subspace(sector_labels.ket_subspace());
-      int rho0=sector_labels.multiplicity_index();
+    double intrinsic_factor=2./A;
+    for(int N=0; N<=Nmax; N++)
+      for(int S=0; S<=1; ++S)
+        for(int T=0; T<=1; ++T)
+          if((N+S+T)%2==1)
+          {
+            ket=u3shell::RelativeStateLabelsU3ST(N,S,T); 
 
-      if ((bra_subspace.S()!=Sp) || (bra_subspace.T()!=Tp) || (ket_subspace.S()!=S) || (ket_subspace.T()!=T))
-        continue;
+            // Brel term
+            Np=N-2;
+            if(Np>=0)
+            {
+              bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
+              key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
 
-      u3::SU3 xp(bra_subspace.omega().SU3());
-      u3::SU3 x(ket_subspace.omega().SU3());
-      HalfInt Np(bra_subspace.omega().N());
-      HalfInt N(ket_subspace.omega().N());
+              if (fabs(Brme)>zero_threshold)
+                Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
+            }
+            // Crel term
+            Np=N;
+            bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,0,bra,ket);
+            key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+            double Crme=std::sqrt(4.*(N*N+3*N)/3);
+            
+            if(fabs(Crme)>zero_threshold)
+              Qintr[key]+=std::sqrt(3)*Crme*intrinsic_factor*coef;
 
-      int eta_cm=int(Np-etap);
-
-      u3shell::RelativeCMStateLabelsU3ST bra(etap,eta_cm,xp,Sp,Tp);
-      u3shell::RelativeCMStateLabelsU3ST ket(eta,eta_cm,x,S,T);
-      u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st(x0,S0,T0,rho0,bra,ket);
-      
-      if(unit_relative_cm_expansion.count(braket_u3st)==0)
-        continue;
-
-      // Adding in center of mass
-      expansion_coef=expansion_coef*unit_relative_cm_expansion[braket_u3st];
-      if(fabs(expansion_coef)<zero_threshold)
-        continue;
-      ///////////////////////////////////////////////////////////////////////////////////////
-      
-      MoshinskyTransformTensor(operator_labels,etap, eta, bra_subspace, ket_subspace, rho0, 
-        normalization, expansion_coef,two_body_expansion);
-    }
+            // Arel term
+            Np=N+2;
+            if(Np<=Nmax)
+            {
+              bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
+              key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
+              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              if (fabs(Arme)>zero_threshold)
+                Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef;
+            }
+          }
   }
 
-	void RelativeUnitTensorToTwobodyU3ST(int Nmax,  
-	  const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_unit_tensors,
-	  u3shell::RelativeCMExpansion& unit_relative_cm_map,
-	  TwoBodyExpansionMap& two_body_expansion_vector,
-	  std::string normalization
-	  )
-	{
-	  u3shell::TwoBodySpaceU3ST space(Nmax);
-	  for(auto tensor : relative_unit_tensors)
-	    {
-	      u3shell::RelativeCMUnitTensorCache& unit_relative_cm_expansion=unit_relative_cm_map[tensor];
-	      u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_expansion;
-	      // u3shell::MoshinskyTransformUnitTensor(tensor, unit_relative_cm_expansion,space, two_body_expansion,normalization);
-	      two_body_expansion_vector[tensor]=two_body_expansion;
-	    }
-	}
+  typedef std::tuple<int,int,HalfInt,HalfInt,HalfInt>RelativeSubspaceLabelNLSJT;
+  typedef std::tuple<HalfInt,HalfInt,RelativeSubspaceLabelNLSJT,RelativeSubspaceLabelNLSJT> RelativeBraketNLSJT;
 
+  void BranchU3STtoNLSTJ(
+    const u3shell::RelativeRMEsU3ST& rmes_u3st,
+    HalfInt J0,
+    int Nmax
+    )
+    { 
+      std::map<RelativeBraketNLSJT,double>rmes_lsjt;
+
+      // Read in the interaction from file
+      basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Nmax+2);
+      std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
+      std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+      basis::OperatorLabelsJT operator_labels;
+
+      for(auto it=rmes_u3st.begin(); it!=rmes_u3st.end(); ++it)
+        {
+          u3::SU3 x0;
+          
+          u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
+          int kappa0,L0,Np,N;
+          HalfInt Sp,Tp,S,T,S0,T0;
+          std::tie(unit_tensor_labels,kappa0,L0)=it->first;
+          std::tie(x0,S0,T0,Np,Sp,Tp,N,S,T)=unit_tensor_labels.FlatKey();
+          double rme=it->second;
+          for(int Lp=Np; Lp>=0; Lp=Lp-2)
+            for(int L=N;L>=0; L=L-2)
+              {
+                int np((Np-Lp)/2);
+                int n((N-L)/2);
+                double rme_lst=u3::W(u3::SU3(N,0),1,L,x0,kappa0,L0,u3::SU3(Np,0),1,Lp,1)*rme;
+
+                // Branching to J
+                for(HalfInt Jp=abs(Lp-Sp); Jp<=Lp+Sp; ++Jp)
+                  for(HalfInt J=abs(L-S); J<=L+S; ++J)
+                    {
+                      RelativeSubspaceLabelNLSJT bra(Np,Lp,Sp,Jp,Tp);
+                      RelativeSubspaceLabelNLSJT ket(N,L,S,J,T);
+                      RelativeBraketNLSJT braket(J0,T0,bra,ket);
+                      rmes_lsjt[braket]+=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp)*rme_lst;
+                    }
+              }
+          }
+        for(auto it=rmes_lsjt.begin(); it!=rmes_lsjt.end(); ++it)
+          {
+            int L,Lp,L0,Np,N;
+            HalfInt Sp,Tp,Jp,S,J,T,S0,T0;
+
+            RelativeSubspaceLabelNLSJT bra,ket;
+            std::tie(J0,T0,bra,ket)=it->first;
+            std::tie( Np,Lp,Sp,Jp,Tp)=bra;
+            std::tie( N,L,S,J,T)=ket;
+            std::cout<<fmt::format("{} {}  {} {} {} {} {}   {} {} {} {} {}  {}",
+              J0,T0,Np,Lp,Sp,Jp,Tp,N,L,S,J,T,it->second)
+            <<std::endl;
+          }
+    }
 
 }//namespace
+
+int main(int argc, char **argv)
+{
+  u3::U3CoefInit();
+  u3shell::RelativeRMEsU3ST rmes_u3st;
+  int J0=2;
+  int Nmax=2; 
+
+  u3shell::Q(Nmax,rmes_u3st,2);
+  u3shell::BranchU3STtoNLSTJ(rmes_u3st,J0,Nmax);
+
+}

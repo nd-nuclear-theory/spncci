@@ -13,6 +13,7 @@
 
 #include "am/am.h"
 #include "am/wigner_gsl.h"
+#include "basis/jjjt_scheme.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/relative_operator.h"
 #include "u3shell/two_body_operator.h"
@@ -260,26 +261,89 @@ int main(int argc, char **argv)
 
   // std::cout<<"Identity JJJT "<<std::endl;
   // u3shell::PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+
+  // std::string interaction_filename="../../data/jisp16_Nmax20_hw20.0_rel.dat";
+  std::string interaction_filename="../../data/coulomb_test_Nmax20_steps100.dat";
   
-  // std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
-  std::string interaction_filename="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   // need to add sym link of data to nuclty directory rel
   // std::string interaction_filename="../../data/JISP16_Nmax20_hw20.0_rel.dat";
   // std::string interaction_filename="test/coulomb_Nmax20_rel.dat";
 
-  int T0=0;
+  int T0=-1;
   int g0=0;
 
-  // transforming from relative to two-body jjjt branched matrix elements
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  //// LSJT
+  ///////////////////////////////////////////////////////////////////////////////////////////////////  
+  u3::WCoefCache w_cache;
+  // std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
+  // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
+  basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
+
+  basis::OperatorLabelsJT operator_labels;
+  std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
+  std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+  basis::ReadRelativeOperatorLSJT(
+      interaction_filename,relative_space_lsjt,operator_labels,
+      isospin_component_sectors_lsjt,isospin_component_matrices_lsjt, true
+    );
+
+  std::cout<<"Upcoupling"<<std::endl;
+  u3shell::RelativeRMEsU3ST rme_map;
+  u3shell::Upcoupling(
+    relative_space_lsjt,
+    isospin_component_sectors_lsjt, 
+    isospin_component_matrices_lsjt, 
+    w_cache, J0, g0,T0, Nmax,rme_map
+    );
+  std::cout<<rme_map.size()<<std::endl;
+  // for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
+  //   {
+  //     u3shell::RelativeUnitTensorLabelsU3ST tensor;
+  //     int kappa0, L0;
+  //     std::tie(tensor,kappa0,L0)=it->first;
+  //     std::cout<<tensor.Str()<<" "<<kappa0<<" "<<L0<<"  "<<it->second<<std::endl;
+  //   }
+  std::cout<<"Convering to Two-body"<<std::endl;
+  u3shell::IndexedTwoBodyTensorRMEsU3ST j16_indexed_two_body_rmes;
+  u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,N1v,rme_map,j16_indexed_two_body_rmes);
+  // PrintTwoBodyIndexedRMEU3ST(k2_indexed_two_body_rmes);  
+
+  std::cout<<"branch nlst"<<std::endl;
+  std::map<u3shell::TwoBodyBraketLST,double> j16_two_body_rmes_lst;
+  u3shell::BranchTwoBodyNLST(j16_indexed_two_body_rmes,j16_two_body_rmes_lst);
+
+  std::cout<<"branch lsjt"<<std::endl;
+  std::map<u3shell::TwoBodyBraketLSJT,double> j16_two_body_rme_lsjt;
+  u3shell::BranchTwoBodyLSJT(Jmax, J0, j16_two_body_rmes_lst,j16_two_body_rme_lsjt);
+
+
+//   for(auto it=j16_two_body_rme_lsjt.begin(); it!=j16_two_body_rme_lsjt.end(); ++it)
+//     {
+//       int T0, J0;
+//       u3shell::TwoBodyStateLabelsLSJT bra,ket;
+//       std::tie(J0,T0,bra,ket)=it->first;
+//       if(bra>ket)
+//         continue;
+//       double rme=it->second;
+//       int N1p,N2p,N1,N2,L1,L2,L1p,L2p,Lp,L;
+//       HalfInt Sp,S,Jp,J,Tp,T;
+//       std::tie(N1p,L1p,N2p,L2p,Lp,Sp,Jp,Tp)=bra;
+//       std::tie(N1,L1,N2,L2,L,S,J,T)=ket;
+
+// // T0  N1' l1' j1' N2' l2' J' T' g'  N1 l1 j1 N2 l2 j2 J T g  JT-RME
+//       std::cout<<fmt::format("{}   {} {}  {} {}  {} {} {} {} {}   {} {}  {} {}  {} {} {} {} {}   {:13.6f} ",
+//         T0,
+//         N1p,L1p, N2p,L2p,Lp,Sp,Jp,Tp,(N1p+N2p)%2,
+//         N1,L1,N2,L2,L,S,J,T,(N1+N2)%2,
+//         rme
+//         )<<std::endl;
+//     }
+
+  std::cout<<"Branching "<<std::endl;
   std::map<u3shell::TwoBodyBraketJJJT,double> two_body_rme_jjjt;
-  RelativeToTwoBody(
-    interaction_filename, Nmax, N1v, 
-    Jmax, J0, T0, g0,two_body_rme_jjjt);
-
-  std::map<std::tuple<int,int,HalfInt>,int> h2_lookup;
-  u3shell::H2FormatLookUp(Nmax,h2_lookup);
-
+  u3shell::BranchTwoBodyU3STToJJJT(Jmax, J0,j16_indexed_two_body_rmes,two_body_rme_jjjt);
 
   for(auto it=two_body_rme_jjjt.begin(); it!=two_body_rme_jjjt.end(); ++it)
     {
@@ -302,6 +366,48 @@ int main(int argc, char **argv)
         rme
         )<<std::endl;
     }
+
+
+
+
+
+
+
+
+
+
+//   // transforming from relative to two-body jjjt branched matrix elements
+//   std::map<u3shell::TwoBodyBraketJJJT,double> two_body_rme_jjjt;
+//   RelativeToTwoBody(
+//     interaction_filename, Nmax, N1v, 
+//     Jmax, J0, T0, g0,two_body_rme_jjjt);
+
+//   std::map<std::tuple<int,int,HalfInt>,int> h2_lookup;
+//   u3shell::H2FormatLookUp(Nmax,h2_lookup);
+
+
+
+//   for(auto it=two_body_rme_jjjt.begin(); it!=two_body_rme_jjjt.end(); ++it)
+//     {
+//       int T0, J0;
+//       u3shell::TwoBodyStateLabelsJJJT bra,ket;
+//       std::tie(J0,T0,bra,ket)=it->first;
+//       if(bra>ket)
+//         continue;
+//       double rme=it->second;
+//       int N1p,N2p,N1,N2,L1,L2,L1p,L2p;
+//       HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
+//       std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
+//       std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
+
+// // T0  N1' l1' j1' N2' l2' J' T' g'  N1 l1 j1 N2 l2 j2 J T g  JT-RME
+//       std::cout<<fmt::format("{}   {} {} {}  {} {} {}  {} {} {}   {} {} {}  {} {} {}  {} {} {}   {:13.6f} ",
+//         T0,
+//         N1p,L1p,J1p, N2p,L2p,J2p, Jp,Tp,(N1p+N2p)%2,
+//         N1,L1,J1, N2,L2,J2,J,T,(N1+N2)%2,
+//         rme
+//         )<<std::endl;
+//     }
 
 
   

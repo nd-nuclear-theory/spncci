@@ -25,7 +25,7 @@ namespace lgi
       const basis::MatrixVector& Brel_matrices,
       const u3shell::SectorsU3SPN& Ncm_sectors,
       const basis::MatrixVector& Ncm_matrices,
-      basis::MatrixVector& BrelNcm_matrices 
+      lsu3shell::OperatorBlocks& BrelNcm_matrices 
     ) 
   // Construct the Brel+Ncm Matrices for each ket subspace and store
   // them in BrelNcm_matrices
@@ -144,6 +144,49 @@ namespace lgi
       }
 
   }
+
+
+  void GetLGIExpansion(
+      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+      const std::string& Brel_filename,
+      const std::string& Nrel_filename,
+      int A, HalfInt Nsigma_0,
+      lgi::MultiplicityTaggedLGIVector& lgi_families,
+      lsu3shell::OperatorBlocks& lgi_expansions
+    )
+  {
+    u3shell::SectorsU3SPN Bintr_sectors, Nintr_sectors;
+    basis::MatrixVector Bintr_matrices, Nintr_matrices;
+    bool sp3r_generators=true;
+
+    // Read in Brel and Nrel calculated in the lsu3shell basis 
+    lsu3shell::ReadLSU3ShellSymplecticOperatorRMEs(
+        lsu3shell_basis_table,lsu3shell_space, 
+        Brel_filename,Bintr_sectors,Bintr_matrices,
+        Nrel_filename,Nintr_sectors,Nintr_matrices,
+        A
+      );
+
+    // From Nintr construct Ncm
+    const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
+    basis::MatrixVector Ncm_matrices;
+    // Note that A-1 is used here since we are generating Ncm using an
+    // instric space 
+    lsu3shell::GenerateLSU3ShellNcmRMEs(
+        lsu3shell_space,Nintr_sectors,Nintr_matrices,
+        A-1,Ncm_matrices
+      );
+
+    // Apply the lgi solver to obtain lgi_families and their expansions in the lsu3shell basis 
+    lgi::GenerateLGIExpansion(
+        lsu3shell_space, 
+        Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
+        Nsigma_0,lgi_families,lgi_expansions
+      );
+  }
+
+
 
 
   void

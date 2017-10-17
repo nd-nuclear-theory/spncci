@@ -193,10 +193,11 @@ void UpcoupleQmass(int Nmax, int Jmax)
     
     u3shell::RelativeRMEsU3ST rme_map;
     basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
-    std::vector<std::string> file_end={"pp","nn"};
+    // std::vector<std::string> file_end={"pp","nn"};
+    std::vector<std::string> file_end={"pn"};
     for(int i=0; i<file_end.size(); ++i)
     {
-      std::string filename=fmt::format("../../data/relative_interactions/quadrupole_test_Nmax20_{}.dat",file_end[i]);
+      std::string filename=fmt::format("../../data/relative_interactions/quadrupole_test_Nmax6_{}_rel.dat",file_end[i]);
       std::cout<<filename<<std::endl;
       std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
       std::array<basis::MatrixVector,3> T0_sectors_lsjt;
@@ -229,6 +230,83 @@ void UpcoupleQmass(int Nmax, int Jmax)
 
   }
 
+void
+QCheck()
+// Checking upcoupling using kinetic energy (k^2) using function in import_interaction
+// Function given analytically 
+{
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // int Nmax=20;
+  int Nmax=0;
+  int Jmax=2;
+  int J0=2;
+  int g0=0;
+  
+  u3shell::RelativeRMEsU3ST rme_map;
+  basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
+  // std::vector<std::string> file_end={"pp","nn","pn"};
+  std::vector<std::string> file_end={"pp"};
+  std::string filename_base="../../data/relative_interactions/quadrupole_test_Nmax6_{}_rel.dat";
+
+  //upcouple to LST
+  std::cout<<"Upcoupling to NLST"<<std::endl;
+  std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_ppnn;
+  std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_pn;
+
+  for(int i=0; i<1; ++i)
+    {
+      std::string filename=fmt::format(filename_base,file_end[i]);
+
+      std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
+      std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+      basis::OperatorLabelsJT operator_labels;
+
+      basis::ReadRelativeOperatorLSJT(
+        filename,relative_lsjt_space,operator_labels,
+        T0_sector_labels_lsjt, T0_sectors_lsjt, true
+        );
+
+      for(int T0=0; T0<3; ++T0)
+        {
+          std::cout<<"T0="<<T0<<std::endl;
+          const basis::RelativeSectorsLSJT& sector_labels_lsjt=T0_sector_labels_lsjt[T0];
+          const basis::MatrixVector& sectors_lsjt=T0_sectors_lsjt[T0];
+          u3shell::UpcouplingNLST(relative_lsjt_space,sector_labels_lsjt,sectors_lsjt,J0,g0,T0,Nmax,rme_nlst_ppnn);
+          for(auto it=rme_nlst_ppnn.begin(); it!=rme_nlst_ppnn.end(); ++it)
+            if(not mcutils::IsZero(it->second,1e-6))
+              std::cout<<it->second<<std::endl<<std::endl;
+        }
+
+    }
+
+    // std::string filename=fmt::format(filename_base,file_end[2]);
+
+    // std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
+    // std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+    // basis::OperatorLabelsJT operator_labels;
+
+    // basis::ReadRelativeOperatorLSJT(
+    //   filename,relative_lsjt_space,operator_labels,
+    //   T0_sector_labels_lsjt, T0_sectors_lsjt, true
+    //   );
+
+    // for(int T0=0; T0<3; ++T0)
+    //   {
+    //     const basis::RelativeSectorsLSJT& sector_labels_lsjt=T0_sector_labels_lsjt[T0];
+    //     const basis::MatrixVector& sectors_lsjt=T0_sectors_lsjt[T0];
+    //     u3shell::UpcouplingNLST(relative_lsjt_space,sector_labels_lsjt,sectors_lsjt,J0,g0,T0,Nmax,rme_nlst_pn);
+    //   }
+    // for(auto it=rme_nlst_pn.begin(); it!=rme_nlst_pn.end(); ++it)
+    //   {
+    //     if(not mcutils::IsZero((it->second-rme_nlst_ppnn[it->first]),1e-7))
+    //       std::cout<<"sectors"<<std::endl<<it->second<<std::endl<<std::endl<<rme_nlst_ppnn[it->first]<<std::endl<<std::endl;
+    //   }
+
+
+
+}
+
+
 
 
 
@@ -237,17 +315,17 @@ int main(int argc, char **argv)
   // double zero_threshold=10e-6;
   u3::U3CoefInit();
   // int Nmax=10;
-  int Nmax=10;
+  int Nmax=6;
   int N1v=1;
   int Jmax=Nmax+2;
   int J0=0;
   int g0=0;
-	int T0=0;
+	int T0=-1;
 
 
 
   UpcoupleQmass(Nmax,Jmax);
-
+  // QCheck();
 
   // u3shell::RelativeRMEsU3ST id_relative_rme_map;
   // IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);

@@ -34,49 +34,49 @@ namespace spncci
   // reading lsu3shell RMEs
   ////////////////////////////////////////////////////////////////
 
-  void
-    ReadLSU3ShellSymplecticOperatorRMEs(
-        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, basis::MatrixVector& Bintr_matrices,
-        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, basis::MatrixVector& Nintr_matrices,
-        int A
-      );
-  // Read lsu3shell RMEs for basic symplectic generator
-  // operators.
-  //
-  // Reads RMEs for Brel, Arel, and Nrel, plus deduces Ncm.
-  //
-  // Arguments:
-  //   lsu3shell_basis_table (input): lsu3shell basis data
-  //   lsu3shell_space (input): lsu3shell basis
-  //   For <operator> in {B,N}:
-  //     <operator>rel_filename (input): rme filename
-  //     <operator>intr_sectors (output): U3SPN sectors
-  //     <operator>intr_matrices (output): matrices of RMEs
-  //   A (input): nucleon number
+  // void
+  //   ReadLSU3ShellSymplecticOperatorRMEs(
+  //       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+  //       const u3shell::SpaceU3SPN& lsu3shell_space, 
+  //       const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, basis::MatrixVector& Bintr_matrices,
+  //       const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, basis::MatrixVector& Nintr_matrices,
+  //       int A
+  //     );
+  // // Read lsu3shell RMEs for basic symplectic generator
+  // // operators.
+  // //
+  // // Reads RMEs for Brel, Arel, and Nrel, plus deduces Ncm.
+  // //
+  // // Arguments:
+  // //   lsu3shell_basis_table (input): lsu3shell basis data
+  // //   lsu3shell_space (input): lsu3shell basis
+  // //   For <operator> in {B,N}:
+  // //     <operator>rel_filename (input): rme filename
+  // //     <operator>intr_sectors (output): U3SPN sectors
+  // //     <operator>intr_matrices (output): matrices of RMEs
+  // //   A (input): nucleon number
 
 
-  void
-    ReadLSU3ShellSymplecticRaisingOperatorRMEs(
-        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, basis::MatrixVector& Aintr_matrices,
-        int A
-      );
-  // Read lsu3shell RMEs for basic symplectic generator
-  // operators.
-  //
-  // Reads RMEs for Brel, Arel, and Nrel, plus deduces Ncm.
-  //
-  // Arguments:
-  //   lsu3shell_basis_table (input): lsu3shell basis data
-  //   lsu3shell_space (input): lsu3shell basis
-  //   For symplectic raising operator Arel:
-  //     <operator>rel_filename (input): rme filename
-  //     <operator>intr_sectors (output): U3SPN sectors
-  //     <operator>intr_matrices (output): matrices of RMEs
-  //   A (input): nucleon number
+  // void
+  //   ReadLSU3ShellSymplecticRaisingOperatorRMEs(
+  //       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+  //       const u3shell::SpaceU3SPN& lsu3shell_space, 
+  //       const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, basis::MatrixVector& Aintr_matrices,
+  //       int A
+  //     );
+  // // Read lsu3shell RMEs for basic symplectic generator
+  // // operators.
+  // //
+  // // Reads RMEs for Brel, Arel, and Nrel, plus deduces Ncm.
+  // //
+  // // Arguments:
+  // //   lsu3shell_basis_table (input): lsu3shell basis data
+  // //   lsu3shell_space (input): lsu3shell basis
+  // //   For symplectic raising operator Arel:
+  // //     <operator>rel_filename (input): rme filename
+  // //     <operator>intr_sectors (output): U3SPN sectors
+  // //     <operator>intr_matrices (output): matrices of RMEs
+  // //   A (input): nucleon number
 
 
 

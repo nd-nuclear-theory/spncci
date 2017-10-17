@@ -5,9 +5,7 @@
   University of Notre Dame
 
 ****************************************************************/
-
 #include "lsu3shell/lsu3shell_rme.h"
-
 
 #include <cmath>
 #include <fstream>
@@ -36,7 +34,7 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& blocks,
+      lsu3shell::OperatorBlocks& blocks,
       double scale_factor
     )
   {
@@ -115,10 +113,6 @@ namespace lsu3shell
                       << std::endl;
                   }
 
-                // suppress zero values -- no longer appropriate/necessary
-                // if(fabs(rme)<zero_threshold)
-                //   continue;
-
                 // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_space,j_space,rho0,rme)<<std::endl;
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
@@ -126,19 +120,8 @@ namespace lsu3shell
                 assert(sector_index!=basis::kNone);
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
-                // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
-                //   sector_index, row_index,column_index, blocks[sector_index].rows(),
-                //   blocks[sector_index].cols(),rme)<<std::endl;
-                // std::cout<<"sector index "<<sector_index<<std::endl;
                 blocks[sector_index](row_index,column_index)=scale_factor*rme;
-                // std::cout<<blocks[sector_index]<<std::endl;
-
-
-              }
-        // std::cout<<"finished reading in "<<std::endl;
-        // for(int i=0; i<blocks.size(); ++i)
-        //   std::cout<<blocks[i]<<std::endl;
-        
+              }        
       }
 
     // close file
@@ -153,7 +136,7 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& blocks,
+      lsu3shell::OperatorBlocks& blocks,
       double scale_factor
     )
   {
@@ -182,8 +165,6 @@ namespace lsu3shell
         RMEIndexType i, j;
         mcutils::ReadBinary<RMEIndexType>(in_stream,i);
         mcutils::ReadBinary<RMEIndexType>(in_stream,j);
-
-        // std::cout<<i<<" "<<j<<std::endl;
 
         // quit if this has brought us past end of file
         if (!in_stream)
@@ -235,7 +216,6 @@ namespace lsu3shell
                   {
                     mcutils::ReadBinary<double>(in_stream,rme);
                   }
-                // std::cout<<fmt::format("{} {}  {} {} {}  {}",i,j,i_subspace_index,j_subspace_index,rho0,rme)<<std::endl;
 
                 // verbose rme diagnostics
                 if (g_verbose_rme_listing)
@@ -252,30 +232,15 @@ namespace lsu3shell
                     ss >> rme;
                   }
 
-
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
                 int sector_index=sectors.LookUpSectorIndex(i_subspace_index,j_subspace_index,rho0);
                 assert(sector_index!=basis::kNone);
                 int row_index=group_i.start_index+gi;
                 int column_index=group_j.start_index+gj;
-                // std::cout<<fmt::format("sector {} row {} column {} matrix ({},{})  {}",
-                //   sector_index, row_index,column_index, blocks[sector_index].rows(),
-                //   blocks[sector_index].cols(),rme)<<std::endl;
-                // std::cout<<"sector index "<<sector_index<<std::endl;
                 blocks[sector_index](row_index,column_index)=scale_factor*rme;
-                // blocks[sector_index](row_index,column_index)=scale_factor*rme;
-                // std::cout<<blocks[sector_index]<<std::endl;
-              }
-        // std::cout<<"finished reading in "<<std::endl;
-        // for(int i=0; i<blocks.size(); ++i)
-        //   std::cout<<blocks[i]<<std::endl;
-        
+              }        
       }
-    // std::cout<<"finished reading in "<<std::endl;
-    // for(int i=0; i<blocks.size(); ++i)
-    //   std::cout<<blocks[i]<<std::endl;
-
     // close file
     in_stream.close();
   };
@@ -288,7 +253,7 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& blocks,
+      lsu3shell::OperatorBlocks& blocks,
       double scale_factor
     )
   {
@@ -328,7 +293,7 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& blocks,
+      lsu3shell::OperatorBlocks& blocks,
       double scale_factor
     )
   {
@@ -340,6 +305,61 @@ namespace lsu3shell
 
   }
 
+  void
+    ReadLSU3ShellSymplecticOperatorRMEs(
+        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+        const u3shell::SpaceU3SPN& lsu3shell_space, 
+        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, lsu3shell::OperatorBlocks& Bintr_matrices,
+        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, lsu3shell::OperatorBlocks& Nintr_matrices,
+        int A
+      )
+  {
+    // read Brel => Bintr
+    u3shell::OperatorLabelsU3ST Brel_labels(-2,u3::SU3(0,2),0,0,0);
+    Bintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Brel_labels,true);
+    bool sp3r_generators=true;
+    lsu3shell::ReadLSU3ShellRMEs(
+      sp3r_generators,
+        Brel_filename,
+        lsu3shell_basis_table,lsu3shell_space,
+        Brel_labels,Bintr_sectors,Bintr_matrices,
+        2./A
+      );
+    
+    // read Nrel => Nintr
+    u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
+    Nintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Nrel_labels,true);
+    lsu3shell::ReadLSU3ShellRMEs(
+        sp3r_generators,
+        Nrel_filename,
+        lsu3shell_basis_table,lsu3shell_space,
+        Nrel_labels,Nintr_sectors,Nintr_matrices,
+        2./A
+      );
+  }
+
+
+  void
+    ReadLSU3ShellSymplecticRaisingOperatorRMEs(
+        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+        const u3shell::SpaceU3SPN& lsu3shell_space, 
+        const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, lsu3shell::OperatorBlocks& Aintr_matrices,
+        int A
+      )
+  {    
+    // read Arel => Aintr
+    u3shell::OperatorLabelsU3ST Arel_labels(2,u3::SU3(2,0),0,0,0);
+    Aintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Arel_labels,true);
+    bool sp3r_generators=true;
+    lsu3shell::ReadLSU3ShellRMEs(
+        sp3r_generators,
+        Arel_filename,
+        lsu3shell_basis_table,lsu3shell_space,
+        Arel_labels,Aintr_sectors,Aintr_matrices,
+        2./A
+      );
+  }
+
 
   bool 
   CompareLSU3ShellRMEs(
@@ -347,8 +367,8 @@ namespace lsu3shell
       const U3SPNBasisLSU3Labels& basis_provenance,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,
-      const basis::MatrixVector& matrices1,
-      const basis::MatrixVector& matrices2,
+      const lsu3shell::OperatorBlocks& matrices1,
+      const lsu3shell::OperatorBlocks& matrices2,
       double tolerance,
       bool verbose
     )
@@ -434,9 +454,9 @@ namespace lsu3shell
   void GenerateLSU3ShellNcmRMEs(
       const u3shell::SpaceU3SPN& space,
       const u3shell::SectorsU3SPN& Nrel_sectors,
-      const basis::MatrixVector& Nrel_matrices,
+      const lsu3shell::OperatorBlocks& Nrel_matrices,
       int A,
-      basis::MatrixVector& Ncm_matrices
+      lsu3shell::OperatorBlocks& Ncm_matrices
     )
   {
 
@@ -465,8 +485,6 @@ namespace lsu3shell
       }
 
   }
-
-
 
   ////////////////////////////////////////////////////////////////
 }// end namespace

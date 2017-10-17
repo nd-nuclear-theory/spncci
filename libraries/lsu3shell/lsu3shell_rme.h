@@ -20,6 +20,9 @@
     g_rme_binary_format.
   - 6/17/19 (mac): Update binary mode output: add header, shorten indexing
     integer type, make storage single/double switchable.
+  - 10/11/17 (aem): 
+      + Add MatrixFloatType and switched MatrixVector to OperatorBlocks
+      + Extracted i/o for symplectic generator su3rmes from spncci_io
 ****************************************************************/
 
 #ifndef LSU3SHELL_RME_H_
@@ -40,51 +43,11 @@ namespace lsu3shell
   // global configuration
   extern bool g_rme_binary_format;
 
-  void 
-  ReadLSU3ShellRMEs(
-      const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
-      const u3shell::OperatorLabelsU3ST& operator_labels,
-      const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& matrix_vector,
-      double scale_factor = 1.
-    );
-  // Read LSU3Shell RMEs.
-  //
-  // Global mode:
-  //   g_rme_binary_format: false = ascii format; true = binary format
-  //
-  // Arguments:
-  //   filename (input): name of binary rme file
-  //   lsu3_basis_table (input): information on LSU3shell basis states
-  //   space (input): U3SPN basis
-  //   operator_labels (input): U3ST tensorial labels for operator being input
-  //   sectors (input): U3SPN sectors for operator being input
-  //   matrix_vector (output): matrices for operator blocks
-  //   scale_factor (input,optional): scale factor for rmes on input,
-  //     e.g., for conversion from relative to intrinsic operator
+  // matrix precision
+  typedef double MatrixFloatType;
+  typedef basis::OperatorBlock<MatrixFloatType> OperatorBlock;
+  typedef basis::OperatorBlocks<MatrixFloatType> OperatorBlocks;
 
-
-  // For reference, here is the old syntax:
-  //
-  // void 
-  // ReadLSU3ShellRMEs(
-  //     std::ifstream& is,
-  //     const u3shell::OperatorLabelsU3ST& operator_labels,
-  //     const LSU3ShellBasisTable& lsu3_basis_table,
-  //     const u3shell::SpaceU3SPN& space, 
-  //     const u3shell::SectorsU3SPN& sectors,
-  //     basis::MatrixVector& matrix_vector,
-  //     double scale_factor = 1.
-  //   );
-  //
-  // This required that the calling code take care of the stream open,
-  // which also had the drawback that there is no standardized error
-  // message for file open failures.
-  //
-  // When upgrading calling code to use new version, beware that order
-  // of the other arguments has also been adjusted.
 
   void 
   ReadLSU3ShellRMEs(
@@ -94,10 +57,58 @@ namespace lsu3shell
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
-      basis::MatrixVector& blocks,
+      lsu3shell::OperatorBlocks& blocks,
       double scale_factor=1.
     );
+  // Read LSU3Shell RMEs.
+  //
+  // Global mode:
+  //   g_rme_binary_format: false = ascii format; true = binary format
+  //
+  // Arguments:
+  //   sp3r_generators (input) : tempory fix for error arising when generator rmes are not 
+  //      truncated as a string.  If true, then string truncation applied, else, read in normally
+  //   filename (input): name of binary rme file
+  //   lsu3_basis_table (input): information on LSU3shell basis states
+  //   space (input): U3SPN basis
+  //   operator_labels (input): U3ST tensorial labels for operator being input
+  //   sectors (input): U3SPN sectors for operator being input
+  //   matrix_vector (output): matrices for operator blocks
+  //   scale_factor (input,optional): scale factor for rmes on input,
+  //     e.g., for conversion from relative to intrinsic operator
 
+  void 
+  ReadLSU3ShellRMEs(
+      const std::string& filename,
+      const LSU3ShellBasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      lsu3shell::OperatorBlocks& matrix_vector,
+      double scale_factor = 1.
+    );
+  // Wraper function for when sp3r_generators not specified. 
+
+
+  void
+    ReadLSU3ShellSymplecticOperatorRMEs(
+        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+        const u3shell::SpaceU3SPN& lsu3shell_space, 
+        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, lsu3shell::OperatorBlocks& Bintr_matrices,
+        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, lsu3shell::OperatorBlocks& Nintr_matrices,
+        int A
+      );
+    // Reads in Brel and Nrel su3rme files and applies appropriate scaling to convert to intrinsic operators using
+    // mechanics convention. 
+
+  void
+    ReadLSU3ShellSymplecticRaisingOperatorRMEs(
+        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+        const u3shell::SpaceU3SPN& lsu3shell_space, 
+        const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, lsu3shell::OperatorBlocks& Aintr_matrices,
+        int A
+      );
+    // Reads in Arel su3rme files and applies appropriate scaling to convert to Aintr under mechanics convention.
 
   bool 
   CompareLSU3ShellRMEs(
@@ -105,8 +116,8 @@ namespace lsu3shell
       const U3SPNBasisLSU3Labels& basis_provenance,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::SectorsU3SPN& sectors,
-      const basis::MatrixVector& matrices1,
-      const basis::MatrixVector& matrices2,
+      const lsu3shell::OperatorBlocks& matrices1,
+      const lsu3shell::OperatorBlocks& matrices2,
       double tolerance,
       bool verbose = false
     );
@@ -128,9 +139,9 @@ namespace lsu3shell
   void GenerateLSU3ShellNcmRMEs(
     const u3shell::SpaceU3SPN& space,
     const u3shell::SectorsU3SPN& Nrel_sectors,
-    const basis::MatrixVector& Nrel_matrices,
+    const lsu3shell::OperatorBlocks& Nrel_matrices,
     int A,
-    basis::MatrixVector& Ncm_matrices
+    lsu3shell::OperatorBlocks& Ncm_matrices
   );
   // Generates the Ncm matrix elements from Nrel matrix elements
   // and stores them in a vector of lsu3shell basis sectors
@@ -149,7 +160,7 @@ namespace lsu3shell
   //   std::ifstream& is_Nrel,
   //   const lsu3shell::LSU3ShellBasisTable& lsu3_basis_table,
   //   const u3shell::SpaceU3SPN& space, 
-  //   basis::MatrixVector& matrix_vector 
+  //   lsu3shell::OperatorBlocks& matrix_vector 
   // );
 
 }

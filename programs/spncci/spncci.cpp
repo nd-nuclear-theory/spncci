@@ -457,7 +457,7 @@ int main(int argc, char **argv)
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
   
-  spncci::GetLGIExpansion(
+  lgi::GetLGIExpansion(
       lsu3shell_space,lsu3shell_basis_table,
       run_parameters.Brel_filename,run_parameters.Nrel_filename,
       run_parameters.A, run_parameters.Nsigma0,
@@ -1086,6 +1086,7 @@ int main(int argc, char **argv)
           // solve eigenproblem
           spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
           spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
+          std::cout<<hamiltonian_matrix<<std::endl;
           spncci::SolveHamiltonian(
               hamiltonian_matrix,
               J,

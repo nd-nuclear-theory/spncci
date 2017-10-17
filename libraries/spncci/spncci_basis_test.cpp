@@ -18,14 +18,14 @@ int main(int argc, char **argv)
   // shell counting calculations
   ////////////////////////////////////////////////////////////////
 
-  std::cout << "Nsigma0ForNuclide" << std::endl;
-  std::cout
-    << fmt::format(
-        "3He {} 6Li {}",
-        spncci::Nsigma0ForNuclide({2,1}),
-        spncci::Nsigma0ForNuclide({3,3})
-      )
-    << std::endl;
+  // std::cout << "Nsigma0ForNuclide" << std::endl;
+  // std::cout
+  //   << fmt::format(
+  //       "3He {} 6Li {}",
+  //       lgi::Nsigma0ForNuclide({2,1}),
+  //       lgi::Nsigma0ForNuclide({3,3})
+  //     )
+  //   << std::endl;
   std::cout << "ValenceShellForNuclide" << std::endl;
   std::cout
     << fmt::format(

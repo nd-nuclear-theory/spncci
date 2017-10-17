@@ -6,8 +6,9 @@
 
   3/7/16 (aem,mac): Created.
 ****************************************************************/
-
 #include "lgi/lgi.h"
+
+#include "cppformat/format.h"
 
 int main(int argc, char **argv)
 {
@@ -25,4 +26,15 @@ int main(int argc, char **argv)
 	for(auto lgi : lgi_vector)
 		std::cout<<lgi.irrep.Str()<<"  "<<lgi.tag<<std::endl;
 	
+
+
+  std::cout << "Nsigma0ForNuclide" << std::endl;
+  std::cout
+    << fmt::format(
+        "3He {} 6Li {}",
+        lgi::Nsigma0ForNuclide({2,1}),
+        lgi::Nsigma0ForNuclide({3,3})
+      )
+    << std::endl;
+
 }
