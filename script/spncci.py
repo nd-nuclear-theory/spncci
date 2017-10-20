@@ -565,7 +565,7 @@ def generate_observable_rmes(task):
                 task["coulomb_filename"],
                 error_message="relative interaction file not found (for Coulomb interaction)"
             )
-            hamiltonian_input_lines+=["INT 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
+            hamiltonian_input_lines+=["COUL 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 

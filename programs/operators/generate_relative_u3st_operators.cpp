@@ -275,22 +275,19 @@ namespace u3shell
         isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, true
         );
 
+      // Multiplying interaction by coefficient 
+      for(int T0=0; T0<=2; ++T0)
+        for(auto& matrix : isospin_component_matrices_lsjt[T0])
+          matrix=coef*matrix;
+
       // upcouple interaction
       u3shell::Upcoupling(
         relative_space_lsjt,
         isospin_component_sectors_lsjt,
         isospin_component_matrices_lsjt,
         J0, g0, T0,Nmax, interaction_u3st);
-    //   //upcouple to LST
-    //   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> Interaction_nlst;
-    //   u3shell::UpcouplingNLST(relative_lsjt_space,relative_lsjt_sectors,sector_vector,J0,g0,T0,Nmax,Interaction_nlst);
 
-    //   // Upcouple to U(3) level
-    //   u3shell::UpcouplingU3ST(Interaction_nlst, T0, Nmax, Interaction_u3st);
 
-    //   // Apply coefficient to interaction
-    //   for(auto it=Interaction_u3st.begin(); it!=Interaction_u3st.end(); ++it)
-    //     Interaction_u3st[it->first]*=coef;
     }
 
 } // end namespace
@@ -308,6 +305,7 @@ int main(int argc, char **argv)
   // constants 
   double hbarc=197.327; //MeVfm
   double mc2=938.92; //MeV
+  double alpha=1/137.036; 
   const double pi=boost::math::constants::pi<double>();
 
   if(argc<4)
@@ -355,7 +353,7 @@ int main(int argc, char **argv)
     line_stream >> operator_type >> coef;
     ParsingCheck(line_stream,line_count,line);
 
-    std::cout<<"coef from file "<<coef/b2<<std::endl;
+    std::cout<<operator_type<<"  "<<coef<<std::endl;
 
     if(operator_type=="ID") 
       u3shell::Id(Nmax+2*N1B,Operator, A, coef);
@@ -381,11 +379,20 @@ int main(int argc, char **argv)
         ParsingCheck(line_stream,line_count,line);
         Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
       }
+    else if(operator_type=="COUL")
+      {
+        line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
+        ParsingCheck(line_stream,line_count,line);
+        std::cout<<alpha*sqrt(mc2*hbar_omega)<<std::endl;
+        coef*=alpha*sqrt(mc2*hbar_omega);
+        // coef*=alpha*sqrt(mc2*hbar_omega);
+        Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
+      }
     else
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl
                <<"The allowed operator types are:"<<std::endl
-               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Tintr, INT"<<std::endl;
+               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Tintr, INT, COUL"<<std::endl;
 
         std::exit(EXIT_FAILURE);
       }

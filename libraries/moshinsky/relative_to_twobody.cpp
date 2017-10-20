@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
   int Nmax=4;
   int N1v=1; 
-  int Jmax=4; 
+  int Jmax=10; 
   int J0=0;
       
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
@@ -263,9 +263,11 @@ int main(int argc, char **argv)
   // u3shell::PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 
-  // std::string interaction_filename="../../data/jisp16_Nmax20_hw20.0_rel.dat";
-  std::string interaction_filename="../../data/coulomb_test_Nmax20_steps500_rel.dat";
-  
+  // std::string interaction_filename="../../data/relative_interactions/jisp16_Nmax20_hw20.0_rel.dat";
+  // std::string interaction_filename="../../data/relative_interactions/coulomb_test_Nmax20_steps500_rel.dat";
+  // std::string interaction_filename="../../data/relative_interactions/nnloopt_Nmax20_hw40.0_caveat-nmax30_rel.dat";
+  std::string interaction_filename="../../data/relative_interactions/quadrupole_test_Nmax6_total_rel.dat";
+
   // need to add sym link of data to nuclty directory rel
   // std::string interaction_filename="../../data/JISP16_Nmax20_hw20.0_rel.dat";
   // std::string interaction_filename="test/coulomb_Nmax20_rel.dat";
