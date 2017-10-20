@@ -1,4 +1,12 @@
 #!/bin/csh
+#
+# Ex:
+#   cd ${GROUP_HOME}/data/spncci/su3rme 
+#   cd runmac0416
+#   set run = mac0416
+#   foreach f (*.tgz)
+#     ${HOME}/code/spncci/script/su3rme-untar.csh $f ${CSCRATCH}/data/spncci/su3rme-expanded/run${run}
+#   end
 
 set archive_name = $1
 set target_parent_dir = $2
