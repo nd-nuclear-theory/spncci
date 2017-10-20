@@ -1086,7 +1086,7 @@ int main(int argc, char **argv)
           // solve eigenproblem
           spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
           spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
-          std::cout<<hamiltonian_matrix<<std::endl;
+          // std::cout<<hamiltonian_matrix<<std::endl;
           spncci::SolveHamiltonian(
               hamiltonian_matrix,
               J,

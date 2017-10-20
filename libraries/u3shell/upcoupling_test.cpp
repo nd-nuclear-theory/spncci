@@ -194,7 +194,7 @@ void UpcoupleQmass(int Nmax, int Jmax)
     u3shell::RelativeRMEsU3ST rme_map;
     basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
     // std::vector<std::string> file_end={"pp","nn"};
-    std::vector<std::string> file_end={"pn"};
+    std::vector<std::string> file_end={"total"};
     for(int i=0; i<file_end.size(); ++i)
     {
       std::string filename=fmt::format("../../data/relative_interactions/quadrupole_test_Nmax6_{}_rel.dat",file_end[i]);
