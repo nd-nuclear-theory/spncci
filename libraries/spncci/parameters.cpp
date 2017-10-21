@@ -52,6 +52,11 @@ namespace spncci
             line_stream >> hw_min >> hw_max >> hw_step;
             ParsingCheck(line_stream,line_count,line);
           }
+        else if(line_count==5)
+          {
+            line_stream >> interaction >> use_coulomb;
+            ParsingCheck(line_stream,line_count,line);
+          }
         else
           {
             std::string observable;
