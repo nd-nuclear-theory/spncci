@@ -207,9 +207,9 @@ int main(int argc, char **argv)
   // u3::WCoefCache w_cache;
   zero_threshold=1e-6;
 
-  int Nmax=6;
+  int Nmax=4;
   int N1v=1; 
-  int Jmax=4; 
+  int Jmax=10; 
   int J0=0;
       
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
@@ -263,9 +263,11 @@ int main(int argc, char **argv)
   // u3shell::PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 
-  // std::string interaction_filename="../../data/jisp16_Nmax20_hw20.0_rel.dat";
-  std::string interaction_filename="../../data/coulomb_test_Nmax20_steps100.dat";
-  
+  // std::string interaction_filename="../../data/relative_interactions/jisp16_Nmax20_hw20.0_rel.dat";
+  // std::string interaction_filename="../../data/relative_interactions/coulomb_test_Nmax20_steps500_rel.dat";
+  // std::string interaction_filename="../../data/relative_interactions/nnloopt_Nmax20_hw40.0_caveat-nmax30_rel.dat";
+  std::string interaction_filename="../../data/relative_interactions/quadrupole_test_Nmax6_total_rel.dat";
+
   // need to add sym link of data to nuclty directory rel
   // std::string interaction_filename="../../data/JISP16_Nmax20_hw20.0_rel.dat";
   // std::string interaction_filename="test/coulomb_Nmax20_rel.dat";
@@ -341,7 +343,7 @@ int main(int argc, char **argv)
 //         )<<std::endl;
 //     }
 
-  std::cout<<"Branching "<<std::endl;
+  // std::cout<<"Branching "<<std::endl;
   std::map<u3shell::TwoBodyBraketJJJT,double> two_body_rme_jjjt;
   u3shell::BranchTwoBodyU3STToJJJT(Jmax, J0,j16_indexed_two_body_rmes,two_body_rme_jjjt);
 
@@ -350,8 +352,8 @@ int main(int argc, char **argv)
       int T0, J0;
       u3shell::TwoBodyStateLabelsJJJT bra,ket;
       std::tie(J0,T0,bra,ket)=it->first;
-      if(bra>ket)
-        continue;
+      // if(bra>ket)
+      //   continue;
       double rme=it->second;
       int N1p,N2p,N1,N2,L1,L2,L1p,L2p;
       HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
@@ -359,10 +361,10 @@ int main(int argc, char **argv)
       std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
 
 // T0  N1' l1' j1' N2' l2' J' T' g'  N1 l1 j1 N2 l2 j2 J T g  JT-RME
-      std::cout<<fmt::format("{}   {} {} {}  {} {} {}  {} {} {}   {} {} {}  {} {} {}  {} {} {}   {:13.6f} ",
+      std::cout<<fmt::format("{}   {}  {}  {:3.1f}   {}  {}  {:3.1f}   {}  {}  {}    {}  {}  {:3.1f}   {}  {}  {:3.1f}   {}  {}  {}    {:13.6f} ",
         T0,
-        N1p,L1p,J1p, N2p,L2p,J2p, Jp,Tp,(N1p+N2p)%2,
-        N1,L1,J1, N2,L2,J2,J,T,(N1+N2)%2,
+        N1p,L1p,float(J1p), N2p,L2p,float(J2p), float(Jp),float(Tp),(N1p+N2p)%2,
+        N1,L1,float(J1), N2,L2,float(J2),J,T,(N1+N2)%2,
         rme
         )<<std::endl;
     }
