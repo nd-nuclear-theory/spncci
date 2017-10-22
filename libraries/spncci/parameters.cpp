@@ -54,7 +54,7 @@ namespace spncci
           }
         else if(line_count==5)
           {
-            line_stream >> interaction >> use_coulomb;
+            line_stream >> interaction_name >> use_coulomb;
             ParsingCheck(line_stream,line_count,line);
           }
         else
@@ -101,12 +101,6 @@ namespace spncci
     
     // run mode
     count_only = (num_eigenvalues==0);
-
-    // upstream information
-    //
-    // needed for results file -- TODO
-    interaction_name = "RESERVED";
-    use_coulomb = false;
 
 
     // hard-coded directory structure and filenames
