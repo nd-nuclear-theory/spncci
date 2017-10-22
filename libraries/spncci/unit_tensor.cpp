@@ -129,7 +129,7 @@ void Amatrix(
   
   // Extracting K matrices 
   const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
-  Eigen::MatrixXd Kpp_inv=restrict_sp3r_to_u3_branching?Kinv_matrix_map_bra.at(omegapp):K_matrix_map_bra.at(omegapp).inverse();
+  Eigen::MatrixXd Kpp_inv=Kinv_matrix_map_bra.at(omegapp);
 
   for(int vpp=0; vpp<dimpp; vpp++)
     {
@@ -259,16 +259,16 @@ ComputeUnitTensorHyperblocks(
           // std::cout<<"bunny2"<<std::endl;
           // Temporary fix for debug purposes
           vcs::MatrixCache null_cache;
-          const vcs::MatrixCache& Kinv_matrix_map_bra=restrict_sp3r_to_u3_branching?kinv_matrix_map.at(sigmap):null_cache;
+          const vcs::MatrixCache& Kinv_matrix_map_bra=kinv_matrix_map.at(sigmap);
           // std::cout<<"bunny3"<<std::endl;
           const vcs::MatrixCache& K_matrix_map_ket=k_matrix_map.at(sigma);
           // std::cout<<"bunny4"<<std::endl;
-          const vcs::MatrixCache& Kinv_matrix_map_ket=restrict_sp3r_to_u3_branching?kinv_matrix_map.at(sigma):null_cache;
+          const vcs::MatrixCache& Kinv_matrix_map_ket=kinv_matrix_map.at(sigma);
           // std::cout<<"bunny5"<<std::endl;
           const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
           // std::cout<<"bunny6"<<std::endl;
           // std::cout<<sigma.Str()<<". "<<omega.Str()<<std::endl;
-          const Eigen::MatrixXd& K_inv=restrict_sp3r_to_u3_branching?Kinv_matrix_map_ket.at(omega):K_matrix_map_ket.at(omega).inverse();
+          const Eigen::MatrixXd& K_inv=Kinv_matrix_map_ket.at(omega);
 
           // Generate labels to sum over 
           int rho0_max=u3::OuterMultiplicity(omega.SU3(),x0,omegap.SU3());

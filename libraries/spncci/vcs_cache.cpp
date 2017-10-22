@@ -28,7 +28,15 @@ namespace spncci
         if(restrict_sp3r_u3_branching)
           vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma],kinv_matrix_cache[sigma]);
         else
-          vcs::GenerateKMatrices(sp_irrep,k_matrix_cache[sigma]);
+          {
+            auto& k_matrices=k_matrix_cache[sigma];
+            auto& kinv_matrices=kinv_matrix_cache[sigma];
+            vcs::GenerateKMatrices(sp_irrep,k_matrices);
+            for(auto it=k_matrix_cache[sigma].begin(); it!=k_matrix_cache[sigma].end(); ++it)
+              {
+                kinv_matrices[it->first]=it->second.inverse();
+              }
+          }
       }
 
   }

@@ -114,7 +114,8 @@ namespace spncci
 
     // hard-coded eigen solver parameters   
     eigensolver_num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
-    eigensolver_max_iterations = 100*num_eigenvalues;
+    // eigensolver_max_iterations = 100*num_eigenvalues;
+    eigensolver_max_iterations = 200*num_eigenvalues; //uping value to check non-convergence in 3He
     eigensolver_tolerance = 1e-8;
   }
 
