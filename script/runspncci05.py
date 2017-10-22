@@ -51,13 +51,14 @@ task_list = [
         # "J0" : 0,
         "su3rme_descriptor_template" : spncci.su3rme_descriptor_template_Nsigmamax,
 
-        # spncce parameters
+        # spncci parameters
         "J_range" : (1,3,2), #min, max, step
         "hw_range" : (20,20,2.5), # min, max, step
+        "interaction" : "JISP16",
+        "interaction_filename_template" : interaction_filename_template,
         "use_coulomb" : False,
         "observables" : [("r2intr",0),("Qintr",2)],
         "num_eigenvalues" : 10,
-        "interaction_filename_template" : interaction_filename_template,
         "coulomb_filename" : "coulomb_Nmax20_rel.dat"
     }
     for Nsigma_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
@@ -70,7 +71,8 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(**task))
+    coulomb = int(task["use_coulomb"])
+    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task))
 
 def task_pool(task):
     """"""

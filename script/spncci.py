@@ -629,13 +629,16 @@ def generate_spncci_control_file(task):
     twice_J_max=int(2*task["J_range"][1])
     J_step=task["J_range"][2]
     J0=0#task["J0"]
+    coulomb = int(task["use_coulomb"])
+
 
     # write basic parameters
     input_lines = [
         "{nuclide[0]:d} {nuclide[1]:d} {Nsigma_max:d} {Nmax:d}".format(**task),
         "{num_eigenvalues:d}".format(**task),
         "{:d} {:d} {:d}".format(twice_J_min,twice_J_max,J_step),
-        "{:f} {:f} {:f}".format(hw_min,hw_max,hw_step)
+        "{:f} {:f} {:f}".format(hw_min,hw_max,hw_step),
+        "{:s} {:d}".format(coulomb=coulomb,**task)
     ]
 
     # write observables

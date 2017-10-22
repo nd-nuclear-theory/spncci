@@ -52,6 +52,11 @@ namespace spncci
             line_stream >> hw_min >> hw_max >> hw_step;
             ParsingCheck(line_stream,line_count,line);
           }
+        else if(line_count==5)
+          {
+            line_stream >> interaction_name >> use_coulomb;
+            ParsingCheck(line_stream,line_count,line);
+          }
         else
           {
             std::string observable;
@@ -96,12 +101,6 @@ namespace spncci
     
     // run mode
     count_only = (num_eigenvalues==0);
-
-    // upstream information
-    //
-    // needed for results file -- TODO
-    interaction_name = "RESERVED";
-    use_coulomb = false;
 
 
     // hard-coded directory structure and filenames
