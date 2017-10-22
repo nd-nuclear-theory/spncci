@@ -66,6 +66,18 @@ namespace spncci
         Eigen::SelfAdjointEigenSolver<spncci::OperatorBlock> eigensolver(hamiltonian_matrix);
 
         // verify status
+        //
+        // From Eigen documentation:
+        //
+        //   ComputationInfo info 	( 		) 	const
+        //   	inline
+        //   
+        //   Reports whether previous computation was successful.
+        //   
+        //   Returns
+        //       Success if computation was succesful, NoConvergence otherwise. 
+
+
         int eigensolver_status = eigensolver.info();
         std::cout
           << fmt::format("  Eigensolver reports: status {}",eigensolver_status)
@@ -98,9 +110,20 @@ namespace spncci
           );
 
         // verify status
+        //
+        // From Spectra documentation:
+        //
+        //   enum  	Spectra::COMPUTATION_INFO {
+        //     Spectra::SUCCESSFUL = 0,
+        //     Spectra::NOT_COMPUTED,
+        //     Spectra::NOT_CONVERGING,
+        //     Spectra::NUMERICAL_ISSUE
+        //   }
+
         int eigensolver_status = eigensolver.info();
+        int eigensolver_num_iterations = eigensolver.num_iterations();
         std::cout
-          << fmt::format("  Eigensolver reports: eigenvectors {} status {}",converged_eigenvectors,eigensolver_status)
+          << fmt::format("  Eigensolver reports: eigenvectors {} status {} num_iterations {}",converged_eigenvectors,eigensolver_status,eigensolver_num_iterations)
           << std::endl;
         assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
         assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
