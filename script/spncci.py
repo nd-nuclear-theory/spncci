@@ -638,7 +638,7 @@ def generate_spncci_control_file(task):
         "{num_eigenvalues:d}".format(**task),
         "{:d} {:d} {:d}".format(twice_J_min,twice_J_max,J_step),
         "{:f} {:f} {:f}".format(hw_min,hw_max,hw_step),
-        "{:s} {:d}".format(coulomb=coulomb,**task)
+        "{interaction:s} {coulomb:d}".format(coulomb=coulomb,**task)
     ]
 
     # write observables
