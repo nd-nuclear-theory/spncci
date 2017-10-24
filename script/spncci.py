@@ -631,14 +631,13 @@ def generate_spncci_control_file(task):
     J0=0#task["J0"]
     coulomb = int(task["use_coulomb"])
 
-
     # write basic parameters
     input_lines = [
         "{nuclide[0]:d} {nuclide[1]:d} {Nsigma_max:d} {Nmax:d}".format(**task),
-        "{num_eigenvalues:d}".format(**task),
+        "{num_eigenvalues:d} {eigensolver_num_convergence:d} {eigensolver_max_iterartions:d} {eigensolver_tolerance:.2e}".format(**task),
         "{:d} {:d} {:d}".format(twice_J_min,twice_J_max,J_step),
         "{:f} {:f} {:f}".format(hw_min,hw_max,hw_step),
-        "{:s} {:d}".format(coulomb=coulomb,**task)
+        "{interaction:s} {coulomb:d}".format(coulomb=coulomb,**task)
     ]
 
     # write observables
