@@ -8,6 +8,8 @@
 
   6/17/17 (mac): Created, extracted from spncci.cpp.
   6/26/17 (mac): Remove dependence of parameters on command line arguments.
+  10/24/17 (mac): Add eigensolver parameters and pass-through interaction
+    parameters to input file.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_PARAMETERS_H_

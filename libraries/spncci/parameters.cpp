@@ -33,26 +33,36 @@ namespace spncci
         std::istringstream line_stream(line);
         ++line_count;
         if(line_count==1)
+          // line 1: truncation
+          //   N Z Nsigmamax Nmax
           {
             line_stream >> nuclide[0] >> nuclide[1] >> Nsigmamax >> Nmax;
             ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==2)
+          // line 2: eigenproblem
+          //   num_eigenvalues eigensolver_num_convergence eigensolver_max_iterations eigensolver_tolerance
           {
-            line_stream >> num_eigenvalues;
+            line_stream >> num_eigenvalues >> eigensolver_num_convergence >> eigensolver_max_iterations >> eigensolver_tolerance;
             ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==3)
+          // line 3: J branching
+          //   2*Jmin 2*Jmax J_step
           {
             line_stream >> twice_Jmin >> twice_Jmax >> J_step;
             ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==4)
+          // line 4: hw mesh
+          //   hw_min hw_max hw_step
           {
             line_stream >> hw_min >> hw_max >> hw_step;
             ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==5)
+          // line 5: pass-through information on interaction
+          //   interaction use_coulomb
           {
             line_stream >> interaction_name >> use_coulomb;
             ParsingCheck(line_stream,line_count,line);
@@ -70,7 +80,7 @@ namespace spncci
 
     // process accumulated values
     num_observables = observable_filenames.size();
-    observable_directory="relative_observables";
+    observable_directory = "relative_observables";
     // generate list of J values 
     HalfInt Jmin = HalfInt(twice_Jmin,2);
     HalfInt Jmax = HalfInt(twice_Jmax,2);
@@ -102,7 +112,6 @@ namespace spncci
     // run mode
     count_only = (num_eigenvalues==0);
 
-
     // hard-coded directory structure and filenames
     lsu3shell_rme_directory = "lsu3shell_rme";
     lsu3shell_basis_filename = lsu3shell_rme_directory + "/" + "lsu3shell_basis.dat";
@@ -110,13 +119,6 @@ namespace spncci
     Arel_filename = lsu3shell_rme_directory + "/" + fmt::format("Arel.rme",Nsigmamax);
     Nrel_filename = lsu3shell_rme_directory + "/" + fmt::format("Nrel.rme",Nsigmamax);
     relative_unit_tensor_filename_template = lsu3shell_rme_directory + "/" + "relative_unit_{:06d}.rme";
-
-    // hard-coded eigen solver parameters   
-    eigensolver_num_convergence = 2*num_eigenvalues;    // docs for SymEigsSolver say to take "ncv>=2*nev"
-    // eigensolver_max_iterations = 100*num_eigenvalues;
-    // eigensolver_max_iterations = 200*num_eigenvalues; //uping value to check non-convergence in 3He
-    eigensolver_max_iterations = 500*num_eigenvalues; //uping value to check non-convergence in 3He
-    eigensolver_tolerance = 1e-8;
   }
 
 }  // namespace
