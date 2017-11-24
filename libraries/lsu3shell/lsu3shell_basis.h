@@ -9,7 +9,7 @@
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
   6/26/17 (mac): Add sanity checks on input basis labels.
-
+  9/5/17 (aem) : Renamed LSU3Basis to LSU3ShellBasis
 ****************************************************************/
 
 #ifndef LSU3SHELL_BASIS_H_
@@ -25,7 +25,7 @@ namespace lsu3shell
   ////////////////////////////////////////////////////////////////
 
   // TODO: Abolish confusingly abbreviated "LSU3" in favor of
-  // "LSU3Shell" in all names.
+  // "LSU3Shell" in all names. DONE
   //
   // grep -r LSU3ShellBasis . --include="*.h" --include="*.cpp" -l   
 

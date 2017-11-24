@@ -59,7 +59,12 @@ task_list = [
         "use_coulomb" : False,
         "observables" : [("r2intr",0),("Qintr",2)],
         "num_eigenvalues" : 10,
-        "coulomb_filename" : "coulomb_Nmax20_rel.dat"
+        "coulomb_filename" : "coulomb_Nmax20_rel.dat",
+
+        # eigensolver convergence parameters
+        "eigensolver_num_convergence" : 2*10,  # docs for Spectra SymEigsSolver say to take "ncv>=2*nev"
+        "eigensolver_max_iterations" : 100*10,  # at least 100 times num_eigenvalues, possible more
+        "eigensolver_tolerance" : 1e-8
     }
     for Nsigma_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
     for Nmax in mcscript.utils.value_range(Nsigma_max,20,2)

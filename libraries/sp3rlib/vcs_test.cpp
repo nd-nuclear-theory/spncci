@@ -86,9 +86,9 @@ if(false)
 	std::cout<<"inverse "<<std::endl;
 	Eigen::MatrixXd id=Eigen::MatrixXd::Identity(K.rows(),K.rows());
 	Eigen::MatrixXd inv=K.colPivHouseholderQr().solve(id);
-	Eigen::MatrixXd inv2=mcutils::RightInverse(K);
+	// Eigen::MatrixXd inv2=mcutils::RightInverse(K);
 	Eigen::MatrixXd inv3=K.inverse();
-	std::cout<<inv<<std::endl<<std::endl<<inv2<<std::endl<<std::endl<<inv3<<std::endl<<std::endl;
+	// std::cout<<inv<<std::endl<<std::endl<<inv2<<std::endl<<std::endl<<inv3<<std::endl<<std::endl;
 	std::cout<<K*inv<<std::endl;
 }
 if(false)
@@ -107,8 +107,8 @@ if(false)
 	std::cout<<"inverse "<<std::endl;
 	Eigen::MatrixXd id=Eigen::MatrixXd::Identity(KK.rows(),KK.rows());
 	Eigen::MatrixXd inv=KK.colPivHouseholderQr().solve(id);
-	Eigen::MatrixXd inv2=mcutils::RightInverse(KK);
-	std::cout<<inv<<std::endl<<inv2<<std::endl;
+	// Eigen::MatrixXd inv2=mcutils::RightInverse(KK);
+	// std::cout<<inv<<std::endl<<inv2<<std::endl;
 }
 if(false)
 {

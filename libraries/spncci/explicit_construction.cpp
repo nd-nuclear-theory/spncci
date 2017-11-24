@@ -209,10 +209,7 @@ namespace spncci
             int cols=lgi_expansion.cols();
 
             spncci_expansion=Eigen::MatrixXd::Zero(rows,upsilon_max*gamma_max);
-            Eigen::MatrixXd k_matrix_inverse = restrict_sp3r_u3_branching?
-              kinv_matrix_cache.at(subspace.sigma()).at(subspace.omega()):
-              k_matrix_cache.at(subspace.sigma()).at(subspace.omega()).inverse();
-            // mcutils::RightInverse(k_matrix_cache.at(subspace.sigma()).at(subspace.omega()));
+            Eigen::MatrixXd k_matrix_inverse = kinv_matrix_cache.at(subspace.sigma()).at(subspace.omega());
             
             int phase = ParitySign(
                 u3::ConjugationGrade(subspace.sigma().SU3())
