@@ -1,10 +1,6 @@
 /****************************************************************
   two_body_branching.cpp
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
-
-  1/7/17 (aem): Created.
 ****************************************************************/
 #include "u3shell/two_body_branching.h"
 #include "am/wigner_gsl.h"
@@ -44,8 +40,10 @@ namespace u3shell
 
 	      u3shell::IndexTwoBodyTensorLabelsU3ST indexed_two_body_tensor=it->first;
 	      double rme_u3st=it->second;
+
 	      if(fabs(rme_u3st)<zero_threshold)
 	        continue;
+
 	      std::tie(tensor_u3st,kappa0,L0)=indexed_two_body_tensor;
 	      u3::SU3 x0=tensor_u3st.x0();
 	      HalfInt S0=tensor_u3st.S0();
@@ -60,11 +58,11 @@ namespace u3shell
 	      std::tie(N1,N2,x,S,T)=ket.Key();
 	      MultiplicityTagged<int>::vector L_branch=BranchingSO3(x);
 	      MultiplicityTagged<int>::vector Lp_branch=BranchingSO3(xp);
-	      for(auto lp: Lp_branch)
+	      for(auto lp : Lp_branch)
 	        {
 	          int Lp=lp.irrep;
 	          int kappap_max=lp.tag;
-	          for(auto l: L_branch)
+	          for(auto l : L_branch)
 	            {
 	              int L=l.irrep;
 	              int kappa_max=l.tag;
@@ -76,19 +74,22 @@ namespace u3shell
 	                      for(int L1=N1%2; L1<=N1; L1+=2)  
 	                        for(int L2=N2%2; L2<=N2; L2+=2)
 	                          {     
-	                            if((abs(L1-L2)>L)||((L1+L2)<L)) //am::triangular
+	                            if(not am::AllowedTriangle(L1,L2,L))
 	                              continue;
-	                            if((abs(L1p-L2p)>Lp)||((L1p+L2p)<Lp))
+	                            if(not am::AllowedTriangle(L1p,L2p, Lp))
 	                              continue;
 	                            TwoBodyStateLabelsLST bra(N1p,L1p,N2p,L2p,Lp,Sp,Tp);
 	                            TwoBodyStateLabelsLST ket(N1, L1,N2,L2,L,S,T);                            
 	                            TwoBodyBraketLST braket(L0,S0,T0,bra,ket);
 	                            int n1=(N1-L1)/2, n2=(N2-L2)/2,n1p=(N1p-L1p)/2, n2p=(N2p-L2p)/2;
-	                            double rme_lst=rme_u3st
-	                            				*u3::WCached(w_cache,u3::SU3(N1p,0),1,L1p,u3::SU3(N2p,0),1,L2p,xp,kappap,Lp,1)
-                                      *u3::WCached(w_cache,u3::SU3(N1,0),1,L1,u3::SU3(N2,0),1,L2,x,kappa,L,1)
-                                      *u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
-                                      *parity(n1+n2+n1p+n2p);
+	                            
+	                            double 
+	                            rme_lst=rme_u3st
+	                            		*u3::WCached(w_cache,u3::SU3(N1p,0),1,L1p,u3::SU3(N2p,0),1,L2p,xp,kappap,Lp,1)
+                                	*u3::WCached(w_cache,u3::SU3(N1,0),1,L1,u3::SU3(N2,0),1,L2,x,kappa,L,1)
+                                	*u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
+                                	*parity(n1+n2+n1p+n2p);
+	                            
 	                            two_body_rmes_lst[braket]+=rme_lst;
 	                          }
 	            }
@@ -117,7 +118,7 @@ namespace u3shell
 		      for(HalfInt J=abs(L-S); J<=J_max; ++J)
 		          for(HalfInt Jp=abs(Lp-Sp); Jp<=Jp_max; ++Jp)
 		            {
-		              if((J0<abs(Jp-J)) || (J0>(Jp+J)))
+		              if(not am::AllowedTriangle(J,J0,Jp))
 		                continue;
 
 		              double so3coef=am::Unitary9J(L, S, J, L0,S0,J0,Lp,Sp,Jp);
@@ -125,7 +126,7 @@ namespace u3shell
 		              TwoBodyStateLabelsLSJT statep(eta1p,L1p,eta2p,L2p,Lp,Sp,Jp,Tp);
 		              TwoBodyBraketLSJT braket(J0,int(T0),statep,state);
 		              two_body_rme_lsjt[braket]+=so3coef*rme_lst;
-		              }
+		            }
 		    }
 	}
 

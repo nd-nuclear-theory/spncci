@@ -198,24 +198,8 @@ void CompareToMFDN(
 }
 
 
-
-//////////
-
-int main(int argc, char **argv)
-{
-  u3::U3CoefInit();
-  // u3::WCoefCache w_cache;
-  zero_threshold=1e-6;
-
-  int Nmax=4;
-  int N1v=1; 
-  int Jmax=10; 
-  int J0=0;
-      
-  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
   // ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // //// Identity Operator 
+  // //// Identity Operator  TODO make into function
   // ///////////////////////////////////////////////////////////////////////////////////////////////////  
   // u3shell::RelativeRMEsU3ST identity_relative_rmes;
 
@@ -263,6 +247,25 @@ int main(int argc, char **argv)
   // u3shell::PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 
+
+
+//////////
+
+int main(int argc, char **argv)
+{
+  u3::U3CoefInit();
+  // u3::WCoefCache w_cache;
+  zero_threshold=1e-6;
+
+  int Nmax=4;
+  int N1v=1; 
+  int Jmax=Nmax+2; 
+  int J0=2;
+      
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
+
+
   // std::string interaction_filename="../../data/relative_interactions/jisp16_Nmax20_hw20.0_rel.dat";
   // std::string interaction_filename="../../data/relative_interactions/coulomb_test_Nmax20_steps500_rel.dat";
   // std::string interaction_filename="../../data/relative_interactions/nnloopt_Nmax20_hw40.0_caveat-nmax30_rel.dat";
@@ -299,76 +302,91 @@ int main(int argc, char **argv)
     isospin_component_matrices_lsjt, 
     w_cache, J0, g0,T0, Nmax,rme_map
     );
+
   std::cout<<rme_map.size()<<std::endl;
-  // for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
-  //   {
-  //     u3shell::RelativeUnitTensorLabelsU3ST tensor;
-  //     int kappa0, L0;
-  //     std::tie(tensor,kappa0,L0)=it->first;
-  //     std::cout<<tensor.Str()<<" "<<kappa0<<" "<<L0<<"  "<<it->second<<std::endl;
-  //   }
+  if(false)
+    {
+      for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
+        {
+          u3shell::RelativeUnitTensorLabelsU3ST tensor;
+          int kappa0, L0;
+          std::tie(tensor,kappa0,L0)=it->first;
+          std::cout<<tensor.Str()<<" "<<kappa0<<" "<<L0<<"  "<<it->second<<std::endl;
+        }
+    }
+
   std::cout<<"Convering to Two-body"<<std::endl;
   u3shell::IndexedTwoBodyTensorRMEsU3ST j16_indexed_two_body_rmes;
   u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,N1v,rme_map,j16_indexed_two_body_rmes);
-  // PrintTwoBodyIndexedRMEU3ST(k2_indexed_two_body_rmes);  
+
+  if(false)
+    {
+      PrintTwoBodyIndexedRMEU3ST(j16_indexed_two_body_rmes);
+    }
 
   std::cout<<"branch nlst"<<std::endl;
   std::map<u3shell::TwoBodyBraketLST,double> j16_two_body_rmes_lst;
   u3shell::BranchTwoBodyNLST(j16_indexed_two_body_rmes,j16_two_body_rmes_lst);
 
+
   std::cout<<"branch lsjt"<<std::endl;
   std::map<u3shell::TwoBodyBraketLSJT,double> j16_two_body_rme_lsjt;
   u3shell::BranchTwoBodyLSJT(Jmax, J0, j16_two_body_rmes_lst,j16_two_body_rme_lsjt);
 
+  if(true)
+    {
+      for(auto it=j16_two_body_rme_lsjt.begin(); it!=j16_two_body_rme_lsjt.end(); ++it)
+        {
+          int T0, J0;
+          u3shell::TwoBodyStateLabelsLSJT bra,ket;
+          std::tie(J0,T0,bra,ket)=it->first;
+          // if(bra>ket)
+          //   continue;
+          double rme=it->second;
+          int N1p,N2p,N1,N2,L1,L2,L1p,L2p,Lp,L;
+          HalfInt Sp,S,Jp,J,Tp,T;
+          std::tie(N1p,L1p,N2p,L2p,Lp,Sp,Jp,Tp)=bra;
+          std::tie(N1,L1,N2,L2,L,S,J,T)=ket;
 
-//   for(auto it=j16_two_body_rme_lsjt.begin(); it!=j16_two_body_rme_lsjt.end(); ++it)
-//     {
-//       int T0, J0;
-//       u3shell::TwoBodyStateLabelsLSJT bra,ket;
-//       std::tie(J0,T0,bra,ket)=it->first;
-//       if(bra>ket)
-//         continue;
-//       double rme=it->second;
-//       int N1p,N2p,N1,N2,L1,L2,L1p,L2p,Lp,L;
-//       HalfInt Sp,S,Jp,J,Tp,T;
-//       std::tie(N1p,L1p,N2p,L2p,Lp,Sp,Jp,Tp)=bra;
-//       std::tie(N1,L1,N2,L2,L,S,J,T)=ket;
-
-// // T0  N1' l1' j1' N2' l2' J' T' g'  N1 l1 j1 N2 l2 j2 J T g  JT-RME
-//       std::cout<<fmt::format("{}   {} {}  {} {}  {} {} {} {} {}   {} {}  {} {}  {} {} {} {} {}   {:13.6f} ",
-//         T0,
-//         N1p,L1p, N2p,L2p,Lp,Sp,Jp,Tp,(N1p+N2p)%2,
-//         N1,L1,N2,L2,L,S,J,T,(N1+N2)%2,
-//         rme
-//         )<<std::endl;
-//     }
+          // T0  N1' l1' N2' l2' L' S' J' T' g'  N1 l1 N2 l2 L S J T g  JT-RME
+          std::cout<<fmt::format("{}   {} {}  {} {}  {} {} {} {} {}   {} {}  {} {}  {} {} {} {} {}   {:13.6f} ",
+            T0,
+            N1p,L1p, N2p,L2p,Lp,Sp,Jp,Tp,(N1p+N2p)%2,
+            N1,L1,N2,L2,L,S,J,T,(N1+N2)%2,
+            rme
+            )<<std::endl;
+        }
+    }
 
   // std::cout<<"Branching "<<std::endl;
   std::map<u3shell::TwoBodyBraketJJJT,double> two_body_rme_jjjt;
   u3shell::BranchTwoBodyU3STToJJJT(Jmax, J0,j16_indexed_two_body_rmes,two_body_rme_jjjt);
 
-  for(auto it=two_body_rme_jjjt.begin(); it!=two_body_rme_jjjt.end(); ++it)
+  if(false)
     {
-      int T0, J0;
-      u3shell::TwoBodyStateLabelsJJJT bra,ket;
-      std::tie(J0,T0,bra,ket)=it->first;
-      // if(bra>ket)
-      //   continue;
-      double rme=it->second;
-      int N1p,N2p,N1,N2,L1,L2,L1p,L2p;
-      HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
-      std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
-      std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
 
-// T0  N1' l1' j1' N2' l2' J' T' g'  N1 l1 j1 N2 l2 j2 J T g  JT-RME
-      std::cout<<fmt::format("{}   {}  {}  {:3.1f}   {}  {}  {:3.1f}   {}  {}  {}    {}  {}  {:3.1f}   {}  {}  {:3.1f}   {}  {}  {}    {:13.6f} ",
-        T0,
-        N1p,L1p,float(J1p), N2p,L2p,float(J2p), float(Jp),float(Tp),(N1p+N2p)%2,
-        N1,L1,float(J1), N2,L2,float(J2),J,T,(N1+N2)%2,
-        rme
-        )<<std::endl;
+      for(auto it=two_body_rme_jjjt.begin(); it!=two_body_rme_jjjt.end(); ++it)
+        {
+          int T0, J0;
+          u3shell::TwoBodyStateLabelsJJJT bra,ket;
+          std::tie(J0,T0,bra,ket)=it->first;
+          // if(bra>ket)
+          //   continue;
+          double rme=it->second;
+          int N1p,N2p,N1,N2,L1,L2,L1p,L2p;
+          HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
+          std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
+          std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
+
+          // T0  N1' l1' j1' N2' l2' J' T' g'  N1 l1 j1 N2 l2 j2 J T g  JT-RME
+          std::cout<<fmt::format("{}   {}  {}  {:3.1f}   {}  {}  {:3.1f}   {}  {}  {}    {}  {}  {:3.1f}   {}  {}  {:3.1f}   {}  {}  {}    {:13.6f} ",
+            T0,
+            N1p,L1p,float(J1p), N2p,L2p,float(J2p), float(Jp),float(Tp),(N1p+N2p)%2,
+            N1,L1,float(J1), N2,L2,float(J2),J,T,(N1+N2)%2,
+            rme
+            )<<std::endl;
+        }
     }
-
 
 
 

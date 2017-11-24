@@ -9,11 +9,8 @@
 #include <fstream>
 
 #include "cppformat/format.h"
-// #include "basis/lsjt_operator.h"
 #include "am/am.h"
 #include "mcutils/eigen.h"
-// #include "sp3rlib/u3coef.h"
-// #include "u3shell/relative_operator.h"
 #include "u3shell/two_body_operator.h"
 #include "moshinsky/relative_cm_xform.h" 
 #include "u3shell/tensor_labels.h"
@@ -28,11 +25,12 @@ typedef std::tuple<u3::SU3,HalfInt, HalfInt,int, int,RelativeCMU3STLabels, Relat
 typedef std::tuple<int,int,int,int,int,HalfInt,HalfInt> RelativeCMLSTLabels;
 typedef std::tuple<int,HalfInt,HalfInt,RelativeCMLSTLabels,RelativeCMLSTLabels> RelativeCMLSTBraket;
 
-//TODO remove import interaction and replace with output file from shell 
+
 void IdentityTest(
   int Nmax, int Jmax, int J0, int T0, int g0,
   u3shell::RelativeRMEsU3ST& relative_rme_map
  )
+// Checks that the identity operator upcouples correctly
 {
   std::cout<<"Identity test"<<std::endl;
 
@@ -110,7 +108,6 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
   std::array<basis::MatrixVector,3> T0_sectors_lsjt;
   basis::OperatorLabelsJT operator_labels;
-
 
   basis::ReadRelativeOperatorLSJT(
     interaction_file,relative_lsjt_space,operator_labels,
@@ -237,7 +234,7 @@ QCheck()
 {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // int Nmax=20;
-  int Nmax=0;
+  int Nmax=2;
   int Jmax=2;
   int J0=2;
   int g0=0;
@@ -245,7 +242,7 @@ QCheck()
   u3shell::RelativeRMEsU3ST rme_map;
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   // std::vector<std::string> file_end={"pp","nn","pn"};
-  std::vector<std::string> file_end={"pp"};
+  std::vector<std::string> file_end={"total"};
   std::string filename_base="../../data/relative_interactions/quadrupole_test_Nmax6_{}_rel.dat";
 
   //upcouple to LST
@@ -307,9 +304,6 @@ QCheck()
 }
 
 
-
-
-
 int main(int argc, char **argv)
 {
   // double zero_threshold=10e-6;
@@ -325,6 +319,7 @@ int main(int argc, char **argv)
 
 
   UpcoupleQmass(Nmax,Jmax);
+
   // QCheck();
 
   // u3shell::RelativeRMEsU3ST id_relative_rme_map;
