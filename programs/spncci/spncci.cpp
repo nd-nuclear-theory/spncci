@@ -1087,9 +1087,9 @@ int main(int argc, char **argv)
           spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
           spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
           // std::cout<<hamiltonian_matrix<<std::endl;
+          std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
           spncci::SolveHamiltonian(
               hamiltonian_matrix,
-              J,
               run_parameters.num_eigenvalues,
               run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
               run_parameters.eigensolver_max_iterations,

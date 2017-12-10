@@ -7,6 +7,7 @@
   University of Notre Dame
 
   7/6/17 (mac): Extracted from computation_control.
+  12/10/17 (mac): Clean comments and remove J argument.
 
 ****************************************************************/
 
@@ -21,16 +22,24 @@ namespace spncci
  void 
   SolveHamiltonian(
       const spncci::OperatorBlock& hamiltonian_matrix,
-      const HalfInt& J,
       int num_eigenvalues,
-      int eigensolver_num_convergence,  // whatever exactly this is...
+      int eigensolver_num_convergence,
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
-      spncci::Vector& eigenvalues,  // eigenvalues for J-subspace
-      spncci::Matrix& eigenvectors  // eigenvectors for J-subspace
+      spncci::Vector& eigenvalues,
+      spncci::Matrix& eigenvectors
     );
-  // Solve the Hamiltonian matrix (in a single J-space) for energy eigenvalues and vectors 
-
+ // Solve the Hamiltonian matrix (in a single J-space) for energy eigenvalues and vectors 
+ //
+ // Arguments:
+ //   hamiltonian_matrix (input): Hamiltonian matrix block for given J-subspace
+ //   num_eigenvalues (input): number of eigenvalues to solve for
+ //   eigensolver_num_convergence (input): Arnoldi eigensolver
+ //     parameter (whatever exactly this is...)
+ //   eigensolver_max_iterations (input): Arnoldi eigensolver maximum iterations
+ //   eigensolver_tolerance (input): Arnoldi tolerance parameters
+ //   eigenvalues (output): eigenvalues for J-subspace
+ //   eigenvectors (output): eigenvectors for J-subspace (as column vectors)
 
 }  // namespace
 

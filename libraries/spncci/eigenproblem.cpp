@@ -1,5 +1,5 @@
 /****************************************************************
-  computation_control.cpp
+  eigenproblem.cpp
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -20,18 +20,14 @@ namespace spncci
   void 
   SolveHamiltonian(
       const spncci::OperatorBlock& hamiltonian_matrix,
-      const HalfInt& J,
       int num_eigenvalues,
-      int eigensolver_num_convergence,  // whatever exactly this is...
+      int eigensolver_num_convergence,
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
-      spncci::Vector& eigenvalues,  // eigenvalues for J-subspace
-      spncci::Matrix& eigenvectors  // eigenvectors for J-subspace
+      spncci::Vector& eigenvalues,
+      spncci::Matrix& eigenvectors
     )
   {    
-
-    // set up aliases
-    std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
 
     // handle low-dimensional exceptions
     //
@@ -135,7 +131,7 @@ namespace spncci
       }
 
     // diagnostic output: eigenvalues
-    std::cout << fmt::format("  Eigenvalues (J={}):",J) << std::endl
+    std::cout << fmt::format("  Eigenvalues:") << std::endl
               << mcutils::FormatMatrix(eigenvalues.transpose(),"8.5f","    ")
               << std::endl;
     
