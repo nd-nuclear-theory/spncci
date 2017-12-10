@@ -95,9 +95,9 @@ FFLAGS += -DSU3LM82
 # project.
 ################################################################
 
-# % cd ${home}/projects
+# % cd ${home}/code
 # % git clone https://github.com/yixuan/spectra.git
-# % setenv SPECTRA_DIR ${home}/projects/spectra
+# % setenv SPECTRA_DIR ${home}/code/spectra
 #
 # or 
 #

@@ -14,7 +14,6 @@
 #ifndef SPNCCI_SPNCCI_EIGENPROBLEM_H_
 #define SPNCCI_SPNCCI_EIGENPROBLEM_H_
 
-#include "am/halfint.h"
 #include "spncci/spncci_common.h"
 
 namespace spncci
