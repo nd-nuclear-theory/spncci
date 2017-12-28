@@ -174,11 +174,11 @@ if(false)
 
 if(true)
 {
-	u3::U3 s(3,1,1);
-	sp3r::Sp3RSpace irrep(s,6);
+	u3::U3 s(4,2,1);
+	sp3r::Sp3RSpace irrep(s,25);
 
 	vcs::MatrixCache K_matrix_map,K_matrix_map2, Kinv_matrix_map;
-	vcs::GenerateKMatrices(irrep,K_matrix_map);
+	// vcs::GenerateKMatrices(irrep,K_matrix_map);
 	vcs::GenerateKMatrices(irrep,K_matrix_map2, Kinv_matrix_map);
 
 	for(auto it=K_matrix_map.begin(); it!=K_matrix_map.end(); ++it)
