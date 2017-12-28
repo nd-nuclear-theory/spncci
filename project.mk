@@ -61,6 +61,7 @@ CPPFLAGS += -DBASIS_HASH
 
 # mcutils submodule
 #   allow legacy global access to variables now wrapped in mcutils namespace
+#   TODO -- fix all these calls to be in mcutils namespace
 CPPFLAGS += -DMCUTILS_ALLOW_LEGACY_GLOBAL
 
 # spncci program algorithm choices

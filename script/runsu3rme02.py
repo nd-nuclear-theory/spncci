@@ -43,7 +43,7 @@ spncci.operator_subdirectory_list += ["rununittensor01"]
 # build task list
 ##################################################################
 
-Nsigma_max_list = mcscript.utils.value_range(6,10,4)
+Nsigma_max_list = mcscript.utils.value_range(6,10,2)
 nslaves_list = [1,2,4,8,23,32]
 su3rme_mode_list = ["count","binary"]
 task_list = [

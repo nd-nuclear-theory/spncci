@@ -111,7 +111,7 @@ namespace spncci
     )
     {
       std::ifstream in_stream(filename);
-      StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+      mcutils::StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
       std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
       int Nsigma_ex,lambda,mu,twice_Sp, twice_Sn, twice_S,gamma_max;
       std::string line;
@@ -452,7 +452,7 @@ int main(int argc, char **argv)
   std::cout << "Solve for LGIs..." << std::endl;
 
   // timing start
-  mcutils::Timer timer_lgi;
+  mcutils::SteadyTimer timer_lgi;
 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
@@ -660,7 +660,7 @@ int main(int argc, char **argv)
   std::cout << "Precompute K matrices..." << std::endl;
 
   // timing start
-  mcutils::Timer timer_k_matrices;
+  mcutils::SteadyTimer timer_k_matrices;
 
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
@@ -731,7 +731,7 @@ int main(int argc, char **argv)
   // for each unit tensor, read in unit tensor lsu3shell rmes and transform to spncci basis
   //////////////////////////////////////////////////////////////////////////////////////////
   // timing start
-  mcutils::Timer timer_read_seeds;
+  mcutils::SteadyTimer timer_read_seeds;
 
   std::cout << "Get seed unit tensor rmes..." << std::endl;
   // diagnostic
@@ -764,7 +764,7 @@ int main(int argc, char **argv)
 
   // timing start
   std::cout<<"Starting recurrence and contraction"<<std::endl;
-  mcutils::Timer timer_recurrence;
+  mcutils::SteadyTimer timer_recurrence;
 
 
   // Nested parallel regions (region 1 is lgi pairs, region 2 is recurrence.   )
@@ -1030,7 +1030,7 @@ int main(int argc, char **argv)
   std::cout << "Calculation mesh master loop..." << std::endl;
 
   // timing start
-  mcutils::Timer timer_mesh;
+  mcutils::SteadyTimer timer_mesh;
 
   // for each hw value, solve eigen problem and get expectation values 
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
@@ -1048,7 +1048,7 @@ int main(int argc, char **argv)
       ////////////////////////////////////////////////////////////////
 
       std::cout<<"Solve eigenproblem..."<<std::endl;
-      mcutils::Timer timer_eigenproblem;
+      mcutils::SteadyTimer timer_eigenproblem;
 
       std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
       std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
@@ -1110,7 +1110,7 @@ int main(int argc, char **argv)
       ////////////////////////////////////////////////////////////////
 
       std::cout << "Calculate eigenstate decompositions..." << std::endl;
-      mcutils::Timer timer_decompositions;
+      mcutils::SteadyTimer timer_decompositions;
 
       // decomposition matrices:
       //   - vector over J subspace index
@@ -1165,7 +1165,7 @@ int main(int argc, char **argv)
       ////////////////////////////////////////////////////////////////
 
       std::cout << "Calculate observable results..." << std::endl;
-      mcutils::Timer timer_observables;
+      mcutils::SteadyTimer timer_observables;
 
       // observable_results_matrices:
       //   - vector over observable_index

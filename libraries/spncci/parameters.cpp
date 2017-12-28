@@ -37,42 +37,42 @@ namespace spncci
           //   N Z Nsigmamax Nmax
           {
             line_stream >> nuclide[0] >> nuclide[1] >> Nsigmamax >> Nmax;
-            ParsingCheck(line_stream,line_count,line);
+            mcutils::ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==2)
           // line 2: eigenproblem
           //   num_eigenvalues eigensolver_num_convergence eigensolver_max_iterations eigensolver_tolerance
           {
             line_stream >> num_eigenvalues >> eigensolver_num_convergence >> eigensolver_max_iterations >> eigensolver_tolerance;
-            ParsingCheck(line_stream,line_count,line);
+            mcutils::ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==3)
           // line 3: J branching
           //   2*Jmin 2*Jmax J_step
           {
             line_stream >> twice_Jmin >> twice_Jmax >> J_step;
-            ParsingCheck(line_stream,line_count,line);
+            mcutils::ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==4)
           // line 4: hw mesh
           //   hw_min hw_max hw_step
           {
             line_stream >> hw_min >> hw_max >> hw_step;
-            ParsingCheck(line_stream,line_count,line);
+            mcutils::ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==5)
           // line 5: pass-through information on interaction
           //   interaction use_coulomb
           {
             line_stream >> interaction_name >> use_coulomb;
-            ParsingCheck(line_stream,line_count,line);
+            mcutils::ParsingCheck(line_stream,line_count,line);
           }
         else
           {
             std::string observable;
             int J0;
             line_stream >> observable >> J0;
-            ParsingCheck(line_stream,line_count,line);
+            mcutils::ParsingCheck(line_stream,line_count,line);
             observable_filenames.push_back(observable);
             observable_J0_values.push_back(J0);
           }

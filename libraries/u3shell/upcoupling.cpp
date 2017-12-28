@@ -322,7 +322,7 @@ namespace u3shell
   {
     // open file
     std::ifstream in_stream(filename);
-    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
     std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
 
     // process stream
@@ -338,7 +338,7 @@ namespace u3shell
         ++line_count;
         std::istringstream line_stream(line);
         line_stream>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
-        ParsingCheck(line_stream,line_count,line);
+        mcutils::ParsingCheck(line_stream,line_count,line);
         if (fabs(rme)>zero_threshold)
           {
             u3shell::RelativeStateLabelsU3ST bra(etap,Sp,Tp), ket(eta,S,T);
@@ -367,7 +367,7 @@ namespace u3shell
     int eta_max=Nmax+2*N1v;
 
     std::ifstream in_stream(filename);
-    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
     std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
 
     int line_count = 0;
@@ -376,7 +376,7 @@ namespace u3shell
         ++line_count;
         std::istringstream line_stream(line);
         line_stream>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
-        ParsingCheck(line_stream,line_count,line);
+        mcutils::ParsingCheck(line_stream,line_count,line);
         if((etap>eta_max)||(eta>eta_max)||(abs(etap-eta)>Nmax))
           continue;
         if (fabs(rme)>zero_threshold)
@@ -418,7 +418,7 @@ namespace u3shell
     std::string line;
     std::map<std::pair<int,u3::SU3>,double> u3_decomposition;
     std::ifstream in_stream(filename);
-    StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
     std::cout << fmt::format("Reading relative rmes from {}...",filename) << std::endl;
 
     int line_count = 0;

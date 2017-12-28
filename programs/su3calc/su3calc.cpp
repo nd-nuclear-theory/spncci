@@ -195,7 +195,7 @@ int main(int argc, char **argv)
           int lambda, mu;
           
           line_stream >> lambda >> mu; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoBranchingSO3(lambda, mu);
         }
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
           int lambda1, mu1, lambda2, mu2;
           
           line_stream >> lambda1 >> mu1 >> lambda2 >> mu2; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoKroneckerProduct(lambda1, mu1, lambda2, mu2);
         }
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
           int lambda1, mu1, kappa1, L1, lambda2, mu2, kappa2, L2, lambda3, mu3, kappa3, L3, rho0;
           
           line_stream >> lambda1 >> mu1 >> kappa1 >> L1 >> lambda2 >> mu2 >> kappa2 >> L2 >> lambda3 >> mu3 >> kappa3 >> L3 >> rho0; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoW(lambda1, mu1, kappa1, L1, lambda2, mu2, kappa2, L2, lambda3, mu3, kappa3, L3, rho0);
         }
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
           
           line_stream >> lambda1 >> mu1 >> lambda2 >> mu2 >> lambda >> mu >> lambda3 >> mu3
                       >> lambda12 >> mu12 >> rho12 >> rho12_3 >> lambda23 >> mu23 >> rho23 >> rho1_23;
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoU(lambda1, mu1, lambda2, mu2, lambda, mu, lambda3, mu3, lambda12, mu12, rho12, rho12_3, lambda23, mu23, rho23, rho1_23);
         }
