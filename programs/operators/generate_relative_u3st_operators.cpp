@@ -343,7 +343,7 @@ int main(int argc, char **argv)
     if(line_count==1)
       {
         line_stream >> hbar_omega;
-        ParsingCheck(line_stream,line_count,line);
+        mcutils::ParsingCheck(line_stream,line_count,line);
         b2=hbarc*hbarc/mc2/hbar_omega;
         std::cout<<"bsqr= "<<b2<<std::endl;
         std::cout<<"pi= "<<pi<<std::endl;
@@ -351,7 +351,7 @@ int main(int argc, char **argv)
       }
 
     line_stream >> operator_type >> coef;
-    ParsingCheck(line_stream,line_count,line);
+    mcutils::ParsingCheck(line_stream,line_count,line);
 
     std::cout<<operator_type<<"  "<<coef<<std::endl;
 
@@ -376,13 +376,13 @@ int main(int argc, char **argv)
     else if(operator_type=="INT")
       {
         line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
-        ParsingCheck(line_stream,line_count,line);
+        mcutils::ParsingCheck(line_stream,line_count,line);
         Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
       }
     else if(operator_type=="COUL")
       {
         line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
-        ParsingCheck(line_stream,line_count,line);
+        mcutils::ParsingCheck(line_stream,line_count,line);
         std::cout<<alpha*sqrt(mc2*hbar_omega)<<std::endl;
         coef*=alpha*sqrt(mc2*hbar_omega);
         // coef*=alpha*sqrt(mc2*hbar_omega);

@@ -148,7 +148,7 @@ namespace lgi
   {
     // open input file
     std::ifstream lgi_stream(lgi_filename);
-    StreamCheck(bool(lgi_stream),lgi_filename,"Failed to open LGI input file");
+    mcutils::StreamCheck(bool(lgi_stream),lgi_filename,"Failed to open LGI input file");
 
     // scan input file
     std::string line;
@@ -167,7 +167,7 @@ namespace lgi
         line_stream >> Nex
                     >> twice_N  >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S
                     >> count;
-        ParsingCheck(line_stream, line_count, line);
+        mcutils::ParsingCheck(line_stream, line_count, line);
         // conversions
         HalfInt Nsigma = HalfInt(twice_N,2);
         // std::cout<<fmt::format("{} {} {}", Nsigma, lambda,mu)<<std::endl;

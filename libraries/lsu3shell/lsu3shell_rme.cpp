@@ -40,7 +40,7 @@ namespace lsu3shell
   {
     // open file
     std::ifstream in_stream(filename);
-    StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
 
     // process stream
     basis::SetOperatorToZero(sectors,blocks);
@@ -142,7 +142,7 @@ namespace lsu3shell
   {
     // open file
     std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
-    StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
 
     // read file header
     int format_code;

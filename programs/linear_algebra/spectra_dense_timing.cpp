@@ -50,7 +50,7 @@ int main()
           std::cout << "Spectra::SymEigsSolver" << std::endl;
 
           // start timing
-          Timer test_time;
+          mcutils::SteadyTimer test_time;
           test_time.Start();
 
           // define eigensolver and compute
@@ -80,7 +80,7 @@ int main()
           std::cout << "Eigen::SelfAdjointEigenSolver" << std::endl;
 
           // start timing
-          Timer test_time;
+          mcutils::SteadyTimer test_time;
           test_time.Start();
 
           // define eigensolver and compute

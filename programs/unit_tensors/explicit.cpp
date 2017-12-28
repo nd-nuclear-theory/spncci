@@ -228,7 +228,7 @@ int main(int argc, char **argv)
   std::cout << "Solve for LGIs..." << std::endl;
 
   // timing start
-  Timer timer_lgi;
+  mcutils::SteadyTimer timer_lgi;
   timer_lgi.Start();
 
 
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
   std::cout << "Precompute K matrices..." << std::endl;
 
   // timing start
-  Timer timer_k_matrices;
+  mcutils::SteadyTimer timer_k_matrices;
   timer_k_matrices.Start();
 
   // traverse distinct sigma values in SpNCCI space, generating K
