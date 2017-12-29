@@ -453,6 +453,7 @@ int main(int argc, char **argv)
 
   // timing start
   mcutils::SteadyTimer timer_lgi;
+  timer_lgi.Start();
 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
@@ -661,6 +662,7 @@ int main(int argc, char **argv)
 
   // timing start
   mcutils::SteadyTimer timer_k_matrices;
+  timer_k_matrices.Start();
 
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
@@ -732,6 +734,7 @@ int main(int argc, char **argv)
   //////////////////////////////////////////////////////////////////////////////////////////
   // timing start
   mcutils::SteadyTimer timer_read_seeds;
+  timer_read_seeds.Start();
 
   std::cout << "Get seed unit tensor rmes..." << std::endl;
   // diagnostic
@@ -765,7 +768,7 @@ int main(int argc, char **argv)
   // timing start
   std::cout<<"Starting recurrence and contraction"<<std::endl;
   mcutils::SteadyTimer timer_recurrence;
-
+  timer_recurrence.Start();
 
   // Nested parallel regions (region 1 is lgi pairs, region 2 is recurrence.   )
 
@@ -1031,6 +1034,7 @@ int main(int argc, char **argv)
 
   // timing start
   mcutils::SteadyTimer timer_mesh;
+  timer_mesh.Start();
 
   // for each hw value, solve eigen problem and get expectation values 
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
@@ -1049,6 +1053,8 @@ int main(int argc, char **argv)
 
       std::cout<<"Solve eigenproblem..."<<std::endl;
       mcutils::SteadyTimer timer_eigenproblem;
+      timer_eigenproblem.Start();
+
 
       std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
       std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
@@ -1111,6 +1117,7 @@ int main(int argc, char **argv)
 
       std::cout << "Calculate eigenstate decompositions..." << std::endl;
       mcutils::SteadyTimer timer_decompositions;
+      timer_decompositions.Start();
 
       // decomposition matrices:
       //   - vector over J subspace index
@@ -1166,6 +1173,7 @@ int main(int argc, char **argv)
 
       std::cout << "Calculate observable results..." << std::endl;
       mcutils::SteadyTimer timer_observables;
+      timer_observables.Start();
 
       // observable_results_matrices:
       //   - vector over observable_index
