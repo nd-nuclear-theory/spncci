@@ -59,11 +59,6 @@ CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
 #   map vs. hash for space lookup in basis module
 CPPFLAGS += -DBASIS_HASH
 
-# mcutils submodule
-#   allow legacy global access to variables now wrapped in mcutils namespace
-#   TODO -- fix all these calls to be in mcutils namespace
-CPPFLAGS += -DMCUTILS_ALLOW_LEGACY_GLOBAL
-
 # spncci program algorithm choices
 #   map vs. hash unit tensor sectors 
 CPPFLAGS += -DNOHASH_UNIT_TENSOR

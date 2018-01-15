@@ -107,11 +107,11 @@ namespace u3shell
                 continue;
 
               int subspace_index_bra = relative_space_lsjt.LookUpSubspaceIndex(
-                basis::RelativeSubspaceLSJTLabels(Lp,Sp,Jp,Tp,Lp%2)
+                  basis::RelativeSubspaceLSJTLabels(Lp,int(Sp),int(Jp),int(Tp),Lp%2)
                 );
 
               int subspace_index_ket = relative_space_lsjt.LookUpSubspaceIndex(
-                basis::RelativeSubspaceLSJTLabels(L,S,J,T,L%2)
+                  basis::RelativeSubspaceLSJTLabels(L,int(S),int(J),int(T),L%2)
                 );
 
               // only store canonical ordered subspaces because others obtained by symmetry

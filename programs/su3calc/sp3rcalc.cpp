@@ -261,7 +261,7 @@ int main(int argc, char **argv)
           int Nnmax;
           
           line_stream >> Nnmax; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoRaising(Nnmax);
         }
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
           int N, lambda, mu, Nnmax;
           
           line_stream >> N >> lambda >> mu >> Nnmax; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoIrrep(N,lambda,mu,Nnmax);
         }
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
           int N, lambda, mu, Nnmax;
           
           line_stream >> N >> lambda >> mu >> Nnmax; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoSubspaces(N,lambda,mu,Nnmax);
         }
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
           int N, lambda, mu, Nnmax;
           
           line_stream >> N >> lambda >> mu >> Nnmax; 
-          ParsingCheck(line_stream,line_count,line);
+          mcutils::ParsingCheck(line_stream,line_count,line);
 
           DoLattice(N,lambda,mu,Nnmax);
         }
