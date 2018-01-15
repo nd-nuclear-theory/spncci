@@ -21,6 +21,7 @@
   7/1/17 (aem) : Updated GetLGIExpansion for intrinsic basis
   7/6/17 (mac): Move out branching routines and eigenproblem control.
   10/4/17 (aem) : Updated CheckUnitTensorRecurrence to work for A<6
+  10/11/17 (aem) : Moved GetLGIExpansion to lgi_solver
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_

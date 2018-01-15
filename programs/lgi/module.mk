@@ -7,7 +7,7 @@ $(eval $(begin-module))
 # module_units_h := 
 # module_units_cpp-h := 
 # module_units_f := 
-module_programs_cpp := get_lgi_expansion
+module_programs_cpp := get_lgi_expansion get_spncci_seed_blocks
 ## module_programs_cpp += get_spncci_dimensions
 # module_programs_f :=
 # module_generated :=

@@ -1,40 +1,52 @@
-#include <fstream>  
+  
+#include <iostream>
+#include <fstream>
+
+#include "SymEigsSolver.h"  // from spectra
 #include "cppformat/format.h"
-#include "sp3rlib/u3coef.h"
+
 #include "lgi/lgi_solver.h"
 #include "mcutils/eigen.h"
+#include "sp3rlib/u3coef.h"
+#include "spncci/spncci_common.h"
 
 
 int main(int argc, char **argv)
 {
-  // Basis parameters
-  int Nmax=2;
-  int N=3;
-  int Z=3;
-  std::array<int,2> nuclide;
-  nuclide[0]=Z;
-  nuclide[1]=N; // proton and neutron numbers
-  bool intrinsic=true;
-  HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
-  std::string lsu3shell_basis_filename="lsu3shell_basis.dat"; // Will need to include path to file
+  std::cout<<"generating lgi expansions"<<std::endl;
+  ////////////////////////////////////////////////////////////////
+  // initialization
+  ////////////////////////////////////////////////////////////////
+  
+  // SU(3) caching
+  u3::U3CoefInit();
+  u3::UCoefCache u_coef_cache;
+  u3::PhiCoefCache phi_coef_cache;
+  u3::g_u_cache_enabled = true;
 
-  // Operator parameters
+  // parameters for certain calculations
+  // lgi::g_zero_tolerance = 1e-6;
+  spncci::g_suppress_zero_sectors = true;
+
+  // Eigen OpenMP multithreading mode
+  Eigen::initParallel();
+
+  ////////////////////////////////////////////////////////////////
+  // read lsu3shell basis (regroup into U3SPN subspaces)
+  ////////////////////////////////////////////////////////////////
+  std::string lsu3shell_basis_filename; //TODO
+  HalfInt Nsigma0;
   std::string Brel_filename;
   std::string Nrel_filename;
+  int A; 
 
-  // Output parameters
-  std::string lgi_filename;
-  std::string expansion_filename;
-  ////////////////////////////////////////////////////////////////
-  // read lsu3shell basis
-  ////////////////////////////////////////////////////////////////
+
   std::cout << "Read lsu3shell basis..." << std::endl;
-  // read lsu3shell basis (regroup into U3SPN subspaces)
   lsu3shell::LSU3ShellBasisTable lsu3shell_basis_table;
   lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
   u3shell::SpaceU3SPN lsu3shell_space;
   lsu3shell::ReadLSU3ShellBasis(
-      Nsigma0, lsu3shell_basis_filename,lsu3shell_basis_table,
+      Nsigma0,lsu3shell_basis_filename,lsu3shell_basis_table,
       lsu3shell_basis_provenance,lsu3shell_space
     );
 
@@ -42,24 +54,41 @@ int main(int argc, char **argv)
   // solve for LGIs
   ////////////////////////////////////////////////////////////////
   std::cout << "Solve for LGIs..." << std::endl;
+
   lgi::MultiplicityTaggedLGIVector lgi_families;
-  lsu3shell::OperatorBlocks lgi_expansions;
+  basis::MatrixVector lgi_expansions;
   
   lgi::GetLGIExpansion(
       lsu3shell_space,lsu3shell_basis_table,
-      Brel_filename,Nrel_filename,Z+N, Nsigma0,
+      Brel_filename,Nrel_filename,A,Nsigma0,
       lgi_families, lgi_expansions
     );
 
-  ////////////////////////////////////////////////////////////////
-  // writing to file
-  ////////////////////////////////////////////////////////////////
+  // diagnostics
+  std::cout << fmt::format("  LGI families {}",lgi_families.size()) << std::endl;
+  
+  for(int i=0; i<lgi_families.size(); ++i)
+    {
+      int Nex;
+      u3::U3 sigma;
+      HalfInt Sp,Sn,S;
+      auto& lgi_family=lgi_families[i];
+      std::tie(Nex,sigma,Sp,Sn,S)=lgi_family.irrep.Key();
+      int gamma_max=lgi_family.tag;
+        std::cout
+          <<Nex
+          <<"  "<<TwiceValue(sigma.N())<<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()
+          <<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
+          <<"  "<<gamma_max
+          <<std::endl;     
 
-  lgi::WriteLGILabels(lgi_families,lgi_filename);
+      const spncci::OperatorBlock& lgi_expansion=lgi_expansions[i];
+      std::cout<<mcutils::FormatMatrix(lgi_expansion,"13.6e")<<std::endl;
 
+    }
 
-  lgi::WriteLGIExpansion(Z, N, Nmax,lgi_families,lgi_expansions,expansion_filename);
-
+  // if (true)
+  //   lgi::WriteLGILabels(lgi_families_truncated,std::cout);
 
 
 }

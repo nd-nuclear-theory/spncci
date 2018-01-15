@@ -187,8 +187,6 @@ namespace lgi
   }
 
 
-
-
   void
   TransformOperatorToSpBasis(
       const u3shell::SectorsU3SPN& sectors,
@@ -214,5 +212,6 @@ namespace lgi
         spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
       }
   }
+  
 
 }// end namespace
