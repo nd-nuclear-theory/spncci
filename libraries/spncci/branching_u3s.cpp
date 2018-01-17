@@ -13,6 +13,7 @@
 
 #include "cppformat/format.h"
 #include "mcutils/parsing.h"
+#include "mcutils/eigen.h"
 #include "spncci/unit_tensor.h"
 
 namespace spncci
@@ -130,6 +131,105 @@ namespace spncci
     // for(auto it=u3s_sectors.begin(); it!=u3s_sectors.end(); ++it)
     //   sector_vector[it->second]=it->first;
   }
+
+void InitializeU3SSectors(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>>& observable_symmetries_u3s,
+      std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
+    )
+  {
+    // vector of sectors for each observable
+    observables_sectors_u3s.resize(num_observables);
+
+    // for each observable, enumerate sectors 
+    for(int observable_index=0; observable_index<num_observables; ++observable_index) 
+      {
+        std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+        spncci::GetSectorsU3S(space_u3s,observable_symmetries_u3s[observable_index],sectors_u3s);
+      }
+  }
+
+  void InitializeU3SBlocks(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<double>& hw_values,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
+      std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_u3s
+    )
+  {
+    // vector of blocks for u3 sectors for each hbar omega,for each observable
+    observables_blocks_u3s.resize(hw_values.size());
+
+    // For each hbar omega, zero initialize block for each observable
+    // based on basis::SetOperatorToZero in operator.h
+    // int total_entries = 0;
+    for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
+      {
+        std::vector<spncci::OperatorBlocks>& observables_blocks=observables_blocks_u3s[hw_index];
+        observables_blocks.resize(num_observables);
+
+        for(int observable_index=0; observable_index<num_observables; ++observable_index)
+          {
+            // Note: this would all be a one-liner call to basis::SetOperatorToZero,
+            // if sectors_u3s were a proper Sectors object
+            spncci::OperatorBlocks& blocks=observables_blocks[observable_index];
+            const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+            blocks.resize(sectors_u3s.size());
+            for(int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+              {
+                int rows=space_u3s.GetSubspace(sectors_u3s[sector_index].bra_index()).full_dimension();
+                int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
+                blocks[sector_index]=spncci::OperatorBlock::Zero(rows,cols);
+              }
+
+            // // tally allocated matrix elements
+            // int entries = basis::AllocatedEntries(blocks);
+            // total_entries += entries;
+            // std::cout
+            //   << fmt::format(
+            //       "  hw_index {:2d} observable_index {:2d} sectors {:4d} entries {:d} = {:e}",
+            //       hw_index,observable_index,sectors_u3s.size(),entries,double(entries)
+            //     )
+            //   << std::endl;
+          }
+
+      } 
+  }
+
+  void PrintU3SSector(
+      const std::vector<double>& hw_values,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
+      std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_u3s, //can't be constant because of chop function
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables
+    )
+  // Prints out U3SSectors and blocks 
+  {
+    for(int observable_index=0; observable_index<num_observables; ++observable_index)
+      for(int hw_index=0; hw_index<hw_values.size(); ++hw_index)
+        {
+          std::cout<<"observable "<<observable_index<<" hw "<<hw_values[hw_index]<<std::endl;
+          const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+          spncci::OperatorBlocks& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
+          for(int i=0; i<blocks_u3s.size(); ++i)
+            {
+              auto& block=blocks_u3s[i];
+              const auto& sector=sectors_u3s[i];            
+              const auto& bra=space_u3s.GetSubspace(sector.bra_index());
+              const auto& ket=space_u3s.GetSubspace(sector.ket_index());
+              const auto& op=sector.operator_labels();
+              if(not mcutils::IsZero(block))
+                {
+                  std::cout<<"block number "<<i<<std::endl;
+                  std::cout<<bra.Str()<<"  "<<ket.Str()<<"  "<<op.Str()<<"  "<<sector.kappa0()<<"  "<<sector.L0()<<"  "<<sector.rho0()<<std::endl;
+                  mcutils::ChopMatrix(block, 1e-6);
+                  std::cout<<block<<std::endl<<std::endl;
+                }
+            }
+        }
+  }
+
 
   void 
   ContractAndRegroupU3S(

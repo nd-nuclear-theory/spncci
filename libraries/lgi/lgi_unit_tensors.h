@@ -61,8 +61,12 @@ namespace lgi
       const lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       const std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array
     );
-    // For each LGI pair (bra>=ket), write seed rmes to file "seeds_{bra_lgi_index}_ket_lgi_index}.rmes" 
-    // and creates corresponding list of unit tensor labels in "operators_{bra_lgi_index}_{ket_lgi_index}".
+    // For each LGI pair (bra>=ket), write seed rmes to file 
+    //  fmt::format("seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index)
+    //
+    // and creates corresponding list of unit tensor labels in 
+    //  fmt::format("operators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index).
+    //
     // In the seed file, the rmes are 
     //    by unit tensor (order given by unit_tensor_file)
     //      by rho0
@@ -78,8 +82,8 @@ namespace lgi
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
       std::vector<int>& rho0_values
     );
-    // Reads in unit tensor labels from file and stores them in a vector of pairs of unit tensor 
-    // labels and the rho0 of the corresponding unit tensor block.  
+    // Reads in unit tensor labels from file and stores them in a pair of vectors.  One 
+    // for the unit tensor labels and one for the corresponding rho0
     //  Labels in file are:
     //    lambda0, mu0, 2S0, 2T0, etap, 2Sp, 2Tp, eta, 2S, 2T, rho0
 

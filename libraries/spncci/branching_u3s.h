@@ -12,6 +12,8 @@
   5/25/17 (mac): Overhaul implementation of U3S subspaces and store
     parent irrep info.
   7/1/17 (aem): Fix incorrect spin conjugation phase
+  1/16/18 (aem) : Add U3S block initialization and printing. Extracted
+    from spncci.cpp
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_
@@ -339,27 +341,29 @@ namespace spncci
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values
  
+  void InitializeU3SSectors(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<std::vector<u3shell::IndexedOperatorLabelsU3S>>& observable_symmetries_u3s,
+      std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
+    );
 
-  // void 
-  // ContractAndRegroupU3S(
-  //     int Nmax, int N1b,
-  //     const std::vector<spncci::SectorLabelsU3S>& sector_labels_vector,
-  //     const u3shell::RelativeRMEsU3ST& interaction_rme_cache,
-  //     const spncci::BabySpNCCISpace& baby_spncci_space,
-  //     const spncci::SpaceU3S& target_space,
-  //     const spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sector_cache,
-  //     basis::MatrixVector& matrix_vector
-  //   );
-  //DEPRECATED
-  // Args:
-  //  Nmax (input) : Basis truncation parameter
-  //  N1b (input) : Basis single particle cutoff for Nmax=0
-  //  sector_labels_vector (input) : vector of sector labels 
-  //  interaction_rme_cache (input) : Container holding interaction rme's keyed
-  //     by RelativeUnitTensorU3ST labels
-  //  space (input) : space of omegaS subspaces
-  //  unit_tensor_sector_cache (input) : nested container holding unit tensor rmes
-  //  matrix_vector (output) : vector of U3S sectors indexed by U3S labels and kappa0,L0
+  void InitializeU3SBlocks(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<double>& hw_values,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
+      std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_u3s
+    );
+
+
+  void PrintU3SSector(
+      const std::vector<double>& hw_values,
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s,
+      std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_u3s, //can't be constant because of chop function
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables
+    );
 
 
   void 

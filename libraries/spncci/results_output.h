@@ -19,6 +19,7 @@
 
 #include "cppformat/format.h"
 #include "spncci/branching.h"
+#include "spncci/branching_u3s.h"
 #include "spncci/parameters.h"
 
 namespace spncci
@@ -115,6 +116,13 @@ namespace spncci
       std::ostream& out_stream,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       HalfInt Nsigma0
+    );
+
+  void WriteU3SSectorInformation(
+      std::ostream& out_stream,
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, 
+      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
     );
 
   void WriteCalculationParameters(

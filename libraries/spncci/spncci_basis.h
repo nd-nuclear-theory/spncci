@@ -34,6 +34,8 @@
   9/27/17 (aem) : Removed gamma_max=0 lgi from spncci space
   10/4/17 (aem): Modified Sp3r->U(3) branching restriction
   10/11/17 (aem) : Moved Nsigma0ForNuclide to lgi.h
+  1/16/18 (aem) : Added new BabySpNCCIHypersector contructor for
+    updated recurrence scheme
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -570,6 +572,7 @@ namespace spncci
         std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
         int irrep_family_index_bra=-1, int irrep_family_index_ket=-1
       );
+      // TODO: Switch with hypersectors below for recurrence. And then remove. 
       //Overload of notation
       // Enumerate sector pairs connected by u3S subspaces of 
       // relative unit tensors
@@ -580,9 +583,42 @@ namespace spncci
       //   irrep_family_index=-1 means no restriction on which irrep family.
       //   unit_tensor_hypersectors is a vector of vectors of indices for unit tensor
       //   subsets indexed first by Nsum=Nnp+Nn and then by random order. 
+
+      BabySpNCCIHypersectors(
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
+        const std::vector<int>& operator_subset,
+        std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1, 
+        bool Nn0_conjugate_hypersectors=false
+      );
+
+      //Overload of notation
+      // Enumerate unit tensor hypersector connected by baby spncci subspaces 
+      //
+      // Arguments:
+      //    space : full baby spncci space
+      //    operator_space : unit tensor space.  Subspaces by x0,S0,etap,eta
+      //
+      //    operator_subset : vector of unit_tensor_subspace indices which have
+      //      may have non-zero rmes between the given irrep family pair. 
+      //
+      //    unit_tensor_hypersector_subset: is a vector of vectors of indices
+      //      for unit hypersectors organized by Nsum=Nn+Nnp.  Each previous 
+      //      Nsum must be computed before the recurrence can go to the next Nsum.
+      //
+      //    irrep_family_index : index of irrep family in SpNCCISpace.  Used to
+      //      restrict hypersectors to include baby spncci subspaces for a given
+      //      irrep family pair.  If irrep_family_index=-1, then there is no 
+      //      restriction by irrep family.
   };
 
-
+  void PrintHypersectors(
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+    );
 }  // namespace
 
 #endif

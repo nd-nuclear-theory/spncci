@@ -4,6 +4,7 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+ 2/15/18 (aem): Update ReadLGISet
 ****************************************************************/
 
 #include <iostream>
@@ -28,7 +29,8 @@ int main(int argc, char **argv)
   // read in LGIs
   std::string filename = "lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
   lgi::MultiplicityTaggedLGIVector multiplicity_tagged_lgi_vector;
-  lgi::ReadLGISet(multiplicity_tagged_lgi_vector,filename);
+  HalfInt Nsigma0=lgi::Nsigma0ForNuclide({3,3});
+  lgi::ReadLGISet(filename, Nsigma0, multiplicity_tagged_lgi_vector);
 
   // generate SpNCCI space from LGIs
   HalfInt Nsigma_0 = HalfInt(11,1);

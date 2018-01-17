@@ -144,7 +144,11 @@ namespace lgi
     }
 
 
-  void ReadLGISet(MultiplicityTaggedLGIVector& lgi_vector, const std::string& lgi_filename)
+  void ReadLGISet(
+    const std::string& lgi_filename, 
+    const HalfInt& Nsigma0,
+    MultiplicityTaggedLGIVector& lgi_vector
+    )
   {
     // open input file
     std::ifstream lgi_stream(lgi_filename);
@@ -162,17 +166,16 @@ namespace lgi
         std::istringstream line_stream(line);
 
         // parse line
-        //   Nex 2N lambda mu 2Sp 2Sn 2S count
-        int Nex, twice_N, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
-        line_stream >> Nex
-                    >> twice_N  >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S
+        //   Nex lambda mu 2Sp 2Sn 2S count
+        int Nex, twice_Sp, twice_Sn, twice_S, lambda, mu, count;
+        line_stream >> Nex >> lambda >> mu
+                    >> twice_Sp >> twice_Sn >> twice_S
                     >> count;
+        
         mcutils::ParsingCheck(line_stream, line_count, line);
+        
         // conversions
-        HalfInt Nsigma = HalfInt(twice_N,2);
-        // std::cout<<fmt::format("{} {} {}", Nsigma, lambda,mu)<<std::endl;
-        // assert(Nsigma == Nsigma_0 + Nex);
-        u3::U3 sigma(Nsigma,u3::SU3(lambda,mu));
+        u3::U3 sigma(Nsigma0+Nex,u3::SU3(lambda,mu));
         HalfInt Sp = HalfInt(twice_Sp,2);
         HalfInt Sn = HalfInt(twice_Sn,2);
         HalfInt S = HalfInt(twice_S,2);

@@ -11,6 +11,7 @@
   2/17/17 (mac): Extract WriteLGILabels from lgi_solver and change
     to accept std::ostream for output and extract to lgi.
   10/11/17 (aem) : Extract Nsigma0ForNuclide from spncci_basis
+  1/15/18 (aem) : Updated Read LGI to be consistant with write functions
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
@@ -165,14 +166,20 @@ namespace lgi
   );
 
 
-
-  void ReadLGISet(MultiplicityTaggedLGIVector& lgi_families, const std::string& lgi_filename);
-
-  // Generate vector of LGIs based on LGI input tabulation.
+  void 
+  ReadLGISet(
+    const std::string& lgi_filename, 
+    const HalfInt& Nsigma0,
+    MultiplicityTaggedLGIVector& lgi_vector
+  );
+  // Read in LGI from file and create vector of LGIs tagged by 
+  // gamma_max from tabulation in file .
   //
   // Arguments:
-  //   lgi_families (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)
   //   filename (string) : filename for LGI table file
+  //   Nsigma0 : minimum number of oscillator quanta for the given system of nucleons.
+  //    Can be obtained from lgi::Nsigma0ForNuclide. 
+  //   lgi_families (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)  
 }
 
 #endif

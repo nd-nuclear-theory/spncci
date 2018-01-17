@@ -601,4 +601,128 @@ namespace spncci
         }
   }
 
+
+    BabySpNCCIHypersectors::BabySpNCCIHypersectors(
+    const spncci::BabySpNCCISpace& space,
+    const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
+    const std::vector<int>& operator_subset,
+    std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
+    int irrep_family_index_1, int irrep_family_index_2, bool Nn0_conjugate_hypersectors
+  )
+  {
+    // Baby spncci hyperspector constructor for recurrence hypersectors
+    //
+    // If Nn0_conjugate_hypersectors=true, then only construct Nnp=0 and Nn!=0 sectors
+    // else construct only the lower triangle hypersectors, excluding Nn=0. 
+    //
+    // hypersectors are restricted based on angular momentum adddition and SU(3) coupling 
+    //
+    // Note: unit_tensor_hypersector_subsets must be presized to Nmax
+    int hypersector_index=0;
+    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+        {
+          // retrieve subspaces
+          const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
+          const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+          int Nnp=bra_subspace.Nn();
+          int Nn=ket_subspace.Nn();
+
+          // If all we want is the Nnp=0 and Nn!=0 conjugated sectors
+          if(Nn0_conjugate_hypersectors && ((Nnp!=0)||(Nn=0)))
+            continue;
+
+          // Otherwise, only take sectors with Nnp>=Nn>0
+          // Nn=0 sectors computed by conjugation from Nn0_conjugate_hypersectors
+          if((not Nn0_conjugate_hypersectors) && (Nn>Nnp)&& (Nn!=0))
+            continue;
+
+          bool in_irrep_families=(
+            (ket_subspace.irrep_family_index()== irrep_family_index_1)
+            &&(bra_subspace.irrep_family_index()== irrep_family_index_2)
+            );
+ 
+          if(not in_irrep_families)                  
+            continue;
+
+          int Nsum=Nnp+Nn;
+
+          // For each operator subspace, check if its an allowed operator subspace determined
+          // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
+          for(int operator_subspace_index : operator_subset)
+            {
+              bool allowed_subspace = true;
+              const u3shell::RelativeUnitTensorSubspaceU3S& 
+                operator_subspace=operator_space.GetSubspace(operator_subspace_index);
+
+              // U(1)
+              allowed_subspace &= (ket_subspace.omega().N() + operator_subspace.N0() - bra_subspace.omega().N() == 0);
+              // spin
+              //
+              // Note: Basic two-body constaints can be placed on Sp
+              // and Sn triangularity based on two-body nature of
+              // operator, so (delta Sp)<=2 and (delta Sn)<=2.  However, in
+              // general, the operator does not have sharp Sp0 or Sn0.
+              allowed_subspace &= am::AllowedTriangle(ket_subspace.S(),operator_subspace.S0(),bra_subspace.S());
+              allowed_subspace &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
+              allowed_subspace &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
+              if (!allowed_subspace)
+                continue;
+
+              // find SU(3) multiplicity and check SU(3) selection
+              int multiplicity = u3::OuterMultiplicity(
+                  ket_subspace.omega().SU3(),operator_subspace.x0(),
+                  bra_subspace.omega().SU3()
+                );
+
+              // push sectors (tagged by multiplicity)
+              for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+                {
+                  PushHypersector(
+                    HypersectorType(
+                      bra_subspace_index,ket_subspace_index,operator_subspace_index,
+                      bra_subspace, ket_subspace,operator_subspace,
+                      multiplicity_index
+                      )
+                    );
+                  unit_tensor_hypersector_subsets[Nsum/2].push_back(hypersector_index);
+                  ++hypersector_index;
+                }
+            }
+        }
+  }
+
+
+  void PrintHypersectors(
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+    )
+  {
+    for(int hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index)
+      {
+        const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
+    
+        int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
+        std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
+
+        const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
+        const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
+
+        std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
+        <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
+        for(int i=0; i<unit_tensor_subspace.size(); ++i)
+        {
+          int T0,Sp,Tp,S,T;
+          std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(i);
+          std::cout<<fmt::format("{}  {} {}  {} {}",T0,Sp,Tp,S,T)<<std::endl;
+          std::cout<<unit_tensor_hyperblocks[hypersector_index][i]<<std::endl<<std::endl;
+        }
+      }
+
+  }
+
 }  // namespace

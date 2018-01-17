@@ -27,80 +27,6 @@ namespace lgi
   // output mode
   int binary_format_code = 1;
   int binary_float_precision=8;
-  
-
-
-  void WriteHeader(std::ostream& out_file)
-  {
-    // write binary file header
-    //
-    // file format code
-    mcutils::WriteBinary<int>(out_file,lgi::binary_format_code);
-    // floating point precision
-    mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
-  }
-
-  void WriteUnitTensorLabels(
-    const std::pair<u3shell::RelativeUnitTensorLabelsU3ST,int>& unit_tensor_labels_tagged,
-    std::ostream& out_file
-    )
-  {
-    // Extract unit tensor labels 
-    u3::SU3 x0; 
-    HalfInt S0,T0,Sp,Tp,S,T;
-    int etap,eta;
-    std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor_labels_tagged.first.FlatKey();
-    int rho0=unit_tensor_labels_tagged.second;
-
-
-    out_file<<x0.lambda()<<"  "<<x0.mu()<<"  "<<TwiceValue(S0)<<"  "<<TwiceValue(T0)<<"  "
-      <<etap<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Tp)<<"  "
-      <<eta<<"  "<<TwiceValue(S)<<"  "<<TwiceValue(T)<<"  "<<rho0
-      <<std::endl;
-      
-
-    // if(false)
-    //   {
-    //     mcutils::WriteBinary<int>(out_file,x0.lambda());
-    //     mcutils::WriteBinary<int>(out_file,x0.mu());
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S0));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T0));
-    //     mcutils::WriteBinary<int>(out_file,etap);
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Sp));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Tp));
-    //     mcutils::WriteBinary<int>(out_file,eta);
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T));
-    //     mcutils::WriteBinary<int>(out_file,num_sectors);
-    //   }
-  }
-
-  void WriteMatrix(const basis::OperatorBlock<double>& block, std::ostream& out_file)
-  // Writes rho0, num_rows, num_cols, rmes
-  // rmes are by row then by column
-  {
-    int num_rows=block.rows();
-    int num_cols=block.cols();
-
-    assert(num_rows==static_cast<RMEIndexType>(num_rows));
-    mcutils::WriteBinary<RMEIndexType>(out_file,num_rows);
-
-    assert(num_cols==static_cast<RMEIndexType>(num_cols));
-    mcutils::WriteBinary<RMEIndexType>(out_file,num_cols);
-
-    
-    for(int j=0; j<num_cols; ++j)
-      for(int i=0; i<num_rows; ++i)
-        {
-          auto rme=block(i,j);
-
-          if (lgi::binary_float_precision==4)
-            mcutils::WriteBinary<float>(out_file,rme);
-          else if (lgi::binary_float_precision==8)
-            mcutils::WriteBinary<double>(out_file,rme);
-
-        }
-  }
 
   void RegroupSeedBlocks(
       int unit_tensor_index,
@@ -200,6 +126,77 @@ namespace lgi
       }
     }
 
+  void WriteHeader(std::ostream& out_file)
+  {
+    // write binary file header
+    //
+    // file format code
+    mcutils::WriteBinary<int>(out_file,lgi::binary_format_code);
+    // floating point precision
+    mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
+  }
+
+  void WriteUnitTensorLabels(
+    const std::pair<u3shell::RelativeUnitTensorLabelsU3ST,int>& unit_tensor_labels_tagged,
+    std::ostream& out_file
+    )
+  {
+    // Extract unit tensor labels 
+    u3::SU3 x0; 
+    HalfInt S0,T0,Sp,Tp,S,T;
+    int etap,eta;
+    std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor_labels_tagged.first.FlatKey();
+    int rho0=unit_tensor_labels_tagged.second;
+
+
+    out_file<<x0.lambda()<<"  "<<x0.mu()<<"  "<<TwiceValue(S0)<<"  "<<TwiceValue(T0)<<"  "
+      <<etap<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Tp)<<"  "
+      <<eta<<"  "<<TwiceValue(S)<<"  "<<TwiceValue(T)<<"  "<<rho0
+      <<std::endl;
+      
+
+    // if(false)
+    //   {
+    //     mcutils::WriteBinary<int>(out_file,x0.lambda());
+    //     mcutils::WriteBinary<int>(out_file,x0.mu());
+    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S0));
+    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T0));
+    //     mcutils::WriteBinary<int>(out_file,etap);
+    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Sp));
+    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Tp));
+    //     mcutils::WriteBinary<int>(out_file,eta);
+    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S));
+    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T));
+    //     mcutils::WriteBinary<int>(out_file,num_sectors);
+    //   }
+  }
+
+  void WriteMatrix(const basis::OperatorBlock<double>& block, std::ostream& out_file)
+  // Writes rho0, num_rows, num_cols, rmes
+  // rmes are by row then by column
+  {
+    int num_rows=block.rows();
+    int num_cols=block.cols();
+
+    assert(num_rows==static_cast<RMEIndexType>(num_rows));
+    mcutils::WriteBinary<RMEIndexType>(out_file,num_rows);
+
+    assert(num_cols==static_cast<RMEIndexType>(num_cols));
+    mcutils::WriteBinary<RMEIndexType>(out_file,num_cols);
+
+    
+    for(int j=0; j<num_cols; ++j)
+      for(int i=0; i<num_rows; ++i)
+        {
+          auto rme=block(i,j);
+
+          if (lgi::binary_float_precision==4)
+            mcutils::WriteBinary<float>(out_file,rme);
+          else if (lgi::binary_float_precision==8)
+            mcutils::WriteBinary<double>(out_file,rme);
+
+        }
+  }
 
   void WriteSeedsToFile(
       const lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,

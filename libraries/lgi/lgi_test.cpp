@@ -5,6 +5,7 @@
   University of Notre Dame
 
   3/7/16 (aem,mac): Created.
+  2/15/18 (aem): Update tests for Nsigma0ForNuclide and ReadLGISet
 ****************************************************************/
 #include "lgi/lgi.h"
 
@@ -22,7 +23,9 @@ int main(int argc, char **argv)
 	std::string filename="../../data/lgi_set/lgi_test.dat";
 	lgi::MultiplicityTaggedLGIVector lgi_vector;
 	std::cout<<"lgi's from lgi_test.dat"<<std::endl;
-	ReadLGISet(lgi_vector, filename);
+	HalfInt Nsigma0=lgi::Nsigma0ForNuclide({3,3});
+	std::cout<<"Nsigma0 "<<Nsigma0<<std::endl;
+	ReadLGISet(filename, Nsigma0,lgi_vector);
 	for(auto lgi : lgi_vector)
 		std::cout<<lgi.irrep.Str()<<"  "<<lgi.tag<<std::endl;
 	
