@@ -77,7 +77,7 @@ namespace lgi
     // seed file:
     //    rho0, rows, columns, rmes.... 
 
-  void ReadUnitTensorLabels(
+  bool ReadUnitTensorLabels(
       std::string& filename,
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
       std::vector<int>& rho0_values
@@ -86,15 +86,21 @@ namespace lgi
     // for the unit tensor labels and one for the corresponding rho0
     //  Labels in file are:
     //    lambda0, mu0, 2S0, 2T0, etap, 2Sp, 2Tp, eta, 2S, 2T, rho0
+    //
+    // If file found and sucessfully opened, returns file_found=true.  Otherwise,
+    // function returns file_found=false.
 
-  void ReadSeedBlocks(
+  bool ReadBlocks(
       const std::string& filename, 
       int num_blocks,
-      basis::MatrixVector& unit_tensor_seed_blocks
+      basis::MatrixVector& blocks
     );
     // Reads in unit tensor seed blocks from file and stores them in a vector of blocks
     // order of blocks corresponds to order of (unit_tensor,rho0) pairs in corresponding
     // operator file. 
+    //
+    // If file found and sucessfully opened, returns file_found=true.  Otherwise,
+    // function returns file_found=false.
 
 }
 

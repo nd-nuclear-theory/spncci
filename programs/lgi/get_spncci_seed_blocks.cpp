@@ -36,12 +36,75 @@ files containing:
 #include "lgi/lgi_unit_tensors.h"
 #include "spncci/spncci_basis.h"
 #include "u3shell/relative_operator.h"
+///
+#include "mcutils/io.h"
 
 // Testing function 
-namespace lgi{}
+namespace lgi{
+
+void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::out;
+    mode_argument |= std::ios_base::binary;
+    std::ofstream expansion_file;
+    expansion_file.open(filename,mode_argument);
+
+    if (!expansion_file)
+     {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+     }
+   
+    mcutils::WriteBinary<int>(expansion_file,lgi::binary_format_code);
+    // floating point precision
+    mcutils::WriteBinary<int>(expansion_file,lgi::binary_float_precision);
+
+
+    for(auto& block : lgi_expansions)
+      {
+        int num_rows=block.rows();
+        int num_cols=block.cols();
+
+        assert(num_rows==static_cast<RMEIndexType>(num_rows));
+        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_rows);
+
+        assert(num_cols==static_cast<RMEIndexType>(num_cols));
+        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_cols);
+        
+        for(int j=0; j<num_cols; ++j)
+          for(int i=0; i<num_rows; ++i)
+            {
+              auto rme=block(i,j);
+
+              if (lgi::binary_float_precision==4)
+                mcutils::WriteBinary<float>(expansion_file,rme);
+              else if (lgi::binary_float_precision==8)
+                mcutils::WriteBinary<double>(expansion_file,rme);
+            }
+      }
+  }
+}//namespace
 
 int main(int argc, char **argv)
 {
+  if(argc<3)
+  {
+    std::cout<<"Syntax: Z N Nmax "<<std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+
+  // nuclide 
+  int Z=std::stoi(argv[1]);
+  int N=std::stoi(argv[2]);
+
+  // Basis parameters
+  int Nmax=std::stoi(argv[3]);
+  
+
   // zero tolerance 
   lgi::zero_tolerance=1e-6;
   
@@ -49,13 +112,6 @@ int main(int argc, char **argv)
   lgi::binary_format_code = 1;
   lgi::binary_float_precision=8;
 
-  // Basis parameters
-  int Nmax=2;
-  
-  // nuclide 
-  int Z=3;
-  int N=3;
-  
   std::array<int,2> nuclide; // proton and neutron numbers
   nuclide[0]=Z;
   nuclide[1]=N; 
@@ -63,7 +119,7 @@ int main(int argc, char **argv)
   bool intrinsic=true;
 
   // su3rme output files
-  std::string su3rme_filename_base="su3rme";
+  std::string su3rme_filename_base="lsu3shell_rme";
   std::string lsu3shell_basis_filename=su3rme_filename_base+"/lsu3shell_basis.dat"; // Will need to include path to file
 
   // Generate Nsigma0 from nuclei and type 
@@ -112,6 +168,10 @@ int main(int argc, char **argv)
   
   std::string lgi_filename="lgi_families.dat";
   lgi::WriteLGILabels(lgi_families, lgi_filename);
+
+  std::cout<<"write expansion to file "<<std::endl;
+  std::string lgi_expansion_filename="lgi_expansions.dat";
+  lgi::WriteExpansion(lgi_expansion_filename,lgi_expansions);
   ////////////////////////////////////////////////////////////////
   // Generate Seed blocks 
   ////////////////////////////////////////////////////////////////
@@ -142,7 +202,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Test code
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if(true)
+  if(false)
     {
       for(auto it=lgi_grouped_seed_labels.begin(); it!=lgi_grouped_seed_labels.end(); ++it)
         { 
@@ -170,7 +230,7 @@ int main(int argc, char **argv)
           
           // Read seeds from file
           int num_blocks=unit_tensor_labels.size();
-          lgi::ReadSeedBlocks(seed_filename, num_blocks, unit_tensor_seed_blocks);
+          lgi::ReadBlocks(seed_filename, num_blocks, unit_tensor_seed_blocks);
           
           // Setting up i/o test
           auto& test=it->second;

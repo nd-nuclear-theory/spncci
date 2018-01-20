@@ -603,6 +603,7 @@ namespace spncci
 
 
     BabySpNCCIHypersectors::BabySpNCCIHypersectors(
+      int Nmax,
     const spncci::BabySpNCCISpace& space,
     const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
     const std::vector<int>& operator_subset,
@@ -616,8 +617,9 @@ namespace spncci
     // else construct only the lower triangle hypersectors, excluding Nn=0. 
     //
     // hypersectors are restricted based on angular momentum adddition and SU(3) coupling 
-    //
-    // Note: unit_tensor_hypersector_subsets must be presized to Nmax
+
+    unit_tensor_hypersector_subsets.resize(Nmax+1);
+
     int hypersector_index=0;
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -629,24 +631,33 @@ namespace spncci
           int Nnp=bra_subspace.Nn();
           int Nn=ket_subspace.Nn();
 
-          // If all we want is the Nnp=0 and Nn!=0 conjugated sectors
-          if(Nn0_conjugate_hypersectors && ((Nnp!=0)||(Nn=0)))
-            continue;
+          std::cout<<Nnp<<"  "<<Nn<<std::endl;
 
+          // If all we want is the Nnp=0 and Nn!=0 conjugated sectors
+          if(Nn0_conjugate_hypersectors)
+            {
+              if(Nnp!=0)
+                continue;
+            }
           // Otherwise, only take sectors with Nnp>=Nn>0
           // Nn=0 sectors computed by conjugation from Nn0_conjugate_hypersectors
-          if((not Nn0_conjugate_hypersectors) && (Nn>Nnp)&& (Nn!=0))
-            continue;
+          else 
+          {
+            if(Nn>Nnp)
+              continue;
+          }
 
           bool in_irrep_families=(
-            (ket_subspace.irrep_family_index()== irrep_family_index_1)
-            &&(bra_subspace.irrep_family_index()== irrep_family_index_2)
+            (bra_subspace.irrep_family_index()== irrep_family_index_1)
+            &&(ket_subspace.irrep_family_index()== irrep_family_index_2)
             );
- 
+          
+
           if(not in_irrep_families)                  
             continue;
 
           int Nsum=Nnp+Nn;
+          std::cout<<"Nsum "<<Nsum<<std::endl;
 
           // For each operator subspace, check if its an allowed operator subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
@@ -657,6 +668,7 @@ namespace spncci
                 operator_subspace=operator_space.GetSubspace(operator_subspace_index);
 
               // U(1)
+              std::cout<<"N0 "<<operator_subspace.N0()<<std::endl;
               allowed_subspace &= (ket_subspace.omega().N() + operator_subspace.N0() - bra_subspace.omega().N() == 0);
               // spin
               //
@@ -677,6 +689,7 @@ namespace spncci
                 );
 
               // push sectors (tagged by multiplicity)
+              std::cout<<"multiplicity "<<multiplicity<<std::endl;
               for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                 {
                   PushHypersector(

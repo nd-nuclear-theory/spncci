@@ -28,18 +28,18 @@
 namespace spncci
 {
 
-  void
+  void 
   ConstructSpNCCIBasisExplicit(
       const u3shell::SpaceU3SPN& lsu3shell_space,
       const spncci::SpNCCISpace& sp_irrep_families,
-      const basis::MatrixVector& lgi_expansions,
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::KMatrixCache& k_matrix_cache,
       const spncci::KMatrixCache& kinv_matrix_cache,
       const u3shell::SectorsU3SPN& Arel_sectors,
       const basis::MatrixVector& Arel_matrices,
       basis::MatrixVector& spncci_expansions,
-      bool restrict_sp3r_u3_branching=false
+      bool restrict_sp3r_u3_branching
     );
 
   // void 

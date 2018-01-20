@@ -213,7 +213,7 @@ namespace lgi
         std::vector<std::pair<u3shell::RelativeUnitTensorLabelsU3ST,int>> unit_tensor_sector_labels;
 
         // output filename
-        std::string seed_filename=fmt::format("seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
+        std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
                 
         // open output file
         std::cout << "opening " << seed_filename << std::endl;
@@ -255,7 +255,7 @@ namespace lgi
         seed_file.close();
 
         // Write unit tensor labels to file 
-        std::string operator_filename=fmt::format("operators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index);
+        std::string operator_filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index);
                 
         // open output file
         std::cout << "opening " << operator_filename << std::endl;
@@ -279,17 +279,24 @@ namespace lgi
       }
   }
 
-  void ReadUnitTensorLabels(
+  bool ReadUnitTensorLabels(
       std::string& filename,
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
       std::vector<int>& rho0_values
     )
     {
       // open output file
+      bool file_found=false;
       std::cout << "opening " << filename << std::endl;      
       std::ifstream in_stream(filename,std::ios_base::in);
-      mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
-      
+      if(not bool(in_stream))
+        {
+          std::cout<<filename+" not found."<<std::endl;
+          return file_found;
+        }
+      // mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
+      else
+        file_found=true;
       // scan input file
       std::string line;
       int line_count=0;
@@ -327,9 +334,10 @@ namespace lgi
           unit_tensor_labels.emplace_back(x0,S0,T0,bra,ket);
           rho0_values.push_back(rho0);
         }
+      return file_found;
     }
 
-  void ReadSeedBlock(std::istream& in_stream, Eigen::MatrixXd& seed_block, int float_precision)
+  void ReadBlock(std::istream& in_stream, Eigen::MatrixXd& block, int float_precision)
     {
       
       //Read in number of rows and columns
@@ -343,25 +351,35 @@ namespace lgi
         {
           float buffer[rows*cols];
           in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-          seed_block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+          block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
         }
       else if (float_precision==8)
         {
           double buffer[rows*cols];
           in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-          seed_block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+          block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
         }
     }
 
-  void ReadSeedBlocks(
+  bool ReadBlocks(
       const std::string& filename, 
       int num_blocks,
-      basis::MatrixVector& unit_tensor_seed_blocks
+      basis::MatrixVector& blocks
     )
     {
       std::cout << "opening " << filename << std::endl;      
+      bool file_found=false;
       std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
-      mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
+      if(not bool(in_stream))
+        {
+          std::cout<<filename+" not found."<<std::endl;
+          return file_found;
+        }
+
+      else
+        file_found=true;
+
+      // mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
       
       // read file header
       int format_code;
@@ -372,12 +390,13 @@ namespace lgi
       assert((float_precision==4)||(float_precision==8));
 
       // Read in seed blocks 
-      unit_tensor_seed_blocks.resize(num_blocks);
+      blocks.resize(num_blocks);
       for(int i=0; i<num_blocks; ++i)
         {
           // Read in seeds to matrix in vector
-          Eigen::MatrixXd& seed_block=unit_tensor_seed_blocks[i];
-          ReadSeedBlock(in_stream,seed_block, float_precision);  
+          Eigen::MatrixXd& block=blocks[i];
+          ReadBlock(in_stream,block, float_precision);  
         }
+      return file_found;
     }
 }

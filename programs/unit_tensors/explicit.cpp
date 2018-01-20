@@ -357,7 +357,7 @@ int main(int argc, char **argv)
   basis::MatrixVector spncci_expansions;
   
   spncci::ConstructSpNCCIBasisExplicit(
-      lsu3shell_space,spncci_space,lgi_expansions,
+      lsu3shell_space,spncci_space,lgi_families,
       baby_spncci_space,k_matrix_cache,kinv_matrix_cache,
       Aintr_sectors,Aintr_matrices,spncci_expansions,
       restrict_sp3r_to_u3_branching

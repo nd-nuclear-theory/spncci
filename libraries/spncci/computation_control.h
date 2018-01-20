@@ -149,15 +149,15 @@ void GenerateRecurrenceHypersectors(
   //    baby_spncci_hypersectors :  
 
 
-void PopulateHypersectorsWithSeeds(
-    int irrep_family_index_bra, int irrep_family_index_ket,
-    const std::vector<int>& unit_tensor_hypersector_subset,
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
-    const std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& 
-      lgi_unit_tensor_blocks,
-    basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
-  );
+// void PopulateHypersectorsWithSeeds(
+//     int irrep_family_index_bra, int irrep_family_index_ket,
+//     const std::vector<int>& unit_tensor_hypersector_subset,
+//     const spncci::BabySpNCCISpace& baby_spncci_space,
+//     const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+//     const std::map< std::pair<int,int>, std::map<std::pair<int,int>, basis::OperatorBlocks<double>>>& 
+//       lgi_unit_tensor_blocks,
+//     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+//   );
   // Populate unit_tensor_hyperblocks with seeds obtained from lsu3shell 
   //
   //  Inputs:

@@ -585,6 +585,7 @@ namespace spncci
       //   subsets indexed first by Nsum=Nnp+Nn and then by random order. 
 
       BabySpNCCIHypersectors(
+        int Nmax,
         const spncci::BabySpNCCISpace& space,
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
         const std::vector<int>& operator_subset,

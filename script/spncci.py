@@ -124,6 +124,7 @@ su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","
 generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
 generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
+generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
 spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 
 
@@ -612,6 +613,29 @@ def generate_observable_rmes(task):
 
     os.chdir("..")
 
+
+################################################################
+# seed execution
+################################################################
+def generate_spncci_seed_files(task):
+    """
+    Generates list of lgi families and recurrence seeds
+    """
+        # set up data directory
+    if (not os.path.exists("seeds")):
+        mcscript.utils.mkdir("seeds")
+
+    command_line = [
+        generate_spncci_seed_files_executable,
+        "{nuclide[0]:d}".format(**task),
+        " {nuclide[1]:d}".format(**task),
+        " {Nsigma_max:d}".format(**task)
+    ]
+    mcscript.call(
+        command_line,
+        mode=mcscript.CallMode.kSerial
+    )
+
 ################################################################
 # spncci execution
 ################################################################
@@ -705,11 +729,22 @@ def save_spncci_results(task):
         ]
     )
 
+def do_seed_run(task):
+    """ Carry out full task of constructing and diagonalizing
+    Hamiltonian and other observables.
+    """
+    retrieve_su3rme_files(task)
+    generate_spncci_seed_files(task)
+    generate_observable_rmes(task)
+    generate_spncci_control_file(task)
+    call_spncci(task)
+
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
     retrieve_su3rme_files(task)
+    generate_spncci_seed_files(task)
     generate_observable_rmes(task)
     generate_spncci_control_file(task)
     call_spncci(task)

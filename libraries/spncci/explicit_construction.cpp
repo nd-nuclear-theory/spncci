@@ -12,6 +12,7 @@
 #include "cppformat/format.h"
 #include "mcutils/eigen.h"
 #include "lgi/lgi_solver.h"
+#include "lgi/lgi_unit_tensors.h"
 
 namespace spncci
 {
@@ -117,7 +118,7 @@ namespace spncci
   ConstructSpNCCIBasisExplicit(
       const u3shell::SpaceU3SPN& lsu3shell_space,
       const spncci::SpNCCISpace& sp_irrep_families,
-      const basis::MatrixVector& lgi_expansions,
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::KMatrixCache& k_matrix_cache,
       const spncci::KMatrixCache& kinv_matrix_cache,
@@ -127,7 +128,11 @@ namespace spncci
       bool restrict_sp3r_u3_branching
     )
   {
-   
+    // Get expansion from file
+    basis::MatrixVector lgi_expansions; 
+    std::string lgi_expansion_filename="lgi_expansions.dat";
+    lgi::ReadBlocks(lgi_expansion_filename,lgi_families.size(),lgi_expansions);
+
     u3::UCoefCache u_coef_cache;
     // Generate raising polynomials
     // std::cout<<"generate polynomial matrices"<<std::endl;
@@ -342,8 +347,8 @@ namespace spncci
 
             // Store unit tensor block in hypersector structure
             unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]+=temp;
-            // std::cout<<"hypersector "<<hypersector_index<<"  tensor "<<unit_tensor_index<<std::endl;
-            // std::cout<<"temp "<<temp<<" in hypersectors "<<unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]<<std::endl<<std::endl;
+            std::cout<<"hypersector "<<hypersector_index<<"  tensor "<<unit_tensor_index<<std::endl;
+            std::cout<<"temp "<<temp<<" in hypersectors "<<unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]<<std::endl<<std::endl;
         }          
     }
 
@@ -368,7 +373,15 @@ namespace spncci
             auto& bra_subspace=baby_spncci_space.GetSubspace(bra);
             auto& ket_subspace=baby_spncci_space.GetSubspace(ket);
             auto& tensor_subspace=unit_tensor_space.GetSubspace(tensor);
+            int Sp,Tp,S,T,T0;
+            std::tie(T0,Sp,Tp,S,T)=tensor_subspace.GetStateLabels(j);
+            
             const Eigen::MatrixXd matrix1=unit_tensor_hyperblocks[i][j];
+
+            // std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
+            //              << rho0<<std::endl;
+            // std::cout<<"   "<<T0<<"  "<<Sp<<"  "<<Tp<<"  "<<S<<"  "<<T<<std::endl;
+
             const Eigen::MatrixXd matrix2=unit_tensor_hyperblocks_explicit[i][j];
 
             if(not mcutils::IsZero(matrix1-matrix2, 1e-4))
@@ -499,15 +512,19 @@ void ExplicitBasisConstruction(
 
     std::cout << "Solve for LGIs..." << std::endl;
 
-    lgi::MultiplicityTaggedLGIVector lgi_families;
-    basis::MatrixVector lgi_expansions;
+    // lgi::MultiplicityTaggedLGIVector lgi_families;
+    // basis::MatrixVector lgi_expansions;
     
-    lgi::GetLGIExpansion(
-        lsu3shell_space,lsu3shell_basis_table,
-        run_parameters.Brel_filename,run_parameters.Nrel_filename,
-        run_parameters.A, run_parameters.Nsigma0,
-        lgi_families, lgi_expansions
-      );
+    lgi::MultiplicityTaggedLGIVector lgi_families;
+    std::string lgi_filename="lgi_families.dat";
+    lgi::ReadLGISet(lgi_filename, run_parameters.Nsigma0,lgi_families);
+
+    // lgi::GetLGIExpansion(
+    //     lsu3shell_space,lsu3shell_basis_table,
+    //     run_parameters.Brel_filename,run_parameters.Nrel_filename,
+    //     run_parameters.A, run_parameters.Nsigma0,
+    //     lgi_families, lgi_expansions
+    //   );
 
     u3shell::SectorsU3SPN Aintr_sectors;
     basis::MatrixVector Aintr_matrices;
@@ -517,8 +534,10 @@ void ExplicitBasisConstruction(
         run_parameters.A
       );
 
+
+
     spncci::ConstructSpNCCIBasisExplicit(
-        lsu3shell_space,spncci_space,lgi_expansions,baby_spncci_space,
+        lsu3shell_space,spncci_space,lgi_families,baby_spncci_space,
         k_matrix_cache,kinv_matrix_cache,Aintr_sectors,Aintr_matrices,spncci_expansions,
         restrict_sp3r_to_u3_branching
       );
@@ -550,6 +569,15 @@ void ExplicitBasisConstruction(
           baby_spncci_hypersectors,
           unit_tensor_hyperblocks_explicit
         );
+
+
+        std::cout<<"print hypersectors explicit"<<std::endl;
+        spncci::PrintHypersectors(
+          baby_spncci_space,unit_tensor_space, 
+          baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit
+          );
+
+
 
       std::cout<<"checking hypersectors"<<std::endl;
       spncci::CheckUnitTensorRecurrence(

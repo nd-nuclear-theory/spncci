@@ -591,9 +591,9 @@ ComputeUnitTensorHyperblocks(
                                       unit_tensor_subspace_index2, rho0bp
                                     );
 
-                                auto& bra_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_index1);
-                                auto& ket_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
-                                auto& unit_sub=unit_tensor_space.GetSubspace(unit_tensor_subspace_index2);
+                                // auto& bra_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_index1);
+                                // auto& ket_sub=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+                                // auto& unit_sub=unit_tensor_space.GetSubspace(unit_tensor_subspace_index2);
 
                                 // Accumulate
                                 if(hypersector_index2==-1)

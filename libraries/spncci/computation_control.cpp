@@ -35,9 +35,9 @@ void GetLGIUnitTensorSubspaceIndices(
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
         int operator_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
         lgi_operator_subset.insert(operator_subspace_index);
-
+        
         // Add conjugate tensor for Nn=0 sectors 
-        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
+        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);        
         int operator_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
         lgi_operator_subset.insert(operator_subspace_index_conj);
 
@@ -85,10 +85,11 @@ void GenerateRecurrenceUnitTensors(
     // Unit tensors subspaces are identified recursively starting from those between the lgi
     //
     // initialize subspace container 
-    std::vector<std::set<int>> operator_subspace_indices_by_Nsum(Nrel_max/2);
+    std::vector<std::set<int>> operator_subspace_indices_by_Nsum(Nrel_max/2+1);
 
     // Get lgi unit tensor subspaces 
-    std::set<int>& lgi_operator_subset=operator_subspace_indices_by_Nsum[0];
+
+    auto& lgi_operator_subset=operator_subspace_indices_by_Nsum[0];
     GetLGIUnitTensorSubspaceIndices(unit_tensor_space,lgi_unit_tensors,lgi_operator_subset);
 
     // Iteratively obtain unit tensor subspaces from lgi unit tensors for recurrence 
@@ -110,6 +111,7 @@ void GenerateRecurrenceUnitTensors(
           std::tie(x0,S0,etap,eta)=unit_tensor_space.GetSubspace(source_operator_subspace_index).labels();
           
           // case 1
+          
           if((etap-2)>=0)
             {
               // Get list of possible x0p values from etap and eta
@@ -120,7 +122,7 @@ void GenerateRecurrenceUnitTensors(
                   u3::SU3 x0p(x0p_tagged.irrep);
 
                   // If x0 x (2,0) -> x0p constraint satisfied, add unit tensors list
-                  if(u3::OuterMultiplicity(x0,u3::SU3(2,0),x0p)>0)
+                  if(u3::OuterMultiplicity(x0p,u3::SU3(2,0),x0)>0)
                       GetUnitTensorSubspaceIndices(
                         x0p,S0,etap-2,eta,unit_tensor_space,
                         operator_subspace_indices_by_Nsum[m]
@@ -129,6 +131,7 @@ void GenerateRecurrenceUnitTensors(
             }
 
           // case 2
+            
           else if ((eta+2)<=Nrel_max)
             {
              // Get list of possible x0p values from etap and eta
@@ -139,7 +142,7 @@ void GenerateRecurrenceUnitTensors(
                   u3::SU3 x0p(x0p_tagged.irrep);
 
                   // If x0 x (2,0) -> x0p constraint satisfied, add unit tensors list
-                  if(u3::OuterMultiplicity(x0,u3::SU3(2,0),x0p)>0)
+                  if(u3::OuterMultiplicity(x0p,u3::SU3(2,0),x0)>0)
                       GetUnitTensorSubspaceIndices(
                         x0p,S0,etap,eta+2,unit_tensor_space,
                         operator_subspace_indices_by_Nsum[m]
