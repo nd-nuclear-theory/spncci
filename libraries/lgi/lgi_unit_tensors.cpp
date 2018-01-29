@@ -101,8 +101,7 @@ namespace lgi
         const bool spin_scalar = false; // All spin values allowed
         u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
 
-        // std::cout<<"read unit tensors"<<std::endl;
-        // read in lsu3shell rmes of unit tensor 
+        // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
         basis::MatrixVector unit_tensor_lsu3shell_matrices;
         lsu3shell::ReadLSU3ShellRMEs(
             filename,
@@ -110,15 +109,14 @@ namespace lgi
             unit_tensor_labels,unit_tensor_sectors,unit_tensor_lsu3shell_matrices
           );
 
-        // std::cout<<"transform unit tensors "<<std::endl;
-        // transform seed rmes to SpNCCI basis (among LGIs)
+        // std::cout<<"Transform seed rmes to SpNCCI basis "<<std::endl;
         lgi::TransformOperatorToSpBasis(
             unit_tensor_sectors,lgi_expansions,
             unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
           );
 
-        // std::cout<<"reorganize seed bocks "<<std::endl;
-        // Reorganize seeds for the unit tensor by lgi then by tensor
+        // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
+        // by lgi then by tensor
         lgi::RegroupSeedBlocks(
             unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
             lgi_grouped_seed_labels,unit_tensor_spncci_matrices,restrict_seeds
@@ -259,7 +257,6 @@ namespace lgi
                 
         // open output file
         std::cout << "opening " << operator_filename << std::endl;
-        ;
 
         // output in binary mode 
         std::ios_base::openmode mode_argument_op = std::ios_base::out;

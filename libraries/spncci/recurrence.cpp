@@ -43,6 +43,7 @@ namespace spncci
       // Get baby spncci index 
       spncci::BabySpNCCISubspaceLabels baby_spncci_labels(sigma,Sp,Sn,S,sigma);
       int baby_spncci_index=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels);
+      assert(baby_spncci_space.GetSubspace(baby_spncci_index).irrep_family_index()==irrep_family_index);
       return baby_spncci_index;
     }
 
@@ -74,7 +75,7 @@ namespace spncci
 
     double conjugation_factor_base
         =ParitySign(u3::ConjugationGrade(sigmap)+lgi_bra.S()-u3::ConjugationGrade(sigma)-lgi_ket.S())
-          * sqrt(1.*u3::dim(sigma)*am::dim(lgi_ket.S())/u3::dim(sigmap)/am::dim(lgi_bra.S()));
+          * sqrt(1.*u3::dim(sigmap)*am::dim(lgi_bra.S())/u3::dim(sigma)/am::dim(lgi_ket.S()));
 
 
     for(int i=0; i<lgi_unit_tensors.size();  ++i)
@@ -87,6 +88,7 @@ namespace spncci
         HalfInt S0,T0, Sp,Tp,S,T;
         int etap, eta; 
         std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor.FlatKey();
+        // std::cout<<sigmap.Str()<<" "<<lgi_bra.S()<<"  "<<sigma.Str()<<"  "<<lgi_ket.S()<<" "<<unit_tensor.Str()<<std::endl;
 
         // Look up unit tensor subspace
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
@@ -104,11 +106,13 @@ namespace spncci
                 unit_tensor_subspace_index,rho0
               );
 
+        // std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl<<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks[hypersector_index][unit_tensor_state_index]=unit_tensor_seed_blocks[i];
 
         // Get conjugate 
 
         // Look up conjugate unit tensor subspace
+        // std::cout<<x0.Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
         int unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
         auto& subspace_conj=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_conj);
@@ -126,8 +130,9 @@ namespace spncci
 
         double conjugation_factor
         =conjugation_factor_base
-          *sqrt(u3::dim(u3::SU3(eta,0))*am::dim(S)*am::dim(T)/u3::dim(u3::SU3(etap,0))/am::dim(Sp)/am::dim(Tp));
-        
+          *sqrt(1.*u3::dim(u3::SU3(eta,0))*am::dim(S)*am::dim(T)/u3::dim(u3::SU3(etap,0))/am::dim(Sp)/am::dim(Tp));
+        // std::cout<<"  "<<unit_tensor_state_index_conj<<"  "<<i<<"  "<<conjugation_factor<<std::endl
+        //   <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks_Nn0[hypersector_index_Nn0][unit_tensor_state_index_conj]
           =conjugation_factor*unit_tensor_seed_blocks[i].transpose();
 
@@ -182,8 +187,9 @@ void AddNn0BlocksToHyperblocks(
       // Looking up target hypersector
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Get unit tensor subspace index in hyperblocks 
+      u3::SU3 x0(u3::Conjugate(x0c));
       u3shell::UnitTensorSubspaceLabels unit_tensor_labels
-        =u3shell::UnitTensorSubspaceLabels(u3::Conjugate(x0c),S0,etap,eta);
+        =u3shell::UnitTensorSubspaceLabels(x0,S0,etap,eta);
 
       int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels);
       auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);      
@@ -194,6 +200,7 @@ void AddNn0BlocksToHyperblocks(
               baby_spncci_index_bra,baby_spncci_index_ket,unit_tensor_subspace_index,rho0
             );
 
+      // std::cout<<"hypersector "<<hypersector_index<<"  "<<subspace_bra.LabelStr()<<" "<<subspace_ket.LabelStr()<<std::endl;
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // For each source hyperblock, identify target block and conjugate 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,6 +217,9 @@ void AddNn0BlocksToHyperblocks(
           double conjugation_factor
                   =conjugation_factor_base*sqrt(am::dim(Sbp)*am::dim(Tbp)/am::dim(Sb)/am::dim(Tb));
 
+          // std::cout<<fmt::format("{}  {}    {} {} {}  {} {} {}  {} {} {}",
+          //   hypersector_index,unit_tensor_index,x0.Str(),S0,T0,etap,Sbp,Tbp,eta,Sb,Tb)<<std::endl;
+          // std::cout<<conjugation_factor*unit_tensor_hyperblocks_Nn0[hypersector_index_Nn0][unit_tensor_index_Nn0]<<std::endl;
           unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]
             =conjugation_factor*unit_tensor_hyperblocks_Nn0[hypersector_index_Nn0][unit_tensor_index_Nn0].transpose();
         }

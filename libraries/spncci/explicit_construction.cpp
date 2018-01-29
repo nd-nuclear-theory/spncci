@@ -271,7 +271,6 @@ namespace spncci
 
       for(int s=0; s<lsu3shell_operator_sectors.size(); ++s)
         {
-          // std::cout<<"sector "<<s<<std::endl;
           // extract U3SPN labels
           auto& lsu3shell_sector=lsu3shell_operator_sectors.GetSector(s);
           int lsu3shell_bra_index=lsu3shell_sector.bra_subspace_index();
@@ -347,8 +346,8 @@ namespace spncci
 
             // Store unit tensor block in hypersector structure
             unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]+=temp;
-            std::cout<<"hypersector "<<hypersector_index<<"  tensor "<<unit_tensor_index<<std::endl;
-            std::cout<<"temp "<<temp<<" in hypersectors "<<unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]<<std::endl<<std::endl;
+            // std::cout<<"hypersector "<<hypersector_index<<"  tensor "<<unit_tensor_index<<std::endl;
+            // std::cout<<"temp "<<temp<<" in hypersectors "<<unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]<<std::endl<<std::endl;
         }          
     }
 
@@ -383,6 +382,51 @@ namespace spncci
             // std::cout<<"   "<<T0<<"  "<<Sp<<"  "<<Tp<<"  "<<S<<"  "<<T<<std::endl;
 
             const Eigen::MatrixXd matrix2=unit_tensor_hyperblocks_explicit[i][j];
+
+            if(not mcutils::IsZero(matrix1-matrix2, 1e-4))
+              {
+                errors=true;
+                std::cout<<"hyperblock "<<i<<" sub-block "<<j<<" is not correct"<<std::endl;
+                std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
+                         << rho0<<std::endl;
+                std::cout<<"the matrix should be "<<bra_subspace.size()<<" x "<<ket_subspace.size()<<std::endl;
+                std::cout<<"gammma_max: "<<ket_subspace.gamma_max()<<" upsilon_max "<<ket_subspace.upsilon_max()<<std::endl;
+                std::cout<<"matrix1"<<std::endl<<matrix1<<std::endl<<"matrix2"
+                         <<std::endl<<matrix2<<std::endl;
+              }
+          }
+      // If no error found, print no errors.
+      assert(not errors);
+      if(not errors)
+        std::cout<<"no errors"<<std::endl;
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // Checking the other direction 
+
+      // Comparing recurrence to explicit hyperblocks and printing error message if difference between
+      // hyperblocks exceeds tolerance of 1e-4   
+      errors=false;
+      for(int i=0; i<unit_tensor_hyperblocks_explicit.size(); ++i)
+        for(int j=0; j<unit_tensor_hyperblocks_explicit[i].size(); ++j)
+          {
+            auto& hypersector=baby_spncci_hypersectors.GetHypersector(i);
+            int bra, ket, tensor, rho0;
+            std::tie(bra,ket,tensor,rho0)=hypersector.Key();
+            auto& bra_subspace=baby_spncci_space.GetSubspace(bra);
+            auto& ket_subspace=baby_spncci_space.GetSubspace(ket);
+            auto& tensor_subspace=unit_tensor_space.GetSubspace(tensor);
+            int Sp,Tp,S,T,T0;
+            std::tie(T0,Sp,Tp,S,T)=tensor_subspace.GetStateLabels(j);
+            
+            const Eigen::MatrixXd matrix1=unit_tensor_hyperblocks_explicit[i][j];
+
+            // std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
+            //              << rho0<<std::endl;
+            // std::cout<<"   "<<T0<<"  "<<Sp<<"  "<<Tp<<"  "<<S<<"  "<<T<<std::endl;
+
+            const Eigen::MatrixXd matrix2=unit_tensor_hyperblocks[i][j];
 
             if(not mcutils::IsZero(matrix1-matrix2, 1e-4))
               {

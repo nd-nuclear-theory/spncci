@@ -44,7 +44,7 @@
 
        20    // hw
        Tintr 1.0    // coef
-       INT 1.0 4 0 0 0 relative_observables/JISP16_Nmax20_hw20.0_rel.dat      // coef Jmax J0 T0 g0 interaction_filename
+       INT 1.0 4 0 0 0 relative_observables/JISP16_Nmax20_hw20.0_rel.dat // coef Jmax J0 T0 g0 interaction_filename
 
        ../operators/generate_relative_u3st_operators 6 2 1 Nintr
 
@@ -412,14 +412,18 @@ int main(int argc, char **argv)
   std::cout<<"Starting recurrence and contraction"<<std::endl;
  
   // bra>=ket
-  for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
-    for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
+  // for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
+  //   for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_families.size(); ++irrep_family_index_ket)
+
+  for(int irrep_family_index_bra=0; irrep_family_index_bra<1; ++irrep_family_index_bra)
+    for(int irrep_family_index_ket=0; irrep_family_index_ket<1; ++irrep_family_index_ket)
+
       {
-        // Check that there are any lgi in irrep family
-          int gamma_max_bra=lgi_families[irrep_family_index_bra].tag;
-          int gamma_max_ket=lgi_families[irrep_family_index_ket].tag;
-          if((gamma_max_ket==0)||(gamma_max_bra==0))
-            continue;
+        // // Check that there are any lgi in irrep family
+        //   int gamma_max_bra=lgi_families[irrep_family_index_bra].tag;
+        //   int gamma_max_ket=lgi_families[irrep_family_index_ket].tag;
+        //   if((gamma_max_ket==0)||(gamma_max_bra==0))
+        //     continue;
 
       // Reads in unit tensor labels for seed sectors stores them in a vector.  The rho0 of the sector defined by
       // <bra|unit_tensor|ket>_rho0 are stored in a corresponding vector rho0_values; 
@@ -436,9 +440,15 @@ int main(int argc, char **argv)
           =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
         files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
-        std::cout<<"Seeds"<<std::endl;
-        for(auto block : unit_tensor_seed_blocks)
-          std::cout<<block<<std::endl;
+        if(not files_found)
+          {
+            std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
+            continue;
+          }
+
+        // std::cout<<"Seeds"<<std::endl;
+        // for(int i=0; i<lgi_unit_tensors.size(); ++i)
+        //   std::cout<<lgi_unit_tensors[i].Str()<<std::endl<<unit_tensor_seed_blocks[i]<<std::endl;
 
         std::cout<<"generate recurrence unit tensors "<<unit_tensor_space.size()<<std::endl;
         // for(auto tensor :unit_tensor_labels)
@@ -499,7 +509,7 @@ int main(int argc, char **argv)
           Nn0_conjugate_hypersectors
         );
 
-        std::cout<<"Nn0 hypersectors size "<<baby_spncci_hypersectors_Nn0.size()<<std::endl;
+        // std::cout<<"Nn0 hypersectors size "<<baby_spncci_hypersectors_Nn0.size()<<std::endl;
 
         // zero initialize hypersectors 
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
@@ -507,6 +517,9 @@ int main(int argc, char **argv)
 
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
         basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
+
+
+        // std::cout<<baby_spncci_hypersectors.DebugStr()<<std::endl;
 
         // Initialize hypersectors with seeds
         // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
@@ -518,15 +531,23 @@ int main(int argc, char **argv)
           lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
           unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
         );
-        std::cout<<"seeded hyperblocks"<<std::endl;
-        for(auto& blocks : unit_tensor_hyperblocks)
-          for(auto& block : blocks)
-            std::cout<<block<<std::endl;
+        // std::cout<<"seeded hyperblocks"<<std::endl;
+        // for(auto& blocks : unit_tensor_hyperblocks)
+        //   for(auto& block : blocks)
+        //     std::cout<<block<<std::endl;
 
-       std::cout<<"Nn0 seeded hyperblocks"<<std::endl;
-        for(auto& blocks : unit_tensor_hyperblocks_Nn0)
-          for(auto& block : blocks)
-            std::cout<<block<<std::endl;
+        // std::cout<<"using hypersector print"<<std::endl;
+        // spncci::PrintHypersectors(
+        //   baby_spncci_space,unit_tensor_space, 
+        //   baby_spncci_hypersectors,unit_tensor_hyperblocks
+        //   );
+
+        // std::cout<<"Nn0 seeded hyperblocks"<<std::endl;        
+        // spncci::PrintHypersectors(
+        //   baby_spncci_space,unit_tensor_space, 
+        //   baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0
+        //   );
+
 
 
           // DOESN"T APPEAR TO BE COMPUTE AND/OR ADDING NEW TENSORS TO HYPERBLOCKS
@@ -557,18 +578,19 @@ int main(int argc, char **argv)
         );
 
 
-        std::cout<<"print hypersectors Nn0"<<std::endl;
-        spncci::PrintHypersectors(
-          baby_spncci_space,unit_tensor_space, 
-          baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0
-          );
+        // std::cout<<"print hypersectors Nn0"<<std::endl;
+        // spncci::PrintHypersectors(
+        //   baby_spncci_space,unit_tensor_space, 
+        //   baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0
+        //   );
 
 
 
-        std::cout<<"re-seeded hyperblocks"<<std::endl;
-        for(auto& blocks : unit_tensor_hyperblocks)
-          for(auto& block : blocks)
-            std::cout<<block<<std::endl;
+        // std::cout<<"re-seeded hyperblocks"<<std::endl;
+        //  spncci::PrintHypersectors(
+        //   baby_spncci_space,unit_tensor_space, 
+        //   baby_spncci_hypersectors,unit_tensor_hyperblocks
+        //   );
 
        
         // Compute unit tensor hyperblocks
@@ -579,11 +601,12 @@ int main(int argc, char **argv)
           unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
         );
 
-
+        // std::cout<<"hypersectors"<<std::endl;
         // spncci::PrintHypersectors(
         //   baby_spncci_space,unit_tensor_space, 
         //   baby_spncci_hypersectors,unit_tensor_hyperblocks
         //   );
+
 
         if(check_unit_tensors)
           CheckHyperBlocks(
@@ -594,7 +617,7 @@ int main(int argc, char **argv)
           );
 
 
-  }
+  // }
 
 
 
@@ -675,342 +698,343 @@ int main(int argc, char **argv)
 // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // // OLD CODE END
 // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//         // std::cout<<"contracting over observables "<<std::endl;
-//         for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-//           for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
-//             {
+        // std::cout<<"contracting over observables "<<std::endl;
+        for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+          for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
+            {
 
-//               // std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[hw_index]<<std::endl;
-//               const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[hw_index][observable_index];
-//               const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-//               spncci::OperatorBlocks& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
+              // std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[hw_index]<<std::endl;
+              const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[hw_index][observable_index];
+              const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+              spncci::OperatorBlocks& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
       
 
-//               // const std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
-//               // basis::OperatorBlocks<double>& blocks_spu3s=observables_blocks_spu3s[hw_index][observable_index];
+              // const std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
+              // basis::OperatorBlocks<double>& blocks_spu3s=observables_blocks_spu3s[hw_index][observable_index];
 
-//               ContractAndRegroupU3S(
-//                   unit_tensor_space,baby_spncci_space,space_u3s,relative_observable,
-//                   baby_spncci_hypersectors,unit_tensor_hyperblocks,sectors_u3s,blocks_u3s
-//                 );
+              ContractAndRegroupU3S(
+                  unit_tensor_space,baby_spncci_space,space_u3s,relative_observable,
+                  baby_spncci_hypersectors,unit_tensor_hyperblocks,sectors_u3s,blocks_u3s
+                );
 
 
-//               // spncci::ContractAndRegroupSpU3S(
-//               //     unit_tensor_space, baby_spncci_space,
-//               //     spu3s_space,relative_observable,
-//               //     baby_spncci_hypersectors,unit_tensor_hyperblocks,
-//               //     sectors_spu3s,blocks_spu3s);
+              // spncci::ContractAndRegroupSpU3S(
+              //     unit_tensor_space, baby_spncci_space,
+              //     spu3s_space,relative_observable,
+              //     baby_spncci_hypersectors,unit_tensor_hyperblocks,
+              //     sectors_spu3s,blocks_spu3s);
 
-//               // for(int i=0; i<blocks_u3s.size(); ++i)
-//               //   if(not mcutils::IsZero(blocks_u3s[i]-blocks_spu3s[i],1e-6))
-//               //   {
-//               //     std::cout<<"blocks "<<i<<" do not match"<<std::endl
-//               //     <<blocks_u3s[i]<<std::endl<<std::endl<<blocks_spu3s[i]<<std::endl<<std::endl; 
-//               //     assert(mcutils::IsZero(blocks_u3s[i]-blocks_spu3s[i]));
-//               //   }
+              // for(int i=0; i<blocks_u3s.size(); ++i)
+              //   if(not mcutils::IsZero(blocks_u3s[i]-blocks_spu3s[i],1e-6))
+              //   {
+              //     std::cout<<"blocks "<<i<<" do not match"<<std::endl
+              //     <<blocks_u3s[i]<<std::endl<<std::endl<<blocks_spu3s[i]<<std::endl<<std::endl; 
+              //     assert(mcutils::IsZero(blocks_u3s[i]-blocks_spu3s[i]));
+              //   }
 
-//             }
-//       }// end lgi_pair
+            }
+      }// end lgi_pair
 
-//   // spncci::PrintU3SSector(
-//   //   run_parameters.hw_values,
-//   //   observables_sectors_u3s,observables_blocks_u3s,  
-//   //   space_u3s, run_parameters.num_observables
-//   // );
+  spncci::PrintU3SSector(
+    run_parameters.hw_values,
+    observables_sectors_u3s,observables_blocks_u3s,  
+    space_u3s, run_parameters.num_observables
+  );
 
-//   timer_recurrence.Stop();
+  assert(0);
+  // timer_recurrence.Stop();
   
-//   std::cout << fmt::format("(Task time: {})",timer_recurrence.ElapsedTime()) << std::endl;
+  // std::cout << fmt::format("(Task time: {})",timer_recurrence.ElapsedTime()) << std::endl;
 
-//   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//   // At this point observable rmes should be fully computed and unit tensor cache, Ucoef cache and Kmatrix cache deleted 
-//   // Delete Kmatrix
-//   // Delete Unit tensor Cache
-//   // Delete Ucoef Cache 
-//   //
-//   // Note: The clean way to do that is to encapsulate the unit tensor
-//   // setup phase of the code in a subroutine...  That breaks the
-//   // problem up into clean, structured subunits.  Anything that should
-//   // persist is clearly marked by the fact that it is passed in as a
-//   // reference.  And anything that is no longer needed automatically
-//   // gets destroyed as it goes out of scope.
-//   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//   // loop over hw values, branch matrix sectors and compute eigenvalues
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // At this point observable rmes should be fully computed and unit tensor cache, Ucoef cache and Kmatrix cache deleted 
+  // Delete Kmatrix
+  // Delete Unit tensor Cache
+  // Delete Ucoef Cache 
+  //
+  // Note: The clean way to do that is to encapsulate the unit tensor
+  // setup phase of the code in a subroutine...  That breaks the
+  // problem up into clean, structured subunits.  Anything that should
+  // persist is clearly marked by the fact that it is passed in as a
+  // reference.  And anything that is no longer needed automatically
+  // gets destroyed as it goes out of scope.
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // loop over hw values, branch matrix sectors and compute eigenvalues
   
-//   ////////////////////////////////////////////////////////////////
-//   // set up indexing for branching
-//   ////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // set up indexing for branching
+  ////////////////////////////////////////////////////////////////
 
-//   std::cout << "Set up basis indexing for branching..." << std::endl;
+  std::cout << "Set up basis indexing for branching..." << std::endl;
 
-//   // W coefficient cache -- needed for observable branching
-//   u3::WCoefCache w_cache;
+  // W coefficient cache -- needed for observable branching
+  u3::WCoefCache w_cache;
 
-//   // determine J sectors for each observable
-//   std::vector<spncci::SectorsSpJ> observable_sectors;
-//   observable_sectors.resize(run_parameters.num_observables);
-//   for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-//     {
-//       const int J0=run_parameters.observable_J0_values[observable_index];
-//       observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
-//     }
+  // determine J sectors for each observable
+  std::vector<spncci::SectorsSpJ> observable_sectors;
+  observable_sectors.resize(run_parameters.num_observables);
+  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+    {
+      const int J0=run_parameters.observable_J0_values[observable_index];
+      observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
+    }
 
-//   // set up basis indexing for branching
-//   std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
-//   std::map<HalfInt,spncci::SpaceSpLS> spaces_splsj;
-//   for (const HalfInt J : run_parameters.J_values)
-//     {
+  // set up basis indexing for branching
+  std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
+  std::map<HalfInt,spncci::SpaceSpLS> spaces_splsj;
+  for (const HalfInt J : run_parameters.J_values)
+    {
 
-//       std::cout << fmt::format("Build LS space for J={}...",J.Str()) << std::endl;
-//       spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
-//       std::cout
-//         << fmt::format(
-//             "  subspaces {} dimension {}",
-//             J.Str(),
-//             spaces_lsj[J].size(),spaces_lsj[J].Dimension()
-//           ) << std::endl;
+      std::cout << fmt::format("Build LS space for J={}...",J.Str()) << std::endl;
+      spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
+      std::cout
+        << fmt::format(
+            "  subspaces {} dimension {}",
+            J.Str(),
+            spaces_lsj[J].size(),spaces_lsj[J].Dimension()
+          ) << std::endl;
 
-//       // comparison tests with new basis branching construction
-//       std::cout << fmt::format("Build SpLS space for J={}...",J.Str()) << std::endl;
-//       spaces_splsj[J]=spncci::SpaceSpLS(spu3s_space,J);
-//       const auto& spls_space=spaces_splsj.at(J);
-//       // spncci::SpaceSpLS spls_space(spu3s_space,J);
-//       std::cout
-//         << fmt::format("  subspaces {} dimension {} full_dimension {}",
-//                        spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
-//           )
-//         << std::endl;
-//       std::cout
-//         << fmt::format("  compare... TotalDimensionU3LSJConstrained {}",TotalDimensionU3LSJConstrained(spncci_space,J))
-//         << std::endl;
-//     }
-
-
-//   ////////////////////////////////////////////////////////////////
-//   // calculation mesh master loop
-//   ////////////////////////////////////////////////////////////////
+      // comparison tests with new basis branching construction
+      std::cout << fmt::format("Build SpLS space for J={}...",J.Str()) << std::endl;
+      spaces_splsj[J]=spncci::SpaceSpLS(spu3s_space,J);
+      const auto& spls_space=spaces_splsj.at(J);
+      // spncci::SpaceSpLS spls_space(spu3s_space,J);
+      std::cout
+        << fmt::format("  subspaces {} dimension {} full_dimension {}",
+                       spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
+          )
+        << std::endl;
+      std::cout
+        << fmt::format("  compare... TotalDimensionU3LSJConstrained {}",TotalDimensionU3LSJConstrained(spncci_space,J))
+        << std::endl;
+    }
 
 
-//   std::cout << "Calculation mesh master loop..." << std::endl;
+  ////////////////////////////////////////////////////////////////
+  // calculation mesh master loop
+  ////////////////////////////////////////////////////////////////
 
-//   // timing start
-//   mcutils::SteadyTimer timer_mesh;
-//   timer_mesh.Start();
 
-//   // for each hw value, solve eigen problem and get expectation values 
-//   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
-//     {
+  std::cout << "Calculation mesh master loop..." << std::endl;
 
-//       // retrieve mesh parameters
-//       double hw = run_parameters.hw_values[hw_index];
+  // timing start
+  mcutils::SteadyTimer timer_mesh;
+  timer_mesh.Start();
+
+  // for each hw value, solve eigen problem and get expectation values 
+  for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
+    {
+
+      // retrieve mesh parameters
+      double hw = run_parameters.hw_values[hw_index];
             
-//       // results output: log start of individual mesh calculation
-//       spncci::StartNewSection(results_stream,"RESULTS");
-//       spncci::WriteCalculationParameters(results_stream,hw);
+      // results output: log start of individual mesh calculation
+      spncci::StartNewSection(results_stream,"RESULTS");
+      spncci::WriteCalculationParameters(results_stream,hw);
 
-//       ////////////////////////////////////////////////////////////////
-//       // eigenproblem
-//       ////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////
+      // eigenproblem
+      ////////////////////////////////////////////////////////////////
 
-//       std::cout<<"Solve eigenproblem..."<<std::endl;
-//       mcutils::SteadyTimer timer_eigenproblem;
-//       timer_eigenproblem.Start();
+      std::cout<<"Solve eigenproblem..."<<std::endl;
+      mcutils::SteadyTimer timer_eigenproblem;
+      timer_eigenproblem.Start();
 
 
-//       std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
-//       std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
-//       eigenvalues.resize(spj_space.size());
-//       eigenvectors.resize(spj_space.size());
-//       for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
-//         {
-//           HalfInt J = spj_space.GetSubspace(subspace_index).J();
-//           std::cout
-//             << fmt::format("J = {}",J)
-//             << std::endl;
+      std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
+      std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
+      eigenvalues.resize(spj_space.size());
+      eigenvectors.resize(spj_space.size());
+      for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
+        {
+          HalfInt J = spj_space.GetSubspace(subspace_index).J();
+          std::cout
+            << fmt::format("J = {}",J)
+            << std::endl;
           
-//           // branch Hamiltonian
-//           spncci::OperatorBlock hamiltonian_matrix;
-//           const int observable_index = 0;  // for Hamiltonian
-//           const int sector_index = subspace_index;  // for Hamiltonian (scalar)
-//           const int J0 = run_parameters.observable_J0_values[observable_index];
-//           assert(J0==0);
-//           spncci::ConstructBranchedBlock(
-//               w_cache,
-//               space_u3s,
-//               observables_sectors_u3s[observable_index],
-//               observables_blocks_u3s[hw_index][observable_index],
-//               spaces_lsj,
-//               J0,
-//               observable_sectors[observable_index].GetSector(sector_index),
-//               hamiltonian_matrix
-//             );
+          // branch Hamiltonian
+          spncci::OperatorBlock hamiltonian_matrix;
+          const int observable_index = 0;  // for Hamiltonian
+          const int sector_index = subspace_index;  // for Hamiltonian (scalar)
+          const int J0 = run_parameters.observable_J0_values[observable_index];
+          assert(J0==0);
+          spncci::ConstructBranchedBlock(
+              w_cache,
+              space_u3s,
+              observables_sectors_u3s[observable_index],
+              observables_blocks_u3s[hw_index][observable_index],
+              spaces_lsj,
+              J0,
+              observable_sectors[observable_index].GetSector(sector_index),
+              hamiltonian_matrix
+            );
 
-//           std::cout
-//             << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
-//             << std::endl;
-//           // std::cout<<mcutils::FormatMatrix(hamiltonian_matrix, ".1f")<<std::endl<<std::endl;
+          std::cout
+            << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
+            << std::endl;
+          // std::cout<<mcutils::FormatMatrix(hamiltonian_matrix, ".1f")<<std::endl<<std::endl;
 
-//           // solve eigenproblem
-//           spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
-//           spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
-//           // std::cout<<hamiltonian_matrix<<std::endl;
-//           std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
-//           spncci::SolveHamiltonian(
-//               hamiltonian_matrix,
-//               run_parameters.num_eigenvalues,
-//               run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
-//               run_parameters.eigensolver_max_iterations,
-//               run_parameters.eigensolver_tolerance,
-//               eigenvalues_J,eigenvectors_J
-//             );
-//         }
+          // solve eigenproblem
+          spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
+          spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
+          // std::cout<<hamiltonian_matrix<<std::endl;
+          std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
+          spncci::SolveHamiltonian(
+              hamiltonian_matrix,
+              run_parameters.num_eigenvalues,
+              run_parameters.eigensolver_num_convergence,  // whatever exactly this is...
+              run_parameters.eigensolver_max_iterations,
+              run_parameters.eigensolver_tolerance,
+              eigenvalues_J,eigenvectors_J
+            );
+        }
 
-//       // end timing
-//       timer_eigenproblem.Stop();
-//       std::cout << fmt::format("  (Eigenproblem: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
+      // end timing
+      timer_eigenproblem.Stop();
+      std::cout << fmt::format("  (Eigenproblem: {})",timer_eigenproblem.ElapsedTime()) << std::endl;
 
-//       // results output: eigenvalues
-//       spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,run_parameters.gex);
+      // results output: eigenvalues
+      spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,run_parameters.gex);
 
-//       ////////////////////////////////////////////////////////////////
-//       // do decompositions
-//       ////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////
+      // do decompositions
+      ////////////////////////////////////////////////////////////////
 
-//       std::cout << "Calculate eigenstate decompositions..." << std::endl;
-//       mcutils::SteadyTimer timer_decompositions;
-//       timer_decompositions.Start();
+      std::cout << "Calculate eigenstate decompositions..." << std::endl;
+      mcutils::SteadyTimer timer_decompositions;
+      timer_decompositions.Start();
 
-//       // decomposition matrices:
-//       //   - vector over J subspace index
-//       //   - matrix over (basis_subspace_index,eigenstate_index)
-//       //
-//       // That is, decompositions are stored as column vectors, within a
-//       // matrix, much like the eigenstates themselves.
-//       std::vector<spncci::Matrix> Nex_decompositions;
-//       std::vector<spncci::Matrix> baby_spncci_decompositions;
-//       Nex_decompositions.resize(spj_space.size());
-//       baby_spncci_decompositions.resize(spj_space.size());
+      // decomposition matrices:
+      //   - vector over J subspace index
+      //   - matrix over (basis_subspace_index,eigenstate_index)
+      //
+      // That is, decompositions are stored as column vectors, within a
+      // matrix, much like the eigenstates themselves.
+      std::vector<spncci::Matrix> Nex_decompositions;
+      std::vector<spncci::Matrix> baby_spncci_decompositions;
+      Nex_decompositions.resize(spj_space.size());
+      baby_spncci_decompositions.resize(spj_space.size());
 
-//       // calculate decompositions
-//       spncci::CalculateNexDecompositions(
-//           spj_space,
-//           eigenvectors,
-//           Nex_decompositions,
-//           run_parameters.Nsigma0,run_parameters.Nmax
-//         );
+      // calculate decompositions
+      spncci::CalculateNexDecompositions(
+          spj_space,
+          eigenvectors,
+          Nex_decompositions,
+          run_parameters.Nsigma0,run_parameters.Nmax
+        );
 
-//       spncci::CalculateBabySpNCCIDecompositions(
-//           spj_space,
-//           eigenvectors,
-//           baby_spncci_decompositions,
-//           baby_spncci_space.size()
-//         );
+      spncci::CalculateBabySpNCCIDecompositions(
+          spj_space,
+          eigenvectors,
+          baby_spncci_decompositions,
+          baby_spncci_space.size()
+        );
 
-//       // end timing
-//       timer_decompositions.Stop();
-//       std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
+      // end timing
+      timer_decompositions.Stop();
+      std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
 
-//       // results output: decompositions
-//       spncci::WriteDecompositions(
-//           results_stream,
-//           "Nex",".6f",
-//           spj_space,
-//           Nex_decompositions,
-//           run_parameters.gex
-//         );
+      // results output: decompositions
+      spncci::WriteDecompositions(
+          results_stream,
+          "Nex",".6f",
+          spj_space,
+          Nex_decompositions,
+          run_parameters.gex
+        );
 
-//       spncci::WriteDecompositions(
-//           results_stream,
-//           "BabySpNCCI",".4e",
-//           spj_space,
-//           baby_spncci_decompositions,
-//           run_parameters.gex
-//         );
+      spncci::WriteDecompositions(
+          results_stream,
+          "BabySpNCCI",".4e",
+          spj_space,
+          baby_spncci_decompositions,
+          run_parameters.gex
+        );
 
 
-//       ////////////////////////////////////////////////////////////////
-//       // calculate observable RMEs
-//       ////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////
+      // calculate observable RMEs
+      ////////////////////////////////////////////////////////////////
 
-//       std::cout << "Calculate observable results..." << std::endl;
-//       mcutils::SteadyTimer timer_observables;
-//       timer_observables.Start();
+      std::cout << "Calculate observable results..." << std::endl;
+      mcutils::SteadyTimer timer_observables;
+      timer_observables.Start();
 
-//       // observable_results_matrices:
-//       //   - vector over observable_index
-//       //   - vector over sector_index
-//       //   - matrix over (bra_eigenstate_index,ket_eigenstate_index)
-//       std::vector<spncci::OperatorBlocks> observable_results_matrices;
-//       observable_results_matrices.resize(run_parameters.num_observables);
+      // observable_results_matrices:
+      //   - vector over observable_index
+      //   - vector over sector_index
+      //   - matrix over (bra_eigenstate_index,ket_eigenstate_index)
+      std::vector<spncci::OperatorBlocks> observable_results_matrices;
+      observable_results_matrices.resize(run_parameters.num_observables);
 
-//       // calculate observable results
-//       for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-//         {
+      // calculate observable results
+      for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+        {
 
-//           // retrieve sectors
-//           const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
+          // retrieve sectors
+          const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
 
-//           // calculate observable on each sector
-//           observable_results_matrices[observable_index].resize(sectors.size());
-//           for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
-//             {
+          // calculate observable on each sector
+          observable_results_matrices[observable_index].resize(sectors.size());
+          for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
+            {
             
-//               // retrieve sector information
-//               const spncci::SectorsSpJ::SectorType& sector = sectors.GetSector(sector_index);
-//               const int bra_subspace_index = sector.bra_subspace_index();
-//               const int ket_subspace_index = sector.ket_subspace_index();
+              // retrieve sector information
+              const spncci::SectorsSpJ::SectorType& sector = sectors.GetSector(sector_index);
+              const int bra_subspace_index = sector.bra_subspace_index();
+              const int ket_subspace_index = sector.ket_subspace_index();
 
-//               // branch observable block
-//               spncci::OperatorBlock observable_block;
-//               const int J0 = run_parameters.observable_J0_values[observable_index];  // well, J0 had better be 0!
-//               spncci::ConstructBranchedBlock(
-//                   w_cache,
-//                   space_u3s,
-//                   observables_sectors_u3s[observable_index],
-//                   observables_blocks_u3s[hw_index][observable_index],
-//                   spaces_lsj,
-//                   J0,
-//                   observable_sectors[observable_index].GetSector(sector_index),
-//                   observable_block
-//                 );
+              // branch observable block
+              spncci::OperatorBlock observable_block;
+              const int J0 = run_parameters.observable_J0_values[observable_index];  // well, J0 had better be 0!
+              spncci::ConstructBranchedBlock(
+                  w_cache,
+                  space_u3s,
+                  observables_sectors_u3s[observable_index],
+                  observables_blocks_u3s[hw_index][observable_index],
+                  spaces_lsj,
+                  J0,
+                  observable_sectors[observable_index].GetSector(sector_index),
+                  observable_block
+                );
 
-//               // calculate observable results
-//               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
-//               observable_results_matrix = eigenvectors[bra_subspace_index].transpose()
-//                 * observable_block
-//                 * eigenvectors[ket_subspace_index];
+              // calculate observable results
+              Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
+              observable_results_matrix = eigenvectors[bra_subspace_index].transpose()
+                * observable_block
+                * eigenvectors[ket_subspace_index];
 
-//               // print diagnostics
-//               const HalfInt bra_J = sector.bra_subspace().J();
-//               const HalfInt ket_J = sector.ket_subspace().J();
-//               std::cout
-//                 << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
-//                 << std::endl;
-//               // std::cout
-//               //   << mcutils::FormatMatrix(observable_results_matrix,"8.5f")
-//               //   << std::endl
-//               //   << std::endl;
-//             }
+              // print diagnostics
+              const HalfInt bra_J = sector.bra_subspace().J();
+              const HalfInt ket_J = sector.ket_subspace().J();
+              std::cout
+                << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
+                << std::endl;
+              // std::cout
+              //   << mcutils::FormatMatrix(observable_results_matrix,"8.5f")
+              //   << std::endl
+              //   << std::endl;
+            }
 
-//         }
+        }
 
-//       // end timing
-//       timer_observables.Stop();
-//       std::cout << fmt::format("  (Observables: {})",timer_observables.ElapsedTime()) << std::endl;
+      // end timing
+      timer_observables.Stop();
+      std::cout << fmt::format("  (Observables: {})",timer_observables.ElapsedTime()) << std::endl;
 
-//       // results output: observables
-//       spncci::WriteObservables(
-//           results_stream,
-//           observable_sectors,
-//           observable_results_matrices,
-//           run_parameters.gex
-//         );
+      // results output: observables
+      spncci::WriteObservables(
+          results_stream,
+          observable_sectors,
+          observable_results_matrices,
+          run_parameters.gex
+        );
 
-//     }
+    }
 
-//   // timing stop
-//   timer_mesh.Stop();
-//   std::cout << fmt::format("(Mesh master loop: {})",timer_mesh.ElapsedTime()) << std::endl;
+  // timing stop
+  timer_mesh.Stop();
+  std::cout << fmt::format("(Mesh master loop: {})",timer_mesh.ElapsedTime()) << std::endl;
 
   ////////////////////////////////////////////////////////////////
   // termination

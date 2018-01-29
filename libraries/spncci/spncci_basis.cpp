@@ -128,7 +128,7 @@ namespace spncci
     //   }
     for(auto& lgi_tag : multiplicity_tagged_lgi_vector)
     {
-      if(lgi_tag.tag>0)
+      // if(lgi_tag.tag>0)
         spncci_space.emplace_back(lgi_tag.irrep, lgi_tag.tag);
     }
 
@@ -631,7 +631,7 @@ namespace spncci
           int Nnp=bra_subspace.Nn();
           int Nn=ket_subspace.Nn();
 
-          std::cout<<Nnp<<"  "<<Nn<<std::endl;
+          // std::cout<<Nnp<<"  "<<Nn<<std::endl;
 
           // If all we want is the Nnp=0 and Nn!=0 conjugated sectors
           if(Nn0_conjugate_hypersectors)
@@ -639,8 +639,7 @@ namespace spncci
               if(Nnp!=0)
                 continue;
             }
-          // Otherwise, only take sectors with Nnp>=Nn>0
-          // Nn=0 sectors computed by conjugation from Nn0_conjugate_hypersectors
+          // Otherwise, only take sectors with Nnp>=Nn
           else 
           {
             if(Nn>Nnp)
@@ -657,7 +656,7 @@ namespace spncci
             continue;
 
           int Nsum=Nnp+Nn;
-          std::cout<<"Nsum "<<Nsum<<std::endl;
+          // std::cout<<"Nsum "<<Nsum<<std::endl;
 
           // For each operator subspace, check if its an allowed operator subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
@@ -668,7 +667,7 @@ namespace spncci
                 operator_subspace=operator_space.GetSubspace(operator_subspace_index);
 
               // U(1)
-              std::cout<<"N0 "<<operator_subspace.N0()<<std::endl;
+              // std::cout<<"N0 "<<operator_subspace.N0()<<std::endl;
               allowed_subspace &= (ket_subspace.omega().N() + operator_subspace.N0() - bra_subspace.omega().N() == 0);
               // spin
               //
@@ -689,7 +688,7 @@ namespace spncci
                 );
 
               // push sectors (tagged by multiplicity)
-              std::cout<<"multiplicity "<<multiplicity<<std::endl;
+              // std::cout<<"multiplicity "<<multiplicity<<std::endl;
               for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                 {
                   PushHypersector(

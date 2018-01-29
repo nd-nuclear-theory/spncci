@@ -266,23 +266,10 @@ void InitializeU3SSectors(
         std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
 
 
-        // std::cout<<fmt::format("unit tensor subspace {} {} {} {} ",x0.Str(),S0,etap,eta)<<std::endl;
-        // for(auto rme :relative_rmes)
-        //   std::cout<<"  "<<rme<<std::endl;
+        std::cout<<fmt::format("unit tensor subspace {} {} {} {} ",x0.Str(),S0,etap,eta)<<std::endl;
+        for(auto rme :relative_rmes)
+          std::cout<<"  "<<rme<<std::endl;
 
-        // only the N0<=0 unit tensor hypersectors are compute.  
-        // The N0>0 hypersectors are obtained via conjugation.
-        bool conjugate_hypersector=((etap-eta)>0)?true:false;
-
-        int unit_tensor_subspace_index_conj=-1;
-        
-        if(conjugate_hypersector)
-        {
-          u3shell::UnitTensorSubspaceLabels unit_tensor_labels_conj(u3::Conjugate(x0),S0,eta,etap);
-          unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels_conj);
-        }
-
-        // OpenMP parallelize for loop over target sectors to avoid race conditions 
         // std::cout<<"for each target sector "<<std::endl;
         for(int target_sector_index=0; target_sector_index<target_sectors_u3s.size(); ++target_sector_index)
           {
@@ -316,6 +303,7 @@ void InitializeU3SSectors(
                 
                   const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra
                           =baby_spncci_space.GetSubspace(baby_spncci_index_bra);
+
                   const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket
                           =baby_spncci_space.GetSubspace(baby_spncci_index_ket);
 
@@ -323,23 +311,28 @@ void InitializeU3SSectors(
                   int dimp=baby_spncci_subspace_bra.size();
                   int dim=baby_spncci_subspace_ket.size();
 
-                  // Recurrence computes Nnp<=Nn sectors for lgi_bra<=lgi_ket and Nnp>Nn sectors for lgi_bra>lgi_ket.
+                  // Recurrence computes Nnp>=Nn sectors for lgi_bra=>lgi_ket.
                   // The remaining unit tensor blocks are obtained by conjugation, i.e., those satisfying
-                  //    If Nnp-Nn>0
-                  //    If Nnp-Nn=0, lgi_bra>lgi_ket
+                  //    Nnp-Nn<0
+                  // or
+                  //    Nnp-Nn=0, lgi_bra<lgi_ket [NOT at present]
                   // 
                   int Nnp=baby_spncci_subspace_bra.Nn();
                   int Nn=baby_spncci_subspace_ket.Nn();
                   int unit_tensor_subspace_index_conj=-1;
-                  bool conjugate_hypersector=(Nnp-Nn)>0;
+                  
+                  // Check first condition 
+                  bool conjugate_hypersector=(Nnp<Nn);
 
-                  if(
-                      ((Nnp-Nn)==0)
-                      &&
-                      (baby_spncci_subspace_bra.irrep_family_index()>baby_spncci_subspace_ket.irrep_family_index())
-                    )
-                    conjugate_hypersector=true;
+                  // Check second condition
+                  // if(
+                  //     ((Nnp-Nn)==0)
+                  //     &&
+                  //     (baby_spncci_subspace_bra.irrep_family_index()<baby_spncci_subspace_ket.irrep_family_index())
+                  //   )
+                  //   conjugate_hypersector=true;
 
+                  // If we need to get conjugate hyper sector, then need conjugate labels 
                   if(conjugate_hypersector)
                     {
                       u3shell::UnitTensorSubspaceLabels unit_tensor_labels_conj(u3::Conjugate(x0),S0,eta,etap);
@@ -371,6 +364,7 @@ void InitializeU3SSectors(
                   {
                     if(conjugate_hypersector)
                       {
+                        // get unit tensor index for conjugate unit tensor
                         int T0, S,T,Sp,Tp;
                         std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(unit_tensor_index);
                         std::tuple<int,int,int,int,int> conjugate_state(T0,S,T,Sp,Tp);
@@ -379,6 +373,7 @@ void InitializeU3SSectors(
                         u3::U3 omegap(baby_spncci_subspace_bra.omega());
                         u3::U3 omega(baby_spncci_subspace_ket.omega());
 
+                        // Get conjugation grade
                         int conjugation_grade=ParitySign(
                           u3::ConjugationGrade(omega)
                           -baby_spncci_subspace_ket.S()
@@ -386,6 +381,7 @@ void InitializeU3SSectors(
                           +baby_spncci_subspace_bra.S()
                           );
                         
+                        // and conjugation factor
                         double conjugation_factor
                                 =sqrt(
                                   1.*u3::dim(u3::SU3(etap,0))*u3::dim(omega)
