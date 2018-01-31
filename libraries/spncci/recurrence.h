@@ -7,6 +7,8 @@
   University of Notre Dame
 
   1/16/18 (aem): Created based on unit_tensor.h
+  1/30/18 (aem): Extracted all seed and recurrence functions from
+    computational control 
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
@@ -25,7 +27,11 @@ namespace spncci
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn
   );
-  // Identify unit tensor subspaces for recurrence 
+  // Identify unit tensor subspaces for recurrence from list of unit tensor labels 
+  // with non-zero rmes between a given lgi pair
+  //
+  // Unit tensor subspaces whose hyperblocks will be computed by recurrence are
+  // stored in operator_subsets_NnpNn by (Nnp,Nn) for Nnp>=Nn
 
   void 
   PopulateHypersectorsWithSeeds(
@@ -41,8 +47,8 @@ namespace spncci
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_Nn0,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
   );
-  // Adds seeds to hyperblocks for both Nn=0 sectors and all other sectors
-
+  // Transfers seed rmes from unit_tensor_seed_blocks to unit_tensor_hyperblocks
+  // and adds conjugate rmes to unit_tensor_hyperblocks_Nn0 for use in recurrence
 
   void 
   AddNn0BlocksToHyperblocks(
@@ -53,6 +59,9 @@ namespace spncci
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_Nn0,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
   );
+  // Conjugates (0,Nn) hyperblocks computed recursively to 
+  // unit_tensor_hyperblocks i.e., add (Nnp,0) to recurrence hyperblocks
+  // container
 
   void 
   ComputeUnitTensorHyperblocks(
@@ -68,6 +77,9 @@ namespace spncci
     const std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
     );
+  // Recursively computes unit tensor hyperblocks for Nnp>=Nn from 
+  // recurrence relation derived in McCoy2018
+
 } //namespace 
 
 #endif

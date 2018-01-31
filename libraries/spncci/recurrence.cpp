@@ -113,7 +113,7 @@ void GetCase1UnitTensors(
   // and 
   //    (etap-2,0)x(0,eta) -> x0p
   {
-    std::cout<<"case 1"<<std::endl;
+    // std::cout<<"case 1"<<std::endl;
 
     // Get list of possible x0p values from etap and eta
     MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(u3::SU3(etap-2,0), u3::SU3(0,eta));
@@ -121,7 +121,7 @@ void GetCase1UnitTensors(
     for(auto& x0p_tagged : x0p_set)
       {
         u3::SU3 x0p(x0p_tagged.irrep);
-        std::cout<<x0p.Str()<<"  "<<etap-2<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
+        // std::cout<<x0p.Str()<<"  "<<etap-2<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
         
         // If x0 x (2,0) -> x0p doesn't satisfy constraint go to next x0p
         if(u3::OuterMultiplicity(x0,u3::SU3(0,2),x0p)==0)
@@ -151,14 +151,14 @@ void GetCase2UnitTensors(
   //    (etap,0)x(0,eta+2) -> x0p
   {
     // case 2
-    std::cout<<"case 2"<<std::endl;
+    // std::cout<<"case 2"<<std::endl;
     // Get list of possible x0p values from etap and eta
     MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(u3::SU3(etap,0), u3::SU3(0,eta+2));
     // For each possible x0p
     for(auto& x0p_tagged : x0p_set)
       {
         u3::SU3 x0p(x0p_tagged.irrep);
-        std::cout<<x0p.Str()<<"  "<<etap<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
+        // std::cout<<x0p.Str()<<"  "<<etap<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
 
         // If x0 x (2,0) -> x0p doesn't satisfy constraint go to next x0p
         if(u3::OuterMultiplicity(x0,u3::SU3(0,2),x0p)==0)
@@ -209,7 +209,7 @@ void GenerateRecurrenceUnitTensors(
             // Generate unit tensors for (0,Nn)
             bool conjugate=false;
 
-            if(etap-2>0)
+            if(etap-2>=0)
               GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
             
             if(eta+2<=Nrel_max)
@@ -219,7 +219,7 @@ void GenerateRecurrenceUnitTensors(
             // Generate unit tensors for (Nnp,0)
             conjugate=true;
 
-            if(etap-2>0)
+            if(etap-2>=0)
               GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target_conj,conjugate);
             
             if(eta+2<=Nrel_max)
@@ -238,7 +238,7 @@ void GenerateRecurrenceUnitTensors(
             continue;
 
           std::set<int>& NnpNn_subspaces_source=operator_subsets_NnpNn[spncci::NnPair(Nnp,Nn)];
-          std::cout<<"Nsum group "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
+          // std::cout<<"Nsum group "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
 
           // (Nnp,Nn)-> (Nnp,Nn+2) sectors 
           if(Nn+2<=Nnp)
@@ -268,7 +268,7 @@ void GenerateRecurrenceUnitTensors(
           // Diagonal sectors, i.e., (Nnp,Nn)->(Nnp+2,Nn+2)
           if((Nnp+2<=Nmax) && (Nn+2<=Nmax))
           {
-            std::cout<<"inserting diagonal "<<NnpNn_subspaces_source.size()<<std::endl;
+            // std::cout<<"inserting diagonal "<<NnpNn_subspaces_source.size()<<std::endl;
             std::set<int>& NnpNn_subspaces_target=operator_subsets_NnpNn[spncci::NnPair(Nnp+2,Nn+2)];
             NnpNn_subspaces_target.insert(NnpNn_subspaces_source.begin(), NnpNn_subspaces_source.end());
           }

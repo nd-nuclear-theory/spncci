@@ -266,9 +266,9 @@ void InitializeU3SSectors(
         std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
 
 
-        std::cout<<fmt::format("unit tensor subspace {} {} {} {} ",x0.Str(),S0,etap,eta)<<std::endl;
-        for(auto rme :relative_rmes)
-          std::cout<<"  "<<rme<<std::endl;
+        // std::cout<<fmt::format("unit tensor subspace {} {} {} {} ",x0.Str(),S0,etap,eta)<<std::endl;
+        // for(auto rme :relative_rmes)
+        //   std::cout<<"  "<<rme<<std::endl;
 
         // std::cout<<"for each target sector "<<std::endl;
         for(int target_sector_index=0; target_sector_index<target_sectors_u3s.size(); ++target_sector_index)

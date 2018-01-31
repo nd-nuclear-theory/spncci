@@ -75,6 +75,7 @@
   10/4/17 (aem) : Fixed basis construction and recurrence for A<6
   1/16/18 (aem) : Offloaded explicit construction and recurrence
     checks to explicit_construction.h
+  1/30/18 (aem): Overhalled seed generation and recurrence
 ****************************************************************/
 
 #include <cstdio>
@@ -86,33 +87,27 @@
 #include "SymEigsSolver.h"  // from spectra
 #include "cppformat/format.h"
 
-#include "lgi/lgi_solver.h"
-#include "lgi/lgi_unit_tensors.h"
 #include "spncci/recurrence.h"
-
-// to vett as moved into computation_control 
-#include "mcutils/eigen.h"
-#include "mcutils/parsing.h"
+#include "lgi/lgi_unit_tensors.h"
 #include "mcutils/profiling.h"
 #include "spncci/branching.h"
-#include "spncci/computation_control.h"
+#include "spncci/branching_u3s.h"
+#include "spncci/branching_u3lsj.h"
 #include "spncci/decomposition.h"
 #include "spncci/eigenproblem.h"
+#include "spncci/explicit_construction.h"
+#include "spncci/io_control.h"
 #include "spncci/parameters.h"
-#include "spncci/results_output.h"
 
+#include "spncci/results_output.h"
 
 ////////////////////////////////////////////////////////////////
 // WIP code
 //
 // to extract to spncci library when ready
-////////////////////////////////////////////////////////////////
-  
+//////////////////////////////////////////////////////////////// 
 namespace spncci
-{
-  
-
-}// end namespace
+{}// end namespace
 
 ////////////////////////////////////////////////////////////////
 // main body
@@ -124,7 +119,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
-  bool check_unit_tensors=true;
+  bool check_unit_tensors=false;
 
   // SU(3) caching
   u3::U3CoefInit();
@@ -375,10 +370,6 @@ int main(int argc, char **argv)
       }
     }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// OLD CODE BEGIN
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"setting up lgi unit tensor blocks"<<std::endl;
   
@@ -406,23 +397,12 @@ int main(int argc, char **argv)
       restrict_sp3r_to_u3_branching,spncci_expansions
       );
 
-
-
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
   std::cout<<"Starting recurrence and contraction"<<std::endl;
  
-  // for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
-  //   for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_families.size(); ++irrep_family_index_ket)
-
-    int irrep_family_index_bra=0; 
-    int irrep_family_index_ket=4;
-
+  for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
+    for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_families.size(); ++irrep_family_index_ket)
       {
-        // // Check that there are any lgi in irrep family
-        //   int gamma_max_bra=lgi_families[irrep_family_index_bra].tag;
-        //   int gamma_max_ket=lgi_families[irrep_family_index_ket].tag;
-        //   if((gamma_max_ket==0)||(gamma_max_bra==0))
-        //     continue;
 
       // Reads in unit tensor labels for seed sectors stores them in a vector.  The rho0 of the sector defined by
       // <bra|unit_tensor|ket>_rho0 are stored in a corresponding vector rho0_values; 
@@ -439,43 +419,19 @@ int main(int argc, char **argv)
           =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
         files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
-//TODO: uncomment
-        // if(not files_found)
-        //   {
-        //     std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
-        //     continue;
-        //   }
-//TODO: uncomment
-
-        
-        // std::cout<<"Seeds"<<std::endl;
-        // for(int i=0; i<lgi_unit_tensors.size(); ++i)
-        //   std::cout<<lgi_unit_tensors[i].Str()<<std::endl<<unit_tensor_seed_blocks[i]<<std::endl;
-
-        std::cout<<"generate recurrence unit tensors "<<unit_tensor_space.size()<<std::endl;
-        // for(auto tensor :unit_tensor_labels)
-        //   std::cout<<tensor.Str()<<std::endl;
-
+        if(not files_found)
+          {
+            std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
+            continue;
+          }
+ 
         // Identify unit tensor subspaces for recurrence
         std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
-        // std::vector<int>unit_tensor_subspace_subset;
         spncci::GenerateRecurrenceUnitTensors(
           run_parameters.Nmax, run_parameters.N1v,
           lgi_unit_tensors,unit_tensor_space,
           unit_tensor_subspace_subsets
         );
-
-        for(auto it=unit_tensor_subspace_subsets.begin(); it!=unit_tensor_subspace_subsets.end(); ++it)
-          {
-            int Nnp,Nn;
-            std::tie(Nnp,Nn)=it->first;
-            std::set<int> subspaces=it->second;
-            std::cout<<Nnp<<"  "<<Nn<<std::endl;
-            for(int i : subspaces)
-              {
-                std::cout<<unit_tensor_space.GetSubspace(i).LabelStr()<<std::endl;
-              }
-          }
 
         std::cout<<"generate Nn0 hypersectors"<<std::endl;
         // Generate Nn=0 hypersectors to be computed by conjugation
@@ -508,9 +464,7 @@ int main(int argc, char **argv)
 
         // }
 
-
-
-        // Generate all other hypersectors for bra>=ket
+        // Generate all other hypersectors for Nnp>=Nn
         std::cout<<" generate hypersectors"<<std::endl;
         Nn0_conjugate_hypersectors=false;
         std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
@@ -523,17 +477,12 @@ int main(int argc, char **argv)
           Nn0_conjugate_hypersectors
         );
 
-        // std::cout<<"Nn0 hypersectors size "<<baby_spncci_hypersectors_Nn0.size()<<std::endl;
-
         // zero initialize hypersectors 
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
         basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
 
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
         basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
-
-
-        std::cout<<baby_spncci_hypersectors.DebugStr()<<std::endl;
 
         // Initialize hypersectors with seeds
         // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
@@ -545,27 +494,6 @@ int main(int argc, char **argv)
           lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
           unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
         );
-        // std::cout<<"seeded hyperblocks"<<std::endl;
-        // for(auto& blocks : unit_tensor_hyperblocks)
-        //   for(auto& block : blocks)
-        //     std::cout<<block<<std::endl;
-
-        // std::cout<<"using hypersector print"<<std::endl;
-        // spncci::PrintHypersectors(
-        //   baby_spncci_space,unit_tensor_space, 
-        //   baby_spncci_hypersectors,unit_tensor_hyperblocks
-        //   );
-
-        // std::cout<<"Nn0 seeded hyperblocks"<<std::endl;        
-        // spncci::PrintHypersectors(
-        //   baby_spncci_space,unit_tensor_space, 
-        //   baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0
-        //   );
-
-
-
-          // DOESN"T APPEAR TO BE COMPUTE AND/OR ADDING NEW TENSORS TO HYPERBLOCKS
-          // CAN REMOVE Nn=Nnp=0 copy from Nn0 sectors to regular sectors as well
 
         // Compute Nn=0 blocks
         spncci::ComputeUnitTensorHyperblocks(
@@ -575,37 +503,11 @@ int main(int argc, char **argv)
           unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
         );
 
-        // if(check_unit_tensors)
-        //   CheckHyperBlocks(
-        //     irrep_family_index_ket,irrep_family_index_bra,
-        //     run_parameters,spncci_space,unit_tensor_space,
-        //     lgi_unit_tensor_labels,baby_spncci_space,spncci_expansions,
-        //     baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0
-        //   );
-
-
-
         spncci::AddNn0BlocksToHyperblocks(
           baby_spncci_space,unit_tensor_space,
           baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
           unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
         );
-
-
-        // std::cout<<"print hypersectors Nn0"<<std::endl;
-        // spncci::PrintHypersectors(
-        //   baby_spncci_space,unit_tensor_space, 
-        //   baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0
-        //   );
-
-
-
-        // std::cout<<"re-seeded hyperblocks"<<std::endl;
-        //  spncci::PrintHypersectors(
-        //   baby_spncci_space,unit_tensor_space, 
-        //   baby_spncci_hypersectors,unit_tensor_hyperblocks
-        //   );
-
        
         // Compute unit tensor hyperblocks
         spncci::ComputeUnitTensorHyperblocks(
@@ -615,14 +517,14 @@ int main(int argc, char **argv)
           unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
         );
 
-        std::cout<<"hypersectors"<<std::endl;
-        spncci::PrintHypersectors(
-          baby_spncci_space,unit_tensor_space, 
-          baby_spncci_hypersectors,unit_tensor_hyperblocks
-          );
+        // std::cout<<"hypersectors"<<std::endl;
+        // spncci::PrintHypersectors(
+        //   baby_spncci_space,unit_tensor_space, 
+        //   baby_spncci_hypersectors,unit_tensor_hyperblocks
+        //   );
 
 
-        check_unit_tensors=true;
+        check_unit_tensors=false;
         if(check_unit_tensors)
           CheckHyperBlocks(
             irrep_family_index_bra,irrep_family_index_ket,
@@ -631,87 +533,9 @@ int main(int argc, char **argv)
             baby_spncci_hypersectors,unit_tensor_hyperblocks
           );
 
-
-  // }
-
-
-
-//   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//         // Get seed unit tensor labels  from file.  For now create
-//         // std::map<std::pair<int,int>,std::set<int>>lgi_unit_tensor_subset;
-//         // With two keys, <bra,ket> and <ket,bra>,  Set is of unit tensor subspace indices with
-//         // non-zero seeds 
-//   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//         // Generate hypersectors for recurrence 
-//         std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
-//         spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
-//         spncci::GenerateRecurrenceHypersectors(
-//             unit_tensor_space,baby_spncci_space,lgi_unit_tensor_subset,
-//             run_parameters.Nmax, irrep_family_index_bra, irrep_family_index_ket,
-//             unit_tensor_hypersector_subsets,
-//             baby_spncci_hypersectors
-//           );
-
-//         // std::cout<<"number of hypersectors "<<baby_spncci_hypersectors.size()<<std::endl;
-
-//         // // std::cout<<"checking hypersector subsets"<<std::endl;
-//         // for(int N=0; N<unit_tensor_hypersector_subsets.size(); N++)
-//         //   for(int hypersector_index : unit_tensor_hypersector_subsets[N])
-//         //     {
-//         //       // std::cout<<"N="<<N<<std::endl;
-//         //       const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
-//         //       int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
-//         //       std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
-    
-//         //       const auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
-//         //       const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_subspace_index);
-//         //       const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_subspace_index);
-
-//         //       // std::cout<<"hypersector "<<hypersector_index<<" "<< bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()
-//         //       // <<"  "<<unit_tensor_subspace.LabelStr()<<rho0<<std::endl;
-
-//         //     }
-
-//         // zero initialize hypersectors 
-//         // std::cout<<"zero initialize hypersectors"<<std::endl;
-//         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
-//         basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
-//   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//         // Get seeds from file.  Read directly into hyperblocks for both bra,ket and ket,bra lgi
-//    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//         spncci::PopulateHypersectorsWithSeeds(
-//             irrep_family_index_bra, irrep_family_index_ket,
-//             unit_tensor_hypersector_subsets[0],
-//             baby_spncci_space,baby_spncci_hypersectors, 
-//             lgi_unit_tensor_blocks,unit_tensor_hyperblocks
-//           );
-
-//         spncci::ComputeUnitTensorHyperblocks(
-//             run_parameters.Nmax,run_parameters.N1v,u_coef_cache,phi_coef_cache,
-//             k_matrix_cache,kinv_matrix_cache,
-//             spncci_space,baby_spncci_space,unit_tensor_space,
-//             baby_spncci_hypersectors, unit_tensor_hypersector_subsets,
-//             unit_tensor_hyperblocks,restrict_sp3r_to_u3_branching,
-//             num_threads_inner_loop
-//           );
-
-//         // spncci::PrintHypersectors(
-//         //   baby_spncci_space,unit_tensor_space, 
-//         //   baby_spncci_hypersectors,unit_tensor_hyperblocks
-//         //   );
-
-//         if(check_unit_tensors)
-//           CheckHyperBlocks(
-//             irrep_family_index_bra,irrep_family_index_ket,
-//             run_parameters,spncci_space,unit_tensor_space,
-//             lgi_unit_tensor_labels,baby_spncci_space,spncci_expansions,
-//             baby_spncci_hypersectors,unit_tensor_hyperblocks
-//           );
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// // OLD CODE END
-// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Contract and regroup
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // std::cout<<"contracting over observables "<<std::endl;
         for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
           for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
@@ -749,13 +573,11 @@ int main(int argc, char **argv)
             }
       }// end lgi_pair
 
-  spncci::PrintU3SSector(
-    run_parameters.hw_values,
-    observables_sectors_u3s,observables_blocks_u3s,  
-    space_u3s, run_parameters.num_observables
-  );
-
-  // assert(0);
+  // spncci::PrintU3SSector(
+  //   run_parameters.hw_values,
+  //   observables_sectors_u3s,observables_blocks_u3s,  
+  //   space_u3s, run_parameters.num_observables
+  // );
 
   // timer_recurrence.Stop();
   
