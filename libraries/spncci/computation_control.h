@@ -50,43 +50,43 @@ namespace spncci
   typedef std::pair<HalfInt,HalfInt> JPair;
 
 
-  void 
-  GenerateRecurrenceUnitTensors(
-    int Nrel_max,
-    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
-    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-    std::vector<int>& operator_subset
-  );
-  // TODO: replace function below with this version
-  // Creates a list of unit_tensor_subspace indices corresponding to unit tensors subspaces 
-  // which will appear in the spncci recurrence for a given pair of symplectic irreps.
-  //
-  // Inputs:
-  //    Nrel_max=Nmax+2N1v (input) : Max number of relative oscillator quanta
-  //    lgi_unit_tensors (input) : vector of unit tensors with non-zero rmes between lgi pair.
-  //    unit_tensor_space (input) : Unit tensors broken up into subspaces by (x0,S0,etap,eta) labels
-  //
-  // Output:
-  //    operator_subset : vector of unit tensor subspace indices for recurrence 
+  // void 
+  // GenerateRecurrenceUnitTensors(
+  //   int Nrel_max,
+  //   const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
+  //   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  //   std::vector<int>& operator_subset
+  // );
+  // // TODO: replace function below with this version
+  // // Creates a list of unit_tensor_subspace indices corresponding to unit tensors subspaces 
+  // // which will appear in the spncci recurrence for a given pair of symplectic irreps.
+  // //
+  // // Inputs:
+  // //    Nrel_max=Nmax+2N1v (input) : Max number of relative oscillator quanta
+  // //    lgi_unit_tensors (input) : vector of unit tensors with non-zero rmes between lgi pair.
+  // //    unit_tensor_space (input) : Unit tensors broken up into subspaces by (x0,S0,etap,eta) labels
+  // //
+  // // Output:
+  // //    operator_subset : vector of unit tensor subspace indices for recurrence 
 
-  void
-  GenerateRecurrenceUnitTensors(
-      int Nmax,
-      const std::set<int>& lgi_operator_subset,
-      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-      std::map<spncci::NnPair,std::set<int>>& operator_subsets
-    );
-  // Creates a list of indices of unit_tensor_subspaces in unit_tensor_space
-  // which will appear in the spncci recurrence for a given pair of symplectic irreps.
-  //
-  //  Inputs:
-  //    Nmax : usual basis truncation parameters
-  //    lgi_operator_subset : a list of unit tensor subspace indices
-  //        with non-zero rme's between the lgis
-  //    unit_tensor_space : space organizing unit tensors by symmetry labels 
-  //   Output: 
-  //    operator_subsets : list of indices of unit tensor subspaces, organized by
-  //      
+  // void
+  // GenerateRecurrenceUnitTensors(
+  //     int Nmax,
+  //     const std::set<int>& lgi_operator_subset,
+  //     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  //     std::map<spncci::NnPair,std::set<int>>& operator_subsets
+  //   );
+  // // Creates a list of indices of unit_tensor_subspaces in unit_tensor_space
+  // // which will appear in the spncci recurrence for a given pair of symplectic irreps.
+  // //
+  // //  Inputs:
+  // //    Nmax : usual basis truncation parameters
+  // //    lgi_operator_subset : a list of unit tensor subspace indices
+  // //        with non-zero rme's between the lgis
+  // //    unit_tensor_space : space organizing unit tensors by symmetry labels 
+  // //   Output: 
+  // //    operator_subsets : list of indices of unit tensor subspaces, organized by
+  // //      
 
 
   void 

@@ -606,7 +606,8 @@ namespace spncci
       int Nmax,
     const spncci::BabySpNCCISpace& space,
     const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-    const std::vector<int>& operator_subset,
+    const std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn,
+    // const std::vector<int>& operator_subset,
     std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
     int irrep_family_index_1, int irrep_family_index_2, bool Nn0_conjugate_hypersectors
   )
@@ -657,7 +658,7 @@ namespace spncci
 
           int Nsum=Nnp+Nn;
           // std::cout<<"Nsum "<<Nsum<<std::endl;
-
+          const std::set<int>& operator_subset=operator_subsets_NnpNn.at(spncci::NnPair(Nnp,Nn));
           // For each operator subspace, check if its an allowed operator subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
           for(int operator_subspace_index : operator_subset)

@@ -19,6 +19,7 @@ extern double zero_threshold;
 
 namespace spncci
 {
+
   void 
   ZeroInitBlocks(int number, int rows, int cols,std::vector<basis::OperatorBlock<double>>& unit_tensor_blocks)
   {
@@ -46,6 +47,235 @@ namespace spncci
       assert(baby_spncci_space.GetSubspace(baby_spncci_index).irrep_family_index()==irrep_family_index);
       return baby_spncci_index;
     }
+
+void GetLGIUnitTensorSubspaceIndices(
+  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
+  std::set<int>& lgi_operator_subset
+  )
+  {
+    // for each unit tensor, extract labels and identify subspace index for both the tensor and its conjugate
+    for(auto unit_tensor : lgi_unit_tensors)
+      {
+        // Extract unit tensor labels 
+        u3::SU3 x0; 
+        HalfInt S0;
+        int etap,eta;
+        std::tie(x0,S0,std::ignore,etap,std::ignore,std::ignore,eta,std::ignore,std::ignore)=unit_tensor.FlatKey();
+
+        // look up unit tensor index 
+        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
+        int operator_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
+        lgi_operator_subset.insert(operator_subspace_index);
+        
+        // Add conjugate tensor for Nn=0 sectors 
+        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);        
+        int operator_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
+        lgi_operator_subset.insert(operator_subspace_index_conj);
+
+
+      }
+  }
+
+
+int GetUnitTensorSubspaceIndex(
+  const u3::SU3& x0, HalfInt S0, int etap, int eta,
+  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  std::set<int>& unit_tensor_subset,
+  bool conjugate=false
+  )
+  // for a given unit tensor subspace, look up its subspace index for both the tensor and add the
+  // unit tensor subspace to the accumulating set of operator subspaces appearing in the recurrence
+  {
+    // Construct unit tensor subspace labels 
+    u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels;
+    
+    if(conjugate)
+      unit_tensor_subspace_labels=u3shell::UnitTensorSubspaceLabels(u3::Conjugate(x0),S0,eta,etap);
+    else
+      unit_tensor_subspace_labels=u3shell::UnitTensorSubspaceLabels(x0,S0,etap,eta);
+
+    // look up subspace index 
+    int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
+    
+    return unit_tensor_subspace_index;
+
+  }
+
+void GetCase1UnitTensors(
+    const u3::SU3& x0, const HalfInt& S0, int etap,int eta, 
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    std::set<int>& unit_tensor_subset,
+    bool conjugate=false
+  )
+  // Each new unit tensors must satisfy:
+  //    x0 x (2,0) -> x0p
+  // and 
+  //    (etap-2,0)x(0,eta) -> x0p
+  {
+    std::cout<<"case 1"<<std::endl;
+
+    // Get list of possible x0p values from etap and eta
+    MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(u3::SU3(etap-2,0), u3::SU3(0,eta));
+    // For each possible x0p
+    for(auto& x0p_tagged : x0p_set)
+      {
+        u3::SU3 x0p(x0p_tagged.irrep);
+        std::cout<<x0p.Str()<<"  "<<etap-2<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
+        
+        // If x0 x (2,0) -> x0p doesn't satisfy constraint go to next x0p
+        if(u3::OuterMultiplicity(x0,u3::SU3(0,2),x0p)==0)
+          continue;
+
+        // get subspace index
+        int unit_tensor_subspace_index
+              =GetUnitTensorSubspaceIndex(x0p,S0,etap-2,eta,unit_tensor_space,unit_tensor_subset,conjugate);               
+
+        // If unit tensor subspace exists, add to operator_subsets for given Nnp,Nn sector
+        if(unit_tensor_subspace_index!=-1)
+          unit_tensor_subset.insert(unit_tensor_subspace_index);
+
+      }
+
+  }
+
+void GetCase2UnitTensors(
+    const u3::SU3& x0, const HalfInt& S0, int etap,int eta, 
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    std::set<int>& unit_tensor_subset,
+    bool conjugate=false
+  )
+  // Each new unit tensors must satisfy:
+  //    x0 x (2,0) -> x0p
+  // and 
+  //    (etap,0)x(0,eta+2) -> x0p
+  {
+    // case 2
+    std::cout<<"case 2"<<std::endl;
+    // Get list of possible x0p values from etap and eta
+    MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(u3::SU3(etap,0), u3::SU3(0,eta+2));
+    // For each possible x0p
+    for(auto& x0p_tagged : x0p_set)
+      {
+        u3::SU3 x0p(x0p_tagged.irrep);
+        std::cout<<x0p.Str()<<"  "<<etap<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
+
+        // If x0 x (2,0) -> x0p doesn't satisfy constraint go to next x0p
+        if(u3::OuterMultiplicity(x0,u3::SU3(0,2),x0p)==0)
+          continue;
+
+        // get subspace index
+        int unit_tensor_subspace_index
+              =GetUnitTensorSubspaceIndex(x0p,S0,etap,eta+2,unit_tensor_space,unit_tensor_subset,conjugate);               
+
+        // If unit tensor subspace exists, add to operator_subsets for given Nnp,Nn sector
+        if(unit_tensor_subspace_index!=-1)
+          unit_tensor_subset.insert(unit_tensor_subspace_index);
+      }
+  }
+
+void GenerateRecurrenceUnitTensors(
+    int Nmax, int N1v,
+    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn
+  )
+  // Generate vector of operator subspaces which will appear in the recurrence from
+  // unit tensors with non-zero rmes between the given lgi pair
+  {
+    int Nrel_max=Nmax+2*N1v;
+
+    // Get lgi unit tensor subspaces 
+    auto& lgi_operator_subset=operator_subsets_NnpNn[spncci::NnPair(0,0)];
+    GetLGIUnitTensorSubspaceIndices(unit_tensor_space,lgi_unit_tensors,lgi_operator_subset);
+
+    // Unit tensors subspaces are identified recursively starting from those between the lgi
+    //
+    // Generate unit tensors for (Nnp,0) and (0,Nn) hypersectors 
+    for(int Nn=0; Nn<=Nmax; Nn+=2)
+      {
+        std::set<int>& NnpNn_subspaces_source=operator_subsets_NnpNn[spncci::NnPair(0,Nn)];
+        std::set<int>& NnpNn_subspaces_target=operator_subsets_NnpNn[spncci::NnPair(0,Nn+2)];
+        std::set<int>& NnpNn_subspaces_target_conj=operator_subsets_NnpNn[spncci::NnPair(Nn+2,0)];
+        
+        for(int subspace_index : NnpNn_subspaces_source)
+          {
+            // Extract source unit tensor labels
+            u3::SU3 x0; 
+            HalfInt S0;
+            int etap,eta;
+            std::tie(x0,S0,etap,eta)=unit_tensor_space.GetSubspace(subspace_index).labels();
+
+            // Generate unit tensors for (0,Nn)
+            bool conjugate=false;
+
+            if(etap-2>0)
+              GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
+            
+            if(eta+2<=Nrel_max)
+              GetCase2UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
+            
+            
+            // Generate unit tensors for (Nnp,0)
+            conjugate=true;
+
+            if(etap-2>0)
+              GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target_conj,conjugate);
+            
+            if(eta+2<=Nrel_max)
+              GetCase2UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target_conj,conjugate);
+          }
+      }
+
+    // Generate remaining unit tensors 
+    for(int Nsum=0; Nsum<=2*Nmax; Nsum+=2)
+      for(int Nnp=0; Nnp<=Nmax; Nnp+=2)
+        {
+          int Nn=Nsum-Nnp;
+
+          // Nn must be positive integer and only need Nn<=Nnp unit tensors
+          if(Nn<0 || Nn>Nnp)
+            continue;
+
+          std::set<int>& NnpNn_subspaces_source=operator_subsets_NnpNn[spncci::NnPair(Nnp,Nn)];
+          std::cout<<"Nsum group "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
+
+          // (Nnp,Nn)-> (Nnp,Nn+2) sectors 
+          if(Nn+2<=Nnp)
+            {
+              std::set<int>& NnpNn_subspaces_target=operator_subsets_NnpNn[spncci::NnPair(Nnp,Nn+2)];
+                          // Generate unit tensors for (0,Nn)
+              
+
+              for(int subspace_index : NnpNn_subspaces_source)
+                  {
+                    // Extract source unit tensor labels
+                    u3::SU3 x0; 
+                    HalfInt S0;
+                    int etap,eta;
+                    std::tie(x0,S0,etap,eta)=unit_tensor_space.GetSubspace(subspace_index).labels();
+
+                    bool conjugate=false;
+
+                    if(etap-2>0)
+                      GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
+                    
+                    if(eta+2<=Nrel_max)
+                      GetCase2UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
+                  }
+            }
+
+          // Diagonal sectors, i.e., (Nnp,Nn)->(Nnp+2,Nn+2)
+          if((Nnp+2<=Nmax) && (Nn+2<=Nmax))
+          {
+            std::cout<<"inserting diagonal "<<NnpNn_subspaces_source.size()<<std::endl;
+            std::set<int>& NnpNn_subspaces_target=operator_subsets_NnpNn[spncci::NnPair(Nnp+2,Nn+2)];
+            NnpNn_subspaces_target.insert(NnpNn_subspaces_source.begin(), NnpNn_subspaces_source.end());
+          }
+        }// End Nnp loop
+  }
+
+
 
   void 
   PopulateHypersectorsWithSeeds(

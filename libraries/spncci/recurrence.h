@@ -19,6 +19,14 @@
 namespace spncci
 {
 
+  void GenerateRecurrenceUnitTensors(
+    int Nmax, int N1v,
+    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn
+  );
+  // Identify unit tensor subspaces for recurrence 
+
   void 
   PopulateHypersectorsWithSeeds(
     int irrep_family_index_bra, int irrep_family_index_ket,

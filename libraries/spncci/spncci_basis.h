@@ -588,7 +588,7 @@ namespace spncci
         int Nmax,
         const spncci::BabySpNCCISpace& space,
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-        const std::vector<int>& operator_subset,
+        const std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn,
         std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
         int irrep_family_index_1=-1, int irrep_family_index_2=-1, 
         bool Nn0_conjugate_hypersectors=false

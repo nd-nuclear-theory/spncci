@@ -411,12 +411,11 @@ int main(int argc, char **argv)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
   std::cout<<"Starting recurrence and contraction"<<std::endl;
  
-  // bra>=ket
   // for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
   //   for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_families.size(); ++irrep_family_index_ket)
 
-  for(int irrep_family_index_bra=0; irrep_family_index_bra<1; ++irrep_family_index_bra)
-    for(int irrep_family_index_ket=0; irrep_family_index_ket<1; ++irrep_family_index_ket)
+    int irrep_family_index_bra=0; 
+    int irrep_family_index_ket=4;
 
       {
         // // Check that there are any lgi in irrep family
@@ -440,12 +439,15 @@ int main(int argc, char **argv)
           =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
         files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
-        if(not files_found)
-          {
-            std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
-            continue;
-          }
+//TODO: uncomment
+        // if(not files_found)
+        //   {
+        //     std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
+        //     continue;
+        //   }
+//TODO: uncomment
 
+        
         // std::cout<<"Seeds"<<std::endl;
         // for(int i=0; i<lgi_unit_tensors.size(); ++i)
         //   std::cout<<lgi_unit_tensors[i].Str()<<std::endl<<unit_tensor_seed_blocks[i]<<std::endl;
@@ -455,21 +457,33 @@ int main(int argc, char **argv)
         //   std::cout<<tensor.Str()<<std::endl;
 
         // Identify unit tensor subspaces for recurrence
-        std::vector<int>unit_tensor_subspace_subset;
+        std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+        // std::vector<int>unit_tensor_subspace_subset;
         spncci::GenerateRecurrenceUnitTensors(
-          run_parameters.Nmax+2*run_parameters.N1v,
+          run_parameters.Nmax, run_parameters.N1v,
           lgi_unit_tensors,unit_tensor_space,
-          unit_tensor_subspace_subset
+          unit_tensor_subspace_subsets
         );
+
+        for(auto it=unit_tensor_subspace_subsets.begin(); it!=unit_tensor_subspace_subsets.end(); ++it)
+          {
+            int Nnp,Nn;
+            std::tie(Nnp,Nn)=it->first;
+            std::set<int> subspaces=it->second;
+            std::cout<<Nnp<<"  "<<Nn<<std::endl;
+            for(int i : subspaces)
+              {
+                std::cout<<unit_tensor_space.GetSubspace(i).LabelStr()<<std::endl;
+              }
+          }
 
         std::cout<<"generate Nn0 hypersectors"<<std::endl;
         // Generate Nn=0 hypersectors to be computed by conjugation
         bool Nn0_conjugate_hypersectors=true;
         std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
         spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_Nn0(
-          run_parameters.Nmax,
-          baby_spncci_space,unit_tensor_space,
-          unit_tensor_subspace_subset, unit_tensor_hypersector_subsets_Nn0,
+          run_parameters.Nmax, baby_spncci_space, unit_tensor_space,
+          unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets_Nn0,
           irrep_family_index_ket, irrep_family_index_bra,
           Nn0_conjugate_hypersectors
         );
@@ -504,7 +518,7 @@ int main(int argc, char **argv)
         spncci::BabySpNCCIHypersectors baby_spncci_hypersectors(
           run_parameters.Nmax,
           baby_spncci_space, unit_tensor_space,
-          unit_tensor_subspace_subset, unit_tensor_hypersector_subsets,
+          unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets,
           irrep_family_index_bra,irrep_family_index_ket,
           Nn0_conjugate_hypersectors
         );
@@ -519,7 +533,7 @@ int main(int argc, char **argv)
         basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
 
 
-        // std::cout<<baby_spncci_hypersectors.DebugStr()<<std::endl;
+        std::cout<<baby_spncci_hypersectors.DebugStr()<<std::endl;
 
         // Initialize hypersectors with seeds
         // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
@@ -601,13 +615,14 @@ int main(int argc, char **argv)
           unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
         );
 
-        // std::cout<<"hypersectors"<<std::endl;
-        // spncci::PrintHypersectors(
-        //   baby_spncci_space,unit_tensor_space, 
-        //   baby_spncci_hypersectors,unit_tensor_hyperblocks
-        //   );
+        std::cout<<"hypersectors"<<std::endl;
+        spncci::PrintHypersectors(
+          baby_spncci_space,unit_tensor_space, 
+          baby_spncci_hypersectors,unit_tensor_hyperblocks
+          );
 
 
+        check_unit_tensors=true;
         if(check_unit_tensors)
           CheckHyperBlocks(
             irrep_family_index_bra,irrep_family_index_ket,
@@ -618,7 +633,6 @@ int main(int argc, char **argv)
 
 
   // }
-
 
 
 
@@ -741,7 +755,8 @@ int main(int argc, char **argv)
     space_u3s, run_parameters.num_observables
   );
 
-  assert(0);
+  // assert(0);
+
   // timer_recurrence.Stop();
   
   // std::cout << fmt::format("(Task time: {})",timer_recurrence.ElapsedTime()) << std::endl;
