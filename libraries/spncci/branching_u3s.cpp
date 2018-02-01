@@ -232,6 +232,142 @@ void InitializeU3SSectors(
 
 
   void 
+  ContractBabySpNCCIU3S(
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
+      const u3shell::RelativeRMEsU3SSubspaces& relative_observable,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+      basis::OperatorHyperblocks<double>& observable_hyperblocks
+    )
+  {
+    // TODO: add option to only keep lower triangle sectors if hermitian operator
+    // iterate over interaction get unit tensor family index,kappa0,L0
+    // iterate over target hypersectors to identify corresponding target
+    // identify baby_spncci_hypersector
+    // Contract interaction with unit tensor blocks and accumulate in
+    //  observable_hyperblocks
+
+    // zero initialize observable hyperblocks 
+    basis::SetHyperoperatorToZero(observable_hypersectors,observable_hyperblocks);
+
+    for(auto it=relative_observable.begin(); it!=relative_observable.end(); ++it)
+      {
+        // Relative rmes by unit tensor state index 
+        const std::vector<double>& relative_rmes=it->second;
+        
+        int unit_tensor_subspace_index,kappa0,L0;
+        std::tie(unit_tensor_subspace_index,kappa0,L0)=it->first;
+
+        // Look up unit tensor subspace to get N0, x0 and S0 
+        const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
+            =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+
+        int N0=unit_tensor_subspace.N0();
+        const u3::SU3& x0=unit_tensor_subspace.x0();
+        HalfInt S0=unit_tensor_subspace.S0();
+        int etap=unit_tensor_subspace.etap();
+        int eta=unit_tensor_subspace.eta();
+
+        // Look up conjugate unit tensor subspace index
+        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
+        int unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
+
+        //Get conjugate unit tensor subspace
+        const auto& unit_tensor_subspace_conj=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_conj);
+
+        // Get conjugate relative observables 
+        std::tuple<int,int,int> rme_labels_conj(unit_tensor_subspace_index_conj,kappa0,L0);
+        const std::vector<double>& relative_rmes_conj=relative_observable.at(rme_labels_conj);
+
+        //Look up observable subspace index
+        int ob_subspace_index
+            =observable_space.LookUpSubspaceIndex(u3shell::ObservableSubspaceLabels(N0,x0,S0,kappa0,L0));
+        
+        // Look up conjugate observable subspace index
+        int ob_subspace_index_conj
+          =observable_space.LookUpSubspaceIndex(u3shell::ObservableSubspaceLabels(-N0,u3::Conjugate(x0),S0,kappa0,L0));
+        
+        // Loop over unit tensor baby_spncci hypersectors 
+        for(int baby_spncci_hypersector_index=0; baby_spncci_hypersector_index<baby_spncci_hypersectors.size(); ++baby_spncci_hypersector_index)
+          {
+            const auto& baby_spncci_hypersector=baby_spncci_hypersectors.GetHypersector(baby_spncci_hypersector_index);
+            
+            // Check if hypersector contains desired unit tensor subspace
+            // Note: only Nnp>=Nn hypersectors exist, so will need to also contract over conjugate
+            if(baby_spncci_hypersector.operator_subspace_index()!=unit_tensor_subspace_index)
+              continue;
+
+            // get bra and ket indices
+            int bra_index=baby_spncci_hypersector.bra_subspace_index();
+            int ket_index=baby_spncci_hypersector.ket_subspace_index();
+            int rho0=baby_spncci_hypersector.multiplicity_index();
+
+            // Look up target observable hypersector and conjugate hypersector
+            int observable_hypersector_index
+                =observable_hypersectors.LookUpHypersectorIndex(bra_index,ket_index,ob_subspace_index,rho0);
+
+            int observable_hypersector_index_conj
+                =observable_hypersectors.LookUpHypersectorIndex(ket_index,bra_index,ob_subspace_index_conj,rho0);
+
+            // Get observable hyperblock and conjugate block
+            basis::OperatorBlock<double>& observable_block=observable_hyperblocks[observable_hypersector_index][1];
+            basis::OperatorBlock<double>& observable_block_conj
+                =observable_hyperblocks[observable_hypersector_index_conj][1];
+
+            // Get unit tensor hyperblocks
+            const basis::OperatorBlocks<double>& unit_tensor_blocks=unit_tensor_hyperblocks[baby_spncci_hypersector_index];
+
+            // conjugation factor base
+            // 
+            // get bra and ket subspace labels
+            const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_index);
+            const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_index);
+            const u3::U3& omegap=bra_subspace.omega();
+            const HalfInt& Sp=bra_subspace.S();
+            const u3::U3& omega=ket_subspace.omega();
+            const HalfInt& S=ket_subspace.S();
+
+            double conjugation_factor_base
+                =ParitySign(u3::ConjugationGrade(omegap)+Sp-u3::ConjugationGrade(omega)-S)
+                  *sqrt(
+                      1.*u3::dim(omegap)*am::dim(Sp)*u3::dim(u3::SU3(eta,0))
+                      /u3::dim(omega)/am::dim(S)/u3::dim(u3::SU3(etap,0))
+                    );
+
+            // Loop over unit tensors and contract
+            for(int unit_tensor_index=0; unit_tensor_index<unit_tensor_subspace.size(); ++unit_tensor_index)
+              {
+                observable_block+=relative_rmes[unit_tensor_index]*unit_tensor_blocks[unit_tensor_index];
+
+                // Get state labels 
+                int T0, S,T,Sp,Tp;
+                std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(unit_tensor_index);
+
+                // Get conjugate state index
+                std::tuple<int,int,int,int,int> conjugate_state(T0,S,T,Sp,Tp);
+                int unit_tensor_index_conj=unit_tensor_subspace_conj.LookUpStateIndex(conjugate_state);
+                
+                // calculate conjugation factor
+                double conjugation_factor
+                    =sqrt(am::dim(S)*am::dim(T)/am::dim(Sp)/am::dim(Tp))*conjugation_factor_base;
+
+                observable_block_conj
+                    +=conjugation_factor
+                      *relative_rmes_conj[unit_tensor_index_conj]
+                      *unit_tensor_blocks[unit_tensor_index_conj].transpose();
+              }
+
+          }
+      }          
+  }
+
+
+
+
+  void 
   ContractAndRegroupU3S(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,

@@ -132,9 +132,6 @@ namespace u3shell {
       }
   }
 
-
-
-
   std::string RelativeUnitTensorSpaceU3S::Str() const
   {
 
@@ -155,4 +152,78 @@ namespace u3shell {
       }
     return os.str();
   }
+
+   ObservableSubspaceU3S::ObservableSubspaceU3S(
+    int N0, u3::SU3 x0, HalfInt S0, int kappa0, int L0
+    )
+  {
+    // set values
+    labels_ = SubspaceLabelsType(N0,x0,S0,kappa0,L0);
+    PushStateLabels(1); 
+
+  }
+
+  
+  std::string ObservableSubspaceU3S::Str() const
+  {
+
+    return fmt::format(
+        "[{} {} {} {} {}]",
+        N0(),x0().Str(),S0(),kappa0(),L0()
+      );
+  }
+
+  std::string ObservableSubspaceU3S::LabelStr() const
+  {
+
+    return Str();
+  }
+
+  ObservableSpaceU3S::ObservableSpaceU3S(
+    const std::vector<u3shell::IndexedOperatorLabelsU3S>& observable_labels
+  )
+  {
+    
+    for(auto& tensor : observable_labels)
+      {
+        u3shell::OperatorLabelsU3S u3s_labels;
+        int kappa0,L0;
+        std::tie(u3s_labels,kappa0,L0)=tensor;
+        
+        // Extract labels 
+        int N0=u3s_labels.N0();
+        u3::SU3 x0=u3s_labels.x0();
+        HalfInt S0=u3s_labels.S0();
+
+        ObservableSubspaceU3S 
+          subspace(N0,x0,S0,kappa0,L0);
+
+        // push subspace if nonempty
+        if (subspace.size()!=0)
+          PushSubspace(subspace);
+      }
+
+  }
+
+
+  std::string ObservableSpaceU3S::Str() const
+  {
+
+    std::ostringstream os;
+    for (int subspace_index=0; subspace_index<size(); ++subspace_index)
+      {
+        const SubspaceType& subspace = GetSubspace(subspace_index);
+        
+        std::string subspace_string 
+          = fmt::format(
+              "index {:3} {} size {:3}",
+              subspace_index,
+              subspace.Str(),
+              subspace.size()
+            );
+                        
+        os << subspace_string << std::endl;
+      }
+    return os.str();
+  } 
 }

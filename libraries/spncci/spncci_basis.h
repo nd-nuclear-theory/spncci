@@ -36,6 +36,7 @@
   10/11/17 (aem) : Moved Nsigma0ForNuclide to lgi.h
   1/16/18 (aem) : Added new BabySpNCCIHypersector contructor for
     updated recurrence scheme
+  1/31/18 (aem) : Add ObservableBabySpNCCIHypersector class
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -565,24 +566,20 @@ namespace spncci
       //   space (BabySpNCCISpace): the space
       //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
 
-      BabySpNCCIHypersectors(
+
+    BabySpNCCIHypersectors(
         const spncci::BabySpNCCISpace& space,
-        const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
-        std::map< spncci::NnPair, std::set<int>>& operator_subsets,
-        std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
-        int irrep_family_index_bra=-1, int irrep_family_index_ket=-1
+        const u3shell::ObservableSpaceU3S& operator_space,
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1
       );
-      // TODO: Switch with hypersectors below for recurrence. And then remove. 
       //Overload of notation
       // Enumerate sector pairs connected by u3S subspaces of 
-      // relative unit tensors
+      // relative observables for Nnp>=Nn
       //
       // Arguments:
       //   space (BabySpNCCISpace): the space
-      //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
-      //   irrep_family_index=-1 means no restriction on which irrep family.
-      //   unit_tensor_hypersectors is a vector of vectors of indices for unit tensor
-      //   subsets indexed first by Nsum=Nnp+Nn and then by random order. 
+      //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space 
+      //   irrep_family_index=-1 means no restriction on which irrep family.    
 
       BabySpNCCIHypersectors(
         int Nmax,
@@ -620,6 +617,37 @@ namespace spncci
       const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
     );
+
+
+  class ObservableBabySpNCCIHypersectors
+    : public basis::BaseHypersectors<BabySpNCCISpace,u3shell::ObservableSpaceU3S>
+  {
+
+  public:
+      // constructor
+
+    ObservableBabySpNCCIHypersectors() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes
+
+
+    ObservableBabySpNCCIHypersectors(
+        const spncci::BabySpNCCISpace& baby_spncci_space,
+        const u3shell::ObservableSpaceU3S& observable_space,
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1
+      );
+      //Overload of notation
+      // Enumerate sector pairs connected by u3S subspaces of 
+      // relative observables for Nnp>=Nn
+      //
+      // Arguments:
+      //   space (BabySpNCCISpace): the space
+      //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space 
+      //   irrep_family_index=-1 means no restriction on which irrep family.    
+
+  };
+
+
 }  // namespace
 
 #endif

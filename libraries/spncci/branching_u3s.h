@@ -365,6 +365,18 @@ namespace spncci
       int num_observables
     );
 
+  void 
+  ContractBabySpNCCIU3S(
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
+      const u3shell::RelativeRMEsU3SSubspaces& relative_observable,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+      basis::OperatorHyperblocks<double>& observable_hyperblocks
+    );
+
 
   void 
     ContractAndRegroupU3S(
