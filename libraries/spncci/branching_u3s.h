@@ -14,6 +14,7 @@
   7/1/17 (aem): Fix incorrect spin conjugation phase
   1/16/18 (aem) : Add U3S block initialization and printing. Extracted
     from spncci.cpp
+  2/1/18 (aem) : Add ObservableHypersectorsU3S
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_BRANCHING_U3S_H_
@@ -226,6 +227,31 @@ namespace spncci
     std::string Str() const;
 
   };
+
+  ////////////////////////////////////////////////////////////////
+  // Hypersector
+  // omegaS hypersectors
+  ////////////////////////////////////////////////////////////////
+
+  class ObservableHypersectorsU3S
+    : public basis::BaseHypersectors<spncci::SpaceU3S,u3shell::ObservableSpaceU3S>
+  {
+
+  public:
+      // constructor
+
+    ObservableHypersectorsU3S() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes
+
+    ObservableHypersectorsU3S(
+        const spncci::SpaceU3S& space,
+        const u3shell::ObservableSpaceU3S& operator_space
+      );
+      // Enumerate sector pairs connected by U3S subspaces of 
+      // observables
+  };
+
 
   ////////////////////////////////////////////////////////////////
   // Sector

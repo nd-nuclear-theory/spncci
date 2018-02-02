@@ -87,6 +87,67 @@ namespace spncci
                        bra_index(),ket_index(), N0(), x0().Str(),S0(),kappa0(),L0(),rho0());
   }
 
+
+  ObservableHypersectorsU3S::ObservableHypersectorsU3S(
+    const spncci::SpaceU3S& space_u3s,
+    const u3shell::ObservableSpaceU3S& observable_space
+  )
+  {
+    int hypersector_index=0;
+    for (int bra_subspace_index=0; bra_subspace_index<space_u3s.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space_u3s.size(); ++ket_subspace_index)
+        {
+          // retrieve subspaces
+          const SubspaceU3S& bra_subspace = space_u3s.GetSubspace(bra_subspace_index);
+          const SubspaceU3S& ket_subspace = space_u3s.GetSubspace(ket_subspace_index);
+
+          // For each observable subspace, check if its an allowed observable subspace determined
+          // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
+          for(int observable_subspace_index=0; observable_subspace_index<observable_space.size(); ++observable_subspace_index)
+            {
+              bool allowed_subspace = true;
+              const u3shell::ObservableSubspaceU3S& 
+                observable_subspace=observable_space.GetSubspace(observable_subspace_index);
+
+              // U(1)
+              allowed_subspace
+                &=(ket_subspace.omega().N()+observable_subspace.N0()-bra_subspace.omega().N() == 0);
+              
+              // spin
+              //
+              // Note: Basic two-body constaints can be placed on Sp
+              // and Sn triangularity based on two-body nature of
+              // observable, so (delta Sp)<=2 and (delta Sn)<=2.  However, in
+              // general, the observable does not have sharp Sp0 or Sn0.
+              allowed_subspace &= am::AllowedTriangle(ket_subspace.S(),observable_subspace.S0(),bra_subspace.S());
+              // allowed_subspace &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
+              // allowed_subspace &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
+              if (!allowed_subspace)
+                continue;
+
+              // find SU(3) multiplicity and check SU(3) selection
+              int multiplicity = u3::OuterMultiplicity(
+                  ket_subspace.omega().SU3(),
+                  observable_subspace.x0(),
+                  bra_subspace.omega().SU3()
+                );
+
+              // push sectors (tagged by multiplicity)
+              for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+                {
+                  PushHypersector(
+                    HypersectorType(
+                      bra_subspace_index,ket_subspace_index,observable_subspace_index,
+                      bra_subspace, ket_subspace,observable_subspace,
+                      multiplicity_index
+                      )
+                    );
+                }
+            }
+        }
+  }
+
+
   void GetSectorsU3S(
       const spncci::SpaceU3S& space, 
       const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
@@ -364,9 +425,6 @@ void InitializeU3SSectors(
       }          
   }
 
-
-
-
   void 
   ContractAndRegroupU3S(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
@@ -547,5 +605,8 @@ void InitializeU3SSectors(
         // std::cout<<"finished target sectors "<<std::endl;
       }
   }// end function
+
+
+
 
 }  // namespace
