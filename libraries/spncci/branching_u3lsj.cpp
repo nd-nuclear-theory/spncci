@@ -28,29 +28,6 @@ namespace spncci
     // save labels
     labels_ = ls_labels;
 
-    // // old aem code:
-    //
-    // int sector_index=0;
-    // int state_index=0;
-    // // iterate over U(3)xSU(2) irreps
-    // for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
-    //   {
-    //     SubspaceU3S u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
-    //     u3::U3 omega(u3s_subspace.omega());
-    //     int kappa_max=u3::BranchingMultiplicitySO3(omega.SU3(),L);
-    //     // if space contains S and omega can branch to L
-    //     if(kappa_max>0 && u3s_subspace.S()==S)
-    //       {
-    //         //Construct subspace
-    //         int dim=u3s_subspace.full_dimension();
-    //         PushStateLabels(StateLabelsType(u3s_subspace_index));
-    //         sector_index_lookup_[state_index]=sector_index;
-    //         // increment index 
-    //         ++state_index;
-    //         sector_index+=kappa_max*dim;
-    //       }
-    //   }
-
     // scan SpaceU3S for states to accumulate
     int substate_offset = 0;  // accumulated offset
     for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
@@ -98,53 +75,7 @@ namespace spncci
     return fmt::format("[{} {}]",L(),S());
   }
 
-#if 0
-  // (mac): aem implementation, with ad hoc sorting order and risk of empty LS spaces
-  SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
-  {
- 
-    // std::cout << fmt::format("[Building LS space: J={}]",J.Str()) << std::endl;
- 
-    // iterate over U(3)xSU(2) subspaces
-    for(int u3s_subspace_index=0; u3s_subspace_index<u3s_space.size(); ++u3s_subspace_index)
-      // for(auto u3s_subspace : u3s_space)
-      {
-        const SubspaceU3S& u3s_subspace=u3s_space.GetSubspace(u3s_subspace_index);
-        HalfInt S = u3s_subspace.S();
-        // iterate through omega space
-        u3::U3 omega = u3s_subspace.omega();
- 
-        // std::cout << fmt::format("U3S subspace {}",u3s_subspace.Str()) << std::endl;
- 
-        // interate over possible L values
-        //
-        // CAUTION (mac): I believe we risk creating empty LS spaces.
-        // In the following code, the (L,S) pairs used in creating LS
-        // subspaces are determined purely by triangularity JxS->L
-        // without regard to whether or not this L exists in the
-        // branching of any U3 subspace obtained for that S.
-      
-        for(int L=int(abs(S-J)); L<=int(S+J); ++L)
-          {
-            //std::cout << fmt::format("Trying (L,S) = ({},{})",L,S) << std::endl;
-            if(ContainsSubspace(LSLabels(L,S)))
-              continue;
-            SubspaceLS ls_subspace(LSLabels(L,S),u3s_space);
-            PushSubspace(ls_subspace);
-          }
-      }
-    // // get dimension and starting index of last subspace
-    // const SubspaceType& subspace=GetSubspace(subspaces_.size()-1);
-    // HalfInt S=subspace.S();
-    // u3::U3 omega=std::get<0>(subspace.GetStateLabels(subspace.size()-1));
-    // int index=std::get<2>(subspace.GetStateLabels(subspace.size()-1));
-    // u3::U3S omegaS(omega,S);
-    // int dim=u3s_space.LookUpSubspace(omegaS).full_dimension();
-    // dimension_=dim+index;
-  }
-#endif
 
-#if 1  
   // (mac): clean implementation, with sorted LS spaces
   SpaceLS::SpaceLS(const SpaceU3S& u3s_space, HalfInt J)
   {
@@ -177,7 +108,7 @@ namespace spncci
         PushSubspace(SubspaceLS(ls_labels,u3s_space));
       }
   }
-#endif
+
 
 
   std::string SectorLabelsLS::Str() const
@@ -222,19 +153,22 @@ namespace spncci
   }
 
 
+
   void 
   ContractAndRegroupLSJ(
         const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
         u3::WCoefCache& w_cache,
         const spncci::SpaceU3S& u3s_space,
-        const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-        const spncci::OperatorBlocks& source_blocks,
+        const u3shell::ObservableSpaceU3S& observable_space,
+        const spncci::ObservableHypersectorsU3S& source_hypersectors,
+        const spncci::OperatorBlocks& source_hyperblocks,
         const spncci::SpaceLS& target_space_bra,
         const spncci::SpaceLS& target_space_ket,
         const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
         spncci::OperatorBlocks& target_blocks
     )
   {
+    //NEW VERSION
     // For a given Jp,J0,J sector
     // spncci::SpaceLS ls_space(u3s_space, J);
     //for each target, get sources and multiply by appropriate coefficient.
@@ -272,35 +206,42 @@ namespace spncci
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
         
         // std::cout<<"starting loop over sources "<<std::endl;
-        for(int s=0; s<source_sector_labels.size(); ++s)
+        for(int s=0; s<source_hypersectors.size(); ++s)
           {
-            const spncci::SectorLabelsU3S& source_labels=source_sector_labels[s];
-            const spncci::OperatorBlock& source_block=source_blocks.at(s);
+            const auto& source_hypersector=source_hypersectors.GetHypersector(s);
 
-            if(L0!=source_labels.L0())
-              continue;
-            
-            if(S0!=source_labels.S0())
-              continue;
+            // const spncci::SectorLabelsU3S& source_labels=source_sector_labels[s];
+            const spncci::OperatorBlock& source_block=source_hyperblocks.at(s);
 
-            int source_index_ket=source_labels.ket_index();
-            int source_index_bra=source_labels.bra_index();
+            int source_index_ket=source_hypersector.ket_subspace_index();
+            int source_index_bra=source_hypersector.bra_subspace_index();
+            int source_index_operator=source_hypersector.operator_subspace_index();
             
+
             // Check if sector is source for target sector
             if(not bra_subspace.ContainsState(std::tuple<int>(source_index_bra)))
               continue;
+
             if(not ket_subspace.ContainsState(std::tuple<int>(source_index_ket)))
+              continue;
+
+            const auto& observable_subspace=observable_space.GetSubspace(source_index_operator);
+
+            if(L0!=observable_subspace.L0())
+              continue;
+            
+            if(S0!=observable_subspace.S0())
               continue;
 
             // (indexp,index)->position of upper left corner of subsector
             int indexp=bra_subspace.sector_index(bra_subspace.LookUpStateIndex(std::tuple<int>(source_index_bra)));
             int index=ket_subspace.sector_index(ket_subspace.LookUpStateIndex(std::tuple<int>(source_index_ket)));
 
-            //Extract source operator labels 
-            const u3::SU3& x0=source_labels.x0();
-            const HalfInt& S0=source_labels.S0();
-            int kappa0=source_labels.kappa0();
-            int rho0=source_labels.rho0();
+            //Extract source hypersector labels 
+            const u3::SU3& x0=observable_subspace.x0();
+            const HalfInt& S0=observable_subspace.S0();
+            int kappa0=observable_subspace.kappa0();
+            int rho0=source_hypersector.multiplicity_index();
 
             const spncci::SubspaceU3S& 
               u3s_subspace_bra=u3s_space.GetSubspace(source_index_bra);
@@ -333,20 +274,17 @@ namespace spncci
                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
                   spncci::MatrixFloatType Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
                   // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
-                            // <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
+                  //           <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
                   int start_indexp=(kappa_p-1)*source_dimp+indexp;
                   int start_index=(kappa-1)*source_dim+index;
-                  // std::cout<<"branching"<<std::endl
-                  //   <<"W "<<Wcoef<<"  Jcoef "<<Jcoef<<std::endl
-                  //   <<source_block<<std::endl<<std::endl;
-                  // std::cout<<" target "<<start_indexp<<"  "<< start_index<<"  "<< source_dimp<<"  "<< source_dim<<std::endl;
-                  // <<target_sector.rows()<<"  "<<target_sector.cols()<<std::endl<<std::endl;
+
                   target_block.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_block;
                   // std::cout<<target_block<<std::endl<<std::endl;
                 }
           }
       }
   }
+
 
   void
   ConstructOperatorMatrix(
@@ -405,8 +343,9 @@ namespace spncci
   void ConstructBranchedBlock(
       u3::WCoefCache& w_cache,
       const spncci::SpaceU3S& space_u3s,
-      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
-      const spncci::OperatorBlocks& blocks_u3s,
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const spncci::ObservableHypersectorsU3S& observable_hypersectors,
+      const spncci::OperatorBlocks& observable_blocks,
       std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
       int J0,
       const typename spncci::SectorsSpJ::SectorType& sector_spj,
@@ -431,13 +370,14 @@ namespace spncci
 
     // branch LS sectors to LSJ
     spncci::OperatorBlocks matrices_lsj;  
-    spncci::ContractAndRegroupLSJ(
-        bra_J,J0,ket_J,
-        w_cache,
-        space_u3s,sectors_u3s,blocks_u3s,
-        bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
-      );
+    // std::cout<<"contract and regroup"<<std::endl;
+    ContractAndRegroupLSJ(
+      bra_J,J0,ket_J,w_cache,space_u3s,
+      observable_space,observable_hypersectors,observable_blocks,
+      bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj
+    );
 
+    // std::cout<<"get operator matrix "<<std::endl;
     // collect LSJ sectors into J matrix
     spncci::ConstructOperatorMatrix(
         bra_space_lsj,ket_space_lsj,sectors_lsj,matrices_lsj,

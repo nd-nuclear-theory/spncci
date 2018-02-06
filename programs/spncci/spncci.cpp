@@ -76,6 +76,8 @@
   1/16/18 (aem) : Offloaded explicit construction and recurrence
     checks to explicit_construction.h
   1/30/18 (aem): Overhalled seed generation and recurrence
+  2/5/18 (aem): Switched from using u3s sectors to u3s hypersectors
+    combined with observable spaces
 ****************************************************************/
 
 #include <cstdio>
@@ -290,21 +292,22 @@ int main(int argc, char **argv)
   // enumerate u3S space from baby spncci for each observable 
   spncci::SpaceU3S space_u3s(baby_spncci_space);
 
-  // vector of sectors for each observable
-  std::vector<std::vector<spncci::SectorLabelsU3S>> observables_sectors_u3s;//(run_parameters.num_observables);
-  
-  // vector of blocks for u3 sectors for each hbar omega,for each observable
-  std::vector<std::vector<spncci::OperatorBlocks>> observables_blocks_u3s;//(run_parameters.hw_values.size());
+  // Create observable spaces for each observable including Hamiltonian
+  std::vector<u3shell::ObservableSpaceU3S> observable_spaces(run_parameters.num_observables);
+  for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
+      observable_spaces[ob_num]=u3shell::ObservableSpaceU3S(observable_symmetries_u3s[ob_num]);    
 
-  spncci::InitializeU3SSectors(
-      space_u3s,run_parameters.num_observables, 
-      observable_symmetries_u3s,observables_sectors_u3s
+  // Generate vector of hypersectors for each observable
+  std::vector<spncci::ObservableHypersectorsU3S> 
+    observable_hypersectors_by_observable(run_parameters.num_observables);
+  for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
+    observable_hypersectors_by_observable[ob_num]=spncci::ObservableHypersectorsU3S(space_u3s,observable_spaces[ob_num]);
+
+  // Write observable u3s hypersector information to results file
+  spncci::WriteU3SHypersectorSectorInformation(
+      results_stream,space_u3s,run_parameters.num_observables, 
+      observable_hypersectors_by_observable
     );
-
-  spncci::WriteU3SSectorInformation(
-      results_stream, space_u3s,run_parameters.num_observables, 
-      observables_sectors_u3s
-      );
 
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
@@ -330,12 +333,15 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   std::cout << "Allocating u3s blocks..." << std::endl;
 
-  spncci::InitializeU3SBlocks(
-      space_u3s,
-      run_parameters.num_observables, 
-      run_parameters.hw_values,
-      observables_sectors_u3s,
-      observables_blocks_u3s
+  // By hw, by observable
+  std::vector<std::vector<spncci::OperatorBlocks>> 
+    observable_hypersector_blocks_array;
+  
+  spncci::InitializeU3SObservableBlocks(
+      space_u3s,run_parameters.num_observables,
+      run_parameters.hw_values.size(),
+      observable_hypersectors_by_observable,
+      observable_hypersector_blocks_array
     );
 
   ////////////////////////////////////////////////////////////////
@@ -543,33 +549,31 @@ int main(int argc, char **argv)
 
               // std::cout<<"observable "<<observable_index<<" hw "<<run_parameters.hw_values[hw_index]<<std::endl;
               const u3shell::RelativeRMEsU3SSubspaces& relative_observable=observables_relative_rmes[hw_index][observable_index];
-              const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
-              spncci::OperatorBlocks& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
+              // const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+              // spncci::OperatorBlocks& blocks_u3s=observables_blocks_u3s[hw_index][observable_index];
       
+              // OLD CODE
+              // ContractAndRegroupU3S(
+              //     unit_tensor_space,baby_spncci_space,space_u3s,relative_observable,
+              //     baby_spncci_hypersectors,unit_tensor_hyperblocks,sectors_u3s,blocks_u3s
+              //   );
 
-              // const std::vector<spncci::SectorLabelsSpU3S>& sectors_spu3s=observables_sectors_spu3s[observable_index];
-              // basis::OperatorBlocks<double>& blocks_spu3s=observables_blocks_spu3s[hw_index][observable_index];
 
-              ContractAndRegroupU3S(
-                  unit_tensor_space,baby_spncci_space,space_u3s,relative_observable,
-                  baby_spncci_hypersectors,unit_tensor_hyperblocks,sectors_u3s,blocks_u3s
+              // NEW CODE 
+              spncci::OperatorBlocks& observable_blocks
+                =observable_hypersector_blocks_array[hw_index][observable_index];
+
+              const spncci::ObservableHypersectorsU3S& observable_hypersectors
+                =observable_hypersectors_by_observable[observable_index];
+
+              spncci::ContractAndRegroupU3S(
+                  unit_tensor_space, baby_spncci_space,observable_spaces[observable_index],
+                  space_u3s,relative_observable,baby_spncci_hypersectors,
+                  unit_tensor_hyperblocks,observable_hypersectors,observable_blocks
                 );
 
-
-              // spncci::ContractAndRegroupSpU3S(
-              //     unit_tensor_space, baby_spncci_space,
-              //     spu3s_space,relative_observable,
-              //     baby_spncci_hypersectors,unit_tensor_hyperblocks,
-              //     sectors_spu3s,blocks_spu3s);
-
-              // for(int i=0; i<blocks_u3s.size(); ++i)
-              //   if(not mcutils::IsZero(blocks_u3s[i]-blocks_spu3s[i],1e-6))
-              //   {
-              //     std::cout<<"blocks "<<i<<" do not match"<<std::endl
-              //     <<blocks_u3s[i]<<std::endl<<std::endl<<blocks_spu3s[i]<<std::endl<<std::endl; 
-              //     assert(mcutils::IsZero(blocks_u3s[i]-blocks_spu3s[i]));
-              //   }
-
+              // for(auto block : observable_blocks)
+              //   std::cout<<block<<std::endl<<std::endl;
             }
       }// end lgi_pair
 
@@ -695,16 +699,20 @@ int main(int argc, char **argv)
           const int sector_index = subspace_index;  // for Hamiltonian (scalar)
           const int J0 = run_parameters.observable_J0_values[observable_index];
           assert(J0==0);
+
           spncci::ConstructBranchedBlock(
-              w_cache,
-              space_u3s,
-              observables_sectors_u3s[observable_index],
-              observables_blocks_u3s[hw_index][observable_index],
-              spaces_lsj,
-              J0,
-              observable_sectors[observable_index].GetSector(sector_index),
-              hamiltonian_matrix
-            );
+            w_cache,
+            space_u3s,
+            observable_spaces[observable_index],
+            observable_hypersectors_by_observable[observable_index],
+            observable_hypersector_blocks_array[hw_index][observable_index],
+            spaces_lsj,
+            J0,
+            observable_sectors[observable_index].GetSector(sector_index),
+            hamiltonian_matrix
+          );
+
+
 
           std::cout
             << fmt::format("J = {}: {}x{}",J,hamiltonian_matrix.rows(),hamiltonian_matrix.cols())
@@ -824,16 +832,19 @@ int main(int argc, char **argv)
               // branch observable block
               spncci::OperatorBlock observable_block;
               const int J0 = run_parameters.observable_J0_values[observable_index];  // well, J0 had better be 0!
+
               spncci::ConstructBranchedBlock(
-                  w_cache,
-                  space_u3s,
-                  observables_sectors_u3s[observable_index],
-                  observables_blocks_u3s[hw_index][observable_index],
-                  spaces_lsj,
-                  J0,
-                  observable_sectors[observable_index].GetSector(sector_index),
-                  observable_block
-                );
+                w_cache,
+                space_u3s,
+                observable_spaces[observable_index],
+                observable_hypersectors_by_observable[observable_index],
+                observable_hypersector_blocks_array[hw_index][observable_index],
+                spaces_lsj,
+                J0,
+                observable_sectors[observable_index].GetSector(sector_index),
+                observable_block
+              );
+
 
               // calculate observable results
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];

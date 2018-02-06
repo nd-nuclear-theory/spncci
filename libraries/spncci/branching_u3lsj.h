@@ -13,6 +13,7 @@
   6/11/17 (mac): Impose SU(3)->L branching rule and sort LS subspaces.
   7/7/17 (mac): Replace all-at-once observable branching with on-demand
     branching of each (J',J) block (ConstructBranchedBlock).
+  2/5/18 (aem): Updated ConstructBranchedBlock to used u3s hypsectors
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_BRANCHING_U3LSJ_H_
@@ -336,18 +337,7 @@ namespace spncci
   //                                RelativeRMEsU3ST defined in upcoupling.h
   // u3_sectors (output) : container with SectorLabelsU3S keys and index values
 
-  void 
-    ContractAndRegroupLSJ(
-        const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
-        u3::WCoefCache& w_cache,
-        const spncci::SpaceU3S& u3s_space,
-        const std::vector<spncci::SectorLabelsU3S>& source_sector_labels,
-        const spncci::OperatorBlocks& source_blocks,
-        const spncci::SpaceLS& target_space_bra,
-        const spncci::SpaceLS& target_space_ket,
-        const std::vector<spncci::SectorLabelsLS>& target_sector_labels,
-        spncci::OperatorBlocks& target_blocks
-      );
+
 
   // Sums over omega,omega', omega0, kappa', kappa, and kappa0 to obtain
   // LS reduced matrix elements 
@@ -361,19 +351,19 @@ namespace spncci
     spncci::OperatorBlock& operator_matrix
     );
 
-  void ConstructBranchedBlock(
+
+    void ConstructBranchedBlock(
       u3::WCoefCache& w_cache,
       const spncci::SpaceU3S& space_u3s,
-      const std::vector<spncci::SectorLabelsU3S>& sectors_u3s,
-      const spncci::OperatorBlocks& blocks_u3s,
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const spncci::ObservableHypersectorsU3S& observable_hypersectors,
+      const spncci::OperatorBlocks& observable_blocks,
       std::map<HalfInt,spncci::SpaceLS>& spaces_lsj,
       int J0,
       const typename spncci::SectorsSpJ::SectorType& sector_spj,
       spncci::OperatorBlock& block_spj
     );
   // Construct J branched observable block.
-  
-
 }  // namespace
 
 #endif

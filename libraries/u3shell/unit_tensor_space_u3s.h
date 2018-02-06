@@ -225,7 +225,7 @@ namespace u3shell {
 
     // constructor
     ObservableSubspaceU3S (
-      int N0, u3::SU3 x0, HalfInt S0, int L0, int kappa0
+      int N0, u3::SU3 x0, HalfInt S0, int kappa0, int L0
      );
 
     // accessors

@@ -249,63 +249,7 @@ int main(int argc, char **argv)
             } 
         }
     }
-  ////////////////////////////////////////////////////////////////
-  // Regroup U3S sector tests -- aem old tests
-  ////////////////////////////////////////////////////////////////  
-  if(false)
-  {
-    std::cout<<"U3S Sectors "<<std::endl;
-    spncci::SpaceU3S space(baby_spncci_space);
-    // spncci::SectorLabelsU3SCache u3s_sectors;
-    // To test sector construction
-    int N1v=1;
-    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_tensor_labels;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v, relative_tensor_labels);
-    std::vector<u3shell::IndexedOperatorLabelsU3S> tensor_labels;
-    for(auto unit_tensor : relative_tensor_labels)
-      {
-        // std::cout<<unit_tensor.Str()<<std::endl;
-        u3shell::OperatorLabelsU3S operator_labels(unit_tensor.operator_labels());
-        MultiplicityTagged<int>::vector L0_kappa0=u3::BranchingSO3(operator_labels.x0());
-        int L0=L0_kappa0[0].irrep;
-        int kappa0=L0_kappa0[0].tag;
-        // std::cout<<"tensor "<<operator_labels.Str()<<" "<<kappa0<<"  "<<L0<<std::endl;
-        tensor_labels.push_back(u3shell::IndexedOperatorLabelsU3S(operator_labels,kappa0,L0));
-      }
 
-    std::vector<spncci::SectorLabelsU3S> sector_vector;
-
-    spncci::GetSectorsU3S(space,tensor_labels,sector_vector);
-    std::cout<<"number of sectors "<<sector_vector.size()<<std::endl;
-    int i=0;
-    basis::MatrixVector matrix_vector(sector_vector.size());
-    std::cout<<"space"<<std::endl;
-    for(int i=0; i<space.size(); ++i)
-      std::cout<<space.GetSubspace(i).labels().Str()<<std::endl;
-    for(auto& sector : sector_vector)
-      {
-        // if(i<10)
-        bool allowed=sector.bra_index()==sector.ket_index();
-        allowed&=sector.bra_index()<3;
-        if(allowed)
-        {
-          u3::U3S omegaS_bra=space.GetSubspace(sector.bra_index()).labels();
-          u3::U3S omegaS_ket=space.GetSubspace(sector.ket_index()).labels();
-          std::cout<<fmt::format(" {}",sector.Str())<<std::endl;
-          std::cout<<"  "<<omegaS_bra.Str()<<"  "<< omegaS_ket.Str()<<std::endl;
-
-          
-          const spncci::SubspaceU3S& ket_subspace=space.GetSubspace(sector.ket_index());
-          const spncci::SubspaceU3S& bra_subspace=space.GetSubspace(sector.bra_index());
-          int full_dimension_bra=bra_subspace.full_dimension();
-          int full_dimension_ket=ket_subspace.full_dimension();
-          matrix_vector[i]=Eigen::MatrixXd::Zero(full_dimension_bra,full_dimension_ket);
-          // std::cout<<matrix_vector[i]<<std::endl;
-
-        }
-        ++i;
-      }
-  }
   ////////////////////////////////////////////////////////////////
   // Regroup LS test state tests -- aem old tests
   ////////////////////////////////////////////////////////////////

@@ -206,11 +206,58 @@ namespace spncci
   }
 
 
-  void WriteU3SSectorInformation(
+  // void WriteU3SSectorInformation(
+  //     std::ostream& out_stream,
+  //     const spncci::SpaceU3S& space_u3s,
+  //     int num_observables, 
+  //     const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
+  //   )
+  // {
+
+  //   StartNewSection(out_stream,"U3S sector dimensions");
+  //   out_stream
+  //     << "# observable_index num_sectors max_sector_entries observable_entries"
+  //     << std::endl;
+
+  //   // for each observable, enumerate sectors 
+  //   int total_entries = 0;  // total across observables, but not across hw
+  //   int max_sector_entries = 0;
+  //   int max_observable_entries = 0;
+  //   for(int observable_index=0; observable_index<num_observables; ++observable_index) 
+  //     {
+  //       const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+
+  //       // do counting for this observable
+  //       int observable_entries = 0;
+  //       for(int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+  //         {
+  //           int rows=space_u3s.GetSubspace(sectors_u3s[sector_index].bra_index()).full_dimension();
+  //           int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
+  //           int sector_entries = rows*cols;
+  //           max_sector_entries = std::max(max_sector_entries,sector_entries);
+  //           observable_entries += sector_entries;
+  //         }
+
+  //       // write statistics for this observable
+  //       out_stream
+  //         << fmt::format(
+  //             "{:2d} {:5d} {:10d} {:10d}",
+  //             observable_index,sectors_u3s.size(),max_sector_entries,observable_entries
+  //           )
+  //         << std::endl;
+
+
+  //       // accumulate counting from this observable -- totals across observables are not currently output
+  //       max_observable_entries = std::max(max_observable_entries,observable_entries);
+  //       total_entries += observable_entries;
+  //     }
+  // }
+
+    void WriteU3SHypersectorSectorInformation(
       std::ostream& out_stream,
       const spncci::SpaceU3S& space_u3s,
       int num_observables, 
-      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
+      const std::vector<spncci::ObservableHypersectorsU3S>& observables_hypersectors_u3s
     )
   {
 
@@ -225,14 +272,16 @@ namespace spncci
     int max_observable_entries = 0;
     for(int observable_index=0; observable_index<num_observables; ++observable_index) 
       {
-        const std::vector<spncci::SectorLabelsU3S>& sectors_u3s=observables_sectors_u3s[observable_index];
+        const spncci::ObservableHypersectorsU3S& hypersectors_u3s
+                =observables_hypersectors_u3s[observable_index];
 
         // do counting for this observable
         int observable_entries = 0;
-        for(int sector_index=0; sector_index<sectors_u3s.size(); ++sector_index)
+        for(int sector_index=0; sector_index<hypersectors_u3s.size(); ++sector_index)
           {
-            int rows=space_u3s.GetSubspace(sectors_u3s[sector_index].bra_index()).full_dimension();
-            int cols=space_u3s.GetSubspace(sectors_u3s[sector_index].ket_index()).full_dimension();
+            const auto& hypersector_u3s=hypersectors_u3s.GetHypersector(sector_index);
+            int rows=space_u3s.GetSubspace(hypersector_u3s.bra_subspace_index()).full_dimension();
+            int cols=space_u3s.GetSubspace(hypersector_u3s.ket_subspace_index()).full_dimension();
             int sector_entries = rows*cols;
             max_sector_entries = std::max(max_sector_entries,sector_entries);
             observable_entries += sector_entries;
@@ -242,7 +291,7 @@ namespace spncci
         out_stream
           << fmt::format(
               "{:2d} {:5d} {:10d} {:10d}",
-              observable_index,sectors_u3s.size(),max_sector_entries,observable_entries
+              observable_index,hypersectors_u3s.size(),max_sector_entries,observable_entries
             )
           << std::endl;
 

@@ -9,6 +9,7 @@
   6/17/17 (mac): Created.
   6/24/17 (mac): Add SpU3S subspace listing.
   6/27/17 (mac): Suppress output for empty subspaces or sectors.
+  2/5/18 (aem): Add WriteU3SHypersectorSectorInformation 
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_RESULTS_OUTPUT_H_
@@ -118,11 +119,11 @@ namespace spncci
       HalfInt Nsigma0
     );
 
-  void WriteU3SSectorInformation(
+   void WriteU3SHypersectorSectorInformation(
       std::ostream& out_stream,
       const spncci::SpaceU3S& space_u3s,
       int num_observables, 
-      const std::vector<std::vector<spncci::SectorLabelsU3S>>& observables_sectors_u3s
+      const std::vector<spncci::ObservableHypersectorsU3S>& observables_hypersectors_u3s
     );
 
   void WriteCalculationParameters(
