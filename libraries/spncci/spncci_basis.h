@@ -638,7 +638,7 @@ namespace spncci
       );
       //Overload of notation
       // Enumerate sector pairs connected by u3S subspaces of 
-      // relative observables for Nnp>=Nn
+      // relative observables between states in either of the two irrep families
       //
       // Arguments:
       //   space (BabySpNCCISpace): the space

@@ -676,28 +676,26 @@ namespace spncci
           // if(Nn>Nnp)
           //   continue;
 
-          // Check if baby spncci subspaces contained in bra and ket irreps
+          // Check if baby spncci subspaces contained in either the bra or the ket irrep families
           //
-          // Check bra
-          bool in_irrep_family_bra=false; 
-          if(irrep_family_index_bra==-1)
-            in_irrep_family_bra=true;
+          // Check bra subspace
+          bool allowed_subspace=false; 
+          if(irrep_family_index_bra==-1 && irrep_family_index_bra==-1 )
+            allowed_subspace=true;
 
-          else if(irrep_family_index_bra==bra_subspace.irrep_family_index())
-            in_irrep_family_bra=true;
+          else if(irrep_family_index_bra==bra_subspace.irrep_family_index() 
+                  &&irrep_family_index_ket==ket_subspace.irrep_family_index()
+                  )
+            allowed_subspace=true;
 
-          // Check ket
-          bool in_irrep_family_ket=false; 
-          if(irrep_family_index_ket==-1)
-            in_irrep_family_ket=true;
-
-          else if(irrep_family_index_ket==ket_subspace.irrep_family_index())
-            in_irrep_family_ket=true;
+          else if(irrep_family_index_bra==ket_subspace.irrep_family_index()
+                  && irrep_family_index_ket==bra_subspace.irrep_family_index()
+                )
+            allowed_subspace=true;
 
           // if not in bra or ket, continue;
-          if(not (in_irrep_family_bra && in_irrep_family_ket))
+          if(not allowed_subspace)
             continue;
-
 
           // For each observable subspace, check if its an allowed observable subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors

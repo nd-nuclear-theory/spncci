@@ -185,7 +185,7 @@ int main(int argc, char **argv)
       restrict_positive_N0
     );
 
-  std::cout<<"comput seeds "<<std::endl;
+  std::cout<<"compute seeds "<<std::endl;
   lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels;
   std::vector<basis::MatrixVector> unit_tensor_spncci_matrices_array;
   bool restrict_seeds=false;

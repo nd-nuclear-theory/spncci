@@ -20,6 +20,9 @@
 
 namespace spncci
 {
+  typedef std::pair<int,int> LGIPair;
+  typedef std::unordered_map<spncci::LGIPair,spncci::ObservableBabySpNCCIHypersectors,boost::hash<LGIPair>>
+            BabySpNCCIObservableHypersectorTable;
 
   void GenerateRecurrenceUnitTensors(
     int Nmax, int N1v,
@@ -79,6 +82,22 @@ namespace spncci
     );
   // Recursively computes unit tensor hyperblocks for Nnp>=Nn from 
   // recurrence relation derived in McCoy2018
+
+  bool
+  GenerateUnitTensorHyperblocks(
+    const spncci::LGIPair& lgi_pair,
+    int Nmax, int N1v,
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const spncci::SpNCCISpace& spncci_space,
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    const spncci::KMatrixCache& k_matrix_cache,
+    const spncci::KMatrixCache& kinv_matrix_cache,
+    u3::UCoefCache& u_coef_cache,
+    u3::PhiCoefCache& phi_coef_cache,
+    spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+    basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+    );
 
 } //namespace 
 

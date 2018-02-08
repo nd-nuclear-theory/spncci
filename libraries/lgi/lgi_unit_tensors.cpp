@@ -284,7 +284,7 @@ namespace lgi
     {
       // open output file
       bool file_found=false;
-      std::cout << "opening " << filename << std::endl;      
+      // std::cout << "opening " << filename << std::endl;      
       std::ifstream in_stream(filename,std::ios_base::in);
       if(not bool(in_stream))
         {
@@ -364,7 +364,7 @@ namespace lgi
       basis::MatrixVector& blocks
     )
     {
-      std::cout << "opening " << filename << std::endl;      
+      // std::cout << "opening " << filename << std::endl;      
       bool file_found=false;
       std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
       if(not bool(in_stream))

@@ -12,6 +12,7 @@
 
 #include "cppformat/format.h"
 #include "mcutils/eigen.h"
+#include "lgi/lgi_unit_tensors.h"
 #include "sp3rlib/u3coef.h"
 #include "spncci/spncci_common.h"
 
@@ -307,7 +308,7 @@ void GenerateRecurrenceUnitTensors(
         =ParitySign(u3::ConjugationGrade(sigmap)+lgi_bra.S()-u3::ConjugationGrade(sigma)-lgi_ket.S())
           * sqrt(1.*u3::dim(sigmap)*am::dim(lgi_bra.S())/u3::dim(sigma)/am::dim(lgi_ket.S()));
 
-
+    // std::cout<<"loop over lgi unit tensors"<<std::endl;
     for(int i=0; i<lgi_unit_tensors.size();  ++i)
       {
         const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor=lgi_unit_tensors[i];
@@ -336,7 +337,8 @@ void GenerateRecurrenceUnitTensors(
                 unit_tensor_subspace_index,rho0
               );
 
-        // std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl<<unit_tensor_seed_blocks[i]<<std::endl;
+        // std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl
+          // <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks[hypersector_index][unit_tensor_state_index]=unit_tensor_seed_blocks[i];
 
         // Get conjugate 
@@ -953,6 +955,129 @@ ComputeUnitTensorHyperblocks(
     }// end Nsum
   // std::cout<<"end recurrence"<<std::endl;
   }
+
+  bool
+  GenerateUnitTensorHyperblocks(
+    const spncci::LGIPair& lgi_pair,
+    int Nmax, int N1v,
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const spncci::SpNCCISpace& spncci_space,
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+    const spncci::KMatrixCache& k_matrix_cache,
+    const spncci::KMatrixCache& kinv_matrix_cache,
+    u3::UCoefCache& u_coef_cache,
+    u3::PhiCoefCache& phi_coef_cache,
+    spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+    basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+    )
+  {
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+
+    // Reads in unit tensor labels for seed sectors stores them in a vector.  The rho0 of the sector defined by
+    // <bra|unit_tensor|ket>_rho0 are stored in a corresponding vector rho0_values; 
+    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
+    std::vector<int> rho0_values;
+    std::string lgi_unit_tensor_filename
+      =fmt::format("seeds/operators_{:06d}_{:06d}.dat",irrep_family_index_bra,irrep_family_index_ket);
+    bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
+
+    // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
+    // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
+    basis::MatrixVector unit_tensor_seed_blocks;
+    std::string seed_filename
+      =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
+    files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
+
+    if(not files_found)
+      {
+        std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
+        return false;
+      }
+
+    // Identify unit tensor subspaces for recurrence
+    std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+    spncci::GenerateRecurrenceUnitTensors(
+      Nmax, N1v,
+      lgi_unit_tensors,unit_tensor_space,
+      unit_tensor_subspace_subsets
+    );
+
+    // std::cout<<"generate Nn0 hypersectors"<<std::endl;
+    // Generate Nn=0 hypersectors to be computed by conjugation
+    bool Nn0_conjugate_hypersectors=true;
+    std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
+    spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_Nn0(
+      Nmax, baby_spncci_space, unit_tensor_space,
+      unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets_Nn0,
+      irrep_family_index_ket, irrep_family_index_bra,
+      Nn0_conjugate_hypersectors
+    );
+
+    // Generate all other hypersectors for Nnp>=Nn
+    // std::cout<<" generate hypersectors"<<std::endl;
+    Nn0_conjugate_hypersectors=false;
+    std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
+    
+    baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
+      Nmax,baby_spncci_space, unit_tensor_space,
+      unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets,
+      irrep_family_index_bra,irrep_family_index_ket,
+      Nn0_conjugate_hypersectors
+    );
+
+
+    // zero initialize hypersectors 
+    basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
+
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
+    basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
+
+    // Initialize hypersectors with seeds
+    // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
+    // std::cout<<" populate hypersectors with seeds"<<std::endl;
+    spncci::PopulateHypersectorsWithSeeds(
+      irrep_family_index_bra, irrep_family_index_ket,lgi_families,
+      baby_spncci_space,unit_tensor_space,
+      baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
+      lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
+      unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
+    );
+
+    // Compute Nn=0 blocks
+    // std::cout<<"compute hyperblocks"<<std::endl;
+    spncci::ComputeUnitTensorHyperblocks(
+      Nmax,N1v,u_coef_cache,phi_coef_cache,
+      k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
+      unit_tensor_space,baby_spncci_hypersectors_Nn0,
+      unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
+    );
+
+    spncci::AddNn0BlocksToHyperblocks(
+      baby_spncci_space,unit_tensor_space,
+      baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
+      unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
+    );
+   
+    // Compute unit tensor hyperblocks
+    spncci::ComputeUnitTensorHyperblocks(
+      Nmax,N1v,u_coef_cache,phi_coef_cache,
+      k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
+      unit_tensor_space,baby_spncci_hypersectors,
+      unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
+    );
+
+    return true;
+    // if(check_unit_tensors)
+    //   CheckHyperBlocks(
+    //     irrep_family_index_bra,irrep_family_index_ket,
+    //     run_parameters,spncci_space,unit_tensor_space,
+    //     lgi_unit_tensor_labels,baby_spncci_space,spncci_expansions,
+    //     baby_spncci_hypersectors,unit_tensor_hyperblocks
+    //   );
+  }
+
 } // End namespace 
   
 

@@ -261,17 +261,37 @@ namespace spncci
       std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_array
     );
 
-
-  void 
+  void
   ContractBabySpNCCIU3S(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const u3shell::ObservableSpaceU3S& observable_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
-      const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
       const u3shell::RelativeRMEsU3SSubspaces& relative_observable,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+      const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
       basis::OperatorHyperblocks<double>& observable_hyperblocks
+    );
+
+void
+RegroupU3S(
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::SpaceU3S& target_space,
+      const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
+      const basis::OperatorHyperblocks<double>& observable_hyperblocks,
+      const spncci::ObservableHypersectorsU3S& target_sectors_u3s,
+      spncci::OperatorBlocks& observable_blocks
+    );
+
+ void RegroupU3Sv2(
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const spncci::SpaceU3S& u3s_space,
+      const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
+      const basis::OperatorHyperblocks<double>& observable_hyperblocks,
+      const spncci::ObservableHypersectorsU3S& observable_sectors,
+      spncci::OperatorBlocks& observable_blocks
     );
 
   void 

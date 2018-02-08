@@ -37,20 +37,34 @@
 // #include "lgi/lgi.h"
 // #include "lsu3shell/lsu3shell_basis.h"
 // #include "lsu3shell/lsu3shell_rme.h"
-// #include "spncci/branching_u3s.h"
+#include "spncci/branching_u3s.h"
 // #include "spncci/branching_u3lsj.h"
-// #include "spncci/branching.h"
+#include "spncci/branching.h"
 // #include "spncci/explicit_construction.h"
 // #include "spncci/io_control.h"
-// #include "spncci/spncci_basis.h"
+#include "spncci/spncci_basis.h"
 // #include "spncci/spncci_common.h"
-// #include "spncci/parameters.h"
+#include "spncci/parameters.h"
 // #include "spncci/unit_tensor.h"
 // #include "sp3rlib/u3.h"
 // #include "u3shell/relative_operator.h"
 // #include "u3shell/u3spn_scheme.h"
 
 namespace spncci
-{}  // namespace
+{
+  void SetUPSpNCCISpaces(
+    const spncci::RunParameters& run_parameters,
+    std::ofstream& results_stream,
+    lgi::MultiplicityTaggedLGIVector& lgi_families,
+    spncci::SpNCCISpace& spncci_space,
+    spncci::SigmaIrrepMap& sigma_irrep_map,
+    spncci::BabySpNCCISpace& baby_spncci_space,
+    spncci::SpaceSpU3S& spu3s_space,
+    spncci::SpaceSpLS& spls_space,
+    spncci::SpaceSpJ& spj_space,
+    bool restrict_sp3r_to_u3_branching
+  );
+
+}  // namespace
 
 #endif
