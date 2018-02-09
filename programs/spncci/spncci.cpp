@@ -332,8 +332,6 @@ int main(int argc, char **argv)
 
   // SU(3) caching
   u3::U3CoefInit();
-  u3::UCoefCache u_coef_cache;
-  u3::PhiCoefCache phi_coef_cache;
   u3::g_u_cache_enabled = true;
 
   // parameters for certain calculations
@@ -565,6 +563,8 @@ int main(int argc, char **argv)
   
   #pragma omp parallel
     {
+        u3::UCoefCache u_coef_cache;
+        u3::PhiCoefCache phi_coef_cache;
       // Lookup table for baby spncci hypersectors generate in the recurrence.
       // Persistant storage needed for reading and writing BabySpNCCIObservableHyperblocks to and from file
       std::vector<spncci::BabySpNCCIObservableHypersectorTable> 
