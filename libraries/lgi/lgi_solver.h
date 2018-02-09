@@ -20,6 +20,7 @@
   6/11/17 (mac): Remove deprecated form of GenerateLGIExpansion with
     stream arguments.
   10/11/17 (aem) : Extract GetLGIExpansion from spncci/computation_control
+  2/8/18 (aem) : removed lgi_families with gamma_max=0
 ****************************************************************/
 
 #ifndef LGI_PROB_H_
@@ -44,8 +45,8 @@ namespace lgi
         const basis::MatrixVector& Ncm_matrices,
         HalfInt Nsigma_0,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        lsu3shell::OperatorBlocks& lgi_expansions
-        // bool keep_empty_subspaces=false
+        basis::MatrixVector& lgi_expansions,
+        std::vector<int>& lsu3shell_index_lookup_table
       );
   // Generate the LGI Expansion in terms of lsu3shell SU(3)xSU(2)
   // reduced basis states by solving for the null space of the
@@ -57,13 +58,7 @@ namespace lgi
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   //
-  //  Arguments:  (TODO update me!)
-  //    A (input) : atomic mass number of nucleus
-  //    lsu3_basis_table (input) : lookup table of LSU3Shell basis states between
-  //                                LSU3Shell basis and U3SPN space. 
-  //    space (input) : space on which Brel and Nrel rme's are calculated
-  //    Brel_filename (input) : file containing lsu3shell rme's of Brel
-  //    Nrel_filename (input) : file containing lsu3shell rme's of Nrel
+  // lsu3hsell_index_lookup_table: look up take relating lsu3shell subspace index to lgi family index
 
 
 void GetLGIExpansion(
@@ -73,7 +68,8 @@ void GetLGIExpansion(
     const std::string& Nrel_filename,
     int A, HalfInt Nsigma_0,
     lgi::MultiplicityTaggedLGIVector& lgi_families,
-    lsu3shell::OperatorBlocks& lgi_expansions
+    lsu3shell::OperatorBlocks& lgi_expansions,
+    std::vector<int>& lsu3shell_index_lookup_table
   );
   // Get list of LGI labels, multiplicities and expansion in lsu3shell basis
   //
@@ -83,7 +79,8 @@ void GetLGIExpansion(
   // Outputs 
   //   lgi::MultiplicityTaggedLGIVector lgi_families;
   //    basis::MatrixVector lgi_expansions;
-
+  //    lsu3hsell_index_lookup_table: look up take relating 
+  //      lsu3shell subspace index to lgi family index
 
   void
     TransformOperatorToSpBasis(

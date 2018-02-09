@@ -271,11 +271,13 @@ int main(int argc, char **argv)
   //Removed keep_empty_subspaces flag set to false.  May need to make changes here to accomodate probable empty sectors. 
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::MatrixVector lgi_expansions;
+  std::vector<int> lsu3shell_index_lookup_table;
   lgi::GenerateLGIExpansion(
       lsu3shell_space, 
       Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
       run_parameters.Nsigma0,
-      lgi_families,lgi_expansions
+      lgi_families,lgi_expansions,
+      lsu3shell_index_lookup_table
     );
 
   // diagnostics

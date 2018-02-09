@@ -159,11 +159,13 @@ int main(int argc, char **argv)
   std::cout << "Solve for LGIs..." << std::endl;
   lgi::MultiplicityTaggedLGIVector lgi_families;
   lsu3shell::OperatorBlocks lgi_expansions;
-  
+  std::vector<int> lsu3hsell_index_lookup_table;
+
   lgi::GetLGIExpansion(
       lsu3shell_space,lsu3shell_basis_table,
       Brel_filename,Nrel_filename,Z+N, Nsigma0,
-      lgi_families, lgi_expansions
+      lgi_families, lgi_expansions,
+      lsu3hsell_index_lookup_table
     );
   
   std::string lgi_filename="lgi_families.dat";
@@ -193,7 +195,7 @@ int main(int argc, char **argv)
       lgi_unit_tensor_labels,relative_unit_tensor_filename_template,
       lsu3shell_space, lsu3shell_basis_table,lgi_expansions,
       lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array, 
-      restrict_seeds
+      lsu3hsell_index_lookup_table,restrict_seeds
     );
 
   std::cout<<"write seeds to file"<<std::endl;

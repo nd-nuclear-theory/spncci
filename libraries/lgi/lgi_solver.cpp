@@ -106,8 +106,8 @@ namespace lgi
         const basis::MatrixVector& Ncm_matrices,
         HalfInt Nsigma_0,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions
-        // bool keep_empty_subspaces
+        basis::MatrixVector& lgi_expansions,
+        std::vector<int>& lsu3shell_index_lookup_table
       )
   {
     double threshold=10e-6;
@@ -118,11 +118,11 @@ namespace lgi
         Brel_sectors,Brel_matrices,Ncm_sectors,Ncm_matrices,
         BrelNcm_matrices
       );
-    // std::cout<<Brel_matrices[0]<<std::endl;
-    lgi_expansions.resize(BrelNcm_matrices.size());
-    lgi_families.resize(BrelNcm_matrices.size());
 
-    #pragma omp parallel for schedule(runtime)
+    lsu3shell_index_lookup_table.resize(space.size());
+    lgi_expansions.resize(space.size());
+    // Iterates over lsu3shell subspaces.  If there exist null vectors of B+N
+    // matrix, add subspace labels to list of lgi and save expansion
     for(int i=0; i<BrelNcm_matrices.size();++i)
       {
         // std::cout<<BrelNcm_matrices[i]<<std::endl;
@@ -132,14 +132,23 @@ namespace lgi
         int nullity = null_vectors.cols();
         // std::cout<<nullity<<std::endl;
 
-        // save LGI labels, tagged by nullity as multiplicity
-        u3shell::U3SPN labels(space.GetSubspace(i).labels());          
-        int Nex=int(labels.N()-Nsigma_0);
-        // std::cout<<labels.N()<<"  "<<Nsigma_0<<"  "<<Nex<<std::endl;
-        lgi_families[i]=MultiplicityTagged<lgi::LGI>(lgi::LGI(labels,Nex),nullity);
-        // .emplace_back(lgi::LGI(labels,Nex),nullity);
+        // if nullity>0 save lgi labels to lgi_familes 
+        if(nullity>0)
+          {
+            // save LGI labels, tagged by nullity as multiplicity
+            u3shell::U3SPN labels(space.GetSubspace(i).labels());          
+            int Nex=int(labels.N()-Nsigma_0);
+            // std::cout<<labels.N()<<"  "<<Nsigma_0<<"  "<<Nex<<std::endl;
+            lgi_families.emplace_back(lgi::LGI(labels,Nex),nullity);
 
-        // save expansions for these LGIs
+            // Record lgi index in look up table
+            lsu3shell_index_lookup_table[i]=lgi_families.size()-1;
+          }
+        // save -1 to look up table to indicate that no lgi exists. 
+        else
+          lsu3shell_index_lookup_table[i]=-1;
+
+        // Save expansion even if its a zero vector
         lgi_expansions[i]=null_vectors;
       }
 
@@ -153,7 +162,8 @@ namespace lgi
       const std::string& Nrel_filename,
       int A, HalfInt Nsigma_0,
       lgi::MultiplicityTaggedLGIVector& lgi_families,
-      lsu3shell::OperatorBlocks& lgi_expansions
+      lsu3shell::OperatorBlocks& lgi_expansions,
+      std::vector<int>& lsu3hsell_index_lookup_table
     )
   {
     u3shell::SectorsU3SPN Bintr_sectors, Nintr_sectors;
@@ -182,7 +192,8 @@ namespace lgi
     lgi::GenerateLGIExpansion(
         lsu3shell_space, 
         Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
-        Nsigma_0,lgi_families,lgi_expansions
+        Nsigma_0,lgi_families,lgi_expansions,
+        lsu3hsell_index_lookup_table
       );
   }
 
