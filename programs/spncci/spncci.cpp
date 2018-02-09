@@ -563,7 +563,7 @@ int main(int argc, char **argv)
       lgi_pairs.emplace_back(irrep_family_index_bra,irrep_family_index_ket);
   
   
-  #pragma omp parallel 
+  #pragma omp parallel
     {
       // Lookup table for baby spncci hypersectors generate in the recurrence.
       // Persistant storage needed for reading and writing BabySpNCCIObservableHyperblocks to and from file
@@ -571,7 +571,9 @@ int main(int argc, char **argv)
         baby_spncci_observable_hypersectors_tables(run_parameters.num_observables);
 
       //TEMP until i/o working. By hw by observable
-      spncci::ObservableHyperblocksByLGIPairTable baby_spncci_observable_hyperblocks_table(run_parameters.hw_values.size());
+      spncci::ObservableHyperblocksByLGIPairTable 
+        baby_spncci_observable_hyperblocks_table(run_parameters.hw_values.size());
+      
       for(auto& table : baby_spncci_observable_hyperblocks_table)
         table.resize(run_parameters.num_observables);
 
@@ -594,7 +596,7 @@ int main(int argc, char **argv)
       timer_recurrence.Stop();
 
 
-      #pragma omp critical
+      #pragma omp critical (print)
         {
           int mytid = omp_get_thread_num();
           std::cout<<"hi I'm thread "<<mytid<<". I have "<<baby_spncci_observable_hypersectors_tables[0].size()<<" LGI pairs"<<std::endl;

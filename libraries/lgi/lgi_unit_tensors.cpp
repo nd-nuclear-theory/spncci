@@ -38,39 +38,55 @@ namespace lgi
       bool restrict_seeds
     )
   {
-    // Create list of unit tensor sectors by lgi then by unit tensor for writing to file
-    for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
-      {
-        // Check that the sector has non-zero rmes as defined by the zero_tolerance
-        if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],lgi::zero_tolerance))
-          continue;
+    #pragma omp parallel
+    {
+      lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
+      // Create list of unit tensor sectors by lgi then by unit tensor for writing to file
+      #pragma omp parallel for 
+      for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
+        {
+          // Check that the sector has non-zero rmes as defined by the zero_tolerance
+          if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],lgi::zero_tolerance))
+            continue;
+              
+              // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
+              const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
+              int bra_subspace_index = sector.bra_subspace_index();
+              int ket_subspace_index = sector.ket_subspace_index();
+
+              int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
+              int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
+
+
+              // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
+              bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
+              if(not keep)
+                continue;
+
+              const int rho0=sector.multiplicity_index();
+
+              // Regroup by lgi pair, then by unit tensor
+              std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
+              
+              // Labels for looking up correct block to write to file
+              lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
+
+              // Accumulating list 
+              lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
             
-            // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
-            const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
-            int bra_subspace_index = sector.bra_subspace_index();
-            int ket_subspace_index = sector.ket_subspace_index();
+        }// sector index
+    
+      #pragma omp critical (accumulate_seeds)
+        {
+          for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
+            {
+              auto& seed_labels=it->second;
+              auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+              accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+            }
+        }
+    }//end parallel region 
 
-            int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
-            int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
-
-
-            // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
-            bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
-            if(not keep)
-              continue;
-
-            const int rho0=sector.multiplicity_index();
-
-            // Regroup by lgi pair, then by unit tensor
-            std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
-            
-            // Labels for looking up correct block to write to file
-            lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
-
-            // Accumulating list 
-            lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
-          
-      }// sector index
   }
 
   void ComputeUnitTensorSeedBlocks(
