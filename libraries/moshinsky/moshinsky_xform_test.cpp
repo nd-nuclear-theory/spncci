@@ -6,6 +6,11 @@
 
   3/7/16 (aem,mac): Created to test moshinky.h, moshinsky.cpp.
   5/11/16 (aem,mac): Update namespace.
+
+  2/13/18 (mac): WARNING: This program was being left out of the
+  build due to a filename error.  It no longer builds successfully.
+  It seems to depend upon a nonexistent header moshinsky.h.
+
 ****************************************************************/
 
 #include "moshinsky/moshinsky.h"
