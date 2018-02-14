@@ -1,5 +1,5 @@
 /****************************************************************
-  moshinsky_test.cpp
+  moshinsky_xform_test.cpp
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
