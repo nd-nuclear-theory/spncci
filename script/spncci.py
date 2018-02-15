@@ -95,7 +95,7 @@
   6/4/17 (mac): Add search paths for input files.
   6/27/17 (mac): Split out copy of lsu3shell basis listing from su3rme tarball.
   7/4/17 (mac): Add support for using pre-staged expanded archive of su3rmes.
-
+  2/15/18 (aem): Add seed calculation scripting
 """
   
 import glob
@@ -619,7 +619,28 @@ def generate_observable_rmes(task):
 ################################################################
 def generate_spncci_seed_files(task):
     """
-    Generates list of lgi families and recurrence seeds
+    Generates:
+   
+    "seeds/lgi_families.dat": File containing a list of lgi family labels with 
+        their corresponding index 
+            i  twice_Nsigma lambda_sigma mu_sigma twice_Sp twice_Sn twice_S
+
+    For each pair of lgi families (i,j) with i>=j, there are two
+    files in directory seeds containing:
+        1. "seeds/seeds_00000i_00000j.rmes": All non-zero unit tensor seed blocks
+          
+            binary_format_code (1) and binary precision (4 or 8)
+            num_rows, num_cols, rmes...
+
+        2. "seeds/operators_00000i_00000j.dat": unit tensor labels corresponding
+            to each seed block
+          
+            lambda0, mu0, 2S0, 2T0, etap, 2Sp, 2Tp, eta, 2S, 2T, rho0
+             
+    "seeds/lgi_expansions.dat": File containing expansion of lgis in lsu3shell basis.
+            For each lsu3shell subspace, 
+                rows, cols, rmes
+
     """
         # set up data directory
     if (not os.path.exists("seeds")):
@@ -635,6 +656,94 @@ def generate_spncci_seed_files(task):
         command_line,
         mode=mcscript.CallMode.kSerial
     )
+
+
+
+def get_lgi_file(task):
+    """
+    Creates symbolic link from list of lgi families to be included in basis
+    to "lgi_families.dat". If no truncation file is given, symbolic link to 
+    list of full space of lgi families "seeds/lgi_families.dat". 
+    """
+    # if link already exists, remove 
+    if (os.path.exists("lgi_families.dat")):
+        mcscript.call(["rm","-r","lgi_families.dat"])
+        print("removed lgi families file")
+
+    # if no truncation filename is given, then use full Nsigma,max space
+    if task["truncation_filename"]==None:
+        mcscript.call(
+            [
+                "ln",
+                "-s",
+                "seeds/lgi_families.dat",
+                "lgi_families.dat"
+            ]
+        )
+    
+    # create symbolic link to truncated list of lgi family labels
+    else :
+        mcscript.call(
+            [
+                "ln",
+                "-s",
+                task["truncation_filename"],
+                "lgi_families.dat"
+            ]
+        )
+            
+def read_lgi_list(filename):
+    """
+    Read in lgi family labels from filename
+    """
+    lines = [line.rstrip('\n') for line in open(filename,'r')]
+    for line in lines:
+        lgi_labels=[[int(x) for x in line.split()] for line in lines]
+
+    return lgi_labels
+
+def lookup_table(lgi_labels_truncated,lgi_labels):
+    """
+    Create look up table between lgi_family_index in basis and 
+    lgi_family_index in full space, which indexes the seed files 
+    """
+    index_lookup=[]
+    for label in lgi_labels_truncated:
+        index=lgi_labels.index(label)
+        index_lookup.append(index)
+
+    return index_lookup
+
+
+def write_lookup_table(index_lookup):
+    """
+    Create file containing lookup table
+    """
+    filename="lgi_full_space_lookup_table.dat"
+    with open(filename, 'w') as outstream:
+        for index in range(len(index_lookup)):
+            full_space_index=index_lookup[index]
+            outstream.write("{} {}\n".format(index,full_space_index))
+
+    outstream.close()
+
+
+def generate_lgi_lookup_table(task):
+    get_lgi_file(task)
+
+    # Get LGI labels of full space
+    lgi_labels=read_lgi_list("seeds/lgi_families.dat")
+
+    print(lgi_labels)
+    # Get LGI labels of truncated space
+    lgi_labels_truncated=read_lgi_list("lgi_families.dat")
+    print(lgi_labels_truncated)
+    
+    # Make look up table for related in truncated space index to full space index
+    index_lookup=lookup_table(lgi_labels_truncated,lgi_labels)
+
+    #write table to file
+    write_lookup_table(index_lookup)
 
 ################################################################
 # spncci execution
@@ -730,14 +839,10 @@ def save_spncci_results(task):
     )
 
 def do_seed_run(task):
-    """ Carry out full task of constructing and diagonalizing
-    Hamiltonian and other observables.
+    """ Generate seed files from lsu3shell files.
     """
     retrieve_su3rme_files(task)
     generate_spncci_seed_files(task)
-    generate_observable_rmes(task)
-    generate_spncci_control_file(task)
-    call_spncci(task)
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
@@ -745,6 +850,7 @@ def do_full_spncci_run(task):
     """
     retrieve_su3rme_files(task)
     generate_spncci_seed_files(task)
+    generate_lgi_lookup_table(task)
     generate_observable_rmes(task)
     generate_spncci_control_file(task)
     call_spncci(task)

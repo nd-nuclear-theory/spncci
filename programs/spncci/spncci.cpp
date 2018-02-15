@@ -88,7 +88,7 @@
 
 #include "SymEigsSolver.h"  // from spectra
 #include "cppformat/format.h"
-
+#include "mcutils/parsing.h"
 #include "spncci/recurrence.h"
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/profiling.h"
@@ -112,11 +112,43 @@
 namespace spncci
 {
 
+  bool ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families)
+  // Reading in and filling out table of lgi indices in basis and lgi indices in full space by 
+  // which the seed files are labeled. 
+    {
+      lgi_full_space_lookup_table.resize(num_irrep_families);
+      // open input file
+      std::string filename="lgi_full_space_lookup_table.dat";
+      std::ifstream stream(filename);
+      mcutils::StreamCheck(bool(stream),filename,"Failed to open LGI input file");
+
+      // scan input file
+      std::string line;
+      int line_count = 0;
+      while ( std::getline(stream, line) )
+        {
+          // count line
+          ++line_count;
+
+          // set up for parsing
+          std::istringstream line_stream(line);
+
+          // parse line
+          int index, full_space_index;
+          line_stream>>index>>full_space_index;
+          mcutils::ParsingCheck(line_stream, line_count, line);
+
+          lgi_full_space_lookup_table[index]=full_space_index;
+        }
+    }
+
+
 bool
   GenerateUnitTensorHyperblocks(
     const spncci::LGIPair& lgi_pair,
     int Nmax, int N1v,
     const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const std::vector<int>& lgi_full_space_index_lookup,
     const spncci::SpNCCISpace& spncci_space,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
@@ -133,20 +165,25 @@ bool
 
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
   std::vector<int> rho0_values;
+
+  int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+  int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+
   std::string lgi_unit_tensor_filename
-    =fmt::format("seeds/operators_{:06d}_{:06d}.dat",irrep_family_index_bra,irrep_family_index_ket);
+    =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
   bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
 
 // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
 // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
   basis::MatrixVector unit_tensor_seed_blocks;
   std::string seed_filename
-    =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
+    =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
   files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
   if(not files_found)
     {
-      std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<" not found"<<std::endl;
+      std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "
+                <<irrep_family_index_ket<<" not found"<<std::endl;
       return false;
     }
 
@@ -157,7 +194,7 @@ bool
     unit_tensor_space,unit_tensor_subspace_subsets
   );
 
-  std::cout<<"generate Nn0 hypersectors"<<std::endl;
+  // std::cout<<"generate Nn0 hypersectors"<<std::endl;
   // Generate Nn=0 hypersectors to be computed by conjugation
   bool Nn0_conjugate_hypersectors=true;
   std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
@@ -169,25 +206,6 @@ bool
     Nn0_conjugate_hypersectors
   );
 
-  // {
-  //   for(int i=0; i<unit_tensor_hyperblocks.size(); ++i)
-  //     for(int j=0; j<unit_tensor_hyperblocks[i].size(); ++j)
-  //       {
-  //         auto& hypersector=baby_spncci_hypersectors.GetHypersector(i);
-  //         int bra, ket, tensor, rho0;
-  //         std::tie(bra,ket,tensor,rho0)=hypersector.Key();
-  //         auto& bra_subspace=baby_spncci_space.GetSubspace(bra);
-  //         auto& ket_subspace=baby_spncci_space.GetSubspace(ket);
-  //         auto& tensor_subspace=unit_tensor_space.GetSubspace(tensor);
-  //         int Sp,Tp,S,T,T0;
-  //         std::tie(T0,Sp,Tp,S,T)=tensor_subspace.GetStateLabels(j);
-  //         // const Eigen::MatrixXd matrix1=unit_tensor_hyperblocks[i][j];
-  //         std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
-  //                      << rho0<<std::endl;
-  //         std::cout<<"   "<<T0<<"  "<<Sp<<"  "<<Tp<<"  "<<S<<"  "<<T<<std::endl;
-  //       }
-
-  // }
 
   // Generate all other hypersectors for Nnp>=Nn
   // std::cout<<" generate hypersectors"<<std::endl;
@@ -202,10 +220,12 @@ bool
   );
 
   // zero initialize hypersectors 
+  //
+  // (0,Nnp) conjugate sectors 
   basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
   basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
 
-  // basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
+  // (Nnp,Nn) sectors for Nnp>Nn
   basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
 
   // Initialize hypersectors with seeds
@@ -248,7 +268,7 @@ bool
   //   baby_spncci_hypersectors,unit_tensor_hyperblocks
   //   );
 
-  // will need to pass spncci expansions if check needed in the future
+  // TODO?:will need to pass spncci expansions if check needed in the future
   // bool check_unit_tensors=false;
   // if(check_unit_tensors)
   //   CheckHyperBlocks(
@@ -494,16 +514,17 @@ int main(int argc, char **argv)
       observable_hypersector_blocks_array
     );
 
-  // By hw, by observable
-  std::vector<std::vector<spncci::OperatorBlocks>> 
-    observable_hypersector_blocks_array2;
+  // FOR TESTING
+  // // By hw, by observable
+  // std::vector<std::vector<spncci::OperatorBlocks>> 
+  //   observable_hypersector_blocks_array2;
   
-  spncci::InitializeU3SObservableBlocks(
-      space_u3s,run_parameters.num_observables,
-      run_parameters.hw_values.size(),
-      observable_hypersectors_by_observable,
-      observable_hypersector_blocks_array2
-    );
+  // spncci::InitializeU3SObservableBlocks(
+  //     space_u3s,run_parameters.num_observables,
+  //     run_parameters.hw_values.size(),
+  //     observable_hypersectors_by_observable,
+  //     observable_hypersector_blocks_array2
+  //   );
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -555,6 +576,7 @@ int main(int argc, char **argv)
       restrict_positive_N0
     );
 
+  //FOR TESTING
   // explicit construction of spncci basis
   basis::MatrixVector spncci_expansions;
   if(check_unit_tensors)
@@ -564,14 +586,20 @@ int main(int argc, char **argv)
       restrict_sp3r_to_u3_branching,spncci_expansions
       );
 
+  //Get look-up table for lgi index in full space.  Used for looking up seed filenames 
+  // which are index by full space index 
+  std::vector<int> lgi_full_space_index_lookup;
+  spncci::ReadLGILookUpTable(lgi_full_space_index_lookup,lgi_families.size());
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
   std::cout<<"Starting recurrence and contraction"<<std::endl;
 
   // by observable, by lgi pair
   spncci::ObservableHypersectorsByLGIPairTable observable_hypersectors_by_lgi_table(run_parameters.num_observables);
+  
   // by observable, by hw, by lgi pair
   spncci::ObservableHyperblocksByLGIPairTable observable_hyperblocks_by_lgi_table(run_parameters.num_observables);
 
+  // Presize table
   for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
     observable_hyperblocks_by_lgi_table[observable_index].resize(run_parameters.hw_values.size());
     
@@ -580,35 +608,48 @@ int main(int argc, char **argv)
   for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
     for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
       {
+        // (irrep1,irrep2)
         spncci::LGIPair lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
         
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
         spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
+        
+        // Generate Unit tensor blocks if lgi pair seed files found.
+        // If files not found, function returns false.
         bool files_found
           =GenerateUnitTensorHyperblocks(
               lgi_pair,run_parameters.Nmax, run_parameters.N1v,
-              lgi_families,spncci_space,baby_spncci_space,unit_tensor_space,
+              lgi_families,lgi_full_space_index_lookup,
+              spncci_space,baby_spncci_space,unit_tensor_space,
               k_matrix_cache,kinv_matrix_cache,u_coef_cache,phi_coef_cache,
               baby_spncci_hypersectors,unit_tensor_hyperblocks
             );
 
+        if(not files_found)
+          continue;
 
+        // Check if hypersectors are diagonal in irrep family. 
         bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
 
+        // Initialize hyperblocks for (irrep2,irrep1)
         spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
-        
+
         basis::OperatorHyperblocks<double> unit_tensor_hyperblocks2;
         spncci::BabySpNCCIHypersectors baby_spncci_hypersectors2;
         
         if(not is_diagonal)
-        {
+        {  
           bool files_found2
           =GenerateUnitTensorHyperblocks(
               lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
-              lgi_families,spncci_space,baby_spncci_space,unit_tensor_space,
+              lgi_families,lgi_full_space_index_lookup,
+              spncci_space,baby_spncci_space,unit_tensor_space,
               k_matrix_cache,kinv_matrix_cache,u_coef_cache,phi_coef_cache,
               baby_spncci_hypersectors2,unit_tensor_hyperblocks2
             );
+
+          // If we've made it this far (passed files_found) then files for (irrep2,irrep1) should exist
+          assert(files_found2);
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Contract and regroup
@@ -634,7 +675,7 @@ int main(int argc, char **argv)
                     irrep_family_index_bra,irrep_family_index_ket
                   );
 
-              // Get baby spncci observable hyperblocks 
+              // Get baby spncci observable hyperblocks
               basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks
                 =observable_hyperblocks_by_lgi_table[observable_index][hw_index][lgi_pair];
 
@@ -642,59 +683,41 @@ int main(int argc, char **argv)
               
               //zero initalize 
               basis::SetHyperoperatorToZero(baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks);
-              basis::SetHyperoperatorToZero(baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks_test);
-    
-              // std::cout<<"Contract over baby spnci observable sectors"<<std::endl;
-              spncci::ContractBabySpNCCIU3S(
-                  unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
-                  relative_observable,baby_spncci_hypersectors,unit_tensor_hyperblocks,
-                  baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks_test
-                );  
 
+              // std::cout<<"Contract over baby spnci observable sectors"<<std::endl;
               spncci::ContractBabySpNCCIU3S2(
                   unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
                   relative_observable,baby_spncci_hypersectors,unit_tensor_hyperblocks,
                   baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks
                 );  
-
-              // for(int i=0; i<baby_spncci_observable_hyperblocks.size(); ++i)
-              //   {
-              //     if(not mcutils::IsZero(baby_spncci_observable_hyperblocks[i][0]-baby_spncci_observable_hyperblocks_test[i][0],1e-6))
-              //       {
-              //         auto& observable_hypersector=baby_spncci_observable_hypersectors.GetHypersector(i);
-              //         int bra,ket,op,rho;
-              //         std::tie(bra,ket,op,rho)=observable_hypersector.Key();
-              //         auto& ket_subspace=baby_spncci_space.GetSubspace(ket);
-              //         auto& bra_subspace=baby_spncci_space.GetSubspace(bra);
-              //         auto& op_subspace=observable_spaces[observable_index].GetSubspace(op);
-              //         std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<op_subspace.Str()<<std::endl;
-              //         std::cout<<"block "<<i<<std::endl;
-              //         std::cout<<baby_spncci_observable_hyperblocks[i][0]<<std::endl<<std::endl
-              //           <<baby_spncci_observable_hyperblocks_test[i][0]<<std::endl<<std::endl;
-              //         assert(0);
-              //       }
-              //   }
-
+              
               //////////////////////////////////////////////////////////////////////////////////////////////////
-               // Get u3s hypersectors 
-              const spncci::ObservableHypersectorsU3S& observable_hypersectors
-                =observable_hypersectors_by_observable[observable_index];
+              // FOR TESTING              
+              // basis::SetHyperoperatorToZero(baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks_test);
+              // spncci::ContractBabySpNCCIU3S(
+              //     unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
+              //     relative_observable,baby_spncci_hypersectors,unit_tensor_hyperblocks,
+              //     baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks_test
+              //   );  
+              //////////////////////////////////////////////////////////////////////////////////////////////////
+              // FOR TESTING
+              //  // Get u3s hypersectors 
+              // const spncci::ObservableHypersectorsU3S& observable_hypersectors
+              //   =observable_hypersectors_by_observable[observable_index];
 
-              //get u3s operator blocks 
-                spncci::OperatorBlocks& observable_blocks2
-                =observable_hypersector_blocks_array2[hw_index][observable_index];
+              // //get u3s operator blocks 
+              //   spncci::OperatorBlocks& observable_blocks2
+              //   =observable_hypersector_blocks_array2[hw_index][observable_index];
 
-              // Regroup into u3s sectors
-              spncci::RegroupU3S(
-                  baby_spncci_space,observable_spaces[observable_index],space_u3s,
-                  baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks,
-                  observable_hypersectors,observable_blocks2
-                );
+              // // Regroup into u3s sectors
+              // spncci::RegroupU3S(
+              //     baby_spncci_space,observable_spaces[observable_index],space_u3s,
+              //     baby_spncci_observable_hypersectors,baby_spncci_observable_hyperblocks,
+              //     observable_hypersectors,observable_blocks2
+              //   );
               //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-              // Ket, bra
-              // by observable, by lgi pair
+              // if not diagonal in irreps, then contract over (irrep2,irrep1)
               if(not is_diagonal)
               {
                 // std::cout<<"second pair"<<std::endl;
@@ -732,14 +755,8 @@ int main(int argc, char **argv)
                     baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2
                   );  
 
-
-                // spncci::ContractBabySpNCCIU3S2(
-                //     unit_tensor_space,observable_spaces[observable_index],baby_spncci_space,
-                //     relative_observable,baby_spncci_hypersectors,unit_tensor_hyperblocks,
-                //     baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2
-                //   );
-
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+                // FOR TESTING
                 // // Regroup into u3s sectors
                 //   spncci::RegroupU3S(
                 //       baby_spncci_space,observable_spaces[observable_index],space_u3s,
@@ -757,12 +774,12 @@ int main(int argc, char **argv)
 
       }// end lgi_pair
 
+      // Regroup baby spncci observable hyperblocks into observableU3S sectors
       for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
         for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
           for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
             for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_families.size(); ++irrep_family_index_ket)
             {
-
               // by observable, by lgi pair
               spncci::LGIPair lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
               const spncci::ObservableBabySpNCCIHypersectors& baby_spncci_observable_hypersectors
@@ -782,9 +799,10 @@ int main(int argc, char **argv)
                 spncci::OperatorBlocks& observable_blocks
                 =observable_hypersector_blocks_array[hw_index][observable_index];
 
-              //get u3s operator blocks 
-                spncci::OperatorBlocks& observable_blocks2
-                =observable_hypersector_blocks_array2[hw_index][observable_index];
+              // FOR TESTING
+              // //get u3s operator blocks 
+              //   spncci::OperatorBlocks& observable_blocks2
+              //   =observable_hypersector_blocks_array2[hw_index][observable_index];
 
               // Regroup into u3s sectors
               spncci::RegroupU3S(
