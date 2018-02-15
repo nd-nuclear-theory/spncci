@@ -209,7 +209,6 @@ namespace lgi
     // for each sector, look up bra and ket subspaces 
     spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
     
-    #pragma omp parallel for schedule(runtime)
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
         int i=sectors.GetSector(s).bra_subspace_index();

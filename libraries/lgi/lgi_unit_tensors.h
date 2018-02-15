@@ -40,9 +40,9 @@ namespace lgi
       const u3shell::SpaceU3SPN& lsu3shell_space, 
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
       const basis::MatrixVector& lgi_expansions,
+      const std::vector<int>& lsu3hsell_index_lookup_table,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array,
-      std::vector<int>& lsu3hsell_index_lookup_table,
       bool restrict_seeds=false
     );
 

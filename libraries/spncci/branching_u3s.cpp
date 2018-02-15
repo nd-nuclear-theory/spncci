@@ -261,8 +261,12 @@ namespace spncci
             int ket_index=baby_spncci_hypersector.ket_subspace_index();
             int rho0=baby_spncci_hypersector.multiplicity_index();
 
+     
+            const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_index);
+            const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_index);
+
             // check if block is diagonal block
-            bool diagonal_block=(bra_index==ket_index);
+            bool diagonal_block=(bra_subspace.Nn()==ket_subspace.Nn());
 
 
             // Look up target observable hypersector and conjugate hypersector
@@ -294,8 +298,6 @@ namespace spncci
                 // conjugation factor base
                 // 
                 // get bra and ket subspace labels
-                const auto& bra_subspace=baby_spncci_space.GetSubspace(bra_index);
-                const auto& ket_subspace=baby_spncci_space.GetSubspace(ket_index);
                 const u3::U3& omegap=bra_subspace.omega();
                 const HalfInt& Sp=bra_subspace.S();
                 const u3::U3& omega=ket_subspace.omega();

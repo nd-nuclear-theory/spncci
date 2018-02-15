@@ -88,6 +88,7 @@ namespace spncci
     const spncci::LGIPair& lgi_pair,
     int Nmax, int N1v,
     const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const std::vector<int>& lgi_full_space_index_lookup,
     const spncci::SpNCCISpace& spncci_space,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,

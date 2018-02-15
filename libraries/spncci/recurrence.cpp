@@ -308,7 +308,7 @@ void GenerateRecurrenceUnitTensors(
         =ParitySign(u3::ConjugationGrade(sigmap)+lgi_bra.S()-u3::ConjugationGrade(sigma)-lgi_ket.S())
           * sqrt(1.*u3::dim(sigmap)*am::dim(lgi_bra.S())/u3::dim(sigma)/am::dim(lgi_ket.S()));
 
-    // std::cout<<"loop over lgi unit tensors"<<std::endl;
+    std::cout<<"loop over lgi unit tensors"<<std::endl;
     for(int i=0; i<lgi_unit_tensors.size();  ++i)
       {
         const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor=lgi_unit_tensors[i];
@@ -319,7 +319,7 @@ void GenerateRecurrenceUnitTensors(
         HalfInt S0,T0, Sp,Tp,S,T;
         int etap, eta; 
         std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor.FlatKey();
-        // std::cout<<sigmap.Str()<<" "<<lgi_bra.S()<<"  "<<sigma.Str()<<"  "<<lgi_ket.S()<<" "<<unit_tensor.Str()<<std::endl;
+        std::cout<<sigmap.Str()<<" "<<lgi_bra.S()<<"  "<<sigma.Str()<<"  "<<lgi_ket.S()<<" "<<unit_tensor.Str()<<std::endl;
 
         // Look up unit tensor subspace
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
@@ -337,14 +337,14 @@ void GenerateRecurrenceUnitTensors(
                 unit_tensor_subspace_index,rho0
               );
 
-        // std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl
-          // <<unit_tensor_seed_blocks[i]<<std::endl;
+        std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl
+          <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks[hypersector_index][unit_tensor_state_index]=unit_tensor_seed_blocks[i];
 
         // Get conjugate 
 
         // Look up conjugate unit tensor subspace
-        // std::cout<<x0.Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
+        std::cout<<x0.Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
         int unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
         auto& subspace_conj=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_conj);
@@ -363,8 +363,8 @@ void GenerateRecurrenceUnitTensors(
         double conjugation_factor
         =conjugation_factor_base
           *sqrt(1.*u3::dim(u3::SU3(eta,0))*am::dim(S)*am::dim(T)/u3::dim(u3::SU3(etap,0))/am::dim(Sp)/am::dim(Tp));
-        // std::cout<<"  "<<unit_tensor_state_index_conj<<"  "<<i<<"  "<<conjugation_factor<<std::endl
-        //   <<unit_tensor_seed_blocks[i]<<std::endl;
+        std::cout<<"  "<<unit_tensor_state_index_conj<<"  "<<i<<"  "<<conjugation_factor<<std::endl
+          <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks_Nn0[hypersector_index_Nn0][unit_tensor_state_index_conj]
           =conjugation_factor*unit_tensor_seed_blocks[i].transpose();
 
@@ -961,6 +961,7 @@ ComputeUnitTensorHyperblocks(
     const spncci::LGIPair& lgi_pair,
     int Nmax, int N1v,
     const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const std::vector<int>& lgi_full_space_index_lookup,
     const spncci::SpNCCISpace& spncci_space,
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
@@ -979,15 +980,20 @@ ComputeUnitTensorHyperblocks(
     // <bra|unit_tensor|ket>_rho0 are stored in a corresponding vector rho0_values; 
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
     std::vector<int> rho0_values;
+
+    int irrep_family_index_bra_full_space=lgi_full_space_index_lookup[irrep_family_index_bra];
+    int irrep_family_index_ket_full_space=lgi_full_space_index_lookup[irrep_family_index_ket];
     std::string lgi_unit_tensor_filename
-      =fmt::format("seeds/operators_{:06d}_{:06d}.dat",irrep_family_index_bra,irrep_family_index_ket);
+      =fmt::format("seeds/operators_{:06d}_{:06d}.dat",
+          irrep_family_index_bra_full_space,irrep_family_index_ket_full_space);
     bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
 
     // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
     // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
     basis::MatrixVector unit_tensor_seed_blocks;
     std::string seed_filename
-      =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
+      =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",
+          irrep_family_index_bra_full_space,irrep_family_index_ket_full_space);
     files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
     if(not files_found)
@@ -1004,7 +1010,7 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_subspace_subsets
     );
 
-    // std::cout<<"generate Nn0 hypersectors"<<std::endl;
+    std::cout<<"generate Nn0 hypersectors"<<std::endl;
     // Generate Nn=0 hypersectors to be computed by conjugation
     bool Nn0_conjugate_hypersectors=true;
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
@@ -1016,7 +1022,7 @@ ComputeUnitTensorHyperblocks(
     );
 
     // Generate all other hypersectors for Nnp>=Nn
-    // std::cout<<" generate hypersectors"<<std::endl;
+    std::cout<<" generate hypersectors"<<std::endl;
     Nn0_conjugate_hypersectors=false;
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
     
@@ -1036,7 +1042,7 @@ ComputeUnitTensorHyperblocks(
 
     // Initialize hypersectors with seeds
     // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
-    // std::cout<<" populate hypersectors with seeds"<<std::endl;
+    std::cout<<" populate hypersectors with seeds"<<std::endl;
     spncci::PopulateHypersectorsWithSeeds(
       irrep_family_index_bra, irrep_family_index_ket,lgi_families,
       baby_spncci_space,unit_tensor_space,
@@ -1046,14 +1052,14 @@ ComputeUnitTensorHyperblocks(
     );
 
     // Compute Nn=0 blocks
-    // std::cout<<"compute hyperblocks"<<std::endl;
+    std::cout<<"compute hyperblocks Nn=0"<<std::endl;
     spncci::ComputeUnitTensorHyperblocks(
       Nmax,N1v,u_coef_cache,phi_coef_cache,
       k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
       unit_tensor_space,baby_spncci_hypersectors_Nn0,
       unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
     );
-
+    std::cout<<"Add hyperblocks Nn=0"<<std::endl;
     spncci::AddNn0BlocksToHyperblocks(
       baby_spncci_space,unit_tensor_space,
       baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
@@ -1061,6 +1067,7 @@ ComputeUnitTensorHyperblocks(
     );
    
     // Compute unit tensor hyperblocks
+    std::cout<<"compute hyperblocks "<<std::endl;
     spncci::ComputeUnitTensorHyperblocks(
       Nmax,N1v,u_coef_cache,phi_coef_cache,
       k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,

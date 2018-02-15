@@ -168,7 +168,7 @@ int main(int argc, char **argv)
       lsu3hsell_index_lookup_table
     );
   
-  std::string lgi_filename="lgi_families.dat";
+  std::string lgi_filename="seeds/lgi_families.dat";
   lgi::WriteLGILabels(lgi_families, lgi_filename);
 
   std::cout<<"write expansion to file "<<std::endl;
@@ -194,8 +194,8 @@ int main(int argc, char **argv)
   lgi::ComputeUnitTensorSeedBlocks(
       lgi_unit_tensor_labels,relative_unit_tensor_filename_template,
       lsu3shell_space, lsu3shell_basis_table,lgi_expansions,
-      lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array, 
-      lsu3hsell_index_lookup_table,restrict_seeds
+      lsu3hsell_index_lookup_table, lgi_grouped_seed_labels,
+      unit_tensor_spncci_matrices_array, restrict_seeds
     );
 
   std::cout<<"write seeds to file"<<std::endl;
