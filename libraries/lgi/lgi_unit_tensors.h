@@ -10,6 +10,7 @@
 
   12/29/17 (aem): Created. Based on GetUnitTensorSeedBlocks from
     spncci/computation_control
+  2/8/18 (aem) : Updated to accomodate gamma_max=0 lgi removal
 ****************************************************************/
 #ifndef LGI_LGI_UNIT_TENSORS_H_
 #define LGI_LGI_UNIT_TENSORS_H_
@@ -41,6 +42,7 @@ namespace lgi
       const basis::MatrixVector& lgi_expansions,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3hsell_index_lookup_table,
       bool restrict_seeds=false
     );
 

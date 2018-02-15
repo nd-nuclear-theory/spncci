@@ -34,6 +34,7 @@ namespace lgi
       const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       basis::MatrixVector& unit_tensor_spncci_matrices,
+      std::vector<int>& lsu3hsell_index_lookup_table,
       bool restrict_seeds
     )
   {
@@ -44,26 +45,29 @@ namespace lgi
         if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],lgi::zero_tolerance))
           continue;
             
-            // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
-            const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
-            const int bra_subspace_index = sector.bra_subspace_index();
-            const int ket_subspace_index = sector.ket_subspace_index();
+        // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
+        const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
+        int bra_subspace_index = sector.bra_subspace_index();
+        int ket_subspace_index = sector.ket_subspace_index();
 
-            // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
-            bool keep=restrict_seeds?(bra_subspace_index>=ket_subspace_index):true;
-            if(not keep)
-              continue;
+        int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
+        int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
 
-            const int rho0=sector.multiplicity_index();
+        // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
+        bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
+        if(not keep)
+          continue;
 
-            // Regroup by lgi pair, then by unit tensor
-            std::pair<int,int> irrep_family_pair(bra_subspace_index,ket_subspace_index);
+        const int rho0=sector.multiplicity_index();
+
+        // Regroup by lgi pair, then by unit tensor
+        std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
             
-            // Labels for looking up correct block to write to file
-            lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
+        // Labels for looking up correct block to write to file
+        lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
 
-            // Accumulating list 
-            lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
+        // Accumulating list 
+        lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
           
       }// sector index
   }
@@ -76,6 +80,7 @@ namespace lgi
       const basis::MatrixVector& lgi_expansions,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3shell_index_lookup_table,
       bool restrict_seeds
     )
   {
@@ -106,20 +111,23 @@ namespace lgi
         lsu3shell::ReadLSU3ShellRMEs(
             filename,
             lsu3shell_basis_table,lsu3shell_space,
-            unit_tensor_labels,unit_tensor_sectors,unit_tensor_lsu3shell_matrices
+            unit_tensor_labels,unit_tensor_sectors,
+            unit_tensor_lsu3shell_matrices
           );
 
         // std::cout<<"Transform seed rmes to SpNCCI basis "<<std::endl;
         lgi::TransformOperatorToSpBasis(
             unit_tensor_sectors,lgi_expansions,
-            unit_tensor_lsu3shell_matrices,unit_tensor_spncci_matrices
+            unit_tensor_lsu3shell_matrices,
+            unit_tensor_spncci_matrices
           );
 
         // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
         // by lgi then by tensor
         lgi::RegroupSeedBlocks(
             unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
-            lgi_grouped_seed_labels,unit_tensor_spncci_matrices,restrict_seeds
+            lgi_grouped_seed_labels,unit_tensor_spncci_matrices,
+            lsu3shell_index_lookup_table,restrict_seeds
           );
       }
     }
@@ -152,21 +160,6 @@ namespace lgi
       <<eta<<"  "<<TwiceValue(S)<<"  "<<TwiceValue(T)<<"  "<<rho0
       <<std::endl;
       
-
-    // if(false)
-    //   {
-    //     mcutils::WriteBinary<int>(out_file,x0.lambda());
-    //     mcutils::WriteBinary<int>(out_file,x0.mu());
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S0));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T0));
-    //     mcutils::WriteBinary<int>(out_file,etap);
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Sp));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Tp));
-    //     mcutils::WriteBinary<int>(out_file,eta);
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T));
-    //     mcutils::WriteBinary<int>(out_file,num_sectors);
-    //   }
   }
 
   void WriteMatrix(const basis::OperatorBlock<double>& block, std::ostream& out_file)

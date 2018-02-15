@@ -715,16 +715,16 @@ int main(int argc, char **argv)
                 //zero initalize 
                 basis::SetHyperoperatorToZero(baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2);
       
-                basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks2_test;
-                basis::SetHyperoperatorToZero(baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2_test);
+                // basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks2_test;
+                // basis::SetHyperoperatorToZero(baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2_test);
 
                 // std::cout<<"if diagonal Contract over baby spnci observable sectors"<<std::endl;
                 
-                spncci::ContractBabySpNCCIU3S(
-                    unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
-                    relative_observable,baby_spncci_hypersectors2,unit_tensor_hyperblocks2,
-                    baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2_test
-                  );  
+                // spncci::ContractBabySpNCCIU3S(
+                //     unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
+                //     relative_observable,baby_spncci_hypersectors2,unit_tensor_hyperblocks2,
+                //     baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2_test
+                //   );  
 
                 spncci::ContractBabySpNCCIU3S2(
                     unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
@@ -740,12 +740,12 @@ int main(int argc, char **argv)
                 //   );
 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-                // Regroup into u3s sectors
-                  spncci::RegroupU3S(
-                      baby_spncci_space,observable_spaces[observable_index],space_u3s,
-                      baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2,
-                      observable_hypersectors,observable_blocks2
-                    );
+                // // Regroup into u3s sectors
+                //   spncci::RegroupU3S(
+                //       baby_spncci_space,observable_spaces[observable_index],space_u3s,
+                //       baby_spncci_observable_hypersectors2,baby_spncci_observable_hyperblocks2,
+                //       observable_hypersectors,observable_blocks2
+                //     );
               }
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -796,43 +796,43 @@ int main(int argc, char **argv)
               //   std::cout<<block<<std::endl<<std::endl;
 
             }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Testing
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-      for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
-        {
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// //// Testing
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//     for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+//       for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
+//         {
 
   
-         //get u3s operator blocks 
-            spncci::OperatorBlocks& observable_blocks
-            =observable_hypersector_blocks_array[hw_index][observable_index];
+//          //get u3s operator blocks 
+//             spncci::OperatorBlocks& observable_blocks
+//             =observable_hypersector_blocks_array[hw_index][observable_index];
 
-          //get u3s operator blocks 
-            spncci::OperatorBlocks& observable_blocks2
-            =observable_hypersector_blocks_array2[hw_index][observable_index];
+//           //get u3s operator blocks 
+//             spncci::OperatorBlocks& observable_blocks2
+//             =observable_hypersector_blocks_array2[hw_index][observable_index];
 
-              // Get u3s hypersectors 
-              const spncci::ObservableHypersectorsU3S& observable_hypersectors
-                =observable_hypersectors_by_observable[observable_index];
+//               // Get u3s hypersectors 
+//               const spncci::ObservableHypersectorsU3S& observable_hypersectors
+//                 =observable_hypersectors_by_observable[observable_index];
 
 
-          for(int i=0; i<observable_blocks.size(); ++i)
-            if(not mcutils::IsZero(observable_blocks[i]-observable_blocks2[i],1e-6))
-              {
-                auto& observable_hypersector=observable_hypersectors.GetHypersector(i);
-                int bra,ket,op,rho;
-                std::tie(bra,ket,op,rho)=observable_hypersector.Key();
-                auto& ket_subspace=space_u3s.GetSubspace(ket);
-                auto& bra_subspace=space_u3s.GetSubspace(bra);
-                auto& op_subspace=observable_spaces[observable_index].GetSubspace(op);
-                std::cout<<bra_subspace.Str()<<"  "<<ket_subspace.Str()<<"  "<<op_subspace.Str()<<std::endl;
-                std::cout<<"block "<<i<<std::endl;
-                std::cout<<observable_blocks[i]<<std::endl<<std::endl<<observable_blocks2[i]<<std::endl<<std::endl;
-                assert(0);
-              }
-        }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//           for(int i=0; i<observable_blocks.size(); ++i)
+//             if(not mcutils::IsZero(observable_blocks[i]-observable_blocks2[i],1e-6))
+//               {
+//                 auto& observable_hypersector=observable_hypersectors.GetHypersector(i);
+//                 int bra,ket,op,rho;
+//                 std::tie(bra,ket,op,rho)=observable_hypersector.Key();
+//                 auto& ket_subspace=space_u3s.GetSubspace(ket);
+//                 auto& bra_subspace=space_u3s.GetSubspace(bra);
+//                 auto& op_subspace=observable_spaces[observable_index].GetSubspace(op);
+//                 std::cout<<bra_subspace.Str()<<"  "<<ket_subspace.Str()<<"  "<<op_subspace.Str()<<std::endl;
+//                 std::cout<<"block "<<i<<std::endl;
+//                 std::cout<<observable_blocks[i]<<std::endl<<std::endl<<observable_blocks2[i]<<std::endl<<std::endl;
+//                 assert(0);
+//               }
+//         }
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // spncci::PrintU3SSector(
   //   run_parameters.hw_values,
   //   observables_sectors_u3s,observables_blocks_u3s,  
