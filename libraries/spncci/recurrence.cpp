@@ -11,6 +11,7 @@
 #include <omp.h>  
 
 #include "cppformat/format.h"
+#include "lgi/lgi_unit_tensors.h"
 #include "mcutils/eigen.h"
 #include "sp3rlib/u3coef.h"
 #include "spncci/spncci_common.h"
@@ -953,6 +954,144 @@ ComputeUnitTensorHyperblocks(
     }// end Nsum
   // std::cout<<"end recurrence"<<std::endl;
   }
+
+  bool
+    GenerateUnitTensorHyperblocks(
+      const spncci::LGIPair& lgi_pair,
+      int Nmax, int N1v,
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+      const std::vector<int>& lgi_full_space_index_lookup,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::KMatrixCache& k_matrix_cache,
+      const spncci::KMatrixCache& kinv_matrix_cache,
+      u3::UCoefCache& u_coef_cache,
+      u3::PhiCoefCache& phi_coef_cache,
+      spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+      )
+  {
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+
+    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
+    std::vector<int> rho0_values;
+
+    int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+    int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+
+    std::string lgi_unit_tensor_filename
+      =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
+    bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
+
+  // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
+  // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
+    basis::MatrixVector unit_tensor_seed_blocks;
+    std::string seed_filename
+      =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
+    files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
+
+    if(not files_found)
+      {
+        std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "
+                  <<irrep_family_index_ket<<" not found"<<std::endl;
+        return false;
+      }
+
+    // Identify unit tensor subspaces for recurrence
+    std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+    spncci::GenerateRecurrenceUnitTensors(
+      Nmax,N1v,lgi_unit_tensors,
+      unit_tensor_space,unit_tensor_subspace_subsets
+    );
+
+    // std::cout<<"generate Nn0 hypersectors"<<std::endl;
+    // Generate Nn=0 hypersectors to be computed by conjugation
+    bool Nn0_conjugate_hypersectors=true;
+    std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
+    
+    spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_Nn0(
+      Nmax, baby_spncci_space, unit_tensor_space,
+      unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets_Nn0,
+      irrep_family_index_ket, irrep_family_index_bra,
+      Nn0_conjugate_hypersectors
+    );
+
+
+    // Generate all other hypersectors for Nnp>=Nn
+    // std::cout<<" generate hypersectors"<<std::endl;
+    Nn0_conjugate_hypersectors=false;
+    std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
+    
+    baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
+      Nmax,baby_spncci_space, unit_tensor_space,
+      unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets,
+      irrep_family_index_bra,irrep_family_index_ket,
+      Nn0_conjugate_hypersectors
+    );
+
+    // zero initialize hypersectors 
+    //
+    // (0,Nnp) conjugate sectors 
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
+    basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
+
+    // (Nnp,Nn) sectors for Nnp>Nn
+    basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
+
+    // Initialize hypersectors with seeds
+    // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
+    // std::cout<<" populate hypersectors with seeds"<<std::endl;
+    spncci::PopulateHypersectorsWithSeeds(
+      irrep_family_index_bra, irrep_family_index_ket,lgi_families,
+      baby_spncci_space,unit_tensor_space,
+      baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
+      lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
+      unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
+    );
+
+    // std::cout<<"Compute Nn=0 blocks"<<std::endl;
+    spncci::ComputeUnitTensorHyperblocks(
+      Nmax,N1v,u_coef_cache,phi_coef_cache,
+      k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
+      unit_tensor_space,baby_spncci_hypersectors_Nn0,
+      unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
+    );
+
+    // std::cout<<"Add Nn0 blocks to hyperblocks"<<std::endl;
+    spncci::AddNn0BlocksToHyperblocks(
+      baby_spncci_space,unit_tensor_space,
+      baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
+      unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
+    );
+   
+    // std::cout<<"Compute unit tensor hyperblocks"<<std::endl;
+    spncci::ComputeUnitTensorHyperblocks(
+      Nmax,N1v,u_coef_cache,phi_coef_cache,
+      k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
+      unit_tensor_space,baby_spncci_hypersectors,
+      unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
+    );
+
+    // std::cout<<"hypersectors"<<std::endl;
+    // spncci::PrintHypersectors(
+    //   baby_spncci_space,unit_tensor_space, 
+    //   baby_spncci_hypersectors,unit_tensor_hyperblocks
+    //   );
+
+    // TODO?:will need to pass spncci expansions if check needed in the future
+    // bool check_unit_tensors=false;
+    // if(check_unit_tensors)
+    //   CheckHyperBlocks(
+    //     irrep_family_index_bra,irrep_family_index_ket,
+    //     run_parameters,spncci_space,unit_tensor_space,
+    //     lgi_unit_tensor_labels,baby_spncci_space,spncci_expansions,
+    //     baby_spncci_hypersectors,unit_tensor_hyperblocks
+    //   );
+    return true;
+  }
+
 } // End namespace 
   
 

@@ -35,8 +35,6 @@
 
 namespace spncci
 {
-  typedef std::pair<int,int> LGIPair;
-
   typedef std::vector<std::vector<std::unordered_map<spncci::LGIPair,basis::OperatorHyperblocks<double>,boost::hash<spncci::LGIPair>>>>
       ObservableHyperblocksByLGIPairTable; 
 
@@ -279,7 +277,7 @@ namespace spncci
       const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
       const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
       basis::OperatorHyperblocks<double>& observable_hyperblocks
-    );
+    );// DEPRECATED
 
   void 
   RegroupU3S(
@@ -304,7 +302,7 @@ namespace spncci
       const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
       const spncci::ObservableHypersectorsU3S& observable_sectors,
       spncci::OperatorBlocks& observable_blocks
-    );
+    ); //DEPRECATED
 
 void 
   ContractBabySpNCCIU3S2(

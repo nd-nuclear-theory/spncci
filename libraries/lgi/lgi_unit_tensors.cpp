@@ -207,8 +207,7 @@ namespace lgi
         std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
                 
         // open output file
-        std::cout << "opening " << seed_filename << std::endl;
-        ;
+        // std::cout << "opening " << seed_filename << std::endl;
 
         // output in binary mode 
         std::ios_base::openmode mode_argument = std::ios_base::out;
@@ -249,7 +248,7 @@ namespace lgi
         std::string operator_filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index);
                 
         // open output file
-        std::cout << "opening " << operator_filename << std::endl;
+        // std::cout << "opening " << operator_filename << std::endl;
 
         // output in binary mode 
         std::ios_base::openmode mode_argument_op = std::ios_base::out;
@@ -277,7 +276,7 @@ namespace lgi
     {
       // open output file
       bool file_found=false;
-      std::cout << "opening " << filename << std::endl;      
+      // std::cout << "opening " << filename << std::endl;      
       std::ifstream in_stream(filename,std::ios_base::in);
       if(not bool(in_stream))
         {
@@ -357,7 +356,7 @@ namespace lgi
       basis::MatrixVector& blocks
     )
     {
-      std::cout << "opening " << filename << std::endl;      
+      // std::cout << "opening " << filename << std::endl;      
       bool file_found=false;
       std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
       if(not bool(in_stream))

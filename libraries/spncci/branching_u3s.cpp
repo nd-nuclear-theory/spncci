@@ -194,8 +194,9 @@ void
       basis::OperatorHyperblocks<double>& observable_hyperblocks
     )
   {
+    //DEPRECATED
     // iterate over interaction get unit tensor family index,kappa0,L0
-    // iterate over U3S sectors to get target sectors
+    // iterate over U3S sectors to get observable sectors
     // get corresponding unit tensor sectors 
     // Contract interaction with unit tensor blocks and accumulate in U3S blocks.   
     // std::cout<<"iterating over interation"<<std::endl;
@@ -313,11 +314,6 @@ void
                               /am::dim(S)/am::dim(T)
                               );
 
-                    // if(target_sector_index==0)
-                    //   std::cout<<"contract "<<conjugation_grade*conjugation_factor<<"  "
-                    //     <<relative_rmes[unit_tensor_index]<<"  "
-                    //     <<unit_tensor_blocks[unit_tensor_index_conj].transpose()<<std::endl<<std::endl;
-
                     target_block
                       +=conjugation_grade*conjugation_factor
                         *relative_rmes[unit_tensor_index]
@@ -327,9 +323,6 @@ void
 
                 else
                 {
-                  // if(target_sector_index==0)
-                  //   std::cout<<"contract "<<relative_rmes[unit_tensor_index]<<"  "
-                  //     <<unit_tensor_blocks[unit_tensor_index]<<std::endl<<std::endl;
                   target_block
                     +=relative_rmes[unit_tensor_index]*unit_tensor_blocks[unit_tensor_index];
                 }
@@ -395,13 +388,6 @@ void
           int dim=baby_spncci_subspace_ket.size();
 
           // std::cout<<"Regroup"<<std::endl;
-
-          // if(observable_sector_index==1)
-          // {
-          // const auto&operator_subspace=observable_space.GetSubspace(operator_subspace_index);
-          //   std::cout<<baby_spncci_subspace_bra.LabelStr()<<"  "<<baby_spncci_subspace_ket.LabelStr()<<"  "<<operator_subspace.LabelStr()<<std::endl
-          //     <<observable_hyperblocks[observable_hypersector_index][0]<<std::endl<<std::endl;
-          // }
           observable_blocks[observable_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
             +=observable_hyperblocks[observable_hypersector_index][0];
         }//observable hypersector index
@@ -422,13 +408,8 @@ void
       spncci::OperatorBlocks& observable_blocks
     )
   {
-    // iterate over interaction get unit tensor family index,kappa0,L0
-    // iterate over U3S sectors to get target sectors
-    // get corresponding unit tensor sectors 
-    // Contract interaction with unit tensor blocks and accumulate in U3S blocks.   
-    // std::cout<<"iterating over interation"<<std::endl;
+    // DEPRECATED
 
-    
     // generate hypersectors ...
     int irrep_family_index_bra,irrep_family_index_ket;
     std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
@@ -471,11 +452,9 @@ void
     )
   {
     // iterate over interaction get unit tensor family index,kappa0,L0
-    // iterate over U3S sectors to get target sectors
-    // get corresponding unit tensor sectors 
-    // Contract interaction with unit tensor blocks and accumulate in U3S blocks.   
-    // std::cout<<"iterating over interation"<<std::endl;
-
+    // iterate over baby spncci unit tensors
+    // Contract into corresponding observable hyperblock
+    // Contract conjugated unit tensor into corresponding hyperblock
     for(auto it=relative_observable.begin(); it!=relative_observable.end(); ++it)
       {
         const std::vector<double>& relative_rmes=it->second;
@@ -510,7 +489,6 @@ void
         // Look up conjugate observable subspace index
         int observable_subspace_index_conj
           =observable_space.LookUpSubspaceIndex(u3shell::ObservableSubspaceLabels(eta-etap,u3::Conjugate(x0),S0,kappa0,L0));
-
 
         // Iterate over baby spncci hypersectors. 
         for(int baby_spncci_hypersector_index=0; baby_spncci_hypersector_index<baby_spncci_hypersectors.size(); ++baby_spncci_hypersector_index)
