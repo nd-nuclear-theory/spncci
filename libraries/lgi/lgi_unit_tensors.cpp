@@ -6,7 +6,7 @@
 
 ****************************************************************/
 #include "lgi/lgi_unit_tensors.h"
-
+#include <omp.h>
 #include <iostream>
 #include <fstream>
 #include "mcutils/io.h"
@@ -92,45 +92,68 @@ namespace lgi
 
     unit_tensor_spncci_matrices_array.resize(lgi_unit_tensor_labels.size());
 
-    // For each unit tensor 
-    for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+    #pragma omp parallel
       {
-        // Get labels of corresponding unit tensor 
-        basis::MatrixVector& unit_tensor_spncci_matrices=unit_tensor_spncci_matrices_array[unit_tensor_index];
-        const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+        lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
+       
+        // For each unit tensor 
+        #pragma omp for schedule(dynamic) nowait
+        for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+          {
+            // Get labels of corresponding unit tensor 
+            basis::MatrixVector unit_tensor_spncci_matrices;
+            const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
 
-        // Get file name containing lsu3shell rmes of unit tensor 
-        std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
+            // Get file name containing lsu3shell rmes of unit tensor 
+            std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
 
-        // generate unit tensor sectors in lsu3shell basis
-        const bool spin_scalar = false; // All spin values allowed
-        u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
+            // generate unit tensor sectors in lsu3shell basis
+            const bool spin_scalar = false; // All spin values allowed
+            u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
 
-        // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
-        basis::MatrixVector unit_tensor_lsu3shell_matrices;
-        lsu3shell::ReadLSU3ShellRMEs(
-            filename,
-            lsu3shell_basis_table,lsu3shell_space,
-            unit_tensor_labels,unit_tensor_sectors,
-            unit_tensor_lsu3shell_matrices
-          );
+            // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
+            basis::MatrixVector unit_tensor_lsu3shell_matrices;
+            lsu3shell::ReadLSU3ShellRMEs(
+                filename,
+                lsu3shell_basis_table,lsu3shell_space,
+                unit_tensor_labels,unit_tensor_sectors,
+                unit_tensor_lsu3shell_matrices
+              );
 
-        // std::cout<<"Transform seed rmes to SpNCCI basis "<<std::endl;
-        lgi::TransformOperatorToSpBasis(
-            unit_tensor_sectors,lgi_expansions,
-            unit_tensor_lsu3shell_matrices,
-            unit_tensor_spncci_matrices
-          );
+            // std::cout<<"Transform seed rmes to SpNCCI basis "<<std::endl;
+            lgi::TransformOperatorToSpBasis(
+                unit_tensor_sectors,lgi_expansions,
+                unit_tensor_lsu3shell_matrices,
+                unit_tensor_spncci_matrices
+              );
 
-        // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
-        // by lgi then by tensor
-        lgi::RegroupSeedBlocks(
-            unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
-            lgi_grouped_seed_labels,unit_tensor_spncci_matrices,
-            lsu3shell_index_lookup_table,restrict_seeds
-          );
+            // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
+            // by lgi then by tensor
+            lgi::RegroupSeedBlocks(
+                unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
+                lgi_grouped_seed_labels_temp,unit_tensor_spncci_matrices,
+                lsu3shell_index_lookup_table,restrict_seeds
+              );
+
+            // Matrix copy into final container
+            #pragma omp critical(matrix_copy)
+              unit_tensor_spncci_matrices_array[unit_tensor_index]=unit_tensor_spncci_matrices;
+
+          }
+
+       #pragma omp critical(regroup)
+          { 
+            std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
+            for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
+              {
+                auto& seed_labels=it->second;
+                auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+                accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+              }
+          }
       }
-    }
+  }
+
 
   void WriteHeader(std::ostream& out_file)
   {
@@ -188,6 +211,7 @@ namespace lgi
 
         }
   }
+
 
   void WriteSeedsToFile(
       const lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,

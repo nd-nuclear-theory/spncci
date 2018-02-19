@@ -187,8 +187,10 @@ namespace u3shell
   // input and output routines for U3ST decomposed operators 
   //
 
-  void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes);  
-  // TODO switch to take filename argument
+  void WriteRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes, bool hermitian);  
+  // Writes relative RMEs to filename
+  // if hermitian=True, then hermiticity enforced by zeroing out conjugate pairs
+
 
   void ReadRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes);
 

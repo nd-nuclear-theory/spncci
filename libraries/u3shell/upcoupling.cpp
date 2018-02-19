@@ -279,21 +279,44 @@ namespace u3shell
     UpcoupleCMU3ST(rel_cm_lst_map, w_cache,rel_cm_u3st_map);
   }
 
-  void WriteRelativeOperatorU3ST(std::ostream& os, const RelativeRMEsU3ST& relative_rmes)
+  void WriteRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes, bool hermitian)
   {
     u3shell::RelativeUnitTensorLabelsU3ST labels;
     int kappa0,L0,etap,eta;
     HalfInt Sp,Tp,S,T,S0,T0;
     u3::SU3 x0;
     double rme;
+
+    // Zero out rmes 
+    for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); it++)
+      {
+        std::tie(labels,kappa0,L0)=it->first;
+        std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=labels.FlatKey();
+        rme=it->second;
+        if (fabs(rme)<zero_threshold)
+          {
+            relative_rmes[it->first]=0.0;
+
+            // enforcing hermiticity
+            if(hermitian)
+              {
+                u3shell::RelativeStateLabelsU3ST bra(eta,S,T), ket(etap,Sp,Tp);
+                RelativeUnitTensorLabelsU3ST unit_tensor_conj(u3::Conjugate(x0),S0,T0,bra,ket);
+                std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key_conj(unit_tensor_conj,kappa0,L0);
+                 relative_rmes[key_conj]=0.0;
+              }
+          }
+      }
+
+    std::ofstream os(filename);
     for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); it++)
       {
         std::tie(labels,kappa0,L0)=it->first;
         std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=labels.FlatKey();
 
         rme=it->second;
-        if (fabs(rme)<zero_threshold)
-          rme=0.0;
+        // if (fabs(rme)<zero_threshold)
+        //   rme=0.0;
         const int width=3;
         const int precision=16;
         os << std::setprecision(precision);

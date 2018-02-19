@@ -400,8 +400,9 @@ int main(int argc, char **argv)
   is.close();
   
   // Writing operator to file 
-  std::ofstream os(fmt::format("{}_hw{:.1f}_Nmax{:02d}_u3st.dat",operator_filename,hbar_omega,Nmax));
-  u3shell::WriteRelativeOperatorU3ST(os, Operator);  
+  std::string filename=fmt::format("{}_hw{:.1f}_Nmax{:02d}_u3st.dat",operator_filename,hbar_omega,Nmax);
+  bool hermitian=true;
+  u3shell::WriteRelativeOperatorU3ST(filename, Operator,hermitian);  
 }
 
 

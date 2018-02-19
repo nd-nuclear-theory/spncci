@@ -29,6 +29,7 @@
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/afs/crc.nd.edu/group/nuclthy/data/spncci/operator
             setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/afs/crc.nd.edu/group/nuclthy/data/spncci/su3rme
+            setenv SPNCCI_SEED_DIR ${HOME}/data/spncci/seeds:/afs/crc.nd.edu/group/nuclthy/data/spncci/seeds
             setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
 
         Ex (NERSC m2032):
@@ -96,12 +97,13 @@
   6/27/17 (mac): Split out copy of lsu3shell basis listing from su3rme tarball.
   7/4/17 (mac): Add support for using pre-staged expanded archive of su3rmes.
   2/15/18 (aem): Add seed calculation scripting
+  2/16/18 (aem): Factored out su3rme computation into su3rme.py
 """
   
 import glob
 import mcscript
 import os
-
+import su3rme
 ################################################################
 # global configuration
 ################################################################
@@ -112,404 +114,18 @@ interaction_directory_list = os.environ["SPNCCI_INTERACTION_DIR"].split(":")
 interaction_subdirectory_list = []
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
-su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
-su3rme_subdirectory_list = []
 
-# executable files
-# ... from lsu3shell
-recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
-su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
-su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+# seed_directory_list = os.environ["SPNCCI_SEED_DIR"].split(":")
+seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
+seed_subdirectory_list = []
+
+
 # ... from spncci
-generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
-generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
 generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
 spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 
-
-################################################################
-# relative operator construction (A-independent)
-################################################################
-
-def relative_operator_descriptor(task):
-    """Generate descriptor string for use in relative operator archive
-    filename.
-
-    Returns:
-        (string): descriptor
-    """
-
-    descriptor = "Nv{N1v:d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}".format(**task)
-    return descriptor
-
-def generate_relative_operators(task):
-
-    """Create recoupler input files for relative unit
-    tensors and symplectic raising/lowering/N operators.
-
-    Invokes generate_lsu3shell_relative_operators.
-    """
-
-    command_line = [
-        generate_lsu3shell_relative_operators_executable,
-        "{Nsigma_max:d}".format(**task),
-        "{Nstep:d}".format(**task),
-        "{N1v:d}".format(**task),
-        "-1",# All J0
-        "-1"# All T0
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
-
-def read_relative_operator_basenames(task):
-    """ Read list of relative operators basenames.
-
-    Returns:
-        (list) : list of relative operators basenames
-    """
-
-    relative_operator_filename = "relative_operators.dat"
-
-    # read list of unit tensors
-    relative_operator_stream = open(relative_operator_filename,mode="rt")
-    relative_operator_basename_list = [
-        ## line.strip()  # remove trailing newline
-        (line.split())[0]  # basename is leading element on line
-        for line in relative_operator_stream
-    ]
-    relative_operator_stream.close()
-    return relative_operator_basename_list
-
-def recouple_operators(task,relative_operator_basename_list):
-    """ Invoke lsu3shell recoupler code on relative unit
-    tensors and symplectic raising/lowering/N operators.
-
-    Invokes RecoupleSU3Operator.
-
-    Arguments:
-        relative_operator_basename_list (list) : list of operator names
-    """
-
-    # iterate over unit tensors
-    for basename in relative_operator_basename_list:
-
-        # call recoupler
-        command_line = [
-            recoupler_executable,
-            "{}.recoupler".format(basename),
-            basename
-        ]
-        mcscript.call(
-            command_line,
-            mode=mcscript.CallMode.kSerial
-        )
-
-
-def save_operator_files(task):
-    """ Create archive of relative operator files.
-
-    Manual follow-up: The operator files are bundled into tgz files and saved to
-    the current run's results directory.  They should then be moved
-    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
-    subsequent use.
-    """
-
-    # select files to save
-    archive_file_list = glob.glob('*.dat')
-    archive_file_list += glob.glob('*.PN')
-    archive_file_list += glob.glob('*.PPNN')
-
-    # generate archive
-    descriptor = relative_operator_descriptor(task)
-    archive_filename = "relative-operators-{}.tgz".format(descriptor)
-    mcscript.call(
-        [
-            "tar", "-zcvf", archive_filename
-        ] + archive_file_list
-    )
-
-    # move archive to results directory (if in multi-task run)
-    if (mcscript.task.results_dir is not None):
-        mcscript.call(
-            [
-                "mv",
-                "--verbose",
-                archive_filename,
-                "--target-directory={}".format(mcscript.task.results_dir)
-            ]
-        )
-
-def retrieve_operator_files(task):
-    """ Retrieve archive of relative operator files.
-    """
-
-    # identify archive file
-    descriptor = relative_operator_descriptor(task)
-    archive_filename = mcscript.utils.search_in_subdirectories(
-        operator_directory_list,
-        operator_subdirectory_list,
-        "relative-operators-{}.tgz".format(descriptor),
-        error_message="relative operator archive file not found"
-    )
-
-    # extract archive contents
-    mcscript.call(
-        [
-            "tar", "xf", archive_filename
-        ]
-    )
-
-
-def do_generate_relative_operators(task):
-    """Control code for generating relative unit tensors and symplectic
-    raising/lowering/N operators.
-
-    """
-
-    # generate operators and their rmes
-    generate_relative_operators(task)
-    relative_operator_basename_list = read_relative_operator_basenames(task)
-    recouple_operators(task,relative_operator_basename_list)
-
-    ## # do cleanup
-    ## deletable_filenames=glob.glob('*.recoupler')
-    ## mcscript.call(["rm"] + deletable_filenames)
-
-    # save results
-    save_operator_files(task)
-
-
-################################################################
-# relative operator SU(3) RME construction
-################################################################
-
-# su3rme descriptor string
-#
-# This describes the many-body space on which SU(3) RMEs are being
-# calculated.  It is used, e.g., in the filename of the archive file
-# in which the SU(3) RMEs are stored.
-
-# descriptor string for straightforward case of pure Nsigmamax truncation
-su3rme_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
-
-def generate_model_space_file(task):
-    """Create LSU3shell model space file for SU3RME.
-
-    Invokes generate_lsu3shell_model_space.
-    """
-
-    command_line = [
-        generate_lsu3shell_model_space_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
-        "{Nstep:d}".format(**task)
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
-
-def calculate_rmes(task):
-    """ Invoke lsu3shell SU3RME code to calculate rmes of relative unit
-    tensors and symplectic raising/lowering/N operators in SU(3)-NCSM basis.
-
-    Invokes SU3RME_MPI.
-    """
-
-    model_space_filename = "model_space.dat".format(**task)
-
-    if ("su3rme_mode" not in task):
-        task["su3rme_mode"] = "text"
-
-    # call SU3RME
-    command_line = [
-        su3rme_executable,
-        model_space_filename,
-        model_space_filename,
-        "relative_operators.dat",
-        task["su3rme_mode"]
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kHybrid
-    )
-
-
-def generate_basis_table(task):
-    """Create SU(3)-NCSM basis table.
-
-    Invokes ncsmSU3xSU2IrrepsTabular.
-
-    Depends on model space file created by generate_lsu3shell_relative_operators.
-    """
-
-    print("{nuclide}".format(**task))
-    model_space_filename = "model_space.dat".format(**task)
-    basis_listing_filename = "lsu3shell_basis.dat"
-
-    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
-
-def save_su3rme_files(task):
-    """Create archive of SU(3) RMEs of relative operators.
-
-    Some auxiliary files (e.g., the list of operators) are saved as well.
-
-    Manual follow-up: The rme files are bundled into tgz files and saved to
-    the current run's results directory.  They should then be moved
-    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
-    subsequent use.
-
-    """
-
-    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
-
-    # select files to save
-    archive_file_list = [
-        "model_space.dat",
-        "relative_operators.dat",
-        "lsu3shell_basis.dat",
-        "relative_unit_tensor_labels.dat"
-    ]
-    archive_file_list += glob.glob('*.rme')
-
-    # generate archive
-    archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
-    mcscript.call(
-        [
-            "tar", "-zcvf", archive_filename
-        ] + archive_file_list
-    )
-
-    # save independent copy of basis listing outside tarball for easy inspection
-    basis_filename = "lsu3shell_basis_{}.dat".format(su3rme_descriptor)
-    mcscript.call(
-        [
-            "cp", "lsu3shell_basis.dat", basis_filename
-        ]
-    )
-
-    # move archive to results directory (if in multi-task run)
-    if (mcscript.task.results_dir is not None):
-        mcscript.call(
-            [
-                "mv",
-                "--verbose",
-                basis_filename,archive_filename,
-                "--target-directory={}".format(mcscript.task.results_dir)
-            ]
-        )
-
-
-
-def retrieve_su3rme_files(task):
-    """ Retrieve archive of relative operator SU(3) RME files.
-
-    (1) Directory is symlinked as a subdirectory named lsu3shell_rme, or...
-    (2) Files are retrieved into a subdirectory named lsu3shell_rme.
-    """
-
-
-    # identify su3rme data directory
-    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
-    directory_name = mcscript.utils.search_in_subdirectories(
-        su3rme_directory_list,
-        su3rme_subdirectory_list,
-        "su3rme-{}".format(su3rme_descriptor),
-        error_message="Data directory for SU(3) RMEs not found",
-        fail_on_not_found=False
-    )
-    archive_filename = mcscript.utils.search_in_subdirectories(
-        su3rme_directory_list,
-        su3rme_subdirectory_list,
-        "su3rme-{}.tgz".format(su3rme_descriptor),
-        error_message="Archive file for SU(3) RMEs not found",
-        fail_on_not_found=False
-    )
-
-    if (directory_name is not None):
-
-        # remove any existing symlink or data directory
-        #
-        # Notes: On a symlink to a directory: rmdir fails; rm or "rm -r"
-        # removes symlink.  But "rm -r" will also work if tar file had
-        # been directly expanded before and needs to be replaced by a
-        # symlink.
-        if (os.path.exists("lsu3shell_rme")):
-            mcscript.call(["rm","-r","lsu3shell_rme"])
-
-        # link to data su3rme directory
-        mcscript.call(
-            [
-                "ln",
-                "-s",
-                directory_name,
-                "lsu3shell_rme"
-            ]
-        )
-
-    elif (archive_filename is not None):
-
-        # set up data directory
-        if (not os.path.exists("lsu3shell_rme")):
-            mcscript.utils.mkdir("lsu3shell_rme")
-
-        # extract archive contents
-        mcscript.call(
-            [
-                "tar",
-                "-xvf",
-                archive_filename,
-                "--directory=lsu3shell_rme"
-            ]
-        )
-
-    else:
-        raise(mcscript.exception.ScriptError("Cannot find SU(3) RME data"))
-
-def link_su3rme_files(task):
-    """ Search for expanded archive of relative operator SU(3) RME files.
-
-    
-    """
-
-
-def do_generate_lsu3shell_rmes(task):
-    """
-    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
-    unit tensors and symplectic raising/lowering/N operators.
-    """
-
-    # retrieve relevant operator files
-    retrieve_operator_files(task)
-
-    # generate model space file needed by lsu3shell codes
-    generate_model_space_file(task)
-
-    # generate basis listing for basis in which rmes are calculated
-    generate_basis_table(task)
-
-    # generate operators rmes
-    calculate_rmes(task)
-
-    # save results
-    save_su3rme_files(task)
-
-    # clean up working directory
-    mcscript.call(["du","-hs","."])  # log working directory disk usage
-    delete_filenames=glob.glob('*')
-    ##delete_filenames=glob.glob('*.rme')
-    ##delete_filenames+=glob.glob('*.PN')
-    ##delete_filenames+=glob.glob('*.PPNN')
-    mcscript.call(["rm"] + delete_filenames)
-    
+seed_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
 
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
@@ -658,6 +274,136 @@ def generate_spncci_seed_files(task):
     )
 
 
+def save_seed_files(task):
+    """Create archive of seed RMEs 
+
+    Some auxiliary files (e.g., the list of operators) are saved as well.
+
+    Manual follow-up: The rme files are bundled into tgz files and saved to
+    the current run's results directory.  They should then be moved
+    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
+    subsequent use.
+
+    """
+    seed_descriptor = task["seed_descriptor_template"].format(**task)
+
+    # generate archive
+    archive_filename = "seeds-{}.tgz".format(seed_descriptor)
+
+    mcscript.call(
+        [
+            "ls"
+        ] 
+    )
+
+
+    mcscript.call(
+        [
+            "tar", "-zcvf", archive_filename, "seeds"
+        ] 
+    )
+
+    # move archive to results directory (if in multi-task run)
+    if (mcscript.task.results_dir is not None):
+        mcscript.call(
+            [
+                "mv",
+                "--verbose",
+                archive_filename,
+                "--target-directory={}".format(mcscript.task.results_dir)
+            ]
+        )
+
+
+    # clean up working directory
+    mcscript.call(["rm","-r", "seeds"])
+    mcscript.call(["rm","-r", "lsu3shell_rme"])
+
+# def retrieve_seed_files(task):
+#     """ Retrieve archive of seed RME files.
+
+#     Files are retrieved into a subdirectory named seeds.
+#     """
+#     # seed data directory
+#     seed_descriptor = task["seed_descriptor_template"].format(**task)
+
+#     archive_filename=seed_directory+"/seeds-{}.tgz".format(seed_descriptor)
+#     seed_directory_name=seed_directory+"/seeds"
+
+#     print(archive_filename)
+
+#     mcscript.call(
+#         [
+#             "tar",
+#             "-xvf",
+#             archive_filename
+#         ]
+#     )
+
+def retrieve_seed_files(task):
+    """ Retrieve archive of seed RME files.
+
+    Files are retrieved into a subdirectory named seeds.
+    """
+    # identify su3rme data directory
+    seed_descriptor = task["seed_descriptor_template"].format(**task)
+    directory_name = mcscript.utils.search_in_subdirectories(
+        seed_directory_list,
+        seed_subdirectory_list,
+        "seeds-{}".format(seed_descriptor),
+        error_message="Data directory for seed RMEs not found",
+        fail_on_not_found=False
+    )
+    archive_filename = mcscript.utils.search_in_subdirectories(
+        seed_directory_list,
+        seed_subdirectory_list,
+        "seeds-{}.tgz".format(seed_descriptor),
+        error_message="Archive file for seed RMEs not found",
+        fail_on_not_found=False
+    )
+
+    if (directory_name is not None):
+
+        # remove any existing symlink or data directory
+        #
+        # Notes: On a symlink to a directory: rmdir fails; rm or "rm -r"
+        # removes symlink.  But "rm -r" will also work if tar file had
+        # been directly expanded before and needs to be replaced by a
+        # symlink.
+        if (os.path.exists("seeds")):
+            mcscript.call(["rm","-r","seeds"])
+
+        # link to data seed directory
+        mcscript.call(
+            [
+                "ln",
+                "-s",
+                directory_name,
+                "seeds"
+            ]
+        )
+
+    elif (archive_filename is not None):
+
+        # # set up data directory
+        # if (not os.path.exists("seeds")):
+        #     mcscript.utils.mkdir("seeds")
+
+        # extract archive contents
+        mcscript.call(
+            [
+                "tar",
+                "-xvf",
+                archive_filename
+                # "--directory=seeds"
+            ]
+        )
+
+    else:
+        raise(mcscript.exception.ScriptError("Cannot find seed RME data"))
+################################################################
+# setting up lgis
+################################################################
 
 def get_lgi_file(task):
     """
@@ -666,6 +412,7 @@ def get_lgi_file(task):
     list of full space of lgi families "seeds/lgi_families.dat". 
     """
     # if link already exists, remove 
+
     if (os.path.exists("lgi_families.dat")):
         mcscript.call(["rm","-r","lgi_families.dat"])
         print("removed lgi families file")
@@ -674,8 +421,7 @@ def get_lgi_file(task):
     if task["truncation_filename"]==None:
         mcscript.call(
             [
-                "ln",
-                "-s",
+                "cp",
                 "seeds/lgi_families.dat",
                 "lgi_families.dat"
             ]
@@ -719,7 +465,7 @@ def write_lookup_table(index_lookup):
     """
     Create file containing lookup table
     """
-    filename="lgi_full_space_lookup_table.dat"
+    filename="seeds/lgi_full_space_lookup_table.dat"
     with open(filename, 'w') as outstream:
         for index in range(len(index_lookup)):
             full_space_index=index_lookup[index]
@@ -729,6 +475,11 @@ def write_lookup_table(index_lookup):
 
 
 def generate_lgi_lookup_table(task):
+    """
+    define lgi file containing lgi families
+    create look up table between lgi family indices in 
+    (possibly) truncated space and full space
+    """
     get_lgi_file(task)
 
     # Get LGI labels of full space
@@ -744,6 +495,10 @@ def generate_lgi_lookup_table(task):
 
     #write table to file
     write_lookup_table(index_lookup)
+
+
+
+
 
 ################################################################
 # spncci execution
@@ -781,12 +536,16 @@ def generate_spncci_control_file(task):
     control_filename = "spncci.dat"
     mcscript.utils.write_input(control_filename,input_lines,verbose=True)
 
+def make_hyperblocks_dir(task):
+    if (os.path.exists("hyperblocks")):
+        mcscript.call(["rm","-r","hyperblocks"])
+
+    mcscript.utils.mkdir("hyperblocks")
+
+
 def call_spncci(task):
     """ Carry out spncci run.
     """
-
-    ## A = int(task["nuclide"][0]+task["nuclide"][1])  # why cast to int???
-    ## twice_Nsigma_0 = int(2*task["Nsigma_0"])
 
     if ("spncci_variant" not in task):
         task["spncci_variant"] = "spncci"
@@ -801,28 +560,12 @@ def call_spncci(task):
     )
 
     # cleanup
-    mcscript.call(["rm","-r","lsu3shell_rme","relative_observables"])
+    mcscript.call(["rm","-r","seeds","relative_observables","hyperblocks"])
 
 def save_spncci_results(task):
     """
     Rename and save spncci results files.
     """
-
-    ## # log file
-    ## raw_log_filename = "spncci.out"
-    ## new_log_filename = os.path.join(
-    ##     mcscript.task.results_dir,
-    ##     "{name}-{descriptor}.out".format(name=mcscript.parameters.run.name,**task)
-    ## )
-    ## mcscript.call(
-    ##     [
-    ##         "cp",
-    ##         "--verbose",
-    ##         raw_log_filename,
-    ##         new_log_filename
-    ##     ]
-    ## )
-
     # results file
     raw_log_filename = "spncci.res"
     new_log_filename = os.path.join(
@@ -841,18 +584,19 @@ def save_spncci_results(task):
 def do_seed_run(task):
     """ Generate seed files from lsu3shell files.
     """
-    retrieve_su3rme_files(task)
+    su3rme.retrieve_su3rme_files(task)
     generate_spncci_seed_files(task)
+    save_seed_files(task)
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
-    retrieve_su3rme_files(task)
-    generate_spncci_seed_files(task)
+    retrieve_seed_files(task)
     generate_lgi_lookup_table(task)
     generate_observable_rmes(task)
     generate_spncci_control_file(task)
+    make_hyperblocks_dir(task)
     call_spncci(task)
     save_spncci_results(task)
 

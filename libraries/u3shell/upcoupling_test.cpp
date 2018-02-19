@@ -144,8 +144,10 @@ ReadWriteCheck(
     std::string filename
   )
   {
-     std::ostringstream os;
-    WriteRelativeOperatorU3ST(os,relative_rme_map);
+    std::string filename2="upcoupling_test.dat";
+    bool hermitian=true;
+    WriteRelativeOperatorU3ST(filename2,relative_rme_map,hermitian);
+    std::ostringstream os(filename2);
     std::ofstream stream;
     stream.open(filename.c_str());
     stream<<os.str();

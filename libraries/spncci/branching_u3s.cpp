@@ -345,7 +345,8 @@ void
     )
 
     {
-      for(int observable_hypersector_index=0; observable_hypersector_index< observable_hypersectors.size(); ++observable_hypersector_index)
+      // std::cout<<"entering regroup"<<std::endl;
+      for(int observable_hypersector_index=0; observable_hypersector_index<observable_hypersectors.size(); ++observable_hypersector_index)
         {
           // std::cout<<observable_hyperblocks[observable_hypersector_index][0]<<std::endl;
           // std::cout<<"Look up hypersector and extract bra, ket and operator subspace"<<std::endl;
@@ -388,8 +389,10 @@ void
           int dim=baby_spncci_subspace_ket.size();
 
           // std::cout<<"Regroup"<<std::endl;
+          auto matrix_block=observable_blocks[observable_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim);
+
           observable_blocks[observable_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
-            +=observable_hyperblocks[observable_hypersector_index][0];
+            =observable_hyperblocks[observable_hypersector_index][0];
         }//observable hypersector index
     }
 
@@ -475,40 +478,41 @@ void
         // std::cout<<"observable_subspace_index "<<observable_subspace_index<<std::endl;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Look up conjugate unit tensor subspace index
+        // std::cout<<"Look up conjugate unit tensor subspace index"<<std::endl;
+        // std::cout<<u3::Conjugate(x0).Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
         int unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
 
-        //Get conjugate unit tensor subspace
+        // std::cout<<"Get conjugate unit tensor subspace"<<std::endl;
         const auto& unit_tensor_subspace_conj=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_conj);
 
-        // Get conjugate relative observables 
+        // std::cout<<"Get conjugate relative observables"<<std::endl;
         std::tuple<int,int,int> rme_labels_conj(unit_tensor_subspace_index_conj,kappa0,L0);
         const std::vector<double>& relative_rmes_conj=relative_observable.at(rme_labels_conj);
 
-        // Look up conjugate observable subspace index
+        // std::cout<<"Look up conjugate observable subspace index"<<std::endl;
         int observable_subspace_index_conj
           =observable_space.LookUpSubspaceIndex(u3shell::ObservableSubspaceLabels(eta-etap,u3::Conjugate(x0),S0,kappa0,L0));
 
-        // Iterate over baby spncci hypersectors. 
+        // std::cout<<"Iterate over baby spncci hypersectors."<<std::endl; 
         for(int baby_spncci_hypersector_index=0; baby_spncci_hypersector_index<baby_spncci_hypersectors.size(); ++baby_spncci_hypersector_index)
           {
             const auto& baby_spncci_hypersector=baby_spncci_hypersectors.GetHypersector(baby_spncci_hypersector_index);
 
-            // Check if hypersector contains desired unit tensor subspace
+            // std::cout<<"Check if hypersector contains desired unit tensor subspace"<<std::endl;
             if(baby_spncci_hypersector.operator_subspace_index()!=unit_tensor_subspace_index)
               continue;
 
-            // Get baby_spncci subspace indices 
+            // std::cout<<"Get baby_spncci subspace indices"<<std::endl;
             int baby_spncci_index_bra=baby_spncci_hypersector.bra_subspace_index();
             int baby_spncci_index_ket=baby_spncci_hypersector.ket_subspace_index();
             int rho0=baby_spncci_hypersector.multiplicity_index();
 
-            // Look up baby spncci subspaces 
+            // std::cout<<"Look up baby spncci subspaces"<<std::endl;
             const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
             const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
 
-            // Check if hypersector belons to diagonal sector 
+            // std::cout<<"Check if hypersector belons to diagonal sector"<<std::endl;
             // Note: recurrence computes Nnp>=Nn sectors for all (irrep1,irrep2).  Nn>Nnp sectors obtained from (irrep2,irrep1)
             // rmes by conjugation 
             int Nnp=baby_spncci_subspace_bra.Nn();
@@ -534,10 +538,11 @@ void
                 int observable_hypersector_index_conj
                     =observable_hypersectors.LookUpHypersectorIndex(baby_spncci_index_ket,baby_spncci_index_bra,observable_subspace_index_conj,rho0);
 
+                // std::cout<<"get conjugate block "<<observable_hypersector_index_conj<<std::endl;
                 basis::OperatorBlock<double>& observable_block_conj
                     =observable_hyperblocks[observable_hypersector_index_conj][0];
 
-                // conjugation factor base
+                // std::cout<<"conjugation factor base"<<std::endl;
                 // 
                 // get bra and ket subspace labels
                 const u3::U3& omegap=baby_spncci_subspace_bra.omega();
@@ -551,15 +556,15 @@ void
                           1.*u3::dim(omegap)*am::dim(Sp)*u3::dim(u3::SU3(eta,0))
                           /u3::dim(omega)/am::dim(S)/u3::dim(u3::SU3(etap,0))
                         );
-
+                // std::cout<<"iterate over untit tensors"<<std::endl;
                 for(int unit_tensor_index=0; unit_tensor_index<unit_tensor_subspace.size(); ++unit_tensor_index)
                   {
-                    // Get state labels 
+                    // std::cout<<"Get state labels"<<std::endl;
                     int T0, S,T,Sp,Tp;
                     std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(unit_tensor_index);
 
 
-                    // Get conjugate state index
+                    // std::cout<<"Get conjugate state index"<<std::endl;
                     std::tuple<int,int,int,int,int> conjugate_state(T0,S,T,Sp,Tp);
                     int unit_tensor_index_conj=unit_tensor_subspace_conj.LookUpStateIndex(conjugate_state);
                     
@@ -567,6 +572,7 @@ void
                     double conjugation_factor
                         =sqrt(am::dim(S)*am::dim(T)/am::dim(Sp)/am::dim(Tp))*conjugation_factor_base;
 
+                    // std::cout<<unit_tensor_index_conj<<"  "<<unit_tensor_index_conj<<"  "<<unit_tensor_blocks.size()<<"  "<<relative_rmes_conj.size()<<std::endl;
                     observable_block_conj
                         +=conjugation_factor
                           *relative_rmes_conj[unit_tensor_index_conj]

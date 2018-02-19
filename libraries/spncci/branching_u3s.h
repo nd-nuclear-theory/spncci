@@ -315,6 +315,14 @@ void
       const spncci::ObservableBabySpNCCIHypersectors& observable_hypersectors,
       basis::OperatorHyperblocks<double>& observable_hyperblocks
     );
-}  // namespace
+  // Contracts unit tensor rme baby spncci sectors with relative observable rmes to get
+  // baby spncci observable sectors
+  //
+  // Note that there is an implicit assumption that observables are Hermitian 
+  //   "const std::vector<double>& relative_rmes_conj=relative_observable.at(rme_labels_conj)"
+  //
+  //  Populates observable_hypersectors and observable_hyperblocks
+  
+} // namespace
 
 #endif

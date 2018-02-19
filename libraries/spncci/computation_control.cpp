@@ -14,6 +14,7 @@
 // #include "mcutils/eigen.h"
 #include "spncci/results_output.h"
 
+
 namespace spncci
 {
   void SetUpSpNCCISpaces(
