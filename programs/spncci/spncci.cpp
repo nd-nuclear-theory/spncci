@@ -252,9 +252,11 @@ namespace spncci
               =observable_hyperblocks_by_lgi_by_hw[hw_index].at(lgi_pair);
 
             // One file per observable, per hw value
-            std::string filename=fmt::format("hyperblocks/observable_hyperblocks_{:02d}_{:02d}.rmes",observable_index,hw_index);
+            int thread_num=omp_get_thread_num();
+            std::string filename=fmt::format("hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num);
             
-            #pragma omp critical (write_observables)
+            // #pragma omp critical (write_observables)
+            // Now each thread writes to a separate file
             spncci::WriteHyperBlock(
               baby_spncci_observable_hyperblocks,filename,
               irrep_family_index_bra,irrep_family_index_ket
@@ -315,6 +317,7 @@ void ReadObservableHyperblocks(
   mcutils::ReadBinary<int>(in_stream,irrep_family_index_ket);
   lgi_pair=spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
 
+  // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
   // Read number of hyperblocks 
   mcutils::ReadBinary<int>(in_stream,num_hyperblocks);
   baby_spncci_obserable_hyperblocks.resize(num_hyperblocks);
@@ -693,9 +696,14 @@ int main(int argc, char **argv)
 
 
   std::cout<<"begin parallel region"<<std::endl;
-  #pragma omp parallel shared(observable_hypersectors_mesh,observable_hyperblocks_mesh)
+  int num_threads;
+  std::vector<std::vector<int>> num_lgi_pairs_per_thread(run_parameters.num_observables);
+  #pragma omp parallel shared(observable_hypersectors_mesh,observable_hyperblocks_mesh,num_threads,num_lgi_pairs_per_thread)
     {
-
+      num_threads=omp_get_num_threads();
+      #pragma omp single
+      for(int i=0; i<run_parameters.num_observables; ++i)
+        num_lgi_pairs_per_thread[i].resize(num_threads);
       // Private containers 
       //
       //coefficient caches
@@ -792,6 +800,8 @@ int main(int argc, char **argv)
                     observable_hypersectors_by_lgi_table[observable_index].begin(),
                     observable_hypersectors_by_lgi_table[observable_index].end()
                   );
+              num_lgi_pairs_per_thread[observable_index][omp_get_thread_num()]
+                =observable_hypersectors_by_lgi_table[observable_index].size();
             }
             for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
               {
@@ -806,21 +816,32 @@ int main(int argc, char **argv)
 
           }
       
-      #pragma omp critical (print)
-        {
-          int mytid = omp_get_thread_num();
-          std::cout<<"Thread "<<mytid<<":"<<std::endl<<"  lgi pairs"<<observable_hyperblocks_by_lgi_table[0].size()<<std::endl;
-          // std::cout<<"  "<<u_coef_cache.size()<<std::endl
-          // <<"  "<<phi_coef_cache.size()<<std::endl;
-          // std::cout << fmt::format("(Task time: {})",timer_recurrence.ElapsedTime()) << std::endl;
-        }
+      // #pragma omp critical (print)
+      //   {
+      //     int mytid = omp_get_thread_num();
+      //     std::cout<<"Thread "<<mytid<<":"<<std::endl<<"  lgi pairs"<<observable_hyperblocks_by_lgi_table[0].size()<<std::endl;
+      //     for(auto it=observable_hypersectors_by_lgi_table[0].begin(); 
+      //         it!=observable_hypersectors_by_lgi_table[0].end();
+      //         ++it
+      //       )
+      //       {
+      //         int bra,ket;
+      //         std::tie(bra,ket)=it->first;
+      //         std::cout<<bra<<"  "<<ket<<std::endl;
+      //       }
+      //     // std::cout<<"  "<<u_coef_cache.size()<<std::endl
+      //     // <<"  "<<phi_coef_cache.size()<<std::endl;
+      //     // std::cout << fmt::format("(Task time: {})",timer_recurrence.ElapsedTime()) << std::endl;
+      //   }
 
 
       //After lgi_pair for loop complete, each thread dealocates
       //  phi and U coefficient caches 
       u_coef_cache.clear();
       phi_coef_cache.clear();
-    }//end parallel region
+    
+    #pragma omp barrier
+    // }//end parallel region
 
       // #pragma omp critical (print)
       //   {
@@ -832,6 +853,7 @@ int main(int argc, char **argv)
       // Regroup baby spncci observable hyperblocks into observableU3S sectors
       for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
         for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
+          for(int thread_num=0; thread_num<num_threads; ++thread_num)
           {
             const auto& baby_spncci_observable_hypersectors_by_lgi
                   =observable_hypersectors_mesh[observable_index];
@@ -843,7 +865,7 @@ int main(int argc, char **argv)
               // =observable_hyperblocks_by_lgi_table[observable_index][hw_index];
 
 
-            // Get u3s hypersectors 
+            // std::cout<<"Get u3s hypersectors" <<std::endl;
             const spncci::ObservableHypersectorsU3S& observable_hypersectors
               =observable_hypersectors_by_observable[observable_index];
 
@@ -857,7 +879,7 @@ int main(int argc, char **argv)
             // #pragma omp single 
               {
                 std::string filename=fmt::format(
-                    "hyperblocks/observable_hyperblocks_{:02d}_{:02d}.rmes",observable_index,hw_index
+                    "hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num
                   );
                 
                 std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
@@ -867,13 +889,14 @@ int main(int argc, char **argv)
                 // Check if file found
                 if(not bool(in_stream))
                     std::cout<<filename+" not found."<<std::endl;
-                
+                // else
+                //   std::cout<<" opened "<<filename<<std::endl;
                 // if file not found exit program
                 assert(in_stream);
               }
 
-            int num_lgi_pairs=baby_spncci_observable_hypersectors_by_lgi.size();
             
+            int num_lgi_pairs=num_lgi_pairs_per_thread[observable_index][thread_num];
             // #pragma omp for
             for(int i=0; i<num_lgi_pairs; ++i)
               {
@@ -915,7 +938,7 @@ int main(int argc, char **argv)
               }
 
           }
-    // } //end parallel region
+    } //end parallel region
  
 
   ////////////////////////////////////////////////////////////////
