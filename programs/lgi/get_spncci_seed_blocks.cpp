@@ -215,7 +215,7 @@ int main(int argc, char **argv)
           //get operator file name  
           int bra_index, ket_index;
           std::tie(bra_index,ket_index)=it->first;
-          std::string filename=fmt::format("operators_{:06d}_{:06d}.dat",bra_index,ket_index);
+          std::string filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",bra_index,ket_index);
           
           // read in unit tensor sector labels 
           std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 
           // Reading in seeds 
           basis::MatrixVector unit_tensor_seed_blocks(unit_tensor_labels.size());
-          std::string seed_filename=fmt::format("seeds_{:06d}_{:06d}.rmes",bra_index,ket_index);
+          std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",bra_index,ket_index);
           
           // Read seeds from file
           int num_blocks=unit_tensor_labels.size();
@@ -255,4 +255,5 @@ int main(int argc, char **argv)
         }
         std::cout<<"all done checking "<<std::endl;
       }
+    
 }

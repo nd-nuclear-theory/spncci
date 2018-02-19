@@ -35,10 +35,15 @@
 
 namespace spncci
 {
-  typedef std::vector<std::vector<std::unordered_map<spncci::LGIPair,basis::OperatorHyperblocks<double>,boost::hash<spncci::LGIPair>>>>
-      ObservableHyperblocksByLGIPairTable; 
+  typedef std::unordered_map<spncci::LGIPair,basis::OperatorHyperblocks<double>,boost::hash<spncci::LGIPair>> 
+            ObservableHyperblocksByLGIPair;
 
-  typedef std::vector<std::unordered_map<spncci::LGIPair,spncci::ObservableBabySpNCCIHypersectors,boost::hash<spncci::LGIPair>>>
+  typedef std::vector<std::vector<ObservableHyperblocksByLGIPair>>ObservableHyperblocksByLGIPairTable; 
+
+  typedef std::unordered_map<spncci::LGIPair,spncci::ObservableBabySpNCCIHypersectors,boost::hash<spncci::LGIPair>>
+            ObservableHypersectorsByLGI;
+
+  typedef std::vector<ObservableHypersectorsByLGI>
       ObservableHypersectorsByLGIPairTable;
   ////////////////////////////////////////////////////////////////
   // basis indexing in U3S scheme for spncci basis branching
@@ -264,8 +269,15 @@ namespace spncci
       const std::vector<spncci::ObservableHypersectorsU3S>& observable_hypersectors_by_observable,
       std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_array
     );
+ // for mesh of hyperspectors order by hw and observable
 
-
+ void InitializeU3SObservableBlocks(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, int num_hw_values,
+      const spncci::ObservableHypersectorsU3S& hypersectors,
+      spncci::OperatorBlocks& blocks
+    );
+  // For single set of hypersectors 
 
   void
   ContractBabySpNCCIU3S(

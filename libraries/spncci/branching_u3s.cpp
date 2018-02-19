@@ -145,6 +145,26 @@ namespace spncci
  void InitializeU3SObservableBlocks(
       const spncci::SpaceU3S& space_u3s,
       int num_observables, int num_hw_values,
+      const spncci::ObservableHypersectorsU3S& hypersectors,
+      spncci::OperatorBlocks& blocks
+    )
+  {
+    blocks.resize(hypersectors.size());
+    for(int hypersector_index=0; hypersector_index<hypersectors.size(); ++hypersector_index)
+      {
+        const auto& hypersector=hypersectors.GetHypersector(hypersector_index);
+        int rows=space_u3s.GetSubspace(hypersector.bra_subspace_index()).full_dimension();
+        int cols=space_u3s.GetSubspace(hypersector.ket_subspace_index()).full_dimension();
+        blocks[hypersector_index]=spncci::OperatorBlock::Zero(rows,cols);
+      }
+  }
+
+
+
+
+ void InitializeU3SObservableBlocks(
+      const spncci::SpaceU3S& space_u3s,
+      int num_observables, int num_hw_values,
       const std::vector<spncci::ObservableHypersectorsU3S>& observable_hypersectors_by_observable,
       std::vector<std::vector<spncci::OperatorBlocks>>& observables_blocks_array
     )
@@ -346,6 +366,7 @@ void
 
     {
       // std::cout<<"entering regroup"<<std::endl;
+      // #pragma omp parallel for schedule(dynamic)
       for(int observable_hypersector_index=0; observable_hypersector_index<observable_hypersectors.size(); ++observable_hypersector_index)
         {
           // std::cout<<observable_hyperblocks[observable_hypersector_index][0]<<std::endl;
