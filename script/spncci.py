@@ -393,7 +393,7 @@ def retrieve_seed_files(task):
         mcscript.call(
             [
                 "tar",
-                "-xvf",
+                "-xf",
                 archive_filename
                 # "--directory=seeds"
             ]

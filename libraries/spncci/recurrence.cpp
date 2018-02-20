@@ -992,12 +992,12 @@ ComputeUnitTensorHyperblocks(
       =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
     files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
-    if(not files_found)
-      {
-        std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "
-                  <<irrep_family_index_ket<<" not found"<<std::endl;
-        return false;
-      }
+    // if(not files_found)
+    //   {
+    //     std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "
+    //               <<irrep_family_index_ket<<" not found"<<std::endl;
+    //     return false;
+    //   }
 
     // Identify unit tensor subspaces for recurrence
     std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;

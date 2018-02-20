@@ -304,7 +304,7 @@ namespace lgi
       std::ifstream in_stream(filename,std::ios_base::in);
       if(not bool(in_stream))
         {
-          std::cout<<filename+" not found."<<std::endl;
+          // std::cout<<filename+" not found."<<std::endl;
           return file_found;
         }
       // mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
@@ -385,7 +385,7 @@ namespace lgi
       std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
       if(not bool(in_stream))
         {
-          std::cout<<filename+" not found."<<std::endl;
+          // std::cout<<filename+" not found."<<std::endl;
           return file_found;
         }
 

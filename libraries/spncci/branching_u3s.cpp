@@ -409,11 +409,14 @@ void
           int dimp=baby_spncci_subspace_bra.size();
           int dim=baby_spncci_subspace_ket.size();
 
-          // std::cout<<"Regroup"<<std::endl;
+          // std::cout<<"Regroup "<<observable_sector_index<<"  "<<observable_hypersector_index<<"     "
+          // <<block_index_u3s_bra<<"  "<<block_index_u3s_ket<<"  "<<dimp<<"  "<<dim<<std::endl;
           auto matrix_block=observable_blocks[observable_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim);
 
+          // std::cout<<observable_blocks[observable_sector_index]<<std::endl<<matrix_block<<std::endl<<std::endl;
           observable_blocks[observable_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
             =observable_hyperblocks[observable_hypersector_index][0];
+          // std::cout<<"hi"<<std::endl;
         }//observable hypersector index
     }
 
