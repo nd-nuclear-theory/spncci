@@ -119,7 +119,6 @@ operator_subdirectory_list = []
 seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
 seed_subdirectory_list = []
 
-
 # ... from spncci
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
 generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
@@ -130,6 +129,17 @@ seed_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigma
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
 ################################################################
+def stacksize_setup():
+    """ Set OpenMP stacksize variables.
+
+    """
+    stacksize=50 #in megabytes
+    # set number of threads by global qsubm depth parameter
+    print("Setting OMP_STACKSIZE to {}M.".format(stacksize))
+    os.environ["OMP_STACKSIZE"] = "20 M"
+
+
+
 
 def generate_observable_rmes(task):
     """Generate relative U3ST RMEs of observable operators.
@@ -299,7 +309,7 @@ def save_seed_files(task):
 
     mcscript.call(
         [
-            "tar", "-zcvf", archive_filename, "seeds"
+            "tar", "-zcvf", archive_filename, "--format=posix", "seeds"
         ] 
     )
 
@@ -316,7 +326,7 @@ def save_seed_files(task):
 
 
     # clean up working directory
-    mcscript.call(["rm","-r", "seeds"])
+    # mcscript.call(["rm","-r", "seeds"])
     mcscript.call(["rm","-r", "lsu3shell_rme"])
 
 # def retrieve_seed_files(task):
@@ -540,7 +550,14 @@ def make_hyperblocks_dir(task):
     if (os.path.exists("hyperblocks")):
         mcscript.call(["rm","-r","hyperblocks"])
 
-    mcscript.utils.mkdir("hyperblocks")
+    if (os.path.exists("/scratch/hyperblocks")):
+        mcscript.call(["rm","-r","/scratch/hyperblocks"])
+
+
+    directory_name="/scratch/hyperblocks"
+    mcscript.utils.mkdir(directory_name)
+    mcscript.call(["ln","-s",directory_name,"hyperblocks"])
+
 
 
 def call_spncci(task):
@@ -592,6 +609,7 @@ def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
+    stacksize_setup()
     retrieve_seed_files(task)
     generate_lgi_lookup_table(task)
     generate_observable_rmes(task)
@@ -599,6 +617,24 @@ def do_full_spncci_run(task):
     make_hyperblocks_dir(task)
     call_spncci(task)
     save_spncci_results(task)
+
+def test(task):
+    """
+    Read in lgi family labels from filename
+    """
+    make_hyperblocks_dir(task)
+    filename="hyperblocks/testfile.txt"
+    file = open(filename,'w') 
+    file.write("Hello World") 
+    file.write("This is our new text file") 
+    file.write("and this is another line.") 
+    file.write("Why? Because we can.") 
+    print("done writing")
+    file.close() 
+    
+    file = open(filename, 'r') 
+    print(file.read())
+    mcscript.call(["rm","-r","hyperblocks"])
 
 if (__name__ == "__MAIN__"):
     pass

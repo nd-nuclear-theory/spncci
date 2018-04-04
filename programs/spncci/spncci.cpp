@@ -263,6 +263,10 @@ namespace spncci
 
       }
     out_file.close();
+  
+    // std::ifstream file(filename,std::ios::binary | std::ios::ate);
+    // std::cout<<"file size "<<file.tellg()<<std::endl;
+    // file.close();
   }
 
   void WriteBabySpncciObservableRMEs(
@@ -286,7 +290,7 @@ namespace spncci
 
             // One file per observable, per hw value
             int thread_num=omp_get_thread_num();
-            std::string filename=fmt::format("hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num);
+            std::string filename=fmt::format("/scratch/hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num);
             
             // #pragma omp critical (write_observables)
             // Now each thread writes to a separate file
@@ -420,7 +424,7 @@ void ContractBabySpNCCIHypersectors(
 
 void RegroupU3Sectors(
       int observable_index, int hw_index,
-      std::vector<int> nums_lgi_pairs,int num_threads,
+      std::vector<int> nums_lgi_pairs,int num_files,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::SpaceU3S& space_u3s,
       const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
@@ -430,14 +434,15 @@ void RegroupU3Sectors(
     )
   {
       // Regroup baby spncci observable hyperblocks into observableU3S sectors
-    for(int thread_num=0; thread_num<num_threads; ++thread_num)
+    // std::cout<<"num files "<<num_files<<std::endl;
+    for(int thread_num=0; thread_num<num_files; ++thread_num)
       {
         int num_lgi_pairs=nums_lgi_pairs[thread_num];
         std::ifstream in_stream; 
         // #pragma omp single 
         {
           std::string filename=fmt::format(
-              "hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num
+              "/scratch/hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num
             );
           
           std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
@@ -445,12 +450,12 @@ void RegroupU3Sectors(
           in_stream.open(filename,mode_argument);
           
           // Check if file found
-          // if(not bool(in_stream))
-          //     std::cout<<filename+" not found."<<std::endl;
+          if(not bool(in_stream))
+              std::cout<<filename+" not found."<<std::endl;
           // else
           //   std::cout<<" opened "<<filename<<std::endl;
           // if file not found exit program
-          assert(in_stream);
+          // assert(in_stream);
         }
         // std::cout<<"entering dreaded parallel region"<<std::endl;
         #pragma omp parallel for schedule(dynamic) shared(in_stream)
@@ -791,16 +796,21 @@ int main(int argc, char **argv)
 
 
   std::cout<<"begin parallel region"<<std::endl;
-  int num_threads;
+  int num_files;
   std::vector<std::vector<int>> num_lgi_pairs_per_thread(run_parameters.num_observables);
-  #pragma omp parallel shared(observable_hypersectors_mesh,observable_hyperblocks_mesh,num_threads,num_lgi_pairs_per_thread)
+  #pragma omp parallel shared(observable_hypersectors_mesh,observable_hyperblocks_mesh,num_files,num_lgi_pairs_per_thread)
     {
-      num_threads=omp_get_num_threads();
+      
       #pragma omp single
       {
+        int num_threads=omp_get_num_threads();
+        num_files=num_threads;
+        
         for(int i=0; i<run_parameters.num_observables; ++i)
           num_lgi_pairs_per_thread[i].resize(num_threads);
       }
+
+      
       // Private containers 
       //
       //coefficient caches
@@ -824,7 +834,7 @@ int main(int argc, char **argv)
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
           int irrep_family_index_bra,irrep_family_index_ket;
           std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-          // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
+          std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
           // (irrep1,irrep2)
           // spncci::LGIPair lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
           
@@ -891,6 +901,7 @@ int main(int argc, char **argv)
 
             #pragma omp critical (accumulate)
             {
+              std::cout<<"threads "<<omp_get_thread_num()<<" accumulating"<<std::endl;
               std::unordered_map<spncci::LGIPair,spncci::ObservableBabySpNCCIHypersectors,boost::hash<spncci::LGIPair>>&
                 observable_hypersectors_lgi=observable_hypersectors_mesh[observable_index];
                 observable_hypersectors_lgi.insert(
@@ -902,16 +913,16 @@ int main(int argc, char **argv)
               if(observable_index==0)
                 std::cout<<"thread "<<omp_get_thread_num()<<" has "<<num_lgi_pairs_per_thread[observable_index][omp_get_thread_num()]<<std::endl;
             }
-            for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
-              {
-                std::unordered_map<spncci::LGIPair,basis::OperatorHyperblocks<double>,boost::hash<spncci::LGIPair>>&
-                observable_hyperblocks_lgi=observable_hyperblocks_mesh[observable_index][hw_index];
-                observable_hyperblocks_lgi.insert(
-                    observable_hyperblocks_by_lgi_table[observable_index][hw_index].begin(),
-                    observable_hyperblocks_by_lgi_table[observable_index][hw_index].end()
-                  );
+            // for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
+            //   {
+            //     std::unordered_map<spncci::LGIPair,basis::OperatorHyperblocks<double>,boost::hash<spncci::LGIPair>>&
+            //     observable_hyperblocks_lgi=observable_hyperblocks_mesh[observable_index][hw_index];
+            //     observable_hyperblocks_lgi.insert(
+            //         observable_hyperblocks_by_lgi_table[observable_index][hw_index].begin(),
+            //         observable_hyperblocks_by_lgi_table[observable_index][hw_index].end()
+            //       );
 
-              }
+            //   }
 
           }
 
@@ -940,7 +951,7 @@ int main(int argc, char **argv)
             
       //       spncci::RegroupU3Sectors(
       //           observable_index,hw_index,
-      //           num_lgi_pairs_per_thread[observable_index],num_threads,
+      //           num_lgi_pairs_per_thread[observable_index],num_files,
       //           baby_spncci_space, space_u3s,observable_spaces,
       //           baby_spncci_observable_hypersectors_by_lgi,
       //           observable_hypersectors,observable_blocks
@@ -1008,7 +1019,7 @@ int main(int argc, char **argv)
         std::cout<<"regrouping"<<std::endl;
         spncci::RegroupU3Sectors(
             observable_index,hw_index,
-            num_lgi_pairs_per_thread[observable_index],num_threads,
+            num_lgi_pairs_per_thread[observable_index],num_files,
             baby_spncci_space, space_u3s,observable_spaces,
             baby_spncci_observable_hypersectors_by_lgi,
             observable_hypersectors,observable_blocks
@@ -1165,7 +1176,7 @@ int main(int argc, char **argv)
      
           spncci::RegroupU3Sectors(
               observable_index,hw_index,
-              num_lgi_pairs_per_thread[observable_index],num_threads,
+              num_lgi_pairs_per_thread[observable_index],num_files,
               baby_spncci_space, space_u3s,observable_spaces,
               baby_spncci_observable_hypersectors_by_lgi,
               observable_hypersectors,observable_blocks
