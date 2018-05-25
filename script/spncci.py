@@ -119,13 +119,15 @@ operator_subdirectory_list = []
 seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
 seed_subdirectory_list = []
 
+truncation_directory = os.environ["SPNCCI_TRUNCATION_DIR"]
+truncation_subdirectory = []
+
+
 # ... from spncci
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
 generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
 spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
-
 seed_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
-
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
 ################################################################
@@ -495,10 +497,10 @@ def generate_lgi_lookup_table(task):
     # Get LGI labels of full space
     lgi_labels=read_lgi_list("seeds/lgi_families.dat")
 
-    print(lgi_labels)
+    # print(lgi_labels)
     # Get LGI labels of truncated space
     lgi_labels_truncated=read_lgi_list("lgi_families.dat")
-    print(lgi_labels_truncated)
+    # print(lgi_labels_truncated)
     
     # Make look up table for related in truncated space index to full space index
     index_lookup=lookup_table(lgi_labels_truncated,lgi_labels)
@@ -547,17 +549,29 @@ def generate_spncci_control_file(task):
     mcscript.utils.write_input(control_filename,input_lines,verbose=True)
 
 def make_hyperblocks_dir(task):
+    """
+    Defines temporary director for hyperblocks 
+    """
     if (os.path.exists("hyperblocks")):
         mcscript.call(["rm","-r","hyperblocks"])
 
-    if (os.path.exists("/scratch/hyperblocks")):
-        mcscript.call(["rm","-r","/scratch/hyperblocks"])
 
+    if task["hyperblocks_dir"]==None:
+        mcscript.utils.mkdir("hyperblocks")
 
-    directory_name="/scratch/hyperblocks"
-    mcscript.utils.mkdir(directory_name)
-    mcscript.call(["ln","-s",directory_name,"hyperblocks"])
+    else:
+        directory=os.path.join("/scratch/hyperblocks")
+        mcscript.utils.mkdir(directory)
 
+        # link to hyperblocks temporary directory
+        mcscript.call(
+            [
+                "ln",
+                "-s",
+                directory,
+                "hyperblocks"
+            ]
+        )
 
 
 def call_spncci(task):
@@ -578,6 +592,8 @@ def call_spncci(task):
 
     # cleanup
     mcscript.call(["rm","-r","seeds","relative_observables","hyperblocks"])
+    # directory=os.path.join(task["hyperblocks_dir"],"hyperblocks")
+    mcscript.call(["rm","-r","/scratch/hyperblocks"])
 
 def save_spncci_results(task):
     """
