@@ -43,7 +43,7 @@ namespace spncci
     const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
     const std::vector<int>& rho0_values,
-    basis::MatrixVector& unit_tensor_seed_blocks,
+    basis::OperatorBlocks<double>& unit_tensor_seed_blocks,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_Nn0,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
   );

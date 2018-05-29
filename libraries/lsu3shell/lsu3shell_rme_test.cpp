@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
   
   // reading in operator rme's obtained form SU3RME
-  basis::MatrixVector matrices;
+  basis::OperatorBlocks<double> matrices;
   lsu3shell::ReadLSU3ShellRMEs(op_filename,basis_table,space,op_labels,sectors,matrices);
 
   for(int i=0; i<matrices.size(); ++i)
@@ -53,12 +53,12 @@ int main(int argc, char **argv)
 
   // Generate Ncm matrix from Nrel
   //
-  // WARNING: OLD version of GenerateNcmMatrixVectorwith stream
+  // WARNING: OLD version of GenerateNcmOperatorBlocks<double>with stream
   // arguments -- no longer supported
   
-  // basis::MatrixVector ncm_matrices;
+  // basis::OperatorBlocks<double> ncm_matrices;
   // std::ifstream is_nrel(op_filename.c_str());
-  // lsu3shell::GenerateNcmMatrixVector(A,is_nrel,basis_table,space,ncm_matrices);
+  // lsu3shell::GenerateNcmOperatorBlocks<double>(A,is_nrel,basis_table,space,ncm_matrices);
   // for(int i=0; i<ncm_matrices.size(); ++i)
   // {
   //     if (matrices[i].rows()<2)
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
   // test matrix comparison
   
   // This is just a self-comparison, with one entry skewed...
-  basis::MatrixVector matrices_mod = matrices;
+  basis::OperatorBlocks<double> matrices_mod = matrices;
   matrices_mod[0](0,0) += 3.14159;
   double epsilon = 1e-8;
   CompareLSU3ShellRMEs(

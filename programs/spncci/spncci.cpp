@@ -765,7 +765,7 @@ int main(int argc, char **argv)
 
   // //FOR TESTING
   // // explicit construction of spncci basis
-  // basis::MatrixVector spncci_expansions;
+  // basis::OperatorBlocks<double> spncci_expansions;
   // if(check_unit_tensors)
   //   spncci::ExplicitBasisConstruction(
   //     run_parameters,spncci_space,baby_spncci_space,
@@ -834,7 +834,7 @@ int main(int argc, char **argv)
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
           int irrep_family_index_bra,irrep_family_index_ket;
           std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-          std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
+          // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
           // (irrep1,irrep2)
           // spncci::LGIPair lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
           

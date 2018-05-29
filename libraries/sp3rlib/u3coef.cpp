@@ -251,7 +251,7 @@ namespace u3
           {// std::cout<<"thread number "<<omp_get_thread_num()<<std::endl;
             if (cache.count(labels)==0)
               {
-                // #pragma omp critical
+                //// #pragma omp critical
                 cache[labels]=u3::UCoefBlock(labels);
               }
           }
@@ -339,7 +339,7 @@ namespace u3
       {
         const u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
         // std::cout<<fmt::format("{}  {} {} {} {}",labels.Str(),kappa1,kappa2,kappa3,rho)<<std::endl;
-        // #pragma omp critical
+        // #pragma omp critical (wcoef)
         {
           if (cache.count(labels)==0)
             cache[labels]=u3::WCoefBlock(labels);          

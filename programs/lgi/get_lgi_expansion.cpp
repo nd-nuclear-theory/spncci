@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   std::cout << "Solve for LGIs..." << std::endl;
 
   lgi::MultiplicityTaggedLGIVector lgi_families;
-  basis::MatrixVector lgi_expansions;
+  basis::OperatorBlocks<double> lgi_expansions;
   std::vector<int> lsu3shell_index_lookup_table;
 
   lgi::GetLGIExpansion(

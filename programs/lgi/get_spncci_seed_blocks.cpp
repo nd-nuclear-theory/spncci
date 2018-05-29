@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
   // std::cout<<"comput seeds "<<std::endl;
   lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels;
-  std::vector<basis::MatrixVector> unit_tensor_spncci_matrices_array;
+  std::vector<basis::OperatorBlocks<double>> unit_tensor_spncci_matrices_array;
   bool restrict_seeds=false;
   lgi::ComputeUnitTensorSeedBlocks(
       lgi_unit_tensor_labels,relative_unit_tensor_filename_template,
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
             }
 
           // Reading in seeds 
-          basis::MatrixVector unit_tensor_seed_blocks(unit_tensor_labels.size());
+          basis::OperatorBlocks<double> unit_tensor_seed_blocks(unit_tensor_labels.size());
           std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",bra_index,ket_index);
           
           // Read seeds from file

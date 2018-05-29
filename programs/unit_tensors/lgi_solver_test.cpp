@@ -34,8 +34,8 @@ int CountBasisIrreps(const u3shell::SpaceU3SPN& space)
 void NullSpaceCheck(
   const u3shell::SpaceU3SPN& space,
   u3shell::SectorsU3SPN& sectors, 
-  basis::MatrixVector& operator_matrices,
-  basis::MatrixVector& null_vectors_matrices)
+  basis::OperatorBlocks<double>& operator_matrices,
+  basis::OperatorBlocks<double>& null_vectors_matrices)
 {  
   int total_null=0;
   int total_rank=0;
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
   std::cout<<"LSU3Shell basis  states : "<<num_states<<std::endl;
   
   // Read in Nrel and compute Ncm matrix sectors
-  basis::MatrixVector ncm_matrices;
+  basis::OperatorBlocks<double> ncm_matrices;
   std::cout<<"Ncm_matrices"<<std::endl;
   std::ifstream is_nrel(nrel_filename.c_str());
   lsu3shell::GenerateNcmMatrixVector(A,is_nrel,basis_table,space,ncm_matrices);
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
   u3shell::SectorsU3SPN ncm_sectors(space,ncm_labels,true);
 
   // Checking the null vectors 
-  basis::MatrixVector ncm_null_vectors;
+  basis::OperatorBlocks<double> ncm_null_vectors;
   for(auto& ncm_matrix : ncm_matrices)
   {
     Eigen::MatrixXd null_vectors;
@@ -146,12 +146,12 @@ int main(int argc, char **argv)
   std::ifstream is_brel(brel_filename.c_str());
   u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
   u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
-  basis::MatrixVector brel_matrices(brel_sectors.size());
+  basis::OperatorBlocks<double> brel_matrices(brel_sectors.size());
   lsu3shell::ReadLSU3ShellRMEs(is_brel,brel_labels,basis_table,space,brel_sectors,brel_matrices);
   is_brel.close();
 
   // // Get Brel null vectors 
-  // basis::MatrixVector brel_null_vectors;
+  // basis::OperatorBlocks<double> brel_null_vectors;
   // for(auto& brel_matrix : brel_matrices)
   // {
   //   Eigen::MatrixXd null_vectors;
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
   // NullSpaceCheck(space, brel_matrices,brel_null_vectors);
 
   // Solving for lgi expansion from Brel+Ncm
-  basis::MatrixVector lgi_expansion_matrix_vector;
+  basis::OperatorBlocks<double> lgi_expansion_matrix_vector;
 
   std::cout<<"Generating LGI expansion"<<std::endl;
   std::ifstream is_nrel2(nrel_filename.c_str());
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
   std::ifstream is_arel(arel_filename.c_str());
   u3shell::OperatorLabelsU3ST arel_labels(2,u3::SU3(2,0),0,0,0);
   u3shell::SectorsU3SPN arel_sectors(space,arel_labels,true);
-  basis::MatrixVector arel_matrices(arel_sectors.size());
+  basis::OperatorBlocks<double> arel_matrices(arel_sectors.size());
   lsu3shell::ReadLSU3ShellRMEs(is_arel,arel_labels,basis_table,space,arel_sectors,arel_matrices);
   is_arel.close();
 
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
     // std::cout<<"omegas "<<std::endl;
     // std::cout<<omega_matrix<<std::endl;
     // std::cout<<"Brel on omega_matrix "<<std::endl;
-    basis::MatrixVector null_matrix_vector;
+    basis::OperatorBlocks<double> null_matrix_vector;
     null_matrix_vector.push_back(null_matrix);
     ZeroOutMatrix(null_matrix_vector,threshold);
     
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
     // Check orthogonality of laddered states 
     // Eigen::MatrixXd w_matrix=Arel*LGIs;
     // Eigen::MatrixXd orthog_set=w_matrix.transpose()*w_matrix;
-    // basis::MatrixVector orthog_vector;
+    // basis::OperatorBlocks<double> orthog_vector;
     // orthog_vector.push_back(orthog_set);
     // ZeroOutMatrix(orthog_vector,threshold);
     // std::cout<<orthog_vector[0]<<std::endl<<std::endl;
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 
   u3shell::OperatorLabelsU3ST id_labels(0,u3::SU3(0,0),0,0,0);
   u3shell::SectorsU3SPN id_sectors(space,id_labels,false);
-  basis::MatrixVector id_lsu3shell(id_sectors.size()), id_spncci(id_sectors.size());
+  basis::OperatorBlocks<double> id_lsu3shell(id_sectors.size()), id_spncci(id_sectors.size());
   basis::SetOperatorToZero(id_sectors,id_lsu3shell);
   basis::SetOperatorToZero(id_sectors,id_spncci);
   std::cout<<"number of relative unit tensors "<<relative_unit_tensor_labels.size()<<std::endl;
@@ -263,8 +263,8 @@ int main(int argc, char **argv)
           std::cout<<fmt::format("relative_unit_{:06d}.rme not found",i)<<std::endl;
           continue;
         }
-      basis::MatrixVector lsu3shell_operator_matrices;
-      basis::MatrixVector spncci_operator_matrices;
+      basis::OperatorBlocks<double> lsu3shell_operator_matrices;
+      basis::OperatorBlocks<double> spncci_operator_matrices;
       // std::cout<<"reading in"<<std::endl;
       lsu3shell::ReadLSU3ShellRMEs(is_operator,operator_labels, basis_table,space, sectors,lsu3shell_operator_matrices);
       // for(auto matrix : lsu3shell_operator_matrices)

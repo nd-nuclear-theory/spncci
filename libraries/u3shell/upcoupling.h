@@ -87,7 +87,7 @@ namespace u3shell
   //
   // Upcoupling relative operator from NLSJTg scheme to U3STg scheme
   // Relative matrix element of operators in NLSJTg are stored in 
-  // std::array<basis::MatrixVector,3> where the three componenets of the
+  // std::array<basis::OperatorBlocks<double>,3> where the three componenets of the
   // array are T0=0,1,2. The vectors of Eigen::MatrixdX matrices
   // for each element of the array correspond to the basis::RelativeSectorsLSJT sectors, 
   // Each sector is labled by L'S'J'T'g' J0 g0 L S J T g for fixed T0
@@ -153,7 +153,7 @@ namespace u3shell
   void Upcoupling(    
       const basis::RelativeSpaceLSJT& space,
       const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
-      const std::array<basis::MatrixVector,3>& T0_sectors,
+      const std::array<basis::OperatorBlocks<double>,3>& T0_sectors,
       u3::WCoefCache& w_cache,
       int J0, int g0, int T0,int Nmax,
       RelativeRMEsU3ST& rme_map
@@ -163,7 +163,7 @@ namespace u3shell
   void Upcoupling(    
       const basis::RelativeSpaceLSJT& space,
       const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
-      const std::array<basis::MatrixVector,3>& T0_sectors,
+      const std::array<basis::OperatorBlocks<double>,3>& T0_sectors,
       int J0, int g0, int T0,int Nmax,
       RelativeRMEsU3ST& rme_map
     );

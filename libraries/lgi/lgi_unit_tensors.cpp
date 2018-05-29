@@ -33,7 +33,7 @@ namespace lgi
       const u3shell::SectorsU3SPN& unit_tensor_sectors,
       const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      basis::MatrixVector& unit_tensor_spncci_matrices,
+      basis::OperatorBlocks<double>& unit_tensor_spncci_matrices,
       std::vector<int>& lsu3hsell_index_lookup_table,
       bool restrict_seeds
     )
@@ -77,9 +77,9 @@ namespace lgi
       const std::string& relative_unit_tensor_filename_template,
       const u3shell::SpaceU3SPN& lsu3shell_space, 
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-      const basis::MatrixVector& lgi_expansions,
+      const basis::OperatorBlocks<double>& lgi_expansions,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array,
+      std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array,
       std::vector<int>& lsu3shell_index_lookup_table,
       bool restrict_seeds
     )
@@ -101,7 +101,7 @@ namespace lgi
         for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
           {
             // Get labels of corresponding unit tensor 
-            basis::MatrixVector unit_tensor_spncci_matrices;
+            basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
             const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
 
             // Get file name containing lsu3shell rmes of unit tensor 
@@ -112,7 +112,7 @@ namespace lgi
             u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
 
             // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
-            basis::MatrixVector unit_tensor_lsu3shell_matrices;
+            basis::OperatorBlocks<double> unit_tensor_lsu3shell_matrices;
             lsu3shell::ReadLSU3ShellRMEs(
                 filename,
                 lsu3shell_basis_table,lsu3shell_space,
@@ -215,7 +215,7 @@ namespace lgi
 
   void WriteSeedsToFile(
       const lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      const std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array
+      const std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array
     )
   {
 
@@ -377,7 +377,7 @@ namespace lgi
   bool ReadBlocks(
       const std::string& filename, 
       int num_blocks,
-      basis::MatrixVector& blocks
+      basis::OperatorBlocks<double>& blocks
     )
     {
       // std::cout << "opening " << filename << std::endl;      

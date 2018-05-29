@@ -43,7 +43,7 @@ void IdentityTest(
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
   
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
-  std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+  std::array<basis::OperatorBlocks<double>,3> isospin_component_matrices_lsjt;
   basis::OperatorLabelsJT operator_labels;
 
   basis::ReadRelativeOperatorLSJT(
@@ -56,7 +56,7 @@ void IdentityTest(
 
   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
   const basis::RelativeSectorsLSJT& sectors_lsjt=isospin_component_sectors_lsjt[T0];
-  const basis::MatrixVector& matrices_lsjt=isospin_component_matrices_lsjt[T0];
+  const basis::OperatorBlocks<double>& matrices_lsjt=isospin_component_matrices_lsjt[T0];
   u3shell::UpcouplingNLST(relative_space_lsjt,sectors_lsjt,matrices_lsjt,J0,g0,T0,Nmax,rme_nlst_map);
 
   for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end(); ++it)
@@ -106,7 +106,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   
   std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
-  std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+  std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
   basis::OperatorLabelsJT operator_labels;
 
   basis::ReadRelativeOperatorLSJT(
@@ -119,7 +119,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   std::cout<<"Upcoupling to NLST"<<std::endl;
   std::map<u3shell::RelativeSectorNLST,Eigen::MatrixXd> rme_nlst_map;
   const basis::RelativeSectorsLSJT& sector_labels_lsjt=T0_sector_labels_lsjt[T0];
-  const basis::MatrixVector& sectors_lsjt=T0_sectors_lsjt[T0];
+  const basis::OperatorBlocks<double>& sectors_lsjt=T0_sectors_lsjt[T0];
   u3shell::UpcouplingNLST(relative_lsjt_space,sector_labels_lsjt,sectors_lsjt,J0,g0,T0,Nmax,rme_nlst_map);
 
   // Upcouple to U(3) level
@@ -199,7 +199,7 @@ void UpcoupleQmass(int Nmax, int Jmax)
       std::string filename=fmt::format("../../data/relative_interactions/quadrupole_test_Nmax6_{}_rel.dat",file_end[i]);
       std::cout<<filename<<std::endl;
       std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
-      std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+      std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
       basis::OperatorLabelsJT operator_labels;
 
       basis::ReadRelativeOperatorLSJT(
@@ -257,7 +257,7 @@ QCheck()
       std::string filename=fmt::format(filename_base,file_end[i]);
 
       std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
-      std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+      std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
       basis::OperatorLabelsJT operator_labels;
 
       basis::ReadRelativeOperatorLSJT(
@@ -269,7 +269,7 @@ QCheck()
         {
           std::cout<<"T0="<<T0<<std::endl;
           const basis::RelativeSectorsLSJT& sector_labels_lsjt=T0_sector_labels_lsjt[T0];
-          const basis::MatrixVector& sectors_lsjt=T0_sectors_lsjt[T0];
+          const basis::OperatorBlocks<double>& sectors_lsjt=T0_sectors_lsjt[T0];
           u3shell::UpcouplingNLST(relative_lsjt_space,sector_labels_lsjt,sectors_lsjt,J0,g0,T0,Nmax,rme_nlst_ppnn);
           for(auto it=rme_nlst_ppnn.begin(); it!=rme_nlst_ppnn.end(); ++it)
             if(not mcutils::IsZero(it->second,1e-6))
@@ -281,7 +281,7 @@ QCheck()
     // std::string filename=fmt::format(filename_base,file_end[2]);
 
     // std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
-    // std::array<basis::MatrixVector,3> T0_sectors_lsjt;
+    // std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
     // basis::OperatorLabelsJT operator_labels;
 
     // basis::ReadRelativeOperatorLSJT(
@@ -292,7 +292,7 @@ QCheck()
     // for(int T0=0; T0<3; ++T0)
     //   {
     //     const basis::RelativeSectorsLSJT& sector_labels_lsjt=T0_sector_labels_lsjt[T0];
-    //     const basis::MatrixVector& sectors_lsjt=T0_sectors_lsjt[T0];
+    //     const basis::OperatorBlocks<double>& sectors_lsjt=T0_sectors_lsjt[T0];
     //     u3shell::UpcouplingNLST(relative_lsjt_space,sector_labels_lsjt,sectors_lsjt,J0,g0,T0,Nmax,rme_nlst_pn);
     //   }
     // for(auto it=rme_nlst_pn.begin(); it!=rme_nlst_pn.end(); ++it)
@@ -327,8 +327,8 @@ int main(int argc, char **argv)
   // u3shell::RelativeRMEsU3ST id_relative_rme_map;
   // IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
 
-  // u3shell::RelativeRMEsU3ST ke_relative_rme_map;
-  // KineticCheck(ke_relative_rme_map);
+  u3shell::RelativeRMEsU3ST ke_relative_rme_map;
+  KineticCheck(ke_relative_rme_map);
 
   // std::string filename="Trel_upcouled";
   // ReadWriteCheck(ke_relative_rme_map,filename);

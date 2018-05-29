@@ -15,7 +15,7 @@ module_units_cpp-h += explicit_construction recurrence
 
 # module_units_f := 
 module_programs_cpp := spncci_basis_test branching_u3s_test
-# module_programs_cpp += unit_tensor_test
+# module_programs_cpp += 
 # module_programs_f :=
 # module_generated :=
 

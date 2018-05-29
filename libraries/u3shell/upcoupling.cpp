@@ -194,7 +194,7 @@ namespace u3shell
     for(int T00=T0_min; T00<=T0_max; ++T00)
       {
         const basis::RelativeSectorsLSJT& sector_labels=T0_sector_labels[T00];
-        const basis::MatrixVector& sectors=T0_sectors[T00];
+        const basis::OperatorBlocks<double>& sectors=T0_sectors[T00];
         u3shell::UpcouplingNLST(space,sector_labels,sectors,J0,g0,T00,Nmax,rme_nlst_map);
       }
     
@@ -204,7 +204,7 @@ namespace u3shell
   void Upcoupling(    
       const basis::RelativeSpaceLSJT& space,
       const std::array<basis::RelativeSectorsLSJT,3>& T0_sector_labels,
-      const std::array<basis::MatrixVector,3>& T0_sectors,
+      const std::array<basis::OperatorBlocks<double>,3>& T0_sectors,
       int J0, int g0, int T0,int Nmax,
       RelativeRMEsU3ST& rme_map
     )

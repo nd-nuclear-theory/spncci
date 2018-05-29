@@ -395,8 +395,8 @@ void
           const spncci::SubspaceU3S& bra_subspace=u3s_space.GetSubspace(bra_subspace_index);
           const spncci::SubspaceU3S& ket_subspace=u3s_space.GetSubspace(ket_subspace_index);
 
-          int bra_state_index=bra_subspace.LookUpStateIndex(baby_spncci_index_bra);
-          int ket_state_index=ket_subspace.LookUpStateIndex(baby_spncci_index_ket);
+          int bra_state_index=bra_subspace.LookUpStateIndex(std::tuple<int>(baby_spncci_index_bra));
+          int ket_state_index=ket_subspace.LookUpStateIndex(std::tuple<int>(baby_spncci_index_ket));
 
           int observable_sector_index
             =observable_sectors.LookUpHypersectorIndex(bra_subspace_index,ket_subspace_index,operator_subspace_index,rho0);

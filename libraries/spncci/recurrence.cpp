@@ -288,7 +288,7 @@ void GenerateRecurrenceUnitTensors(
     const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensors,
     const std::vector<int>& rho0_values,
-    basis::MatrixVector& unit_tensor_seed_blocks,
+    basis::OperatorBlocks<double>& unit_tensor_seed_blocks,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_Nn0,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
   )
@@ -987,7 +987,7 @@ ComputeUnitTensorHyperblocks(
 
   // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
   // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
-    basis::MatrixVector unit_tensor_seed_blocks;
+    basis::OperatorBlocks<double> unit_tensor_seed_blocks;
     std::string seed_filename
       =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
     files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
@@ -1034,11 +1034,35 @@ ComputeUnitTensorHyperblocks(
     // zero initialize hypersectors 
     //
     // (0,Nnp) conjugate sectors 
+
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" arrived at allocation barrier"<<std::endl;
+
+    #pragma omp barrier
+
     basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
 
+    long int num_N0_rmes=basis::GetNumHyperoperatorME(baby_spncci_hypersectors_Nn0);
+
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" allocated for Nn0 "<<num_N0_rmes<<std::endl;
+
+    #pragma omp barrier
+
+    long int num_rmes=basis::GetNumHyperoperatorME(baby_spncci_hypersectors);
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" rmes "<<num_rmes<<std::endl;
+
+    #pragma omp barrier
+
     // (Nnp,Nn) sectors for Nnp>Nn
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
+
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" allocated for blocks"<<std::endl;
+
+    #pragma omp barrier
 
     // Initialize hypersectors with seeds
     // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
@@ -1051,6 +1075,12 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
     );
 
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" populated seeds"<<std::endl;
+
+    #pragma omp barrier
+
+
     // std::cout<<"Compute Nn=0 blocks"<<std::endl;
     spncci::ComputeUnitTensorHyperblocks(
       Nmax,N1v,u_coef_cache,phi_coef_cache,
@@ -1059,12 +1089,23 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
     );
 
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" computed Nn0 blocks"<<std::endl;
+
+    #pragma omp barrier
+
     // std::cout<<"Add Nn0 blocks to hyperblocks"<<std::endl;
     spncci::AddNn0BlocksToHyperblocks(
       baby_spncci_space,unit_tensor_space,
       baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
       unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
     );
+
+
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" added Nn0 blocks"<<std::endl;
+
+    #pragma omp barrier
    
     // std::cout<<"Compute unit tensor hyperblocks"<<std::endl;
     spncci::ComputeUnitTensorHyperblocks(
@@ -1073,6 +1114,11 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_space,baby_spncci_hypersectors,
       unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
     );
+
+    #pragma omp critical
+        std::cout<<"thread "<<omp_get_thread_num()<<" computed blocks"<<std::endl;
+
+    #pragma omp barrier
 
     // std::cout<<"hypersectors"<<std::endl;
     // spncci::PrintHypersectors(

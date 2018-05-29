@@ -269,14 +269,14 @@ namespace spncci
     // for each observable, enumerate sectors 
     int total_entries = 0;  // total across observables, but not across hw
     int max_sector_entries = 0;
-    int max_observable_entries = 0;
+    long int max_observable_entries = 0;
     for(int observable_index=0; observable_index<num_observables; ++observable_index) 
       {
         const spncci::ObservableHypersectorsU3S& hypersectors_u3s
                 =observables_hypersectors_u3s[observable_index];
 
         // do counting for this observable
-        int observable_entries = 0;
+        long int observable_entries = 0;
         for(int sector_index=0; sector_index<hypersectors_u3s.size(); ++sector_index)
           {
             const auto& hypersector_u3s=hypersectors_u3s.GetHypersector(sector_index);

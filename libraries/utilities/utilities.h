@@ -100,7 +100,7 @@ inline bool CheckIfZeroMatrix(const Eigen::MatrixXd& matrix, double zero_thresho
       return true;
     }
 
-inline void ZeroOutMatrix(basis::MatrixVector& matrix_vector,double threshold)
+inline void ZeroOutMatrix(basis::OperatorBlocks<double>& matrix_vector,double threshold)
   {
     for(auto& matrix : matrix_vector)
       for(int i=0; i<matrix.rows(); ++i)
