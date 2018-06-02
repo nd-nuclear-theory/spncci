@@ -57,13 +57,13 @@ int main(int argc, char **argv)
   basis::OperatorLabelsJT operator_labels(J0,g0,T0min,T0max,symmetry_phase_mode);
 
   // std::string interaction_filename;
-  std::string interaction_directory="/Users/amccoy/research/spncci/data/relative_interactions";
+  std::string interaction_directory="../../data/relative_interactions";
   std::string interaction_basename="jisp16_Nmax20_hw20.0_rel";
   std::string interaction_filename=fmt::format("{}/{}.dat",interaction_directory, interaction_basename);
   u3shell::RelativeRMEsU3ST interaction_u3st;
 
   u3shell::GetRelativeRMEsU3ST(interaction_filename,Nmax,Jmax,interaction_u3st);
-  // u3shell::PrintRelativeRMEsU3ST(interaction_u3st)
+  u3shell::PrintRelativeRMEsU3ST(interaction_u3st);
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Truncate interaction 

@@ -7,6 +7,7 @@
   11/6/17 (aem): Created.
 ****************************************************************/
 #include "u3shell/interaction_truncation.h"
+#include "cppformat/format.h"
 
 namespace u3shell
 {
@@ -218,7 +219,7 @@ namespace u3shell
         int kappa0,L0;
         u3shell::OperatorLabelsU3ST op;
         std::tie(op,kappa0,L0)=it->first;
-        std::cout<<op.Str()<<"  "<<kappa0<<"  "<<L0<<"  "<<it->second<<std::endl;
+        std::cout<<fmt::format("{:20} {} {}  {:20.8f} ",op.Str(),kappa0,L0,it->second)<<std::endl;
       }
   }
 } // end namespace

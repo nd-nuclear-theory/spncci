@@ -97,12 +97,12 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // int Nmax=20;
   int Nmax=20;
-  int Jmax=4;
+  int Jmax=Nmax+1;
   int J0=0;
   int T0=0;
   int g0=0;
   std::cout<<"Ksqr check"<<std::endl;
-  std::string interaction_file="../moshinsky/test/ksqr_Nmax06_rel.dat";
+  std::string interaction_file="../moshinsky/test/ksqr_Nmax16_rel.dat";
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   
   std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
@@ -134,7 +134,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
       double rme=it->second;
       double check=u3shell::RelativeKineticEnergyOperator(op_labels.bra(), op_labels.ket());
       if(fabs(rme)>zero_threshold)
-        std::cout<<fmt::format("{} {} {}   {}   {}",op_labels.Str(), kappa0,L0,rme,check)<<std::endl;
+        std::cout<<fmt::format("{:40} {} {}   {:10.4f}   {:10.4f}  {:5.2f}",op_labels.Str(), kappa0,L0,rme,check,rme/check)<<std::endl;
     }
 }
 
@@ -320,12 +320,12 @@ int main(int argc, char **argv)
 
 
 
-  UpcoupleQmass(Nmax,Jmax);
+  // UpcoupleQmass(Nmax,Jmax);
 
   // QCheck();
 
-  // u3shell::RelativeRMEsU3ST id_relative_rme_map;
-  // IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
+  u3shell::RelativeRMEsU3ST id_relative_rme_map;
+  IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
 
   u3shell::RelativeRMEsU3ST ke_relative_rme_map;
   KineticCheck(ke_relative_rme_map);
