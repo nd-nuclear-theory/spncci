@@ -32,7 +32,7 @@ namespace u3shell
     for (int index=0; index<sectors.size(); ++index)
       {
         if(sector_vector[index].size()==0)
-          continue;
+          continue; 
         Eigen::MatrixXd sector=sector_vector[index];
         auto sector_labels(sectors.GetSector(index));
         auto bra_lsjt(sector_labels.bra_subspace().labels());
@@ -66,8 +66,13 @@ namespace u3shell
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
                               *am::dim(Jp)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(Sp)/am::dim(Lp);
               
-              if (fabs(so3_coef)<zero_threshold)
+              if (fabs(so3_coef)<zero_threshold) {
+                // Ensure operator is Hermitian by checking adjoint also 0
+                if (am::Unitary9J(Lp, Sp, Jp, L0, S0, J0, L, S, J) > zero_threshold) {
+                  std::cout<<"Hermitivity Failure"<<std::endl;
+                }
                 continue;
+              }
 
               double so3_coef_conj=0;
               RelativeSectorNLST key_conj;
@@ -103,6 +108,50 @@ namespace u3shell
               //   std::cout<<rme_nlst_map[key_conj]<<"  "<<rme_nlst_map[key]<<std::endl;
             }
       }
+
+      // Enforcing Hermitivity on RMEs
+      u3shell::RelativeSubspaceLabelsNLST bra_nlst,ket_nlst;
+      int L,S,T,Lp,Sp,Tp,L0,S0;
+      T0 = 0;
+      for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end(); ++it)
+      {
+        std::tie(L0,S0,T0,bra_nlst,ket_nlst)=it->first;
+        std::tie(L,S,T)=ket_nlst;
+        std::tie(Lp,Sp,Tp)=bra_nlst;
+        Eigen::MatrixXd& sector(it->second);
+        int nmax=sector.cols()-1;
+        int npmax=sector.rows()-1;
+
+        for (int np=0; np<=npmax; ++np)
+          {
+            int Np=2*np+Lp;
+            if(Np>Nmax)
+              continue;
+            u3shell::RelativeStateLabelsU3ST bra(Np,Sp,Tp);
+            for (int n=0; n<=nmax; ++n)
+              {
+                int N=2*n+L;
+                if(N>Nmax)
+                  continue;
+                u3shell::RelativeStateLabelsU3ST ket(N,S,T);
+                //Extract rme
+                double rme_nlst=sector(np,n);
+                if (fabs(rme_nlst)<=zero_threshold) {
+                  std::cout<<np<<" : "<<n<<" - "<<rme_nlst<<std::endl;
+                  double rme_nlst_conj=sector(n,np);
+                  // Set both RME and conjugate to 0 is one is 0
+                  sector(np,n) = 0;
+                  sector(n,np) = 0;
+                  // Temporary check to make sure it is working
+                  std::cout<<np<<" : "<<n<<" - "<<sector(np,n)<<std::endl;
+                  std::cout<<n<<" : "<<np<<" - "<<sector(n,np)<<std::endl;
+                  std::cout<<"------------------------------"<<std::endl;
+                  continue; 
+                }
+              }
+          }
+      }
+
   }
 
   void UpcouplingU3ST(
@@ -137,7 +186,7 @@ namespace u3shell
                 u3shell::RelativeStateLabelsU3ST ket(N,S,T);
                 //Extract rme
                 double rme_nlst=sector(np,n);
-                if (fabs(rme_nlst)<=zero_threshold)//REMOVE
+                if (fabs(rme_nlst)<=zero_threshold)//REMOVE 
                   continue;
                 // generate list of allowed x0's from coupling bra and ket
                 MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(bra.x(),u3::Conjugate(ket.x()));
@@ -309,6 +358,10 @@ namespace u3shell
       }
 
     std::ofstream os(filename);
+    // Label Header
+    os 
+      << "# RELATIVE U3ST" << std::endl
+      << "#   N' S' T'   N S T   lamda mu S0 T0 kappa0 L0   RME" << std::endl;
     for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); it++)
       {
         std::tie(labels,kappa0,L0)=it->first;
@@ -319,13 +372,14 @@ namespace u3shell
         //   rme=0.0;
         const int width=3;
         const int precision=16;
+
         os << std::setprecision(precision);
         os
           << " " << std::setw(width) << etap
           << " " << std::setw(width) << Sp
           << " " << std::setw(width) << Tp
           << " " << "  "
-          << " " << std::setw(width) << eta
+          << " " << std::setw(width) << etap
           << " " << std::setw(width) << S
           << " " << std::setw(width) << T
           << " " << "  "

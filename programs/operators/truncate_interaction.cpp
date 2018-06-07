@@ -15,7 +15,7 @@
 namespace u3shell
 {} // end namespace
 
-double zero_threshold=1e-6;
+double zero_threshold=1e-3;
 
 int main(int argc, char **argv)
 {
@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 
   u3shell::GetRelativeRMEsU3ST(interaction_filename,Nmax,Jmax,interaction_u3st);
   u3shell::PrintRelativeRMEsU3ST(interaction_u3st);
+  u3shell::WriteRelativeOperatorU3ST("testwrite.dat", interaction_u3st, true);
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Truncate interaction 
