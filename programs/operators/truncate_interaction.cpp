@@ -15,7 +15,7 @@
 namespace u3shell
 {} // end namespace
 
-double zero_threshold=1e-3;
+double zero_threshold=1e-2;
 
 int main(int argc, char **argv)
 {
