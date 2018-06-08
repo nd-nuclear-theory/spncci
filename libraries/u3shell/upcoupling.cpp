@@ -109,15 +109,13 @@ namespace u3shell
             }
       }
 
-      // Enforcing Hermitivity on RMEs
+      // Enforcing Hermiticity on RMEs
       u3shell::RelativeSubspaceLabelsNLST bra_nlst,ket_nlst;
       int L,S,T,Lp,Sp,Tp,L0,S0;
       T0 = 0;
       for(auto it=rme_nlst_map.begin(); it!=rme_nlst_map.end(); ++it)
       {
         std::tie(L0,S0,T0,bra_nlst,ket_nlst)=it->first;
-        std::tie(L,S,T)=ket_nlst;
-        std::tie(Lp,Sp,Tp)=bra_nlst;
         Eigen::MatrixXd& sector(it->second);
         int nmax=sector.cols()-1;
         int npmax=sector.rows()-1;
@@ -138,13 +136,14 @@ namespace u3shell
                 double rme_nlst=sector(np,n);
                 if (fabs(rme_nlst)<=zero_threshold) {
                   std::cout<<np<<" : "<<n<<" - "<<rme_nlst<<std::endl;
-                  double rme_nlst_conj=sector(n,np);
+                  RelativeSectorNLST key(L0,S0,T0,bra_nlst,ket_nlst);
+                  RelativeSectorNLST key_conj=RelativeSectorNLST(L0,S0,T0,ket_nlst,bra_nlst);
                   // Set both RME and conjugate to 0 is one is 0
-                  sector(np,n) = 0;
-                  sector(n,np) = 0;
+                  rme_nlst_map[key](np,n) = 0;
+                  rme_nlst_map[key_conj](n,np) = 0;
                   // Temporary check to make sure it is working
-                  std::cout<<np<<" : "<<n<<" - "<<sector(np,n)<<std::endl;
-                  std::cout<<n<<" : "<<np<<" - "<<sector(n,np)<<std::endl;
+                  std::cout<<np<<" : "<<n<<" - "<<rme_nlst_map[key](np,n)<<std::endl;
+                  std::cout<<n<<" : "<<np<<" - "<<rme_nlst_map[key_conj](n,np)<<std::endl;
                   std::cout<<"------------------------------"<<std::endl;
                   continue; 
                 }
@@ -186,8 +185,8 @@ namespace u3shell
                 u3shell::RelativeStateLabelsU3ST ket(N,S,T);
                 //Extract rme
                 double rme_nlst=sector(np,n);
-                if (fabs(rme_nlst)<=zero_threshold)//REMOVE 
-                  continue;
+                //if (fabs(rme_nlst)<=zero_threshold)//REMOVE 
+                  //continue;
                 // generate list of allowed x0's from coupling bra and ket
                 MultiplicityTagged<u3::SU3>::vector x0_set=u3::KroneckerProduct(bra.x(),u3::Conjugate(ket.x()));
                 for(int i=0; i<x0_set.size(); i++)
@@ -206,6 +205,13 @@ namespace u3shell
                           *u3::dim(x0)*am::dim(Lp)/(u3::dim(bra.x())*am::dim(L0));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(operator_labels,kappa0,L0);
                         rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
+                        if (rme_map[key] <= zero_threshold) {
+                          u3shell::RelativeUnitTensorLabelsU3ST operator_labels_conj(x0,S0,T0,ket,bra);
+                          std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key_conj(operator_labels_conj,kappa0,L0);
+                          if (rme_map[key_conj] >= zero_threshold) {
+                            std::cout<<"hermiticity error"<<std::endl;
+                          }
+                        }
                       }
                   }
               }
