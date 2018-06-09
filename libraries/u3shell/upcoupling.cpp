@@ -21,6 +21,7 @@ extern double zero_threshold;
 namespace u3shell
 {
 
+  // Upcoupling to SO(3) x SU(2) x SU(2)
   void UpcouplingNLST(
       const basis::RelativeSpaceLSJT& space,
       const basis::RelativeSectorsLSJT& sectors,
@@ -150,9 +151,9 @@ namespace u3shell
               }
           }
       }
-
   }
 
+  // Upcoupling from SO(3) x SU(2) x SU(2) to SU(3) x SU(2) x SU(2)
   void UpcouplingU3ST(
       std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map,
       int Nmax,
@@ -205,13 +206,6 @@ namespace u3shell
                           *u3::dim(x0)*am::dim(Lp)/(u3::dim(bra.x())*am::dim(L0));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(operator_labels,kappa0,L0);
                         rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
-                        if (rme_map[key] <= zero_threshold) {
-                          u3shell::RelativeUnitTensorLabelsU3ST operator_labels_conj(x0,S0,T0,ket,bra);
-                          std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key_conj(operator_labels_conj,kappa0,L0);
-                          if (rme_map[key_conj] >= zero_threshold) {
-                            std::cout<<"hermiticity error"<<std::endl;
-                          }
-                        }
                       }
                   }
               }
