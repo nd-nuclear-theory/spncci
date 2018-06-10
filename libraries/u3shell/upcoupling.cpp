@@ -20,7 +20,6 @@ extern double zero_threshold;
 
 namespace u3shell
 {
-
   // Upcoupling to SO(3) x SU(2) x SU(2)
   void UpcouplingNLST(
       const basis::RelativeSpaceLSJT& space,
@@ -30,6 +29,7 @@ namespace u3shell
       std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map
     )
   {
+  	std::cout<<zero_threshold<<std::endl;
     for (int index=0; index<sectors.size(); ++index)
       {
         if(sector_vector[index].size()==0)

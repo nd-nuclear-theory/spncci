@@ -82,6 +82,10 @@ namespace u3shell
 
   void PrintRelativeRMEsU3ST(const u3shell::RelativeRMEsU3ST& interaction_u3st);
   // printing out u3st rmes 
+  
+  void WriteRelativeRMEsU3ST(const std::string& filename, const u3shell::RelativeRMEsU3ST& interaction_u3st);
+  // writing out u3st rmes 
+
 
 } // end namespace
 

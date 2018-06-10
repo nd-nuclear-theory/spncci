@@ -76,7 +76,7 @@ CPPFLAGS += -DUSE_U_COEF_CACHE
 #   SU3DBL: double precision
 #   SU3QUAD: quad precision for ifort
 #   SU3QUAD_GNU: quad precision for gnu gfortran
-FFLAGS += -DSU3DBL
+FFLAGS += -DSU3QUAD
 
 # compile-time setting of irrep range
 #
