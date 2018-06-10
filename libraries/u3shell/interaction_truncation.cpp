@@ -222,6 +222,30 @@ namespace u3shell
         std::cout<<fmt::format("{:20} {} {}  {:20.8f} ",op.Str(),kappa0,L0,it->second)<<std::endl;
       }
   }
+
+  void WriteRelativeRMEsU3ST(const std::string& filename, const u3shell::RelativeRMEsU3ST& interaction_u3st)
+  // writing out u3st rmes 
+  {
+    std::ofstream os(filename);
+    for(auto it=interaction_u3st.begin(); it!=interaction_u3st.end(); ++it)
+      {
+        int kappa0,L0;
+        u3shell::OperatorLabelsU3ST op;
+        std::tie(op,kappa0,L0)=it->first;
+        //std::cout<<fmt::format("{:20} {} {}  {:20.8f} ",op.Str(),kappa0,L0,it->second)<<std::endl;
+        const int width=3;
+        const int precision=16;
+        os << std::setprecision(precision);
+        os
+          << " " << std::setw(width) << op.Str()
+          << " " << "  "
+          << " " << std::setw(width) << kappa0
+          << " " << std::setw(width) << L0
+          << " " << "  "
+          << " " << std::showpoint << std::scientific << it->second
+          << std::endl;
+      }
+  }
 } // end namespace
 
 
