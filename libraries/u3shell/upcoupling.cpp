@@ -66,14 +66,6 @@ namespace u3shell
               // upcoupling factor
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
                               *am::dim(Jp)*am::dim(S0)*am::dim(L0)/am::dim(J0)/am::dim(Sp)/am::dim(Lp);
-              
-              if (fabs(so3_coef)<zero_threshold) {
-                // Ensure operator is Hermitian by checking adjoint also 0
-                if (am::Unitary9J(Lp, Sp, Jp, L0, S0, J0, L, S, J) > zero_threshold) {
-                  std::cout<<"Hermitivity Failure"<<std::endl;
-                }
-                continue;
-              }
 
               double so3_coef_conj=0;
               RelativeSectorNLST key_conj;
@@ -136,16 +128,11 @@ namespace u3shell
                 //Extract rme
                 double rme_nlst=sector(np,n);
                 if (fabs(rme_nlst)<=zero_threshold) {
-                  std::cout<<np<<" : "<<n<<" - "<<rme_nlst<<std::endl;
                   RelativeSectorNLST key(L0,S0,T0,bra_nlst,ket_nlst);
                   RelativeSectorNLST key_conj=RelativeSectorNLST(L0,S0,T0,ket_nlst,bra_nlst);
                   // Set both RME and conjugate to 0 is one is 0
                   rme_nlst_map[key](np,n) = 0;
                   rme_nlst_map[key_conj](n,np) = 0;
-                  // Temporary check to make sure it is working
-                  std::cout<<np<<" : "<<n<<" - "<<rme_nlst_map[key](np,n)<<std::endl;
-                  std::cout<<n<<" : "<<np<<" - "<<rme_nlst_map[key_conj](n,np)<<std::endl;
-                  std::cout<<"------------------------------"<<std::endl;
                   continue; 
                 }
               }
@@ -206,9 +193,32 @@ namespace u3shell
                           *u3::dim(x0)*am::dim(Lp)/(u3::dim(bra.x())*am::dim(L0));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(operator_labels,kappa0,L0);
                         rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
+                        /*if (fabs(rme_map[key]) <= zero_threshold) {
+                          rme_map[key] = 0;
+                        }*/
                       }
                   }
               }
+          }
+      }
+    // Zero out rmes 
+    u3shell::RelativeUnitTensorLabelsU3ST operator_labels;
+    int kappa0,Np,N;
+    u3::SU3 x0;
+    double rme;
+    for(auto it=rme_map.begin(); it!=rme_map.end(); it++)
+      {
+        std::tie(operator_labels,kappa0,L0)=it->first;
+        rme=it->second;
+        if (fabs(rme)<=zero_threshold)
+          {
+            rme_map[it->first]=0.0;
+
+            // enforcing hermiticity
+            u3shell::RelativeStateLabelsU3ST bra(N,S,T), ket(Np,Sp,Tp);
+            RelativeUnitTensorLabelsU3ST unit_tensor_conj(u3::Conjugate(x0),S0,T0,bra,ket);
+            std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key_conj(unit_tensor_conj,kappa0,L0);
+            rme_map[key_conj]=0.0;
           }
       }
   }
