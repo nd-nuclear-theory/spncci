@@ -227,6 +227,7 @@ namespace u3shell
   // writing out u3st rmes 
   {
     std::ofstream os(filename);
+    os << "#   N0 lambda mu   S0 T0 g0   kappa0 L0   RME" << std::endl;
     for(auto it=interaction_u3st.begin(); it!=interaction_u3st.end(); ++it)
       {
         int kappa0,L0;
@@ -237,7 +238,13 @@ namespace u3shell
         const int precision=16;
         os << std::setprecision(precision);
         os
-          << " " << std::setw(width) << op.Str()
+          << " " << std::setw(width) << op.N0()
+          << " " << std::setw(width) << op.x0().lambda()
+          << " " << std::setw(width) << op.x0().mu()
+          << " " << "  "
+          << " " << std::setw(width) << op.S0()
+          << " " << std::setw(width) << op.T0()
+          << " " << std::setw(width) << op.g0()
           << " " << "  "
           << " " << std::setw(width) << kappa0
           << " " << std::setw(width) << L0

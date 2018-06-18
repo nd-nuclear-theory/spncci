@@ -16,7 +16,7 @@ namespace u3shell
 {} // end namespace
 
 // Best result using 1e-2 to 1e-4
-double zero_threshold=1e-10;
+double zero_threshold=1e-4;
 
 int main(int argc, char **argv)
 {
@@ -59,15 +59,18 @@ int main(int argc, char **argv)
 
   // std::string interaction_filename;
   std::string interaction_directory="../../data/relative_interactions";
- // std::string interaction_basename="jisp16_Nmax20_hw20.0_rel";
-  std::string interaction_basename="ksqr_Nmax16_rel";
+  std::string interaction_basename="jisp16_Nmax20_hw20.0_rel";
+  //std::string interaction_basename="ksqr_Nmax16_rel";
   std::string interaction_filename=fmt::format("{}/{}.dat",interaction_directory, interaction_basename);
   u3shell::RelativeRMEsU3ST interaction_u3st;
 
   u3shell::GetRelativeRMEsU3ST(interaction_filename,Nmax,Jmax,interaction_u3st);
   u3shell::PrintRelativeRMEsU3ST(interaction_u3st);
   std::string rme_filename;
-  rme_filename=fmt::format("kin_double_{:.1e}.dat",zero_threshold);
+  if(truncation_type=="N0" )
+    rme_filename=fmt::format("u3st_{}_{:02d}_double_{:.1e}.dat",truncation_type, N0_max, zero_threshold);  
+  else if(truncation_type=="Nrel")
+    rme_filename=fmt::format("u3st_{}_{:02d}_double_{:.1e}.dat",truncation_type, Nrel_max, zero_threshold);
   u3shell::WriteRelativeRMEsU3ST(rme_filename, interaction_u3st);
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
