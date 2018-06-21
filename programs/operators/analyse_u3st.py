@@ -1,7 +1,12 @@
+# Prototype
+# Script to find the number of rmes u3st truncated and
+# unique N(lambda, mu) S0 T0 rows after truncation
+# Robert Power
+# 06/20/2018
+
 import numpy as np
 import sys
 
-#InFile = np.loadtxt('u3st_N0_10_double_1.0e-04.dat')
 InFile = np.loadtxt(sys.argv[1])
 
 unique = []
@@ -16,6 +21,7 @@ for f in InFile:
 			break
 	if new is True:
 		unique.append(prefix)
-	print(prefix)
 
-print(len(unique))
+print("Number of rmes u3st truncated = " + str(len(InFile)))
+
+print("Unique N(lambda, mu) S0 T0 rows = " + str(len(unique)))

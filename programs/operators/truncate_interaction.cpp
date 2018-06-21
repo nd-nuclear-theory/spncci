@@ -66,12 +66,6 @@ int main(int argc, char **argv)
 
   u3shell::GetRelativeRMEsU3ST(interaction_filename,Nmax,Jmax,interaction_u3st);
   u3shell::PrintRelativeRMEsU3ST(interaction_u3st);
-  std::string rme_filename;
-  if(truncation_type=="N0" )
-    rme_filename=fmt::format("u3st_{}_{:02d}_double_{:.1e}.dat",truncation_type, N0_max, zero_threshold);  
-  else if(truncation_type=="Nrel")
-    rme_filename=fmt::format("u3st_{}_{:02d}_double_{:.1e}.dat",truncation_type, Nrel_max, zero_threshold);
-  u3shell::WriteRelativeRMEsU3ST(rme_filename, interaction_u3st);
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Truncate interaction 
@@ -87,7 +81,7 @@ int main(int argc, char **argv)
     TruncateInteractionNrel(interaction_u3st,truncated_interaction_u3st,Nrel_max);
 
   else if (truncation_type=="N0")
-    TruncateInteractionNrel(interaction_u3st,truncated_interaction_u3st,N0_max);    
+    TruncateInteractionN0(interaction_u3st,truncated_interaction_u3st,N0_max);    
 
   else 
     {
@@ -97,6 +91,12 @@ int main(int argc, char **argv)
     }
 
   // u3shell::PrintRelativeRMEsU3ST(truncated_interaction_u3st);
+  std::string rme_filename;
+  if(truncation_type=="N0" )
+    rme_filename=fmt::format("u3st_{}_{:02d}_double_{:.1e}.dat",truncation_type, N0_max, zero_threshold);  
+  else if(truncation_type=="Nrel")
+    rme_filename=fmt::format("u3st_{}_{:02d}_double_{:.1e}.dat",truncation_type, Nrel_max, zero_threshold);
+  u3shell::WriteRelativeRMEsU3ST(rme_filename, truncated_interaction_u3st);
   std::cout<<"number of rmes u3st truncated "<<truncated_interaction_u3st.size()<<std::endl;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
