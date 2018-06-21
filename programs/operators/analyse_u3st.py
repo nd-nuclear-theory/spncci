@@ -6,6 +6,7 @@
 
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
 InFile = np.loadtxt(sys.argv[1])
 

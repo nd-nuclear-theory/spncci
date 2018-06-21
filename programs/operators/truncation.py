@@ -38,3 +38,19 @@ print("Order of magnitude mode of difference = " + str(modeOrder(diff)))
 
 np.savetxt('tempdiff.dat', diff, delimiter='\t')
 
+unique = []
+new = True
+
+for f in InFile:
+	new = True
+	labels = (int(f[1]), int(f[2]), int(f[3]), int(f[4]), int(f[5]))
+	for u in unique:
+		if labels == u:
+			new = False
+			break
+	if new is True:
+		unique.append(labels)
+
+for i in unique:
+	print(i)
+
