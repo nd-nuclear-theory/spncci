@@ -56,7 +56,7 @@ for s in range(len(weight)):
 	print("N = " + str(-20.0 + s*2) + " - " + str(weight[s]))
 
 weight = np.array(weight)
-vals = np.arange(0, 21, 1)
+vals = np.arange(0, 21, 1)*2 - 20
 plt.pie(weight, labels=vals)
 plt.axis('equal')
 plt.title('N0 values')
