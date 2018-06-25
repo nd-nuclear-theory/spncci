@@ -5,6 +5,8 @@
 
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 InFile = np.loadtxt('../../data/relative_interactions/jisp16_Nmax20_hw20.0_rel.dat', skiprows=8)
 OutFile = np.loadtxt(sys.argv[1], skiprows=8)
@@ -51,6 +53,32 @@ for f in InFile:
 	if new is True:
 		unique.append(labels)
 
-for i in unique:
-	print(i)
+for i in range(len(unique)):
+	print(unique[i])
 
+print(len(unique))
+
+label_map = {}
+
+for i in range(len(unique)):
+	label_map[unique[i]] = i
+
+print(label_map[(12,0,0,0,1)])
+
+diff_matrix = np.zeros((len(unique), len(unique)))
+
+for j in range(len(OutFile)):
+	i = InFile[j]
+	o = OutFile[j]
+	diff_matrix[label_map[(i[1], i[2], i[3], i[4], i[5])]][label_map[(i[6], i[7], i[8], i[9], i[10])]] = np.fabs(i[-1] - o[-1])
+
+print(diff_matrix[0][5])
+
+plt.imshow(diff_matrix, norm=LogNorm(vmin=0.01, vmax=1))
+plt.colorbar()
+
+plt.title("RME " + sys.argv[1][32:-4] + " truncation difference magnitude")
+
+plt.savefig("heat_" + sys.argv[1][32:-4] + ".png")
+
+plt.show(block=True)
