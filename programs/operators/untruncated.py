@@ -38,20 +38,20 @@ for i in range(len(unique)):
 
 diff_matrix = np.zeros((len(unique), len(unique)))
 
-#for j in range(len(InFile)):
-#	i = InFile[j]
-#	if (i[3] == 1 and i[5] == 0):
-#		diff_matrix[label_map[(i[1], i[2], i[3], i[4], i[5])]][label_map[(i[6], i[7], i[8], i[9], i[10])]] = np.fabs(i[-1])
-#	else:
-#		diff_matrix[label_map[(i[1], i[2], i[3], i[4], i[5])]][label_map[(i[6], i[7], i[8], i[9], i[10])]] = 0
+for j in range(len(InFile)):
+	i = InFile[j]
+	if (i[3] == 1 and i[5] == 0):
+		diff_matrix[label_map[(i[1], i[2], i[3], i[4], i[5])]][label_map[(i[6], i[7], i[8], i[9], i[10])]] = np.fabs(i[-1])
+	else:
+		diff_matrix[label_map[(i[1], i[2], i[3], i[4], i[5])]][label_map[(i[6], i[7], i[8], i[9], i[10])]] = 0
 
-#print(diff_matrix[0][5])
+print(diff_matrix[0][5])
 
-#plt.imshow(diff_matrix, norm=LogNorm(vmin=0.01, vmax=1))
-#plt.colorbar()
+plt.imshow(diff_matrix, norm=LogNorm())
+plt.colorbar()
 
-#plt.title("RME untruncated magnitude")
+plt.title("RME untruncated magnitude")
 
-#plt.savefig("heat_rmemag_s1t0.png")
+plt.savefig("heat_rmemag_s1t0.png")
 
-#plt.show(block=True)
+plt.show(block=True)

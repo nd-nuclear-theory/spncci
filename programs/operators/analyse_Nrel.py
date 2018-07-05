@@ -8,14 +8,14 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
-InFile = np.loadtxt('u3st_N0_20_double_1.0e-04.dat')
+InFile = np.loadtxt('u3st_Nrel_20_double_1.0e-04.dat')
 
 rme_matrix = np.zeros((21, 21))
 sum = 0
 
 for i in InFile:
-	#if (i[3] == 0):
-	rme_matrix[int(i[1])][int(i[2])] = rme_matrix[int(i[1])][int(i[2])] + i[-1]*i[-1]
+	if (i[9] == 2):
+		rme_matrix[int(i[0])][int(i[3])] = rme_matrix[int(i[0])][int(i[3])] + i[-1]*i[-1]
 	sum = sum + i[-1]*i[-1]
 
 rme_matrix = rme_matrix/sum
@@ -25,8 +25,8 @@ print(np.sum(rme_matrix))
 plt.imshow(rme_matrix, norm=LogNorm())
 plt.colorbar()
 
-plt.xlabel("mu")
-plt.ylabel("lamda")
+plt.xlabel("N")
+plt.ylabel("Np")
 plt.title("RME untruncated magnitude")
 
 ax = plt.gca()
@@ -47,6 +47,6 @@ ax.set_yticks(np.arange(-.5, 21, 1), minor=True);
 plt.grid(which='minor', linestyle='-', linewidth=2)
 
 
-plt.savefig("heat_rmemag_lammu_log_sq.png")
+plt.savefig("heat_rmemag_Nrel_log_s2_sq.png")
 
 plt.show(block=True)

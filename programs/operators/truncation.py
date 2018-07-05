@@ -74,7 +74,7 @@ for j in range(len(OutFile)):
 
 print(diff_matrix[0][5])
 
-plt.imshow(diff_matrix, norm=LogNorm(vmin=0.01, vmax=1))
+plt.imshow(diff_matrix, norm=LogNorm())
 plt.colorbar()
 
 plt.title("RME " + sys.argv[1][32:-4] + " truncation difference magnitude")
