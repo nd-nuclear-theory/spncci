@@ -97,6 +97,58 @@ namespace spncci
     }
   }
 
+  void ReadBlock(std::istream& in_stream, Eigen::MatrixXd& block)
+    {
+      
+      //Read in number of rows and columns
+      int rows,cols;
+      mcutils::ReadBinary<int>(in_stream,rows);
+      mcutils::ReadBinary<int>(in_stream,cols);
+
+      // Read in RMEs and case to double matrix 
+      //TODO Change to MatrixFloatType for spncci
+      // std::cout<<rows<<"  "<<cols<<"  "<<lgi::binary_float_precision<<std::endl;
+      if(lgi::binary_float_precision==4)
+        {
+          float buffer[rows*cols];
+          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+          block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+        }
+      else if (lgi::binary_float_precision==8)
+        {
+          double buffer[rows*cols];
+          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+          block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+        }
+    }
+
+void ReadObservableHyperblocks(
+  int observable_index, int hw_index,
+  std::istream& in_stream,
+  spncci::LGIPair& lgi_pair,
+  basis::OperatorHyperblocks<double>& baby_spncci_obserable_hyperblocks  
+  )
+
+{
+  
+  // Read lgi family 
+  int irrep_family_index_bra, irrep_family_index_ket, num_hyperblocks;
+  mcutils::ReadBinary<int>(in_stream,irrep_family_index_bra);
+  mcutils::ReadBinary<int>(in_stream,irrep_family_index_ket);
+  lgi_pair=spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
+
+  // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<"  "<<omp_get_thread_num()<<std::endl;
+  // Read number of hyperblocks 
+  mcutils::ReadBinary<int>(in_stream,num_hyperblocks);
+  baby_spncci_obserable_hyperblocks.resize(num_hyperblocks);
+  // std::cout<<" Read in each hyperblock "<< num_hyperblocks<<std::endl;
+  for(int hypersector_index=0; hypersector_index<num_hyperblocks; ++hypersector_index)
+    {
+      baby_spncci_obserable_hyperblocks[hypersector_index].resize(1);
+      spncci::ReadBlock(in_stream, baby_spncci_obserable_hyperblocks[hypersector_index][0]);
+    }
+
+}
 
 
 }  // namespace

@@ -414,6 +414,9 @@ def retrieve_su3rme_files(task):
         fail_on_not_found=False
     )
 
+    print(directory_name)
+    print(archive_filename)
+
     if (directory_name is not None):
 
         # remove any existing symlink or data directory

@@ -5,13 +5,12 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h :=
-module_units_cpp-h := spncci_common spncci_basis
-module_units_cpp-h += branching_u3s branching_u3lsj
-module_units_cpp-h += branching
-module_units_cpp-h += unit_tensor vcs_cache
-module_units_cpp-h += eigenproblem io_control parameters results_output decomposition
-module_units_cpp-h += computation_control  # to split up
-module_units_cpp-h += explicit_construction recurrence
+module_units_cpp-h := spncci_common spncci_basis 
+module_units_cpp-h += branching_u3s branching_u3lsj branching
+module_units_cpp-h += unit_tensor vcs_cache eigenproblem computation_control
+module_units_cpp-h += explicit_construction recurrence parameters
+module_units_cpp-h += io_control results_output decomposition transform_basis
+
 
 # module_units_f := 
 module_programs_cpp := spncci_basis_test branching_u3s_test

@@ -270,10 +270,14 @@ def generate_spncci_seed_files(task):
                 rows, cols, rmes
 
     """
-        # set up data directory
-    if (not os.path.exists("seeds")):
-        mcscript.utils.mkdir("seeds")
+    # if seed directory already exist, remove and recreate fresh copy
+    if (os.path.exists("seeds")):
+        mcscript.call(["rm", "-r","seeds"])
 
+    mcscript.utils.mkdir("seeds")
+
+
+    # generate seed rmes
     command_line = [
         generate_spncci_seed_files_executable,
         "{nuclide[0]:d}".format(**task),
@@ -284,6 +288,17 @@ def generate_spncci_seed_files(task):
         command_line,
         mode=mcscript.CallMode.kSerial
     )
+    
+    # mcscript.call(["ls"])
+    # change seed directory name
+    seed_descriptor = task["seed_descriptor_template"].format(**task)
+    seed_directory = "seeds-{}".format(seed_descriptor)
+    
+    # if seed directory already exist, remove and recreate fresh copy
+    if (os.path.exists(seed_directory)):
+        mcscript.call(["rm", "-r",seed_directory])
+    
+    mcscript.call(["mv","seeds",seed_directory])
 
 
 def save_seed_files(task):
@@ -293,25 +308,20 @@ def save_seed_files(task):
 
     Manual follow-up: The rme files are bundled into tgz files and saved to
     the current run's results directory.  They should then be moved
-    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
+    (manually) to the directory specified in SPNCCI_SEED_DIR, for
     subsequent use.
 
     """
     seed_descriptor = task["seed_descriptor_template"].format(**task)
 
     # generate archive
+    directory="seeds-{}".format(seed_descriptor)
     archive_filename = "seeds-{}.tgz".format(seed_descriptor)
 
-    mcscript.call(
-        [
-            "ls"
-        ] 
-    )
-
 
     mcscript.call(
         [
-            "tar", "-zcvf", archive_filename, "--format=posix", "seeds"
+            "tar", "-zcvf", archive_filename, "--format=posix", directory
         ] 
     )
 
@@ -357,7 +367,7 @@ def retrieve_seed_files(task):
 
     Files are retrieved into a subdirectory named seeds.
     """
-    # identify su3rme data directory
+    # identify seed data directory
     seed_descriptor = task["seed_descriptor_template"].format(**task)
     directory_name = mcscript.utils.search_in_subdirectories(
         seed_directory_list,
@@ -374,45 +384,31 @@ def retrieve_seed_files(task):
         fail_on_not_found=False
     )
 
+    # remove any existing symlink or data directory
+    if (os.path.exists("seeds")):
+        mcscript.call(["rm","-r","seeds"])
+        print("hi")
+    
+
     if (directory_name is not None):
-
-        # remove any existing symlink or data directory
-        #
-        # Notes: On a symlink to a directory: rmdir fails; rm or "rm -r"
-        # removes symlink.  But "rm -r" will also work if tar file had
-        # been directly expanded before and needs to be replaced by a
-        # symlink.
-        if (os.path.exists("seeds")):
-            mcscript.call(["rm","-r","seeds"])
-
-        # link to data seed directory
-        mcscript.call(
-            [
-                "ln",
-                "-s",
-                directory_name,
-                "seeds"
-            ]
-        )
+        print("seed directory ",directory_name)
+        mcscript.call(["ln", "-s", directory_name, "seeds"])
 
     elif (archive_filename is not None):
-
-        # # set up data directory
-        # if (not os.path.exists("seeds")):
-        #     mcscript.utils.mkdir("seeds")
-
         # extract archive contents
-        mcscript.call(
-            [
-                "tar",
-                "-xf",
-                archive_filename
-                # "--directory=seeds"
-            ]
-        )
+        directory_name="seeds-{}".format(seed_descriptor)
+        mcscript.call(["tar","-xf",archive_filename])
+        mcscript.call(["ln", "-s", directory_name, "seeds"])
+
 
     else:
         raise(mcscript.exception.ScriptError("Cannot find seed RME data"))
+
+
+    # link to data seed directory
+    
+
+
 ################################################################
 # setting up lgis
 ################################################################
@@ -560,7 +556,7 @@ def make_hyperblocks_dir(task):
         mcscript.utils.mkdir("hyperblocks")
 
     else:
-        directory=os.path.join("/scratch/hyperblocks")
+        directory=task["hyperblocks_dir"]
         mcscript.utils.mkdir(directory)
 
         # link to hyperblocks temporary directory
@@ -592,8 +588,7 @@ def call_spncci(task):
 
     # cleanup
     mcscript.call(["rm","-r","seeds","relative_observables","hyperblocks"])
-    # directory=os.path.join(task["hyperblocks_dir"],"hyperblocks")
-    mcscript.call(["rm","-r","/scratch/hyperblocks"])
+
 
 def save_spncci_results(task):
     """

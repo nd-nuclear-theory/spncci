@@ -18,14 +18,14 @@
 #ifndef SPNCCI_SPNCCI_IO_CONTROL_H_
 #define SPNCCI_SPNCCI_IO_CONTROL_H_
 
-#include <string>
+
 #include <unordered_set>
-#include "lsu3shell/lsu3shell_basis.h"
-#include "lsu3shell/lsu3shell_rme.h"
-#include "u3shell/relative_operator.h"
-#include "u3shell/u3spn_scheme.h"
+
+#include "lgi/lgi_unit_tensors.h"
+#include "mcutils/io.h"
+#include "spncci/branching_u3s.h"
 #include "u3shell/unit_tensor_space_u3s.h"
-#include "u3shell/upcoupling.h"
+
 
 namespace spncci
 {
@@ -57,6 +57,14 @@ namespace spncci
   //    accumulated over all hw values.  Labels used to construct U3S sectors. 
 
 
+
+void ReadObservableHyperblocks(
+  int observable_index, int hw_index,
+  std::istream& in_stream,
+  spncci::LGIPair& lgi_pair,
+  basis::OperatorHyperblocks<double>& baby_spncci_obserable_hyperblocks  
+  );
+//Read observable Hyperblocks from temporary storage in hyperblocks/
 
 
 }  // namespace
