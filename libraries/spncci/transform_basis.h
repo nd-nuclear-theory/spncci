@@ -24,18 +24,42 @@ namespace spncci
 {
 
 void RegroupIntoIrrepFamilies(
-  const spncci::SpaceSpJ& spj_space,
-  const std::vector<spncci::Matrix>& eigenvectors,
-  int num_irrep_families,
-  std::vector<spncci::OperatorBlocks>& irrep_family_blocks
-);
+    const spncci::SpaceSpJ& spj_space,
+    int num_irrep_families,
+    int num_eigenvalues,
+    const std::vector<spncci::Matrix>& eigenvectors,
+    std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks
+  );
 // Regroup eigenvectors into blocks organzied by irrep family
 
-void DefineIrrepFamilyTransformation(
+void WriteIrrepFamilyBlocks(  
   const spncci::SpaceSpJ& spj_space,
-  std::vector<spncci::OperatorBlocks>& irrep_family_blocks
+  int num_irrep_families,
+  int num_eigenvalues,
+  const std::vector<int>& lgi_full_space_index_lookup,
+  const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  const std::string& filename
 );
 
+void ReadIrrepFamilyBlocks(
+	std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+    const std::string& filename
+  );
+
+
+void  DefineIrrepFamilyTransformation(
+  const spncci::SpaceSpJ& spj_space,
+  std::vector<spncci::OperatorBlocks>& irrep_family_blocks,
+  std::vector<spncci::OperatorBlocks>& transformations
+);
+
+
+void WriteTransformationMatrices(  
+	const spncci::SpaceSpJ& spj_space,
+	int num_irrep_families,
+	const std::vector<spncci::OperatorBlocks>& transformations,
+  const std::string& filename
+  );
 
 }
 

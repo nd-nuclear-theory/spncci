@@ -822,11 +822,21 @@ int main(int argc, char **argv)
 
           std::cout<<"basis transformation "<<std::endl;
           int num_irrep_families=lgi_families.size();
-          std::vector<spncci::OperatorBlocks> irrep_family_blocks;
+          std::vector<std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
           spncci::RegroupIntoIrrepFamilies(
-              spj_space,eigenvectors,num_irrep_families,irrep_family_blocks);
+              spj_space,num_irrep_families,
+              run_parameters.num_eigenvalues,
+              eigenvectors,irrep_family_blocks);
 
-          spncci::DefineIrrepFamilyTransformation(spj_space,irrep_family_blocks);
+  
+          std::string test_filename="temporary_test_file";
+          spncci::WriteIrrepFamilyBlocks(  
+            spj_space, num_irrep_families,
+            run_parameters.num_eigenvalues,
+            lgi_full_space_index_lookup,
+            irrep_family_blocks,test_filename
+          );
+
       }// End Hamiltonian section
       {
       ////////////////////////////////////////////////////////////////
