@@ -829,7 +829,7 @@ int main(int argc, char **argv)
               eigenvectors,irrep_family_blocks);
 
   
-          std::string test_filename="temporary_test_file";
+          std::string test_filename=fmt::format("temporary_test_file_{}",hw);
           spncci::WriteIrrepFamilyBlocks(  
             spj_space, num_irrep_families,
             run_parameters.num_eigenvalues,

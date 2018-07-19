@@ -31,6 +31,7 @@ void RegroupIntoIrrepFamilies(
     std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks
   );
 // Regroup eigenvectors into blocks organzied by irrep family
+// Blocks are <blocks(dim,gamma_max)>
 
 void WriteIrrepFamilyBlocks(  
   const spncci::SpaceSpJ& spj_space,
@@ -40,26 +41,37 @@ void WriteIrrepFamilyBlocks(
   const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
   const std::string& filename
 );
+// Write irrep family blocks to file
+//
+// In file:
+//		<float precision, num_J_values, num_eigenvalues, num_irrep_families>
+// 		
+// 		For each irrep family,
+// 			For each J value,
+//				<2J, rows, cols>
+//				For each n
+//					<block(gamma_max,dim)>
+//					
 
 void ReadIrrepFamilyBlocks(
 	std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
-    const std::string& filename
-  );
+	std::map<int,std::map<int,int>>& J_index_lookup_table,
+  const std::string& filename
+);
 
 
 void  DefineIrrepFamilyTransformation(
-  const spncci::SpaceSpJ& spj_space,
-  std::vector<spncci::OperatorBlocks>& irrep_family_blocks,
-  std::vector<spncci::OperatorBlocks>& transformations
+  const std::vector<std::pair<int,int>>& Jn_set,
+  const std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  std::map<int,std::map<int,int>>& J_index_lookup_table,
+  std::map<int,spncci::OperatorBlock>& transformations
 );
 
 
 void WriteTransformationMatrices(  
-	const spncci::SpaceSpJ& spj_space,
-	int num_irrep_families,
-	const std::vector<spncci::OperatorBlocks>& transformations,
+	const std::map<int,spncci::OperatorBlock>& transformations,
   const std::string& filename
-  );
+);
 
 }
 

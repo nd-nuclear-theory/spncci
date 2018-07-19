@@ -121,13 +121,9 @@ void RegroupIntoIrrepFamilies(
 		            int offset=offsets[irrep_family_index];
 		            for(int gamma=1; gamma<=gamma_max; ++gamma)
 		              {
-		                //Taking the lowest energy eigenvector for each J
-		                //TODO: make J, and which eigenvector of J optional
+		                //Taking the nth eigenvector for the given J value
 		                blocks[irrep_family_index].block(offset,gamma-1,upsilon_max,1)
-		                  =eigenvectors_J.block(eigen_offset,0,upsilon_max,1);
-		                
-		                // std::cout<<eigenvectors_J.block(eigen_offset,0,upsilon_max,1)<<std::endl<<std::endl;
-		                // std::cout<<blocks[irrep_family_index]<<std::endl<<std::endl;
+		                  =eigenvectors_J.block(eigen_offset,n,upsilon_max,1);
 
 		                // Increment offset in eigenvector
 		                eigen_offset+=upsilon_max;
@@ -191,10 +187,10 @@ void RegroupIntoIrrepFamilies(
 						int rows=block.rows();
 						int cols=block.cols();
 
-						// Write block information
+						// Write block information, col and rows are transposed
 						mcutils::WriteBinary<int>(out_file,TwiceValue(J));
-		    		mcutils::WriteBinary<int>(out_file,rows);
 		    		mcutils::WriteBinary<int>(out_file,cols);
+		    		mcutils::WriteBinary<int>(out_file,rows);
 
 		    		// Only write if gamma_max (corresponding to rows) is >1
 						if(rows<2)
@@ -203,20 +199,21 @@ void RegroupIntoIrrepFamilies(
 		    		int size=rows*cols;
 
 		      	// For each n value
+		      	// Transpose matrix and write to file
 		      	for(int n=0; n<num_eigenvalues; ++n)
 		      		{
 				        const spncci::OperatorBlock& block=irrep_family_blocks[j_index][n][irrep_family_index];
 				        // write matrix.  Order is column major (Eigen default)
 				        if(lgi::binary_float_precision==4)
 				          {
-				            Eigen::MatrixXf buffer_matrix=block.cast<float>();
+				            Eigen::MatrixXf buffer_matrix=block.transpose().cast<float>();
 				            out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
 				            
 				          }  
 				          
 				        else if (lgi::binary_float_precision==8)
 				          {
-				            Eigen::MatrixXd buffer_matrix=block;
+				            Eigen::MatrixXd buffer_matrix=block.transpose();
 				            out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
 
 				          }
@@ -230,7 +227,8 @@ void RegroupIntoIrrepFamilies(
 
 void ReadIrrepFamilyBlocks(
 	std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,//by irrep family, by J, by n
-    const std::string& filename
+	std::map<int,std::map<int,int>>& J_index_lookup_table,
+  const std::string& filename
   )
 {
 
@@ -262,10 +260,12 @@ void ReadIrrepFamilyBlocks(
 						if(rows<2)
 							continue;
 
+						J_index_lookup_table[irrep_family_index][twice_J]=j_index;
+
 		      	// For each n value
 		      	for(int n=0; n<num_eigenvalues; ++n)
 		      		{
-				        spncci::OperatorBlock& block=irrep_family_blocks[j_index][n][irrep_family_index];
+				        spncci::OperatorBlock& block=blocks[j_index][n];
 				        
 				        // Read matrix.  Order is column major (Eigen default)
 					      if(lgi::binary_float_precision==4)
@@ -286,195 +286,206 @@ void ReadIrrepFamilyBlocks(
 // assert(0);
 }
 
-
-
-
-void  DefineIrrepFamilyTransformation(
-  const spncci::SpaceSpJ& spj_space,
-  std::vector<spncci::OperatorBlocks>& irrep_family_blocks,
-  std::vector<spncci::OperatorBlocks>& transformations
+void  RegroupBlocks(
+  const std::vector<std::pair<int,int>>& Jn_set,
+  const std::vector<spncci::OperatorBlocks>& blocks,
+  std::map<int,int>& J_index_table,
+  spncci::OperatorBlock& irrep_family_block
 )
+//
+//Regroup different Jn blocks for a given irrep family into a single block 
+//which is gamma_max x sum(Jn_subspaces)
 {
-  std::cout<<"defining rotation"<<std::endl;
-  int max_iterations=5;
-  int num_random_test=100;
-  transformations.resize(spj_space.size());
-  for( int j_index=0; j_index<spj_space.size(); ++j_index)
-    {
-      spncci::OperatorBlocks& blocks=irrep_family_blocks[j_index];
-      std::cout<<"blocks size "<<blocks.size()<<std::endl;
-      spncci::OperatorBlocks& transformationsJ=transformations[j_index];
-      transformationsJ.resize(blocks.size());
+  std::cout<<"Regrouping irrep family blocks"<<std::endl;
 
-      for(int irrep_family_index=0; irrep_family_index<blocks.size(); ++irrep_family_index)
-        {
-          spncci::OperatorBlock block=blocks[irrep_family_index].transpose();
-          int gamma_max=block.rows();
-          int irrep_dim=block.cols();
-          
-          if(gamma_max<2)
-            continue;
+	int num_rows=blocks[0][0].rows();
 
-          // Normalize irrep family block
-          double norm=block.squaredNorm();
-          block=block/std::sqrt(norm);
-          std::cout<<"block norm "<<block.squaredNorm()<<std::endl;
-         // if(irrep_family_index!=6)
-         // 	continue;
-          
-          // Maximum probablity of a single irrep
-          double max_probability=block.rowwise().squaredNorm().maxCoeff();
-          std::cout<<"irrep_family_index  "<<irrep_family_index<<"  "<<gamma_max<<"  "<<norm<<std::endl;
-          std::cout<<"initial max probability "<<max_probability<<std::endl;
-          
-          spncci::OperatorBlock& transformation_matrix=transformationsJ[irrep_family_index];
-          transformation_matrix=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
-          
-          // std::cout<<"constructing matrix"<<std::endl;
-          // Construction transformation matrix
-          for(int iteration=0; iteration<=max_iterations; ++iteration)
-            {
-              //for each iteration, find best transformation
-              spncci::OperatorBlock max_eigenvectors=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
-              for(int test=0; test<=num_random_test; ++test)
-                {
-                  //Set up text sub-block
-                  spncci::OperatorBlock sub_block=Eigen::MatrixXd::Zero(gamma_max,gamma_max);
-                  for(int gamma=1; gamma<=gamma_max; ++gamma)
-                    {
-                      int column=std::experimental::randint(0,irrep_dim-1); //I think its inclusive
-                      sub_block.block(0,gamma-1,gamma_max,1)=block.block(0,column,gamma_max,1);
+	//Counting pass to get num columns of composite Jn block
+	int num_cols=0;
+	for(auto Jn : Jn_set)
+		{
+			int twice_J,n;
+			std::tie(twice_J,n)=Jn;
+			int j_index=J_index_table[twice_J];
+			num_cols+=blocks[j_index][n].cols();
+		}
 
-                    }
-                  
-                  // Get eigen-vectors of sub-block
-                  // May need to switch to complex eigenvectors and square
-                  Eigen::EigenSolver<spncci::OperatorBlock> eigensystem(sub_block);
-                  spncci::OperatorBlock eigenvectors=eigensystem.pseudoEigenvectors(); 
-                  // std::cout<<"eigenvectors "<<std::endl;
-                  for(int i=0; i<eigenvectors.cols(); ++i)
-                  	eigenvectors.col(i).normalize();
-                  
-                  // std::cout<<eigenvectors.colwise().squaredNorm()<<std::endl;                 
-                  spncci::OperatorBlock temp_block=eigenvectors*eigenvectors.transpose()*block;
-                  // Normalize irrep family block
-                  double temp_norm=temp_block.squaredNorm();
-                  // std::cout<<"temp_norm "<<temp_norm<<std::endl;
-                  temp_block=temp_block/std::sqrt(temp_norm);
-                  // std::cout<<"norm "<<temp_norm<<std::endl;
-                  // Maximum probablity of a single irrep
-                  double temp_max_probability=temp_block.rowwise().squaredNorm().maxCoeff();
-                  // std::cout<<temp_block<<std::endl;
-                  // std::cout<<"max probablity temp "<<temp_max_probability<<"  "<<max_probability<<std::endl;
-                  // std::cout<<temp_block.rowwise().squaredNorm()<<std::endl;
-                  // std::cout<<"-----------------------------"<<std::endl<<std::endl;
-                  if(temp_max_probability>max_probability)
-                    {
-                       // std::cout<<"new max"<<std::endl;
-                      max_probability=temp_max_probability;
-                      max_eigenvectors=eigenvectors*eigenvectors.transpose()/std::sqrt(temp_norm);
-                      // std::cout<<temp_block<<std::endl<<std::endl;
-                      // std::cout<<max_eigenvectors<<std::endl<<std::endl;
-                      // std::cout<<max_eigenvectors*block<<std::endl<<std::endl;
-                    }
-
-                }
-
-              //Transform block
-              block=max_eigenvectors*block;
-              // std::cout<<"**********"<<std::endl<<block.rowwise().squaredNorm().maxCoeff()<<std::endl;
-              // std::cout<<block<<std::endl;
-              //accumulate transformations
-              transformation_matrix=max_eigenvectors*transformation_matrix;
-            }
-
-        	max_probability=block.rowwise().squaredNorm().maxCoeff();
-        	std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
-        	std::cout<<block.rowwise().squaredNorm()<<std::endl;
-        	std::cout<<"---------------------------"<<std::endl<<std::endl;
-
-        }
-    }
-  // assert(0);
+	//Create superblock containing all Jn blocks
+	irrep_family_block=Eigen::MatrixXd::Zero(num_rows,num_cols);
+	int offset=0;
+	num_cols=0;
+	for(auto Jn : Jn_set)
+		{
+			int twice_J,n;
+			std::tie(twice_J,n)=Jn;
+			int j_index=J_index_table[twice_J];
+			int num_cols=blocks[j_index][n].cols();
+			irrep_family_block.block(0,offset,num_rows,num_cols)=blocks[j_index][n];
+			offset+=num_cols;
+		}
 }
 
-  void WriteTransformationMatrices(  
-  	const spncci::SpaceSpJ& spj_space,
-  	int num_irrep_families,
-  	const std::vector<spncci::OperatorBlocks>& transformations,
-    const std::string& filename
-    )
-  {
-    std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
-    std::ofstream out_file;
-    out_file.open(filename,mode_argument);
 
-    if (!out_file)
-      {
-        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-        return;
+void GetMaxTransformation(spncci::OperatorBlock block, spncci::OperatorBlock& transformation_matrix)
+{
+	int max_iterations=5;
+  int num_random_test=100;
+
+  // Normalize irrep family block
+  double norm=block.squaredNorm();
+  block=block/std::sqrt(norm);
+  std::cout<<"block norm "<<block.squaredNorm()<<std::endl;
+  int gamma_max=block.rows();
+  int num_cols=block.cols();
+  // Maximum probablity of a single irrep
+  double max_probability=block.rowwise().squaredNorm().maxCoeff();
+  std::cout<<"gamma_max:  "<<gamma_max<<"  norm:  "<<norm<<std::endl;
+  std::cout<<"initial max probability "<<max_probability<<std::endl;
+      
+  // Initialize transformation matrix for cummulative transformation
+  transformation_matrix=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
+          
+  // std::cout<<"constructing matrix"<<std::endl;
+  // Construction transformation matrix
+  for(int iteration=0; iteration<=max_iterations; ++iteration)
+    {
+      //for each iteration, find best transformation
+      spncci::OperatorBlock max_eigenvectors=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
+      for(int test=0; test<=num_random_test; ++test)
+        {
+          //Set up text sub-block
+          spncci::OperatorBlock sub_block=Eigen::MatrixXd::Zero(gamma_max,gamma_max);
+          for(int gamma=1; gamma<=gamma_max; ++gamma)
+            {
+              int column=std::experimental::randint(0,num_cols-1); //I think its inclusive
+              sub_block.block(0,gamma-1,gamma_max,1)=block.block(0,column,gamma_max,1);
+
+            }
+            
+            // Get eigen-vectors of sub-block
+            // May need to switch to complex eigenvectors and square
+            Eigen::EigenSolver<spncci::OperatorBlock> eigensystem(sub_block);
+            spncci::OperatorBlock eigenvectors=eigensystem.pseudoEigenvectors(); 
+            // std::cout<<"eigenvectors "<<std::endl;
+            for(int i=0; i<eigenvectors.cols(); ++i)
+            	eigenvectors.col(i).normalize();
+                  
+            // std::cout<<eigenvectors.colwise().squaredNorm()<<std::endl;                 
+            spncci::OperatorBlock temp_block=eigenvectors*eigenvectors.transpose()*block;
+            // Normalize irrep family block
+            double temp_norm=temp_block.squaredNorm();
+            // std::cout<<"temp_norm "<<temp_norm<<std::endl;
+            temp_block=temp_block/std::sqrt(temp_norm);
+            // std::cout<<"norm "<<temp_norm<<std::endl;
+            // Maximum probablity of a single irrep
+            double temp_max_probability=temp_block.rowwise().squaredNorm().maxCoeff();
+            // std::cout<<temp_block<<std::endl;
+            // std::cout<<"max probablity temp "<<temp_max_probability<<"  "<<max_probability<<std::endl;
+            // std::cout<<temp_block.rowwise().squaredNorm()<<std::endl;
+            // std::cout<<"-----------------------------"<<std::endl<<std::endl;
+            if(temp_max_probability>max_probability)
+              {
+                 // std::cout<<"new max"<<std::endl;
+                max_probability=temp_max_probability;
+                max_eigenvectors=eigenvectors*eigenvectors.transpose()/std::sqrt(temp_norm);
+                // std::cout<<temp_block<<std::endl<<std::endl;
+                // std::cout<<max_eigenvectors<<std::endl<<std::endl;
+                // std::cout<<max_eigenvectors*block<<std::endl<<std::endl;
+              }
+
+          } //end test
+
+        //Transform block
+        block=max_eigenvectors*block;
+        // std::cout<<"**********"<<std::endl<<block.rowwise().squaredNorm().maxCoeff()<<std::endl;
+        // std::cout<<block<<std::endl;
+        //accumulate transformations
+        transformation_matrix=max_eigenvectors*transformation_matrix;
       }
 
-    for( int j_index=0; j_index<spj_space.size(); ++j_index)
-			for(int irrep_family_index=0; irrep_family_index<num_irrep_families; ++irrep_family_index)
-			{
-				const spncci::OperatorBlock& transformation_matrix=transformations[j_index][irrep_family_index];
-				int rows=transformation_matrix.rows();
-				if(rows<2)
-					continue;
+  	max_probability=block.rowwise().squaredNorm().maxCoeff();
+  	std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
+  	std::cout<<block.rowwise().squaredNorm()<<std::endl;
+  	std::cout<<"---------------------------"<<std::endl<<std::endl;
+}
 
-		    // Write irrep family index and rows (should be same as number of columns)
-    		mcutils::WriteBinary<int>(out_file,irrep_family_index);
-    		mcutils::WriteBinary<int>(out_file,rows);
-
-    		int size=rows*rows;
-
-        // write matrix.  Order is column major (Eigen default)
-        if(lgi::binary_float_precision==4)
-          {
-            Eigen::MatrixXf buffer_matrix=transformation_matrix.cast<float>();
-            out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
-            
-          }  
+void  DefineIrrepFamilyTransformation(
+  const std::vector<std::pair<int,int>>& Jn_set,
+  const std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  std::map<int,std::map<int,int>>& J_index_lookup_table,
+  std::map<int,spncci::OperatorBlock>& transformations
+)
+//Set of transformations for a given set of Jn pairs
+{
+  std::cout<<"defining rotation"<<std::endl;
+  for(auto it=irrep_family_blocks.begin(); it!=irrep_family_blocks.end(); ++it)
+  	{
+  		int irrep_family_index=it->first;
+  		const std::vector<spncci::OperatorBlocks>& blocks=it->second;
+			spncci::OperatorBlock block;
+			std::map<int,int>& J_index_table=J_index_lookup_table[irrep_family_index];
+			spncci::RegroupBlocks(Jn_set, blocks,J_index_table, block);
+  		
+  		int gamma_max=block.rows();
+      int irrep_dim=block.cols();
           
-        else if (lgi::binary_float_precision==8)
-          {
-            Eigen::MatrixXd buffer_matrix=transformation_matrix;
-            out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
+      if(gamma_max<2)
+        continue;
 
-          }
-			}
+			spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
+			spncci::GetMaxTransformation(block, transformation_matrix);
+  	}
 
-    out_file.close();    
-    
+}
 
-  }
+void WriteTransformationMatrices(  
+	const std::map<int,spncci::OperatorBlock>& transformations,
+  const std::string& filename
+)
+{
+  std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
+  std::ofstream out_file;
+  out_file.open(filename,mode_argument);
 
-// void ReadObservableHyperblocks(
-// 	  int num_irrep_families,
-//   	const std::vector<spncci::OperatorBlocks>& transformations,
-//     const std::string& filename
-//   )
+  if (!out_file)
+    {
+      std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+      return;
+    }
 
-// {
-  
-//   // Read lgi family 
-//   int irrep_family_index_bra, irrep_family_index_ket, num_hyperblocks;
-//   mcutils::ReadBinary<int>(in_stream,irrep_family_index_bra);
-//   mcutils::ReadBinary<int>(in_stream,irrep_family_index_ket);
-//   lgi_pair=spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
+  for(auto it=transformations.begin(); it!=transformations.end(); ++it)
+  	{
+  		int irrep_family_index=it->first;
 
-//   // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<"  "<<omp_get_thread_num()<<std::endl;
-//   // Read number of hyperblocks 
-//   mcutils::ReadBinary<int>(in_stream,num_hyperblocks);
-//   baby_spncci_obserable_hyperblocks.resize(num_hyperblocks);
-//   // std::cout<<" Read in each hyperblock "<< num_hyperblocks<<std::endl;
-//   for(int hypersector_index=0; hypersector_index<num_hyperblocks; ++hypersector_index)
-//     {
-//       baby_spncci_obserable_hyperblocks[hypersector_index].resize(1);
-//       spncci::ReadBlock(in_stream, baby_spncci_obserable_hyperblocks[hypersector_index][0]);
-//     }
-// assert(0);
-// }
+			const spncci::OperatorBlock& transformation_matrix=it->second;
+
+			int rows=transformation_matrix.rows();
+			if(rows<2)
+				continue;
+
+	    // Write irrep family index and rows (should be same as number of columns)
+  		mcutils::WriteBinary<int>(out_file,irrep_family_index);
+  		mcutils::WriteBinary<int>(out_file,rows);
+
+  		int size=rows*rows;
+
+      // write matrix.  Order is column major (Eigen default)
+      if(lgi::binary_float_precision==4)
+        {
+          Eigen::MatrixXf buffer_matrix=transformation_matrix.cast<float>();
+          out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
+          
+        }  
+        
+      else if (lgi::binary_float_precision==8)
+        {
+          Eigen::MatrixXd buffer_matrix=transformation_matrix;
+          out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
+
+        }
+		}
+
+  out_file.close();    
+}
 
 }
