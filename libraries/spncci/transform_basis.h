@@ -72,6 +72,16 @@ void WriteTransformationMatrices(
 	const std::map<int,spncci::OperatorBlock>& transformations,
   const std::string& filename
 );
+// <float_precision>
+// for each irrep_family 
+// 		<irrep_family_index, gamma_max, transformation matrix>
+// ...
+
+
+void ReadTransformationMatrices(  
+	const std::string& filename,
+	std::map<int,spncci::OperatorBlock>& transformations
+);
 
 }
 

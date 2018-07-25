@@ -79,6 +79,14 @@ namespace lgi
     // seed file:
     //    rho0, rows, columns, rmes.... 
 
+
+  void WriteSeedsToFile(
+    const basis::OperatorBlocks<double>& unit_tensor_seed_blocks,
+    int lgi_bra_index, int lgi_ket_index
+  );
+
+  // For transform seeds
+
   bool ReadUnitTensorLabels(
       std::string& filename,
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,

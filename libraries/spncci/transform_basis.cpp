@@ -152,7 +152,7 @@ void RegroupIntoIrrepFamilies(
     const std::string& filename
   )
   {
-    std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
+    std::ios_base::openmode mode_argument = std::ios_base::out | std::ios_base::binary;
     std::ofstream out_file;
     out_file.open(filename,mode_argument);
 
@@ -193,7 +193,7 @@ void RegroupIntoIrrepFamilies(
 		    		mcutils::WriteBinary<int>(out_file,rows);
 
 		    		// Only write if gamma_max (corresponding to rows) is >1
-						if(rows<2)
+						if(cols<2)
 							continue;
 
 		    		int size=rows*cols;
@@ -232,9 +232,12 @@ void ReadIrrepFamilyBlocks(
   )
 {
 
-  std::ios_base::openmode mode_argument = std::ios_base::in | std::ios::app | std::ios_base::binary;
+  std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
   std::ifstream in_stream;
   in_stream.open(filename,mode_argument);
+
+  if(not bool(in_stream))
+      std::cout<<filename+" not found."<<std::endl;
 
   int num_J_values,num_irrep_families,num_eigenvalues, binary_float_precision;
   mcutils::ReadBinary<int>(in_stream,binary_float_precision);  
@@ -245,11 +248,13 @@ void ReadIrrepFamilyBlocks(
 	//for each irrep family
 	for(int i=0; i<num_irrep_families; ++i)
 		{
-			//Read irrep_family index (corresponds to full space)
+			// std::cout<<"Read irrep_family index (corresponds to full space)"<<std::endl;
 			int irrep_family_index;
   		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
 		
 			std::vector<spncci::OperatorBlocks>& blocks=irrep_family_blocks[irrep_family_index];
+			blocks.resize(num_J_values);
+		  
 		  for( int j_index=0; j_index<num_J_values; ++j_index)
 		  	{
 					int twice_J, rows, cols;
@@ -257,30 +262,32 @@ void ReadIrrepFamilyBlocks(
 				  mcutils::ReadBinary<int>(in_stream,rows);
 					mcutils::ReadBinary<int>(in_stream,cols);
 
-						if(rows<2)
-							continue;
+					if(rows<2)
+					{
+						irrep_family_blocks.erase(irrep_family_index);
+						continue;
+					}
+					
+					blocks[j_index].resize(num_eigenvalues);
+					J_index_lookup_table[irrep_family_index][twice_J]=j_index;
 
-						J_index_lookup_table[irrep_family_index][twice_J]=j_index;
-
-		      	// For each n value
-		      	for(int n=0; n<num_eigenvalues; ++n)
-		      		{
-				        spncci::OperatorBlock& block=blocks[j_index][n];
-				        
-				        // Read matrix.  Order is column major (Eigen default)
-					      if(lgi::binary_float_precision==4)
-					        {
-					          float buffer[rows*cols];
-					          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-					          block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
-					        }
-					      else if (lgi::binary_float_precision==8)
-					        {
-					          double buffer[rows*cols];
-					          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-					          block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
-					        }
-					    }
+	      	for(int n=0; n<num_eigenvalues; ++n)
+	      		{
+			        spncci::OperatorBlock& block=blocks[j_index][n];
+			        // std::cout<<"Read matrix.  Order is column major (Eigen default)"<<std::endl;
+				      if(binary_float_precision==4)
+				        {
+				          float buffer[rows*cols];
+				          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+				          block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+				        }
+				      else if (binary_float_precision==8)
+				        {
+				          double buffer[rows*cols];
+				          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+				          block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+				        }
+				    }
 		  	}
     }
 // assert(0);
@@ -296,8 +303,7 @@ void  RegroupBlocks(
 //Regroup different Jn blocks for a given irrep family into a single block 
 //which is gamma_max x sum(Jn_subspaces)
 {
-  std::cout<<"Regrouping irrep family blocks"<<std::endl;
-
+  // std::cout<<"Regrouping irrep family blocks "<<blocks.size()<<std::endl;
 	int num_rows=blocks[0][0].rows();
 
 	//Counting pass to get num columns of composite Jn block
@@ -310,7 +316,7 @@ void  RegroupBlocks(
 			num_cols+=blocks[j_index][n].cols();
 		}
 
-	//Create superblock containing all Jn blocks
+	// std::cout<<"Create superblock containing all Jn blocks"<<std::endl;
 	irrep_family_block=Eigen::MatrixXd::Zero(num_rows,num_cols);
 	int offset=0;
 	num_cols=0;
@@ -366,12 +372,13 @@ void GetMaxTransformation(spncci::OperatorBlock block, spncci::OperatorBlock& tr
             // May need to switch to complex eigenvectors and square
             Eigen::EigenSolver<spncci::OperatorBlock> eigensystem(sub_block);
             spncci::OperatorBlock eigenvectors=eigensystem.pseudoEigenvectors(); 
-            // std::cout<<"eigenvectors "<<std::endl;
-            for(int i=0; i<eigenvectors.cols(); ++i)
-            	eigenvectors.col(i).normalize();
-                  
+            // std::cout<<"eigenvectors determinant "<< eigenvectors.determinant()<<std::endl;
+            // double det=eigenvectors.determinant();
+            // // std::cout<<"eigenvectors "<<std::endl;
+            // eigenvectors=eigenvectors/det;
+            // std::cout<<"eigenvectors determinant after "<< eigenvectors.determinant()<<std::endl;
             // std::cout<<eigenvectors.colwise().squaredNorm()<<std::endl;                 
-            spncci::OperatorBlock temp_block=eigenvectors*eigenvectors.transpose()*block;
+            spncci::OperatorBlock temp_block=eigenvectors.transpose()*block;
             // Normalize irrep family block
             double temp_norm=temp_block.squaredNorm();
             // std::cout<<"temp_norm "<<temp_norm<<std::endl;
@@ -387,7 +394,7 @@ void GetMaxTransformation(spncci::OperatorBlock block, spncci::OperatorBlock& tr
               {
                  // std::cout<<"new max"<<std::endl;
                 max_probability=temp_max_probability;
-                max_eigenvectors=eigenvectors*eigenvectors.transpose()/std::sqrt(temp_norm);
+                max_eigenvectors=eigenvectors.transpose()/std::sqrt(temp_norm);
                 // std::cout<<temp_block<<std::endl<<std::endl;
                 // std::cout<<max_eigenvectors<<std::endl<<std::endl;
                 // std::cout<<max_eigenvectors*block<<std::endl<<std::endl;
@@ -443,7 +450,7 @@ void WriteTransformationMatrices(
   const std::string& filename
 )
 {
-  std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
+  std::ios_base::openmode mode_argument = std::ios_base::out | std::ios_base::binary;
   std::ofstream out_file;
   out_file.open(filename,mode_argument);
 
@@ -452,7 +459,7 @@ void WriteTransformationMatrices(
       std::cerr << "Could not open file '" << filename << "'!" << std::endl;
       return;
     }
-
+	mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
   for(auto it=transformations.begin(); it!=transformations.end(); ++it)
   	{
   		int irrep_family_index=it->first;
@@ -474,7 +481,6 @@ void WriteTransformationMatrices(
         {
           Eigen::MatrixXf buffer_matrix=transformation_matrix.cast<float>();
           out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
-          
         }  
         
       else if (lgi::binary_float_precision==8)
@@ -486,6 +492,51 @@ void WriteTransformationMatrices(
 		}
 
   out_file.close();    
+}
+
+
+void ReadTransformationMatrices(  
+	const std::string& filename,
+	std::map<int,spncci::OperatorBlock>& transformations
+)
+{
+  std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
+  std::ifstream in_stream;
+  in_stream.open(filename,mode_argument);
+
+  if (!in_stream)
+    {
+      std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+      return;
+    }
+
+  // Check floating precision is correct
+  int binary_float_precision;
+  mcutils::ReadBinary<int>(in_stream,binary_float_precision);
+  assert(binary_float_precision==lgi::binary_float_precision);
+
+  int irrep_family_index, gamma_max;
+  while(!in_stream.eof())
+   	{
+   		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
+   		mcutils::ReadBinary<int>(in_stream,gamma_max);
+
+      // Read matrix.  Order is column major (Eigen default)
+      if(lgi::binary_float_precision==4)
+        {
+          float buffer[gamma_max*gamma_max];
+          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+          transformations[irrep_family_index]
+          		=Eigen::Map<Eigen::MatrixXf>(buffer,gamma_max,gamma_max).cast<double>();
+        }
+      else if (lgi::binary_float_precision==8)
+        {
+          double buffer[gamma_max*gamma_max];
+          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+          transformations[irrep_family_index]
+          	=Eigen::Map<Eigen::MatrixXd>(buffer,gamma_max,gamma_max);
+        }
+   	}
 }
 
 }

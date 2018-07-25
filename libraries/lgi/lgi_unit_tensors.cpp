@@ -292,6 +292,40 @@ namespace lgi
       }
   }
 
+
+  void WriteSeedsToFile(
+    const basis::OperatorBlocks<double>& unit_tensor_seed_blocks,
+    int lgi_bra_index, int lgi_ket_index
+  )
+  {
+    // output filename
+    std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
+    std::cout<<"writing to "<<seed_filename<<std::endl;
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::out;
+    mode_argument |= std::ios_base::binary;
+    std::ofstream seed_file;
+    seed_file.open(seed_filename,mode_argument);
+
+    if (!seed_file)
+     {
+        std::cerr << "Could not open file '" << seed_filename << "'!" << std::endl;
+        return;
+     }
+
+    // Indicate file format code and binary precision
+    lgi::WriteHeader(seed_file);
+
+    // for each unit tensor, write non-zero sectors to file
+    for(const auto& block : unit_tensor_seed_blocks)
+        lgi::WriteMatrix(block, seed_file);                
+
+    seed_file.close();
+  }
+
+
+
+
   bool ReadUnitTensorLabels(
       std::string& filename,
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
