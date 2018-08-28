@@ -332,95 +332,47 @@ void  RegroupBlocks(
 }
 
 
-void GetMaxTransformation(spncci::OperatorBlock block, spncci::OperatorBlock& transformation_matrix)
+void GetUnitaryTransformation(
+  spncci::OperatorBlock& block, 
+  spncci::OperatorBlock& transformation_matrix,
+  const double zero_threshold
+  )
 {
-	int max_iterations=5;
-  int num_random_test=100;
-
-  // Normalize irrep family block
   double norm=block.squaredNorm();
-  block=block/std::sqrt(norm);
-  std::cout<<"block norm "<<block.squaredNorm()<<std::endl;
   int gamma_max=block.rows();
   int num_cols=block.cols();
   // Maximum probablity of a single irrep
   double max_probability=block.rowwise().squaredNorm().maxCoeff();
   std::cout<<"gamma_max:  "<<gamma_max<<"  norm:  "<<norm<<std::endl;
   std::cout<<"initial max probability "<<max_probability<<std::endl;
-      
-  // Initialize transformation matrix for cummulative transformation
-  transformation_matrix=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
-          
-  // std::cout<<"constructing matrix"<<std::endl;
-  // Construction transformation matrix
-  for(int iteration=0; iteration<=max_iterations; ++iteration)
-    {
-      //for each iteration, find best transformation
-      spncci::OperatorBlock max_eigenvectors=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
-      for(int test=0; test<=num_random_test; ++test)
-        {
-          //Set up text sub-block
-          spncci::OperatorBlock sub_block=Eigen::MatrixXd::Zero(gamma_max,gamma_max);
-          for(int gamma=1; gamma<=gamma_max; ++gamma)
-            {
-              int column=std::experimental::randint(0,num_cols-1); //I think its inclusive
-              sub_block.block(0,gamma-1,gamma_max,1)=block.block(0,column,gamma_max,1);
+  std::cout<<block.rowwise().squaredNorm()<<std::endl;    
+  //SVD decomposition
 
-            }
-            
-            // Get eigen-vectors of sub-block
-            // May need to switch to complex eigenvectors and square
-            Eigen::EigenSolver<spncci::OperatorBlock> eigensystem(sub_block);
-            spncci::OperatorBlock eigenvectors=eigensystem.pseudoEigenvectors(); 
-            // std::cout<<"eigenvectors determinant "<< eigenvectors.determinant()<<std::endl;
-            // double det=eigenvectors.determinant();
-            // // std::cout<<"eigenvectors "<<std::endl;
-            // eigenvectors=eigenvectors/det;
-            // std::cout<<"eigenvectors determinant after "<< eigenvectors.determinant()<<std::endl;
-            // std::cout<<eigenvectors.colwise().squaredNorm()<<std::endl;                 
-            spncci::OperatorBlock temp_block=eigenvectors.transpose()*block;
-            // Normalize irrep family block
-            double temp_norm=temp_block.squaredNorm();
-            // std::cout<<"temp_norm "<<temp_norm<<std::endl;
-            temp_block=temp_block/std::sqrt(temp_norm);
-            // std::cout<<"norm "<<temp_norm<<std::endl;
-            // Maximum probablity of a single irrep
-            double temp_max_probability=temp_block.rowwise().squaredNorm().maxCoeff();
-            // std::cout<<temp_block<<std::endl;
-            // std::cout<<"max probablity temp "<<temp_max_probability<<"  "<<max_probability<<std::endl;
-            // std::cout<<temp_block.rowwise().squaredNorm()<<std::endl;
-            // std::cout<<"-----------------------------"<<std::endl<<std::endl;
-            if(temp_max_probability>max_probability)
-              {
-                 // std::cout<<"new max"<<std::endl;
-                max_probability=temp_max_probability;
-                max_eigenvectors=eigenvectors.transpose()/std::sqrt(temp_norm);
-                // std::cout<<temp_block<<std::endl<<std::endl;
-                // std::cout<<max_eigenvectors<<std::endl<<std::endl;
-                // std::cout<<max_eigenvectors*block<<std::endl<<std::endl;
-              }
+  // Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,ComputeThinV);
+  Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,Eigen::ComputeFullU);
+  // svd.setThreshold(Eigen::Default);
+  // std::cout<<std::endl<<svd.singularValues()<<std::endl<<std::endl;;
+  svd.setThreshold(zero_threshold);
+  std::cout<< std::endl<<svd.singularValues() << std::endl;
+  transformation_matrix=svd.matrixU().transpose();
+  int rank=svd.rank();
+  std::cout<<"rank "<<rank<<std::endl;
 
-          } //end test
+  // Temporary
+  spncci::OperatorBlock transformed_block=transformation_matrix*block;
 
-        //Transform block
-        block=max_eigenvectors*block;
-        // std::cout<<"**********"<<std::endl<<block.rowwise().squaredNorm().maxCoeff()<<std::endl;
-        // std::cout<<block<<std::endl;
-        //accumulate transformations
-        transformation_matrix=max_eigenvectors*transformation_matrix;
-      }
-
-  	max_probability=block.rowwise().squaredNorm().maxCoeff();
-  	std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
-  	std::cout<<block.rowwise().squaredNorm()<<std::endl;
-  	std::cout<<"---------------------------"<<std::endl<<std::endl;
+	max_probability=transformed_block.rowwise().squaredNorm().maxCoeff();
+	std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
+	std::cout<<transformed_block.rowwise().squaredNorm()<<std::endl;
+	std::cout<<"---------------------------"<<std::endl<<std::endl;
 }
 
-void  DefineIrrepFamilyTransformation(
+void  DefineIrrepFamilyTransformations(
   const std::vector<std::pair<int,int>>& Jn_set,
   const std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
   std::map<int,std::map<int,int>>& J_index_lookup_table,
-  std::map<int,spncci::OperatorBlock>& transformations
+  std::map<int,spncci::OperatorBlock>& transformations,
+  double zero_threshold
 )
 //Set of transformations for a given set of Jn pairs
 {
@@ -440,7 +392,7 @@ void  DefineIrrepFamilyTransformation(
         continue;
 
 			spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
-			spncci::GetMaxTransformation(block, transformation_matrix);
+			spncci::GetUnitaryTransformation(block, transformation_matrix, zero_threshold);
   	}
 
 }

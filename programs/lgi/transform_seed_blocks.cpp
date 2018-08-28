@@ -30,7 +30,7 @@ int main(int argc, char **argv)
   // Get transformation matrices for each irrep family
   std::cout<<"defined transformations "<<std::endl;
   std::map<int,spncci::OperatorBlock> transformations;
-  spncci::DefineIrrepFamilyTransformation(
+  spncci::DefineIrrepFamilyTransformations(
     Jn_set,irrep_family_blocks,
     J_index_lookup_table,transformations
   );

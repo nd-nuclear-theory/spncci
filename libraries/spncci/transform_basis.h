@@ -60,11 +60,12 @@ void ReadIrrepFamilyBlocks(
 );
 
 
-void  DefineIrrepFamilyTransformation(
+void  DefineIrrepFamilyTransformations(
   const std::vector<std::pair<int,int>>& Jn_set,
   const std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
   std::map<int,std::map<int,int>>& J_index_lookup_table,
-  std::map<int,spncci::OperatorBlock>& transformations
+  std::map<int,spncci::OperatorBlock>& transformations,
+  double zero_threshold=1e-6
 );
 
 
