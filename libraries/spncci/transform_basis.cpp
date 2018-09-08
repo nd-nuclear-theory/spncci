@@ -30,7 +30,7 @@ void RegroupIntoIrrepFamilies(
 	// irrep_family_blocks: by J, by n, by irrep family
   {
     std::cout<<"regrouping"<<std::endl;
-    //By J, by irrep family index: dimensions of subspace (gamma_max, num_states)
+    //By J, by irrep_family_inde: dimensions of subspace (gamma_max, num_states)
     std::vector<std::vector<std::pair<int,int>>> irrep_family_subspaces(spj_space.size());
 
     std::cout<<"geting dimensions"<<std::endl;
@@ -52,9 +52,9 @@ void RegroupIntoIrrepFamilies(
             int irrep_family_index = spj_state.irrep_family_index();
             int gamma_max=spj_state.gamma_max();
             int upsilon_max=int(degeneracy/gamma_max);
-            // std::cout<<degeneracy<<"  "<<irrep_family_index<<"  "<<gamma_max<<"  "<<upsilon_max<<std::endl;
             auto& dimensions=irrep_family_subspacesJ[irrep_family_index];
-            // assert(dimensions.first==gamma_max);
+
+            // increment count of number of states by upsilon max 
             irrep_family_subspacesJ[irrep_family_index]
               =std::pair<int,int>(gamma_max,dimensions.second+upsilon_max);
           }
@@ -83,8 +83,10 @@ void RegroupIntoIrrepFamilies(
 		            int gamma_max,num_states;
 		            std::tie(gamma_max,num_states)=irrep_family_subspacesJ[irrep_family_index];
 		            // std::cout<<irrep_family_index<<"  "<<gamma_max<<"  "<<num_states<<std::endl;
-		            if(gamma_max>1)
-		  	          blocks[irrep_family_index]=Eigen::MatrixXd::Zero(num_states,gamma_max);
+		            
+                //  irrep may not branch to given J, especially for low Nmax
+                if(gamma_max>0)
+  		  	        blocks[irrep_family_index]=Eigen::MatrixXd::Zero(num_states,gamma_max);
 		          }  
 		      }      
       }
@@ -96,6 +98,10 @@ void RegroupIntoIrrepFamilies(
         const SubspaceSpJ& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
         const spncci::Matrix& eigenvectors_J = eigenvectors[spj_subspace_index];
         const int num_eigenvectors = eigenvectors_J.cols();
+
+        std::cout<<num_eigenvectors<<" eigenvectors for "<<num_eigenvalues<<" eigenvalues"<<std::endl;
+        std::cout<<eigenvectors_J<<std::endl;
+        std::cout<<"-------------"<<std::endl<<std::endl;
 
         for(int n=0; n<num_eigenvalues; ++n)
         	{
@@ -110,25 +116,33 @@ void RegroupIntoIrrepFamilies(
 		            StateSpJ spj_state(spj_subspace,spj_state_index);
 		            int gamma_max=spj_state.gamma_max();
 
-		            if(gamma_max<2)
+                
+                std::cout<<"n here "<<n<<std::endl;
+                // skip irreps that don't contribute to given J space 
+		            if(gamma_max==0)
 		            	continue;
 
 		            int degeneracy = spj_state.degeneracy();
 		            int irrep_family_index = spj_state.irrep_family_index();
 		            
 		            int upsilon_max=degeneracy/gamma_max;
-		            int eigen_offset=spj_state.offset();
+		            int eigen_offset=spj_state.offset(); //Starting position in eigenvector
+
 		            int offset=offsets[irrep_family_index];
-		            for(int gamma=1; gamma<=gamma_max; ++gamma)
+		            
+                for(int gamma=1; gamma<=gamma_max; ++gamma)
 		              {
 		                //Taking the nth eigenvector for the given J value
-		                blocks[irrep_family_index].block(offset,gamma-1,upsilon_max,1)
+                    std::cout<<"n "<<n<<std::endl;
+		                std::cout<<"gamma "<<gamma<<" of "<<gamma_max<<std::endl;
+                    std::cout<<"index"<<spj_state_index<<" of "<<spj_subspace.size()<<std::endl;
+                    blocks[irrep_family_index].block(offset,gamma-1,upsilon_max,1)
 		                  =eigenvectors_J.block(eigen_offset,n,upsilon_max,1);
 
 		                // Increment offset in eigenvector
 		                eigen_offset+=upsilon_max;
 		              }
-
+                std::cout<<blocks[irrep_family_index]<<std::endl<<std::endl;;
 		            // Increment offset in irrep family block 
 		            offsets[irrep_family_index]+=upsilon_max;
 		            
@@ -138,6 +152,7 @@ void RegroupIntoIrrepFamilies(
 		           //  std::cout<<"--------------------------------"<<std::endl<<std::endl;
 		          	// }
 		          }
+            std::cout<<"--------------------------------"<<std::endl<<std::endl;
 		      }
       }
   }
@@ -155,6 +170,8 @@ void RegroupIntoIrrepFamilies(
     std::ios_base::openmode mode_argument = std::ios_base::out | std::ios_base::binary;
     std::ofstream out_file;
     out_file.open(filename,mode_argument);
+
+    std::cout<<"writing irrep family blocks to file"<<std::endl;
 
     if (!out_file)
       {
@@ -186,23 +203,36 @@ void RegroupIntoIrrepFamilies(
 						const spncci::OperatorBlock& block=irrep_family_blocks[j_index][0][irrep_family_index];
 						int rows=block.rows();
 						int cols=block.cols();
+            std::cout<<"rows "<<rows<<" cols "<<cols<<std::endl;
+            std::cout<<block<<std::endl<<std::endl;
 
 						// Write block information, col and rows are transposed
 						mcutils::WriteBinary<int>(out_file,TwiceValue(J));
 		    		mcutils::WriteBinary<int>(out_file,cols);
 		    		mcutils::WriteBinary<int>(out_file,rows);
 
-		    		// Only write if gamma_max (corresponding to rows) is >1
-						if(cols<2)
-							continue;
+		    // 		// Only write if gamma_max (corresponding to rows) is >1
+						// if(cols==0)
+						// 	continue;
 
 		    		int size=rows*cols;
 
 		      	// For each n value
-		      	// Transpose matrix and write to file
+		      	// std::cout<<"Transpose matrix and write to file"<<std::endl;
 		      	for(int n=0; n<num_eigenvalues; ++n)
 		      		{
 				        const spncci::OperatorBlock& block=irrep_family_blocks[j_index][n][irrep_family_index];
+
+                if(n==0 && j_index==0)
+                {
+                  double max_probability=block.rowwise().squaredNorm().maxCoeff();
+                  std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
+                  std::cout<<block.rowwise().squaredNorm()<<std::endl;
+                  std::cout<<"---------------------------"<<std::endl<<std::endl;
+                }
+
+
+
 				        // write matrix.  Order is column major (Eigen default)
 				        if(lgi::binary_float_precision==4)
 				          {
@@ -226,12 +256,12 @@ void RegroupIntoIrrepFamilies(
 
 
 void ReadIrrepFamilyBlocks(
-	std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,//by irrep family, by J, by n
+  std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,//by irrep family, by J, by n
+  // std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,//by irrep family, by J, by n
 	std::map<int,std::map<int,int>>& J_index_lookup_table,
   const std::string& filename
   )
 {
-
   std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
   std::ifstream in_stream;
   in_stream.open(filename,mode_argument);
@@ -245,6 +275,8 @@ void ReadIrrepFamilyBlocks(
   mcutils::ReadBinary<int>(in_stream,num_eigenvalues);
   mcutils::ReadBinary<int>(in_stream,num_irrep_families);
 	
+  // irrep_family_blocks.resize(num_irrep_families);
+
 	//for each irrep family
 	for(int i=0; i<num_irrep_families; ++i)
 		{
@@ -252,6 +284,8 @@ void ReadIrrepFamilyBlocks(
 			int irrep_family_index;
   		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
 		
+      std::cout<<"irrep family index "<<irrep_family_index<<std::endl;
+
 			std::vector<spncci::OperatorBlocks>& blocks=irrep_family_blocks[irrep_family_index];
 			blocks.resize(num_J_values);
 		  
@@ -262,11 +296,9 @@ void ReadIrrepFamilyBlocks(
 				  mcutils::ReadBinary<int>(in_stream,rows);
 					mcutils::ReadBinary<int>(in_stream,cols);
 
-					if(rows<2)
-					{
-						irrep_family_blocks.erase(irrep_family_index);
-						continue;
-					}
+          // irrep did not contribute to J space 
+					if(rows==0)
+            continue;
 					
 					blocks[j_index].resize(num_eigenvalues);
 					J_index_lookup_table[irrep_family_index][twice_J]=j_index;
@@ -287,7 +319,8 @@ void ReadIrrepFamilyBlocks(
 				          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
 				          block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
 				        }
-				    }
+				    std::cout<<blocks[j_index][n]<<std::endl<<std::endl;
+            }
 		  	}
     }
 // assert(0);
@@ -303,30 +336,49 @@ void  RegroupBlocks(
 //Regroup different Jn blocks for a given irrep family into a single block 
 //which is gamma_max x sum(Jn_subspaces)
 {
-  // std::cout<<"Regrouping irrep family blocks "<<blocks.size()<<std::endl;
-	int num_rows=blocks[0][0].rows();
+  // std::cout<<"Regrouping irrep family blocks "<<blocks[0].size()<<std::endl;
+	
+	// std::cout<<"Counting pass to get num columns of composite Jn block"<<std::endl;
+	int total_num_cols=0;
+  int total_num_rows=0;
+	for(auto Jn : Jn_set)
+		{
+			int twice_J,n;
+			std::tie(twice_J,n)=Jn;
+			int j_index=J_index_table[twice_J];
 
-	//Counting pass to get num columns of composite Jn block
+      //check that irrep family block exists for given Jn
+      if(blocks[j_index].size()==0)
+        continue;
+
+      std::cout<<"incrementing total"<<std::endl;
+      std::cout<<blocks.size()<<std::endl;
+      std::cout<<blocks[j_index].size()<<"  "<<n<<std::endl;
+
+			total_num_cols+=blocks[j_index][n].cols();
+      total_num_rows=std::max(total_num_rows,int(blocks[j_index][n].rows()));
+		}
+
+  if(total_num_rows==0)
+    return;
+
+	std::cout<<"Create superblock containing all Jn blocks"<<std::endl;
+  std::cout<<total_num_cols<<"  "<<total_num_rows<<std::endl;
+	irrep_family_block=Eigen::MatrixXd::Zero(total_num_rows,total_num_cols);
+	int offset=0;
 	int num_cols=0;
 	for(auto Jn : Jn_set)
 		{
 			int twice_J,n;
 			std::tie(twice_J,n)=Jn;
 			int j_index=J_index_table[twice_J];
-			num_cols+=blocks[j_index][n].cols();
-		}
-
-	// std::cout<<"Create superblock containing all Jn blocks"<<std::endl;
-	irrep_family_block=Eigen::MatrixXd::Zero(num_rows,num_cols);
-	int offset=0;
-	num_cols=0;
-	for(auto Jn : Jn_set)
-		{
-			int twice_J,n;
-			std::tie(twice_J,n)=Jn;
-			int j_index=J_index_table[twice_J];
 			int num_cols=blocks[j_index][n].cols();
-			irrep_family_block.block(0,offset,num_rows,num_cols)=blocks[j_index][n];
+      
+      // if irrep did not contribute to given Jn space, continue to next irrep
+      if(num_cols==0)
+        continue;
+			
+      irrep_family_block.block(0,offset,total_num_rows,num_cols)=blocks[j_index][n];
 			offset+=num_cols;
 		}
 }
@@ -335,13 +387,14 @@ void  RegroupBlocks(
 void GetUnitaryTransformation(
   spncci::OperatorBlock& block, 
   spncci::OperatorBlock& transformation_matrix,
-  const double zero_threshold
+  const std::pair<std::string,double>& truncation_mode
   )
 {
   double norm=block.squaredNorm();
   int gamma_max=block.rows();
   int num_cols=block.cols();
   // Maximum probablity of a single irrep
+  std::cout<<block<<std::endl;
   double max_probability=block.rowwise().squaredNorm().maxCoeff();
   std::cout<<"gamma_max:  "<<gamma_max<<"  norm:  "<<norm<<std::endl;
   std::cout<<"initial max probability "<<max_probability<<std::endl;
@@ -350,55 +403,127 @@ void GetUnitaryTransformation(
 
   // Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,ComputeThinV);
   Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,Eigen::ComputeFullU);
-  // svd.setThreshold(Eigen::Default);
-  // std::cout<<std::endl<<svd.singularValues()<<std::endl<<std::endl;;
-  svd.setThreshold(zero_threshold);
-  std::cout<< std::endl<<svd.singularValues() << std::endl;
-  transformation_matrix=svd.matrixU().transpose();
-  int rank=svd.rank();
-  std::cout<<"rank "<<rank<<std::endl;
+  svd.setThreshold(truncation_mode.second);
+  spncci::OperatorBlock Umatrix=svd.matrixU().transpose();
 
+  // if(Umatrix.determinant()<0)
+  //   Umatrix.block(gamma_max-1,0,1,gamma_max)=-1*Umatrix.block(gamma_max-1,0,1,gamma_max);
+
+  int rows;
+
+  // If truncation mode is None, then use default zero threshold and keep
+  // all irreps in irrep family (full unitary matrix) 
+  if(truncation_mode.first=="None")
+    rows=gamma_max;
+
+  else if(truncation_mode.first=="Rank")
+    rows=svd.rank();
+
+  else if(truncation_mode.first=="Threshold")
+    {
+      rows=0;
+      // spncci::OperatorBlock temp_transformation=svd.matrixU().transpose();
+      spncci::OperatorBlock transformed_block=Umatrix*block;
+      const auto& probabilities=transformed_block.rowwise().squaredNorm();
+
+      for(int gamma=1; gamma<=gamma_max; ++gamma)
+        {
+          double probability=probabilities[gamma-1];
+          if(probability>truncation_mode.second)
+            rows++;
+      }
+    }
+  else
+    std::cout<<"Invalid truncation mode."<<std::endl
+      <<"Valid truncation modes are 'None', 'Rank', and 'Threshold'"<<std::endl;
+
+  std::cout<<"rows "<<rows<<std::endl;
+  std::cout<< "rank "<<svd.rank()<<std::endl<<svd.singularValues() << std::endl;
+
+  // truncating based on rank of matrix
+  if(rows>0)
+  {
+    // transformation_matrix=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
+    std::cout<<"getting transformation matrix "<<std::endl;
+    transformation_matrix=Umatrix.transpose().block(0,0,rows,gamma_max);
+    std::cout<<"got transformation matrix"<<std::endl;
+  }
+  
   // Temporary
-  spncci::OperatorBlock transformed_block=transformation_matrix*block;
+  if(rows>0)
+    {
+      spncci::OperatorBlock transformed_block=transformation_matrix*block;
+      max_probability=transformed_block.rowwise().squaredNorm().maxCoeff();
+      std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
+      std::cout<<transformed_block.rowwise().squaredNorm()<<std::endl;
+      std::cout<<"---------------------------"<<std::endl<<std::endl;
+    }
+  if(rows==0)
+    std::cout<<"no contributions from irrep with block "<<block<<std::endl;
 
-	max_probability=transformed_block.rowwise().squaredNorm().maxCoeff();
-	std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
-	std::cout<<transformed_block.rowwise().squaredNorm()<<std::endl;
-	std::cout<<"---------------------------"<<std::endl<<std::endl;
 }
+
+
+
+TODO: Switch from vector of blocks to map of blocks. 
+
+
+
+
+
+
+
+
+
 
 void  DefineIrrepFamilyTransformations(
   const std::vector<std::pair<int,int>>& Jn_set,
-  const std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  // const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
   std::map<int,std::map<int,int>>& J_index_lookup_table,
-  std::map<int,spncci::OperatorBlock>& transformations,
-  double zero_threshold
+  spncci::OperatorBlocks& transformations,
+  const std::pair<std::string,double>& truncation_mode
 )
 //Set of transformations for a given set of Jn pairs
 {
   std::cout<<"defining rotation"<<std::endl;
+  int num_irrep_families=irrep_family_blocks.size();
+  transformations.resize(num_irrep_families);
+
   for(auto it=irrep_family_blocks.begin(); it!=irrep_family_blocks.end(); ++it)
+  // for(int irrep_family_index=0; irrep_family_index<num_irrep_families; ++irrep_family_index)
   	{
-  		int irrep_family_index=it->first;
-  		const std::vector<spncci::OperatorBlocks>& blocks=it->second;
-			spncci::OperatorBlock block;
+      int irrep_family_index=it->first;
+      std::cout<<"irrep family "<<irrep_family_index<<std::endl;
+			const std::vector<spncci::OperatorBlocks>& blocks=it->second;
+      // const std::vector<spncci::OperatorBlocks>& blocks=irrep_family_blocks[irrep_family_index];
+      std::cout<<irrep_family_index<<"  "<<blocks.size()<<std::endl;
+      if(blocks.size()==0)
+        continue;
+      
+      spncci::OperatorBlock block;
 			std::map<int,int>& J_index_table=J_index_lookup_table[irrep_family_index];
+      
+      std::cout<<"regrouping"<<std::endl;
 			spncci::RegroupBlocks(Jn_set, blocks,J_index_table, block);
   		
   		int gamma_max=block.rows();
       int irrep_dim=block.cols();
-          
-      if(gamma_max<2)
+      if(gamma_max==0)
         continue;
 
+      // std::cout<<"get transformation index "<<std::endl; 
 			spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
-			spncci::GetUnitaryTransformation(block, transformation_matrix, zero_threshold);
+
+      std::cout<<"transforming"<<std::endl;
+      std::cout<<num_irrep_families<<"  "<<irrep_family_index<<std::endl;
+  		spncci::GetUnitaryTransformation(block,transformation_matrix,truncation_mode);
   	}
 
 }
 
-void WriteTransformationMatrices(  
-	const std::map<int,spncci::OperatorBlock>& transformations,
+void WriteTransformationMatrices(
+  const spncci::OperatorBlocks& transformations,  
   const std::string& filename
 )
 {
@@ -411,22 +536,27 @@ void WriteTransformationMatrices(
       std::cerr << "Could not open file '" << filename << "'!" << std::endl;
       return;
     }
-	mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
-  for(auto it=transformations.begin(); it!=transformations.end(); ++it)
-  	{
-  		int irrep_family_index=it->first;
+	
+  int num_irrep_families=transformations.size();
+  mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
+  mcutils::WriteBinary<int>(out_file,num_irrep_families);
 
-			const spncci::OperatorBlock& transformation_matrix=it->second;
+  for(int irrep_family_index=0; irrep_family_index<num_irrep_families; ++irrep_family_index)
+  	{
+			const spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
 
 			int rows=transformation_matrix.rows();
-			if(rows<2)
-				continue;
+      int cols=transformation_matrix.cols();
 
 	    // Write irrep family index and rows (should be same as number of columns)
   		mcutils::WriteBinary<int>(out_file,irrep_family_index);
   		mcutils::WriteBinary<int>(out_file,rows);
+      mcutils::WriteBinary<int>(out_file,cols);
 
-  		int size=rows*rows;
+      if(rows==0)
+        continue;
+
+  		int size=rows*cols;
 
       // write matrix.  Order is column major (Eigen default)
       if(lgi::binary_float_precision==4)
@@ -447,48 +577,134 @@ void WriteTransformationMatrices(
 }
 
 
+void WriteTruncatedLGIs(
+    const std::array<int,2>& nuclide,
+    // int Nsmax, int Nmax, int truncation_file_num,
+    const spncci::OperatorBlocks& transformations,
+    const std::string& truncated_lgi_filename
+  )
+  {
+    // std::cout<<"read lgi families"<<std::endl;
+    
+    // Reading in original lgi families list
+    bool intrinsic=true; 
+    std::string lgi_filename="lgi_families.dat";
+    lgi::MultiplicityTaggedLGIVector lgi_families;
+    HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
+    lgi::ReadLGISet(lgi_filename, Nsigma0,lgi_families);
+
+    //  Getting new LGI family list after transformation and truncation 
+    int num_irrep_families=transformations.size();
+    lgi::MultiplicityTaggedLGIVector lgi_families_truncated;
+    for(int irrep_family_index=0; irrep_family_index<num_irrep_families; irrep_family_index++)
+      {
+        const auto& lgi_family=lgi_families[irrep_family_index];
+        // std::tie(Nex, sigma,Sp,Sn,S)=lgi_family.irrep.Key();
+
+        int gamma_max=transformations[irrep_family_index].rows();
+
+        if(gamma_max==0)
+          continue;
+        
+        // MultiplicityTagged<lgi::LGI> new_lgi_family(lgi_family.irrep,gamma_max);
+        lgi_families_truncated.emplace_back(lgi_family.irrep,gamma_max);
+        std::cout<<lgi_family.Str()<<std::endl;
+      }
+
+    // write truncated lgi family labels to file  
+
+
+    lgi::WriteLGILabels(lgi_families_truncated, truncated_lgi_filename);
+
+  }
+
+
 void ReadTransformationMatrices(  
-	const std::string& filename,
-	std::map<int,spncci::OperatorBlock>& transformations
-)
-{
-  std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
-  std::ifstream in_stream;
-  in_stream.open(filename,mode_argument);
+  	const std::string& filename,
+    spncci::OperatorBlocks& transformations
+  )
+  {
+    std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
+    std::ifstream in_stream;
+    in_stream.open(filename,mode_argument);
 
-  if (!in_stream)
-    {
-      std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-      return;
-    }
+    if (!in_stream)
+      {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+      }
 
-  // Check floating precision is correct
-  int binary_float_precision;
-  mcutils::ReadBinary<int>(in_stream,binary_float_precision);
-  assert(binary_float_precision==lgi::binary_float_precision);
+    // Check floating precision is correct
+    int binary_float_precision;
+    mcutils::ReadBinary<int>(in_stream,binary_float_precision);
+    assert(binary_float_precision==lgi::binary_float_precision);
 
-  int irrep_family_index, gamma_max;
-  while(!in_stream.eof())
-   	{
-   		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
-   		mcutils::ReadBinary<int>(in_stream,gamma_max);
+    int num_lgi_families;
+    mcutils::ReadBinary<int>(in_stream,num_lgi_families);
 
-      // Read matrix.  Order is column major (Eigen default)
-      if(lgi::binary_float_precision==4)
-        {
-          float buffer[gamma_max*gamma_max];
-          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-          transformations[irrep_family_index]
-          		=Eigen::Map<Eigen::MatrixXf>(buffer,gamma_max,gamma_max).cast<double>();
-        }
-      else if (lgi::binary_float_precision==8)
-        {
-          double buffer[gamma_max*gamma_max];
-          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-          transformations[irrep_family_index]
-          	=Eigen::Map<Eigen::MatrixXd>(buffer,gamma_max,gamma_max);
-        }
-   	}
-}
+    std::cout<<"num lgi families "<<num_lgi_families<<std::endl;
+    // resize transformation container
+    transformations.resize(num_lgi_families);
 
-}
+    int irrep_family_index, rows, cols;
+    for(int family_num=0; family_num<num_lgi_families; ++family_num)
+    // while(!in_stream.eof())
+     	{
+     		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
+     		mcutils::ReadBinary<int>(in_stream,rows);
+        mcutils::ReadBinary<int>(in_stream,cols);
+
+        // std::cout<<irrep_family_index<<"  "<<rows<<"  "<<cols<<std::endl;
+
+        if(rows==0)
+          continue;
+
+        // Read matrix.  Order is column major (Eigen default)
+        if(lgi::binary_float_precision==4)
+          {
+            float buffer[rows*cols];
+            in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+            transformations[irrep_family_index]
+            		=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+          }
+        else if (lgi::binary_float_precision==8)
+          {
+            double buffer[rows*cols];
+            in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+            transformations[irrep_family_index]
+            	=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+          }
+        // std::cout<<transformations[irrep_family_index]<<std::endl;
+     	}
+  }
+
+void TransformSeeds(
+  int bra_index,int ket_index,
+  spncci::OperatorBlocks& transformations,
+  basis::OperatorBlocks<double>& unit_tensor_seed_blocks
+  )
+  {
+    spncci::OperatorBlock& bra_transformation=transformations[bra_index];
+    spncci::OperatorBlock& ket_transformation=transformations[ket_index];
+
+    // std::cout<<"----------------------------------------------------------"<<std::endl;
+    // std::cout<<bra_transformation<<std::endl<<std::endl;
+    // std::cout<<ket_transformation<<std::endl<<std::endl;
+    // std::cout<<"          ------------------------------          "<<std::endl;
+
+    for(int i=0; i<unit_tensor_seed_blocks.size(); ++i)
+      { 
+        spncci::OperatorBlock& block=unit_tensor_seed_blocks[i];
+        spncci::OperatorBlock block2=unit_tensor_seed_blocks[i];
+        // std::cout<<block<<std::endl;
+        block=bra_transformation*block*ket_transformation.transpose();
+        // std::cout<<"          ------------------------------          "<<std::endl;
+        // spncci::OperatorBlock temp=block-block2;
+        // mcutils::ChopMatrix(temp, 1e-7);
+        // std::cout<<temp<<std::endl;
+      }
+  }
+
+
+
+}//end namespace

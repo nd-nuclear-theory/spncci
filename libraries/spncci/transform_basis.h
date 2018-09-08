@@ -54,7 +54,8 @@ void WriteIrrepFamilyBlocks(
 //					
 
 void ReadIrrepFamilyBlocks(
-	std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+	// std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
 	std::map<int,std::map<int,int>>& J_index_lookup_table,
   const std::string& filename
 );
@@ -62,15 +63,16 @@ void ReadIrrepFamilyBlocks(
 
 void  DefineIrrepFamilyTransformations(
   const std::vector<std::pair<int,int>>& Jn_set,
-  const std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  // const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
   std::map<int,std::map<int,int>>& J_index_lookup_table,
-  std::map<int,spncci::OperatorBlock>& transformations,
-  double zero_threshold=1e-6
+  spncci::OperatorBlocks& transformations,
+  const std::pair<std::string,double>& truncation_mode
 );
 
 
-void WriteTransformationMatrices(  
-	const std::map<int,spncci::OperatorBlock>& transformations,
+void WriteTransformationMatrices(
+  const spncci::OperatorBlocks& transformations,
   const std::string& filename
 );
 // <float_precision>
@@ -78,11 +80,29 @@ void WriteTransformationMatrices(
 // 		<irrep_family_index, gamma_max, transformation matrix>
 // ...
 
+void WriteTruncatedLGIs(
+    // const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const std::array<int,2>& nuclide,
+    // int Nsmax, int Nmax, int truncation_file_num,
+    const spncci::OperatorBlocks& transformations,
+    const std::string& truncated_lgi_filename
+  );
+// write truncated set of lgi familes to file
+//    lgi_families_truncated_Nsigma,max_Nmax_index.dat
+
 
 void ReadTransformationMatrices(  
 	const std::string& filename,
-	std::map<int,spncci::OperatorBlock>& transformations
+  spncci::OperatorBlocks& transformations
 );
+
+void TransformSeeds(
+  int bra_index,int ket_index,
+  spncci::OperatorBlocks& transformations,
+  basis::OperatorBlocks<double>& unit_tensor_seed_blocks
+  );
+
+
 
 }
 

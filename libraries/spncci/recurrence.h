@@ -91,6 +91,8 @@ namespace spncci
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const spncci::KMatrixCache& k_matrix_cache,
       const spncci::KMatrixCache& kinv_matrix_cache,
+      spncci::OperatorBlocks& lgi_transformations,
+      bool transform_lgi_families,
       u3::UCoefCache& u_coef_cache,
       u3::PhiCoefCache& phi_coef_cache,
       spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,

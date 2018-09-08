@@ -121,6 +121,9 @@ namespace spncci
         std::cout
           << fmt::format("  Eigensolver reports: eigenvectors {} status {} num_iterations {}",converged_eigenvectors,eigensolver_status,eigensolver_num_iterations)
           << std::endl;
+        
+        // TODO: Mark, what is going on here.  Should converged eigenvectors equal number of eigenvalues?
+          
         assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
         assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
         assert(converged_eigenvectors==num_eigenvalues);  // require that expected number of eigenvectors

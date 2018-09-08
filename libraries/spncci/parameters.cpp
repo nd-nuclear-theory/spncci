@@ -36,7 +36,7 @@ namespace spncci
           // line 1: truncation
           //   N Z Nsigmamax Nmax
           {
-            line_stream >> nuclide[0] >> nuclide[1] >> Nsigmamax >> Nmax;
+            line_stream >> nuclide[0] >> nuclide[1] >> Nsigmamax >> Nmax >> transform_lgi;
             mcutils::ParsingCheck(line_stream,line_count,line);
           }
         else if(line_count==2)

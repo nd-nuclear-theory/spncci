@@ -15,76 +15,105 @@ of irreps in the same irrep family
 
 int main(int argc, char **argv)
 {
-  // lgi::binary_float_precision=8;
+
+  if(argc<2)
+  {
+    std::cout<<"Syntax: <truncation file num> "<<std::endl;
+    exit(0);
+  }
+
+  int truncation_file_num=std::stoi(argv[1]);
+
+
+
+
+  std::array<int,2> nuclide;
   std::vector<std::pair<int,int>> Jn_set;
-  Jn_set.emplace_back(1,0); // J,n where n is zero based
+  int Nmax,Nsmax, num_Jn;
+  double threshold;
+
+  // std::vector<std::pair<int,int>> Jn_set;
+  // Jn_set.emplace_back(1,0); // J,n where n is zero based
+  // Jn_set.emplace_back(3,0); // J,n where n is zero based
+
+  // double threshold=1e-6*Jn_set.size();
+
+  // std::pair<std::string,double> truncation_mode("None",threshold);
+  // std::pair<std::string,double> truncation_mode("Rank",threshold);
+  // std::pair<std::string,double> truncation_mode("Threshold",threshold);
+
+
+  std::ifstream is;
+  std::string truncation_file_name=fmt::format("truncation_{:03d}.dat",truncation_file_num);
+  is.open(truncation_file_name);
+
+  if(not is)
+  {
+    std::cout<<"truncation file not found "<<std::endl;
+    exit(0);
+  }
+
+  // Read in nuclide information
+  is>>nuclide[0]>>nuclide[1];
+
+  // Read in truncation information
+  std::string truncation_type;
+  is>>truncation_type>>threshold>>Nsmax>>Nmax>>num_Jn;
+  std::pair<std::string,double> truncation_mode(truncation_type,threshold);
+  
+  std::cout<<truncation_type<<"  "<<threshold<<std::endl;
+  // Get list of J,n pairs which will contrubute to definition of transformation matrices 
+  std::string line;
+  int twice_J,n;
+  for(int j=0; j<num_Jn; j++)
+    {
+      // std::istringstream line_stream(line);
+      // line_stream>>twice_J>>n;
+      is>>twice_J>>n;
+      std::cout<<twice_J<<"  "<<n<<std::endl;
+      Jn_set.emplace_back(HalfInt(twice_J,2),n);
+    }
+  is.close();
+
+  std::cout<<"num Jn included "<<Jn_set.size()<<std::endl;
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
 
   // Read in irrep family blocks 
   std::cout<<"read in irrep family blocks"<<std::endl;
   std::map<int,std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
+  // std::vector<std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
   std::map<int,std::map<int,int>> J_index_lookup_table;
-  std::string irrep_family_blocks_file="temporary_test_file_20";
+  std::string irrep_family_blocks_file="irrep_family_blocks_20";
   spncci::ReadIrrepFamilyBlocks(irrep_family_blocks,J_index_lookup_table,irrep_family_blocks_file);
 
 
   // Get transformation matrices for each irrep family
   std::cout<<"defined transformations "<<std::endl;
-  std::map<int,spncci::OperatorBlock> transformations;
+  spncci::OperatorBlocks transformations;
+  // std::map<int,spncci::OperatorBlock> transformations;
+
+
   spncci::DefineIrrepFamilyTransformations(
-    Jn_set,irrep_family_blocks,
-    J_index_lookup_table,transformations
+    Jn_set,irrep_family_blocks,J_index_lookup_table,
+    transformations,truncation_mode
   );
 
+  // write truncated lgi families to file 
+  std::string truncated_lgi_filename
+    =fmt::format("lgi_families_truncated_{:02d}_{:02d}_{:03d}.dat",Nsmax,Nmax,truncation_file_num);
+  spncci::WriteTruncatedLGIs(nuclide,transformations,truncated_lgi_filename);
 
-  //Orthonormalize transformations....TODO
-
-  // write transformations to file
-  std::string transformations_file="transformations_out";
+   // write transformations to file
+  int Jn_file_num=Jn_set.size();
+  std::string transformations_file=fmt::format("transformations_{:02d}_{:02d}_{:03d}.dat",Nmax,Nsmax,truncation_file_num);
   std::cout<<"write transformation matrices "<<std::endl;
   spncci::WriteTransformationMatrices(transformations,transformations_file);
 
-  // //Read transformations from file 
-  // spncci::ReadTransformationMatrices(transformations_file,transformations);
+  //Read transformations from file 
+  std::cout<<"Read transformation matrices "<<std::endl;
+  spncci::OperatorBlocks transformations2;
+  spncci::ReadTransformationMatrices(transformations_file,transformations2);
 
-  for(auto it_bra=transformations.begin(); it_bra!=transformations.end(); ++it_bra)
-    for(auto it_ket=transformations.begin(); it_ket!=transformations.end(); ++it_ket)
-      {
-        int irrep_family_index_bra=it_bra->first;
-        int irrep_family_index_ket=it_ket->first;
-
-        std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
-        std::vector<int> rho0_values;
-
-
-        std::string lgi_unit_tensor_filename
-          =fmt::format("seeds/operators_{:06d}_{:06d}.dat",irrep_family_index_bra,irrep_family_index_bra);
-        bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
-
-        basis::OperatorBlocks<double> unit_tensor_seed_blocks;
-        std::string seed_filename
-          =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",irrep_family_index_bra,irrep_family_index_ket);
-        files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
-
-        if(not files_found)
-          continue;
-
-        spncci::OperatorBlock& bra_transformation=it_bra->second;
-        spncci::OperatorBlock& ket_transformation=it_ket->second;
-
-        basis::OperatorBlocks<double> transformed_seed_blocks(unit_tensor_seed_blocks.size());
-        for(int b=0; b<transformed_seed_blocks.size(); ++b)
-        {
-            transformed_seed_blocks[b]
-              =bra_transformation*unit_tensor_seed_blocks[b]*ket_transformation.transpose();
-            // std::cout<<unit_tensor_seed_blocks[b]<<std::endl<<std::endl
-            // <<bra_transformation<<std::endl<<std::endl
-            // <<ket_transformation<<std::endl
-            // <<std::endl<<transformed_seed_blocks[b]<<std::endl<<"***************************"<<std::endl<<std::endl;
-        }
-
-
-
-        lgi::WriteSeedsToFile(transformed_seed_blocks,irrep_family_index_bra, irrep_family_index_ket);
-
-      }
 }

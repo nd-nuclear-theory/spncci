@@ -39,7 +39,7 @@ namespace spncci
 
     // run mode
     bool count_only;  // basis counting run
-
+    bool transform_lgi; //Apply basis transformation/truncation to lgi and seed rmes.
     // upstream information
     std::array<int,2> nuclide;  // (Z,N): proton and neutron numbers
     std::string interaction_name;

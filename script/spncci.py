@@ -452,7 +452,7 @@ def read_lgi_list(filename):
     """
     lines = [line.rstrip('\n') for line in open(filename,'r')]
     for line in lines:
-        lgi_labels=[[int(x) for x in line.split()] for line in lines]
+        lgi_labels=[[int(x) for x in line.split()][:-1] for line in lines]
 
     return lgi_labels
 
@@ -527,9 +527,24 @@ def generate_spncci_control_file(task):
     J0=0#task["J0"]
     coulomb = int(task["use_coulomb"])
 
+    if(task["truncation_filename"]==None):
+        transform_lgi=0
+    elif(task["transformation_filename"]==None):
+        transform_lgi=0
+    else:
+        transform_lgi=1
+        mcscript.call(
+            [
+                "ln",
+                "-s",
+                task["transformation_filename"],
+                "lgi_transformations.dat"
+            ]
+        )
+
     # write basic parameters
     input_lines = [
-        "{nuclide[0]:d} {nuclide[1]:d} {Nsigma_max:d} {Nmax:d}".format(**task),
+        "{nuclide[0]:d} {nuclide[1]:d} {Nsigma_max:d} {Nmax:d} {transform_lgi:d}".format(transform_lgi=transform_lgi,**task),
         "{num_eigenvalues:d} {eigensolver_num_convergence:d} {eigensolver_max_iterations:d} {eigensolver_tolerance:.2e}".format(**task),
         "{:d} {:d} {:d}".format(twice_J_min,twice_J_max,J_step),
         "{:f} {:f} {:f}".format(hw_min,hw_max,hw_step),

@@ -474,6 +474,26 @@ int main(int argc, char **argv)
   for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
     observable_hyperblocks_mesh[observable_index].resize(run_parameters.hw_values.size());
 
+  //TODO: If doing change of basis for irrep families, read in transformation matrices 
+  spncci::OperatorBlocks lgi_transformations;
+    
+  if(run_parameters.transform_lgi)
+    {
+      std::cout<<"reading in lgi transformations in "<<std::endl;
+      std::string lgi_transformations_filename="lgi_transformations.dat";
+      spncci::ReadTransformationMatrices(lgi_transformations_filename,lgi_transformations);
+      // for(int i=0; i<lgi_families.size(); ++i)
+      //   {
+      //     std::cout<<"---------------------------------------"<<std::endl;
+      //     std::cout<<"irrep family "<<i<<std::endl;
+      //     int j=lgi_full_space_index_lookup[i];          
+      //     std::cout<<lgi_transformations[j]<<std::endl<<std::endl;
+      //     std::cout<<"---------------------------------------"<<std::endl<<std::endl;
+      //   }
+    }
+
+
+  // assert(0);
 
 
   std::cout<<"begin parallel region"<<std::endl;
@@ -529,7 +549,8 @@ int main(int argc, char **argv)
                 lgi_pair,run_parameters.Nmax, run_parameters.N1v,
                 lgi_families,lgi_full_space_index_lookup,
                 spncci_space,baby_spncci_space,unit_tensor_space,
-                k_matrix_cache,kinv_matrix_cache,u_coef_cache,phi_coef_cache,
+                k_matrix_cache,kinv_matrix_cache,lgi_transformations,
+                run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
                 baby_spncci_hypersectors,unit_tensor_hyperblocks
               );
 
@@ -552,7 +573,8 @@ int main(int argc, char **argv)
                   lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
                   lgi_families,lgi_full_space_index_lookup,
                   spncci_space,baby_spncci_space,unit_tensor_space,
-                  k_matrix_cache,kinv_matrix_cache,u_coef_cache,phi_coef_cache,
+                  k_matrix_cache,kinv_matrix_cache,lgi_transformations,
+                  run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
                   baby_spncci_hypersectors2,unit_tensor_hyperblocks2
                 );
 
@@ -819,7 +841,11 @@ int main(int argc, char **argv)
             run_parameters.gex
           );
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Writing irrep family blocks to files for use in lgi basis transformation
 
+        // if(not run_parameters.transform_lgi)
+        {
           std::cout<<"basis transformation "<<std::endl;
           int num_irrep_families=lgi_families.size();
           std::vector<std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
@@ -829,13 +855,16 @@ int main(int argc, char **argv)
               eigenvectors,irrep_family_blocks);
 
   
-          std::string test_filename=fmt::format("temporary_test_file_{}",hw);
+          std::string test_filename=fmt::format("irrep_family_blocks_{}",hw);
           spncci::WriteIrrepFamilyBlocks(  
             spj_space, num_irrep_families,
             run_parameters.num_eigenvalues,
             lgi_full_space_index_lookup,
             irrep_family_blocks,test_filename
           );
+        }
+      // assert(0);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
       }// End Hamiltonian section
       {
