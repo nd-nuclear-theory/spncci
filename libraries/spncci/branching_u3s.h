@@ -45,6 +45,9 @@ namespace spncci
 
   typedef std::vector<ObservableHypersectorsByLGI>
       ObservableHypersectorsByLGIPairTable;
+
+  typedef std::vector< std::vector<basis::OperatorHyperblocks<double>>> ObservableHyperblocksTable;
+
   ////////////////////////////////////////////////////////////////
   // basis indexing in U3S scheme for spncci basis branching
   ////////////////////////////////////////////////////////////////  
@@ -325,7 +328,7 @@ void ContractBabySpNCCIHypersectors(
   const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks2,
   const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
   spncci::ObservableHypersectorsByLGIPairTable& observable_hypersectors_by_lgi_table,
-  spncci::ObservableHyperblocksByLGIPairTable& observable_hyperblocks_by_lgi_table
+  spncci::ObservableHyperblocksTable& observable_hyperblocks_table
   );
 
 void RegroupU3Sectors(

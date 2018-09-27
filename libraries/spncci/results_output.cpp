@@ -509,22 +509,22 @@ namespace spncci
 
   void WriteBabySpncciObservableRMEs(
     const spncci::LGIPair& lgi_pair,
-    spncci::ObservableHyperblocksByLGIPairTable& observable_hyperblocks_by_lgi_table
+    spncci::ObservableHyperblocksTable& observable_hyperblocks_table
     )
   {
     int irrep_family_index_bra,irrep_family_index_ket;
     std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
 
     // For each observable 
-    for(int observable_index=0; observable_index<observable_hyperblocks_by_lgi_table.size(); ++observable_index)
+    for(int observable_index=0; observable_index<observable_hyperblocks_table.size(); ++observable_index)
       {
-        const auto& observable_hyperblocks_by_lgi_by_hw=observable_hyperblocks_by_lgi_table[observable_index];
+        const auto& observable_hyperblocks_by_lgi_by_hw=observable_hyperblocks_table[observable_index];
         
         // for each hw value
         for(int hw_index=0; hw_index<observable_hyperblocks_by_lgi_by_hw.size(); ++hw_index)
           {
             const basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks
-              =observable_hyperblocks_by_lgi_by_hw[hw_index].at(lgi_pair);
+              =observable_hyperblocks_by_lgi_by_hw[hw_index];
 
             // One file per observable, per hw value
             int thread_num=omp_get_thread_num();

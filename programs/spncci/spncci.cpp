@@ -512,26 +512,35 @@ int main(int argc, char **argv)
       }
 
       
+      
       // Private containers 
       //
       //coefficient caches
       u3::UCoefCache u_coef_cache;
       u3::PhiCoefCache phi_coef_cache;
+
       // by observable, by lgi pair
       spncci::ObservableHypersectorsByLGIPairTable observable_hypersectors_by_lgi_table(run_parameters.num_observables);
-      // by observable, by hw, by lgi pair
-      spncci::ObservableHyperblocksByLGIPairTable observable_hyperblocks_by_lgi_table(run_parameters.num_observables);
-      // Presize table
-      for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-        observable_hyperblocks_by_lgi_table[observable_index].resize(run_parameters.hw_values.size());
-
+      // TODO: Replace with vector of hypersectors inside lgi_pair loop where index of vector corresponds to observable index
+      //        std::vector<spncci::ObservableBabySpNCCIHypersectors>& baby_spncci_observable_hypersectors
 
       mcutils::SteadyTimer timer_recurrence;
       timer_recurrence.Start();
 
       #pragma omp for schedule(dynamic) nowait
-      for(int i=0; i<lgi_pairs.size(); ++i)
+      for(int i=0; i<12; ++i)
+      // for(int i=0; i<lgi_pairs.size(); ++i)
         {
+
+          // Brought hyperbocks inside for loop to ensure deallocation 
+          // by observable, by hw, by lgi pair
+          spncci::ObservableHyperblocksTable observable_hyperblocks_table(run_parameters.num_observables);
+          // Formerly:
+          //    spncci::ObservableHyperblocksByLGIPairTable observable_hyperblocks_by_lgi_table(run_parameters.num_observables);
+          // Presize table
+          for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+            observable_hyperblocks_table[observable_index].resize(run_parameters.hw_values.size());
+
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
           int irrep_family_index_bra,irrep_family_index_ket;
           std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
@@ -591,10 +600,12 @@ int main(int argc, char **argv)
             baby_spncci_hypersectors,baby_spncci_hypersectors2,
             unit_tensor_hyperblocks,unit_tensor_hyperblocks2,
             observables_relative_rmes,observable_hypersectors_by_lgi_table,
-            observable_hyperblocks_by_lgi_table
+            observable_hyperblocks_table
           );
           
-          spncci::WriteBabySpncciObservableRMEs(lgi_pair,observable_hyperblocks_by_lgi_table);
+          spncci::WriteBabySpncciObservableRMEs(lgi_pair,observable_hyperblocks_table);
+
+
         }// end lgi_pair
 
         timer_recurrence.Stop();
@@ -621,8 +632,8 @@ int main(int argc, char **argv)
             //     std::unordered_map<spncci::LGIPair,basis::OperatorHyperblocks<double>,boost::hash<spncci::LGIPair>>&
             //     observable_hyperblocks_lgi=observable_hyperblocks_mesh[observable_index][hw_index];
             //     observable_hyperblocks_lgi.insert(
-            //         observable_hyperblocks_by_lgi_table[observable_index][hw_index].begin(),
-            //         observable_hyperblocks_by_lgi_table[observable_index][hw_index].end()
+            //         observable_hyperblocks_table[observable_index][hw_index].begin(),
+            //         observable_hyperblocks_table[observable_index][hw_index].end()
             //       );
 
             //   }
@@ -674,6 +685,9 @@ int main(int argc, char **argv)
   mcutils::SteadyTimer timer_mesh;
   timer_mesh.Start();
 
+  // Set num threads to one
+  // omp_set_num_threads(1); 
+
 
   // W coefficient cache -- needed for observable branching
   u3::WCoefCache w_cache;
@@ -713,6 +727,8 @@ int main(int argc, char **argv)
         const spncci::ObservableHypersectorsU3S& observable_hypersectors
           =observable_hypersectors_by_observable[observable_index];
 
+        long int num_rmes=basis::GetNumHyperoperatorME(observable_hypersectors);
+        std::cout<<"num u3s rmes "<<num_rmes<<std::endl;
         //get u3s operator blocks 
         spncci::OperatorBlocks observable_blocks;
         spncci::InitializeU3SObservableBlocks(
@@ -846,19 +862,20 @@ int main(int argc, char **argv)
 
         // if(not run_parameters.transform_lgi)
         {
+          int num_eigenvalues=std::min(run_parameters.num_eigenvalues,3);
           std::cout<<"basis transformation "<<std::endl;
           int num_irrep_families=lgi_families.size();
           std::vector<std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
           spncci::RegroupIntoIrrepFamilies(
               spj_space,num_irrep_families,
-              run_parameters.num_eigenvalues,
+              num_eigenvalues,
               eigenvectors,irrep_family_blocks);
 
   
           std::string test_filename=fmt::format("irrep_family_blocks_{}",hw);
           spncci::WriteIrrepFamilyBlocks(  
             spj_space, num_irrep_families,
-            run_parameters.num_eigenvalues,
+            num_eigenvalues,
             lgi_full_space_index_lookup,
             irrep_family_blocks,test_filename
           );

@@ -187,7 +187,7 @@ namespace spncci
 
   void WriteBabySpncciObservableRMEs(
     const spncci::LGIPair& lgi_pair,
-    spncci::ObservableHyperblocksByLGIPairTable& observable_hyperblocks_by_lgi_table
+    spncci::ObservableHyperblocksTable& observable_hyperblocks_table
     );
   
 

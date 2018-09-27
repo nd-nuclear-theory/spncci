@@ -428,7 +428,7 @@ void ContractBabySpNCCIHypersectors(
   const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks2,
   const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
   spncci::ObservableHypersectorsByLGIPairTable& observable_hypersectors_by_lgi_table,
-  spncci::ObservableHyperblocksByLGIPairTable& observable_hyperblocks_by_lgi_table
+  spncci::ObservableHyperblocksTable& observable_hyperblocks_table
   )
   {
     int irrep_family_index_bra,irrep_family_index_ket;
@@ -457,7 +457,7 @@ void ContractBabySpNCCIHypersectors(
 
             // Get baby spncci observable hyperblocks
             basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks
-              =observable_hyperblocks_by_lgi_table[observable_index][hw_index][lgi_pair1];
+              =observable_hyperblocks_table[observable_index][hw_index];
 
             basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks_test;
             
