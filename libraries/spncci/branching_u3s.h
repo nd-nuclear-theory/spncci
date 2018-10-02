@@ -40,6 +40,10 @@ namespace spncci
 
   typedef std::vector<std::vector<ObservableHyperblocksByLGIPair>>ObservableHyperblocksByLGIPairTable; 
 
+  
+  typedef std::vector<spncci::ObservableBabySpNCCIHypersectors> ObservableHypersectorsTable;
+  typedef std::tuple<int,int,int,int> ObservableHypersectorLabels;
+
   typedef std::unordered_map<spncci::LGIPair,spncci::ObservableBabySpNCCIHypersectors,boost::hash<spncci::LGIPair>>
             ObservableHypersectorsByLGI;
 
@@ -327,7 +331,8 @@ void ContractBabySpNCCIHypersectors(
   const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks1,
   const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks2,
   const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
-  spncci::ObservableHypersectorsByLGIPairTable& observable_hypersectors_by_lgi_table,
+  spncci::ObservableHypersectorsTable& observable_hypersectors_table,
+  // spncci::ObservableHypersectorsByLGIPairTable& observable_hypersectors_by_lgi_table,
   spncci::ObservableHyperblocksTable& observable_hyperblocks_table
   );
 
@@ -337,7 +342,7 @@ void RegroupU3Sectors(
   const spncci::BabySpNCCISpace& baby_spncci_space,
   const spncci::SpaceU3S& space_u3s,
   const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
-  const spncci::ObservableHypersectorsByLGI& baby_spncci_observable_hypersectors_by_lgi,
+  // const spncci::ObservableHypersectorsByLGI& baby_spncci_observable_hypersectors_by_lgi,
   const spncci::ObservableHypersectorsU3S& observable_hypersectors,
   spncci::OperatorBlocks& observable_blocks
 );

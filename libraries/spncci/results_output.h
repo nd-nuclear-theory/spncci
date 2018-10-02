@@ -185,10 +185,10 @@ namespace spncci
   //   out_stream (input): output stream
   //   ...
 
-  void WriteBabySpncciObservableRMEs(
-    const spncci::LGIPair& lgi_pair,
-    spncci::ObservableHyperblocksTable& observable_hyperblocks_table
-    );
+  // void WriteBabySpncciObservableRMEs(
+  //   const spncci::LGIPair& lgi_pair,
+  //   spncci::ObservableHyperblocksTable& observable_hyperblocks_table
+  //   );
   
 
 

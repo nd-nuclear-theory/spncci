@@ -417,126 +417,126 @@ namespace spncci
   }
 
 
-  void WriteHyperBlock(
-    const basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks,
-    const std::string& filename,
-    int irrep_family_index_bra,int irrep_family_index_ket
-    )
-  {
-    std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
-    std::ofstream out_file;
-    out_file.open(filename,mode_argument);
+  // void WriteHyperBlock(
+  //   const basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks,
+  //   const std::string& filename,
+  //   int irrep_family_index_bra,int irrep_family_index_ket
+  //   )
+  // {
+  //   std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
+  //   std::ofstream out_file;
+  //   out_file.open(filename,mode_argument);
 
-    if (!out_file)
-      {
-        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-        return;
-      }
+  //   if (!out_file)
+  //     {
+  //       std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+  //       return;
+  //     }
 
-    int num_hyperblocks=baby_spncci_observable_hyperblocks.size(); 
+  //   int num_hyperblocks=baby_spncci_observable_hyperblocks.size(); 
     
-    // Write irrep family indices and number of hyperblocks 
-    mcutils::WriteBinary<int>(out_file,irrep_family_index_bra);
-    mcutils::WriteBinary<int>(out_file,irrep_family_index_ket);
-    mcutils::WriteBinary<int>(out_file,num_hyperblocks);
+  //   // Write irrep family indices and number of hyperblocks 
+  //   mcutils::WriteBinary<int>(out_file,irrep_family_index_bra);
+  //   mcutils::WriteBinary<int>(out_file,irrep_family_index_ket);
+  //   mcutils::WriteBinary<int>(out_file,num_hyperblocks);
 
-    // for each block, 
-    for(int hypersector_index=0; hypersector_index<num_hyperblocks; ++hypersector_index)
-      {
-        const basis::OperatorBlock<double>& block
-            =baby_spncci_observable_hyperblocks[hypersector_index][0];
+  //   // for each block, 
+  //   for(int hypersector_index=0; hypersector_index<num_hyperblocks; ++hypersector_index)
+  //     {
+  //       const basis::OperatorBlock<double>& block
+  //           =baby_spncci_observable_hyperblocks[hypersector_index][0];
 
-        int num_rows=block.rows();
-        int num_cols=block.cols();
+  //       int num_rows=block.rows();
+  //       int num_cols=block.cols();
 
-        // write number of rows and columns
-        mcutils::WriteBinary<int>(out_file,num_rows);
-        mcutils::WriteBinary<int>(out_file,num_cols);
+  //       // write number of rows and columns
+  //       mcutils::WriteBinary<int>(out_file,num_rows);
+  //       mcutils::WriteBinary<int>(out_file,num_cols);
       
-        int size=num_rows*num_cols;
+  //       int size=num_rows*num_cols;
 
-        // write matrix.  Order is column major (Eigen default)
-        if(lgi::binary_float_precision==4)
-            {
-              Eigen::MatrixXf buffer_matrix=block.cast<float>();
-              out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
+  //       // write matrix.  Order is column major (Eigen default)
+  //       if(lgi::binary_float_precision==4)
+  //           {
+  //             Eigen::MatrixXf buffer_matrix=block.cast<float>();
+  //             out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
               
-            }  
+  //           }  
           
-        else if (lgi::binary_float_precision==8)
-          {
-            Eigen::MatrixXd buffer_matrix=block;
-            out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
+  //       else if (lgi::binary_float_precision==8)
+  //         {
+  //           Eigen::MatrixXd buffer_matrix=block;
+  //           out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
 
-            // if(irrep_family_index_bra==1 && irrep_family_index_ket==0)
-            //   {
-            //     std::ios_base::openmode mode_argument = std::ios_base::out | std::ios_base::binary;
-            //     std::ofstream test_file;
-            //     test_file.open("test",mode_argument);
+  //           // if(irrep_family_index_bra==1 && irrep_family_index_ket==0)
+  //           //   {
+  //           //     std::ios_base::openmode mode_argument = std::ios_base::out | std::ios_base::binary;
+  //           //     std::ofstream test_file;
+  //           //     test_file.open("test",mode_argument);
 
-            //     double buff[size];
-            //     buff=*block.data();
+  //           //     double buff[size];
+  //           //     buff=*block.data();
 
-            //     std::cout<<block<<std::endl<<"buffer block"<<std::endl<<buffer_matrix<<std::endl;
-            //     std::cout<<"size "<<sizeof(buff)<<std::endl;
+  //           //     std::cout<<block<<std::endl<<"buffer block"<<std::endl<<buffer_matrix<<std::endl;
+  //           //     std::cout<<"size "<<sizeof(buff)<<std::endl;
                 
-            //     test_file.write(reinterpret_cast<char*>(&buff),sizeof(buf));
-            //     test_file.close();
+  //           //     test_file.write(reinterpret_cast<char*>(&buff),sizeof(buf));
+  //           //     test_file.close();
 
-            //     std::ifstream test_in;
-            //     test_in.open("test",std::ios_base::in | std::ios_base::binary);
+  //           //     std::ifstream test_in;
+  //           //     test_in.open("test",std::ios_base::in | std::ios_base::binary);
 
-            //     double buffer[size];
-            //     std::cout<<"size2 "<<sizeof(buffer)<<std::endl;
+  //           //     double buffer[size];
+  //           //     std::cout<<"size2 "<<sizeof(buffer)<<std::endl;
                 
-            //     Eigen::MatrixXd block2;
-            //     test_in.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
-            //     block2=Eigen::Map<Eigen::MatrixXd>(buffer,num_rows,num_cols);
-            //     std::cout<<"block2"<<std::endl<<block2<<std::endl;
-            //     test_in.close();
-            //   }
+  //           //     Eigen::MatrixXd block2;
+  //           //     test_in.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+  //           //     block2=Eigen::Map<Eigen::MatrixXd>(buffer,num_rows,num_cols);
+  //           //     std::cout<<"block2"<<std::endl<<block2<<std::endl;
+  //           //     test_in.close();
+  //           //   }
 
-          }
+  //         }
 
 
-      }
-    out_file.close();
+  //     }
+  //   out_file.close();
   
-    // std::ifstream file(filename,std::ios::binary | std::ios::ate);
-    // std::cout<<"file size "<<file.tellg()<<std::endl;
-    // file.close();
-  }
+  //   // std::ifstream file(filename,std::ios::binary | std::ios::ate);
+  //   // std::cout<<"file size "<<file.tellg()<<std::endl;
+  //   // file.close();
+  // }
 
-  void WriteBabySpncciObservableRMEs(
-    const spncci::LGIPair& lgi_pair,
-    spncci::ObservableHyperblocksTable& observable_hyperblocks_table
-    )
-  {
-    int irrep_family_index_bra,irrep_family_index_ket;
-    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+  // void WriteBabySpncciObservableRMEs(
+  //   const spncci::LGIPair& lgi_pair,
+  //   spncci::ObservableHyperblocksTable& observable_hyperblocks_table
+  //   )
+  // {
+  //   int irrep_family_index_bra,irrep_family_index_ket;
+  //   std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
 
-    // For each observable 
-    for(int observable_index=0; observable_index<observable_hyperblocks_table.size(); ++observable_index)
-      {
-        const auto& observable_hyperblocks_by_lgi_by_hw=observable_hyperblocks_table[observable_index];
+  //   // For each observable 
+  //   for(int observable_index=0; observable_index<observable_hyperblocks_table.size(); ++observable_index)
+  //     {
+  //       const auto& observable_hyperblocks_by_lgi_by_hw=observable_hyperblocks_table[observable_index];
         
-        // for each hw value
-        for(int hw_index=0; hw_index<observable_hyperblocks_by_lgi_by_hw.size(); ++hw_index)
-          {
-            const basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks
-              =observable_hyperblocks_by_lgi_by_hw[hw_index];
+  //       // for each hw value
+  //       for(int hw_index=0; hw_index<observable_hyperblocks_by_lgi_by_hw.size(); ++hw_index)
+  //         {
+  //           const basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks
+  //             =observable_hyperblocks_by_lgi_by_hw[hw_index];
 
-            // One file per observable, per hw value
-            int thread_num=omp_get_thread_num();
-            std::string filename=fmt::format("hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num);
+  //           // One file per observable, per hw value
+  //           int thread_num=omp_get_thread_num();
+  //           std::string filename=fmt::format("hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num);
             
-            // #pragma omp critical (write_observables)
-            // Now each thread writes to a separate file
-            spncci::WriteHyperBlock(
-              baby_spncci_observable_hyperblocks,filename,
-              irrep_family_index_bra,irrep_family_index_ket
-            );
-          }
-      }        
-  }
+  //           // #pragma omp critical (write_observables)
+  //           // Now each thread writes to a separate file
+  //           spncci::WriteHyperBlock(
+  //             baby_spncci_observable_hyperblocks,filename,
+  //             irrep_family_index_bra,irrep_family_index_ket
+  //           );
+  //         }
+  //     }        
+  // }
 }  // namespace

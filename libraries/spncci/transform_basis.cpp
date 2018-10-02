@@ -29,11 +29,11 @@ void RegroupIntoIrrepFamilies(
   )
 	// irrep_family_blocks: by J, by n, by irrep family
   {
-    std::cout<<"regrouping"<<std::endl;
+    // std::cout<<"regrouping"<<std::endl;
     //By J, by irrep_family_inde: dimensions of subspace (gamma_max, num_states)
     std::vector<std::vector<std::pair<int,int>>> irrep_family_subspaces(spj_space.size());
 
-    std::cout<<"geting dimensions"<<std::endl;
+    // std::cout<<"geting dimensions"<<std::endl;
     // iterate over j spaces and count number of states in each subspace and get gamma_max
     for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
       // for each J subspace
@@ -60,7 +60,7 @@ void RegroupIntoIrrepFamilies(
           }
       }
 
-    std::cout<<"initialize irrep family subspace blocks "<<std::endl;
+    // std::cout<<"initialize irrep family subspace blocks "<<std::endl;
     irrep_family_blocks.resize(spj_space.size());
     for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)    
       {
@@ -91,7 +91,7 @@ void RegroupIntoIrrepFamilies(
 		      }      
       }
 
-    std::cout<<"populating blocks"<<std::endl;
+    // std::cout<<"populating blocks"<<std::endl;
     for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
       {
         auto& irrep_family_subspacesJ=irrep_family_subspaces[spj_subspace_index];
@@ -99,9 +99,9 @@ void RegroupIntoIrrepFamilies(
         const spncci::Matrix& eigenvectors_J = eigenvectors[spj_subspace_index];
         const int num_eigenvectors = eigenvectors_J.cols();
 
-        std::cout<<num_eigenvectors<<" eigenvectors for "<<num_eigenvalues<<" eigenvalues"<<std::endl;
-        std::cout<<eigenvectors_J<<std::endl;
-        std::cout<<"-------------"<<std::endl<<std::endl;
+        // std::cout<<num_eigenvectors<<" eigenvectors for "<<num_eigenvalues<<" eigenvalues"<<std::endl;
+        // std::cout<<eigenvectors_J<<std::endl;
+        // std::cout<<"-------------"<<std::endl<<std::endl;
 
         for(int n=0; n<num_eigenvalues; ++n)
         	{
@@ -117,7 +117,7 @@ void RegroupIntoIrrepFamilies(
 		            int gamma_max=spj_state.gamma_max();
 
                 
-                std::cout<<"n here "<<n<<std::endl;
+                // std::cout<<"n here "<<n<<std::endl;
                 // skip irreps that don't contribute to given J space 
 		            if(gamma_max==0)
 		            	continue;
@@ -133,16 +133,16 @@ void RegroupIntoIrrepFamilies(
                 for(int gamma=1; gamma<=gamma_max; ++gamma)
 		              {
 		                //Taking the nth eigenvector for the given J value
-                    std::cout<<"n "<<n<<std::endl;
-		                std::cout<<"gamma "<<gamma<<" of "<<gamma_max<<std::endl;
-                    std::cout<<"index"<<spj_state_index<<" of "<<spj_subspace.size()<<std::endl;
+                    // std::cout<<"n "<<n<<std::endl;
+		                // std::cout<<"gamma "<<gamma<<" of "<<gamma_max<<std::endl;
+                    // std::cout<<"index"<<spj_state_index<<" of "<<spj_subspace.size()<<std::endl;
                     blocks[irrep_family_index].block(offset,gamma-1,upsilon_max,1)
 		                  =eigenvectors_J.block(eigen_offset,n,upsilon_max,1);
 
 		                // Increment offset in eigenvector
 		                eigen_offset+=upsilon_max;
 		              }
-                std::cout<<blocks[irrep_family_index]<<std::endl<<std::endl;;
+                // std::cout<<blocks[irrep_family_index]<<std::endl<<std::endl;;
 		            // Increment offset in irrep family block 
 		            offsets[irrep_family_index]+=upsilon_max;
 		            
@@ -152,7 +152,7 @@ void RegroupIntoIrrepFamilies(
 		           //  std::cout<<"--------------------------------"<<std::endl<<std::endl;
 		          	// }
 		          }
-            std::cout<<"--------------------------------"<<std::endl<<std::endl;
+            // std::cout<<"--------------------------------"<<std::endl<<std::endl;
 		      }
       }
   }
@@ -203,8 +203,8 @@ void RegroupIntoIrrepFamilies(
 						const spncci::OperatorBlock& block=irrep_family_blocks[j_index][0][irrep_family_index];
 						int rows=block.rows();
 						int cols=block.cols();
-            std::cout<<"rows "<<rows<<" cols "<<cols<<std::endl;
-            std::cout<<block<<std::endl<<std::endl;
+            // std::cout<<"rows "<<rows<<" cols "<<cols<<std::endl;
+            // std::cout<<block<<std::endl<<std::endl;
 
 						// Write block information, col and rows are transposed
 						mcutils::WriteBinary<int>(out_file,TwiceValue(J));
@@ -223,13 +223,13 @@ void RegroupIntoIrrepFamilies(
 		      		{
 				        const spncci::OperatorBlock& block=irrep_family_blocks[j_index][n][irrep_family_index];
 
-                if(n==0 && j_index==0)
-                {
-                  double max_probability=block.rowwise().squaredNorm().maxCoeff();
-                  std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
-                  std::cout<<block.rowwise().squaredNorm()<<std::endl;
-                  std::cout<<"---------------------------"<<std::endl<<std::endl;
-                }
+                // if(n==0 && j_index==0)
+                // {
+                //   // double max_probability=block.rowwise().squaredNorm().maxCoeff();
+                //   // std::cout<<"final max probability "<<max_probability<<std::endl<<std::endl;
+                //   // std::cout<<block.rowwise().squaredNorm()<<std::endl;
+                //   // std::cout<<"---------------------------"<<std::endl<<std::endl;
+                // }
 
 
 
@@ -352,8 +352,9 @@ void  RegroupBlocks(
         continue;
 
       std::cout<<"incrementing total"<<std::endl;
+      std::cout<<blocks[j_index][n]<<std::endl;
       std::cout<<blocks.size()<<std::endl;
-      std::cout<<blocks[j_index].size()<<"  "<<n<<std::endl;
+      std::cout<<blocks[j_index].size()<<"  "<<n<<"  "<<blocks[j_index][n].cols()<<std::endl;
 
 			total_num_cols+=blocks[j_index][n].cols();
       total_num_rows=std::max(total_num_rows,int(blocks[j_index][n].rows()));
@@ -465,7 +466,7 @@ void GetUnitaryTransformation(
 
 
 
-TODO: Switch from vector of blocks to map of blocks. 
+// TODO: Switch from vector of blocks to map of blocks. 
 
 
 

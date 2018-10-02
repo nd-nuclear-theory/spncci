@@ -10,6 +10,7 @@ of irreps in the same irrep family
 
 #include "cppformat/format.h"
 #include "lgi/lgi_unit_tensors.h"
+#include "spncci/io_control.h"
 #include "spncci/transform_basis.h"
 
 
