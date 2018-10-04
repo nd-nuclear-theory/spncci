@@ -593,7 +593,7 @@ def call_spncci(task):
         task["spncci_variant"] = "spncci"
     spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
-    command_line = [
+    command_line = ["map", "--profile",
         spncci_executable
     ]
     mcscript.call(

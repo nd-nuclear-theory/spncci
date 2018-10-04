@@ -462,6 +462,9 @@ void ContractBabySpNCCIHypersectors(
           const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
           const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
           
+          // std::cout<<"baby spncci "<<baby_spncci_subspace_bra.irrep_family_index()
+          // <<"  "<<baby_spncci_subspace_ket.irrep_family_index()<<std::endl;
+
           // std::cout<<"Get labels to look up corresponding U3S subspaces"<<std::endl;
           const u3::U3& omegap=baby_spncci_subspace_bra.omega();
           HalfInt Sp=baby_spncci_subspace_bra.S();
@@ -505,7 +508,7 @@ void ContractBabySpNCCIHypersectors(
 
 void RegroupU3Sectors(
       int observable_index, int hw_index,
-      std::vector<int> nums_lgi_pairs,int num_files,
+      std::vector<int>& nums_lgi_pairs,int num_files,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const spncci::SpaceU3S& space_u3s,
       const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
@@ -575,7 +578,7 @@ void RegroupU3Sectors(
         #pragma omp parallel for schedule(dynamic) shared(in_stream)
         for(int i=0; i<num_lgi_pairs; ++i)
           {
-        
+
             spncci::LGIPair lgi_pair;
             std::vector<spncci::ObservableHypersectorLabels> list_baby_spncci_hypersectors;
             // spncci::LGIPair lgi_pair_test;
@@ -593,6 +596,12 @@ void RegroupU3Sectors(
                 in_stream,lgi_pair,
                 baby_spncci_observable_hyperblocks_test
               );
+
+                int irrep_family_index_bra, irrep_family_index_ket;
+                std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+                // std::cout<<"hi "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
+
+
               // std::cout<<" num_hyperblocks "<<num_hypersectors<<"  "<<baby_spncci_observable_hyperblocks_test.size()
               // <<"  "<<list_baby_spncci_hypersectors.size()<<std::endl;
             }
@@ -625,6 +634,8 @@ void RegroupU3Sectors(
             // std::cout<<"regrouped"<<std::endl;
           }
         // std::cout<<"finished lgi pairs"<<std::endl;
+        in_stream.close();
+        hypersectors_stream.close();
       }
   }
 

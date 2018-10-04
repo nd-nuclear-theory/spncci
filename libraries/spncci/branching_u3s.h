@@ -338,7 +338,7 @@ void ContractBabySpNCCIHypersectors(
 
 void RegroupU3Sectors(
   int observable_index, int hw_index,
-  std::vector<int> nums_lgi_pairs,int num_files,
+  std::vector<int>& nums_lgi_pairs,int num_files,
   const spncci::BabySpNCCISpace& baby_spncci_space,
   const spncci::SpaceU3S& space_u3s,
   const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
