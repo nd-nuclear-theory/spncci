@@ -14,6 +14,199 @@ of irreps in the same irrep family
 #include "spncci/transform_basis.h"
 
 
+namespace spncci
+{
+
+
+void GetReorderingMatrix(const std::vector<int>& top_rows,
+  const std::vector<int>& bottom_rows,
+  spncci::OperatorBlock& reordering_matrix)
+{
+  int num_rows=top_rows.size()+bottom_rows.size();
+  reordering_matrix=spncci::OperatorBlock::Zero(num_rows,num_rows);
+  int i=0;
+  for(int j : top_rows)
+  {
+    reordering_matrix(i,j)=1;
+    ++i;
+  }
+
+  for(int j : bottom_rows)
+    {
+      reordering_matrix(i,j)=1;
+      ++i;
+    }
+}
+
+
+void ReorderBlock(
+  spncci::OperatorBlock& block,
+  spncci::OperatorBlock& reordering_matrix,
+  int& num_above_threshold,
+  double threshold
+)
+{
+  int gamma_max=block.rows();
+  auto norms=block.rowwise().squaredNorm();
+
+  std::vector<int> above_threshold,below_threshold;
+
+  // Determine which irreps are above the threshold 
+  for(int g=0; g<gamma_max; ++g)
+    {
+      if(norms[g]>threshold)
+        above_threshold.push_back(g);
+      else
+        below_threshold.push_back(g);
+    }
+
+  spncci::GetReorderingMatrix(above_threshold,below_threshold,reordering_matrix);
+  
+  //Reorder the block
+  block=reordering_matrix*block;
+
+  num_above_threshold=above_threshold.size();
+}
+
+
+void GetUnitaryTransformationForColumn(
+  spncci::OperatorBlock& block, 
+  spncci::OperatorBlock& transformation_matrix, 
+  int& num_rows,
+  int column
+)
+{
+  int gamma_max=block.rows();
+
+  //Define pairwise transformation 
+  std::vector<int> top_rows, bottom_rows;
+  spncci::OperatorBlock temp_matrix=spncci::OperatorBlock::Identity(gamma_max,gamma_max);
+
+  //make num rows even
+  if(num_rows%2)
+    top_rows.push_back(num_rows-1);
+
+  for(int i=0; i<num_rows-1; i+=2)
+    {
+      double a=block(i,column);
+      double b=block(i+1,column);
+      double beta=sqrt(a*a+b*b);
+      temp_matrix(i,i)=a/beta;
+      temp_matrix(i,i+1)=b/beta;
+      temp_matrix(i+1,i)=-b/beta;
+      temp_matrix(i+1,i+1)=a/beta;
+      top_rows.push_back(i);
+      bottom_rows.push_back(i+1);
+    } 
+
+  //Finish add rows that were below threshold to start with 
+  for(int i=num_rows; i<gamma_max; ++i)
+    bottom_rows.push_back(i);
+
+  spncci::OperatorBlock reordering_matrix;
+  spncci::GetReorderingMatrix(top_rows,bottom_rows,reordering_matrix);
+  temp_matrix=reordering_matrix*temp_matrix;
+
+  block=temp_matrix*block;
+
+  transformation_matrix=reordering_matrix*temp_matrix*transformation_matrix;
+  num_rows=top_rows.size();
+}
+
+
+void GetUnitaryTransformation2(
+  spncci::OperatorBlock& block, 
+  spncci::OperatorBlock& transformation_matrix,
+  const std::pair<std::string,double>& truncation_mode,
+  double threshold
+  )
+{
+  double norm=block.squaredNorm();
+  int gamma_max=block.rows();
+  int num_cols=block.cols();
+  // Maximum probablity of a single irrep
+  // std::cout<<block<<std::endl;
+  double max_probability=block.rowwise().squaredNorm().maxCoeff();
+  std::cout<<"gamma_max:  "<<gamma_max<<"  norm:  "<<norm<<std::endl;
+  std::cout<<"initial max probability "<<max_probability<<std::endl;
+  std::cout<<block.rowwise().squaredNorm()<<std::endl<<std::endl;    
+
+  
+  // Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,ComputeThinV);
+  Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,Eigen::ComputeFullU);
+  svd.setThreshold(truncation_mode.second);
+  spncci::OperatorBlock Umatrix=svd.matrixU().transpose();
+  // spncci::OperatorBlock temp_transformation=svd.matrixU().transpose();
+  block=Umatrix*block;
+  
+  //Reorder block so irreps with probably above threshold are in the top rows of the block 
+  spncci::OperatorBlock reordering_matrix;
+  int num_above_threshold;
+  spncci::ReorderBlock(block,reordering_matrix,num_above_threshold,threshold);
+
+  std::cout<<"populating transformation_matrix"<<std::endl;
+  auto temp_transformation=reordering_matrix*Umatrix;
+  // std::cout<<temp_transformation.rows()<<"  "<<temp_transformation.cols()<<" "<<num_above_threshold<<
+  transformation_matrix=temp_transformation.block(0,0,num_above_threshold,gamma_max);
+
+
+  const auto& probabilities=block.rowwise().squaredNorm();
+  std::cout<<"final max probabilities 1 "<<probabilities.maxCoeff()<<std::endl;
+  std::cout<<probabilities<<std::endl;
+  std::cout<<"---------------------------"<<std::endl<<std::endl;
+
+}
+
+  void  DefineIrrepFamilyTransformations2(
+  const std::vector<std::pair<int,int>>& Jn_set,
+  std::map<int,std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+  std::map<int,std::map<int,int>>& J_index_lookup_table,
+  spncci::OperatorBlocks& transformations,
+  const std::pair<std::string,double>& truncation_mode,
+  double threshold
+)
+//Set of transformations for a given set of Jn pairs
+{
+  std::cout<<"defining rotation"<<std::endl;
+  int num_irrep_families=irrep_family_blocks.size();
+  transformations.resize(num_irrep_families);
+
+  for(auto it=irrep_family_blocks.begin(); it!=irrep_family_blocks.end(); ++it)
+  // for(int irrep_family_index=0; irrep_family_index<num_irrep_families; ++irrep_family_index)
+    {
+      int irrep_family_index=it->first;
+      std::cout<<"irrep family "<<irrep_family_index<<std::endl;
+      const std::vector<spncci::OperatorBlocks>& blocks=it->second;
+      // const std::vector<spncci::OperatorBlocks>& blocks=irrep_family_blocks[irrep_family_index];
+      std::cout<<irrep_family_index<<"  "<<blocks.size()<<std::endl;
+      if(blocks.size()==0)
+        continue;
+      
+      spncci::OperatorBlock block;
+      std::map<int,int>& J_index_table=J_index_lookup_table[irrep_family_index];
+      
+      std::cout<<"regrouping"<<std::endl;
+      spncci::RegroupBlocks(Jn_set, blocks,J_index_table, block);
+      
+      int gamma_max=block.rows();
+      int irrep_dim=block.cols();
+      if(gamma_max==0)
+        continue;
+
+      // std::cout<<"get transformation index "<<std::endl; 
+      spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
+
+      std::cout<<"transforming"<<std::endl;
+      std::cout<<num_irrep_families<<"  "<<irrep_family_index<<std::endl;
+      spncci::GetUnitaryTransformation2(block,transformation_matrix,truncation_mode,threshold);
+    }
+
+}
+
+}//namespace
+
+
+
 int main(int argc, char **argv)
 {
 
@@ -96,9 +289,9 @@ int main(int argc, char **argv)
   // std::map<int,spncci::OperatorBlock> transformations;
 
 
-  spncci::DefineIrrepFamilyTransformations(
+  spncci::DefineIrrepFamilyTransformations2(
     Jn_set,irrep_family_blocks,J_index_lookup_table,
-    transformations,truncation_mode
+    transformations,truncation_mode,threshold
   );
 
   // write truncated lgi families to file 
@@ -108,7 +301,7 @@ int main(int argc, char **argv)
 
    // write transformations to file
   int Jn_file_num=Jn_set.size();
-  std::string transformations_file=fmt::format("transformations_{:02d}_{:02d}_{:03d}.dat",Nmax,Nsmax,truncation_file_num);
+  std::string transformations_file=fmt::format("transformations_{:02d}_{:02d}_{:03d}.dat",Nsmax,Nmax,truncation_file_num);
   std::cout<<"write transformation matrices "<<std::endl;
   spncci::WriteTransformationMatrices(transformations,transformations_file);
 

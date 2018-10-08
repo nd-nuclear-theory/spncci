@@ -325,6 +325,8 @@ def save_seed_files(task):
         ] 
     )
 
+    #TODO: change to create ln to directory in results directory. 
+
     # move archive to results directory (if in multi-task run)
     if (mcscript.task.results_dir is not None):
         mcscript.call(
@@ -387,7 +389,7 @@ def retrieve_seed_files(task):
     # remove any existing symlink or data directory
     if (os.path.exists("seeds")):
         mcscript.call(["rm","-r","seeds"])
-        print("hi")
+        # print("hi")
     
 
     if (directory_name is not None):
@@ -533,6 +535,10 @@ def generate_spncci_control_file(task):
         transform_lgi=0
     else:
         transform_lgi=1
+
+        if (os.path.exists("lgi_transformations.dat")):
+            mcscript.call(["rm","-r","lgi_transformations.dat"])
+
         mcscript.call(
             [
                 "ln",

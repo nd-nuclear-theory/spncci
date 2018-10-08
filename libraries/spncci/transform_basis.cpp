@@ -284,7 +284,7 @@ void ReadIrrepFamilyBlocks(
 			int irrep_family_index;
   		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
 		
-      std::cout<<"irrep family index "<<irrep_family_index<<std::endl;
+      // std::cout<<"irrep family index "<<irrep_family_index<<std::endl;
 
 			std::vector<spncci::OperatorBlocks>& blocks=irrep_family_blocks[irrep_family_index];
 			blocks.resize(num_J_values);
@@ -319,7 +319,7 @@ void ReadIrrepFamilyBlocks(
 				          in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
 				          block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
 				        }
-				    std::cout<<blocks[j_index][n]<<std::endl<<std::endl;
+				    // std::cout<<blocks[j_index][n]<<std::endl<<std::endl;
             }
 		  	}
     }
@@ -351,10 +351,10 @@ void  RegroupBlocks(
       if(blocks[j_index].size()==0)
         continue;
 
-      std::cout<<"incrementing total"<<std::endl;
-      std::cout<<blocks[j_index][n]<<std::endl;
-      std::cout<<blocks.size()<<std::endl;
-      std::cout<<blocks[j_index].size()<<"  "<<n<<"  "<<blocks[j_index][n].cols()<<std::endl;
+      // std::cout<<"incrementing total"<<std::endl;
+      // std::cout<<blocks[j_index][n]<<std::endl;
+      // std::cout<<blocks.size()<<std::endl;
+      // std::cout<<blocks[j_index].size()<<"  "<<n<<"  "<<blocks[j_index][n].cols()<<std::endl;
 
 			total_num_cols+=blocks[j_index][n].cols();
       total_num_rows=std::max(total_num_rows,int(blocks[j_index][n].rows()));
@@ -363,8 +363,8 @@ void  RegroupBlocks(
   if(total_num_rows==0)
     return;
 
-	std::cout<<"Create superblock containing all Jn blocks"<<std::endl;
-  std::cout<<total_num_cols<<"  "<<total_num_rows<<std::endl;
+	// std::cout<<"Create superblock containing all Jn blocks"<<std::endl;
+ //  std::cout<<total_num_cols<<"  "<<total_num_rows<<std::endl;
 	irrep_family_block=Eigen::MatrixXd::Zero(total_num_rows,total_num_cols);
 	int offset=0;
 	int num_cols=0;

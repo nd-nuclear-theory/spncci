@@ -96,6 +96,13 @@ void ReadTransformationMatrices(
   spncci::OperatorBlocks& transformations
 );
 
+void  RegroupBlocks(
+  const std::vector<std::pair<int,int>>& Jn_set,
+  const std::vector<spncci::OperatorBlocks>& blocks,
+  std::map<int,int>& J_index_table,
+  spncci::OperatorBlock& irrep_family_block
+);
+
 void TransformSeeds(
   int bra_index,int ket_index,
   spncci::OperatorBlocks& transformations,
