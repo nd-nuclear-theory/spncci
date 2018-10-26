@@ -228,11 +228,13 @@ def retrieve_operator_files(task):
 
     # identify archive file
     descriptor = relative_operator_descriptor(task)
+    filename="relative-operators-{}.tgz".format(descriptor)
+    print(filename)
     archive_filename = mcscript.utils.search_in_subdirectories(
         operator_directory_list,
         operator_subdirectory_list,
-        "relative-operators-{}.tgz".format(descriptor),
-        error_message="relative operator archive file not found"
+        filename,
+        error_message="relative operator archive file {} not found".format(filename)
     )
 
     # extract archive contents
@@ -280,18 +282,43 @@ def generate_model_space_file(task):
 
     Invokes generate_lsu3shell_model_space.
     """
+    if task["model_space_file_bra"]==None:
+        command_line = [
+            generate_lsu3shell_model_space_executable,
+            "{nuclide[0]:d}".format(**task),
+            "{nuclide[1]:d}".format(**task),
+            "{Nsigma_max:d}".format(**task),
+            "{Nstep:d}".format(**task)
+        ]
+        mcscript.call(
+            command_line,
+            mode=mcscript.CallMode.kSerial
+        )
+        mcscript.call(["cp","model_space.dat","model_space_bra.dat"])
 
-    command_line = [
-        generate_lsu3shell_model_space_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
-        "{Nstep:d}".format(**task)
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
+    else:
+        mcscript.call(["cp",task["model_space_file_bra"], "model_space_bra.dat"])
+
+
+    if task["model_space_file_ket"]==None:
+        command_line = [
+            generate_lsu3shell_model_space_executable,
+            "{nuclide[0]:d}".format(**task),
+            "{nuclide[1]:d}".format(**task),
+            "{Nsigma_max:d}".format(**task),
+            "{Nstep:d}".format(**task)
+        ]
+        mcscript.call(
+            command_line,
+            mode=mcscript.CallMode.kSerial
+        )
+
+        mcscript.call(["cp","model_space.dat","model_space_ket.dat"])
+
+    else:
+        mcscript.call(["cp",task["model_space_file_ket"], "model_space_ket.dat"])
+
+
 
 def calculate_rmes(task):
     """ Invoke lsu3shell SU3RME code to calculate rmes of relative unit
@@ -300,7 +327,8 @@ def calculate_rmes(task):
     Invokes SU3RME_MPI.
     """
 
-    model_space_filename = "model_space.dat".format(**task)
+    model_space_filename_bra = "model_space_bra.dat"
+    model_space_filename_ket = "model_space_ket.dat"
 
     if ("su3rme_mode" not in task):
         task["su3rme_mode"] = "text"
@@ -308,8 +336,8 @@ def calculate_rmes(task):
     # call SU3RME
     command_line = [
         su3rme_executable,
-        model_space_filename,
-        model_space_filename,
+        model_space_filename_bra,
+        model_space_filename_ket,
         "relative_operators.dat",
         task["su3rme_mode"]
     ]
@@ -324,11 +352,11 @@ def generate_basis_table(task):
 
     Invokes ncsmSU3xSU2IrrepsTabular.
 
-    Depends on model space file created by generate_lsu3shell_relative_operators.
+    Depends on ket model space file created by generate_model_space_file().
     """
 
     print("{nuclide}".format(**task))
-    model_space_filename = "model_space.dat".format(**task)
+    model_space_filename = "model_space_ket.dat".format(**task)
     basis_listing_filename = "lsu3shell_basis.dat"
 
     command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
@@ -353,7 +381,8 @@ def save_su3rme_files(task):
 
     # select files to save
     archive_file_list = [
-        "model_space.dat",
+        "model_space_ket.dat",
+        "model_space_bra.dat",
         "relative_operators.dat",
         "lsu3shell_basis.dat",
         "relative_unit_tensor_labels.dat"

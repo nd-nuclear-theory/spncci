@@ -388,14 +388,17 @@ void RegroupIntoIrrepFamilies(
 
     // std::cout<<"initialize irrep family subspace blocks "<<std::endl;
     irrep_family_blocks.resize(spaces_spbasis.size());
+    
     for(int spj_space_index=0; spj_space_index<spaces_spbasis.size(); ++spj_space_index)
       {
+        // std::cout<<"for spj space "<<spj_space_index<<std::endl;
         // const spncci::SpaceSpBasis& spj_space=spaces_spbasis[spj_space_index];
         auto& irrep_family_subspacesJ=irrep_family_subspaces[spj_space_index];
         irrep_family_blocks[spj_space_index].resize(num_eigenvalues);
 
         for(int n=0; n<num_eigenvalues; ++n)
           {
+            // std::cout<<"for eigenvalue "<<n<<std::endl;
             //Resize block[J]
             spncci::OperatorBlocks& blocks=irrep_family_blocks[spj_space_index][n];
             blocks.resize(num_irrep_families);
@@ -406,6 +409,7 @@ void RegroupIntoIrrepFamilies(
                 int gamma_max,num_states;
                 std::tie(gamma_max,num_states)=irrep_family_subspacesJ[irrep_family_index];
                 
+                // std::cout<<"for irrep family "<<irrep_family_index<<"  "<<gamma_max<<"  "<<num_states<<std::endl;
                 //  irrep may not branch to given J, especially for low Nmax
                 if(gamma_max>0)
                   blocks[irrep_family_index]=Eigen::MatrixXd::Zero(num_states,gamma_max);
@@ -554,6 +558,8 @@ void RegroupIntoIrrepFamilies(
 
 
             int size=rows*cols;
+            if(size==0)
+              continue;
 
             // For each n value
             // std::cout<<"Transpose matrix and write to file"<<std::endl;
@@ -958,7 +964,8 @@ int main(int argc, char **argv)
       //   {
       //     std::cout<<"---------------------------------------"<<std::endl;
       //     std::cout<<"irrep family "<<i<<std::endl;
-      //     int j=lgi_full_space_index_lookup[i];          
+      //     int j=lgi_full_space_index_lookup[i];  
+      //     std::cout<<"full space index "<<j<<std::endl;        
       //     std::cout<<lgi_transformations[j]<<std::endl<<std::endl;
       //     std::cout<<"---------------------------------------"<<std::endl<<std::endl;
       //   }
