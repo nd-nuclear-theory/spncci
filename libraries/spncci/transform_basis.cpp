@@ -7,7 +7,6 @@
 ****************************************************************/
 #include "spncci/transform_basis.h"
 
-#include <experimental/random> //For DefineIrrepFamilyRotation
 #include <fstream>
 #include <omp.h>  
 

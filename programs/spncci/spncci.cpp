@@ -1242,7 +1242,8 @@ int main(int argc, char **argv)
         /////////////////////////////////////////////////////////////////////////////////////////////////////////// 
         // Writing irrep family blocks to files for use in lgi basis transformation
 
-        if(not run_parameters.transform_lgi)
+        if(false) //TEMP While doing higher Nmax runs
+        // if(not run_parameters.transform_lgi)
         {
           //TODO: Remove restriction to 3 and make input
           int num_eigenvalues=std::min(run_parameters.num_eigenvalues,3);
