@@ -29,6 +29,7 @@ import os
 import sys
 
 import mcscript
+import su3rme
 import spncci
 
 mcscript.init()
@@ -55,7 +56,7 @@ task_list = [
         "Nsigma_0" : 6,
         "Nsigma_max" : Nsigma_max,
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
-        "su3rme_descriptor_template" : spncci.su3rme_descriptor_template_Nsigmamax,
+        "su3rme_descriptor_template" : su3rme.su3rme_descriptor_template_Nsigmamax,
         "su3rme_mode" : su3rme_mode,
 
         # for timing pool
@@ -80,7 +81,7 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return (spncci.su3rme_descriptor_template_Nsigmamax.format(**task))
+    return (su3rme.su3rme_descriptor_template_Nsigmamax.format(**task))
 
 def task_pool(task):
     """"""
@@ -95,7 +96,7 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        spncci.do_generate_lsu3shell_rmes
+        su3rme.do_generate_lsu3shell_rmes
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]

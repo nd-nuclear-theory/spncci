@@ -599,9 +599,7 @@ def call_spncci(task):
         task["spncci_variant"] = "spncci"
     spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
-    command_line = ["map", "--profile",
-        spncci_executable
-    ]
+    command_line = [spncci_executable]
     mcscript.call(
         command_line,
         mode=mcscript.CallMode.kSerial
@@ -616,10 +614,12 @@ def save_spncci_results(task):
     Rename and save spncci results files.
     """
     # results file
+    coulomb = int(task["use_coulomb"])
+    results_descriptor="Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task)
     raw_log_filename = "spncci.res"
     new_log_filename = os.path.join(
         mcscript.task.results_dir,
-        "{name}-{descriptor}.res".format(name=mcscript.parameters.run.name,**task)
+        "{name}-{description}.res".format(name=mcscript.parameters.run.name,description=results_descriptor)
     )
     mcscript.call(
         [

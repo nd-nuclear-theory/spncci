@@ -295,6 +295,9 @@ void ReadIrrepFamilyBlocks(
 				  mcutils::ReadBinary<int>(in_stream,rows);
 					mcutils::ReadBinary<int>(in_stream,cols);
 
+          // std::cout<<"irrep family index "<<irrep_family_index<<"  "
+          // <<j_index<<"  "<<rows<<"  "<<cols<<"  "<<twice_J<<std::endl;
+
           // irrep did not contribute to J space 
 					if(rows==0)
             continue;
@@ -350,7 +353,7 @@ void  RegroupBlocks(
       if(blocks[j_index].size()==0)
         continue;
 
-      // std::cout<<"incrementing total"<<std::endl;
+      // std::cout<<"incrementing total "<<j_index<<"  "<<n<<std::endl;
       // std::cout<<blocks[j_index][n]<<std::endl;
       // std::cout<<blocks.size()<<std::endl;
       // std::cout<<blocks[j_index].size()<<"  "<<n<<"  "<<blocks[j_index][n].cols()<<std::endl;
@@ -545,6 +548,11 @@ void WriteTransformationMatrices(
   	{
 			const spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
 
+
+
+      // std::cout<<"for irrep "<<irrep_family_index<<std::endl;
+      // std::cout<<transformation_matrix<<std::endl;
+
 			int rows=transformation_matrix.rows();
       int cols=transformation_matrix.cols();
 
@@ -687,17 +695,21 @@ void TransformSeeds(
     spncci::OperatorBlock& bra_transformation=transformations[bra_index];
     spncci::OperatorBlock& ket_transformation=transformations[ket_index];
 
+
     // std::cout<<"----------------------------------------------------------"<<std::endl;
+    // std::cout<<bra_index<<"  "<<ket_index<<std::endl;
     // std::cout<<bra_transformation<<std::endl<<std::endl;
     // std::cout<<ket_transformation<<std::endl<<std::endl;
-    // std::cout<<"          ------------------------------          "<<std::endl;
+    // // std::cout<<"          ------------------------------          "<<std::endl;
 
     for(int i=0; i<unit_tensor_seed_blocks.size(); ++i)
       { 
         spncci::OperatorBlock& block=unit_tensor_seed_blocks[i];
         spncci::OperatorBlock block2=unit_tensor_seed_blocks[i];
-        // std::cout<<block<<std::endl;
+        // std::cout<<"block "<<i<<std::endl;
+        // std::cout<<block<<std::endl<<std::endl;
         block=bra_transformation*block*ket_transformation.transpose();
+        // std::cout<<block<<std::endl;
         // std::cout<<"          ------------------------------          "<<std::endl;
         // spncci::OperatorBlock temp=block-block2;
         // mcutils::ChopMatrix(temp, 1e-7);
