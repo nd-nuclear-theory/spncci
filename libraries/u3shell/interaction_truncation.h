@@ -32,6 +32,15 @@ namespace u3shell
     int N0_max
     );
   // truncate interaction by N0.  If abs(N0) is greater than N0_max, RME is eliminated
+  
+
+    void TruncateInteractionx0(
+    const u3shell::RelativeRMEsU3ST& interaction_u3st,
+    u3shell::RelativeRMEsU3ST& truncated_interaction_u3st,
+    int x0_max
+    );
+  // truncate interaction by (lambda, mu).  Interaction RME is eliminated if either lambda or mu is greater than LamMu_Max.
+  
 
   void AccumulateInteractionByU3ST(
     const u3shell::RelativeRMEsU3ST& interaction_u3st,
@@ -71,6 +80,12 @@ namespace u3shell
   // Truncation is only carried out on the N0>=0 RMEs.  The corresponding N0<0 matrix element
   // is included based on the value of the corresponding N0>0 RME. 
 
+  /*typedef vector< tuple<int, int, int, int> > u3st;
+  void Contribution(
+    const u3shell::RelativeRMEsU3ST& interaction_u3st,
+    u3shell::RelativeRMEsU3ST& truncated_interaction_u3st,
+    double sum_threshhold
+    );*/
 
 
   void GetRelativeRMEsU3ST(

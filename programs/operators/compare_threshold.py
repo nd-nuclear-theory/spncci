@@ -25,7 +25,7 @@ for i in range(9):
 
 for i in range(28):
 	DataDouble = np.loadtxt(double_data_files[i], dtype=str)
-	print(str(double_data_files[i]) + " - " + str(DataDouble[-1][-1]))
+	print(str(double_data_files[i]) + " - " + str(DataDouble[53][-1]))
 	#print(quad_data_files[i])
 
 double_group = []
