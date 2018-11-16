@@ -30,6 +30,7 @@ import sys
 
 import mcscript
 import su3rme
+import spncci
 
 mcscript.init()
 

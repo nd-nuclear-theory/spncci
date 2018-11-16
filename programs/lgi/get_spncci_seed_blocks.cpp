@@ -6,30 +6,35 @@ seed blocks for the spncci reccurence starting from
 unit tensor rmes computed using LSU3Shell/SU3RME
 
 
-Output: 
+Output: All files are written to directory "seeds"
 
-irrep_labels.dat: File containing a list of lgi family labels with 
+"seeds/lgi_families.dat": File containing a list of lgi family labels with 
   their corresponding index 
   
     i  twice_Nsigma lambda_sigma mu_sigma twice_Sp twice_Sn twice_S
 
 For each pair of lgi families (i,j) with i>=j, there are two
-files containing:
-  1. seeds_00000i_00000j.rmes: All non-zero unit tensor seed blocks
+files in directory seeds containing:
+  1. "seeds/seeds_00000i_00000j.rmes": All non-zero unit tensor seed blocks
       
       binary_format_code (1) and binary precision (4 or 8)
       num_rows, num_cols, rmes...
 
-  2. operators_00000i_00000j.dat: unit tensor labels corresponding
+  2. "seeds/operators_00000i_00000j.dat": unit tensor labels corresponding
       to each seed block
       
       lambda0, mu0, 2S0, 2T0, etap, 2Sp, 2Tp, eta, 2S, 2T, rho0
- 
+    
+"seeds/lgi_expansions.dat": File containing expansion of lgis in lsu3shell basis.
+    For each lsu3shell subspace, 
+        rows, cols, rmes
+
 
 12/29/17 (aem): Created. 
 ****************************************************************/
 #include <fstream>  
 #include "cppformat/format.h"
+#include "mcutils/parsing.h"
 #include "sp3rlib/u3coef.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/eigen.h"
@@ -141,7 +146,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
   ////////////////////////////////////////////////////////////////
-  std::cout << "Read lsu3shell basis..." << std::endl;
+  // std::cout << "Read lsu3shell basis..." << std::endl;
   // read lsu3shell basis (regroup into U3SPN subspaces)
   lsu3shell::LSU3ShellBasisTable lsu3shell_basis_table;
   lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
@@ -156,7 +161,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // solve for LGIs
   ////////////////////////////////////////////////////////////////
-  std::cout << "Solve for LGIs..." << std::endl;
+  // std::cout << "Solve for LGIs..." << std::endl;
   lgi::MultiplicityTaggedLGIVector lgi_families;
   lsu3shell::OperatorBlocks lgi_expansions;
   std::vector<int> lsu3hsell_index_lookup_table;
@@ -171,13 +176,13 @@ int main(int argc, char **argv)
   std::string lgi_filename="seeds/lgi_families.dat";
   lgi::WriteLGILabels(lgi_families, lgi_filename);
 
-  std::cout<<"write expansion to file "<<std::endl;
-  std::string lgi_expansion_filename="lgi_expansions.dat";
+  // std::cout<<"write expansion to file "<<std::endl;
+  std::string lgi_expansion_filename="seeds/lgi_expansions.dat";
   lgi::WriteExpansion(lgi_expansion_filename,lgi_expansions);
   ////////////////////////////////////////////////////////////////
   // Generate Seed blocks 
   ////////////////////////////////////////////////////////////////
-  std::cout<<"Generate tensors "<<std::endl;
+  // std::cout<<"Generate tensors "<<std::endl;
   // Get list of unit tensor labels between lgi's 
   // TODOL change to restrict N0 after testing
   bool restrict_positive_N0=false;
@@ -187,20 +192,19 @@ int main(int argc, char **argv)
       restrict_positive_N0
     );
 
-  std::cout<<"compute seeds "<<std::endl;
+  // std::cout<<"comput seeds "<<std::endl;
   lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels;
-  std::vector<basis::MatrixVector> unit_tensor_spncci_matrices_array;
+  std::vector<basis::OperatorBlocks<double>> unit_tensor_spncci_matrices_array;
   bool restrict_seeds=false;
   lgi::ComputeUnitTensorSeedBlocks(
       lgi_unit_tensor_labels,relative_unit_tensor_filename_template,
       lsu3shell_space, lsu3shell_basis_table,lgi_expansions,
-      lsu3hsell_index_lookup_table, lgi_grouped_seed_labels,
-      unit_tensor_spncci_matrices_array, restrict_seeds
+      lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array, 
+      lsu3hsell_index_lookup_table,restrict_seeds
     );
 
-  std::cout<<"write seeds to file"<<std::endl;
+  // std::cout<<"write seeds to file"<<std::endl;
   lgi::WriteSeedsToFile(lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array);
-
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Test code
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,7 +215,7 @@ int main(int argc, char **argv)
           //get operator file name  
           int bra_index, ket_index;
           std::tie(bra_index,ket_index)=it->first;
-          std::string filename=fmt::format("operators_{:06d}_{:06d}.dat",bra_index,ket_index);
+          std::string filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",bra_index,ket_index);
           
           // read in unit tensor sector labels 
           std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;
@@ -227,8 +231,8 @@ int main(int argc, char **argv)
             }
 
           // Reading in seeds 
-          basis::MatrixVector unit_tensor_seed_blocks(unit_tensor_labels.size());
-          std::string seed_filename=fmt::format("seeds_{:06d}_{:06d}.rmes",bra_index,ket_index);
+          basis::OperatorBlocks<double> unit_tensor_seed_blocks(unit_tensor_labels.size());
+          std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",bra_index,ket_index);
           
           // Read seeds from file
           int num_blocks=unit_tensor_labels.size();
@@ -251,4 +255,5 @@ int main(int argc, char **argv)
         }
         std::cout<<"all done checking "<<std::endl;
       }
+    
 }

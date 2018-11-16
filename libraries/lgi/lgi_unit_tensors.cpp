@@ -6,7 +6,7 @@
 
 ****************************************************************/
 #include "lgi/lgi_unit_tensors.h"
-
+#include <omp.h>
 #include <iostream>
 #include <fstream>
 #include <omp.h>  
@@ -34,8 +34,8 @@ namespace lgi
       const u3shell::SectorsU3SPN& unit_tensor_sectors,
       const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      basis::MatrixVector& unit_tensor_spncci_matrices,
-      const std::vector<int>& lsu3hsell_index_lookup_table,
+      basis::OperatorBlocks<double>& unit_tensor_spncci_matrices,
+      std::vector<int>& lsu3hsell_index_lookup_table,
       bool restrict_seeds
     )
   {    
@@ -45,30 +45,29 @@ namespace lgi
         if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],lgi::zero_tolerance))
           continue;
             
-            // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
-            const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
-            int bra_subspace_index = sector.bra_subspace_index();
-            int ket_subspace_index = sector.ket_subspace_index();
+        // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
+        const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
+        int bra_subspace_index = sector.bra_subspace_index();
+        int ket_subspace_index = sector.ket_subspace_index();
 
-            int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
-            int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
+        int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
+        int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
 
+        // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
+        bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
+        if(not keep)
+          continue;
 
-            // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
-            bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
-            if(not keep)
-              continue;
+        const int rho0=sector.multiplicity_index();
 
-            const int rho0=sector.multiplicity_index();
-
-            // Regroup by lgi pair, then by unit tensor
-            std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
+        // Regroup by lgi pair, then by unit tensor
+        std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
             
-            // Labels for looking up correct block to write to file
-            lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
+        // Labels for looking up correct block to write to file
+        lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
 
-            // Accumulating list 
-            lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
+        // Accumulating list 
+        lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
           
       }// sector index
   }
@@ -78,10 +77,10 @@ namespace lgi
       const std::string& relative_unit_tensor_filename_template,
       const u3shell::SpaceU3SPN& lsu3shell_space, 
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-      const basis::MatrixVector& lgi_expansions,
-      const std::vector<int>& lsu3shell_index_lookup_table,
+      const basis::OperatorBlocks<double>& lgi_expansions,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array,
+      std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3shell_index_lookup_table,
       bool restrict_seeds
     )
   {
@@ -93,16 +92,16 @@ namespace lgi
 
     unit_tensor_spncci_matrices_array.resize(lgi_unit_tensor_labels.size());
 
-    // For each unit tensor 
     #pragma omp parallel
       {
         lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
-
+       
+        // For each unit tensor 
         #pragma omp for schedule(dynamic) nowait
         for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
           {
             // Get labels of corresponding unit tensor 
-            basis::MatrixVector unit_tensor_spncci_matrices;//=unit_tensor_spncci_matrices_array[unit_tensor_index];
+            basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
             const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
 
             // Get file name containing lsu3shell rmes of unit tensor 
@@ -113,7 +112,7 @@ namespace lgi
             u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
 
             // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
-            basis::MatrixVector unit_tensor_lsu3shell_matrices;
+            basis::OperatorBlocks<double> unit_tensor_lsu3shell_matrices;
             lsu3shell::ReadLSU3ShellRMEs(
                 filename,
                 lsu3shell_basis_table,lsu3shell_space,
@@ -130,20 +129,19 @@ namespace lgi
 
             // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
             // by lgi then by tensor
-            // Create list of unit tensor sectors by lgi then by unit tensor for writing to file
-
             lgi::RegroupSeedBlocks(
                 unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
                 lgi_grouped_seed_labels_temp,unit_tensor_spncci_matrices,
                 lsu3shell_index_lookup_table,restrict_seeds
               );
+
             // Matrix copy into final container
             #pragma omp critical(matrix_copy)
               unit_tensor_spncci_matrices_array[unit_tensor_index]=unit_tensor_spncci_matrices;
 
-          }// end unit tensor for 
-        // Accumulate
-        #pragma omp critical(regroup)
+          }
+
+       #pragma omp critical(regroup)
           { 
             std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
             for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
@@ -154,8 +152,8 @@ namespace lgi
               }
           }
       }
-    std::cout<<"number of accumulated pairs labels "<<lgi_grouped_seed_labels.size()<<std::endl;
   }
+
 
   void WriteHeader(std::ostream& out_file)
   {
@@ -185,21 +183,6 @@ namespace lgi
       <<eta<<"  "<<TwiceValue(S)<<"  "<<TwiceValue(T)<<"  "<<rho0
       <<std::endl;
       
-
-    // if(false)
-    //   {
-    //     mcutils::WriteBinary<int>(out_file,x0.lambda());
-    //     mcutils::WriteBinary<int>(out_file,x0.mu());
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S0));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T0));
-    //     mcutils::WriteBinary<int>(out_file,etap);
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Sp));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(Tp));
-    //     mcutils::WriteBinary<int>(out_file,eta);
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(S));
-    //     mcutils::WriteBinary<int>(out_file,TwiceValue(T));
-    //     mcutils::WriteBinary<int>(out_file,num_sectors);
-    //   }
   }
 
   void WriteMatrix(const basis::OperatorBlock<double>& block, std::ostream& out_file)
@@ -229,9 +212,10 @@ namespace lgi
         }
   }
 
+
   void WriteSeedsToFile(
       const lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      const std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array
+      const std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array
     )
   {
     std::vector<std::pair<int,int>> irrep_pairs; 
@@ -254,7 +238,6 @@ namespace lgi
                 
         // open output file
         // std::cout << "opening " << seed_filename << std::endl;
-        
 
         // output in binary mode 
         std::ios_base::openmode mode_argument = std::ios_base::out;
@@ -318,6 +301,40 @@ namespace lgi
     }//end parallel region
   }
 
+
+  void WriteSeedsToFile(
+    const basis::OperatorBlocks<double>& unit_tensor_seed_blocks,
+    int lgi_bra_index, int lgi_ket_index
+  )
+  {
+    // output filename
+    std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
+    std::cout<<"writing to "<<seed_filename<<std::endl;
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::out;
+    mode_argument |= std::ios_base::binary;
+    std::ofstream seed_file;
+    seed_file.open(seed_filename,mode_argument);
+
+    if (!seed_file)
+     {
+        std::cerr << "Could not open file '" << seed_filename << "'!" << std::endl;
+        return;
+     }
+
+    // Indicate file format code and binary precision
+    lgi::WriteHeader(seed_file);
+
+    // for each unit tensor, write non-zero sectors to file
+    for(const auto& block : unit_tensor_seed_blocks)
+        lgi::WriteMatrix(block, seed_file);                
+
+    seed_file.close();
+  }
+
+
+
+
   bool ReadUnitTensorLabels(
       std::string& filename,
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
@@ -330,7 +347,7 @@ namespace lgi
       std::ifstream in_stream(filename,std::ios_base::in);
       if(not bool(in_stream))
         {
-          std::cout<<filename+" not found."<<std::endl;
+          // std::cout<<filename+" not found."<<std::endl;
           return file_found;
         }
       // mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
@@ -403,7 +420,7 @@ namespace lgi
   bool ReadBlocks(
       const std::string& filename, 
       int num_blocks,
-      basis::MatrixVector& blocks
+      basis::OperatorBlocks<double>& blocks
     )
     {
       // std::cout << "opening " << filename << std::endl;      
@@ -411,7 +428,7 @@ namespace lgi
       std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
       if(not bool(in_stream))
         {
-          std::cout<<filename+" not found."<<std::endl;
+          // std::cout<<filename+" not found."<<std::endl;
           return file_found;
         }
 

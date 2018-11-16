@@ -7,6 +7,7 @@
   11/6/17 (aem): Created.
 ****************************************************************/
 #include "u3shell/interaction_truncation.h"
+#include "cppformat/format.h"
 
 namespace u3shell
 {
@@ -45,6 +46,26 @@ namespace u3shell
           std::tie(tensor,kappa0,L0)=it->first;
           
           if(abs(tensor.N0())<=N0_max)
+            truncated_interaction_u3st[it->first]=it->second;
+        }
+  }
+
+  void TruncateInteractionx0(
+    const u3shell::RelativeRMEsU3ST& interaction_u3st,
+    u3shell::RelativeRMEsU3ST& truncated_interaction_u3st,
+    int x0_max
+    )
+  // truncate interaction by (lambda, mu).  Interaction RME is eliminated if either lambda or mu is greater than LamMu_Max.
+  {
+    for(auto it=interaction_u3st.begin(); it!=interaction_u3st.end(); ++it)
+        {
+          u3shell::OperatorLabelsU3ST key; 
+          u3shell::RelativeUnitTensorLabelsU3ST tensor;
+          int kappa0, L0;
+          std::tie(tensor,kappa0,L0)=it->first;
+          int U3max=std::max(tensor.x0().lambda(), tensor.x0().mu());
+          
+          if(U3max<=x0_max)
             truncated_interaction_u3st[it->first]=it->second;
         }
   }
@@ -179,6 +200,38 @@ namespace u3shell
       }
   }
 
+
+  /*void Contribution(
+    const u3shell::RelativeRMEsU3ST& interaction_u3st,
+    u3shell::RelativeRMEsU3ST& truncated_interaction_u3st,
+    double sum_threshhold
+    )
+  // truncate interaction by N0.  If abs(N0) is greater than N0_max, RME is eliminated
+  {
+    u3st keys;
+    double sum = 0;
+    map <u3st, int> u3st_sums;
+    for(auto it=interaction_u3st.begin(); it!=interaction_u3st.end(); ++it)
+        {
+          tuple <int, int, int, int> u3group;
+          u3shell::OperatorLabelsU3ST key; 
+          u3shell::RelativeUnitTensorLabelsU3ST tensor;
+          int kappa0, L0;
+          std::tie(tensor,kappa0,L0)=it->first;
+          u3group = make_tuple(tensor.x0().lambda(), tensor.x0().mu(), tensor.S0(), tensor.T0())
+          if(std::find(keys.begin(), keys.end(), u3group) != keys.end()) {*/
+            /* keys contains u3group */
+            /*keys.push_back(u3group);
+            u3st_sums[u3group] = abs(it->second);
+          } else {*/
+            /* keys does not contain u3group */
+            /*u3st_sums[u3group] += abs(it->second);
+          } 
+          sum += abs(it->second);
+        }
+  }*/
+  
+
   void GetRelativeRMEsU3ST(
         const std::string& interaction_filename,
         int Nmax, int Jmax,
@@ -218,7 +271,38 @@ namespace u3shell
         int kappa0,L0;
         u3shell::OperatorLabelsU3ST op;
         std::tie(op,kappa0,L0)=it->first;
-        std::cout<<op.Str()<<"  "<<kappa0<<"  "<<L0<<"  "<<it->second<<std::endl;
+        std::cout<<fmt::format("{:20} {} {}  {:20.8f} ",op.Str(),kappa0,L0,it->second)<<std::endl;
+      }
+  }
+
+  void WriteRelativeRMEsU3ST(const std::string& filename, const u3shell::RelativeRMEsU3ST& interaction_u3st)
+  // writing out u3st rmes 
+  {
+    std::ofstream os(filename);
+    os << "#   N0 lambda mu   S0 T0 g0   kappa0 L0   RME" << std::endl;
+    for(auto it=interaction_u3st.begin(); it!=interaction_u3st.end(); ++it)
+      {
+        int kappa0,L0;
+        u3shell::OperatorLabelsU3ST op;
+        std::tie(op,kappa0,L0)=it->first;
+        //std::cout<<fmt::format("{:20} {} {}  {:20.8f} ",op.Str(),kappa0,L0,it->second)<<std::endl;
+        const int width=3;
+        const int precision=16;
+        os << std::setprecision(precision);
+        os
+          << " " << std::setw(width) << op.N0()
+          << " " << std::setw(width) << op.x0().lambda()
+          << " " << std::setw(width) << op.x0().mu()
+          << " " << "  "
+          << " " << std::setw(width) << op.S0()
+          << " " << std::setw(width) << op.T0()
+          << " " << std::setw(width) << op.g0()
+          << " " << "  "
+          << " " << std::setw(width) << kappa0
+          << " " << std::setw(width) << L0
+          << " " << "  "
+          << " " << std::showpoint << std::scientific << it->second
+          << std::endl;
       }
   }
 } // end namespace

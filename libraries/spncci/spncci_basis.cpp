@@ -661,7 +661,7 @@ namespace spncci
   )
   {
     // std::cout<<"irrep family1 "<<irrep_family_index_1<<"  irrep family2 "<<irrep_family_index_2<<std::endl;
-    int hypersector_index=0;
+    // int hypersector_index=0;
     for (int bra_subspace_index=0; bra_subspace_index<baby_spncci_space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<baby_spncci_space.size(); ++ket_subspace_index)
         {
@@ -676,7 +676,7 @@ namespace spncci
           // if(Nn>Nnp)
           //   continue;
 
-          // Check if baby spncci subspaces contained in either the bra or the ket irrep families
+           // Check if baby spncci subspaces contained in either the bra or the ket irrep families
           //
           // Check bra subspace
           bool allowed_subspace=false; 
@@ -741,6 +741,7 @@ namespace spncci
             }
         }
   }
+
 
 
 }  // namespace

@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
   // Get lgi expansions
   std::cout<<"Generating LGI expansion"<<std::endl;
-  basis::MatrixVector lgi_expansion_matrix_vector;
+  basis::OperatorBasis<double> lgi_expansion_matrix_vector;
   std::ifstream is_nrel(nrel_filename.c_str());
   std::ifstream is_brel(brel_filename.c_str());
   lgi::MultiplicityTaggedLGIVector lgi_vector;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
   //   std::cout<<matrix<<std::endl<<std::endl;
 
   // Read in Arel
-  basis::MatrixVector Arel_matrices;
+  basis::OperatorBasis<double> Arel_matrices;
   u3shell::OperatorLabelsU3ST arel_labels(2,u3::SU3(2,0),0,0,0);
   u3shell::SectorsU3SPN arel_sectors(space,arel_labels,true);
 
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     arel_sectors,Arel_matrices);
   is_arel.close();
   //Read in Brel
-  basis::MatrixVector Brel_matrices;
+  basis::OperatorBasis<double> Brel_matrices;
   u3shell::OperatorLabelsU3ST brel_labels(-2,u3::SU3(0,2),0,0,0);
   u3shell::SectorsU3SPN brel_sectors(space,brel_labels,true);
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     //     continue;
     //   }
 
-    // basis::MatrixVector lsu3shell_operator_matrices(sectors.size());
+    // basis::OperatorBasis<double> lsu3shell_operator_matrices(sectors.size());
     // lsu3shell::ReadLSU3ShellRMEs(
     //   is_operator,operator_labels, basis_table,space, 
     //   sectors,lsu3shell_operator_matrices
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 
 
 
-//   std::vector<basis::MatrixVector> sp_irrep_expansion(sp_irrep_vector.size());
+//   std::vector<basis::OperatorBasis<double>> sp_irrep_expansion(sp_irrep_vector.size());
 //   //Set up irrep matrix indexing and subspace
 //   std::cout<<"zero initialize matrices"<<std::endl;
 //   for(int s=0; s<sp_irrep_vector.size(); ++s)
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 //           std::cout<<fmt::format("Prel_{:02d}_Nmax{:02d}_{:06d}.rme not found",A, Nmax, i)<<std::endl;
 //           continue;
 //         }
-//       basis::MatrixVector lsu3shell_operator_matrices;
+//       basis::OperatorBasis<double> lsu3shell_operator_matrices;
 //       std::cout<<"Reading in sectors for "<<n.Str()<<std::endl;
 //       lsu3shell::ReadLSU3ShellRMEs(is_operator,prel_operator_labels, basis_table,space, prel_sectors,lsu3shell_operator_matrices);
       
@@ -307,7 +307,7 @@ int main(int argc, char **argv)
 //             continue;
 //           Eigen::MatrixXd& prel_operator=lsu3shell_operator_matrices[j];
 //           Eigen::MatrixXd w_expansion=prel_operator*lgi_expansion;
-//           basis::MatrixVector temp;
+//           basis::OperatorBasis<double> temp;
 //           temp.push_back(prel_operator.transpose()*prel_operator);
 //           //temp.push_back(w_expansion.transpose()*w_expansion);
 //           ZeroOutMatrix(temp,1e-8);

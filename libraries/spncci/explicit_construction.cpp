@@ -16,14 +16,14 @@
 
 namespace spncci
 {
-  typedef std::vector<basis::MatrixVector> PolynomialMatrices; 
+  typedef std::vector<basis::OperatorBlocks<double>> PolynomialMatrices; 
 
   void
   GenerateSpRaisingPolynomials(
       const spncci::SpNCCIIrrepFamily& sp_irrep_family,
       const u3shell::SpaceU3SPN& lsu3shell_space,
       const u3shell::SectorsU3SPN& Arel_sectors,
-      const basis::MatrixVector& Arel_matrices,
+      const basis::OperatorBlocks<double>& Arel_matrices,
       PolynomialMatrices& polynomial_matrices
     )
   {
@@ -123,13 +123,13 @@ namespace spncci
       const spncci::KMatrixCache& k_matrix_cache,
       const spncci::KMatrixCache& kinv_matrix_cache,
       const u3shell::SectorsU3SPN& Arel_sectors,
-      const basis::MatrixVector& Arel_matrices,
-      basis::MatrixVector& spncci_expansions,
+      const basis::OperatorBlocks<double>& Arel_matrices,
+      basis::OperatorBlocks<double>& spncci_expansions,
       bool restrict_sp3r_u3_branching
     )
   {
     // Get expansion from file
-    basis::MatrixVector lgi_expansions; 
+    basis::OperatorBlocks<double> lgi_expansions; 
     std::string lgi_expansion_filename="lgi_expansions.dat";
     lgi::ReadBlocks(lgi_expansion_filename,lgi_families.size(),lgi_expansions);
 
@@ -159,7 +159,7 @@ namespace spncci
         const sp3r::Sp3RSpace& u3_subspaces=sp_irrep_families[irrep_family_index].Sp3RSpace();
         int omega_index=u3_subspaces.LookUpSubspaceIndex(subspace.omega());
         const auto& u3_subspace=u3_subspaces.GetSubspace(omega_index); 
-        basis::MatrixVector& raising_polynomials=polynomial_matrices_by_lgi_family[irrep_family_index][omega_index];
+        basis::OperatorBlocks<double>& raising_polynomials=polynomial_matrices_by_lgi_family[irrep_family_index][omega_index];
 
         // define aliases to the relevant lsu3shell subspaces
         int lgi_lsu3shell_subspace_index = lsu3shell_space.LookUpSubspaceIndex(subspace.sigmaSPN());
@@ -256,9 +256,9 @@ namespace spncci
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     const u3shell::SpaceU3SPN& lsu3shell_space,
     const u3shell::SectorsU3SPN& lsu3shell_operator_sectors,
-    basis::MatrixVector& lsu3shell_operator_matrices,
+    basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
     const spncci::BabySpNCCISpace& baby_spncci_space,
-    const basis::MatrixVector& spncci_expansions,
+    const basis::OperatorBlocks<double>& spncci_expansions,
     const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
     )
@@ -454,7 +454,7 @@ namespace spncci
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      const basis::MatrixVector& spncci_expansions,
+      const basis::OperatorBlocks<double>& spncci_expansions,
       const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_explicit
     )
@@ -504,7 +504,7 @@ namespace spncci
         unit_tensor_sectors = u3shell::SectorsU3SPN(lsu3shell_space,unit_tensor,spin_scalar);
         
         // read in lsu3shell rms for unit tensor 
-        basis::MatrixVector unit_tensor_lsu3shell_blocks;
+        basis::OperatorBlocks<double> unit_tensor_lsu3shell_blocks;
         std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
         lsu3shell::ReadLSU3ShellRMEs(
             filename,
@@ -540,7 +540,7 @@ void ExplicitBasisConstruction(
       spncci::KMatrixCache& k_matrix_cache, 
       spncci::KMatrixCache& kinv_matrix_cache,
       bool restrict_sp3r_to_u3_branching,
-      basis::MatrixVector& spncci_expansions
+      basis::OperatorBlocks<double>& spncci_expansions
     )
   {
 
@@ -557,7 +557,7 @@ void ExplicitBasisConstruction(
     std::cout << "Solve for LGIs..." << std::endl;
 
     // lgi::MultiplicityTaggedLGIVector lgi_families;
-    // basis::MatrixVector lgi_expansions;
+    // basis::OperatorBlocks<double> lgi_expansions;
     
     lgi::MultiplicityTaggedLGIVector lgi_families;
     std::string lgi_filename="lgi_families.dat";
@@ -571,7 +571,7 @@ void ExplicitBasisConstruction(
     //   );
 
     u3shell::SectorsU3SPN Aintr_sectors;
-    basis::MatrixVector Aintr_matrices;
+    basis::OperatorBlocks<double> Aintr_matrices;
     lsu3shell::ReadLSU3ShellSymplecticRaisingOperatorRMEs(
         lsu3shell_basis_table,lsu3shell_space, 
         run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
@@ -595,7 +595,7 @@ void ExplicitBasisConstruction(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      const basis::MatrixVector& spncci_expansions,
+      const basis::OperatorBlocks<double>& spncci_expansions,
       const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
    )

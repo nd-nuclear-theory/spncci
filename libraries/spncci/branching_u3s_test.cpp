@@ -225,57 +225,57 @@ int main(int argc, char **argv)
   // Regroup state tests -- aem old tests
   ////////////////////////////////////////////////////////////////
 
-  if (true)
-    {
-      std::cout<<"Regroup test"<<std::endl;
-      // build space
-      spncci::SpaceU3S space(baby_spncci_space);
-      std::cout<<"irreps "<< spncci_space.size()<<std::endl;
-      for(auto irrep :spncci_space)
-        std::cout<<irrep.Str()<<std::endl;
-      // dump subspace contents 
-      std::cout<<"Regrouping"<<std::endl;     
-      for (int subspace_index=0; subspace_index<space.size(); ++subspace_index)
-        {
-          const spncci::SubspaceU3S& subspace = space.GetSubspace(subspace_index);
-          std::cout << fmt::format("subspace {}  {}",subspace_index,subspace.Str())
-                    << " with dimension "<< subspace.full_dimension()
-                    <<"  and subspace size "<<subspace.size()<<std::endl;
-          for (int state_index=0; state_index<subspace.size(); ++state_index)
-            {
-              int baby_spncci_index;
-              std::tie(baby_spncci_index)=subspace.GetStateLabels(state_index);
-              std::cout << baby_spncci_index<< std::endl;
-            } 
-        }
-    }
+  // if (true)
+  //   {
+  //     std::cout<<"Regroup test"<<std::endl;
+  //     // build space
+  //     spncci::SpaceU3S space(baby_spncci_space);
+  //     std::cout<<"irreps "<< spncci_space.size()<<std::endl;
+  //     for(auto irrep :spncci_space)
+  //       std::cout<<irrep.Str()<<std::endl;
+  //     // dump subspace contents 
+  //     std::cout<<"Regrouping"<<std::endl;     
+  //     for (int subspace_index=0; subspace_index<space.size(); ++subspace_index)
+  //       {
+  //         const spncci::SubspaceU3S& subspace = space.GetSubspace(subspace_index);
+  //         std::cout << fmt::format("subspace {}  {}",subspace_index,subspace.Str())
+  //                   << " with dimension "<< subspace.full_dimension()
+  //                   <<"  and subspace size "<<subspace.size()<<std::endl;
+  //         for (int state_index=0; state_index<subspace.size(); ++state_index)
+  //           {
+  //             int baby_spncci_index;
+  //             std::tie(baby_spncci_index)=subspace.GetStateLabels(state_index);
+  //             std::cout << baby_spncci_index<< std::endl;
+  //           } 
+  //       }
+  //   }
 
   ////////////////////////////////////////////////////////////////
   // Regroup LS test state tests -- aem old tests
   ////////////////////////////////////////////////////////////////
-  if (true)
-    {
-      std::cout<<"Regroup LS test"<<std::endl;
-      spncci::SpaceU3S space(baby_spncci_space);
-      // build space
-      spncci::SpaceLS space_ls(space,0);
-      // dump subspace contents 
-      std::cout<<"Regrouping"<<std::endl;     
-      for (int subspace_index=0; subspace_index<space_ls.size(); ++subspace_index)
-        {
-          const spncci::SubspaceLS& subspace_ls = space_ls.GetSubspace(subspace_index);
-          std::cout << fmt::format("subspace {}",subspace_ls.Str())
-                    << "with dimension "<< subspace_ls.full_dimension()
-                    <<"  "<<subspace_ls.size()<<std::endl;
-          for (int state_index=0; state_index<subspace_ls.size(); ++state_index)
-            {
+  // if (true)
+  //   {
+  //     std::cout<<"Regroup LS test"<<std::endl;
+  //     spncci::SpaceU3S space(baby_spncci_space);
+  //     // build space
+  //     spncci::SpaceLS space_ls(space,0);
+  //     // dump subspace contents 
+  //     std::cout<<"Regrouping"<<std::endl;     
+  //     for (int subspace_index=0; subspace_index<space_ls.size(); ++subspace_index)
+  //       {
+  //         const spncci::SubspaceLS& subspace_ls = space_ls.GetSubspace(subspace_index);
+  //         std::cout << fmt::format("subspace {}",subspace_ls.Str())
+  //                   << "with dimension "<< subspace_ls.full_dimension()
+  //                   <<"  "<<subspace_ls.size()<<std::endl;
+  //         for (int state_index=0; state_index<subspace_ls.size(); ++state_index)
+  //           {
               
-              int u3_subspace_index;
-              std::tie(u3_subspace_index)=subspace_ls.GetStateLabels(state_index);
-              std::cout<<u3_subspace_index<<std::endl;
-              // const spncci::StateLS state_ls(subspace_ls,state_index);
-              // std::cout << state_ls<< std::endl;
-            } 
-        }
-    }
+  //             int u3_subspace_index;
+  //             std::tie(u3_subspace_index)=subspace_ls.GetStateLabels(state_index);
+  //             std::cout<<u3_subspace_index<<std::endl;
+  //             // const spncci::StateLS state_ls(subspace_ls,state_index);
+  //             // std::cout << state_ls<< std::endl;
+  //           } 
+  //       }
+  //   }
 } //main

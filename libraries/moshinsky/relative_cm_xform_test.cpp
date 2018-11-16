@@ -128,7 +128,7 @@ CMBranchLSJT(
 
   // populate operator containers
 	  std::array<basis::RelativeSectorsLSJT,3> relative_component_sectors;
-	  std::array<basis::MatrixVector,3> relative_component_matrices; //DUMMY TO USE MARK CODE
+	  std::array<basis::OperatorBlocks<double>,3> relative_component_matrices; //DUMMY TO USE MARK CODE
 	  basis::ConstructIdentityOperatorRelativeLSJT(
 	      operator_labels,
 	      relative_space,
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
   basis::OperatorLabelsJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors;
-  std::array<basis::MatrixVector,3> isospin_component_matrices;
+  std::array<basis::OperatorBlocks<double>,3> isospin_component_matrices;
   //Read interaction and store sector information in relative_component_sectors
   // and matrix elements in relative_component_matrices
   basis::ReadRelativeOperatorLSJT(
@@ -322,7 +322,7 @@ int main(int argc, char **argv)
     );
 
   // Extract out T0=0 sectors and matrix elements
-  const basis::MatrixVector& relative_matrices_lsjt=isospin_component_matrices[0];
+  const basis::OperatorBlocks<double>& relative_matrices_lsjt=isospin_component_matrices[0];
   const basis::RelativeSectorsLSJT& relative_sectors_lsjt=isospin_component_sectors[0];
 
   // upcouple to LST

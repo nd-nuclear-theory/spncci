@@ -39,10 +39,10 @@ namespace lgi
       const std::string& relative_unit_tensor_filename_template,
       const u3shell::SpaceU3SPN& lsu3shell_space, 
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-      const basis::MatrixVector& lgi_expansions,
-      const std::vector<int>& lsu3hsell_index_lookup_table,
+      const basis::OperatorBlocks<double>& lgi_expansions,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array,
+      std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3hsell_index_lookup_table,
       bool restrict_seeds=false
     );
 
@@ -61,7 +61,7 @@ namespace lgi
 
   void WriteSeedsToFile(
       const lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
-      const std::vector<basis::MatrixVector>& unit_tensor_spncci_matrices_array
+      const std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array
     );
     // For each LGI pair (bra>=ket), write seed rmes to file 
     //  fmt::format("seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index)
@@ -79,6 +79,14 @@ namespace lgi
     // seed file:
     //    rho0, rows, columns, rmes.... 
 
+
+  void WriteSeedsToFile(
+    const basis::OperatorBlocks<double>& unit_tensor_seed_blocks,
+    int lgi_bra_index, int lgi_ket_index
+  );
+
+  // For transform seeds
+
   bool ReadUnitTensorLabels(
       std::string& filename,
       std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
@@ -95,7 +103,7 @@ namespace lgi
   bool ReadBlocks(
       const std::string& filename, 
       int num_blocks,
-      basis::MatrixVector& blocks
+      basis::OperatorBlocks<double>& blocks
     );
     // Reads in unit tensor seed blocks from file and stores them in a vector of blocks
     // order of blocks corresponds to order of (unit_tensor,rho0) pairs in corresponding

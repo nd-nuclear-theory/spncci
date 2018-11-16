@@ -8,38 +8,40 @@
 
 #include "spncci/computation_control.h"
 
-#include <fstream>
-#include "SymEigsSolver.h"  // from spectra
+// #include "SymEigsSolver.h"  // from spectra
 #include "cppformat/format.h"
-#include "lgi/lgi_solver.h"
-#include "mcutils/eigen.h"
+// #include "lgi/lgi_solver.h"
+// #include "mcutils/eigen.h"
 #include "spncci/results_output.h"
+
 
 namespace spncci
 {
-  void SetUPSpNCCISpaces(
-    const spncci::RunParameters& run_parameters,
-    std::ofstream& results_stream,
-    lgi::MultiplicityTaggedLGIVector& lgi_families,
-    spncci::SpNCCISpace& spncci_space,
-    spncci::SigmaIrrepMap& sigma_irrep_map,
-    spncci::BabySpNCCISpace& baby_spncci_space,
-    spncci::SpaceSpU3S& spu3s_space,
-    spncci::SpaceSpLS& spls_space,
-    spncci::SpaceSpJ& spj_space,
-    bool restrict_sp3r_to_u3_branching
-  )
+  void SetUpSpNCCISpaces(
+      spncci::RunParameters& run_parameters,
+      lgi::MultiplicityTaggedLGIVector& lgi_families,
+      spncci::SpNCCISpace& spncci_space,
+      spncci::SigmaIrrepMap& sigma_irrep_map,
+      spncci::BabySpNCCISpace& baby_spncci_space,
+      spncci::SpaceSpU3S& spu3s_space,
+      spncci::SpaceSpLS& spls_space,
+      spncci::SpaceSpJ& spj_space,
+      std::ofstream& results_stream,
+      bool restrict_sp3r_to_u3_branching
+    )
   {
     // Get LGI families
     std::string lgi_filename="lgi_families.dat";
     lgi::ReadLGISet(lgi_filename, run_parameters.Nsigma0,lgi_families);
 
     std::cout << "Set up SpNCCI space..." << std::endl;
+
+    // build SpNCCI irrep branchings
     spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
 
+    // spncci::GenerateSpNCCISpace(lgi_families_truncated,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
     spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
 
-    // print Sp(3,R) irrep labels and multiplicities
     for(int i=0; i<spncci_space.size(); ++i)
       std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
 
@@ -66,35 +68,36 @@ namespace spncci
       << std::endl;
     // std::cout << spu3s_space.DebugStr(true);
 
-    // build SpLS branched space
-    std::cout << "Build SpLS space..." << std::endl;
-    spls_space=spncci::SpaceSpLS(spu3s_space);
-    std::cout
-      << fmt::format("  subspaces {} dimension {} full_dimension {}",
-                     spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
-        )
-      << std::endl;
-    std::cout
-      << fmt::format("  compare... TotalDimensionU3LS {}",TotalDimensionU3LS(spncci_space))
-      << std::endl;
-    // std::cout << splss_space.DebugStr(true);
+	  // build SpLS branched space
+	  std::cout << "Build SpLS space..." << std::endl;
+	  spls_space=spncci::SpaceSpLS(spu3s_space);
+	  std::cout
+	    << fmt::format("  subspaces {} dimension {} full_dimension {}",
+	                   spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
+	      )
+	    << std::endl;
+	  std::cout
+	    << fmt::format("  compare... TotalDimensionU3LS {}",TotalDimensionU3LS(spncci_space))
+	    << std::endl;
+	  // std::cout << splss_space.DebugStr(true);
 
-    // build SpJ branched space
-    std::cout << "Build SpJ space..." << std::endl;
-    spj_space=spncci::SpaceSpJ(run_parameters.J_values,spls_space);
-    std::cout
-      << spj_space.DebugStr(false)
-      << std::endl;
-    std::cout
-      << fmt::format("  subspaces {}",spj_space.size())
-      << std::endl;
+	  // build SpJ branched space
+	  std::cout << "Build SpJ space..." << std::endl;
+	  spj_space=spncci::SpaceSpJ(run_parameters.J_values,spls_space);
+	  std::cout
+	    << spj_space.DebugStr(false)
+	    << std::endl;
+	  std::cout
+	    << fmt::format("  subspaces {}",spj_space.size())
+	    << std::endl;
 
 
-    // results output: basis information
-    spncci::StartNewSection(results_stream,"BASIS");
-    spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
-    spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
-    spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
-  }
+	  // results output: basis information
+	  spncci::StartNewSection(results_stream,"BASIS");
+	  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
+	  spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
+	  spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
+
+	}
 
 }  // namespace

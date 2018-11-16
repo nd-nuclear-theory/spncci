@@ -58,7 +58,7 @@ namespace spncci
 {
 
   typedef std::pair<int,int> NnPair;
-
+  typedef std::pair<int,int> LGIPair;
 
   int ValenceShellForNuclide(const lgi::NuclideType& nuclide);
   // Calculate valence shell for nuclide.

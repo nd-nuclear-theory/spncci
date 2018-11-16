@@ -37,8 +37,8 @@ namespace spncci
       const spncci::KMatrixCache& k_matrix_cache,
       const spncci::KMatrixCache& kinv_matrix_cache,
       const u3shell::SectorsU3SPN& Arel_sectors,
-      const basis::MatrixVector& Arel_matrices,
-      basis::MatrixVector& spncci_expansions,
+      const basis::OperatorBlocks<double>& Arel_matrices,
+      basis::OperatorBlocks<double>& spncci_expansions,
       bool restrict_sp3r_u3_branching
     );
 
@@ -47,9 +47,9 @@ namespace spncci
   //   const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
   //   const u3shell::SpaceU3SPN& lsu3shell_space,
   //   const u3shell::SectorsU3SPN& lsu3shell_operator_sectors,
-  //   basis::MatrixVector& lsu3shell_operator_matrices,
+  //   basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
   //   const spncci::BabySpNCCISpace& baby_spncci_space,
-  //   const basis::MatrixVector& spncci_expansions,
+  //   const basis::OperatorBlocks<double>& spncci_expansions,
   //   spncci::UnitTensorMatricesByIrrepFamily& unit_tensor_sectors_explicit
   //   );
 
@@ -61,9 +61,9 @@ namespace spncci
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     const u3shell::SpaceU3SPN& lsu3shell_space,
     const u3shell::SectorsU3SPN& lsu3shell_operator_sectors,
-    basis::MatrixVector& lsu3shell_operator_matrices,
+    basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
     const spncci::BabySpNCCISpace& baby_spncci_space,
-    const basis::MatrixVector& spncci_expansions,
+    const basis::OperatorBlocks<double>& spncci_expansions,
     const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
     );
@@ -75,7 +75,7 @@ namespace spncci
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      const basis::MatrixVector& spncci_expansions,
+      const basis::OperatorBlocks<double>& spncci_expansions,
       const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_explicit
     );
@@ -102,7 +102,7 @@ namespace spncci
       spncci::KMatrixCache& k_matrix_cache, 
       spncci::KMatrixCache& kinv_matrix_cache,
       bool restrict_sp3r_to_u3_branching,
-      basis::MatrixVector& spncci_expansions
+      basis::OperatorBlocks<double>& spncci_expansions
     );
   // Explicit construction of spncci basis states in terms of lsu3shell U3S states 
 
@@ -114,7 +114,7 @@ namespace spncci
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
     const spncci::BabySpNCCISpace& baby_spncci_space,
-    const basis::MatrixVector& spncci_expansions,
+    const basis::OperatorBlocks<double>& spncci_expansions,
     const spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
   );

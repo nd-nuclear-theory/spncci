@@ -12,7 +12,7 @@
   1/19/17 (mac): Replace null solver.
   2/17/17 (mac):
     - Remove internal function GenerateBrelNcmMatrices from header.
-    - Remove leftover function declaration GenerateNcmMatrixVector
+    - Remove leftover function declaration GenerateNcmOperatorBlocks<double>
       from header.
     - Change GenerateLGIExpansion to take matrices rather than
       streams.
@@ -40,12 +40,12 @@ namespace lgi
     GenerateLGIExpansion(
         const u3shell::SpaceU3SPN& space, 
         const u3shell::SectorsU3SPN& Brel_sectors,
-        const basis::MatrixVector& Brel_matrices,
+        const basis::OperatorBlocks<double>& Brel_matrices,
         const u3shell::SectorsU3SPN& Ncm_sectors,
-        const basis::MatrixVector& Ncm_matrices,
+        const basis::OperatorBlocks<double>& Ncm_matrices,
         HalfInt Nsigma_0,
         lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::MatrixVector& lgi_expansions,
+        basis::OperatorBlocks<double>& lgi_expansions,
         std::vector<int>& lsu3shell_index_lookup_table
       );
   // Generate the LGI Expansion in terms of lsu3shell SU(3)xSU(2)
@@ -58,8 +58,15 @@ namespace lgi
   // Construct Brel and Ncm matrix in lsu3shell basis and solve for null space.
   // Columns of kernel are expansion coefficients for each lgi.
   //
+  //  Arguments:  (TODO update me!)
+  //    A (input) : atomic mass number of nucleus
+  //    lsu3_basis_table (input) : lookup table of LSU3Shell basis states between
+  //                                LSU3Shell basis and U3SPN space. 
+  //    space (input) : space on which Brel and Nrel rme's are calculated
+  //    Brel_filename (input) : file containing lsu3shell rme's of Brel
+  //    Nrel_filename (input) : file containing lsu3shell rme's of Nrel
+  //
   // lsu3hsell_index_lookup_table: look up take relating lsu3shell subspace index to lgi family index
-
 
 void GetLGIExpansion(
     const u3shell::SpaceU3SPN& lsu3shell_space, 
@@ -78,16 +85,17 @@ void GetLGIExpansion(
   // 
   // Outputs 
   //   lgi::MultiplicityTaggedLGIVector lgi_families;
-  //    basis::MatrixVector lgi_expansions;
-  //    lsu3hsell_index_lookup_table: look up take relating 
-  //      lsu3shell subspace index to lgi family index
+  //   basis::OperatorBlocks<double> lgi_expansions;
+  //   lsu3hsell_index_lookup_table: look up take relating 
+  //   lsu3shell subspace index to lgi family index
+
 
   void
     TransformOperatorToSpBasis(
         const u3shell::SectorsU3SPN& sectors,
-        const basis::MatrixVector& basis_transformation_matrices,
-        const basis::MatrixVector& lsu3shell_operator_matrices,
-        basis::MatrixVector& spncci_operator_matrices
+        const basis::OperatorBlocks<double>& basis_transformation_matrices,
+        const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+        basis::OperatorBlocks<double>& spncci_operator_matrices
       );
   // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
 

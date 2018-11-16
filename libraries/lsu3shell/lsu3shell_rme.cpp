@@ -21,7 +21,7 @@ namespace lsu3shell
 
   // global mode setting for rme I/O
   bool g_rme_binary_format = true;
-  typedef short unsigned int RMEIndexType;
+  typedef unsigned int RMEIndexType;
 
   // debugging flags
   bool g_verbose_rme_listing = false;
@@ -186,6 +186,8 @@ namespace lsu3shell
 
         // verify multiplicity given in file
         RMEIndexType num_rmes = group_i.dim*group_j.dim*rho0_max;
+        if(rho0_max==0)
+          std::cout<<fmt::format("{} {}  {}  {}  {}", i,j,group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
         mcutils::VerifyBinary<RMEIndexType>(
             in_stream,num_rmes,
             fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"

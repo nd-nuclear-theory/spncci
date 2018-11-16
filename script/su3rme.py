@@ -12,28 +12,22 @@
 
         SPNCCI_SU3RME_DIR -- base directory for su3rme files
             (colon-delimited search path); su3rme files will be sought
-            within subdirectories named in spncci.su3rme_subdirectory_list
+            within subdirectories named in su3rme.su3rme_subdirectory_list
 
-        SPNCCI_INTERACTION_DIR -- base directory for relative lsjt
-            interaction files (colon-delimited search path);
-            interaction files will be sought within subdirectories
-            named in spncci.interaction_subdirectory_list
-
+ 
         Ex (personal workstation):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
             setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
 
         Ex (NDCRC nuclthy):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/afs/crc.nd.edu/group/nuclthy/data/spncci/operator
             setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/afs/crc.nd.edu/group/nuclthy/data/spncci/su3rme
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
+
 
         Ex (NERSC m2032):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
             setenv SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
             setenv SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
@@ -83,18 +77,9 @@
 
   A. E. McCoy and M. A. Caprio
   Department of Physics, University of Notre Dame
+  TRIUMF National Lab
 
-  1/8/17 (aem,mac): Created with code from compute_relative_tensors_lsu3shell_rmes.py.
-  2/23/17 (aem,mac): Update rme invocation and add spncci handler.
-  5/26/17 (mac):
-      + Fix notation "Nsigma_ex_max" to "Nsigma_max".
-      + Add SPNCCI_PROJECT_ROOT_DIR environment variable.
-      + Remove LSU3shell load files.
-  5/20/17 (mac): Split out generation of relative operators and calculation of SU(3)
-      RMEs.
-  6/4/17 (mac): Add search paths for input files.
-  6/27/17 (mac): Split out copy of lsu3shell basis listing from su3rme tarball.
-  7/4/17 (mac): Add support for using pre-staged expanded archive of su3rmes.
+  2/16/18 (aem): Created with code extracted from spncci.py.
 
 """
   
@@ -243,11 +228,13 @@ def retrieve_operator_files(task):
 
     # identify archive file
     descriptor = relative_operator_descriptor(task)
+    filename="relative-operators-{}.tgz".format(descriptor)
+    print(filename)
     archive_filename = mcscript.utils.search_in_subdirectories(
         operator_directory_list,
         operator_subdirectory_list,
-        "relative-operators-{}.tgz".format(descriptor),
-        error_message="relative operator archive file not found"
+        filename,
+        error_message="relative operator archive file {} not found".format(filename)
     )
 
     # extract archive contents
@@ -295,18 +282,43 @@ def generate_model_space_file(task):
 
     Invokes generate_lsu3shell_model_space.
     """
+    if task["model_space_file_bra"]==None:
+        command_line = [
+            generate_lsu3shell_model_space_executable,
+            "{nuclide[0]:d}".format(**task),
+            "{nuclide[1]:d}".format(**task),
+            "{Nsigma_max:d}".format(**task),
+            "{Nstep:d}".format(**task)
+        ]
+        mcscript.call(
+            command_line,
+            mode=mcscript.CallMode.kSerial
+        )
+        mcscript.call(["cp","model_space.dat","model_space_bra.dat"])
 
-    command_line = [
-        generate_lsu3shell_model_space_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
-        "{Nstep:d}".format(**task)
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
+    else:
+        mcscript.call(["cp",task["model_space_file_bra"], "model_space_bra.dat"])
+
+
+    if task["model_space_file_ket"]==None:
+        command_line = [
+            generate_lsu3shell_model_space_executable,
+            "{nuclide[0]:d}".format(**task),
+            "{nuclide[1]:d}".format(**task),
+            "{Nsigma_max:d}".format(**task),
+            "{Nstep:d}".format(**task)
+        ]
+        mcscript.call(
+            command_line,
+            mode=mcscript.CallMode.kSerial
+        )
+
+        mcscript.call(["cp","model_space.dat","model_space_ket.dat"])
+
+    else:
+        mcscript.call(["cp",task["model_space_file_ket"], "model_space_ket.dat"])
+
+
 
 def calculate_rmes(task):
     """ Invoke lsu3shell SU3RME code to calculate rmes of relative unit
@@ -315,7 +327,8 @@ def calculate_rmes(task):
     Invokes SU3RME_MPI.
     """
 
-    model_space_filename = "model_space.dat".format(**task)
+    model_space_filename_bra = "model_space_bra.dat"
+    model_space_filename_ket = "model_space_ket.dat"
 
     if ("su3rme_mode" not in task):
         task["su3rme_mode"] = "text"
@@ -323,8 +336,8 @@ def calculate_rmes(task):
     # call SU3RME
     command_line = [
         su3rme_executable,
-        model_space_filename,
-        model_space_filename,
+        model_space_filename_bra,
+        model_space_filename_ket,
         "relative_operators.dat",
         task["su3rme_mode"]
     ]
@@ -339,11 +352,11 @@ def generate_basis_table(task):
 
     Invokes ncsmSU3xSU2IrrepsTabular.
 
-    Depends on model space file created by generate_lsu3shell_relative_operators.
+    Depends on ket model space file created by generate_model_space_file().
     """
 
     print("{nuclide}".format(**task))
-    model_space_filename = "model_space.dat".format(**task)
+    model_space_filename = "model_space_ket.dat".format(**task)
     basis_listing_filename = "lsu3shell_basis.dat"
 
     command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
@@ -368,7 +381,8 @@ def save_su3rme_files(task):
 
     # select files to save
     archive_file_list = [
-        "model_space.dat",
+        "model_space_ket.dat",
+        "model_space_bra.dat",
         "relative_operators.dat",
         "lsu3shell_basis.dat",
         "relative_unit_tensor_labels.dat"
@@ -429,6 +443,9 @@ def retrieve_su3rme_files(task):
         fail_on_not_found=False
     )
 
+    print(directory_name)
+    print(archive_filename)
+
     if (directory_name is not None):
 
         # remove any existing symlink or data directory
@@ -469,11 +486,6 @@ def retrieve_su3rme_files(task):
     else:
         raise(mcscript.exception.ScriptError("Cannot find SU(3) RME data"))
 
-def link_su3rme_files(task):
-    """ Search for expanded archive of relative operator SU(3) RME files.
-
-    
-    """
 
 
 def do_generate_lsu3shell_rmes(task):
