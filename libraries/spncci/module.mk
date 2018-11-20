@@ -13,7 +13,7 @@ module_units_cpp-h += io_control results_output decomposition transform_basis
 
 
 # module_units_f := 
-module_programs_cpp := spncci_basis_test branching_u3s_test
+module_programs_cpp := spncci_basis_test
 module_programs_cpp += branching2_test 
 # module_programs_f :=
 # module_generated :=

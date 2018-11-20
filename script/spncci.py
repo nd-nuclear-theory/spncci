@@ -343,26 +343,6 @@ def save_seed_files(task):
     # mcscript.call(["rm","-r", "seeds"])
     mcscript.call(["rm","-r", "lsu3shell_rme"])
 
-# def retrieve_seed_files(task):
-#     """ Retrieve archive of seed RME files.
-
-#     Files are retrieved into a subdirectory named seeds.
-#     """
-#     # seed data directory
-#     seed_descriptor = task["seed_descriptor_template"].format(**task)
-
-#     archive_filename=seed_directory+"/seeds-{}.tgz".format(seed_descriptor)
-#     seed_directory_name=seed_directory+"/seeds"
-
-#     print(archive_filename)
-
-#     mcscript.call(
-#         [
-#             "tar",
-#             "-xvf",
-#             archive_filename
-#         ]
-#     )
 
 def retrieve_seed_files(task):
     """ Retrieve archive of seed RME files.
@@ -423,6 +403,7 @@ def get_lgi_file(task):
     """
     # if link already exists, remove 
 
+    print("lgi_families.dat exits ",os.path.exists("lgi_families.dat"))
     if (os.path.exists("lgi_families.dat")):
         mcscript.call(["rm","-r","lgi_families.dat"])
         print("removed lgi families file")
@@ -500,83 +481,6 @@ def generate_lgi_lookup_table(task):
     lgi_labels_truncated=read_lgi_list("lgi_families.dat")
     # print(lgi_labels_truncated)
     
-    # Make look up table for related in truncated space index to full space index
-    index_lookup=lookup_table(lgi_labels_truncated,lgi_labels)
-
-    #write table to file
-    write_lookup_table(index_lookup)
-
-
-
-
-
-def read_lgi_list(filename):
-    """
-    """
-    lines = [line.rstrip('\n') for line in open(filename,'r')]
-    for line in lines:
-        lgi_labels=[[int(x) for x in line.split()] for line in lines]
-
-    return lgi_labels
-
-def lookup_table(lgi_labels_truncated,lgi_labels):
-    """
-    """
-    index_lookup=[]
-    for label in lgi_labels_truncated:
-        index=lgi_labels.index(label)
-        index_lookup.append(index)
-
-    return index_lookup
-
-
-def get_lgi_file(task):
-    """
-    link lgi_families.dat to list of lgi families
-        if none, link to list of full space of lgi families found in seeds. 
-    """
-    if (os.path.exists("lgi_families.dat")):
-        mcscript.call(["rm","-r","lgi_families.dat"])
-
-
-    if task["truncation_filename"]==None:
-        mcscript.call(
-            [
-                "ln",
-                "-s",
-                "seeds/lgi_families.dat",
-                "lgi_families.dat"
-            ]
-        )
-    
-    else :
-        mcscript.call(
-            [
-                "ln",
-                "-s",
-                task["truncation_filename"],
-                "lgi_families.dat"
-            ]
-        )
-            
-
-def write_lookup_table(index_lookup):
-    filename="lgi_full_space_lookup_table.dat"
-    with open(filename, 'w') as outstream:
-        for index in range(len(index_lookup)):
-            full_space_index=index_lookup[index]
-            outstream.write("{} {}\n".format(index,full_space_index))
-
-    outstream.close()
-
-
-def generate_lgi_lookup_table(tasks):
-    # Get LGI labels of full space
-    lgi_labels=read_lgi_list("seeds/lgi_families.dat")
-
-    # Get LGI labels of truncated space
-    lgi_labels_truncated=read_lgi_list("lgi_families.dat")
-
     # Make look up table for related in truncated space index to full space index
     index_lookup=lookup_table(lgi_labels_truncated,lgi_labels)
 
@@ -683,6 +587,11 @@ def call_spncci(task):
     # cleanup
     mcscript.call(["rm","-r","seeds","relative_observables","hyperblocks"])
 
+    seed_descriptor = task["seed_descriptor_template"].format(**task)
+    seed_directory = "seeds-{}".format(seed_descriptor)
+
+    if (os.path.exists(seed_directory)):
+        mcscript.call(["rm","-r",seed_directory])
 
 def save_spncci_results(task):
     """
@@ -716,7 +625,7 @@ def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
-    stacksize_setup()
+    # stacksize_setup()
     retrieve_seed_files(task)
     generate_lgi_lookup_table(task)
     generate_observable_rmes(task)

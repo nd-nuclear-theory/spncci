@@ -150,7 +150,7 @@ namespace spncci
 
   }
 
-  bool ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families)
+ void ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families)
   // Reading in and filling out table of lgi indices in basis and lgi indices in full space by 
   // which the seed files are labeled. 
     {
@@ -169,6 +169,7 @@ namespace spncci
           ++line_count;
 
           // set up for parsing
+          std::cout<<line<<std::endl;
           std::istringstream line_stream(line);
 
           // parse line
@@ -766,6 +767,7 @@ int main(int argc, char **argv)
     );
 
   // Create observable spaces for each observable including Hamiltonian
+  std::cout<<"create observable space"<<std::endl;
   std::vector<u3shell::ObservableSpaceU3S> observable_spaces(run_parameters.num_observables);
   for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
       observable_spaces[ob_num]=u3shell::ObservableSpaceU3S(observable_symmetries_u3s[ob_num]);    
@@ -913,7 +915,7 @@ int main(int argc, char **argv)
     }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
-  // std::cout<<"setting up lgi unit tensor blocks"<<std::endl;
+  std::cout<<"setting up lgi unit tensor blocks"<<std::endl;
   // Get list of unit tensor labels between lgi's 
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
@@ -934,6 +936,7 @@ int main(int argc, char **argv)
 
   //Get look-up table for lgi index in full space.  Used for looking up seed filenames 
   // which are index by full space index 
+  std::cout<<"reading lgi table "<<std::endl;
   std::vector<int> lgi_full_space_index_lookup;
   spncci::ReadLGILookUpTable(lgi_full_space_index_lookup,lgi_families.size());
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  

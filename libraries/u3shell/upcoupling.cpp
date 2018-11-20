@@ -389,7 +389,7 @@ namespace u3shell
           << " " << std::setw(width) << Sp
           << " " << std::setw(width) << Tp
           << " " << "  "
-          << " " << std::setw(width) << etap
+          << " " << std::setw(width) << eta
           << " " << std::setw(width) << S
           << " " << std::setw(width) << T
           << " " << "  "
@@ -407,6 +407,7 @@ namespace u3shell
 
   void ReadRelativeOperatorU3ST(const std::string& filename, RelativeRMEsU3ST& relative_rmes)
   {
+    //OBSOLETE, only used in test programs
     // open file
     std::ifstream in_stream(filename);
     mcutils::StreamCheck(bool(in_stream),filename,"Failure opening relative rme file");
@@ -423,6 +424,11 @@ namespace u3shell
     while(std::getline(in_stream,line))
       {
         ++line_count;
+        // if(line_count<3)
+        // {
+        //   std::cout<<line<<std::endl;
+        //   continue;
+        // }
         std::istringstream line_stream(line);
         line_stream>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
         mcutils::ParsingCheck(line_stream,line_count,line);
@@ -461,6 +467,14 @@ namespace u3shell
     while(std::getline(in_stream,line))
       {
         ++line_count;
+
+        if(line_count<3)
+        {
+          // std::cout<<line<<std::endl;
+          continue;
+        }
+
+        // std::cout<<line<<std::endl;
         std::istringstream line_stream(line);
         line_stream>>etap>>Sp>>Tp>>eta>>S>>T>>lambda0>>mu0>>S0>>T0>>kappa0>>L0>>rme;
         mcutils::ParsingCheck(line_stream,line_count,line);
@@ -468,14 +482,21 @@ namespace u3shell
           continue;
         if (fabs(rme)>zero_threshold)
           {
+            // Look up unit tensor subspace and state index for relative unit tensor
             std::tuple<u3::SU3, HalfInt, int, int> subspace_labels(u3::SU3(lambda0,mu0),S0,etap,eta);
             int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(subspace_labels);
             const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
             u3shell::RelativeUnitTensorStateLabelsU3S state_labels(T0,Sp,Tp,S,T);
             int unit_tensor_state_index=unit_tensor_subspace.LookUpStateIndex(state_labels);
+
+            // Storing RME
             std::tuple<int,int,int> key(unit_tensor_subspace_index,kappa0,L0);
+            
+            // Check if subspace+op labels already in map, if not, add and resize corresponding vector rmes
             if(not relative_rmes.count(key))
               relative_rmes[key].resize(unit_tensor_subspace.size());
+
+            // Add rme
             relative_rmes[key][unit_tensor_state_index]=rme;
           }
       }

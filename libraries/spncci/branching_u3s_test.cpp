@@ -5,6 +5,7 @@
   University of Notre Dame
 
  2/15/18 (aem): Update ReadLGISet
+OBSELETE
 ****************************************************************/
 
 #include <iostream>
