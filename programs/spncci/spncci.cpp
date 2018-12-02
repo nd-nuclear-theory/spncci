@@ -120,6 +120,24 @@
 namespace spncci
 {
 
+  void WriteMatrixToFile(spncci::OperatorBlock& hamiltonian_matrix, double hw)
+    {
+      std::string filename=fmt::format("hamiltonian_matrix{:0.1f}.out",hw);
+      std::ofstream stream(filename);
+      int rows=hamiltonian_matrix.rows();
+      stream<<rows<<std::endl; 
+      stream<<hamiltonian_matrix<<std::endl;
+
+      // for(int row=0; row<rows; ++row)
+      //   for(int col=0; col<rows; ++col)
+      //     {
+      //       stream<<hamiltonian_matrix(row,col);
+      //     }
+
+      // stream.close();
+    }
+
+
   void GetLGIPairsForRecurrence(
       const lgi::MultiplicityTaggedLGIVector& lgi_families,
       const spncci::SpNCCISpace& spncci_space,
@@ -1192,15 +1210,16 @@ int main(int argc, char **argv)
               hamiltonian_matrix
             );
 
+            spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
             // std::cout<<hamiltonian_matrix<<std::endl;
-            long int num_nonzero_rmes=0;
-            for(int i=0; i<hamiltonian_matrix.rows(); ++i)
-              for(int j=0; j<=i; ++j)
-                {
-                  if(fabs(hamiltonian_matrix(i,j))>10e-4)
-                    num_nonzero_rmes++;
-                }
-            std::cout<<"number of non-zero rmes "<<num_nonzero_rmes<<std::endl;
+            // long int num_nonzero_rmes=0;
+            // for(int i=0; i<hamiltonian_matrix.rows(); ++i)
+            //   for(int j=0; j<=i; ++j)
+            //     {
+            //       if(fabs(hamiltonian_matrix(i,j))>10e-4)
+            //         num_nonzero_rmes++;
+            //     }
+            // std::cout<<"number of non-zero rmes "<<num_nonzero_rmes<<std::endl;
 
             std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
             spncci::SolveHamiltonian(
