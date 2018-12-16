@@ -1,20 +1,21 @@
 Installation instructions for lsu3shell package for use with spncci
 
-  - 4/13/16 (mac): Written for use with University of Notre Dame CRC
+  - 04/13/16 (mac): Written for use with University of Notre Dame CRC
     Linux cluster. First new build in a couple of years, with lots of
     new modules.
-  - 9/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
+  - 09/5/16 (mac): Cut out old notes and notes on experimentation for 4/13 
     commit, and update config-ndcrc.mk.
-  - 9/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
+  - 09/16/16 (mac): Update to lsu3shell 9/15 commit (de8ba2).  Remove instruction
     to update makefile.
   - 11/8/16 (mac): Paste in Anna's note from spncci/install_NDCRC.txt.
   - 11/17/16 (mac): Update to lsu3shell 11/13/16 commit (56981f) and
     current spncci config files (93ec11).
   - 12/22/16 (mac): Revise to serve as generic instructions across clusters,
   following shell/spncci project install.txt.
-  - 1/24/17 (mac): Update path to config files (spncci/config/lsu3shell).
-  - 5/22/17 (mac): Update config file description.
-  - 5/28/17 (mac): Update config file symlinks.
+  - 01/24/17 (mac): Update path to config files (spncci/config/lsu3shell).
+  - 05/22/17 (mac): Update config file description.
+  - 05/28/17 (mac): Update config file symlinks.
+  - 11/03/17 (mac): Update config file symlinks.
 ----------------------------------------------------------------
 
 The compiler and library dependences for LSU3shell are similar to
@@ -28,7 +29,7 @@ a LAPACK-like library (e.g., MKL or ACML).
   Change to the directory where you want the repository to be installed,
   e.g.,
 
-  % cd ~/projects
+  % cd ~/code
 
   To clone a clean repository and check out the LSU3develop branch:
   
@@ -54,7 +55,7 @@ a LAPACK-like library (e.g., MKL or ACML).
   
   % git remote set-url origin --push ssh://<userid>@git.code.sf.net/p/lsu3shell/code
 
-2') Config files
+2) Makefile configuration files
 
   You need to create a symbolic link "config.mk" to point to the
   correct configuration file.  
@@ -64,21 +65,30 @@ a LAPACK-like library (e.g., MKL or ACML).
   symbolic link "config.mk" to point to the correct configuration
   file, taken from spncci/doc/lsu3shell/config.
 
+  % rm config.mk
+
+  Since we will need to refer to the directory spncci/config pretty often, let
+  us also first make a symlink to that directory.  In fact, the makefiles assume
+  that you have made this symlink, so you had better make it!
+
+  % ln -s ${HOME}/code/spncci/config
+
+  Then, if a config file has already been defined for your compiler environment,
+  make a symlink to it:
+
   || @NDCRC: For compiling under gcc:
   || 
-  ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/config
-  ||   % ln -s config/lsu3shell/config-gnu-ndcrc.mk config.mk
+  ||   % ln -s config/lsu3shell/config-lsu3shell-gnu-ndcrc.mk config.mk
 
   || @NERSC: For compiling under gcc:
   || 
-  ||   % rm config.mk
-  ||   % ln -s ${HOME}/projects/spncci/config
-  ||   % ln -s config/lsu3shell/config-gnu-nersc.mk config.mk
+  ||   % ln -s config/lsu3shell/config-lsu3shell-gnu-nersc.mk config.mk
 
-  Note: Some, but perhaps not all, of these system-specific wrapper
-  files will actually be symlinks to the system-specific wrapper files
-  in spncci/config/ndconfig.
+  If you need to know more, e.g., to set up a new configuration file for your
+  own compiler environment, please see the documentation in the comments at the
+  start of the main configuration file:
+
+    config/lsu3shell/lsu3shell-customizations.mk
 
 3) Build
 
@@ -92,12 +102,12 @@ a LAPACK-like library (e.g., MKL or ACML).
 
   || @NDCRC:
   || 
-  || % source config/ndconfig/module-load-ndcrc.csh
+  || % source config/ndconfig/env-gnu-ndcrc.csh
 
   || @NERSC: To compile under gnu...
   || 
   || % module swap PrgEnv-intel PrgEnv-gnu
-  || % source config/ndconfig/module-load-nersc.csh
+  || % source config/ndconfig/env-gnu-nersc.csh
 
   Note: Some, but perhaps not all, of these system-specific module
   load scripts will actually be symlinks to the module load scripts in
