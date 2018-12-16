@@ -10,6 +10,7 @@
   6/24/17 (mac): Add SpU3S subspace listing.
   6/27/17 (mac): Suppress output for empty subspaces or sectors.
   2/5/18 (aem): Add WriteU3SHypersectorSectorInformation 
+  12/15/18 (aem) : Updated WriteDecomposition to use new basis indexing
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_RESULTS_OUTPUT_H_
@@ -20,6 +21,7 @@
 
 #include "cppformat/format.h"
 #include "spncci/branching.h"
+#include "spncci/branching2.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/parameters.h"
 
@@ -132,11 +134,11 @@ namespace spncci
     );
 
   void WriteEigenvalues(
-      std::ostream& out_stream,
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::Vector>& eigenvalues,
-      int gex
-    );
+    std::ostream& out_stream,
+    const std::vector<HalfInt>& J_values,
+    const std::vector<spncci::Vector>& eigenvalues,
+    int gex
+  );
   // Write table of eigenvalues.
   //
   // CAVEAT: parity quantum number is now simply taken as a given from
@@ -146,14 +148,24 @@ namespace spncci
   //   out_stream (input): output stream
   //   ...
 
+  // void WriteDecompositions(
+  //     std::ostream& out_stream,
+  //     const std::string& decomposition_name,
+  //     const std::string& format_string,
+  //     const spncci::SpaceSpJ& spj_space,
+  //     const std::vector<spncci::Matrix>& decompositions,
+  //     int gex
+  //   );
+
   void WriteDecompositions(
-      std::ostream& out_stream,
-      const std::string& decomposition_name,
-      const std::string& format_string,
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::Matrix>& decompositions,
-      int gex
-    );
+    std::ostream& out_stream,
+    const std::string& decomposition_name,
+    const std::string& format_string,
+    // const spncci::SpaceSpJ& spj_space,
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const std::vector<spncci::Matrix>& decompositions,
+    int gex
+  );
   // Write tables of eigenfunction probability distributions.
   //
   // CAVEAT: For now, parity quantum number is now simply taken as a
@@ -169,9 +181,17 @@ namespace spncci
   //   decompositions (input): the decompositions, by J subspace
   //   gex (input): excitation parity grade (for use in results file comment line)  
 
+  // void WriteObservables(
+  //     std::ostream& out_stream,
+  //     const std::vector<spncci::SectorsSpJ>& observable_sectors,
+  //     const std::vector<spncci::OperatorBlocks>& observable_results_matrices,
+  //     int gex
+  //   );
+
   void WriteObservables(
       std::ostream& out_stream,
-      const std::vector<spncci::SectorsSpJ>& observable_sectors,
+      const std::vector<HalfInt>& J_values,
+      const std::vector<std::vector<std::pair<int,int>>>& observable_sectors,
       const std::vector<spncci::OperatorBlocks>& observable_results_matrices,
       int gex
     );

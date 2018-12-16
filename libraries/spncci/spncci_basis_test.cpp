@@ -80,6 +80,34 @@ int main(int argc, char **argv)
     std::cout << "********************************" << std::endl;
   }
 
+
+
+  // diagnostic -- inspect irrep families
+  if(true)
+  {
+    //Alternate truncator
+    // generate SpNCCI space from LGIs
+    HalfInt Nsigma_0 = HalfInt(11,1);
+    int Nmax = 6;
+    spncci::SpNCCISpace spncci_space2;
+    spncci::SigmaIrrepMap sigma_irrep_map2;  // dictionary from sigma to branching
+    spncci::NlimitTruncator truncator2(Nsigma_0,Nmax,4);
+    spncci::GenerateSpNCCISpace(multiplicity_tagged_lgi_vector,truncator2,spncci_space2,sigma_irrep_map2);
+
+    std::cout << "SpNCCI space" << std::endl;
+    for (const spncci::SpNCCIIrrepFamily& spncci_irrep_family : spncci_space2)
+      {
+        std::cout << "Irrep family" << std::endl;
+        std::cout << "  " << spncci_irrep_family.Str() << std::endl;
+        std::cout << "  " << fmt::format("Multiplicity gamma_max {}",spncci_irrep_family.gamma_max()) << std::endl;
+        std::cout << "  " << "Irrep contents" << std::endl;
+        std::cout << spncci_irrep_family.Sp3RSpace().DebugStr();
+        std::cout << std::endl;
+      }
+    std::cout << "********************************" << std::endl;
+  }
+
+
   ////////////////////////////////////////////////////////////////
   // count dimensions
   ////////////////////////////////////////////////////////////////
@@ -128,7 +156,7 @@ int main(int argc, char **argv)
     std::cout<<baby_spncci_hypersectors.DebugStr()<<std::endl;
   }
 
-  if(true)
+  if(false)
   {
     std::cout<<"observable space"<<std::endl;
     // build list of observable labels 

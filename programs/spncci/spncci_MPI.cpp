@@ -66,20 +66,9 @@
      
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  TRIUMF and University of Notre Dame
 
-  2/20/17 (mac): Created (starting from explicit.cpp).
-  4/9/17 (aem): Incorporated baby spncci hypersectors
-  6/5/17 (mac): Read relative rather than intrinsic symplectic operators.
-  6/16/17 (aem) : offload to computation and io control
-  10/4/17 (aem) : Fixed basis construction and recurrence for A<6
-  1/16/18 (aem) : Offloaded explicit construction and recurrence
-    checks to explicit_construction.h
-  1/30/18 (aem): Overhalled seed generation and recurrence
-  2/5/18 (aem): Switched from using u3s sectors to u3s hypersectors
-    combined with observable spaces
-  2/15/18 (aem) : Removed gamma_max=0 lgi
-    + Cleaned up codes and factored spncci.cpp into simpler functions
+  12/15/18 (mac): Created based on spcci.cpp
 ****************************************************************/
 
 #include <cstdio>
@@ -199,6 +188,24 @@ int main(int argc, char **argv)
       results_stream,Nlimit,restrict_sp3r_to_u3_branching
     );
 
+
+  ////////////////////////////////////////////////////////////////
+  // set up indexing for branching
+
+  ////////////////////////////////////////////////////////////////
+  std::cout << "Set up basis indexing for branching..." << std::endl;
+  //////////////////////////////////////////////////////////////////
+  // NEW BRANCHING 
+  //TODO: MAKE Vector with indices corresponding to run_parameters.J_values
+  // vector be comes space with subspaces SpaceSpBasis in sectorsJ etcs. 
+  std::vector<spncci::SpaceSpBasis> spaces_spbasis(run_parameters.J_values.size());
+  for(int j=0; j<run_parameters.J_values.size(); ++j)
+    {
+      const HalfInt& J=run_parameters.J_values[j];
+      spaces_spbasis[j]=spncci::SpaceSpBasis(baby_spncci_space,J);
+    }
+  //////////////////////////////////////////////////////////////////
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Enumerate unit tensor space 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,114 +251,47 @@ int main(int argc, char **argv)
   for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
       observable_spaces[ob_num]=u3shell::ObservableSpaceU3S(observable_symmetries_u3s[ob_num]);    
 
-
-  ////////////////////////////////////////////////////////////////
-  // set up indexing for branching
-  ////////////////////////////////////////////////////////////////
-  std::cout << "Set up basis indexing for branching..." << std::endl;
-  //////////////////////////////////////////////////////////////////
-  // NEW BRANCHING 
-  //TODO: MAKE Vector with indices corresponding to run_parameters.J_values
-  // vector be comes space with subspaces SpaceSpBasis in sectorsJ etcs. 
-  std::vector<spncci::SpaceSpBasis> spaces_spbasis(run_parameters.J_values.size());
-  for(int j=0; j<run_parameters.J_values.size(); ++j)
-    {
-      const HalfInt& J=run_parameters.J_values[j];
-      spaces_spbasis[j]=spncci::SpaceSpBasis(baby_spncci_space,J);
-    }
-  //////////////////////////////////////////////////////////////////
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Old Basis indexing only used now for basis statistics 
 //Will eventually remove.  For now just taking out of scope.
-{ 
-  ////////////////////////////////////////////////////////////////
-  // Enumerate U3S sectors for observables 
-  ////////////////////////////////////////////////////////////////
-  std::cout << "Enumerating u3s sectors..." << std::endl;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// { 
+//   ////////////////////////////////////////////////////////////////
+//   // Enumerate U3S sectors for observables 
+//   ////////////////////////////////////////////////////////////////
+//   std::cout << "Enumerating u3s sectors..." << std::endl;
 
-  // enumerate u3S space from baby spncci for each observable 
-  spncci::SpaceU3S space_u3s(baby_spncci_space);
+//   // enumerate u3S space from baby spncci for each observable 
+//   spncci::SpaceU3S space_u3s(baby_spncci_space);
 
+//   // Generate vector of hypersectors for each observable
+//   std::vector<spncci::ObservableHypersectorsU3S> 
+//     observable_hypersectors_by_observable(run_parameters.num_observables);
+//   for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
+//     observable_hypersectors_by_observable[ob_num]=spncci::ObservableHypersectorsU3S(space_u3s,observable_spaces[ob_num]);
 
-  // Generate vector of hypersectors for each observable
-  std::vector<spncci::ObservableHypersectorsU3S> 
-    observable_hypersectors_by_observable(run_parameters.num_observables);
-  for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
-    observable_hypersectors_by_observable[ob_num]=spncci::ObservableHypersectorsU3S(space_u3s,observable_spaces[ob_num]);
-
-  // Write observable u3s hypersector information to results file
-  spncci::WriteU3SHypersectorSectorInformation(
-      results_stream,space_u3s,run_parameters.num_observables, 
-      observable_hypersectors_by_observable
-    );
-
-  // set up basis indexing for branching
-  std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
-  std::map<HalfInt,spncci::SpaceSpLS> spaces_splsj;
-  for (const HalfInt J : run_parameters.J_values)
-    {
-
-      std::cout << fmt::format("Build LS space for J={}...",J.Str()) << std::endl;
-      spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
-      std::cout
-        << fmt::format(
-            "  subspaces {} dimension {}",
-            J.Str(),
-            spaces_lsj[J].size(),spaces_lsj[J].Dimension()
-          ) << std::endl;
-
-      // comparison tests with new basis branching construction
-      std::cout << fmt::format("Build SpLS space for J={}...",J.Str()) << std::endl;
-      spaces_splsj[J]=spncci::SpaceSpLS(spu3s_space,J);
-      const auto& spls_space=spaces_splsj.at(J);
-      // spncci::SpaceSpLS spls_space(spu3s_space,J);
-      std::cout
-        << fmt::format("  subspaces {} dimension {} full_dimension {}",
-                       spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
-          )
-        << std::endl;
-      std::cout
-        << fmt::format("  compare... TotalDimensionU3LSJConstrained {}",TotalDimensionU3LSJConstrained(spncci_space,J))
-        << std::endl;
-
-      //////////////////////////////////////////////////////////////////
-    }
-
-  // determine J sectors for each observable
-  std::vector<spncci::SectorsSpJ> observable_sectors;
-  observable_sectors.resize(run_parameters.num_observables);
-
-  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    {
-      const int J0=run_parameters.observable_J0_values[observable_index];
-      observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
-    }
-
-
-}
-
+//   // Write observable u3s hypersector information to results file
+//   spncci::WriteU3SHypersectorSectorInformation(
+//       results_stream,space_u3s,run_parameters.num_observables, 
+//       observable_hypersectors_by_observable
+//     );
+// //End old basis
+// }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
+  // Won't do counting run only this MPI
   ////////////////////////////////////////////////////////////////
-  // We now have to do all termination manually.  But, when the
-  // control code is properly refactored, we can just have a single
-  // termination, and the rest of the run can be in an "if
-  // (!count_only)"...
+  // if (run_parameters.count_only)
+  //   {
 
-  if (run_parameters.count_only)
-    {
+  //     // termination
+  //     results_stream.close();
 
-      // termination
-      results_stream.close();
-
-      std::cout << "End of counting-only run" << std::endl;
-      std::exit(EXIT_SUCCESS);
-    }
-
-
-
-
+  //     std::cout << "End of counting-only run" << std::endl;
+  //     std::exit(EXIT_SUCCESS);
+  //   }
 
 
   ////////////////////////////////////////////////////////////////
@@ -366,6 +306,7 @@ int main(int argc, char **argv)
   // traverse distinct sigma values in SpNCCI space, generating K
   // matrices for each
   // spncci::KMatrixCache k_matrix_cache;
+  //TODO: Move print inside PrecomputeKMatrices with verbose flag
   spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
   spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,kinv_matrix_cache,restrict_sp3r_to_u3_branching);
 
@@ -446,10 +387,6 @@ int main(int argc, char **argv)
       //     std::cout<<"---------------------------------------"<<std::endl<<std::endl;
       //   }
     }
-
-
-  // assert(0);
-
 
   std::cout<<"begin parallel region"<<std::endl;
   int num_files;
@@ -553,8 +490,11 @@ int main(int argc, char **argv)
           //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
           // Contract and regroup
           //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+         // Bring write statement inside the hw and observable loop
+
           // std::cout<<"contract "<<std::endl;
           spncci::ObservableHypersectorsTable observable_hypersectors_table(run_parameters.num_observables);
+          //branching_u3s.cpp
           spncci::ContractBabySpNCCIHypersectors(
             lgi_pair,run_parameters.num_observables, run_parameters.hw_values.size(),
             baby_spncci_space,observable_spaces,unit_tensor_space,
@@ -566,7 +506,8 @@ int main(int argc, char **argv)
           );
           
 
-          // spncci::WriteBabySpncciObservableRMEs(lgi_pair,observable_hyperblocks_table);
+
+          // io_control.cpp
           spncci::WriteBabySpncciObservableRMEs(
             lgi_pair,observable_hypersectors_table,
             observable_hyperblocks_table

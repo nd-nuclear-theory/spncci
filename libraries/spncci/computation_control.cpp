@@ -27,6 +27,7 @@ namespace spncci
       spncci::SpaceSpLS& spls_space,
       spncci::SpaceSpJ& spj_space,
       std::ofstream& results_stream,
+      int Nlimit,
       bool restrict_sp3r_to_u3_branching
     )
   {
@@ -37,7 +38,8 @@ namespace spncci
     std::cout << "Set up SpNCCI space..." << std::endl;
 
     // build SpNCCI irrep branchings
-    spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
+    // spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
+    spncci::NlimitTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax,Nlimit);
 
     // spncci::GenerateSpNCCISpace(lgi_families_truncated,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
     spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);

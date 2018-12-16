@@ -180,6 +180,12 @@ namespace lgi
   //   Nsigma0 : minimum number of oscillator quanta for the given system of nucleons.
   //    Can be obtained from lgi::Nsigma0ForNuclide. 
   //   lgi_families (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)  
+
+ void ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families);
+  // Reading in and filling out table of lgi indices in basis and lgi indices in full space by 
+  // which the seed files are labeled. 
+
+
 }
 
 #endif

@@ -7,23 +7,33 @@
   University of Notre Dame
 
   6/22/17 (mac): Created.
+  12/15/18 (aem): Updated decomposition to use new basis indexing
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_DECOMPOSITION_H_
 #define SPNCCI_SPNCCI_DECOMPOSITION_H_
 
+#include "spncci/branching2.h"
 #include "spncci/branching.h"
 
 namespace spncci
 {
 
+  // void CalculateNexDecompositions(
+  //     const spncci::SpaceSpJ& spj_space,
+  //     const std::vector<spncci::Matrix>& eigenvectors,
+  //     std::vector<spncci::Matrix>& Nex_decompositions,
+  //     HalfInt Nsigma0,
+  //     int Nmax
+  //   );
+
   void CalculateNexDecompositions(
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::Matrix>& eigenvectors,
-      std::vector<spncci::Matrix>& Nex_decompositions,
-      HalfInt Nsigma0,
-      int Nmax
-    );
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const std::vector<spncci::Matrix>& eigenvectors,
+    std::vector<spncci::Matrix>& Nex_decompositions,
+    HalfInt Nsigma0,
+    int Nmax
+  );
   // Calculate decompositions of eigenstates w.r.t. Nex.
   //
   // This calculation is redundant to the decomposition
@@ -52,12 +62,19 @@ namespace spncci
   //   Nmax (input): highest Nex in basis (used to size the
   //     decomposition matrix)
 
-  void CalculateBabySpNCCIDecompositions(
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::Matrix>& eigenvectors,
-      std::vector<spncci::Matrix>& baby_spncci_decompositions,
-      int baby_spncci_space_size
-    );
+  // void CalculateBabySpNCCIDecompositions(
+  //     const spncci::SpaceSpJ& spj_space,
+  //     const std::vector<spncci::Matrix>& eigenvectors,
+  //     std::vector<spncci::Matrix>& baby_spncci_decompositions,
+  //     int baby_spncci_space_size
+  //   );
+void CalculateBabySpNCCIDecompositions(
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const std::vector<spncci::Matrix>& eigenvectors,
+    std::vector<spncci::Matrix>& baby_spncci_decompositions,
+    int baby_spncci_space_size
+  );
+
   // Calculate decompositions of eigenstates w.r.t. BabySpNCCI
   // subspace.
   //

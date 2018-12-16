@@ -40,6 +40,9 @@ namespace spncci
  //   eigenvalues (output): eigenvalues for J-subspace
  //   eigenvectors (output): eigenvectors for J-subspace (as column vectors)
 
+ void WriteMatrixToFile(spncci::OperatorBlock& hamiltonian_matrix, double hw);
+ // Write Hamiltonian matrix to file 
+
 }  // namespace
 
 #endif

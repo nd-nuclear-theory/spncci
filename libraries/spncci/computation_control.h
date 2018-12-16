@@ -66,6 +66,7 @@ namespace spncci
       spncci::SpaceSpLS& spls_space,
       spncci::SpaceSpJ& spj_space,
       std::ofstream& results_stream,
+      int Nlimit,
       bool restrict_sp3r_to_u3_branching
     );
 }  // namespace

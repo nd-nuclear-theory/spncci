@@ -278,6 +278,39 @@ void GenerateRecurrenceUnitTensors(
         }// End Nnp loop
   }
 
+  void GetLGIPairsForRecurrence(
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      std::vector<spncci::LGIPair>& lgi_pairs
+    )
+  {
+
+    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
+    std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
+    for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
+      for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
+        {
+          int t=spncci_space[irrep_family_index_bra].Sp3RSpace().size()
+                +spncci_space[irrep_family_index_ket].Sp3RSpace().size();
+          sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
+        }
+    std::cout<<"sorted map"<<std::endl;
+    for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
+      {
+        std::cout<<it->first<<std::endl;
+        for(const auto& pair : it->second)
+          lgi_pairs.push_back(pair);  
+      }
+      
+    // for(auto pair: lgi_pairs)
+    //   std::cout<<pair.first<<"  "<<pair.second<<std::endl;
+
+  }
+
+
+
+
 
 
   void 
@@ -310,7 +343,7 @@ void GenerateRecurrenceUnitTensors(
         =ParitySign(u3::ConjugationGrade(sigmap)+lgi_bra.S()-u3::ConjugationGrade(sigma)-lgi_ket.S())
           * sqrt(1.*u3::dim(sigmap)*am::dim(lgi_bra.S())/u3::dim(sigma)/am::dim(lgi_ket.S()));
 
-    std::cout<<"loop over lgi unit tensors"<<std::endl;
+    // std::cout<<"loop over lgi unit tensors"<<std::endl;
     for(int i=0; i<lgi_unit_tensors.size();  ++i)
       {
         const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor=lgi_unit_tensors[i];
@@ -321,7 +354,7 @@ void GenerateRecurrenceUnitTensors(
         HalfInt S0,T0, Sp,Tp,S,T;
         int etap, eta; 
         std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor.FlatKey();
-        std::cout<<sigmap.Str()<<" "<<lgi_bra.S()<<"  "<<sigma.Str()<<"  "<<lgi_ket.S()<<" "<<unit_tensor.Str()<<std::endl;
+        // std::cout<<sigmap.Str()<<" "<<lgi_bra.S()<<"  "<<sigma.Str()<<"  "<<lgi_ket.S()<<" "<<unit_tensor.Str()<<std::endl;
 
         // Look up unit tensor subspace
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
@@ -339,14 +372,14 @@ void GenerateRecurrenceUnitTensors(
                 unit_tensor_subspace_index,rho0
               );
 
-        std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl
-          <<unit_tensor_seed_blocks[i]<<std::endl;
+        // std::cout<<hypersector_index<<"  "<<unit_tensor_state_index<<"  "<<i<<std::endl
+        //   <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks[hypersector_index][unit_tensor_state_index]=unit_tensor_seed_blocks[i];
 
         // Get conjugate 
 
         // Look up conjugate unit tensor subspace
-        std::cout<<x0.Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
+        // std::cout<<x0.Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
         int unit_tensor_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
         auto& subspace_conj=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_conj);
@@ -365,8 +398,8 @@ void GenerateRecurrenceUnitTensors(
         double conjugation_factor
         =conjugation_factor_base
           *sqrt(1.*u3::dim(u3::SU3(eta,0))*am::dim(S)*am::dim(T)/u3::dim(u3::SU3(etap,0))/am::dim(Sp)/am::dim(Tp));
-        std::cout<<"  "<<unit_tensor_state_index_conj<<"  "<<i<<"  "<<conjugation_factor<<std::endl
-          <<unit_tensor_seed_blocks[i]<<std::endl;
+        // std::cout<<"  "<<unit_tensor_state_index_conj<<"  "<<i<<"  "<<conjugation_factor<<std::endl
+          // <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks_Nn0[hypersector_index_Nn0][unit_tensor_state_index_conj]
           =conjugation_factor*unit_tensor_seed_blocks[i].transpose();
 

@@ -174,24 +174,27 @@ if(false)
 
 if(true)
 {
-	u3::U3 s(4,2,1);
-	sp3r::Sp3RSpace irrep(s,25);
-
-	vcs::MatrixCache K_matrix_map,K_matrix_map2, Kinv_matrix_map;
-	// vcs::GenerateKMatrices(irrep,K_matrix_map);
-	vcs::GenerateKMatrices(irrep,K_matrix_map2, Kinv_matrix_map);
+	u3::U3 s(11,1,1);
+	sp3r::Sp3RSpace irrep(s,20);
+	// sp3r::Sp3RSpace irrep(s,25);
+	vcs::MatrixCache K_matrix_map, Kinv_matrix_map;
+	vcs::GenerateKMatrices(irrep,K_matrix_map, Kinv_matrix_map);
 
 	for(auto it=K_matrix_map.begin(); it!=K_matrix_map.end(); ++it)
 		{
 			const Eigen::MatrixXd& K=it->second;
 			const u3::U3& omega=it->first;
 			
-			if(not K_matrix_map2.count(it->first))
+			if(not K_matrix_map.count(it->first))
 				continue;
 			Eigen::MatrixXd Kinv=Kinv_matrix_map.at(it->first);
+			std::cout<<"-----------"<<std::endl;
 			std::cout<<"K matrix for "<<it->first.Str()<<std::endl;
-			std::cout<<K<<std::endl<<K_matrix_map2.at(it->first)<<std::endl<<std::endl;
-			std::cout<<K.inverse()<<std::endl<<Kinv<<std::endl<<std::endl;
+			
+			std::cout<<K_matrix_map.at(it->first)<<std::endl;
+			std::cout<<Kinv<<std::endl<<std::endl;
+			std::cout<<K*Kinv<<std::endl;
+			std::cout<<"-----------"<<std::endl;
 		}
 }
 

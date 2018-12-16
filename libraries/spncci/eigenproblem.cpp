@@ -9,7 +9,7 @@
 #include "spncci/eigenproblem.h"
 
 #include <iostream>
-
+#include <fstream>
 #include "SymEigsSolver.h"  // from spectra
 
 #include "cppformat/format.h"
@@ -151,6 +151,24 @@ namespace spncci
     for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
       eigenvectors.col(eigenvector_index).normalize();
   }
+
+
+ void WriteMatrixToFile(spncci::OperatorBlock& hamiltonian_matrix, double hw)
+    {
+      std::string filename=fmt::format("hamiltonian_matrix{:0.1f}.out",hw);
+      std::ofstream stream(filename);
+      int rows=hamiltonian_matrix.rows();
+      stream<<rows<<std::endl; 
+      stream<<hamiltonian_matrix<<std::endl;
+
+      // for(int row=0; row<rows; ++row)
+      //   for(int col=0; col<rows; ++col)
+      //     {
+      //       stream<<hamiltonian_matrix(row,col);
+      //     }
+
+      // stream.close();
+    }
 
 
 }  // namespace

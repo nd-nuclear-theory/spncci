@@ -36,6 +36,14 @@ namespace spncci
   // Unit tensor subspaces whose hyperblocks will be computed by recurrence are
   // stored in operator_subsets_NnpNn by (Nnp,Nn) for Nnp>=Nn
 
+void GetLGIPairsForRecurrence(
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      std::vector<spncci::LGIPair>& lgi_pairs
+    );
+
+
   void 
   PopulateHypersectorsWithSeeds(
     int irrep_family_index_bra, int irrep_family_index_ket,

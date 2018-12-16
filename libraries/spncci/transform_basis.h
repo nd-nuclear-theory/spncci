@@ -16,31 +16,51 @@
 #include <string>
 
 #include "cppformat/format.h"
-#include "spncci/branching.h"
+#include "spncci/branching2.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/parameters.h"
 
 namespace spncci
 {
 
+// void RegroupIntoIrrepFamilies(
+//     const spncci::SpaceSpJ& spj_space,
+//     int num_irrep_families,
+//     int num_eigenvalues,
+//     const std::vector<spncci::Matrix>& eigenvectors,
+//     std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks
+//   );
+
 void RegroupIntoIrrepFamilies(
-    const spncci::SpaceSpJ& spj_space,
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    // const spncci::SpaceSpJ& spj_space,
     int num_irrep_families,
     int num_eigenvalues,
     const std::vector<spncci::Matrix>& eigenvectors,
     std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks
   );
+
+
 // Regroup eigenvectors into blocks organzied by irrep family
 // Blocks are <blocks(dim,gamma_max)>
 
-void WriteIrrepFamilyBlocks(  
-  const spncci::SpaceSpJ& spj_space,
-  int num_irrep_families,
-  int num_eigenvalues,
-  const std::vector<int>& lgi_full_space_index_lookup,
-  const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
-  const std::string& filename
-);
+// void WriteIrrepFamilyBlocks(  
+//   const spncci::SpaceSpJ& spj_space,
+//   int num_irrep_families,
+//   int num_eigenvalues,
+//   const std::vector<int>& lgi_full_space_index_lookup,
+//   const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+//   const std::string& filename
+// );
+
+  void WriteIrrepFamilyBlocks(
+    std::vector<HalfInt> J_values,  
+    int num_irrep_families,
+    int num_eigenvalues,
+    const std::vector<int>& lgi_full_space_index_lookup,
+    const std::vector<std::vector<spncci::OperatorBlocks>>& irrep_family_blocks,
+    const std::string& filename
+  );
 // Write irrep family blocks to file
 //
 // In file:

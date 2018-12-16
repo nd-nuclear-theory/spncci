@@ -188,4 +188,37 @@ namespace lgi
     // close input file
     lgi_stream.close();
   }
+
+ void ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families)
+  // Reading in and filling out table of lgi indices in basis and lgi indices in full space by 
+  // which the seed files are labeled. 
+    {
+      lgi_full_space_lookup_table.resize(num_irrep_families);
+      // open input file
+      std::string filename="seeds/lgi_full_space_lookup_table.dat";
+      std::ifstream stream(filename);
+      mcutils::StreamCheck(bool(stream),filename,"Failed to open LGI input file");
+
+      // scan input file
+      std::string line;
+      int line_count = 0;
+      while ( std::getline(stream, line) )
+        {
+          // count line
+          ++line_count;
+
+          // set up for parsing
+          // std::cout<<line<<std::endl;
+          std::istringstream line_stream(line);
+
+          // parse line
+          int index, full_space_index;
+          line_stream>>index>>full_space_index;
+          mcutils::ParsingCheck(line_stream, line_count, line);
+
+          lgi_full_space_lookup_table[index]=full_space_index;
+        }
+    }
+
+
 }

@@ -80,6 +80,20 @@ namespace spncci
   }
 
 
+  int NlimitTruncator::Nn_max(const u3::U3& sigma) const
+  {
+    int value;
+    HalfInt Nsigma = sigma.N();
+    if(Nsigma==Nsigma_0_)
+      value=Nmax_;
+    else
+      value = std::max(0, Nlimit_ - int(Nsigma - Nsigma_0_));
+      // std::cout<<Nsigma<<"  "<<(Nlimit_ - int(Nsigma - Nsigma_0_))<<"  "<<value<<std::endl;
+    return value;
+  }
+
+
+
   void ConstructRestrictedSp3RSpace(const u3::U3& sigma, int Nn_max, sp3r::Sp3RSpace& irrep)
     // Contruct an Sp(3,R) irrep applying necessary restrictions for A<6
   // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
