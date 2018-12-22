@@ -149,7 +149,7 @@ namespace u3shell
   }
 
 
-  void Qintr(int Nmax,u3shell::RelativeRMEsU3ST& Qintr, int A, double coef=1.0, bool moshinsky_convention=false)
+  void Qintr(int Nmax,u3shell::RelativeRMEsU3ST& Qintr, int A, int T0,double coef=1.0, bool moshinsky_convention=false)
   {
     u3shell::RelativeStateLabelsU3ST bra,ket;
     int Np, rho_max;
@@ -158,6 +158,7 @@ namespace u3shell
     int kappa0=1; 
     int L0=2;
 
+    std::cout<<"coefficient "<<coef<<std::endl;
     double intrinsic_factor=2./A;
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
@@ -165,39 +166,40 @@ namespace u3shell
           if((N+S+T)%2==1)
           {
             ket=u3shell::RelativeStateLabelsU3ST(N,S,T); 
-
+            double isospin_coefficient=(T0==1)?2*sqrt(T*(T+1)):1;
             // Brel term
             Np=N-2;
             if(Np>=0)
             {
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,T0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
               double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
 
+
               if (fabs(Brme)>zero_threshold)
-                Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef;
+                Qintr[key]+=sqrt(3)*Brme*intrinsic_factor*coef*isospin_coefficient;
             }
             // Crel term
             Np=N;
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,0,bra,ket);
+            relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,T0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Crme=std::sqrt(4.*(N*N+3*N)/3);
             
             if(fabs(Crme)>zero_threshold)
-              Qintr[key]+=std::sqrt(3)*Crme*intrinsic_factor*coef;
+              Qintr[key]+=std::sqrt(3)*Crme*intrinsic_factor*coef*isospin_coefficient;
 
             // Arel term
             Np=N+2;
             if(Np<=Nmax)
             {
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
-              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
+              relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,T0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
               double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
               if (fabs(Arme)>zero_threshold)
-                Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef;
+                Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef*isospin_coefficient;
             }
           }
   }
@@ -308,23 +310,37 @@ int main(int argc, char **argv)
   double alpha=1/137.036; 
   const double pi=boost::math::constants::pi<double>();
 
-  if(argc<4)
+  if(argc<5)
     std::cout<<"Syntax: A Nmax N1B <operator_filename_base> "<<std::endl;
   
   u3::U3CoefInit();
+  int A,N,Z,Nmax,N1B;
+  std::string operator_filename_base;
+  // std::cout<<"argc "<<argc<<std::endl;
+  if(argc==5)
+  {
+    A=std::stoi(argv[1]);
+    Nmax=std::stoi(argv[2]);
+    N1B=std::stoi(argv[3]);
+    operator_filename_base = argv[4];
+  }
 
-  int A=std::stoi(argv[1]);
-  int Nmax=std::stoi(argv[2]);
-  int N1B=std::stoi(argv[3]);
-  std::string operator_filename = argv[4];
-
+  if(argc==6)
+  {
+    Z=std::stoi(argv[1]);
+    N=std::stoi(argv[2]);
+    A=Z+N;
+    Nmax=std::stoi(argv[3]);
+    N1B=std::stoi(argv[4]);
+    operator_filename_base = argv[5];    
+  }
+  // std::cout<<operator_filename_base<<std::endl;
   int Jmax, J0, T0, g0;
-  std::string interaction_filename;
-
-  std::string operator_type;
-  std::ifstream is(fmt::format("{}.load",operator_filename));
+  
+  std::string operator_filename=fmt::format("{}.load",operator_filename_base);
+  std::ifstream is(operator_filename);
   if(not is)
-    std::cout<<"is not open"<<std::endl;
+    std::cout<<operator_filename+" is not open"<<std::endl;
   assert(is);
 
   double hbar_omega;
@@ -335,6 +351,8 @@ int main(int argc, char **argv)
 
   std::string line;
   int line_count=0;
+  std::string operator_type;
+  std::string interaction_filename;
   while(std::getline(is,line))
   {
     ++line_count;
@@ -370,7 +388,23 @@ int main(int argc, char **argv)
     else if(operator_type=="Lintr")
       u3shell::Lintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Qintr")
-      u3shell::Qintr(Nmax+2*N1B,Operator, A, sqrt(5./(16*pi))*coef*b2);
+      u3shell::Qintr(Nmax+2*N1B,Operator, A, 0,sqrt(5./(16*pi))*coef*b2);
+    else if(operator_type=="Qpintr")
+    {
+      coef=coef*sqrt(5./(16*pi))*b2;
+      double coef_scalar=coef*(1+(Z-N)*1.0/A)/2;
+      u3shell::Qintr(Nmax+2*N1B,Operator,A,0,coef_scalar);
+      double coef_vector=coef/2;
+      u3shell::Qintr(Nmax+2*N1B,Operator,A,1,coef_vector);
+    }
+    else if(operator_type=="Qnintr")
+    {
+      coef=coef*sqrt(5./(16*pi))*b2;
+      double coef_scalar=coef*(1-(Z-N)*1.0/A)/2;
+      u3shell::Qintr(Nmax+2*N1B,Operator,A,0,coef_scalar);   
+      double coef_vector=-1*coef/2;
+      u3shell::Qintr(Nmax+2*N1B,Operator,A,1,coef_vector);
+    }  
     else if(operator_type=="Tintr")
       u3shell::Tintr(Nmax+2*N1B,Operator, A, hbar_omega, coef);
     else if(operator_type=="INT")
@@ -392,7 +426,7 @@ int main(int argc, char **argv)
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl
                <<"The allowed operator types are:"<<std::endl
-               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Tintr, INT, COUL"<<std::endl;
+               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Qpintr, Qnintr, Tintr, INT, COUL"<<std::endl;
 
         std::exit(EXIT_FAILURE);
       }
@@ -400,7 +434,7 @@ int main(int argc, char **argv)
   is.close();
   
   // Writing operator to file 
-  std::string filename=fmt::format("{}_hw{:.1f}_Nmax{:02d}_u3st.dat",operator_filename,hbar_omega,Nmax);
+  std::string filename=fmt::format("{}_hw{:.1f}_Nmax{:02d}_u3st.dat",operator_filename_base,hbar_omega,Nmax);
   bool hermitian=true;
   u3shell::WriteRelativeOperatorU3ST(filename, Operator,hermitian);  
 }
