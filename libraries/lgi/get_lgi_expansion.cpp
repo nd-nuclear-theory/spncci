@@ -13,7 +13,7 @@
 #include <iostream>
 #include <eigen3/Eigen/LU>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "sp3rlib/u3coef.h"
 
 #include "lsu3shell/lsu3shell_basis.h"

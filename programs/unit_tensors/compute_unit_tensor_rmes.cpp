@@ -22,7 +22,7 @@
 #include <SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
 
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "am/am.h"
 
 #include "lgi/lgi.h"

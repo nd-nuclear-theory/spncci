@@ -8,7 +8,7 @@
 ****************************************************************/
 #include "spncci/spncci_basis.h"
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi.h"
 #include "u3shell/relative_operator.h"
 

@@ -9,7 +9,7 @@
 #include "spncci/io_control.h"
 #include <fstream>
 #include <omp.h>  
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 namespace spncci
 {

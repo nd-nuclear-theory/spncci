@@ -12,7 +12,8 @@
 #include <iostream>
 #include <algorithm>
 #include "mcutils/parsing.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
+#include "am/halfint_fmt.h"
 
 #include "sp3rlib/vcs.h"
 
@@ -47,7 +48,7 @@ namespace spncci
   {
     std::ostringstream ss;
 
-    ss << "[" 
+    ss << "["
        << " " << Nex()
        << " " << U3().Str()
        << " (" << Sp()
@@ -62,7 +63,7 @@ namespace spncci
     std::ostringstream ss;
 
     ss << Str() << std::endl;
-    ss << "  " 
+    ss << "  "
       // << " Nn_max " << Nn_max  << " dimension " << dimension
        << " sp_space_ptr " << sp_space_ptr_
        << std::endl;
@@ -98,7 +99,7 @@ namespace spncci
     // Contruct an Sp(3,R) irrep applying necessary restrictions for A<6
   // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
     {
-      // create irrep with no restrictions 
+      // create irrep with no restrictions
       sp3r::Sp3RSpace irrep_temp(sigma,Nn_max);
 
       // Generate K matrices for irrep
@@ -106,7 +107,7 @@ namespace spncci
       vcs::MatrixCache Kinv_matrix_cache;
       vcs::GenerateKMatrices(irrep_temp,K_matrix_cache, Kinv_matrix_cache);
 
-      // set up container for states 
+      // set up container for states
       std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> spanakopita;
       // Iterate through K matrix identifying omega subspaces which are contained in irrep along with upsilon_max
       for(auto it=K_matrix_cache.begin(); it!=K_matrix_cache.end(); ++it)
@@ -121,7 +122,7 @@ namespace spncci
             states.push_back(subspace.GetStateLabels(i));
         }
 
-      // Create restricted irrep  
+      // Create restricted irrep
       irrep=sp3r::Sp3RSpace(sigma,Nn_max,spanakopita);
     }
 
@@ -193,13 +194,13 @@ namespace spncci
         //                         std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
         //                         );
 
-                
+
         if (sigma_irrep_map.count(sigma) == 0)
           {
             if(restrict_sp3r_to_u3_branching)
               {
                 sp3r::Sp3RSpace irrep_restricted;
-                
+
                 ConstructRestrictedSp3RSpace(sigma,Nn_max,irrep_restricted);
                 sigma_irrep_map[sigma]=irrep_restricted;
               }
@@ -492,7 +493,7 @@ namespace spncci
             {
               // verify selection rules
               bool allowed = true;
-              const u3shell::RelativeUnitTensorSubspaceU3S& 
+              const u3shell::RelativeUnitTensorSubspaceU3S&
                 operator_subspace=operator_space.GetSubspace(operator_subspace_index);
 
               // U(1)
@@ -527,7 +528,7 @@ namespace spncci
                   }
             }
         }
- 
+
   }
 
 
@@ -545,9 +546,9 @@ namespace spncci
     // Baby spncci hyperspector constructor for recurrence hypersectors
     //
     // If Nn0_conjugate_hypersectors=true, then only construct Nnp=0 and Nn!=0 sectors
-    // else construct only the lower triangle hypersectors, excluding Nn=0. 
+    // else construct only the lower triangle hypersectors, excluding Nn=0.
     //
-    // hypersectors are restricted based on angular momentum adddition and SU(3) coupling 
+    // hypersectors are restricted based on angular momentum adddition and SU(3) coupling
 
     unit_tensor_hypersector_subsets.resize(Nmax+1);
 
@@ -571,7 +572,7 @@ namespace spncci
                 continue;
             }
           // Otherwise, only take sectors with Nnp>=Nn
-          else 
+          else
           {
             if(Nn>Nnp)
               continue;
@@ -581,9 +582,9 @@ namespace spncci
             (bra_subspace.irrep_family_index()== irrep_family_index_1)
             &&(ket_subspace.irrep_family_index()== irrep_family_index_2)
             );
-          
 
-          if(not in_irrep_families)                  
+
+          if(not in_irrep_families)
             continue;
 
           int Nsum=Nnp+Nn;
@@ -594,7 +595,7 @@ namespace spncci
           for(int operator_subspace_index : operator_subset)
             {
               bool allowed_subspace = true;
-              const u3shell::RelativeUnitTensorSubspaceU3S& 
+              const u3shell::RelativeUnitTensorSubspaceU3S&
                 operator_subspace=operator_space.GetSubspace(operator_subspace_index);
 
               // U(1)
@@ -647,7 +648,7 @@ namespace spncci
     for(int hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index)
       {
         const auto& hypersector=baby_spncci_hypersectors.GetHypersector(hypersector_index);
-    
+
         int unit_tensor_subspace_index, ket_subspace_index,bra_subspace_index, rho0;
         std::tie(bra_subspace_index, ket_subspace_index,unit_tensor_subspace_index,rho0)=hypersector.Key();
 
@@ -772,11 +773,11 @@ namespace spncci
           // Check if baby spncci subspaces contained in either the bra or the ket irrep families
           //
           // Check bra subspace
-          bool allowed_subspace=false; 
+          bool allowed_subspace=false;
           if(irrep_family_index_bra==-1 && irrep_family_index_bra==-1 )
             allowed_subspace=true;
 
-          else if(irrep_family_index_bra==bra_subspace.irrep_family_index() 
+          else if(irrep_family_index_bra==bra_subspace.irrep_family_index()
                   &&irrep_family_index_ket==ket_subspace.irrep_family_index()
                   )
             allowed_subspace=true;
@@ -801,13 +802,13 @@ namespace spncci
           for(int observable_subspace_index=0; observable_subspace_index<observable_space.size(); ++observable_subspace_index)
             {
               bool allowed_subspace = true;
-              const u3shell::ObservableSubspaceU3S& 
+              const u3shell::ObservableSubspaceU3S&
                 observable_subspace=observable_space.GetSubspace(observable_subspace_index);
 
               // U(1)
               allowed_subspace
                 &=(ket_subspace.omega().N()+observable_subspace.N0()-bra_subspace.omega().N() == 0);
-              
+
               // spin
               //
               // Note: Basic two-body constaints can be placed on Sp

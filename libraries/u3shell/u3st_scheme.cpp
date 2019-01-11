@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include "am/am.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 namespace u3shell {
 

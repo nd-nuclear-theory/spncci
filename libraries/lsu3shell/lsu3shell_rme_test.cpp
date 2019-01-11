@@ -9,7 +9,7 @@
 #include "lsu3shell/lsu3shell_rme.h"
 #include <fstream>
 #include <ostream>  
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "sp3rlib/u3coef.h"
 #include "lgi/lgi_solver.h"
 #include <eigen3/Eigen/LU>

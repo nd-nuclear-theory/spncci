@@ -8,7 +8,7 @@
 // g++ -O2 -I${EIGEN3_DIR}/include/eigen3 -I${SPECTRA_DIR}/include spectra_example_symm.cpp -o spectra_example_symm
 
 #include <Eigen/Core>
-#include <SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
+#include <Spectra/SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
 #include <iostream>
 
 using namespace Spectra;

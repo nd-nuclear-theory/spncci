@@ -11,7 +11,9 @@
 #include <sstream>
 
 #include "am/am.h"
-#include "cppformat/format.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
+#include "fmt/format.h"
 
 
 
@@ -34,19 +36,19 @@ namespace u3shell {
             &&(eta==tensor.ket().eta())
           )
           {
-            
+
             int T0=int(tensor.T0());
             int Sp=int(tensor.bra().S());
             int Tp=int(tensor.bra().T());
             int S=int(tensor.ket().S());
             int T=int(tensor.ket().T());
-            
+
             // std::cout<<tensor.Str()<<std::endl;
             // std::cout<<fmt::format("{} {} {} {} {}",T0,Sp,Tp,S,T)<<std::endl;
 
             PushStateLabels(StateLabelsType(T0,Sp,Tp,S,T));
           }
-      }     
+      }
   }
 
   std::string RelativeUnitTensorSubspaceU3S::Str() const
@@ -81,8 +83,8 @@ namespace u3shell {
           int eta=etap-N0;
           if((eta<0)||(eta>eta_max))
             continue;
-          MultiplicityTagged<u3::SU3>::vector 
-            x0_set=u3::KroneckerProduct(u3::SU3(etap,0), u3::SU3(0,eta)); 
+          MultiplicityTagged<u3::SU3>::vector
+            x0_set=u3::KroneckerProduct(u3::SU3(etap,0), u3::SU3(0,eta));
 
           for(auto& x0_tagged : x0_set)
             {
@@ -91,7 +93,7 @@ namespace u3shell {
               for (int S0=0; S0<=2; ++S0)
                 {
                   // construct subspace
-                  RelativeUnitTensorSubspaceU3S 
+                  RelativeUnitTensorSubspaceU3S
                     subspace(x0,S0,etap,eta,unit_tensor_labels);
                   // push subspace if nonempty
                   if (subspace.size()!=0)
@@ -105,7 +107,7 @@ namespace u3shell {
   RelativeUnitTensorSpaceU3S::RelativeUnitTensorSpaceU3S(
     int Nmax, int N1v,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
-    const std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>& 
+    const std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>&
         NnpNn_organized_unit_tensor_subspaces
     )
   {
@@ -119,8 +121,8 @@ namespace u3shell {
         const UnitTensorSubspaceLabelsSet& unit_tensor_subspace_labels_set=it->second;
         for(auto& unit_tensor_subspace_labels : unit_tensor_subspace_labels_set)
           {
-            u3::SU3 x0; 
-            HalfInt S0; 
+            u3::SU3 x0;
+            HalfInt S0;
             int etap,eta;
             std::tie(x0,S0,etap,eta)=unit_tensor_subspace_labels;
             // construct subspace
@@ -139,15 +141,15 @@ namespace u3shell {
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
         const SubspaceType& subspace = GetSubspace(subspace_index);
-        
-        std::string subspace_string 
+
+        std::string subspace_string
           = fmt::format(
               "index {:3} {} size {:3}",
               subspace_index,
               subspace.Str(),
               subspace.size()
             );
-                        
+
         os << subspace_string << std::endl;
       }
     return os.str();
@@ -159,11 +161,11 @@ namespace u3shell {
   {
     // set values
     labels_ = SubspaceLabelsType(N0,x0,S0,kappa0,L0);
-    PushStateLabels(1); 
+    PushStateLabels(1);
 
   }
 
-  
+
   std::string ObservableSubspaceU3S::Str() const
   {
 
@@ -183,19 +185,19 @@ namespace u3shell {
     const std::vector<u3shell::IndexedOperatorLabelsU3S>& observable_labels
   )
   {
-    
+
     for(auto& tensor : observable_labels)
       {
         u3shell::OperatorLabelsU3S u3s_labels;
         int kappa0,L0;
         std::tie(u3s_labels,kappa0,L0)=tensor;
-        
-        // Extract labels 
+
+        // Extract labels
         int N0=u3s_labels.N0();
         u3::SU3 x0=u3s_labels.x0();
         HalfInt S0=u3s_labels.S0();
 
-        ObservableSubspaceU3S 
+        ObservableSubspaceU3S
           subspace(N0,x0,S0,kappa0,L0);
 
         // push subspace if nonempty
@@ -213,17 +215,17 @@ namespace u3shell {
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
         const SubspaceType& subspace = GetSubspace(subspace_index);
-        
-        std::string subspace_string 
+
+        std::string subspace_string
           = fmt::format(
               "index {:3} {} size {:3}",
               subspace_index,
               subspace.Str(),
               subspace.size()
             );
-                        
+
         os << subspace_string << std::endl;
       }
     return os.str();
-  } 
+  }
 }

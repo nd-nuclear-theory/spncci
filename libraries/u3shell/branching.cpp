@@ -10,7 +10,7 @@
 #include <fstream>
 
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "basis/lsjt_operator.h"
 
 #include "am/wigner_gsl.h"

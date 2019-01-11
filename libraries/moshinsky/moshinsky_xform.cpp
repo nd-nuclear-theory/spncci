@@ -6,7 +6,7 @@
 
 ****************************************************************/
 #include <cmath>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #include "sp3rlib/u3coef.h"
 #include "moshinsky/moshinsky_xform.h"

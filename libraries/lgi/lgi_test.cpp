@@ -1,6 +1,6 @@
 /****************************************************************
   lgi_test.cpp
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -9,7 +9,9 @@
 ****************************************************************/
 #include "lgi/lgi.h"
 
-#include "cppformat/format.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
+#include "fmt/format.h"
 
 int main(int argc, char **argv)
 {
@@ -28,7 +30,7 @@ int main(int argc, char **argv)
 	ReadLGISet(filename, Nsigma0,lgi_vector);
 	for(auto lgi : lgi_vector)
 		std::cout<<lgi.irrep.Str()<<"  "<<lgi.tag<<std::endl;
-	
+
 
 
   std::cout << "Nsigma0ForNuclide" << std::endl;

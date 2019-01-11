@@ -15,7 +15,7 @@
 
 #include <fstream>
 #include <unordered_set>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #include "lgi/lgi_solver.h"
 #include "lsu3shell/lsu3shell_basis.h"

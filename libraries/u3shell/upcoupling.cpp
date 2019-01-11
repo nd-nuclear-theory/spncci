@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include "am/am.h"
 #include "am/wigner_gsl.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 #include "u3shell/tensor_labels.h"
 

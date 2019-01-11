@@ -9,7 +9,7 @@
   3/10/16 (aem,mac): Created based on prototype u3.py and 
   T. Dytrych CSU3Master.
 ****************************************************************/
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #include "am/halfint.h"
 #include "am/wigner_gsl.h"

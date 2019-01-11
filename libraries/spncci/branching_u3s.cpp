@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 #include "mcutils/eigen.h"
 #include "spncci/io_control.h"

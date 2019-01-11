@@ -8,7 +8,7 @@
 
 #include "lgi/null_solver.h"
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 int main(int argc, char **argv)
 {
