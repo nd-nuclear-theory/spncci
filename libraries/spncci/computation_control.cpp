@@ -9,7 +9,7 @@
 #include "spncci/computation_control.h"
 
 // #include "SymEigsSolver.h"  // from spectra
-#include "cppformat/format.h"
+#include "fmt/format.h"
 // #include "lgi/lgi_solver.h"
 // #include "mcutils/eigen.h"
 #include "spncci/results_output.h"

@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #define WRU3_FUNCTION su3lib::wru3optimized_
 

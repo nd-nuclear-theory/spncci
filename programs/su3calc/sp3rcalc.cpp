@@ -100,7 +100,7 @@
 #include <sstream>
 #include <string>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 #include "sp3rlib/sp3r.h"
 

@@ -12,7 +12,7 @@
 #include <omp.h>  
 #include "mcutils/io.h"
 #include "mcutils/eigen.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/parsing.h" //For ReadUnitTensorLabels
 #include "mcutils/io.h"//For ReadUnitTensorLabels

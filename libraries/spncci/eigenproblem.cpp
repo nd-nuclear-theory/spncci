@@ -10,14 +10,14 @@
 
 #include <iostream>
 #include <fstream>
-#include "SymEigsSolver.h"  // from spectra
+#include "Spectra/SymEigsSolver.h"  // from spectra
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/eigen.h"
 
 namespace spncci
 {
-  void 
+  void
   SolveHamiltonian(
       const spncci::OperatorBlock& hamiltonian_matrix,
       int num_eigenvalues,
@@ -27,7 +27,7 @@ namespace spncci
       spncci::Vector& eigenvalues,
       spncci::Matrix& eigenvectors
     )
-  {    
+  {
 
     // handle low-dimensional exceptions
     //
@@ -67,11 +67,11 @@ namespace spncci
         //
         //   ComputationInfo info 	( 		) 	const
         //   	inline
-        //   
+        //
         //   Reports whether previous computation was successful.
-        //   
+        //
         //   Returns
-        //       Success if computation was succesful, NoConvergence otherwise. 
+        //       Success if computation was succesful, NoConvergence otherwise.
 
 
         int eigensolver_status = eigensolver.info();
@@ -121,9 +121,9 @@ namespace spncci
         std::cout
           << fmt::format("  Eigensolver reports: eigenvectors {} status {} num_iterations {}",converged_eigenvectors,eigensolver_status,eigensolver_num_iterations)
           << std::endl;
-        
+
         // TODO: Mark, what is going on here.  Should converged eigenvectors equal number of eigenvalues?
-          
+
         assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
         assert(converged_eigenvectors=eigensolver.eigenvectors().cols());  // should this always be true?
         assert(converged_eigenvectors==num_eigenvalues);  // require that expected number of eigenvectors
@@ -137,7 +137,7 @@ namespace spncci
     std::cout << fmt::format("  Eigenvalues:") << std::endl
               << mcutils::FormatMatrix(eigenvalues.transpose(),"8.5f","    ")
               << std::endl;
-    
+
     // check eigenvector norms
     spncci::Vector eigenvector_norms(eigenvectors.cols());
     for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)
@@ -158,7 +158,7 @@ namespace spncci
       std::string filename=fmt::format("hamiltonian_matrix{:0.1f}.out",hw);
       std::ofstream stream(filename);
       int rows=hamiltonian_matrix.rows();
-      stream<<rows<<std::endl; 
+      stream<<rows<<std::endl;
       stream<<hamiltonian_matrix<<std::endl;
 
       // for(int row=0; row<rows; ++row)

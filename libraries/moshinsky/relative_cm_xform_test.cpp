@@ -8,10 +8,12 @@
 ****************************************************************/
 #include <fstream>
 #include <iostream>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "basis/lsjt_operator.h"
 
 #include "am/am.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
 #include "am/wigner_gsl.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/relative_operator.h"
@@ -98,7 +100,7 @@ CMBranchLSJT(
       )
   {
     int version = 1;
-    os 
+    os
       << "# RELATIVE LSJT" << std::endl
       << "#   version" << std::endl
       << "#   J0 g0 T0_min T0_max symmetry_phase_mode  [P0=(-)^g0]" << std::endl
@@ -173,24 +175,24 @@ CMBranchLSJT(
 					    double matrix_element=0.0;
 					    if(rel_tensors_lsjt.count(braket1)!=0)
 					    	matrix_element=rel_tensors_lsjt[braket1];
-					    if(rel_tensors_lsjt.count(braket2)!=0)	    
+					    if(rel_tensors_lsjt.count(braket2)!=0)
 					    	matrix_element=rel_tensors_lsjt[braket2];
 
 			        os << std::setprecision(precision);
-						  os 
+						  os
 								<< " " << std::setw(width) << T0
 								<< " " << "  "
 								<< " " << std::setw(width) << bra.N()
-								<< " " << std::setw(width) << bra.L() 
-								<< " " << std::setw(width) << bra.S() 
-								<< " " << std::setw(width) << bra.J() 
-								<< " " << std::setw(width) << bra.T() 
+								<< " " << std::setw(width) << bra.L()
+								<< " " << std::setw(width) << bra.S()
+								<< " " << std::setw(width) << bra.J()
+								<< " " << std::setw(width) << bra.T()
 								<< " " << "  "
 								<< " " << std::setw(width) << ket.N()
-								<< " " << std::setw(width) << ket.L() 
-								<< " " << std::setw(width) << ket.S() 
-								<< " " << std::setw(width) << ket.J() 
-								<< " " << std::setw(width) << ket.T() 
+								<< " " << std::setw(width) << ket.L()
+								<< " " << std::setw(width) << ket.S()
+								<< " " << std::setw(width) << ket.J()
+								<< " " << std::setw(width) << ket.T()
 								<< " " << "  "
 								<< " " << std::showpoint << std::scientific << matrix_element
 								<< std::endl;
@@ -198,7 +200,7 @@ CMBranchLSJT(
 			}
 	}
 
-void 
+void
 ReadRelativeCMOperatorNLSJT(std::istream& is,
 		std::map<RelativeCMLSJTBraket,double>& relative_cm_lsjt_map,
 		int J0
@@ -233,16 +235,16 @@ ReadRelativeCMOperatorNLSJT(std::istream& is,
 		}
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// In order to compare with shell relative-cm transformation, the code must be run once, then the 
-// shell code using the input file generated here, then run this code again with same input tensor. 
+// In order to compare with shell relative-cm transformation, the code must be run once, then the
+// shell code using the input file generated here, then run this code again with same input tensor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
 
-  int Nmax=4; 
-  int Jmax=4; 
+  int Nmax=4;
+  int Jmax=4;
   int J0=0,Sp,Tp,S,T;
  	int Np,N,lambda,mu,S0,T00;
  	std::cin >>Np>>Sp>>Tp>>N>>S>>T>>lambda>>mu>>S0>>T00>>Nmax;
@@ -253,7 +255,7 @@ int main(int argc, char **argv)
   u3::SU3 x0(lambda,mu);
   u3shell::RelativeUnitTensorLabelsU3ST relative_tensor(x0,S0,T00,bra,ket);
 
-  // // Can be used to generate list of tensor labels to be fed into input stream for this program  
+  // // Can be used to generate list of tensor labels to be fed into input stream for this program
   // // std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors_out;
   // //
   // u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, relative_unit_tensors_out);
@@ -346,8 +348,8 @@ int main(int argc, char **argv)
     }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Coupling to center of mass at LST level and branching to check against 
-  // output from shell code 
+  // Coupling to center of mass at LST level and branching to check against
+  // output from shell code
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   std::map<u3shell::RelativeCMBraketNLST,double> rel_cm_lst_map;
@@ -402,7 +404,7 @@ int main(int argc, char **argv)
 
       for(auto it2=expansion.begin(); it2!=expansion.end(); ++it2)
       {
-          
+
           u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st=it2->first;
           double coef=it2->second;
           if(fabs(coef)>zero_threshold)
@@ -410,13 +412,13 @@ int main(int argc, char **argv)
       }
     }
 
-  // //Transformation to relative-cm at U(3) level, currently not working 
+  // //Transformation to relative-cm at U(3) level, currently not working
   // //
   // RelativeCMUnitTensorCache expansion;
   // UpcoupleCMU3ST(rel_cm_lst_map,expansion);
   // for(auto it2=expansion.begin(); it2!=expansion.end(); ++it2)
   // {
-      
+
   //     u3shell::RelativeCMUnitTensorLabelsU3ST braket_u3st=it2->first;
   //     double coef=it2->second;
   //     // if(fabs(coef)>zero_threshold)

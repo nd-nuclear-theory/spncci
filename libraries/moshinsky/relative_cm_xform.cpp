@@ -8,7 +8,7 @@
 
 #include <fstream>
 #include <iostream>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "basis/lsjt_operator.h"
 
 #include "am/am.h"

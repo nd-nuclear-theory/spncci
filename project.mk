@@ -5,7 +5,7 @@
 project_name := spncci
 
 ################################################################
-# modules -- list of directories in which to search 
+# modules -- list of directories in which to search
 # for module.mk include files
 ################################################################
 
@@ -17,13 +17,13 @@ project_name := spncci
 # course, they are only template libraries, so nobody needs to link to
 # them).
 
-modules += libraries/spncci libraries/lgi libraries/lsu3shell 
+modules += libraries/spncci libraries/lgi libraries/lsu3shell
 modules += libraries/moshinsky libraries/u3shell libraries/sp3rlib  # ordering note: "mid-level" operations
 modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" operations, called by many other libraries
 
 # additional libraries -- imported
-modules += libraries/cppformat
- 
+modules += libraries/fmt
+
 # additional libraries -- cloned as submodules
 modules += libraries/basis libraries/am libraries/mcutils  # ordering note: mcutils is called by basis
 
@@ -45,8 +45,8 @@ extras :=
 ################################################################
 
 # gsl
-LDLIBS += -lgsl 
-LDLIBS += -lgslcblas 
+LDLIBS += -lgsl
+LDLIBS += -lgslcblas
 CPPFLAGS += -DHAVE_INLINE
 
 # Eigen
@@ -60,7 +60,7 @@ CPPFLAGS += -DNOVERBOSE -DNOVERBOSE_OMP
 CPPFLAGS += -DBASIS_HASH
 
 # spncci program algorithm choices
-#   map vs. hash unit tensor sectors 
+#   map vs. hash unit tensor sectors
 CPPFLAGS += -DNOHASH_UNIT_TENSOR
 #   precalculation and caching of U coefficients
 CPPFLAGS += -DUSE_U_COEF_CACHE
@@ -95,7 +95,7 @@ FFLAGS += -DSU3LM82
 # % git clone https://github.com/yixuan/spectra.git
 # % setenv SPECTRA_DIR ${home}/code/spectra
 #
-# or 
+# or
 #
 # % wget https://github.com/yixuan/spectra/archive/v0.5.0.tar.gz
 #

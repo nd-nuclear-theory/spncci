@@ -11,7 +11,7 @@
   11/7/16 (aem): Created.
 ****************************************************************/
 #include <fstream>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #include "sp3rlib/u3coef.h"
 #include "lgi/lgi_solver.h"

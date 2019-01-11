@@ -12,8 +12,10 @@
 #include <iostream>
 
 #include "am/am.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
 #include "am/wigner_gsl.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 
 
@@ -60,7 +62,7 @@ namespace spncci
 
         // accumulate offset for next state
         substate_offset += kappa_max*state_dimension;
-        
+
       }
 
     // store final full dimension
@@ -101,7 +103,7 @@ namespace spncci
             ls_labels_set.insert(LSLabels(L,S));
           }
       }
-    
+
     // create subspaces
     for (const LSLabels& ls_labels : ls_labels_set)
       {
@@ -113,12 +115,12 @@ namespace spncci
 
   std::string SectorLabelsLS::Str() const
   {
-    return fmt::format("( {} {}  {} {}", 
+    return fmt::format("( {} {}  {} {}",
       bra_index(),ket_index(), L0(),S0());
   }
 
   void GenerateOperatorLabelsLS(
-    const HalfInt& J0, 
+    const HalfInt& J0,
     std::vector<OperatorLabelsLS>& tensor_labels
     )
   {
@@ -127,12 +129,12 @@ namespace spncci
       for(int S0=0; S0<=2; S0++)
         {
         if(am::AllowedTriangle(L0,S0,J0))
-          tensor_labels.emplace_back(L0,S0);    
-        }  
+          tensor_labels.emplace_back(L0,S0);
+        }
   }
 
   void GetSectorsLS(
-    const spncci::SpaceLS& space_bra, 
+    const spncci::SpaceLS& space_bra,
     const spncci::SpaceLS& space_ket,
     const std::vector<OperatorLabelsLS>& tensor_labels,
     std::vector<spncci::SectorLabelsLS>& sector_labels
@@ -154,7 +156,7 @@ namespace spncci
 
 
 
-  void 
+  void
   ContractAndRegroupLSJ(
         const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
         u3::WCoefCache& w_cache,
@@ -179,23 +181,23 @@ namespace spncci
         // std::cout<<"t "<<t<<std::endl;
 
         const spncci::SectorLabelsLS& sector_labels=target_sector_labels[t];
-        const spncci::SubspaceLS& 
+        const spncci::SubspaceLS&
           ket_subspace=target_space_ket.GetSubspace(sector_labels.ket_index());
-        const spncci::SubspaceLS& 
+        const spncci::SubspaceLS&
           bra_subspace=target_space_bra.GetSubspace(sector_labels.bra_index());
-        
+
         int target_dim_bra=bra_subspace.full_dimension();
         int target_dim_ket=ket_subspace.full_dimension();
         // Zero initialize
         spncci::OperatorBlock& target_block=target_blocks[t];
         target_block=spncci::OperatorBlock::Zero(target_dim_bra,target_dim_ket);
-       
 
 
-        // Extract target labels 
+
+        // Extract target labels
         int L0(sector_labels.L0());
         HalfInt S0(sector_labels.S0());
-        
+
         int L, Lp;
         HalfInt S,Sp;
 
@@ -204,7 +206,7 @@ namespace spncci
 
         spncci::MatrixFloatType Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
         // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
-        
+
         // std::cout<<"starting loop over sources "<<std::endl;
         for(int s=0; s<source_hypersectors.size(); ++s)
           {
@@ -216,7 +218,7 @@ namespace spncci
             int source_index_ket=source_hypersector.ket_subspace_index();
             int source_index_bra=source_hypersector.bra_subspace_index();
             int source_index_operator=source_hypersector.operator_subspace_index();
-            
+
 
             // Check if sector is source for target sector
             if(not bra_subspace.ContainsState(std::tuple<int>(source_index_bra)))
@@ -229,7 +231,7 @@ namespace spncci
 
             if(L0!=observable_subspace.L0())
               continue;
-            
+
             if(S0!=observable_subspace.S0())
               continue;
 
@@ -237,22 +239,22 @@ namespace spncci
             int indexp=bra_subspace.sector_index(bra_subspace.LookUpStateIndex(std::tuple<int>(source_index_bra)));
             int index=ket_subspace.sector_index(ket_subspace.LookUpStateIndex(std::tuple<int>(source_index_ket)));
 
-            //Extract source hypersector labels 
+            //Extract source hypersector labels
             const u3::SU3& x0=observable_subspace.x0();
             const HalfInt& S0=observable_subspace.S0();
             int kappa0=observable_subspace.kappa0();
             int rho0=source_hypersector.multiplicity_index();
 
-            const spncci::SubspaceU3S& 
+            const spncci::SubspaceU3S&
               u3s_subspace_bra=u3s_space.GetSubspace(source_index_bra);
-            const spncci::SubspaceU3S& 
+            const spncci::SubspaceU3S&
               u3s_subspace_ket=u3s_space.GetSubspace(source_index_ket);
 
-            //source sector dimensions 
+            //source sector dimensions
             int source_dimp=u3s_subspace_bra.full_dimension();
             int source_dim=u3s_subspace_ket.full_dimension();
 
-            // Extract source state labels 
+            // Extract source state labels
             const u3::U3S& omegaSp=u3s_subspace_bra.labels();
             const u3::U3S& omegaS=u3s_subspace_ket.labels();
             assert(omegaSp.S()==Sp);
@@ -263,7 +265,7 @@ namespace spncci
             // Get branching multiplicity
             int kappa_max_p=u3::BranchingMultiplicitySO3(xp,Lp);
             int kappa_max=u3::BranchingMultiplicitySO3(x,L);
-            
+
             // std::cout<<"starting loop over kappap"<<std::endl;
             for(int kappa_p=1; kappa_p<=kappa_max_p; ++kappa_p)
               for(int kappa=1; kappa<=kappa_max; ++kappa)
@@ -271,7 +273,7 @@ namespace spncci
                   // Generate coefficient for each kappa and kappa_p and accumulate in
                   // target sector. Source sector dimensions are source_dimp x source_dim
                   // starting position given by :
-                  //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
+                  //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index)
                   spncci::MatrixFloatType Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
                   // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
                   //           <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
@@ -306,7 +308,7 @@ namespace spncci
         bra_matrix_index_lookup[s]=bra_index;
         bra_index+=full_dimension;
       }
-    
+
     int bra_matrix_dim=bra_index;
 
     int ket_index=0;
@@ -320,11 +322,11 @@ namespace spncci
       }
 
     int ket_matrix_dim=ket_index;
-    
+
     operator_matrix=spncci::OperatorBlock::Zero(bra_matrix_dim,ket_matrix_dim);
-    
+
     // For each sector in source sectors, get bra and ket indices, look-up matrix index
-    // and accumulate in full matrix 
+    // and accumulate in full matrix
     for(int s=0; s<source_blocks.size(); ++s)
       {
         const spncci::SectorLabelsLS& sector_labels=source_sector_labels[s];
@@ -369,7 +371,7 @@ namespace spncci
     spncci::GetSectorsLS(bra_space_lsj,ket_space_lsj,operator_labels_ls,sectors_lsj);
 
     // branch LS sectors to LSJ
-    spncci::OperatorBlocks matrices_lsj;  
+    spncci::OperatorBlocks matrices_lsj;
     // std::cout<<"contract and regroup"<<std::endl;
     ContractAndRegroupLSJ(
       bra_J,J0,ket_J,w_cache,space_u3s,

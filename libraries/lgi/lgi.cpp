@@ -12,7 +12,7 @@
 
 #include "mcutils/parsing.h"
 #include "mcutils/eigen.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 
 namespace lgi

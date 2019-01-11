@@ -15,7 +15,7 @@
 
 
 #include "am/wigner_gsl.h"  
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/eigen.h"
 #include "mcutils/parsing.h"
 #include "spncci/io_control.h"

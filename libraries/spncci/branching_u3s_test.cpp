@@ -11,7 +11,7 @@ OBSELETE
 #include <iostream>
 #include <fstream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/branching_u3s.h"

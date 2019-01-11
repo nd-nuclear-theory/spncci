@@ -3,8 +3,10 @@
 
 ****************************************************************/
 #include "u3shell/two_body_branching.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
 #include "am/wigner_gsl.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 extern double zero_threshold;
 
@@ -30,7 +32,7 @@ namespace u3shell
 	  std::map<TwoBodyBraketLST,double>& two_body_rmes_lst
 	  )
 	{
-	  
+
     u3::WCoefCache w_cache;
 
 	  for(auto it=indexed_two_body_rmes.begin(); it!=indexed_two_body_rmes.end(); ++it)
@@ -71,25 +73,25 @@ namespace u3shell
 	                for(int kappa=1; kappa<=kappa_max; ++kappa)
 	                  for(int L1p=N1p%2; L1p<=N1p; L1p+=2)
 	                    for(int L2p=N2p%2; L2p<=N2p; L2p+=2)
-	                      for(int L1=N1%2; L1<=N1; L1+=2)  
+	                      for(int L1=N1%2; L1<=N1; L1+=2)
 	                        for(int L2=N2%2; L2<=N2; L2+=2)
-	                          {     
+	                          {
 	                            if(not am::AllowedTriangle(L1,L2,L))
 	                              continue;
 	                            if(not am::AllowedTriangle(L1p,L2p, Lp))
 	                              continue;
 	                            TwoBodyStateLabelsLST bra(N1p,L1p,N2p,L2p,Lp,Sp,Tp);
-	                            TwoBodyStateLabelsLST ket(N1, L1,N2,L2,L,S,T);                            
+	                            TwoBodyStateLabelsLST ket(N1, L1,N2,L2,L,S,T);
 	                            TwoBodyBraketLST braket(L0,S0,T0,bra,ket);
 	                            int n1=(N1-L1)/2, n2=(N2-L2)/2,n1p=(N1p-L1p)/2, n2p=(N2p-L2p)/2;
-	                            
-	                            double 
+
+	                            double
 	                            rme_lst=rme_u3st
 	                            		*u3::WCached(w_cache,u3::SU3(N1p,0),1,L1p,u3::SU3(N2p,0),1,L2p,xp,kappap,Lp,1)
                                 	*u3::WCached(w_cache,u3::SU3(N1,0),1,L1,u3::SU3(N2,0),1,L2,x,kappa,L,1)
                                 	*u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappap,Lp,rho0)
                                 	*parity(n1+n2+n1p+n2p);
-	                            
+
 	                            two_body_rmes_lst[braket]+=rme_lst;
 	                          }
 	            }
@@ -213,14 +215,14 @@ namespace u3shell
 	      HalfInt J1,J2,J1p,J2p, Jp,J,Tp,T;
 	      std::tie(N1p,L1p,J1p,N2p,L2p,J2p,Jp,Tp)=bra;
 	      std::tie(N1,L1,J1,N2,L2,J2,J,T)=ket;
-			
+
 	      // if (Tp==0)
 	      // 	continue;
 	      // if (T==0)
 	      // 	continue;
 
-	      
-				// look up the corresponding 
+
+				// look up the corresponding
 	      std::tuple<int,int,HalfInt> lookup1p(N1p,L1p,J1p);
 	      std::tuple<int,int,HalfInt> lookup2p(N2p,L2p,J2p);
 	      std::tuple<int,int,HalfInt> lookup1(N1,L1,J1);
@@ -246,11 +248,11 @@ namespace u3shell
        //  	continue;
 
       	// conversion factors for pp, nn and pn terms
-      	double pn_conversion_factor=.5*am::ClebschGordan(T,0,T0,0,Tp,0); 
-      	
+      	double pn_conversion_factor=.5*am::ClebschGordan(T,0,T0,0,Tp,0);
+
       	// if(a1==a2)
       	// 	pn_conversion_factor*=sqrt(2);
-      	
+
       	// if(a1p==a2p)
       	// 	pn_conversion_factor*=sqrt(2);
 

@@ -15,7 +15,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #include "am/am.h"
 #include "sp3rlib/u3coef.h"

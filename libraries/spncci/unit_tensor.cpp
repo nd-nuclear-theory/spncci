@@ -10,7 +10,7 @@
 
 #include <omp.h>  
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/eigen.h"
 #include "sp3rlib/u3coef.h"
 #include "spncci/spncci_common.h"
