@@ -392,7 +392,7 @@ int main(int argc, char **argv)
     else if(operator_type=="Qpintr")
     {
       coef=coef*sqrt(5./(16*pi))*b2;
-      double coef_scalar=coef*(1+(Z-N)*1.0/A)/2;
+      double coef_scalar=coef*(1-(Z-N)*1.0/A)/2;
       u3shell::Qintr(Nmax+2*N1B,Operator,A,0,coef_scalar);
       double coef_vector=coef/2;
       u3shell::Qintr(Nmax+2*N1B,Operator,A,1,coef_vector);
@@ -400,7 +400,7 @@ int main(int argc, char **argv)
     else if(operator_type=="Qnintr")
     {
       coef=coef*sqrt(5./(16*pi))*b2;
-      double coef_scalar=coef*(1-(Z-N)*1.0/A)/2;
+      double coef_scalar=coef*(1+(Z-N)*1.0/A)/2;
       u3shell::Qintr(Nmax+2*N1B,Operator,A,0,coef_scalar);   
       double coef_vector=-1*coef/2;
       u3shell::Qintr(Nmax+2*N1B,Operator,A,1,coef_vector);
