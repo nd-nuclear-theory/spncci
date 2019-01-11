@@ -219,7 +219,7 @@ namespace spncci
 void ReadObservableHyperblocks(
   // int observable_index, int hw_index,
   std::istream& in_stream,
-  spncci::LGIPair& lgi_pair,
+  const spncci::LGIPair& lgi_pair,
   basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks  
   )
 
@@ -232,7 +232,7 @@ void ReadObservableHyperblocks(
 
   assert(lgi_pair.first==irrep_family_index_bra);
   assert(lgi_pair.second==irrep_family_index_ket);
-  lgi_pair=spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
+  // lgi_pair=spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
 
   // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<"  "<<omp_get_thread_num()<<std::endl;
   // Read number of hyperblocks 
@@ -409,6 +409,57 @@ void ReadObservableHypersectors(
           }
       }        
   }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  void WriteBabySpncciSymmetricObservableRMEs(
+    const spncci::LGIPair& lgi_pair,
+    const spncci::ObservableHypersectorsTable& baby_spncci_observable_hypersectors_table,
+    spncci::ObservableHyperblocksTable& observable_hyperblocks_table
+    )
+  {
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+            
+    
+    // int thread_num=omp_get_thread_num();
+    
+    // For each observable 
+    for(int observable_index=0; observable_index<observable_hyperblocks_table.size(); ++observable_index)
+      {
+        const auto& observable_hyperblocks_by_lgi_by_hw=observable_hyperblocks_table[observable_index];
+        const spncci::ObservableBabySpNCCIHypersectors& baby_spncci_observable_hypersectors
+                =baby_spncci_observable_hypersectors_table[observable_index];
+        
+        std::string hypersectors_filename
+          =fmt::format("hyperblocks/observable_hypersectors_{:02d}_{:04d}_{:04d}.rmes",observable_index,irrep_family_index_bra,irrep_family_index_ket);
+        spncci::WriteHyperSectors(
+          baby_spncci_observable_hypersectors,hypersectors_filename,
+          irrep_family_index_bra,irrep_family_index_ket
+        );
+
+        // for each hw value
+        for(int hw_index=0; hw_index<observable_hyperblocks_by_lgi_by_hw.size(); ++hw_index)
+          {
+            const basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks
+              =observable_hyperblocks_by_lgi_by_hw[hw_index];
+
+
+            
+            // One file per observable, per hw value
+            std::string filename=fmt::format("hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:04d}_{:04d}.rmes",observable_index,hw_index,irrep_family_index_bra,irrep_family_index_ket);
+            
+            // #pragma omp critical (write_observables)
+            // Now each thread writes to a separate file
+            spncci::WriteHyperBlock(
+              baby_spncci_observable_hyperblocks,filename,
+              irrep_family_index_bra,irrep_family_index_ket
+            );
+          }
+      }        
+  }
+
 
 
 

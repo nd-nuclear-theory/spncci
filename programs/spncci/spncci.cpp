@@ -80,6 +80,10 @@
     combined with observable spaces
   2/15/18 (aem) : Removed gamma_max=0 lgi
     + Cleaned up codes and factored spncci.cpp into simpler functions
+
+Notes:
+branching2 currently used for branching.  branching has old definitions still temp used for 
+basis statistics
 ****************************************************************/
 
 #include <cstdio>
@@ -112,13 +116,145 @@
 #include "spncci/results_output.h"
 #include "spncci/transform_basis.h"
 
+#include "spncci/hyperblocks_u3s.h"
 ////////////////////////////////////////////////////////////////
 // WIP code
 //
 // to extract to spncci library when ready
 //////////////////////////////////////////////////////////////// 
 namespace spncci
-{}// end namespace
+{
+
+// const spncci::LGIPair& lgi_pair=lgi_pairs[i];
+// 
+// After bool files_found=GenerateUnitTensorHyperblocks()
+// If seeds corresponding to lgi pair do not exist, continue to next pair
+//     if(not files_found)
+//       continue;
+
+void ComputeManyBodyRMEs(
+  const spncci::RunParameters& run_parameters,
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  const std::vector<int>& lgi_full_space_index_lookup,
+  const spncci::SpNCCISpace& spncci_space,
+  const spncci::BabySpNCCISpace& baby_spncci_space,
+  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
+  const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
+  const spncci::KMatrixCache& k_matrix_cache,
+  const spncci::KMatrixCache& kinv_matrix_cache,
+  spncci::OperatorBlocks& lgi_transformations,
+  u3::UCoefCache& u_coef_cache,
+  u3::PhiCoefCache& phi_coef_cache,
+  const spncci::LGIPair& lgi_pair
+  )
+  {
+
+    // by observable, by hw, by lgi pair
+    spncci::ObservableHyperblocksTable observable_hyperblocks_table(run_parameters.num_observables);
+    // Presize table
+    for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+      observable_hyperblocks_table[observable_index].resize(run_parameters.hw_values.size());
+
+    // Extract lgi index  labels 
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+        
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
+    spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
+    
+    // Generate Unit tensor blocks if lgi pair seed files found.
+    // If files not found, function returns false.
+    bool files_found
+      =GenerateUnitTensorHyperblocks(
+          lgi_pair,run_parameters.Nmax, run_parameters.N1v,
+          lgi_families,lgi_full_space_index_lookup,
+          spncci_space,baby_spncci_space,unit_tensor_space,
+          k_matrix_cache,kinv_matrix_cache,lgi_transformations,
+          run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
+          baby_spncci_hypersectors,unit_tensor_hyperblocks
+        );
+
+    // If seeds corresponding to lgi pair do not exist, continue to next pair
+    if(not files_found)
+      return;
+
+    // Initialize hyperblocks for (irrep2,irrep1)
+    spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks2;
+    spncci::BabySpNCCIHypersectors baby_spncci_hypersectors2;
+
+    // Check if hypersectors are diagonal in irrep family. 
+    bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
+          
+    if(not is_diagonal)
+      {  
+        // std::cout<<"conjugate pair"<<std::endl;
+        bool files_found2
+        =GenerateUnitTensorHyperblocks(
+            lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
+            lgi_families,lgi_full_space_index_lookup,
+            spncci_space,baby_spncci_space,unit_tensor_space,
+            k_matrix_cache,kinv_matrix_cache,lgi_transformations,
+            run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
+            baby_spncci_hypersectors2,unit_tensor_hyperblocks2
+          );
+
+        // If we've made it this far (passed files_found) then files for (irrep2,irrep1) should exist
+        assert(files_found2);
+      }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Contract and regroup
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // std::cout<<"contract "<<std::endl;
+    spncci::ObservableHypersectorsTable observable_hypersectors_table(run_parameters.num_observables);
+    spncci::ContractBabySpNCCIHypersectors(
+      lgi_pair,run_parameters.num_observables, run_parameters.hw_values.size(),
+      baby_spncci_space,observable_spaces,unit_tensor_space,
+      baby_spncci_hypersectors,baby_spncci_hypersectors2,
+      unit_tensor_hyperblocks,unit_tensor_hyperblocks2,
+      observables_relative_rmes,observable_hypersectors_table,
+      // observable_hypersectors_by_lgi_table,
+      observable_hyperblocks_table
+    );
+
+    spncci::WriteBabySpncciObservableRMEs(
+      lgi_pair,observable_hypersectors_table,
+      observable_hyperblocks_table
+    );
+    
+    int lgi1, lgi2;
+    std::tie(lgi1,lgi2)=lgi_pair;
+    std::cout<<fmt::format("finished lgi pair {}  {}",lgi1,lgi2)<<std::endl;
+
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Testing
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // by observable, by hw, by lgi pair
+    spncci::ObservableHyperblocksTable observable_hyperblocks_table_test(run_parameters.num_observables);
+
+    // Presize table
+    for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
+      observable_hyperblocks_table_test[observable_index].resize(run_parameters.hw_values.size());
+
+    spncci::ObservableHypersectorsTable observable_hypersectors_table_test(run_parameters.num_observables);
+    spncci::ContractBabySpNCCISymmetricHypersectors(
+      lgi_pair,run_parameters.num_observables, run_parameters.hw_values.size(),
+      baby_spncci_space,observable_spaces,unit_tensor_space,
+      baby_spncci_hypersectors,baby_spncci_hypersectors2,
+      unit_tensor_hyperblocks,unit_tensor_hyperblocks2,
+      observables_relative_rmes,observable_hypersectors_table_test,
+      observable_hyperblocks_table_test
+    );
+
+    spncci::WriteBabySpncciSymmetricObservableRMEs(lgi_pair,observable_hypersectors_table_test,observable_hyperblocks_table_test);
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    return;
+  }
+
+}// end namespace
 
 ////////////////////////////////////////////////////////////////
 // main body
@@ -475,9 +611,7 @@ int main(int argc, char **argv)
         // for(int i=0; i<run_parameters.num_observables; ++i)
         //   num_lgi_pairs_per_thread[i].resize(num_threads);
       }
-
-      
-      
+     
       // Private containers 
       //
       //coefficient caches
@@ -491,93 +625,17 @@ int main(int argc, char **argv)
       // for(int i=0; i<12; ++i)
       for(int i=0; i<lgi_pairs.size(); ++i)
         {
-
-          // Brought hyperbocks inside for loop to ensure deallocation 
-          // by observable, by hw, by lgi pair
-          spncci::ObservableHyperblocksTable observable_hyperblocks_table(run_parameters.num_observables);
-          // Formerly:
-          //    spncci::ObservableHyperblocksByLGIPairTable observable_hyperblocks_by_lgi_table(run_parameters.num_observables);
-          // Presize table
-          for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-            observable_hyperblocks_table[observable_index].resize(run_parameters.hw_values.size());
-
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
-          int irrep_family_index_bra,irrep_family_index_ket;
-          std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-          // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
-          // (irrep1,irrep2)
-          // spncci::LGIPair lgi_pair(irrep_family_index_bra,irrep_family_index_ket);
           
-          basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
-          spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
-          
-          // Generate Unit tensor blocks if lgi pair seed files found.
-          // If files not found, function returns false.
-          bool files_found
-            =GenerateUnitTensorHyperblocks(
-                lgi_pair,run_parameters.Nmax, run_parameters.N1v,
-                lgi_families,lgi_full_space_index_lookup,
-                spncci_space,baby_spncci_space,unit_tensor_space,
-                k_matrix_cache,kinv_matrix_cache,lgi_transformations,
-                run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
-                baby_spncci_hypersectors,unit_tensor_hyperblocks
-              );
-
-          if(not files_found)
-            continue;
-
-          // Check if hypersectors are diagonal in irrep family. 
-          bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
-
-          // Initialize hyperblocks for (irrep2,irrep1)
-          spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
-          basis::OperatorHyperblocks<double> unit_tensor_hyperblocks2;
-          spncci::BabySpNCCIHypersectors baby_spncci_hypersectors2;
-          
-          if(not is_diagonal)
-            {  
-              // std::cout<<"conjugate pair"<<std::endl;
-              bool files_found2
-              =GenerateUnitTensorHyperblocks(
-                  lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
-                  lgi_families,lgi_full_space_index_lookup,
-                  spncci_space,baby_spncci_space,unit_tensor_space,
-                  k_matrix_cache,kinv_matrix_cache,lgi_transformations,
-                  run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
-                  baby_spncci_hypersectors2,unit_tensor_hyperblocks2
-                );
-
-              // If we've made it this far (passed files_found) then files for (irrep2,irrep1) should exist
-              assert(files_found2);
-            }
-          //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          // Contract and regroup
-          //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          // std::cout<<"contract "<<std::endl;
-          spncci::ObservableHypersectorsTable observable_hypersectors_table(run_parameters.num_observables);
-          spncci::ContractBabySpNCCIHypersectors(
-            lgi_pair,run_parameters.num_observables, run_parameters.hw_values.size(),
-            baby_spncci_space,observable_spaces,unit_tensor_space,
-            baby_spncci_hypersectors,baby_spncci_hypersectors2,
-            unit_tensor_hyperblocks,unit_tensor_hyperblocks2,
-            observables_relative_rmes,observable_hypersectors_table,
-            // observable_hypersectors_by_lgi_table,
-            observable_hyperblocks_table
-          );
-          
-
-          // spncci::WriteBabySpncciObservableRMEs(lgi_pair,observable_hyperblocks_table);
-          spncci::WriteBabySpncciObservableRMEs(
-            lgi_pair,observable_hypersectors_table,
-            observable_hyperblocks_table
-          );
+          ComputeManyBodyRMEs(
+              run_parameters,lgi_families,lgi_full_space_index_lookup,
+              spncci_space,baby_spncci_space,unit_tensor_space, observable_spaces,
+              observables_relative_rmes,k_matrix_cache,kinv_matrix_cache,
+              lgi_transformations,u_coef_cache,phi_coef_cache,lgi_pair
+            );
 
           num_lgi_pairs_per_thread[omp_get_thread_num()]++;
           
-          int lgi1, lgi2;
-          std::tie(lgi1,lgi2)=lgi_pair;
-          std::cout<<fmt::format("finished lgi pair {}  {}",lgi1,lgi2)<<std::endl;
-
         }// end lgi_pair
 
         timer_recurrence.Stop();
@@ -652,17 +710,27 @@ int main(int argc, char **argv)
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
             // std::cout<<"constructing "<<std::endl;
             spncci::OperatorBlock hamiltonian_matrix;
-            spncci::ConstructOperatorMatrix(
-              baby_spncci_space,
-              observable_space,
-              J00,
-              // w_cache,
-              spbasis_bra, 
-              spbasis_ket, //For a given J
-              num_lgi_pairs_per_thread,
-              observable_index, hw_index,
-              hamiltonian_matrix
-            );
+            // spncci::ConstructOperatorMatrix(
+            //   baby_spncci_space,
+            //   observable_space,
+            //   J00,
+            //   // w_cache,
+            //   spbasis_bra, 
+            //   spbasis_ket, //For a given J
+            //   num_lgi_pairs_per_thread,
+            //   observable_index, hw_index,
+            //   hamiltonian_matrix
+            // );
+
+
+            // spncci::OperatorBlock hamiltonian_matrix_test;
+            spncci::ConstructSymmetricOperatorMatrix(
+                baby_spncci_space,observable_space,
+                J00,spbasis_bra,spbasis_ket,lgi_pairs,
+                observable_index, hw_index,
+                hamiltonian_matrix
+              );
+
 
             spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
             // std::cout<<hamiltonian_matrix<<std::endl;
@@ -828,7 +896,21 @@ int main(int argc, char **argv)
               );
 
 
-              // std::cout<<"calculate observable results"<<std::endl;
+            //REQUIRES ADDITIONAL TESTING
+              // IF mxn and m!=n, then need to change algorithm
+            // std::cout<<observable_block<<std::endl<<std::endl;
+
+            // spncci::OperatorBlock observable_block_test;
+            // spncci::ConstructSymmetricOperatorMatrix(
+            //     baby_spncci_space,observable_space,
+            //     J0,spbasis_bra,spbasis_ket,lgi_pairs,
+            //     observable_index, hw_index,
+            //     observable_block_test
+            //   );
+
+            //   std::cout<<observable_block_test<<std::endl<<std::endl;
+
+              std::cout<<"calculate observable results"<<std::endl;
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
               observable_results_matrix = eigenvectors[bra_index].transpose()
                 * observable_block

@@ -676,8 +676,22 @@ namespace spncci
       //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space 
       //   irrep_family_index=-1 means no restriction on which irrep family.    
 
+    ObservableBabySpNCCIHypersectors(
+        const spncci::BabySpNCCISpace& baby_spncci_space,
+        const u3shell::ObservableSpaceU3S& observable_space,
+        int irrep_family_index_1, int irrep_family_index_2, bool restrict_lower_triangle
+      );
+
   };
 
+
+  void NumBabySpncciSubspacesInIrrepFamily(
+    int num_irrep_families,
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    std::vector<int>& irrep_family_num_subspaces
+  );
+
+  void SortSubspacesDecending(const std::vector<int>& num_subspaces,std::vector<int>&ordered_subspaces);
 
 }  // namespace
 

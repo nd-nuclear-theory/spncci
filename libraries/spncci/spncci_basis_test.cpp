@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
 
   // diagnostic -- inspect irrep families
-  if(true)
+  if(false)
   {
     //Alternate truncator
     // generate SpNCCI space from LGIs
@@ -186,6 +186,21 @@ int main(int argc, char **argv)
 
     spncci::ObservableBabySpNCCIHypersectors observable_hypersectors(baby_spncci_space,observable_space);
     std::cout<<observable_hypersectors.DebugStr()<<std::endl;
+
+  }
+
+  if(true)
+  {
+    u3::U3CoefInit();
+    std::cout<<"testing baby spncci reordering"<<std::endl;
+    int num_irrep_families=multiplicity_tagged_lgi_vector.size();
+    std::vector<int> num_subspaces;
+    spncci::NumBabySpncciSubspacesInIrrepFamily(
+      num_irrep_families,baby_spncci_space,num_subspaces
+    );
+    std::cout<<"gotten number of irrep families"<<std::endl;
+    std::vector<int>ordered_subspaces;
+    spncci::SortSubspacesDecending(num_subspaces,ordered_subspaces);
 
   }
 
