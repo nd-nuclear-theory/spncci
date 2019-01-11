@@ -13,7 +13,7 @@
 #include <iostream>
 #include <omp.h>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "moshinsky/moshinsky_xform.h"
 
 

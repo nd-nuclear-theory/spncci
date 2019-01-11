@@ -13,7 +13,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 namespace lsu3shell
 {

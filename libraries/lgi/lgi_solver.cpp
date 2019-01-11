@@ -8,7 +8,7 @@
 #include <fstream>
 #include <omp.h>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi_solver.h"
 #include "lgi/null_solver.h"
 #include "utilities/utilities.h"

@@ -8,10 +8,12 @@
 ****************************************************************/
 #include <fstream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "basis/lsjt_operator.h"
 
 #include "am/am.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
 #include "am/wigner_gsl.h"
 #include "basis/jjjt_scheme.h"
 #include "sp3rlib/u3coef.h"
@@ -37,7 +39,7 @@ void PrintTwoBodyIndexedRMEU3ST(const u3shell::IndexedTwoBodyTensorRMEsU3ST& two
 }
 
 void RelativeToTwoBody(
-  const std::string interaction_filename, int Nmax, int N1v, 
+  const std::string interaction_filename, int Nmax, int N1v,
   int Jmax, int J0, int T0, int g0,
   std::map<u3shell::TwoBodyBraketJJJT,double>& two_body_rme_jjjt)
 {
@@ -59,8 +61,8 @@ void RelativeToTwoBody(
   u3shell::RelativeRMEsU3ST rme_map;
   u3shell::Upcoupling(
     relative_space_lsjt,
-    isospin_component_sectors_lsjt, 
-    isospin_component_matrices_lsjt, 
+    isospin_component_sectors_lsjt,
+    isospin_component_matrices_lsjt,
     w_cache, J0, g0,T0, Nmax,rme_map
     );
   std::cout<<rme_map.size()<<std::endl;
@@ -74,7 +76,7 @@ void RelativeToTwoBody(
   std::cout<<"Convering to Two-body"<<std::endl;
   u3shell::IndexedTwoBodyTensorRMEsU3ST j16_indexed_two_body_rmes;
   u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,N1v,rme_map,j16_indexed_two_body_rmes);
-  // PrintTwoBodyIndexedRMEU3ST(k2_indexed_two_body_rmes);  
+  // PrintTwoBodyIndexedRMEU3ST(k2_indexed_two_body_rmes);
 
   std::cout<<"branch nlst"<<std::endl;
   std::map<u3shell::TwoBodyBraketLST,double> j16_two_body_rmes_lst;
@@ -144,7 +146,7 @@ void CompareToMFDN(
         std::tuple<int,int,int,int,int,int> key(a1p,a2p,a1,a2,TwiceValue(J),type);
         double trme=test_map_jj[key];
         // if(fabs(rme-trme)>zero_threshold)
-          std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   {:3}   {:15.8f}  {:15.8f}   {:5.6f}", 
+          std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   {:3}   {:15.8f}  {:15.8f}   {:5.6f}",
             a1p,a2p,a1,a2,TwiceValue(J),type,rme,trme, fabs(rme/trme))<<std::endl;
 
       }
@@ -186,12 +188,12 @@ void CompareToMFDN(
   //     int a2p=h2_lookup[lookup2p];
   //     if(a1p>a2p)
   //       continue;
-  //     if (fabs(rme)>zero_threshold) 
+  //     if (fabs(rme)>zero_threshold)
   //       {
   //         std::tuple<int,int,int,int,int,int> key(a1p,a2p,a1,a2,TwiceValue(J),11);
   //         double trme=test_map_jj[key];
   //         // if(fabs(rme-trme)>zero_threshold)
-  //           std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   11   {:15.8f}  {:15.8f}   {:5.6f}", 
+  //           std::cout<<fmt::format("{:3} {:3} {:3} {:3}   {:3}   11   {:15.8f}  {:15.8f}   {:5.6f}",
   //             a1p,a2p,a1,a2,TwiceValue(J),rme,trme, fabs(rme/trme))<<std::endl;
   //       }
   // }
@@ -200,7 +202,7 @@ void CompareToMFDN(
 
   // ///////////////////////////////////////////////////////////////////////////////////////////////////
   // //// Identity Operator  TODO make into function
-  // ///////////////////////////////////////////////////////////////////////////////////////////////////  
+  // ///////////////////////////////////////////////////////////////////////////////////////////////////
   // u3shell::RelativeRMEsU3ST identity_relative_rmes;
 
   // for(auto tensor : relative_unit_tensors)
@@ -245,7 +247,7 @@ void CompareToMFDN(
 
   // std::cout<<"Identity JJJT "<<std::endl;
   // u3shell::PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -258,10 +260,10 @@ int main(int argc, char **argv)
   zero_threshold=1e-6;
 
   int Nmax=4;
-  int N1v=1; 
-  int Jmax=Nmax+2; 
+  int N1v=1;
+  int Jmax=Nmax+2;
   int J0=2;
-      
+
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
 
@@ -280,7 +282,7 @@ int main(int argc, char **argv)
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //// LSJT
-  ///////////////////////////////////////////////////////////////////////////////////////////////////  
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
   u3::WCoefCache w_cache;
   // std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
   // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
@@ -298,8 +300,8 @@ int main(int argc, char **argv)
   u3shell::RelativeRMEsU3ST rme_map;
   u3shell::Upcoupling(
     relative_space_lsjt,
-    isospin_component_sectors_lsjt, 
-    isospin_component_matrices_lsjt, 
+    isospin_component_sectors_lsjt,
+    isospin_component_matrices_lsjt,
     w_cache, J0, g0,T0, Nmax,rme_map
     );
 
@@ -399,7 +401,7 @@ int main(int argc, char **argv)
 //   // transforming from relative to two-body jjjt branched matrix elements
 //   std::map<u3shell::TwoBodyBraketJJJT,double> two_body_rme_jjjt;
 //   RelativeToTwoBody(
-//     interaction_filename, Nmax, N1v, 
+//     interaction_filename, Nmax, N1v,
 //     Jmax, J0, T0, g0,two_body_rme_jjjt);
 
 //   std::map<std::tuple<int,int,HalfInt>,int> h2_lookup;
@@ -430,7 +432,7 @@ int main(int argc, char **argv)
 //     }
 
 
-  
+
   // // std::string file_jj="test/JISP16-tb-6-20.dat";
   // std::string file_jj="test/VC-tb-6-20.dat";
   // CompareToMFDN(Nmax,two_body_rme_jjjt,file_jj);

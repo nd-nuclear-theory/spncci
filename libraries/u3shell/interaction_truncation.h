@@ -14,7 +14,7 @@
 #include <fstream>
 #include <unordered_set>
 #include "u3shell/relative_branching.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 namespace u3shell
 {

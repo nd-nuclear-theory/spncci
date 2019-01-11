@@ -4,7 +4,7 @@
 #include "u3shell/relative_branching.h"
 
 #include "am/wigner_gsl.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 extern double zero_threshold;
 

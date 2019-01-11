@@ -13,3 +13,9 @@
 [submodule "config/ndmakefile"]
 	path = config/ndmakefile
 	url = ../ndmakefile
+[submodule "libraries/fmt"]
+	path = libraries/fmt
+	branch = submodule
+	url = ../fmt
+        shallow = true
+

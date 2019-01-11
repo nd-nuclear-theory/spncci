@@ -13,7 +13,7 @@
 #include <fstream>
 #include <iostream>  
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 #include "lsu3shell/lsu3shell_basis.h"
 #include "lsu3shell/lsu3shell_operator.h"

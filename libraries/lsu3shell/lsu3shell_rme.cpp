@@ -12,7 +12,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/io.h"
 #include "mcutils/parsing.h"
 

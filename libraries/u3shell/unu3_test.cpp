@@ -10,7 +10,7 @@
 #include "u3shell/unu3.h"
 
 #include <iostream>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 int main(int argc, char **argv)
 {

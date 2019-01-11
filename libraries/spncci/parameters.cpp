@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 #include "spncci/spncci_basis.h"
 

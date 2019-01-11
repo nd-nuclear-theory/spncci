@@ -7,7 +7,7 @@
   11/6/17 (aem): Created.
 ****************************************************************/
 #include "u3shell/interaction_truncation.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 namespace u3shell
 {

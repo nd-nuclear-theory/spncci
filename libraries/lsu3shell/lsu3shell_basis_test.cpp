@@ -10,7 +10,7 @@
 #include <fstream>
 #include <ostream>  
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "sp3rlib/u3coef.h"
 // #include "spncci/sp_basis.h"
 // #include "spncci/lgi_unit_tensor.h"

@@ -48,7 +48,7 @@
 #include <fstream>
 #include <sys/resource.h>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/profiling.h"
 

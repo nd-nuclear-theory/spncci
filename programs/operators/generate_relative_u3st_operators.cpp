@@ -10,7 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include "boost/math/constants/constants.hpp"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 
 #include "u3shell/upcoupling.h"

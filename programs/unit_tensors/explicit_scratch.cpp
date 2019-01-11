@@ -35,7 +35,7 @@
 #include <sys/resource.h>
 
 #include "am/am.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi.h"
 #include "lgi/lgi_solver.h"
 #include "lsu3shell/lsu3shell_basis.h"

@@ -10,7 +10,7 @@
 
 #include <omp.h>  
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/eigen.h"
 #include "lgi/lgi_unit_tensors.h"
