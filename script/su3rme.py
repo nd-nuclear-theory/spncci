@@ -505,7 +505,7 @@ def do_generate_lsu3shell_rmes(task):
 
     # generate operators rmes
     calculate_rmes(task)
-
+    print("finished calculating rmes")
     # save results
     save_su3rme_files(task)
 

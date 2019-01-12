@@ -229,6 +229,53 @@ void UpcoupleQmass(int Nmax, int Jmax)
 
   }
 
+
+void UpcoupleQisovector(int Nmax, int Jmax)
+  {
+    
+    u3shell::RelativeRMEsU3ST rme_map;
+    basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
+    // std::vector<std::string> file_end={"pp","nn"};
+    std::vector<std::string> file_end={"total"};
+    for(int i=0; i<file_end.size(); ++i)
+    {
+      std::string filename="../../data/relative_interactions/quadrupole-isovector.dat";
+      // std::string filename="../../data/relative_interactions/quadrupole-isoscalar.dat";
+      std::cout<<filename<<std::endl;
+      std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
+      std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
+      basis::OperatorLabelsJT operator_labels;
+
+      basis::ReadRelativeOperatorLSJT(
+        filename,relative_lsjt_space,operator_labels,
+        T0_sector_labels_lsjt, T0_sectors_lsjt, true
+        );
+ 
+      Upcoupling(    
+        relative_lsjt_space,
+        T0_sector_labels_lsjt,
+        T0_sectors_lsjt,
+        2, 0, -1, Nmax,
+        rme_map
+      );
+    }
+  
+    for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
+      {
+        u3shell::RelativeUnitTensorLabelsU3ST op_labels;
+        int kappa0,L0;
+        std::tie(op_labels, kappa0,L0)=it->first;
+        double rme=it->second;
+        double check=u3shell::RelativeMassQuadrupoleOperator(op_labels.bra(), op_labels.ket());        
+        if(fabs(rme)>zero_threshold)
+          std::cout<<fmt::format("{} {} {}   {}  {}  {}",op_labels.Str(), kappa0,L0,rme,check, check/rme)<<std::endl;
+      }
+
+  }
+
+
+
+
 void
 QCheck()
 // Checking upcoupling using kinetic energy (k^2) using function in import_interaction
@@ -311,24 +358,28 @@ int main(int argc, char **argv)
   // double zero_threshold=10e-6;
   u3::U3CoefInit();
   // int Nmax=10;
-  int Nmax=6;
-  int N1v=1;
-  int Jmax=Nmax+2;
-  int J0=0;
-  int g0=0;
-	int T0=-1;
+ //  int Nmax=6;
+ //  int N1v=1;
+ //  int Jmax=Nmax+2;
+ //  int J0=0;
+ //  int g0=0;
+	// int T0=-1;
 
 
 
-  // UpcoupleQmass(Nmax,Jmax);
+  // // UpcoupleQmass(Nmax,Jmax);
 
-  // QCheck();
+  // // QCheck();
 
-  u3shell::RelativeRMEsU3ST id_relative_rme_map;
-  IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
+  // u3shell::RelativeRMEsU3ST id_relative_rme_map;
+  // IdentityTest(Nmax,Jmax,J0,T0, g0, id_relative_rme_map);
 
-  u3shell::RelativeRMEsU3ST ke_relative_rme_map;
-  KineticCheck(ke_relative_rme_map);
+  // u3shell::RelativeRMEsU3ST ke_relative_rme_map;
+  // KineticCheck(ke_relative_rme_map);
+
+  int Nmax=2;
+  int Jmax=4;
+  UpcoupleQisovector(Nmax, Jmax);
 
   // std::string filename="Trel_upcouled";
   // ReadWriteCheck(ke_relative_rme_map,filename);
