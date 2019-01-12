@@ -9,7 +9,7 @@
 #include "spncci/computation_control.h"
 
 // #include "SymEigsSolver.h"  // from spectra
-#include "cppformat/format.h"
+#include "fmt/format.h"
 // #include "lgi/lgi_solver.h"
 // #include "mcutils/eigen.h"
 #include "spncci/results_output.h"
@@ -38,8 +38,8 @@ namespace spncci
     std::cout << "Set up SpNCCI space..." << std::endl;
 
     // build SpNCCI irrep branchings
-    // spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
-    spncci::NlimitTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax,Nlimit);
+    spncci::NmaxTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax);
+    // spncci::NlimitTruncator truncator(run_parameters.Nsigma0,run_parameters.Nmax,Nlimit);
 
     // spncci::GenerateSpNCCISpace(lgi_families_truncated,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
     spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);

@@ -8,7 +8,7 @@
 
 #include "u3shell/u3s_scheme.h"
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 
 
 ////////////////////////////////////////////////////////////////

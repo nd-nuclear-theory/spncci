@@ -8,7 +8,7 @@
 ****************************************************************/
 #include <fstream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "am/am.h"
 #include "mcutils/eigen.h"
 #include "u3shell/two_body_operator.h"

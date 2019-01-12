@@ -61,7 +61,7 @@ namespace spncci
 void ReadObservableHyperblocks(
   // int observable_index, int hw_index,
   std::istream& in_stream,
-  spncci::LGIPair& lgi_pair,
+  const spncci::LGIPair& lgi_pair,
   basis::OperatorHyperblocks<double>& baby_spncci_observable_hyperblocks  
   );
 //Read observable Hyperblocks from temporary storage in hyperblocks/
@@ -82,6 +82,12 @@ void ReadObservableHypersectors(
 
     void WriteBabySpncciObservableRMEs(
     const spncci::LGIPair& lgi_pair,
+    spncci::ObservableHyperblocksTable& observable_hyperblocks_table
+    );
+
+  void WriteBabySpncciSymmetricObservableRMEs(
+    const spncci::LGIPair& lgi_pair,
+    const spncci::ObservableHypersectorsTable& baby_spncci_observable_hypersectors_table,
     spncci::ObservableHyperblocksTable& observable_hyperblocks_table
     );
 

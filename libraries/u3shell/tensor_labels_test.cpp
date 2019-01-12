@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "u3shell/tensor_labels.h"
 
 ////////////////////////////////////////////////////////////////

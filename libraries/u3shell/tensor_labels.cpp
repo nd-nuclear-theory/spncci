@@ -5,12 +5,14 @@
   University of Notre Dame
 
 ****************************************************************/
-  
+
 #include "u3shell/tensor_labels.h"
 
 #include <sstream>
 
-#include "cppformat/format.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
+#include "fmt/format.h"
 
 namespace u3shell {
 
@@ -80,7 +82,7 @@ namespace u3shell {
         bra().Str(),ket().Str()
       );
   }
- 
+
   std::string RelativeCMUnitTensorLabelsU3ST::Str() const
   {
 
@@ -122,7 +124,7 @@ namespace u3shell {
       );
   }
 
- 
+
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 } // namespace

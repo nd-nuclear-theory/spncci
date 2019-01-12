@@ -163,7 +163,9 @@ def generate_observable_rmes(task):
     os.chdir("relative_observables")
     
     # set parameters
-    A = int(task["nuclide"][0]+task["nuclide"][1])
+    Z=int(task["nuclide"][0])
+    N=int(task["nuclide"][1])
+    A=Z+N
     Nmax=task["Nmax"]
     J0=0
     T0=-1
@@ -203,7 +205,7 @@ def generate_observable_rmes(task):
         # TODO: fix to take (N,Z) instead of (A,N1v), and remove N1v from task dictionary
         command_line = [
                 generate_relative_operator_rmes_executable,
-                "{}".format(A) ,   
+                "{}".format(Z),"{}".format(N),    
                 "{Nmax:d}".format(**task),
                 "{N1v:d}".format(**task),
                 "hamiltonian"
@@ -229,7 +231,7 @@ def generate_observable_rmes(task):
             print("made load file")
             command_line = [
                 generate_relative_operator_rmes_executable,
-                "{:d}".format(A) ,   
+                "{}".format(Z),"{}".format(N),    
                 "{Nmax:d}".format(**task),
                 "{N1v:d}".format(**task),
                 "{}".format(observable_name)

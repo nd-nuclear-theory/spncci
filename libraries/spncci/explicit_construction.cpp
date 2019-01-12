@@ -9,7 +9,7 @@
 #include "spncci/explicit_construction.h"
 
 #include <omp.h>
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/eigen.h"
 #include "lgi/lgi_solver.h"
 #include "lgi/lgi_unit_tensors.h"

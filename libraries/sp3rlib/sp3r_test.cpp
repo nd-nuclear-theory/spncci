@@ -9,7 +9,7 @@
 ****************************************************************/
 
 #include "sp3rlib/sp3r.h"
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include <iostream>
 #include "sp3rlib/u3coef.h"
 int main(int argc, char **argv)

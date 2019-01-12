@@ -12,8 +12,10 @@
 #include <sstream>
 #include <iostream>
 
-#include "cppformat/format.h"
-#include "am/wigner_gsl.h"  
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
+#include "am/wigner_gsl.h"
+#include "fmt/format.h"
 #include "mcutils/parsing.h"
 #include "spncci/unit_tensor.h"
 
@@ -22,7 +24,7 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to U3S level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
 
   SubspaceSpU3S::SubspaceSpU3S(const u3::U3S& omegaS,const BabySpNCCISpace& baby_spncci_space)
   {
@@ -80,10 +82,10 @@ namespace spncci
   {
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
-  
+
         // set up alias
         const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
-  
+
         // create new subspace -- only if not already constructed for this (omega,S)
         u3::U3S omegaS = u3::U3S(baby_spncci_subspace.omega(),baby_spncci_subspace.S());
         if(ContainsSubspace(omegaS))
@@ -110,7 +112,7 @@ namespace spncci
         u3::U3S omegaS = u3::U3S(baby_spncci_subspace.omega(),baby_spncci_subspace.S());
         omegaS_set.insert(omegaS);
       }
-    
+
     // create subspaces
     for (const u3::U3S& omegaS : omegaS_set)
         PushSubspace(SubspaceSpU3S(omegaS,baby_spncci_space));
@@ -141,12 +143,12 @@ namespace spncci
 
   std::string SectorLabelsSpU3S::Str() const
   {
-    return fmt::format("( {} {}  {}{} {} : {} {}  {}", 
+    return fmt::format("( {} {}  {}{} {} : {} {}  {}",
                        bra_index(),ket_index(), N0(), x0().Str(),S0(),kappa0(),L0(),rho0());
   }
 
   void GetSectorsSpU3S(
-      const spncci::SpaceSpU3S& space, 
+      const spncci::SpaceSpU3S& space,
       const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
       std::vector<spncci::SectorLabelsSpU3S>& sector_vector
     )
@@ -156,7 +158,7 @@ namespace spncci
       for(int j=0; j<space.size(); ++j)
         for(int i=0; i<space.size(); ++i)
           {
-            int kappa0,L0; 
+            int kappa0,L0;
             u3shell::OperatorLabelsU3S op_labels;
             std::tie(op_labels, kappa0,L0)=tensor_labels;
             assert(kappa0!=0);
@@ -166,7 +168,7 @@ namespace spncci
             // Check if allowed U(1) coupling
             if(omegaS.U3().N()+op_labels.N0()!=omegapSp.U3().N())
               continue;
-            // Check if allowed SU(2) coupling 
+            // Check if allowed SU(2) coupling
             if(not am::AllowedTriangle(omegaS.S(), op_labels.S0(), omegapSp.S()))
               continue;
             for(int rho0=1; rho0<=rho0_max; ++rho0)
@@ -190,7 +192,7 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to LS level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
 
   SubspaceSpLS::SubspaceSpLS(const spncci::LSLabels& ls_labels, const SpaceSpU3S& spu3s_space)
   {
@@ -287,7 +289,7 @@ namespace spncci
             ls_labels_set.insert(LSLabels(L,S));
           }
       }
-    
+
     // create subspaces
     for (const LSLabels& ls_labels : ls_labels_set)
       PushSubspace(SubspaceSpLS(ls_labels,spu3s_space));
@@ -317,7 +319,7 @@ namespace spncci
             ls_labels_set.insert(LSLabels(L,S));
           }
       }
-    
+
     // create subspaces
     for (const LSLabels& ls_labels : ls_labels_set)
       PushSubspace(SubspaceSpLS(ls_labels,spu3s_space));
@@ -346,12 +348,12 @@ namespace spncci
 
   std::string SectorLabelsSpLS::Str() const
   {
-    return fmt::format("( {} {}  {} {}", 
+    return fmt::format("( {} {}  {} {}",
       bra_index(),ket_index(), L0(),S0());
   }
 
   void GenerateOperatorLabelsSpLS(
-    const HalfInt& J0, 
+    const HalfInt& J0,
     std::vector<OperatorLabelsLS>& tensor_labels
     )
   {
@@ -360,13 +362,13 @@ namespace spncci
       for(int S0=0; S0<=2; S0++)
         {
         if(am::AllowedTriangle(L0,S0,J0))
-          tensor_labels.emplace_back(L0,S0);    
-        }  
+          tensor_labels.emplace_back(L0,S0);
+        }
   }
 
 
   void GetSectorsSpLS(
-    const spncci::SpaceSpLS& space_bra, 
+    const spncci::SpaceSpLS& space_bra,
     const spncci::SpaceSpLS& space_ket,
     const std::vector<OperatorLabelsLS>& tensor_labels,
     std::vector<spncci::SectorLabelsSpLS>& sector_labels
@@ -387,7 +389,7 @@ namespace spncci
   }
 
 
-  void 
+  void
   ContractAndRegroupSpU3S(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
@@ -405,14 +407,14 @@ namespace spncci
         u3shell::OperatorLabelsU3S target_tensor_labels;
         std::tie(target_bra_index,target_ket_index,target_tensor_labels,target_kappa0,target_L0,target_rho0)
           =target_sectors_u3s[target_sector_index].Key();
-        
-        // Get corresponding SpU3S subspaces 
+
+        // Get corresponding SpU3S subspaces
         const spncci::SubspaceSpU3S& bra_target_subspace=target_space.GetSubspace(target_bra_index);
         const spncci::SubspaceSpU3S& ket_target_subspace=target_space.GetSubspace(target_ket_index);
 
         u3::U3 omegap=bra_target_subspace.omega();
         u3::U3 omega=ket_target_subspace.omega();
-        
+
         // std::cout<<"begin observables for target "<<target_sector_index<<std::endl;
         for(auto it=relative_observable.begin(); it!=relative_observable.end(); ++it)
           {
@@ -422,10 +424,10 @@ namespace spncci
             if((target_L0!=L0)||(target_kappa0!=kappa0))
               continue;
 
-            // Get rmes 
+            // Get rmes
             const std::vector<double>& relative_rmes=it->second;
-            
-            // Get Unit Tensor subspace 
+
+            // Get Unit Tensor subspace
             const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
               =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
@@ -434,9 +436,9 @@ namespace spncci
             HalfInt S0;
             std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
 
-            // Check if operator tensor labels match target 
+            // Check if operator tensor labels match target
             if( (not (target_tensor_labels.x0()==x0))
-              || (target_tensor_labels.S0()!=S0) 
+              || (target_tensor_labels.S0()!=S0)
               || (target_tensor_labels.N0()!=(etap-eta))
               )
               continue;
@@ -446,15 +448,15 @@ namespace spncci
                 {
                   // if(target_sector_index==316)
                   //   std::cout<<"made it here 1"<<std::endl;
-                  // extracting baby spncci state information 
+                  // extracting baby spncci state information
                   spncci::StateSpU3S baby_spncci_bra(bra_target_subspace, bra_state_index);
                   spncci::StateSpU3S baby_spncci_ket(ket_target_subspace, ket_state_index);
-                
+
                   // Index of baby spncci subspace in baby_spncci_space for looking up hypersector
                   int baby_spncci_index_bra=baby_spncci_bra.baby_spncci_subspace_index();
                   int baby_spncci_index_ket=baby_spncci_ket.baby_spncci_subspace_index();
 
-                  // Shouldn't need to get baby spncci subspace, all relevant information should be stored in spu3s states 
+                  // Shouldn't need to get baby spncci subspace, all relevant information should be stored in spu3s states
                   // TODO: debug irrep_family_index() and Nn() for StateSpU3S and implement here
 
                   const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra
@@ -471,14 +473,14 @@ namespace spncci
                   int block_index_u3s_bra=baby_spncci_bra.offset();
                   int block_index_u3s_ket=baby_spncci_ket.offset();
 
-                  
+
                   /////////////////////////////////////////////////////////////////////////////////////////////////////
                   // Checking if need conjugate hypersector
                   // Recurrence computes Nnp<=Nn sectors for lgi_bra<=lgi_ket and Nnp>Nn sectors for lgi_bra>lgi_ket.
                   // The remaining unit tensor blocks are obtained by conjugation, i.e., those satisfying
                   //    If Nnp-Nn>0
                   //    If Nnp-Nn=0, lgi_bra>lgi_ket
-                  // 
+                  //
                   int Nnp=baby_spncci_subspace_bra.Nn();
                   int Nn=baby_spncci_subspace_ket.Nn();
                   int unit_tensor_subspace_index_conj=-1;
@@ -505,9 +507,9 @@ namespace spncci
                         baby_spncci_hypersectors.LookUpHypersectorIndex(
                             baby_spncci_index_ket,baby_spncci_index_bra,
                             unit_tensor_subspace_index_conj,target_rho0
-                          ):                        
+                          ):
                         baby_spncci_hypersectors.LookUpHypersectorIndex(
-                            baby_spncci_index_bra,baby_spncci_index_ket, 
+                            baby_spncci_index_bra,baby_spncci_index_ket,
                             unit_tensor_subspace_index,target_rho0
                           );
 
@@ -515,12 +517,12 @@ namespace spncci
                   if(baby_spncci_hypersector_index==-1)
                     continue;
 
-                  // Get unit tensor hyperblocks 
+                  // Get unit tensor hyperblocks
                   const basis::OperatorBlocks<double>& unit_tensor_blocks
                       =unit_tensor_hyperblocks[baby_spncci_hypersector_index];
 
-                  // Loop through unit tensors in unit tensor subspace, and accumulate product with relative rmes 
-                  // in target sector.  
+                  // Loop through unit tensors in unit tensor subspace, and accumulate product with relative rmes
+                  // in target sector.
                   for(int unit_tensor_index=0; unit_tensor_index<unit_tensor_subspace.size(); ++unit_tensor_index)
                   {
                     // If conjugate hypersector, we need to get conjugation factors and phases
@@ -530,7 +532,7 @@ namespace spncci
                         std::tie(T0,Sp,Tp,S,T)=unit_tensor_subspace.GetStateLabels(unit_tensor_index);
                         std::tuple<int,int,int,int,int> conjugate_state(T0,S,T,Sp,Tp);
                         int unit_tensor_index_conj=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_conj).LookUpStateIndex(conjugate_state);
-                        
+
                         u3::U3 omegap(baby_spncci_bra.omega());
                         u3::U3 omega(baby_spncci_ket.omega());
 
@@ -540,7 +542,7 @@ namespace spncci
                           +u3::ConjugationGrade(omegap)
                           +baby_spncci_bra.S()
                           );
-                        
+
                         double conjugation_factor
                                 =sqrt(
                                   1.*u3::dim(u3::SU3(etap,0))*u3::dim(omega)
@@ -551,7 +553,7 @@ namespace spncci
                                   /am::dim(S)/am::dim(T)
                                   );
 
-                        // Accumulate sum over conjugated hypersector and realtive unit tensor 
+                        // Accumulate sum over conjugated hypersector and realtive unit tensor
                         target_blocks_u3s[target_sector_index].block(block_index_u3s_bra,block_index_u3s_ket,dimp,dim)
                           +=conjugation_grade*conjugation_factor
                             *relative_rmes[unit_tensor_index]
@@ -564,12 +566,12 @@ namespace spncci
                    }
                 }
           }
-        
+
       }
   }
 
 
-  // void 
+  // void
   // ContractAndRegroupLSJ(
   //       const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
   //       u3::WCoefCache& w_cache,
@@ -591,22 +593,22 @@ namespace spncci
   //       // std::cout<<"t "<<t<<std::endl;
 
   //       const spncci::SectorLabelsSpLS& sector_labels=target_sector_labels[t];
-  //       const spncci::SubspaceSpLS& 
+  //       const spncci::SubspaceSpLS&
   //         ket_subspace=target_space_ket.GetSubspace(sector_labels.ket_index());
-  //       const spncci::SubspaceSpLS& 
+  //       const spncci::SubspaceSpLS&
   //         bra_subspace=target_space_bra.GetSubspace(sector_labels.bra_index());
-        
+
   //       int target_dim_bra=bra_subspace.full_dimension();
   //       int target_dim_ket=ket_subspace.full_dimension();
 
   //       // Zero initialize
   //       Eigen::MatrixXd& target_sector=target_blocks[t];
   //       target_sector=Eigen::MatrixXd::Zero(target_dim_bra,target_dim_ket);
-       
-  //       // Extract target labels 
+
+  //       // Extract target labels
   //       int L0(sector_labels.L0());
   //       HalfInt S0(sector_labels.S0());
-        
+
   //       int L, Lp;
   //       HalfInt S,Sp;
 
@@ -616,7 +618,7 @@ namespace spncci
   //       double Jcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
   //       // std::cout<<fmt::format("{} {} {}  {} {} {}  {} {} {}    {}",L,S,J,L0,S0,J0,Lp,Sp,Jp,Jcoef)<<std::endl;
   //       // States are actually baby spncci subspaces
-  //       int bra_offset=0; //offset within u3ssubspace 
+  //       int bra_offset=0; //offset within u3ssubspace
   //       for(int bra_state_index=0; bra_state_index<bra_subspace.size(); ++bra_state_index)
   //         {
   //           int ket_offset=0; //offset within u3ssubspace
@@ -644,12 +646,12 @@ namespace spncci
 
   //                   int spu3s_subspace_index_bra=bra_state.spu3s_subspace_index();
   //                   int spu3s_subspace_index_ket=ket_state.spu3s_subspace_index();
-                    
+
 
   //                   int source_index_ket=source_labels.ket_index();
   //                   int source_index_bra=source_labels.bra_index();
- 
-  //                   // (indexp,index)->position of upper left corner of subsector (full ls subspace) 
+
+  //                   // (indexp,index)->position of upper left corner of subsector (full ls subspace)
   //                   int indexp=bra_state.offset();
   //                   int index=ket_state.offset();
 
@@ -657,29 +659,29 @@ namespace spncci
   //                   int dimp=bra_state.degeneracy();
   //                   int dim=ket_state.degeneracy();
 
-  //                   //Extract source operator labels 
+  //                   //Extract source operator labels
   //                   const u3::SU3& x0=source_labels.x0();
   //                   const HalfInt& S0=source_labels.S0();
   //                   int kappa0=source_labels.kappa0();
   //                   int rho0=source_labels.rho0();
 
-  //                   const spncci::SubspaceSpU3S& 
+  //                   const spncci::SubspaceSpU3S&
   //                     u3s_subspace_bra=u3s_space.GetSubspace(spu3s_subspace_index_bra);
-  //                   const spncci::SubspaceSpU3S& 
+  //                   const spncci::SubspaceSpU3S&
   //                     u3s_subspace_ket=u3s_space.GetSubspace(spu3s_subspace_index_ket);
 
-  //                   // Look up index of corresponding baby spncci state in u3s_subspace so we can look of offset in u3s_unit tensor block 
+  //                   // Look up index of corresponding baby spncci state in u3s_subspace so we can look of offset in u3s_unit tensor block
   //                   int baby_spnci_index_u3s_subspace_bra=u3s_subspace_bra.LookUpStateIndex(bra_state.sigmaSPN());
   //                   int baby_spnci_index_u3s_subspace_ket=u3s_subspace_ket.LookUpStateIndex(ket_state.sigmaSPN());
 
   //                   // Offset in u3s_block
-                    
 
-  //                   //source sector dimensions 
+
+  //                   //source sector dimensions
   //                   int source_dimp=u3s_subspace_bra.full_dimension();
   //                   int source_dim=u3s_subspace_ket.full_dimension();
 
-  //                   // Extract source state labels 
+  //                   // Extract source state labels
   //                   const u3::U3S& omegaSp=u3s_subspace_bra.labels();
   //                   const u3::U3S& omegaS=u3s_subspace_ket.labels();
   //                   assert(omegaSp.S()==Sp);
@@ -693,19 +695,19 @@ namespace spncci
 
   //                   int kappa_max_p=u3::BranchingMultiplicitySO3(xp,Lp);
   //                   int kappa_max=u3::BranchingMultiplicitySO3(x,L);
-                    
+
   //                   // Generate coefficient for each kappa and kappa_p and accumulate in
   //                   // target sector. Source sector dimensions are source_dimp x source_dim
   //                   // starting position given by :
-  //                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index) 
+  //                   //    ((kappa_p-1)*source_dimp+indexp, (kappa-1)*source_dim+index)
   //                   double Wcoef=u3::WCached(w_cache,x,kappa,L,x0,kappa0,L0,xp,kappa_p,Lp,rho0);
   //                   // std::cout<<x.Str()<<"  "<<kappa<<"  "<<L<<"  "<<x0.Str()<<"  "<<kappa0
   //                             // <<"  "<<L0<<"  "<<xp.Str()<<"  "<<kappa_p<<"  "<<Lp<<"  "<<rho0<<std::endl;
-                    
+
 
   //                   // int start_indexp=(kappa_p-1)*source_dimp+indexp;
   //                   // int start_index=(kappa-1)*source_dim+index;
-                    
+
   //                   int start_indexp=bra_state.offset();
   //                   int start_index=ket_state.offset();
 
@@ -717,13 +719,13 @@ namespace spncci
   //                   target_sector.block(start_indexp,start_index,source_dimp,source_dim)+=Jcoef*Wcoef*source_sector;
   //                 }
   //             }
-  //         } 
+  //         }
   //     }
   // }
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to J level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
 
   SubspaceSpJ::SubspaceSpJ(HalfInt J, const SpaceSpLS& spls_space)
   {
@@ -874,7 +876,7 @@ namespace spncci
   //       bra_matrix_index_lookup[s]=bra_index;
   //       bra_index+=full_dimension;
   //     }
-    
+
   //   int bra_matrix_dim=bra_index;
 
   //   int ket_index=0;
@@ -888,11 +890,11 @@ namespace spncci
   //     }
 
   //   int ket_matrix_dim=ket_index;
-    
+
   //   operator_matrix=Eigen::MatrixXd::Zero(bra_matrix_dim,ket_matrix_dim);
-    
+
   //   // For each sector in source sectors, get bra and ket indices, look-up matrix index
-  //   // and accumulate in full matrix 
+  //   // and accumulate in full matrix
   //   for(int s=0; s<source_sectors.size(); ++s)
   //     {
   //       const spncci::SectorLabelsSpLS& sector_labels=source_sector_labels[s];

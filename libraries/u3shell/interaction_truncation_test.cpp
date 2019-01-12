@@ -10,7 +10,9 @@
 #include <fstream>
 #include <unordered_set>
 #include "u3shell/relative_branching.h"
-#include "cppformat/format.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
+#include "fmt/format.h"
 #include "u3shell/interaction_truncation.h"
 
 double zero_threshold=1e-6;
@@ -18,7 +20,7 @@ double zero_threshold=1e-6;
 int main(int argc, char **argv)
 {
   u3::U3CoefInit();
-  
+
   int Nmax=10;
   int Jmax=4;
   double truncation_threshold=1e-2;
@@ -36,14 +38,14 @@ int main(int argc, char **argv)
 
   u3shell::GetRelativeRMEsU3ST(interaction_filename,Nmax,Jmax,interaction_u3st);
   // u3shell::PrintRelativeRMEsU3ST(interaction_u3st)
-  
+
   u3shell::RelativeRMEsU3ST truncated_interaction_u3st;
   u3shell::TruncateInteractionU3ST(interaction_u3st,truncated_interaction_u3st,truncation_threshold);
   // u3shell::PrintRelativeRMEsU3ST(truncated_interaction_u3st);
   std::cout<<"number of rmes u3st truncated "<<truncated_interaction_u3st.size()<<std::endl;
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // get distribution of interaction over U(3) tensors 
+  // get distribution of interaction over U(3) tensors
   if(false)
     {
       std::unordered_map<u3shell::SpacialSymmetries,double,boost::hash<u3shell::SpacialSymmetries>> probability_by_u3;
@@ -55,7 +57,7 @@ int main(int argc, char **argv)
           u3::SU3 x0;
           HalfInt N0;
           std::tie(N0,x0)=it->first;
-          if(N0>=0) 
+          if(N0>=0)
             total+=it->second;
         }
 
@@ -76,7 +78,7 @@ int main(int argc, char **argv)
       std::cout<<"number of rmes u3 truncated "<<truncated_interaction_u3.size()<<std::endl;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Write out branched relative rmes 
+  // Write out branched relative rmes
   if(false)
     {
       basis::RelativeSpaceLSJT relative_space_lsjt2(Nmax, Jmax);
@@ -95,6 +97,3 @@ int main(int argc, char **argv)
     }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
-
-
-

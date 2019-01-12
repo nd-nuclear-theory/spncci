@@ -20,7 +20,7 @@
 
 #include "basis/lsjt_operator.h"
 #include "basis/jjjpn_scheme.h"  // for TwoBodySpecies enum typedef
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "mcutils/eigen.h"  // for debugging output
 #include "mcutils/parsing.h"
 

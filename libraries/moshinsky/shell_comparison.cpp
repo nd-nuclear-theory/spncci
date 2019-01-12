@@ -1,12 +1,14 @@
 /****************************************************************
   shell_comparison.cpp
-                                
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/
 #include <cmath>
-#include "cppformat/format.h"
+#include "fmt/format.h"
+#include "am/halfint.h"
+#include "am/halfint_fmt.h"
 #include "am/wigner_gsl.h"
 #include "sp3rlib/u3coef.h"
 #include "moshinsky/moshinsky_xform.h"
@@ -21,7 +23,7 @@ namespace u3shell
     int Np, rho_max;
     u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor;
     std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key;
-    int kappa0=1; 
+    int kappa0=1;
     int L0=2;
 
     double intrinsic_factor=2./A;
@@ -30,7 +32,7 @@ namespace u3shell
         for(int T=0; T<=1; ++T)
           if((N+S+T)%2==1)
           {
-            ket=u3shell::RelativeStateLabelsU3ST(N,S,T); 
+            ket=u3shell::RelativeStateLabelsU3ST(N,S,T);
 
             // Brel term
             Np=N-2;
@@ -50,7 +52,7 @@ namespace u3shell
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(1,1),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
             double Crme=std::sqrt(4.*(N*N+3*N)/3);
-            
+
             if(fabs(Crme)>zero_threshold)
               Qintr[key]+=std::sqrt(3)*Crme*intrinsic_factor*coef;
 
@@ -76,7 +78,7 @@ namespace u3shell
     HalfInt J0,
     int Nmax
     )
-    { 
+    {
       std::map<RelativeBraketNLSJT,double>rmes_lsjt;
 
       // Read in the interaction from file
@@ -88,7 +90,7 @@ namespace u3shell
       for(auto it=rmes_u3st.begin(); it!=rmes_u3st.end(); ++it)
         {
           u3::SU3 x0;
-          
+
           u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
           int kappa0,L0,Np,N;
           HalfInt Sp,Tp,S,T,S0,T0;
@@ -135,7 +137,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   u3shell::RelativeRMEsU3ST rmes_u3st;
   int J0=2;
-  int Nmax=2; 
+  int Nmax=2;
 
   u3shell::Q(Nmax,rmes_u3st,2);
   u3shell::BranchU3STtoNLSTJ(rmes_u3st,J0,Nmax);

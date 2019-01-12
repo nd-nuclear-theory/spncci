@@ -1,9 +1,9 @@
-  
+
 #include <iostream>
 #include <fstream>
 
-#include "SymEigsSolver.h"  // from spectra
-#include "cppformat/format.h"
+#include "Spectra/SymEigsSolver.h"  // from spectra
+#include "fmt/format.h"
 
 #include "lgi/lgi_solver.h"
 #include "mcutils/eigen.h"
@@ -17,7 +17,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
-  
+
   // SU(3) caching
   u3::U3CoefInit();
   u3::UCoefCache u_coef_cache;
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   HalfInt Nsigma0;
   std::string Brel_filename;
   std::string Nrel_filename;
-  int A; 
+  int A;
 
 
   std::cout << "Read lsu3shell basis..." << std::endl;
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
   // diagnostics
   std::cout << fmt::format("  LGI families {}",lgi_families.size()) << std::endl;
-  
+
   for(int i=0; i<lgi_families.size(); ++i)
     {
       int Nex;
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
           <<"  "<<TwiceValue(sigma.N())<<"  "<<sigma.SU3().lambda()<<"  "<<sigma.SU3().mu()
           <<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Sn)<<"  "<<TwiceValue(S)
           <<"  "<<gamma_max
-          <<std::endl;     
+          <<std::endl;
 
       const spncci::OperatorBlock& lgi_expansion=lgi_expansions[i];
       std::cout<<mcutils::FormatMatrix(lgi_expansion,"13.6e")<<std::endl;

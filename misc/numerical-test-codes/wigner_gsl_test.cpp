@@ -3,7 +3,7 @@
 
  Checks orthogonality of wigner coefficients
 ****************************************************************/
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "am/wigner_gsl.h"
 
 int main(int argc, char **argv)

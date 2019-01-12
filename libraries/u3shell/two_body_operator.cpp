@@ -11,7 +11,7 @@
 #include <array>
 #include <cmath>
 
-#include "cppformat/format.h"
+#include "fmt/format.h"
 #include "am/am.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
