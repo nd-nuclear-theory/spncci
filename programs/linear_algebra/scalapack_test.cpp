@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         MPI_Send(buffer.get(), position, MPI_PACKED, target_rank, 0, MPI_COMM_WORLD);
       }
     int k_done = -1;
-    MPI_Send(&k_done, 1, MPI_INTEGER, )
+    // MPI_Send(&k_done, 1, MPI_INTEGER, )
   }
   else
   {
