@@ -17,13 +17,21 @@
 #include <mpi.h>
 #include <mkl.h>
 #include <mkl_scalapack.h>
+#include <mkl_blacs.h>
+#include <mkl_pblas.h>
 
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
+#include <vector>
 
 #include "eigen3/Eigen/Dense"
 #include "fmt/format.h"
+
+
+// constexpr int k_done = 0xbaff1e;
+constexpr int k_done=999;
 
 std::pair<int,int> calculateProcessIndices(
     int global_i, int global_j,
@@ -72,7 +80,7 @@ std::pair<int,int> calculateBlockLocalElementIndices(
     int row_block_size, int col_block_size
   )
 {
-  return {global_i/(row_block_size*process_rows), global_j/(col_block_size*process_cols)};
+  return {global_i%row_block_size, global_j%col_block_size};
 }
 
 std::pair<int,int> calculateProcessLocalElementIndices(
@@ -114,11 +122,20 @@ int main(int argc, char *argv[])
   assert(num_mpi_ranks == Pr*Pc+1);
   assert(start_row<dimension);
   assert(start_col<dimension);
-  assert(start_row+num_row<dimension);
-  assert(start_col+num_col<dimension);
+  assert(start_row+num_row<=dimension);
+  assert(start_col+num_col<=dimension);
 
+  // set up BLACS -- process grid, etc.
   int my_pc, my_pr;
-  std::tie(my_pr, my_pc) = getProcessIndicesForRank(mpi_rank, Pr, Pc);
+  MKL_INT zero = 0, one = 1;
+  MKL_INT ictxt=MPI_COMM_WORLD, info, negone=-1, ten=10;
+  char order = 'C';
+  MKL_INT mypnum, nprocs;
+  blacs_pinfo(&mypnum, &nprocs);
+  blacs_get(&ictxt, &zero, &ictxt);
+  std::cout << "y" << mpi_rank << std::endl << std::flush;
+  blacs_gridinit(&ictxt, &order, &Pr, &Pc);
+  blacs_gridinfo(&ictxt, &Pr, &Pc, &my_pr, &my_pc);
 
   std::cout << fmt::format(
                   "{:d} (pr,pc)=({:d},{:d})",
@@ -126,23 +143,36 @@ int main(int argc, char *argv[])
                 )
             << std::endl << std::flush;
 
-  if (mpi_rank == num_mpi_ranks)
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (mpi_rank == (num_mpi_ranks-1))
   {
+    // construct and distribute matrix from master (last MPI rank)
     Eigen::MatrixXf matrix = Eigen::MatrixXf::Zero(dimension, dimension);
     for (int i=0; i<dimension; ++i)
       for(int j=0; j<dimension; ++j)
       {
-        matrix(i,j) = i*dimension + j;
+        // matrix elements of (b^\dagger + b)^2
+        float val=0;
+        if (i==j+2)
+          val = std::sqrt((j+1)*(j+2));
+        else if (i==j)
+          val = (2*j+1);
+        else if (i==j-2)
+          val = std::sqrt(j*(j-1));
+        matrix(i,j) = val;
       }
+    std::cout << matrix << std::endl;
 
     int end_row = start_row + num_row - 1;
     int end_col = start_col + num_col - 1;
-    for (int start_i = start_row; start_i <= end_row; start_i += block_size)
-      for (int start_j = start_col; start_j <= end_col; start_j += block_size)
+    int size_rows=0, size_cols=0;
+    for (int start_i = start_row; start_i <= end_row; start_i += size_rows)
+      for (int start_j = start_col; start_j <= end_col; start_j += size_cols)
       {
         int target_rank = getRankForIndices(start_i, start_j, Pr, Pc, block_size, block_size);
-        int size_rows = std::min(block_size, end_row-start_i+1);
-        int size_cols = std::min(block_size, end_col-start_j+1);
+        size_rows = std::min(block_size-(start_i%block_size), end_row-start_i+1);
+        size_cols = std::min(block_size-(start_j%block_size), end_col-start_j+1);
 
         int num_matrix_elements = size_rows*size_cols;
         int int_pack_size, row_pack_size, total_pack_size;
@@ -151,29 +181,121 @@ int main(int argc, char *argv[])
         total_pack_size = 4*int_pack_size + size_cols*row_pack_size;
 
         std::unique_ptr<char> buffer(new char[total_pack_size]);
-        int position;
+        int position = 0;
         MPI_Pack(&start_i, 1, MPI_INTEGER, buffer.get(), total_pack_size, &position, MPI_COMM_WORLD);
         MPI_Pack(&start_j, 1, MPI_INTEGER, buffer.get(), total_pack_size, &position, MPI_COMM_WORLD);
         MPI_Pack(&size_rows, 1, MPI_INTEGER, buffer.get(), total_pack_size, &position, MPI_COMM_WORLD);
         MPI_Pack(&size_cols, 1, MPI_INTEGER, buffer.get(), total_pack_size, &position, MPI_COMM_WORLD);
         for (int j = start_j; j < start_j+size_cols; ++j)
-          MPI_Pack(&(matrix.data()[j]), size_rows, MPI_FLOAT, buffer.get(), total_pack_size, &position, MPI_COMM_WORLD);
+        {
+          MPI_Pack(&(matrix.data()[dimension*j+start_i]), size_rows, MPI_FLOAT, buffer.get(), total_pack_size, &position, MPI_COMM_WORLD);
+        }
 
         MPI_Send(buffer.get(), position, MPI_PACKED, target_rank, 0, MPI_COMM_WORLD);
       }
-    int k_done = -1;
-    // MPI_Send(&k_done, 1, MPI_INTEGER, )
+    for (int target_rank=0; target_rank<(num_mpi_ranks-1); ++target_rank)
+      MPI_Send(&k_done, 1, MPI_INTEGER, target_rank, k_done, MPI_COMM_WORLD);
   }
   else
   {
+    // allocate buffer
+    int int_pack_size, row_pack_size, max_pack_size;
+    MPI_Pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &int_pack_size);
+    MPI_Pack_size(block_size, MPI_FLOAT, MPI_COMM_WORLD, &row_pack_size);
+    max_pack_size = 4*int_pack_size + block_size*row_pack_size;
+    std::unique_ptr<char> buffer(new char[max_pack_size]);
+
     // determine needed storage size
-    int zero = 0;
     int local_rows = numroc(&dimension, &block_size, &my_pr, &zero, &Pr);
     int local_cols = numroc(&dimension, &block_size, &my_pc, &zero, &Pc);
     int local_storage_size = local_rows*local_cols;
-    std::unique_ptr<float> local_storage(new float[local_storage_size]);
+    std::vector<float> local_storage(local_storage_size);
 
+    // receive matrix
+    while (true)
+    {
+      // figure out what type of message this is
+      int source, tag;
+      std::unique_ptr<MPI_Status> status(new MPI_Status);
+      MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status.get());
 
+      if (status->MPI_TAG == k_done)
+      {
+        // done receiving, break out
+        MPI_Recv(buffer.get(), 1, MPI_INTEGER, status->MPI_SOURCE, status->MPI_TAG, MPI_COMM_WORLD, status.get());
+        break;
+      }
+      else
+      {
+        // receive next chunk
+        MPI_Recv(buffer.get(), max_pack_size, MPI_PACKED, status->MPI_SOURCE, status->MPI_TAG, MPI_COMM_WORLD, status.get());
+        int start_i, start_j, size_rows, size_cols, position=0;
+        MPI_Unpack(buffer.get(), max_pack_size, &position, &start_i, 1, MPI_INTEGER, MPI_COMM_WORLD);
+        MPI_Unpack(buffer.get(), max_pack_size, &position, &start_j, 1, MPI_INTEGER, MPI_COMM_WORLD);
+        MPI_Unpack(buffer.get(), max_pack_size, &position, &size_rows, 1, MPI_INTEGER, MPI_COMM_WORLD);
+        MPI_Unpack(buffer.get(), max_pack_size, &position, &size_cols, 1, MPI_INTEGER, MPI_COMM_WORLD);
+
+        int s, t;
+        for (int j = start_j; j < start_j+size_cols; ++j)
+        {
+          // extract pack in place
+          std::tie(s,t) = calculateProcessLocalElementIndices(start_i, j, Pr, Pc, block_size, block_size);
+          MPI_Unpack(buffer.get(), max_pack_size, &position, local_storage.data()+(local_rows*t+s), size_rows, MPI_FLOAT, MPI_COMM_WORLD);
+        }
+      }
+    }
+
+    // set up ScaLAPACK environment
+    std::unique_ptr<MKL_INT> descA(new MKL_INT[9]);
+    std::unique_ptr<MKL_INT> descZ(new MKL_INT[9]);
+    descinit(descA.get(),
+        &dimension, &dimension, &block_size, &block_size,
+        &zero, &zero, &ictxt, &local_rows, &info
+      );
+    descinit(descZ.get(),
+        &dimension, &dimension, &block_size, &block_size,
+        &zero, &zero, &ictxt, &local_rows, &info
+      );
+
+    // construct storage for eigensystem and work space
+    char jobz='V', uplo='L';
+    MKL_INT lwork = -1;
+    std::vector<float> eigval_storage(dimension);
+    std::vector<float> eigvec_storage(local_storage_size);
+    std::vector<float> work(2);
+    std::cout << "x" << mpi_rank << std::endl << std::flush;
+
+    pssyev(&jobz, &uplo, &dimension,
+        local_storage.data(), &one, &one, descA.get(),
+        eigval_storage.data(), eigvec_storage.data(), &one, &one, descZ.get(),
+        work.data(), &lwork, &info);
+
+    // resize to actual needed work size
+    lwork = int(work[0]);
+    work.resize(lwork);
+
+    pssyev(&jobz, &uplo, &dimension,
+        local_storage.data(), &one, &one, descA.get(),
+        eigval_storage.data(), eigvec_storage.data(), &one, &one, descZ.get(),
+        work.data(), &lwork, &info);
+
+    // output matrix
+    std::stringstream line_stream;
+    line_stream << "c" << mpi_rank << std::endl;
+    for (int i = 0; i<dimension; ++i)
+      line_stream << " " << std::setw(8) << eigval_storage[i] << std::endl;
+    line_stream << std::endl;
+    line_stream << "b" << mpi_rank << std::endl;
+    for (int i = 0; i<local_rows; ++i)
+    {
+      for (int j = 0; j<local_cols; ++j)
+      {
+        line_stream << " " << std::setw(8) << eigvec_storage[local_rows*j+i];
+      }
+      line_stream << std::endl;
+    }
+
+    std::cout << line_stream.str() << std::endl;
   }
 
   // Finalize the MPI environment.
