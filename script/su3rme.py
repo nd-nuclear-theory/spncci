@@ -106,7 +106,7 @@ su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","
 # ... from spncci
 generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
 generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
-
+u3s_subspace_lister_executable=os.path.join(project_root,"spncci","programs","lgi","get_u3s_subspaces")
 
 ################################################################
 # relative operator construction (A-independent)
@@ -317,6 +317,25 @@ def generate_model_space_file(task):
 
     else:
         mcscript.call(["cp",task["model_space_file_ket"], "model_space_ket.dat"])
+
+
+def generate_u3s_subspace_labels(task):
+    (Z,N)=task["nuclide"]
+    mcscript.call([
+        u3s_subspace_lister_executable,
+        "{nuclide[0]:d}".format(**task),
+        "{nuclide[1]:d}".format(**task),
+        "lsu3shell_basis.dat",
+        "{Nsigma_max:d}".format(**task)
+        ])
+
+
+# def do_get_u3s_labels(task):
+#   # generate model space file needed by lsu3shell codes
+#   su3rme.generate_model_space_file(task)
+#   # generate basis listing for basis in which rmes are calculated
+#   su3rme.generate_basis_table(task)
+#   su3rme.generate_u3s_subspace_labels(task)
 
 
 
