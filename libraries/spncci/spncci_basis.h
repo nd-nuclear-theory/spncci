@@ -661,26 +661,20 @@ namespace spncci
     // default constructor -- provided since required for certain
     // purposes by STL container classes
 
-
     ObservableBabySpNCCIHypersectors(
         const spncci::BabySpNCCISpace& baby_spncci_space,
         const u3shell::ObservableSpaceU3S& observable_space,
-        int irrep_family_index_1=-1, int irrep_family_index_2=-1
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1, bool restrict_lower_triangle=false
       );
-      //Overload of notation
-      // Enumerate sector pairs connected by u3S subspaces of 
-      // relative observables between states in either of the two irrep families
-      //
+      // Enumerate hypersectors between baby spncci subsaces for a set of operators in observables space
+      // 
       // Arguments:
-      //   space (BabySpNCCISpace): the space
-      //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space 
-      //   irrep_family_index=-1 means no restriction on which irrep family.    
-
-    ObservableBabySpNCCIHypersectors(
-        const spncci::BabySpNCCISpace& baby_spncci_space,
-        const u3shell::ObservableSpaceU3S& observable_space,
-        int irrep_family_index_1, int irrep_family_index_2, bool restrict_lower_triangle
-      );
+      //    baby_spncci_space : Sp3rU3S subspaces
+      //    observable_space : operator space [U(1)xSU(3)xSU(2) tensors]
+      //    irrep_family_index_1, irrep_family_index_2 : index of irrep family of interest
+      //      + if -1, then construct for all pairs of irrep families, not just one pair
+      //    restrict_lower_triangle : if  true, only construct hyperspectors for lower triangle of
+      //      full matrix.  (irrep_family_index_bra>=irrep_family_index_ket)
 
   };
 

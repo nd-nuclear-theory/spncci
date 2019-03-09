@@ -13,7 +13,8 @@ void GetBabySpncciBasis(spncci::BabySpNCCISpace& baby_spncci_space)
 {
 	// read in LGIs
   std::string filename 
-  ="/afs/crc.nd.edu/user/a/amccoy/research/codes/spncci/data/lgi_set/lgi_test.dat";
+  // ="/afs/crc.nd.edu/user/a/amccoy/research/codes/spncci/data/lgi_set/lgi_test.dat";
+  ="data/lgi_set/lgi_test.dat";
   // = "~/research/codes/spncci/data/lgi_set/lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
   lgi::MultiplicityTaggedLGIVector multiplicity_tagged_lgi_vector;
   HalfInt Nsigma0=lgi::Nsigma0ForNuclide({3,3});
@@ -46,13 +47,31 @@ void GetBabySpncciBasis(spncci::BabySpNCCISpace& baby_spncci_space)
 
 int main(int argc, char **argv)
 {
+
 	HalfInt J(1,1); 
 	spncci::BabySpNCCISpace baby_spncci_space;
 	GetBabySpncciBasis(baby_spncci_space);
 	spncci::SpaceSpBasis spbasis(baby_spncci_space,J);
-  std::cout<<"full dimension "<<spbasis.FullDimension()<<std::endl;
-  std::cout<<"size "<<spbasis.size()<<std::endl;
-	std::cout<<spbasis.DebugStr(true)<<std::endl;
+  if(true)
+  {
+    std::cout<<"full dimension "<<spbasis.FullDimension()<<std::endl;
+    std::cout<<"size "<<spbasis.size()<<std::endl;
+	 std::cout<<spbasis.DebugStr(true)<<std::endl;
+  }
 
+  if(true)
+  {
+    int full_dimension_initial=spbasis.FullDimension();
+    std::cout<<full_dimension_initial<<std::endl;
+    int full_dimension_final=0;
+    for(int i=0; i<spbasis.size(); ++i)
+    {
+      const spncci::SubspaceSpBasis& subspace=spbasis.GetSubspace(i);
+      int subspace_dimension=subspace.dimension();
+      std::cout<<i<<":  "<<subspace_dimension<<std::endl;
+      full_dimension_final+=subspace_dimension;
+    } 
+    std::cout<<"full dimension final "<<full_dimension_final<<std::endl;
+  }
 
 }

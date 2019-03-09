@@ -669,89 +669,6 @@ namespace spncci
 
   }
 
-  ObservableBabySpNCCIHypersectors::ObservableBabySpNCCIHypersectors(
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const u3shell::ObservableSpaceU3S& observable_space,
-    int irrep_family_index_bra, int irrep_family_index_ket
-  )
-  {
-   
-    // std::cout<<"irrep family1 "<<irrep_family_index_1<<"  irrep family2 "<<irrep_family_index_2<<std::endl;
-    // int hypersector_index=0;
-    for (int bra_subspace_index=0; bra_subspace_index<baby_spncci_space.size(); ++bra_subspace_index)
-      for (int ket_subspace_index=0; ket_subspace_index<baby_spncci_space.size(); ++ket_subspace_index)
-        {
-          // retrieve subspaces
-          const BabySpNCCISubspace& bra_subspace = baby_spncci_space.GetSubspace(bra_subspace_index);
-          const BabySpNCCISubspace& ket_subspace = baby_spncci_space.GetSubspace(ket_subspace_index);
-
-          // Check if baby spncci subspaces contained in either the bra or the ket irrep families
-          //
-          // Check bra subspace
-          bool allowed_subspace=false; 
-          if(irrep_family_index_bra==-1 && irrep_family_index_bra==-1 )
-            allowed_subspace=true;
-
-          else if(irrep_family_index_bra==bra_subspace.irrep_family_index() 
-                  &&irrep_family_index_ket==ket_subspace.irrep_family_index()
-                  )
-            allowed_subspace=true;
-
-          else if(irrep_family_index_bra==ket_subspace.irrep_family_index()
-                  && irrep_family_index_ket==bra_subspace.irrep_family_index()
-                )
-            allowed_subspace=true;
-
-          // if not in bra or ket, continue;
-          if(not allowed_subspace)
-            continue;
-
-          // For each observable subspace, check if its an allowed observable subspace determined
-          // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
-          for(int observable_subspace_index=0; observable_subspace_index<observable_space.size(); ++observable_subspace_index)
-            {
-              bool allowed_subspace = true;
-              const u3shell::ObservableSubspaceU3S& 
-                observable_subspace=observable_space.GetSubspace(observable_subspace_index);
-
-              // U(1)
-              allowed_subspace
-                &=(ket_subspace.omega().N()+observable_subspace.N0()-bra_subspace.omega().N() == 0);
-              
-              // spin
-              //
-              // Note: Basic two-body constaints can be placed on Sp
-              // and Sn triangularity based on two-body nature of
-              // observable, so (delta Sp)<=2 and (delta Sn)<=2.  However, in
-              // general, the observable does not have sharp Sp0 or Sn0.
-              allowed_subspace &= am::AllowedTriangle(ket_subspace.S(),observable_subspace.S0(),bra_subspace.S());
-              allowed_subspace &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
-              allowed_subspace &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
-              if (!allowed_subspace)
-                continue;
-
-              // find SU(3) multiplicity and check SU(3) selection
-              int multiplicity = u3::OuterMultiplicity(
-                  ket_subspace.omega().SU3(),observable_subspace.x0(),
-                  bra_subspace.omega().SU3()
-                );
-
-              // push sectors (tagged by multiplicity)
-              for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
-                {
-                  PushHypersector(
-                    HypersectorType(
-                      bra_subspace_index,ket_subspace_index,observable_subspace_index,
-                      bra_subspace, ket_subspace,observable_subspace,
-                      multiplicity_index
-                      )
-                    );
-                }
-            }
-        }
-  }
-
-
 
   ObservableBabySpNCCIHypersectors::ObservableBabySpNCCIHypersectors(
     const spncci::BabySpNCCISpace& baby_spncci_space,
@@ -759,10 +676,7 @@ namespace spncci
     int irrep_family_index_bra, int irrep_family_index_ket, bool restrict_lower_triangle
   )
   {
-   // if(restrict_lower_triangle)
-     // std::cout<<"restrict_lower_triangle "<<restrict_lower_triangle<<std::endl;
-    // std::cout<<"irrep family1 "<<irrep_family_index_1<<"  irrep family2 "<<irrep_family_index_2<<std::endl;
-    // int hypersector_index=0;
+    // iterate over baby spncci subspaces
     for (int bra_subspace_index=0; bra_subspace_index<baby_spncci_space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<baby_spncci_space.size(); ++ket_subspace_index)
         {
@@ -771,31 +685,41 @@ namespace spncci
           const BabySpNCCISubspace& ket_subspace = baby_spncci_space.GetSubspace(ket_subspace_index);
 
           // Check if baby spncci subspaces contained in either the bra or the ket irrep families
-          //
-          // Check bra subspace
           bool allowed_subspace=false;
-          if(irrep_family_index_bra==-1 && irrep_family_index_bra==-1 )
-            allowed_subspace=true;
-
-          else if(irrep_family_index_bra==bra_subspace.irrep_family_index()
+          if(restrict_lower_triangle)
+            {
+              if(irrep_family_index_bra==bra_subspace.irrep_family_index()
                   &&irrep_family_index_ket==ket_subspace.irrep_family_index()
-                  )
-            allowed_subspace=true;
-
-          else if(irrep_family_index_bra==ket_subspace.irrep_family_index()
-                  && irrep_family_index_ket==bra_subspace.irrep_family_index()
                 )
-            allowed_subspace=true;
+                {
+                  allowed_subspace=true;
+                }
 
-          if(restrict_lower_triangle && (irrep_family_index_bra<irrep_family_index_ket))
-            allowed_subspace=false;
+              allowed_subspace&=(irrep_family_index_bra>=irrep_family_index_ket);
+              
+            }
+          else
+            {
+              if(irrep_family_index_bra==-1 && irrep_family_index_bra==-1 )
+                allowed_subspace=true;
+
+              else if(irrep_family_index_bra==bra_subspace.irrep_family_index()
+                      &&irrep_family_index_ket==ket_subspace.irrep_family_index()
+                      )
+                allowed_subspace=true;
+
+              else if(irrep_family_index_bra==ket_subspace.irrep_family_index()
+                      && irrep_family_index_ket==bra_subspace.irrep_family_index()
+                    )
+                allowed_subspace=true;
+            }
+          // // If restrict_lower_triangle true, then only continue if irrep family of bra>=ket
+          // if(restrict_lower_triangle && (irrep_family_index_bra<irrep_family_index_ket))
+          //   allowed_subspace=false;
 
           // if not in bra or ket, continue;
           if(not allowed_subspace)
             continue;
-
-          if(restrict_lower_triangle)
-            std::cout<<"irrep_family_index "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
 
           // For each observable subspace, check if its an allowed observable subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors

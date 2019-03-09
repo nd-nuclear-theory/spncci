@@ -108,6 +108,7 @@ namespace spncci
       // int irrep_family_index() const {return irrep_family_index_;}
       int irrep_family_index() const {return labels_;}
       int gamma_max() const {return gamma_max_;}
+      int dimension() const {return dimension_;}
 
       // state auxiliary data accessors
       const std::vector<int>& state_kappa_max() const {return state_kappa_max_;}
@@ -122,6 +123,7 @@ namespace spncci
 
       int gamma_max_;
       int irrep_family_index_;
+      int dimension_;
       u3shell::U3SPN sigmaSPN_;
 
       // state auxiliary data

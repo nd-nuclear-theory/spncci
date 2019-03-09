@@ -43,7 +43,7 @@ namespace spncci
     // labels_ = sigmaSPN;
     labels_ = irrep_family_index;
     sigmaSPN_=sigmaSPN;
-
+    dimension_=0;
     // scan BabySpNCCISpace for states to accumulate
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
@@ -78,6 +78,9 @@ namespace spncci
                 state_kappa_max_.push_back(kappa_max);
                 state_upsilon_max_.push_back(upsilon_max);
                 state_baby_spncci_subspace_index_.push_back(baby_spncci_subspace_index);
+
+                // increment dimension of subspace 
+                dimension_+=degeneracy;
               }
           }
       }

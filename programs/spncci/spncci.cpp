@@ -104,17 +104,17 @@ basis statistics
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/profiling.h"
 #include "mcutils/eigen.h"
-#include "spncci/branching.h"
-#include "spncci/branching2.h"
-#include "spncci/branching_u3s.h"
-#include "spncci/branching_u3lsj.h"
+// #include "spncci/branching.h"
+// #include "spncci/branching2.h"
+// #include "spncci/branching_u3s.h"
+// #include "spncci/branching_u3lsj.h"
 #include "spncci/computation_control.h"
 #include "spncci/decomposition.h"
 #include "spncci/eigenproblem.h"
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
 #include "spncci/computation_control.h"
-#include "spncci/parameters.h"
+// #include "spncci/parameters.h"
 #include "spncci/results_output.h"
 #include "spncci/transform_basis.h"
 
@@ -161,7 +161,7 @@ void ComputeManyBodyRMEs(
     // Extract lgi index  labels 
     int irrep_family_index_bra,irrep_family_index_ket;
     std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-        
+
     basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
     spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
     
@@ -554,6 +554,7 @@ int main(int argc, char **argv)
 
   std::vector<spncci::LGIPair> lgi_pairs;
   spncci::GetLGIPairsForRecurrence(lgi_families,spncci_space,sigma_irrep_map,lgi_pairs);
+  // lgi_pairs.emplace_back(0,0);
 
 
   spncci::ObservableHypersectorsByLGIPairTable
@@ -622,13 +623,14 @@ int main(int argc, char **argv)
       mcutils::SteadyTimer timer_recurrence;
       timer_recurrence.Start();
 
+
       #pragma omp for schedule(dynamic) nowait
       // for(int i=0; i<12; ++i)
       for(int i=0; i<lgi_pairs.size(); ++i)
         {
 
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
-          
+
           ComputeManyBodyRMEs(
               run_parameters,lgi_families,lgi_full_space_index_lookup,
               spncci_space,baby_spncci_space,unit_tensor_space, observable_spaces,
@@ -801,7 +803,7 @@ int main(int argc, char **argv)
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
             // std::cout<<"constructing "<<std::endl;
             spncci::OperatorBlock hamiltonian_matrix;
-
+            // spncci::OperatorBlock hamiltonian_matrix_test;
             // spncci::ConstructOperatorMatrix(
             //   baby_spncci_space,
             //   observable_space,
@@ -811,7 +813,7 @@ int main(int argc, char **argv)
             //   spbasis_ket, //For a given J
             //   num_lgi_pairs_per_thread,
             //   observable_index, hw_index,
-            //   hamiltonian_matrix
+            //   hamiltonian_matrix_test
             // );
 
 
@@ -823,16 +825,7 @@ int main(int argc, char **argv)
                 hamiltonian_matrix
               );
 
-            spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
-            // std::cout<<hamiltonian_matrix<<std::endl;
-            // long int num_nonzero_rmes=0;
-            // for(int i=0; i<hamiltonian_matrix.rows(); ++i)
-            //   for(int j=0; j<=i; ++j)
-            //     {
-            //       if(fabs(hamiltonian_matrix(i,j))>10e-4)
-            //         num_nonzero_rmes++;
-            //     }
-            // std::cout<<"number of non-zero rmes "<<num_nonzero_rmes<<std::endl;
+            // spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
 
             std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
             spncci::SolveHamiltonian(
@@ -851,74 +844,74 @@ int main(int argc, char **argv)
         spncci::WriteEigenvalues(results_stream,run_parameters.J_values,eigenvalues,run_parameters.gex);
         // spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,run_parameters.gex);
 
-        ////////////////////////////////////////////////////////////////
-        // do decompositions
-        ////////////////////////////////////////////////////////////////
+        // ////////////////////////////////////////////////////////////////
+        // // do decompositions
+        // ////////////////////////////////////////////////////////////////
 
-        std::cout << "Calculate eigenstate decompositions..." << std::endl;
-        mcutils::SteadyTimer timer_decompositions;
-        timer_decompositions.Start();
+        // std::cout << "Calculate eigenstate decompositions..." << std::endl;
+        // mcutils::SteadyTimer timer_decompositions;
+        // timer_decompositions.Start();
 
-        // decomposition matrices:
-        //   - vector over J
-        //   - matrix over (basis_subspace_index,eigenstate_index)
-        //
-        // That is, decompositions are stored as column vectors, within a
-        // matrix, much like the eigenstates themselves.
-        std::vector<spncci::Matrix> Nex_decompositions;
-        std::vector<spncci::Matrix> baby_spncci_decompositions;
-        Nex_decompositions.resize(run_parameters.J_values.size());
-        baby_spncci_decompositions.resize(run_parameters.J_values.size());
+        // // decomposition matrices:
+        // //   - vector over J
+        // //   - matrix over (basis_subspace_index,eigenstate_index)
+        // //
+        // // That is, decompositions are stored as column vectors, within a
+        // // matrix, much like the eigenstates themselves.
+        // std::vector<spncci::Matrix> Nex_decompositions;
+        // std::vector<spncci::Matrix> baby_spncci_decompositions;
+        // Nex_decompositions.resize(run_parameters.J_values.size());
+        // baby_spncci_decompositions.resize(run_parameters.J_values.size());
 
-        // calculate decompositions
-        spncci::CalculateNexDecompositions(
-          spaces_spbasis,eigenvectors,Nex_decompositions,
-          run_parameters.Nsigma0,run_parameters.Nmax
-        );
+        // // calculate decompositions
+        // spncci::CalculateNexDecompositions(
+        //   spaces_spbasis,eigenvectors,Nex_decompositions,
+        //   run_parameters.Nsigma0,run_parameters.Nmax
+        // );
 
-        spncci::CalculateBabySpNCCIDecompositions(
-          spaces_spbasis,eigenvectors,baby_spncci_decompositions,
-          baby_spncci_space.size()
-        );
+        // spncci::CalculateBabySpNCCIDecompositions(
+        //   spaces_spbasis,eigenvectors,baby_spncci_decompositions,
+        //   baby_spncci_space.size()
+        // );
 
-        timer_decompositions.Stop();
-        std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
+        // timer_decompositions.Stop();
+        // std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
 
-        // // results output: decompositions
-        spncci::WriteDecompositions(
-          results_stream,"Nex",".6f",spaces_spbasis,
-          Nex_decompositions,run_parameters.gex
-        );
+        // // // results output: decompositions
+        // spncci::WriteDecompositions(
+        //   results_stream,"Nex",".6f",spaces_spbasis,
+        //   Nex_decompositions,run_parameters.gex
+        // );
 
-        spncci::WriteDecompositions(
-          results_stream,"BabySpNCCI",".4e",spaces_spbasis,
-          baby_spncci_decompositions,run_parameters.gex
-        );
+        // spncci::WriteDecompositions(
+        //   results_stream,"BabySpNCCI",".4e",spaces_spbasis,
+        //   baby_spncci_decompositions,run_parameters.gex
+        // );
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Writing irrep family blocks to files for use in lgi basis transformation
+        // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // // Writing irrep family blocks to files for use in lgi basis transformation
 
-        if(true) //TEMP While doing higher Nmax runs
-        // if(not run_parameters.transform_lgi)
-        {
-          //TODO: Remove restriction to 3 and make input
-          int num_eigenvalues=std::min(run_parameters.num_eigenvalues,3);
-          std::cout<<"basis transformation "<<std::endl;
-          int num_irrep_families=lgi_families.size();
-          std::vector<std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
+        // if(true) //TEMP While doing higher Nmax runs
+        // // if(not run_parameters.transform_lgi)
+        // {
+        //   //TODO: Remove restriction to 3 and make input
+        //   int num_eigenvalues=std::min(run_parameters.num_eigenvalues,3);
+        //   std::cout<<"basis transformation "<<std::endl;
+        //   int num_irrep_families=lgi_families.size();
+        //   std::vector<std::vector<spncci::OperatorBlocks>> irrep_family_blocks;
 
-          spncci::RegroupIntoIrrepFamilies(
-            spaces_spbasis,num_irrep_families,num_eigenvalues,
-            eigenvectors,irrep_family_blocks
-          );
+        //   spncci::RegroupIntoIrrepFamilies(
+        //     spaces_spbasis,num_irrep_families,num_eigenvalues,
+        //     eigenvectors,irrep_family_blocks
+        //   );
 
-          std::string test_filename=fmt::format("irrep_family_blocks_{}",hw);
-          spncci::WriteIrrepFamilyBlocks(
-            run_parameters.J_values,  num_irrep_families,num_eigenvalues,
-            lgi_full_space_index_lookup,irrep_family_blocks,test_filename
-          );
+        //   std::string test_filename=fmt::format("irrep_family_blocks_{}",hw);
+        //   spncci::WriteIrrepFamilyBlocks(
+        //     run_parameters.J_values,  num_irrep_families,num_eigenvalues,
+        //     lgi_full_space_index_lookup,irrep_family_blocks,test_filename
+        //   );
 
-        }
+        // }
       }// End Hamiltonian section
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////

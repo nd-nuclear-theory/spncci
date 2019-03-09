@@ -117,7 +117,7 @@ void
             observable_subspace_index_conj
               =observable_space.LookUpSubspaceIndex(u3shell::ObservableSubspaceLabels(eta-etap,u3::Conjugate(x0),S0,kappa0,L0));
             // std::cout<<"index is "<<observable_subspace_index_conj<<std::endl;
-           // std::cout<<"Iterate over baby spncci hypersectors."<<std::endl; 
+           // std::cout<<"Iterate over baby spncci hypersectors. "<<baby_spncci_hypersectors.size()<<std::endl; 
             for(int baby_spncci_hypersector_index=0; baby_spncci_hypersector_index<baby_spncci_hypersectors.size(); ++baby_spncci_hypersector_index)
               {
                 // std::cout<<"get hypersector "<<baby_spncci_hypersector_index<<std::endl;
@@ -137,8 +137,11 @@ void
                 const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
                 
                 // If Nnp==Nn then sector already included from conjugate hypersectors
+
                 int Nnp=baby_spncci_subspace_bra.Nn();
                 int Nn=baby_spncci_subspace_ket.Nn();
+                // std::cout<<"Nnp and Nn "<<Nnp<<"  "<<Nn<<std::endl;
+
                 if(Nnp==Nn)
                   continue;
 
@@ -210,7 +213,10 @@ void ContractBabySpNCCISymmetricHypersectors(
   {
     int irrep_family_index_bra,irrep_family_index_ket;
     std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-    bool conjugate_hyperblocks=irrep_family_index_bra<irrep_family_index_ket;
+    // should always be false. may remove
+    // bool conjugate_hyperblocks=irrep_family_index_bra<irrep_family_index_ket;
+    bool conjugate_hyperblocks=false;
+    // assert(not conjugate_hyperblocks);
 
     for(int observable_index=0; observable_index<num_observables; ++observable_index)
       for(int hw_index=0; hw_index<num_hw_values; ++hw_index)
@@ -244,6 +250,7 @@ void ContractBabySpNCCISymmetricHypersectors(
 
             // std::cout<<"Contract over baby spnci observable sectors"<<std::endl;
             // std::cout<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
+
             spncci::ContractSymmetricOpBabySpNCCI(
                 unit_tensor_space,baby_spncci_space,observable_spaces[observable_index],
                 relative_observable,baby_spncci_hypersectors1,unit_tensor_hyperblocks1,
@@ -284,8 +291,8 @@ void ContractBabySpNCCISymmetricHypersectors(
     spncci::GetSpBasisOffsets(spbasis_bra,offsets_bra);
     spncci::GetSpBasisOffsets(spbasis_ket,offsets_ket);
 
-
     //Set up full matrix 
+    // std::cout<<fmt::format("operator matrix size {}  {}", basis_size_bra,basis_size_ket)<<std::endl;
     operator_matrix=spncci::OperatorBlock::Zero(basis_size_bra,basis_size_ket);
 
     // int num_files=nums_lgi_pairs.size();
@@ -297,9 +304,57 @@ void ContractBabySpNCCISymmetricHypersectors(
       { 
         int irrep_family_index_bra, irrep_family_index_ket;
         std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+        // std::cout<<"new pair "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
         ///////////////////////////////////////////////////////////////////////////////////////////////////
-        // Open files containing hyperblocks and hypersectors interating over thread number
+        // Identify target tile in full matrix 
         ///////////////////////////////////////////////////////////////////////////////////////////////////
+        const int spbasis_index_bra=spbasis_bra.LookUpSubspaceIndex(irrep_family_index_bra);
+        const int spbasis_index_ket=spbasis_ket.LookUpSubspaceIndex(irrep_family_index_ket);
+        
+        const spncci::SubspaceSpBasis& spbasis_subspace_bra=spbasis_bra.GetSubspace(spbasis_index_bra);
+        const spncci::SubspaceSpBasis& spbasis_subspace_ket=spbasis_ket.GetSubspace(spbasis_index_ket);
+        
+        const int tile_dimension_bra=spbasis_subspace_bra.dimension();
+        const int tile_dimension_ket=spbasis_subspace_ket.dimension();
+        
+        // std::cout<<"Tile defined as chunk of matrix between states belonging to irrep pair"<<std::endl;
+        spncci::OperatorBlock tile=spncci::OperatorBlock::Zero(tile_dimension_bra,tile_dimension_ket);
+        const int start_index_bra=tile_dimension_bra>0?offsets_bra[spbasis_index_bra][0]:0;
+        const int start_index_ket=tile_dimension_ket>0?offsets_ket[spbasis_index_ket][0]:0;
+        
+
+        // std::cout<<"Conjugate block (only lower triangle operator rmes stored in file)"<<std::endl;
+        const int spbasis_index_bra_conj=spbasis_bra.LookUpSubspaceIndex(irrep_family_index_ket);
+        const int spbasis_index_ket_conj=spbasis_ket.LookUpSubspaceIndex(irrep_family_index_bra);
+        
+        const spncci::SubspaceSpBasis& spbasis_subspace_bra_conj=spbasis_bra.GetSubspace(spbasis_index_bra_conj);
+        const spncci::SubspaceSpBasis& spbasis_subspace_ket_conj=spbasis_ket.GetSubspace(spbasis_index_ket_conj);
+        
+        const int tile_dimension_bra_conj=spbasis_subspace_bra_conj.dimension();
+        const int tile_dimension_ket_conj=spbasis_subspace_ket_conj.dimension();
+  
+        const int start_index_bra_conj=tile_dimension_bra_conj>0?offsets_bra[spbasis_index_bra_conj][0]:0;
+        const int start_index_ket_conj=tile_dimension_ket_conj>0?offsets_ket[spbasis_index_ket_conj][0]:0;
+
+
+        spncci::OperatorBlock tile_conj=spncci::OperatorBlock::Zero(tile_dimension_bra_conj,tile_dimension_ket_conj);
+        spncci::OperatorBlock temp_tile;
+  
+
+        // If Jp not equal to J, then accumulate in transposed sector and tranpose to conjugate tile after accumulation finished
+        if(Jp!=J)
+        {
+          temp_tile=spncci::OperatorBlock::Zero(tile_dimension_ket_conj,tile_dimension_bra_conj);
+        }
+
+        // std::cout<<fmt::format("({}, {}): ({},{})  ({}, {})  {}x{}",
+        //   irrep_family_index_bra,irrep_family_index_ket,spbasis_index_bra,spbasis_index_ket,
+        //   start_index_bra,start_index_ket, tile_dimension_bra,tile_dimension_ket
+        //   )<<std::endl;
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        //// Open files containing hyperblocks and hypersectors interating over thread number
+        /////////////////////////////////////////////////////////////////////////////////////////////////
         std::vector<spncci::ObservableHypersectorLabels> list_baby_spncci_hypersectors;
         int num_hypersectors; //Read in from hyperblocks 
         {
@@ -350,10 +405,13 @@ void ContractBabySpNCCISymmetricHypersectors(
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////
-        //Branching and insert into matrix 
+        //Branch and insert into matrix 
         //////////////////////////////////////////////////////////////////////////////////////////
         // std::cout<<"branching to J"<<std::endl;
-        for(int observable_hypersector_index=0; observable_hypersector_index<list_baby_spncci_hypersectors.size(); ++observable_hypersector_index)
+        for(int observable_hypersector_index=0; 
+            observable_hypersector_index<list_baby_spncci_hypersectors.size();
+            ++observable_hypersector_index
+          )
           {
             int baby_spncci_index_bra, baby_spncci_index_ket, operator_subspace_index, rho0;
             std::tie(baby_spncci_index_bra,baby_spncci_index_ket,operator_subspace_index,rho0)
@@ -366,6 +424,12 @@ void ContractBabySpNCCISymmetricHypersectors(
             // std::cout<<"Basis information"<<std::endl;
             const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
             const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
+            // std::cout<<fmt::format("irrep family indices  ({}, {})   ({}, {})",irrep_family_index_bra,irrep_family_index_ket,
+            //   baby_spncci_subspace_bra.irrep_family_index(),baby_spncci_subspace_ket.irrep_family_index())
+            //   <<std::endl;
+
+            // assert(irrep_family_index_bra==baby_spncci_subspace_bra.irrep_family_index());
+            // assert(irrep_family_index_ket==baby_spncci_subspace_ket.irrep_family_index());
 
             // std::cout<<"Get subspace labels for branching"<<std::endl;
             const u3::U3& omegap=baby_spncci_subspace_bra.omega();
@@ -375,13 +439,6 @@ void ContractBabySpNCCISymmetricHypersectors(
             const u3::U3& omega=baby_spncci_subspace_ket.omega();
             HalfInt S=baby_spncci_subspace_ket.S();
             MultiplicityTagged<int>::vector L_list=u3::BranchingSO3(omega.SU3());
-
-            int spbasis_index_bra=spbasis_bra.LookUpSubspaceIndex(baby_spncci_subspace_bra.irrep_family_index());
-            int spbasis_index_ket=spbasis_ket.LookUpSubspaceIndex(baby_spncci_subspace_ket.irrep_family_index());
-
-            const spncci::SubspaceSpBasis& spbasis_subspace_bra=spbasis_bra.GetSubspace(spbasis_index_bra);
-            const spncci::SubspaceSpBasis& spbasis_subspace_ket=spbasis_ket.GetSubspace(spbasis_index_ket);
-
 
             //Operator information
             const u3shell::ObservableSubspaceU3S& observable_subspace=observable_space.GetSubspace(operator_subspace_index);
@@ -396,11 +453,15 @@ void ContractBabySpNCCISymmetricHypersectors(
                 int Lp=Lp_tagged.irrep;
                 int kappap_max=Lp_tagged.tag;
                 spncci::omegaLLabels state_labels(omegap,Lp);
+
+                //target state lookup
                 int spbasis_state_index_bra=spbasis_subspace_bra.LookUpStateIndex(state_labels);
+                int spbasis_state_index_bra_conj=spbasis_subspace_bra_conj.LookUpStateIndex(state_labels);
 
                 if(spbasis_state_index_bra==-1)
                   continue;
-
+                
+                // std::cout<<"iterate over possible L values "<<std::endl;
                 for(auto L_tagged : L_list)
                   {
                     int L=L_tagged.irrep;
@@ -409,42 +470,80 @@ void ContractBabySpNCCISymmetricHypersectors(
                       continue;
 
                     int kappa_max=L_tagged.tag;
+
+                    //target state lookup
                     int spbasis_state_index_ket=spbasis_subspace_ket.LookUpStateIndex(spncci::omegaLLabels(omega,L));  
+                    int spbasis_state_index_ket_conj=spbasis_subspace_ket_conj.LookUpStateIndex(spncci::omegaLLabels(omega,L));  
+
                     if(spbasis_state_index_ket==-1)
                       continue;
 
                     double LSJcoef=am::Unitary9J(L,S,J,L0,S0,J0,Lp,Sp,Jp);
 
-                    int index_bra=offsets_bra[spbasis_index_bra][spbasis_state_index_bra];
+                    // offsets_bra returns global indexing.  For accumulation, indexing is relative to
+                    int index_bra=offsets_bra[spbasis_index_bra][spbasis_state_index_bra]-start_index_bra;
                     for(int kappap=1; kappap<=kappap_max; ++kappap)
-                    {
-                      
-                      int index_ket=offsets_ket[spbasis_index_ket][spbasis_state_index_ket];
-                      for(int kappa=1; kappa<=kappa_max; ++kappa)
-                        {
-                          spncci::MatrixFloatType Wcoef
-                            =u3::WCached(w_cache,omega.SU3(),kappa,L,x0,kappa0,L0,omegap.SU3(),kappap,Lp,rho0);
- 
-                           operator_matrix.block(index_bra,index_ket,block_rows,block_cols)
-                            +=Wcoef*LSJcoef*block;
+                      {
+                        
+                        int index_ket=offsets_ket[spbasis_index_ket][spbasis_state_index_ket]-start_index_ket;
+                        for(int kappa=1; kappa<=kappa_max; ++kappa)
+                          {
+                            // std::cout<<"accumulate "<<std::endl;
+                            spncci::MatrixFloatType Wcoef
+                              =u3::WCached(w_cache,omega.SU3(),kappa,L,x0,kappa0,L0,omegap.SU3(),kappap,Lp,rho0);
+   
+                             // operator_matrix.block(index_bra,index_ket,block_rows,block_cols)
+                              // std::cout<<fmt::format("{}  {}  {}x{}   {}x{}",
+                              //   index_bra,index_ket,block_rows,block_cols,tile.rows(),tile.cols()
+                              //   )<<std::endl;
+                              tile.block(index_bra,index_ket,block_rows,block_cols)+=Wcoef*LSJcoef*block;
 
-                          //increment starting index for ket
-                          index_ket+=block_cols;
-                        }
+                            // std::cout<<"successfully added block"<<std::endl;
+                            //increment starting index for ket
+                            index_ket+=block_cols;
 
-                      //increment starting index for bra
-                      index_bra+=block_rows;
-                    }
+                          }
 
+                        //increment starting index for bra
+                        index_bra+=block_rows;
+                      }
                   }
-              }
-          }
-      } //lgi_pair
-    for (int i=0; i<basis_size_bra; ++i)
-      for(int j=0; j<i; ++j)
+              }//end Lp
+          }// end hypersectors 
+
+        // If diagonal sector, only upper triangle was stored in hypersector files
+        // need to populate lower triangle of tile
+        // std::cout<<tile<<std::endl<<std::endl;
+        if(irrep_family_index_bra==irrep_family_index_ket)
         {
-          operator_matrix(j,i)=operator_matrix(i,j);
+          for (int j=0; j<tile.cols(); ++j)
+            for(int i=0; i<j; ++i)
+              {
+                tile(i,j)=tile(j,i);
+                // std::cout<<tile(j,i)<<"  "<<tile(i,j)<<std::endl;
+              }
         }
+
+        // std::cout<<"Put tile in matrix (or destribute if MPI)"<<std::endl;
+        // std::cout<<tile<<std::endl<<std::endl;
+        // std::cout<<fmt::format("{} {}   {} {}",start_index_bra,start_index_ket,tile_dimension_bra,tile_dimension_ket)<<std::endl;
+        // std::cout<<operator_matrix.rows()<<"  "<<operator_matrix.cols()<<std::endl;
+        operator_matrix.block(start_index_bra,start_index_ket,tile_dimension_bra,tile_dimension_ket)
+          =tile;
+        // std::cout<<"finished plopping"<<std::endl;
+        if(Jp==J && irrep_family_index_bra!=irrep_family_index_ket)
+        {
+          operator_matrix.block(start_index_ket,start_index_bra,tile_dimension_ket,tile_dimension_bra)
+            =tile.transpose();
+        }
+
+      } //lgi_pair
+    // std::cout<<"matrix "<<std::endl<<operator_matrix<<std::endl;
+    // for (int i=0; i<basis_size_bra; ++i)
+    //   for(int j=0; j<i; ++j)
+    //     {
+    //       operator_matrix(j,i)=operator_matrix(i,j);
+    //     }
   }
 
 
