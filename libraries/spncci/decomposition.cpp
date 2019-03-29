@@ -130,7 +130,7 @@ void CalculateNexDecompositions(
               StateSpBasis spj_state(spj_subspace,spj_state_index);    
               // int offset = spj_state.offset();
               int degeneracy = spj_state.degeneracy();
-              int Nex = int(spj_state.N()-Nsigma0);
+              int Nex = int(spj_state.omega().N()-Nsigma0);
               assert((0<=Nex)&&(Nex<=Nmax));
     
               // accumulate probability from this (composite) state

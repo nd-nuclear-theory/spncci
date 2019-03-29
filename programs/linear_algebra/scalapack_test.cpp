@@ -51,6 +51,14 @@ struct LocalParameters
   MKL_INT ctxt;
 };
 
+struct SubmatrixDescriptor
+{
+  int i;
+  int j;
+  int rows;
+  int cols;
+};
+
 std::pair<int,int> calculateProcessIndices(
     int global_i, int global_j,
     int process_rows, int process_cols,
@@ -155,11 +163,11 @@ void initializeParallel(int argc, char *argv[], RunParameters& params, LocalPara
   local.cols = numroc(&params.dimension, &params.block_size, &local.pc, &zero, &params.Pc);
 }
 
-void constructMatrix(int start_i, int num_rows, int start_j, int num_cols, Eigen::MatrixXf& matrix)
+void constructMatrix(SubmatrixDescriptor& descr, Eigen::MatrixXf& matrix)
 {
-  matrix = Eigen::MatrixXf::Zero(num_rows, num_cols);
-  for (int i=start_i; i<start_i+num_rows; ++i)
-    for(int j=start_j; j<start_j+num_cols; ++j)
+  matrix = Eigen::MatrixXf::Zero(descr.rows, descr.cols);
+  for (int i=descr.i; i<descr.i+descr.rows; ++i)
+    for(int j=descr.j; j<descr.j+descr.cols; ++j)
     {
       // matrix elements of (b^\dagger + b)^2
       float val=0;
@@ -169,7 +177,7 @@ void constructMatrix(int start_i, int num_rows, int start_j, int num_cols, Eigen
         val = (2*j+1);
       else if (i==j-2)
         val = std::sqrt(j*(j-1));
-      matrix(i-start_i,j-start_j) = val;
+      matrix(i-descr.i,j-descr.j) = val;
       // matrix(i-start_i, j-start_j) = i+100*j;
     }
 
@@ -178,38 +186,42 @@ void constructMatrix(int start_i, int num_rows, int start_j, int num_cols, Eigen
 void sendMatrixChunk(
     const RunParameters& params,
     const LocalParameters& local,
-    int start_row, int start_col,
-    Eigen::MatrixXf& chunk
+    const SubmatrixDescriptor& chunk,
+    Eigen::MatrixXf& chunk_matrix
   )
 {
-  int num_rows = chunk.rows();
-  int num_cols = chunk.cols();
-  int end_row = start_row + num_rows - 1;  // last row to be sent
-  int end_col = start_col + num_cols - 1;  // last col to be sent
-  int size_rows=0, size_cols=0;
+  // descriptor for block to be sent to other rank
+  SubmatrixDescriptor block;
+
   // loop over blocks of the matrix
-  for (int start_i = start_row; start_i <= end_row; start_i += size_rows)
-    for (int start_j = start_col; start_j <= end_col; start_j += size_cols)
+  for (block.i = chunk.i; block.i < chunk.i+chunk.rows; block.i += block.rows)
+    for (block.j = chunk.j; block.j < chunk.j+chunk.cols; block.j += block.cols)
     {
       int target_rank = getRankForIndices(
-          start_i, start_j,
+          block.i, block.j,
           params.Pr, params.Pc,
           params.block_size, params.block_size
         );
       // we send from the start index to the edge of the block, or to the
       // end of the submatrix
-      size_rows = std::min(params.block_size-(start_i%params.block_size), end_row-start_i+1);
-      size_cols = std::min(params.block_size-(start_j%params.block_size), end_col-start_j+1);
+      block.rows = std::min(
+          params.block_size-(block.i%params.block_size),
+          (chunk.i+chunk.rows)-block.i
+        );
+      block.cols = std::min(
+          params.block_size-(block.j%params.block_size),
+          (chunk.j+chunk.cols)-block.j
+        );
       std::cout << fmt::format(
           "{:d} send ({:2d},{:2d})+({:2d},{:2d})->{:d}\n",
-          local.mpi_rank, start_i, start_j, size_rows, size_cols, target_rank
+          local.mpi_rank, block.i, block.j, block.rows, block.cols, target_rank
         );
 
       // determine size of packed data
       int int_pack_size, row_pack_size, total_pack_size;
-      MPI_Pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &int_pack_size);
-      MPI_Pack_size(size_rows, MPI_FLOAT, MPI_COMM_WORLD, &row_pack_size);
-      total_pack_size = 4*int_pack_size + size_cols*row_pack_size;
+      MPI_Pack_size(4, MPI_INTEGER, MPI_COMM_WORLD, &int_pack_size);
+      MPI_Pack_size(block.rows, MPI_FLOAT, MPI_COMM_WORLD, &row_pack_size);
+      total_pack_size = int_pack_size + block.cols*row_pack_size;
 
       // allocate buffer for pack
       std::vector<unsigned char> buffer(total_pack_size);
@@ -217,33 +229,23 @@ void sendMatrixChunk(
       // pack index information
       int position = 0;
       MPI_Pack(
-          &start_i, 1, MPI_INTEGER,
-          buffer.data(), total_pack_size, &position,
-          MPI_COMM_WORLD
-        );
-      MPI_Pack(
-          &start_j, 1, MPI_INTEGER,
-          buffer.data(), total_pack_size, &position,
-          MPI_COMM_WORLD
-        );
-      MPI_Pack(
-          &size_rows, 1, MPI_INTEGER,
-          buffer.data(), total_pack_size, &position,
-          MPI_COMM_WORLD
-        );
-      MPI_Pack(
-          &size_cols, 1, MPI_INTEGER,
+          &block, 4, MPI_INTEGER,
           buffer.data(), total_pack_size, &position,
           MPI_COMM_WORLD
         );
 
       // pack submatrix data
-      for (int j=start_j; j < start_j+size_cols; ++j)
+      //
+      // (x,y) denote the indices in chunk_matrix
+      // therefore, x is the offset between the current row
+      // and the first row of the chunk. Likewise, y is
+      // the offset between the current column and the first column
+      // of the chunk
+      int x = block.i - chunk.i;
+      for (int y=block.j-chunk.j; y < block.cols+(block.j-chunk.j); ++y)
       {
-        int local_start_i = start_i - start_row;
-        int local_start_j = j - start_col;
         MPI_Pack(
-            chunk.data()+(local_start_i+num_rows*local_start_j), size_rows, MPI_FLOAT,
+            chunk_matrix.data()+(x+chunk.rows*y), block.rows, MPI_FLOAT,
             buffer.data(), total_pack_size, &position,
             MPI_COMM_WORLD
           );
@@ -264,31 +266,36 @@ void receiveMatrixChunk(
 {
   // receive next chunk
   int max_pack_size = buffer.size();
-  MPI_Recv(buffer.data(), max_pack_size, MPI_PACKED, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, &status);
-  int start_i, start_j, size_rows, size_cols, position=0;
-  MPI_Unpack(buffer.data(), max_pack_size, &position, &start_i, 1, MPI_INTEGER, MPI_COMM_WORLD);
-  MPI_Unpack(buffer.data(), max_pack_size, &position, &start_j, 1, MPI_INTEGER, MPI_COMM_WORLD);
-  MPI_Unpack(buffer.data(), max_pack_size, &position, &size_rows, 1, MPI_INTEGER, MPI_COMM_WORLD);
-  MPI_Unpack(buffer.data(), max_pack_size, &position, &size_cols, 1, MPI_INTEGER, MPI_COMM_WORLD);
+  MPI_Recv(
+      buffer.data(), max_pack_size, MPI_PACKED,
+      status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, &status
+    );
+  int position=0;
+  SubmatrixDescriptor block;
+  MPI_Unpack(buffer.data(), max_pack_size, &position, &block, 4, MPI_INTEGER, MPI_COMM_WORLD);
   int s,t;
-  std::tie(s,t) = calculateProcessLocalElementIndices(start_i, start_j, params.Pr, params.Pc, params.block_size, params.block_size);
+  std::tie(s,t) = calculateProcessLocalElementIndices(
+      block.i, block.j,
+      params.Pr, params.Pc, params.block_size, params.block_size
+    );
   std::cout << fmt::format(
       "{:d} recv ({:2d},{:2d})+({:2d},{:2d})<-{:d} @ ({:2d},{:2d})\n",
-      local.mpi_rank, start_i, start_j, size_rows, size_cols,
+      local.mpi_rank, block.i, block.j, block.rows, block.cols,
       status.MPI_SOURCE, s, t
     );
-  // for (auto& byte : buffer) sstream << " " << std::hex << int(byte);
-  // sstream << std::endl;
 
   // int s, t;
-  assert(t+size_cols<=local_storage.cols());
-  for (int j = start_j; j < start_j+size_cols; ++j)
+  assert(t+block.cols<=local_storage.cols());
+  const int& i = block.i;
+  for (int j = block.j; j < block.j+block.cols; ++j)
   {
     // extract pack in place
-    std::tie(s,t) = calculateProcessLocalElementIndices(start_i, j, params.Pr, params.Pc, params.block_size, params.block_size);
-    // std::cout << fmt::format("{:d} i{:d} j{:d} s{:d} t{:d}", local.mpi_rank, start_i, j, s, t) << std::endl;
-    assert(s+size_rows<=local_storage.rows());
-    MPI_Unpack(buffer.data(), max_pack_size, &position, local_storage.data()+(s+local.rows*t), size_rows, MPI_FLOAT, MPI_COMM_WORLD);
+    std::tie(s,t) = calculateProcessLocalElementIndices(
+        i, j,
+        params.Pr, params.Pc, params.block_size, params.block_size
+      );
+    assert(s+block.rows<=local_storage.rows());
+    MPI_Unpack(buffer.data(), max_pack_size, &position, local_storage.data()+(s+local.rows*t), block.rows, MPI_FLOAT, MPI_COMM_WORLD);
   }
 }
 
@@ -316,7 +323,7 @@ int main(int argc, char *argv[])
   {
     #pragma omp single nowait
     // one thread is dedicated to receiving matrix blocks and placing them
-    // int local storage
+    // into local storage
     {
       std::cout << fmt::format(
           " rank {:d}, thread {:d} -- listening\n",
@@ -324,9 +331,9 @@ int main(int argc, char *argv[])
         ) << std::flush;
       // allocate buffer
       int int_pack_size, row_pack_size, max_pack_size;
-      MPI_Pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &int_pack_size);
+      MPI_Pack_size(4, MPI_INTEGER, MPI_COMM_WORLD, &int_pack_size);
       MPI_Pack_size(params.block_size, MPI_FLOAT, MPI_COMM_WORLD, &row_pack_size);
-      max_pack_size = 4*int_pack_size + params.block_size*row_pack_size;
+      max_pack_size = int_pack_size + params.block_size*row_pack_size;
       std::vector<unsigned char> buffer(max_pack_size);
       int done_count=0;
 
@@ -381,7 +388,8 @@ int main(int argc, char *argv[])
       int start_j = cols_per_proc*local.mpi_rank;
       int num_cols = (local.mpi_rank==local.num_mpi_ranks-1 ? params.dimension-start_j : cols_per_proc);
 
-      constructMatrix(0, params.dimension, start_j, num_cols, matrix);
+      SubmatrixDescriptor matrix_descr = {0, start_j, params.dimension, num_cols};
+      constructMatrix(matrix_descr, matrix);
       // dump accumulated diagonistic info
       // for (int i=0; i<local.num_mpi_ranks; ++i)
       // {
@@ -391,7 +399,7 @@ int main(int argc, char *argv[])
       //   MPI_Barrier(MPI_COMM_WORLD);
       // }
 
-      sendMatrixChunk(params, local, 0, start_j, matrix);
+      sendMatrixChunk(params, local, matrix_descr, matrix);
 
       // inform master that we've finished distributing matrix
       MPI_Send(&k_done, 1, MPI_INTEGER, 0, k_done, MPI_COMM_WORLD);
