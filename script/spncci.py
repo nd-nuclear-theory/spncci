@@ -601,18 +601,18 @@ def save_spncci_results(task):
     """
     # results file
     coulomb = int(task["use_coulomb"])
-    results_descriptor="Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task)
-    raw_log_filename = "spncci.res"
-    new_log_filename = os.path.join(
+    # results_descriptor="Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task)
+    raw_res_filename = "spncci.res"
+    new_res_filename = os.path.join(
         mcscript.task.results_dir,
-        "{name}-{description}.res".format(name=mcscript.parameters.run.name,description=results_descriptor)
+        "{name}-{descriptor}.res".format(name=mcscript.parameters.run.name,**task)
     )
     mcscript.call(
         [
             "cp",
             "--verbose",
-            raw_log_filename,
-            new_log_filename
+            raw_res_filename,
+            new_res_filename
         ]
     )
 

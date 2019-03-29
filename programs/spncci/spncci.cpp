@@ -823,7 +823,7 @@ int main(int argc, char **argv)
                 hamiltonian_matrix
               );
 
-            spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
+            // spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
             // std::cout<<hamiltonian_matrix<<std::endl;
             // long int num_nonzero_rmes=0;
             // for(int i=0; i<hamiltonian_matrix.rows(); ++i)
@@ -898,7 +898,7 @@ int main(int argc, char **argv)
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Writing irrep family blocks to files for use in lgi basis transformation
 
-        if(true) //TEMP While doing higher Nmax runs
+        if(false) //TEMP While doing higher Nmax runs
         // if(not run_parameters.transform_lgi)
         {
           //TODO: Remove restriction to 3 and make input

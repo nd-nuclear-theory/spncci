@@ -794,8 +794,8 @@ namespace spncci
           if(not allowed_subspace)
             continue;
 
-          if(restrict_lower_triangle)
-            std::cout<<"irrep_family_index "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
+          // if(restrict_lower_triangle)
+          //   std::cout<<"irrep_family_index "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
 
           // For each observable subspace, check if its an allowed observable subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
