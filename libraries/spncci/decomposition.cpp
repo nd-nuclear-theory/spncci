@@ -111,6 +111,8 @@ void CalculateNexDecompositions(
       int offset=0; 
       // set up aliases for current J subspace
       const spncci::SpaceSpBasis& spj_space = spaces_spbasis[spj_space_index];
+
+
       const spncci::Matrix& eigenvectors_J = eigenvectors[spj_space_index];
       spncci::Matrix& Nex_decompositions_J = Nex_decompositions[spj_space_index];
 
@@ -123,18 +125,17 @@ void CalculateNexDecompositions(
       for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
         // for each (composite) state
         {
-          // retrieve basis state information
+          // retrieve basis state information          
           const spncci::SubspaceSpBasis& spj_subspace=spj_space.GetSubspace(spj_subspace_index);
           for(int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
             {
               StateSpBasis spj_state(spj_subspace,spj_state_index);    
-              // int offset = spj_state.offset();
               int degeneracy = spj_state.degeneracy();
-              int Nex = int(spj_state.N()-Nsigma0);
+              int Nex = int(spj_state.omega().N()-Nsigma0);
               assert((0<=Nex)&&(Nex<=Nmax));
-    
+ 
               // accumulate probability from this (composite) state
-              Nex_decompositions_J.row(Nex)+=eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
+               Nex_decompositions_J.row(Nex)+=eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
               offset+=degeneracy;
             }
           
@@ -208,16 +209,12 @@ void CalculateBabySpNCCIDecompositions(
           // set up aliases for current J subspace
           const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
 
-
-         
-
           // accumulate probability
           for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
             // for each (composite) state
             {
               // retrieve basis state information
               StateSpBasis spj_state(spj_subspace,spj_state_index);
-              // int offset = spj_state.offset();
               int degeneracy = spj_state.degeneracy();
               int baby_spncci_subspace_index = spj_state.baby_spncci_subspace_index();
               assert((0<=baby_spncci_subspace_index)&&(baby_spncci_subspace_index<baby_spncci_space_size));
