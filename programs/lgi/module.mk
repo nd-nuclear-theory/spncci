@@ -10,7 +10,7 @@ $(eval $(begin-module))
 module_programs_cpp := get_lgi_expansion get_spncci_seed_blocks
 module_programs_cpp += transform_seed_blocks 
 module_programs_cpp += generate_truncated_lsu3shell_basis
-module_programs_cpp += test_lsu3shell get_u3s_subspaces
+module_programs_cpp += test_lsu3shell get_u3s_subspaces Brel_subspace_lister
 ## module_programs_cpp += get_spncci_dimensions
 # module_programs_f :=
 # module_generated :=

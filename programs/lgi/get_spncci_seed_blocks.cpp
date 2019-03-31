@@ -42,57 +42,10 @@ files in directory seeds containing:
 #include "spncci/spncci_basis.h"
 #include "u3shell/relative_operator.h"
 ///
-#include "mcutils/io.h"
+// #include "mcutils/io.h"
 
 // Testing function 
-namespace lgi{
-
-void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
-  {
-
-    // num_rows, num_cols, rmes
-    // rmes are by column then by row
-    // output in binary mode 
-    std::ios_base::openmode mode_argument = std::ios_base::out;
-    mode_argument |= std::ios_base::binary;
-    std::ofstream expansion_file;
-    expansion_file.open(filename,mode_argument);
-
-    if (!expansion_file)
-     {
-        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-        return;
-     }
-   
-    mcutils::WriteBinary<int>(expansion_file,lgi::binary_format_code);
-    // floating point precision
-    mcutils::WriteBinary<int>(expansion_file,lgi::binary_float_precision);
-
-
-    for(auto& block : lgi_expansions)
-      {
-        int num_rows=block.rows();
-        int num_cols=block.cols();
-
-        assert(num_rows==static_cast<RMEIndexType>(num_rows));
-        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_rows);
-
-        assert(num_cols==static_cast<RMEIndexType>(num_cols));
-        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_cols);
-        
-        for(int j=0; j<num_cols; ++j)
-          for(int i=0; i<num_rows; ++i)
-            {
-              auto rme=block(i,j);
-
-              if (lgi::binary_float_precision==4)
-                mcutils::WriteBinary<float>(expansion_file,rme);
-              else if (lgi::binary_float_precision==8)
-                mcutils::WriteBinary<double>(expansion_file,rme);
-            }
-      }
-  }
-}//namespace
+namespace lgi{}//namespace
 
 int main(int argc, char **argv)
 {
