@@ -310,7 +310,7 @@ void ReadObservableHypersectors(
   // Read number of hyperblocks 
   mcutils::ReadBinary<int>(in_stream,num_hypersectors);
   // std::cout<<"number of hypersectors "<<num_hypersectors<<std::endl;
-  std::cout<<"    "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<"  "<<num_hypersectors<<std::endl;
+  // std::cout<<"    "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<"  "<<num_hypersectors<<std::endl;
 
   list_baby_spncci_hypersectors.resize(num_hypersectors);
   // std::cout<<" Read in each hyperblock "<< num_hyperblocks<<std::endl;
