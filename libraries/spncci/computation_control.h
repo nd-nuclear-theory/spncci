@@ -37,22 +37,13 @@
 #include <fstream>
 
 #include "lgi/lgi.h"
-// #include "lsu3shell/lsu3shell_basis.h"
-// #include "lsu3shell/lsu3shell_rme.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/branching_u3lsj.h"
 #include "spncci/branching.h"
 #include "spncci/parameters.h"
-// #include "spncci/branching.h"
-// #include "spncci/explicit_construction.h"
-// #include "spncci/io_control.h"
 #include "spncci/spncci_basis.h"
-// #include "spncci/spncci_common.h"
 #include "spncci/parameters.h"
-// #include "spncci/unit_tensor.h"
-// #include "sp3rlib/u3.h"
-// #include "u3shell/relative_operator.h"
-// #include "u3shell/u3spn_scheme.h"
+
 
 namespace spncci
 {
@@ -69,6 +60,23 @@ namespace spncci
       int Nlimit,
       bool restrict_sp3r_to_u3_branching
     );
+// void ComputeManyBodyRMEs(
+//   const spncci::RunParameters& run_parameters,
+//   const lgi::MultiplicityTaggedLGIVector& lgi_families,
+//   const std::vector<int>& lgi_full_space_index_lookup,
+//   const spncci::SpNCCISpace& spncci_space,
+//   const spncci::BabySpNCCISpace& baby_spncci_space,
+//   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+//   const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
+//   const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
+//   const spncci::KMatrixCache& k_matrix_cache,
+//   const spncci::KMatrixCache& kinv_matrix_cache,
+//   spncci::OperatorBlocks& lgi_transformations,
+//   u3::UCoefCache& u_coef_cache,
+//   u3::PhiCoefCache& phi_coef_cache,
+//   const spncci::LGIPair& lgi_pair
+//   );
+
 }  // namespace
 
 #endif

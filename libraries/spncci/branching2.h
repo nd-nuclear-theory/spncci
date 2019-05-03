@@ -211,6 +211,9 @@ namespace spncci
 
     SpaceSpBasis(const BabySpNCCISpace& baby_spncci_space, const HalfInt& J);
 
+    //Alternate constructor that constructs a subspace of the full space base on irrep_family_subset
+    SpaceSpBasis(const BabySpNCCISpace& baby_spncci_space, const HalfInt& J, std::set<int>irrep_family_subset);
+
     HalfInt J() const {return J_;}
 
     // diagnostic output

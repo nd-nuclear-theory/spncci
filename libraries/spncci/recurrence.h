@@ -1,5 +1,5 @@
 /****************************************************************
-  unit_tensor.h
+  recurrence.h
 
   Unit tensor recursive evaluation
                                   
@@ -11,8 +11,8 @@
     computational control 
 ****************************************************************/
 
-#ifndef SPNCCI_SPNCCI_UNIT_TENSOR_H_
-#define SPNCCI_SPNCCI_UNIT_TENSOR_H_
+#ifndef SPNCCI_SPNCCI_RECURRENCE_
+#define SPNCCI_SPNCCI_RECURRENCE_
 #include "spncci/spncci_basis.h"
 #include "spncci/vcs_cache.h"
 #include "u3shell/tensor_labels.h"

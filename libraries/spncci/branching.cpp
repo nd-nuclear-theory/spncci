@@ -17,7 +17,7 @@
 #include "am/wigner_gsl.h"
 #include "fmt/format.h"
 #include "mcutils/parsing.h"
-#include "spncci/unit_tensor.h"
+// #include "spncci/unit_tensor.h"
 
 namespace spncci
 {

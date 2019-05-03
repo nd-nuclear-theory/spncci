@@ -27,7 +27,6 @@
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/spncci_common.h"
-#include "spncci/unit_tensor.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"  
 #include "u3shell/upcoupling.h"

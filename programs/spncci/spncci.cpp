@@ -80,6 +80,8 @@
     combined with observable spaces
   2/15/18 (aem) : Removed gamma_max=0 lgi
     + Cleaned up codes and factored spncci.cpp into simpler functions
+  5/2/19 (aem) : Moved ComputeManyBodyRMEs into hyperblocks_u3s
+
 
 Notes:
 branching2 currently used for branching.  branching has old definitions still temp used for 
@@ -104,20 +106,15 @@ basis statistics
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/profiling.h"
 #include "mcutils/eigen.h"
-// #include "spncci/branching.h"
-// #include "spncci/branching2.h"
-// #include "spncci/branching_u3s.h"
-// #include "spncci/branching_u3lsj.h"
 #include "spncci/computation_control.h"
 #include "spncci/decomposition.h"
 #include "spncci/eigenproblem.h"
 #include "spncci/explicit_construction.h"
 #include "spncci/io_control.h"
 #include "spncci/computation_control.h"
-// #include "spncci/parameters.h"
 #include "spncci/results_output.h"
 #include "spncci/transform_basis.h"
-
+#include "spncci/vcs_cache.h"
 #include "spncci/hyperblocks_u3s.h"
 ////////////////////////////////////////////////////////////////
 // WIP code
@@ -126,140 +123,6 @@ basis statistics
 ////////////////////////////////////////////////////////////////
 namespace spncci
 {
-
-// const spncci::LGIPair& lgi_pair=lgi_pairs[i];
-// 
-// After bool files_found=GenerateUnitTensorHyperblocks()
-// If seeds corresponding to lgi pair do not exist, continue to next pair
-//     if(not files_found)
-//       continue;
-
-void ComputeManyBodyRMEs(
-  const spncci::RunParameters& run_parameters,
-  const lgi::MultiplicityTaggedLGIVector& lgi_families,
-  const std::vector<int>& lgi_full_space_index_lookup,
-  const spncci::SpNCCISpace& spncci_space,
-  const spncci::BabySpNCCISpace& baby_spncci_space,
-  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-  const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
-  const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
-  const spncci::KMatrixCache& k_matrix_cache,
-  const spncci::KMatrixCache& kinv_matrix_cache,
-  spncci::OperatorBlocks& lgi_transformations,
-  u3::UCoefCache& u_coef_cache,
-  u3::PhiCoefCache& phi_coef_cache,
-  const spncci::LGIPair& lgi_pair
-  )
-  {
-
-    // by observable, by hw, by lgi pair
-    spncci::ObservableHyperblocksTable observable_hyperblocks_table(run_parameters.num_observables);
-    // Presize table
-    for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-      observable_hyperblocks_table[observable_index].resize(run_parameters.hw_values.size());
-
-    // Extract lgi index  labels 
-    int irrep_family_index_bra,irrep_family_index_ket;
-    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-
-    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
-    spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
-    
-    // Generate Unit tensor blocks if lgi pair seed files found.
-    // If files not found, function returns false.
-    bool files_found
-      =GenerateUnitTensorHyperblocks(
-          lgi_pair,run_parameters.Nmax, run_parameters.N1v,
-          lgi_families,lgi_full_space_index_lookup,
-          spncci_space,baby_spncci_space,unit_tensor_space,
-          k_matrix_cache,kinv_matrix_cache,lgi_transformations,
-          run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
-          baby_spncci_hypersectors,unit_tensor_hyperblocks
-        );
-
-    // If seeds corresponding to lgi pair do not exist, continue to next pair
-    if(not files_found)
-      return;
-
-    // Initialize hyperblocks for (irrep2,irrep1)
-    spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
-    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks2;
-    spncci::BabySpNCCIHypersectors baby_spncci_hypersectors2;
-
-    // Check if hypersectors are diagonal in irrep family. 
-    bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
-          
-    if(not is_diagonal)
-      {  
-        // std::cout<<"conjugate pair"<<std::endl;
-        bool files_found2
-        =GenerateUnitTensorHyperblocks(
-            lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
-            lgi_families,lgi_full_space_index_lookup,
-            spncci_space,baby_spncci_space,unit_tensor_space,
-            k_matrix_cache,kinv_matrix_cache,lgi_transformations,
-            run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
-            baby_spncci_hypersectors2,unit_tensor_hyperblocks2
-          );
-
-        // If we've made it this far (passed files_found) then files for (irrep2,irrep1) should exist
-        assert(files_found2);
-      }
-    // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // // Contract and regroup
-    // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // // std::cout<<"contract "<<std::endl;
-    spncci::ObservableHyperblocksTable observable_hyperblocks_table_test(run_parameters.num_observables);
-    spncci::ObservableHypersectorsTable observable_hypersectors_table_test(run_parameters.num_observables);
-
-    // Presize table
-    for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-      observable_hyperblocks_table_test[observable_index].resize(run_parameters.hw_values.size());
-
-    // spncci::ContractBabySpNCCIHypersectors(
-    //   lgi_pair,run_parameters.num_observables, run_parameters.hw_values.size(),
-    //   baby_spncci_space,observable_spaces,unit_tensor_space,
-    //   baby_spncci_hypersectors,baby_spncci_hypersectors2,
-    //   unit_tensor_hyperblocks,unit_tensor_hyperblocks2,
-    //   observables_relative_rmes,observable_hypersectors_table_test,
-    //   // observable_hypersectors_by_lgi_table,
-    //   observable_hyperblocks_table_test
-    // );
-
-    // spncci::WriteBabySpncciObservableRMEs(
-    //   lgi_pair,observable_hypersectors_table_test,
-    //   observable_hyperblocks_table_test
-    // );
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // by observable, by hw, by lgi pair
-    // spncci::ObservableHyperblocksTable observable_hyperblocks_table(run_parameters.num_observables);
-
-    // // Presize table
-    // for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    //   observable_hyperblocks_table_test[observable_index].resize(run_parameters.hw_values.size());
-
-    // spncci::ObservableHypersectorsTable observable_hypersectors_table(run_parameters.num_observables);
-    spncci::ObservableHypersectorsTable observable_hypersectors_table(run_parameters.num_observables);
-    spncci::ContractBabySpNCCISymmetricHypersectors(
-      lgi_pair,run_parameters.num_observables, run_parameters.hw_values.size(),
-      baby_spncci_space,observable_spaces,unit_tensor_space,
-      baby_spncci_hypersectors,baby_spncci_hypersectors2,
-      unit_tensor_hyperblocks,unit_tensor_hyperblocks2,
-      observables_relative_rmes,observable_hypersectors_table,
-      observable_hyperblocks_table
-    );
-
-    spncci::WriteBabySpncciSymmetricObservableRMEs(lgi_pair,observable_hypersectors_table,observable_hyperblocks_table);
-
-    // int lgi1, lgi2;
-    // std::tie(lgi1,lgi2)=lgi_pair;
-    // std::cout<<fmt::format("finished lgi pair {}  {}",lgi1,lgi2)<<std::endl;
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    return;
-  }
 
 }// end namespace
 
@@ -403,7 +266,19 @@ int main(int argc, char **argv)
       spaces_spbasis[j]=spncci::SpaceSpBasis(baby_spncci_space,J);
     }
   //////////////////////////////////////////////////////////////////
+  // Testing 
+  //////////////////////////////////////////////////////////////////
+  // Generate list of irrep famlies in truncated space  
+  std::set<int> irrep_family_subset;
+  for (int i=0; i<3; ++i) irrep_family_subset.insert(i);  
 
+  std::vector<spncci::SpaceSpBasis> spaces_spbasis_subset(run_parameters.J_values.size());
+  for(int j=0; j<run_parameters.J_values.size(); ++j)
+    {
+      const HalfInt& J=run_parameters.J_values[j];
+      spaces_spbasis_subset[j]=spncci::SpaceSpBasis(baby_spncci_space,J,irrep_family_subset);
+      std::cout<<"J="<<J<<std::endl<<spaces_spbasis_subset[j].DebugStr()<<std::endl;
+    }
 
 //Will eventually remove.  For now just taking out of scope.
 {
@@ -428,37 +303,7 @@ int main(int argc, char **argv)
       observable_hypersectors_by_observable
     );
 
-  // set up basis indexing for branching
-  std::map<HalfInt,spncci::SpaceLS> spaces_lsj;  // map: J -> space
-  std::map<HalfInt,spncci::SpaceSpLS> spaces_splsj;
-  for (const HalfInt J : run_parameters.J_values)
-    {
-
-      std::cout << fmt::format("Build LS space for J={}...",J.Str()) << std::endl;
-      spaces_lsj[J] = spncci::SpaceLS(space_u3s,J);
-      std::cout
-        << fmt::format(
-            "  subspaces {} dimension {}",
-            J.Str(),
-            spaces_lsj[J].size(),spaces_lsj[J].Dimension()
-          ) << std::endl;
-
-      // comparison tests with new basis branching construction
-      std::cout << fmt::format("Build SpLS space for J={}...",J.Str()) << std::endl;
-      spaces_splsj[J]=spncci::SpaceSpLS(spu3s_space,J);
-      const auto& spls_space=spaces_splsj.at(J);
-      // spncci::SpaceSpLS spls_space(spu3s_space,J);
-      std::cout
-        << fmt::format("  subspaces {} dimension {} full_dimension {}",
-                       spls_space.size(),spls_space.Dimension(),spls_space.FullDimension()
-          )
-        << std::endl;
-      std::cout
-        << fmt::format("  compare... TotalDimensionU3LSJConstrained {}",TotalDimensionU3LSJConstrained(spncci_space,J))
-        << std::endl;
-
-      //////////////////////////////////////////////////////////////////
-    }
+  // // set up basis indexing for branching
 
   // determine J sectors for each observable
   std::vector<spncci::SectorsSpJ> observable_sectors;
@@ -469,10 +314,7 @@ int main(int argc, char **argv)
       const int J0=run_parameters.observable_J0_values[observable_index];
       observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
     }
-
-
 }
-
 
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
@@ -491,11 +333,6 @@ int main(int argc, char **argv)
       std::cout << "End of counting-only run" << std::endl;
       std::exit(EXIT_SUCCESS);
     }
-
-
-
-
-
 
   ////////////////////////////////////////////////////////////////
   // precompute K matrices
@@ -636,7 +473,7 @@ int main(int argc, char **argv)
 
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
 
-          ComputeManyBodyRMEs(
+          spncci::ComputeManyBodyRMEs(
               run_parameters,lgi_families,lgi_full_space_index_lookup,
               spncci_space,baby_spncci_space,unit_tensor_space, observable_spaces,
               observables_relative_rmes,k_matrix_cache,kinv_matrix_cache,
@@ -655,9 +492,6 @@ int main(int argc, char **argv)
       phi_coef_cache.clear();
 
     } //end parallel region
-
-
-
 
   ////////////////////////////////////////////////////////////////
   // calculation mesh master loop
@@ -744,51 +578,51 @@ int main(int argc, char **argv)
 
         // results output: eigenvalues
         spncci::WriteEigenvalues(results_stream,run_parameters.J_values,eigenvalues,run_parameters.gex);
-        // spncci::WriteEigenvalues(results_stream,spj_space,eigenvalues,run_parameters.gex);
 
-        // ////////////////////////////////////////////////////////////////
-        // // do decompositions
-        // ////////////////////////////////////////////////////////////////
 
-        // std::cout << "Calculate eigenstate decompositions..." << std::endl;
-        // mcutils::SteadyTimer timer_decompositions;
-        // timer_decompositions.Start();
+        //////////////////////////////////////////////////////////////
+        // do decompositions
+        ////////////////////////////////////////////////////////////////
 
-        // // decomposition matrices:
-        // //   - vector over J
-        // //   - matrix over (basis_subspace_index,eigenstate_index)
-        // //
-        // // That is, decompositions are stored as column vectors, within a
-        // // matrix, much like the eigenstates themselves.
-        // std::vector<spncci::Matrix> Nex_decompositions;
-        // std::vector<spncci::Matrix> baby_spncci_decompositions;
-        // Nex_decompositions.resize(run_parameters.J_values.size());
-        // baby_spncci_decompositions.resize(run_parameters.J_values.size());
+        std::cout << "Calculate eigenstate decompositions..." << std::endl;
+        mcutils::SteadyTimer timer_decompositions;
+        timer_decompositions.Start();
 
-        // // calculate decompositions
-        // spncci::CalculateNexDecompositions(
-        //   spaces_spbasis,eigenvectors,Nex_decompositions,
-        //   run_parameters.Nsigma0,run_parameters.Nmax
-        // );
+        // decomposition matrices:
+        //   - vector over J
+        //   - matrix over (basis_subspace_index,eigenstate_index)
+        //
+        // That is, decompositions are stored as column vectors, within a
+        // matrix, much like the eigenstates themselves.
+        std::vector<spncci::Matrix> Nex_decompositions;
+        std::vector<spncci::Matrix> baby_spncci_decompositions;
+        Nex_decompositions.resize(run_parameters.J_values.size());
+        baby_spncci_decompositions.resize(run_parameters.J_values.size());
 
-        // spncci::CalculateBabySpNCCIDecompositions(
-        //   spaces_spbasis,eigenvectors,baby_spncci_decompositions,
-        //   baby_spncci_space.size()
-        // );
+        // calculate decompositions
+        spncci::CalculateNexDecompositions(
+          spaces_spbasis,eigenvectors,Nex_decompositions,
+          run_parameters.Nsigma0,run_parameters.Nmax
+        );
 
-        // timer_decompositions.Stop();
-        // std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
+        spncci::CalculateBabySpNCCIDecompositions(
+          spaces_spbasis,eigenvectors,baby_spncci_decompositions,
+          baby_spncci_space.size()
+        );
 
-        // // // results output: decompositions
-        // spncci::WriteDecompositions(
-        //   results_stream,"Nex",".6f",spaces_spbasis,
-        //   Nex_decompositions,run_parameters.gex
-        // );
+        timer_decompositions.Stop();
+        std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
 
-        // spncci::WriteDecompositions(
-        //   results_stream,"BabySpNCCI",".4e",spaces_spbasis,
-        //   baby_spncci_decompositions,run_parameters.gex
-        // );
+        // // results output: decompositions
+        spncci::WriteDecompositions(
+          results_stream,"Nex",".6f",spaces_spbasis,
+          Nex_decompositions,run_parameters.gex
+        );
+
+        spncci::WriteDecompositions(
+          results_stream,"BabySpNCCI",".4e",spaces_spbasis,
+          baby_spncci_decompositions,run_parameters.gex
+        );
 
         // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         // // Writing irrep family blocks to files for use in lgi basis transformation
