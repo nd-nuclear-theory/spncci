@@ -39,7 +39,7 @@ namespace lgi
   // output mode
   extern int binary_format_code;
   extern int binary_float_precision;
-  typedef short unsigned int RMEIndexType;
+  // typedef short unsigned int RMEIndexType;
 
 
   void 
@@ -104,6 +104,21 @@ void WriteExpansion(
   // Inputs
   //  filename: output filename
   //  lgi_expansion : operator blocks containing lgi expansion 
+
+
+void ReadLGIExpansion(
+    int num_lgi_subspaces,
+    const std::string& filename,
+    basis::OperatorBlocks<double>& lgi_expansions
+  );
+  // Read LGI expansion from file 
+  // Inputs:
+  //  num_lgi_subspaces
+  //  filename
+  //
+  // Outputs
+  //  lgi_expansions
+
 
   void
     TransformOperatorToSpBasis(

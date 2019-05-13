@@ -6,13 +6,16 @@
 
 ****************************************************************/
 #include <fstream>
+#include <iostream>
 #include <omp.h>
 
 #include "fmt/format.h"
+#include "lsu3shell/lsu3shell_rme.h"
 #include "lgi/lgi_solver.h"
 #include "lgi/null_solver.h"
 #include "utilities/utilities.h"
 #include "mcutils/io.h"
+#include "mcutils/parsing.h"
 
 namespace lgi
 {
@@ -222,11 +225,11 @@ void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks
         int num_rows=block.rows();
         int num_cols=block.cols();
 
-        assert(num_rows==static_cast<RMEIndexType>(num_rows));
-        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_rows);
+        assert(num_rows==static_cast<lsu3shell::RMEIndexType>(num_rows));
+        mcutils::WriteBinary<lsu3shell::RMEIndexType>(expansion_file,num_rows);
 
-        assert(num_cols==static_cast<RMEIndexType>(num_cols));
-        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_cols);
+        assert(num_cols==static_cast<lsu3shell::RMEIndexType>(num_cols));
+        mcutils::WriteBinary<lsu3shell::RMEIndexType>(expansion_file,num_cols);
         
         for(int j=0; j<num_cols; ++j)
           for(int i=0; i<num_rows; ++i)
@@ -241,6 +244,56 @@ void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks
       }
   }
 
+      
+
+
+void ReadLGIExpansion(int num_lgi_subspaces,const std::string& filename, basis::OperatorBlocks<double>& lgi_expansions)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::in;
+    mode_argument |= std::ios_base::binary;
+    std::ifstream in_stream(filename, mode_argument);
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+    // if (!in_stream)
+    //  {
+    //     std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+    //     return;
+    //  }
+   
+    int binary_format_code;
+    int binary_float_precision;
+    mcutils::ReadBinary<int>(in_stream,binary_format_code);
+    mcutils::ReadBinary<int>(in_stream,binary_float_precision);
+
+
+    lgi_expansions.resize(num_lgi_subspaces);
+    for(int i=0; i<num_lgi_subspaces; ++i)
+      {
+        basis::OperatorBlock<double>& block=lgi_expansions[i];
+        lsu3shell::RMEIndexType rows, cols;
+        // Read in number of rows and cols
+        mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,rows);
+        mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,cols);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // Read in RMEs and cast to double matrix 
+        if(binary_float_precision==4)
+          {
+            float buffer[rows*cols];
+            in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+            block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+          }
+        else if (binary_float_precision==8)
+          {
+            double buffer[rows*cols];
+            in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+            block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+          }
+      }
+  }
 
 
   void

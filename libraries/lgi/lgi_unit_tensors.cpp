@@ -10,12 +10,14 @@
 #include <iostream>
 #include <fstream>
 #include <omp.h>  
+
+#include "fmt/format.h"
+#include "lsu3shell/lsu3shell_rme.h"
+#include "lgi/lgi_solver.h"
 #include "mcutils/io.h"
 #include "mcutils/eigen.h"
-#include "fmt/format.h"
-#include "lgi/lgi_solver.h"
 #include "mcutils/parsing.h" //For ReadUnitTensorLabels
-#include "mcutils/io.h"//For ReadUnitTensorLabels
+
 
 
 namespace lgi
@@ -35,7 +37,7 @@ namespace lgi
       const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       basis::OperatorBlocks<double>& unit_tensor_spncci_matrices,
-      std::vector<int>& lsu3hsell_index_lookup_table,
+      std::vector<int>& lsu3shell_index_lookup_table,
       bool restrict_seeds
     )
   {    
@@ -50,8 +52,8 @@ namespace lgi
         int bra_subspace_index = sector.bra_subspace_index();
         int ket_subspace_index = sector.ket_subspace_index();
 
-        int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
-        int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
+        int bra_lgi_index=lsu3shell_index_lookup_table[bra_subspace_index];
+        int ket_lgi_index=lsu3shell_index_lookup_table[ket_subspace_index];
 
         // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
         bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
@@ -192,11 +194,11 @@ namespace lgi
     int num_rows=block.rows();
     int num_cols=block.cols();
 
-    assert(num_rows==static_cast<RMEIndexType>(num_rows));
-    mcutils::WriteBinary<RMEIndexType>(out_file,num_rows);
+    assert(num_rows==static_cast<lsu3shell::RMEIndexType>(num_rows));
+    mcutils::WriteBinary<lsu3shell::RMEIndexType>(out_file,num_rows);
 
-    assert(num_cols==static_cast<RMEIndexType>(num_cols));
-    mcutils::WriteBinary<RMEIndexType>(out_file,num_cols);
+    assert(num_cols==static_cast<lsu3shell::RMEIndexType>(num_cols));
+    mcutils::WriteBinary<lsu3shell::RMEIndexType>(out_file,num_cols);
 
     
     for(int j=0; j<num_cols; ++j)
@@ -397,9 +399,9 @@ namespace lgi
     {
       
       //Read in number of rows and columns
-      lgi::RMEIndexType rows,cols;
-      mcutils::ReadBinary<RMEIndexType>(in_stream,rows);
-      mcutils::ReadBinary<RMEIndexType>(in_stream,cols);
+      lsu3shell::RMEIndexType rows,cols;
+      mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,rows);
+      mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,cols);
 
       // Read in RMEs and case to double matrix 
       //TODO Change to MatrixFloatType for spncci
