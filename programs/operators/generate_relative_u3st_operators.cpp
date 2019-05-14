@@ -6,6 +6,8 @@
 
   2/14/17 (aem,mac): Created.
   2/21/17 (aem,mac): Update input parsing.  Add parsing checks.
+  5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
+    basis::RelativeOperatorParametersLSJT for reading in operators
 ****************************************************************/
 #include <iostream>
 #include <fstream>
@@ -270,8 +272,8 @@ namespace u3shell
       basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
       std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
       std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
-      basis::OperatorLabelsJT operator_labels;
-      
+      // basis::OperatorLabelsJT operator_labels;
+      basis::RelativeOperatorParametersLSJT operator_labels;
       basis::ReadRelativeOperatorLSJT(
         interaction_filename,relative_space_lsjt,operator_labels,
         isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, true

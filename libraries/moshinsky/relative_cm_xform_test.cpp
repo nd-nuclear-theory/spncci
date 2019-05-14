@@ -313,7 +313,8 @@ int main(int argc, char **argv)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Defining containers for reading in interaction
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
-  basis::OperatorLabelsJT operator_labels;
+    // basis::OperatorLabelsJT operator_labels;
+  basis::RelativeOperatorParametersLSJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors;
   std::array<basis::OperatorBlocks<double>,3> isospin_component_matrices;
   //Read interaction and store sector information in relative_component_sectors
