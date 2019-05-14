@@ -50,7 +50,8 @@ LDLIBS += -lgslcblas
 CPPFLAGS += -DHAVE_INLINE
 
 # MKL and ScaLAPACK
-LDLIBS += -mkl -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64
+LDLIBS += -mkl 
+#LDLIBS += -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64
 
 # Eigen
 CPPFLAGS += -DEIGEN_DONT_PARALLELIZE
