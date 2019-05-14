@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   if(argc<3)
   {
     std::cout<<"Syntax: Z N Nmax "<<std::endl;
-    std::cout<<" or "
+    std::cout<<" or "<<std::endl;
     std::cout<<"Syntax: Z N Nmax lgi_filename lgi_expansion_filename"<<std::endl;
     std::exit(EXIT_FAILURE);
   }
