@@ -15,7 +15,6 @@
 #include "mcutils/parsing.h"
 #include "mcutils/eigen.h"
 #include "spncci/io_control.h"
-#include "spncci/unit_tensor.h"
 
 namespace spncci
 {

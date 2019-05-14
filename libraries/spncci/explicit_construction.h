@@ -22,7 +22,8 @@
 #define SPNCCI_SPNCCI_EXPLICIT_CONSTRUCTION_H_
 
 #include "spncci/spncci_basis.h"
-#include "spncci/unit_tensor.h"
+// #include "spncci/unit_tensor.h"
+#include "spncci/vcs_cache.h"
 #include "spncci/parameters.h"
 
 namespace spncci

@@ -19,7 +19,7 @@
 #include "mcutils/eigen.h"
 #include "mcutils/parsing.h"
 #include "spncci/io_control.h"
-#include "spncci/unit_tensor.h"
+// #include "spncci/unit_tensor.h"
 
 
 
@@ -43,7 +43,7 @@ namespace spncci
     // labels_ = sigmaSPN;
     labels_ = irrep_family_index;
     sigmaSPN_=sigmaSPN;
-
+    dimension_=0;
     // scan BabySpNCCISpace for states to accumulate
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
@@ -78,6 +78,9 @@ namespace spncci
                 state_kappa_max_.push_back(kappa_max);
                 state_upsilon_max_.push_back(upsilon_max);
                 state_baby_spncci_subspace_index_.push_back(baby_spncci_subspace_index);
+
+                // increment dimension of subspace 
+                dimension_+=degeneracy;
               }
           }
       }
@@ -127,6 +130,35 @@ namespace spncci
         PushSubspace(SubspaceSpBasis(J,sigmaSPN,irrep_family_index,baby_spncci_space));
       }
   }
+
+
+  SpaceSpBasis::SpaceSpBasis(const BabySpNCCISpace& baby_spncci_space, const HalfInt& J, std::set<int>irrep_family_subset)
+  {
+    J_=J;
+
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
+      {
+  
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+  
+        // create new subspace -- only if not already constructed for this (omega,S)
+        const u3shell::U3SPN& sigmaSPN = baby_spncci_subspace.sigmaSPN();
+        int irrep_family_index = baby_spncci_subspace.irrep_family_index();
+        
+        if(not irrep_family_subset.count(irrep_family_index))
+          continue;
+
+        if(ContainsSubspace(irrep_family_index))
+          continue;
+
+        PushSubspace(SubspaceSpBasis(J,sigmaSPN,irrep_family_index,baby_spncci_space));
+      }
+  }
+
+
+
+
 
 
   std::string SpaceSpBasis::DebugStr(bool show_subspaces) const
