@@ -14,7 +14,9 @@
             (colon-delimited search path); su3rme files will be sought
             within subdirectories named in su3rme.su3rme_subdirectory_list
 
- 
+        SU3SHELL_DATA -- directory needed for running lsu3shell.  
+            within directory there must be a subdirectory rme.
+
         Ex (personal workstation):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
@@ -96,6 +98,7 @@ project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
 su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
+su3rme_data_directory=os.environ["SU3SHELL_DATA"]
 su3rme_subdirectory_list = []
 
 # executable files
@@ -111,6 +114,10 @@ generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"sp
 ################################################################
 # relative operator construction (A-independent)
 ################################################################
+def setup_su3shell_directories(task):
+    directory_name=su3rme_data_directory+"/rme"
+    mcscript.call(["mkdir","-p",directory_name])
+
 
 def relative_operator_descriptor(task):
     """Generate descriptor string for use in relative operator archive
@@ -283,6 +290,7 @@ def generate_model_space_file(task):
     Invokes generate_lsu3shell_model_space.
     """
     if task["model_space_file_bra"]==None:
+        print("generating model_space.dat")
         command_line = [
             generate_lsu3shell_model_space_executable,
             "{nuclide[0]:d}".format(**task),
@@ -493,6 +501,9 @@ def do_generate_lsu3shell_rmes(task):
     Control code for generating RMEs in the SU(3)-NCSM basis, for relative
     unit tensors and symplectic raising/lowering/N operators.
     """
+    # print(task)
+    # set up necessary directories for lsu3shell
+    setup_su3shell_directories(task)
 
     # retrieve relevant operator files
     retrieve_operator_files(task)
