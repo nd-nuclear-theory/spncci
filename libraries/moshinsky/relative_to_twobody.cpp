@@ -5,6 +5,8 @@
   University of Notre Dame
 
   6/15/16 (aem,mac): Created.
+  5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
+    basis::RelativeOperatorParametersLSJT for reading in operators
 ****************************************************************/
 #include <fstream>
 
@@ -49,7 +51,10 @@ void RelativeToTwoBody(
   // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
 
-  basis::OperatorLabelsJT operator_labels;
+
+  // basis::OperatorLabelsJT operator_labels;
+  basis::RelativeOperatorParametersLSJT operator_labels;
+
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
   basis::ReadRelativeOperatorLSJT(
@@ -288,7 +293,8 @@ int main(int argc, char **argv)
   // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
 
-  basis::OperatorLabelsJT operator_labels;
+  // basis::OperatorLabelsJT operator_labels;
+  basis::RelativeOperatorParametersLSJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
   basis::ReadRelativeOperatorLSJT(
