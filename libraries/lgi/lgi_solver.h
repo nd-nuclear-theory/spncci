@@ -36,6 +36,12 @@
 namespace lgi
 {
 
+  // output mode
+  extern int binary_format_code;
+  extern int binary_float_precision;
+  // typedef short unsigned int RMEIndexType;
+
+
   void 
     GenerateLGIExpansion(
         const u3shell::SpaceU3SPN& space, 
@@ -88,6 +94,30 @@ void GetLGIExpansion(
   //   basis::OperatorBlocks<double> lgi_expansions;
   //   lsu3hsell_index_lookup_table: look up take relating 
   //   lsu3shell subspace index to lgi family index
+
+
+void WriteExpansion(
+    const std::string& filename, 
+    const lsu3shell::OperatorBlocks& lgi_expansions
+  );
+  // Write expansion of lgi's in lsu3shell basis as su3 reduced level
+  // Inputs
+  //  filename: output filename
+  //  lgi_expansion : operator blocks containing lgi expansion 
+
+
+void ReadLGIExpansion(
+    int num_lgi_subspaces,
+    const std::string& filename,
+    basis::OperatorBlocks<double>& lgi_expansions
+  );
+  // Read LGI expansion from file 
+  // Inputs:
+  //  num_lgi_subspaces
+  //  filename
+  //
+  // Outputs
+  //  lgi_expansions
 
 
   void

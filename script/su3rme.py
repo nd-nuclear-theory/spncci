@@ -14,7 +14,9 @@
             (colon-delimited search path); su3rme files will be sought
             within subdirectories named in su3rme.su3rme_subdirectory_list
 
- 
+        SU3SHELL_DATA -- directory needed for running lsu3shell.  
+            within directory there must be a subdirectory rme.
+
         Ex (personal workstation):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
@@ -96,6 +98,7 @@ project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
 su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
+su3rme_data_directory=os.environ["SU3SHELL_DATA"]
 su3rme_subdirectory_list = []
 
 # executable files
@@ -106,11 +109,15 @@ su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","
 # ... from spncci
 generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
 generate_lsu3shell_relative_operators_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_relative_operators")
-
+u3s_subspace_lister_executable=os.path.join(project_root,"spncci","programs","lgi","get_u3s_subspaces")
 
 ################################################################
 # relative operator construction (A-independent)
 ################################################################
+def setup_su3shell_directories(task):
+    directory_name=su3rme_data_directory+"/rme"
+    mcscript.call(["mkdir","-p",directory_name])
+
 
 def relative_operator_descriptor(task):
     """Generate descriptor string for use in relative operator archive
@@ -252,8 +259,9 @@ def split_relative_operator_file(task):
  
     unittensors=[];
     generators=[];
-    lines = [line.rstrip('\n') for line in open(relative_filename,'r')]
-    for line in lines:
+    file=open(relative_filename,'r')
+    for line in file:
+    # for line in lines:
         operator=line.split()
         if(operator[0]=="Arel" or operator[0]=="Brel" or operator[0]=="Nrel"):
             generators.append(line)
@@ -303,6 +311,7 @@ def generate_model_space_file(task):
     Otherwise, copy truncated model space to model space input files. model_space_bra.dat and 
     """
     if task["model_space_file_bra"]==None:
+        print("generating model_space.dat")
         command_line = [
             generate_lsu3shell_model_space_executable,
             "{nuclide[0]:d}".format(**task),
@@ -337,6 +346,25 @@ def generate_model_space_file(task):
 
     else:
         mcscript.call(["cp",task["model_space_file_ket"], "model_space_ket.dat"])
+
+
+def generate_u3s_subspace_labels(task):
+    (Z,N)=task["nuclide"]
+    mcscript.call([
+        u3s_subspace_lister_executable,
+        "{nuclide[0]:d}".format(**task),
+        "{nuclide[1]:d}".format(**task),
+        "lsu3shell_basis.dat",
+        "{Nsigma_max:d}".format(**task)
+        ])
+
+
+# def do_get_u3s_labels(task):
+#   # generate model space file needed by lsu3shell codes
+#   su3rme.generate_model_space_file(task)
+#   # generate basis listing for basis in which rmes are calculated
+#   su3rme.generate_basis_table(task)
+#   su3rme.generate_u3s_subspace_labels(task)
 
 
 
@@ -511,7 +539,11 @@ def generate_lsu3shell_rmes(task):
     """
     Wrapper for relative_operator.dat independent part of main function
     """
-   # generate model space file needed by lsu3shell codes
+    # print(task)
+    # set up necessary directories for lsu3shell
+    setup_su3shell_directories(task)
+
+    # generate model space file needed by lsu3shell codes
     generate_model_space_file(task)
 
     # generate basis listing for basis in which rmes are calculated
@@ -523,10 +555,10 @@ def generate_lsu3shell_rmes(task):
     # save results
     save_su3rme_files(task)
 
-    # clean up working directory
-    mcscript.call(["du","-hs","."])  # log working directory disk usage
-    delete_filenames=glob.glob('*')
-    mcscript.call(["rm"] + delete_filenames)
+    # # clean up working directory
+    # mcscript.call(["du","-hs","."])  # log working directory disk usage
+    # delete_filenames=glob.glob('*')
+    # # mcscript.call(["rm"] + delete_filenames)
 
 
 def do_generate_lsu3shell_rmes(task):
@@ -568,6 +600,19 @@ def do_generate_lsu3shell_generator_rmes(task):
     retrieve_operator_files(task)
     split_relative_operator_file(task)
     mcscript.call(["ln","-s","relative_generators.dat","relative_operators.dat"])
+    generate_lsu3shell_rmes(task)
+
+
+def do_generate_lsu3shell_unittensor_rmes(task):
+    """
+    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
+    unit tensors and symplectic raising/lowering/N operators.
+    """
+
+    # retrieve relevant operator files
+    retrieve_operator_files(task)
+    split_relative_operator_file(task)
+    mcscript.call(["ln","-s","relative_unittensors.dat","relative_operators.dat"])
     generate_lsu3shell_rmes(task)
 
     

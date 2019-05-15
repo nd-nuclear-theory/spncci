@@ -42,7 +42,8 @@ namespace lsu3shell
 
   // global configuration
   extern bool g_rme_binary_format;
-
+  typedef unsigned int RMEIndexType;
+  
   // matrix precision
   typedef double MatrixFloatType;
   typedef basis::OperatorBlock<MatrixFloatType> OperatorBlock;

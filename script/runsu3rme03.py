@@ -1,27 +1,28 @@
-"""runsu3rme02.py
+"""runsu3rme03.py
 
-  Parallel timing testbed for su3rme code, based on Nv=0 spaces.
-
-  CAVEAT: Pools are based on MPI allocation.  Runtimes within a pool
-  are inhomogeneous (and increasing).  So the mcscript.task graceful
-  termination based on walltime will not prevent walltime timeouts.
+  Example run script to calculate RMEs of relative unit tensors and
+  the symplectic operators (A/B/Nintr) in SU(3)-NCSM many-body basis.
+  Calculations of unit tensors and symplectic operators carried out separately. 
 
   Example invocation (under csh):
 
-    foreach nslaves (01 02 04 32)
-      @ nranks = ${nslaves} + 1
-      qsubm su3rme02 debug 2880 --pool="nslaves${nslaves}-c" --ranks=${nranks}
-      qsubm su3rme02 debug 2880 --pool="nslaves${nslaves}-b" --ranks=${nranks}
+    foreach n (00 02 04 06 08 10)
+      qsubm su3rme01 long 999 --pool="Nsigmamax${n}" --ranks=24
     end
 
+  Then manually save the results:
+
+    cp -rv runsu3rme01/results ${SPNCCI_SU3RME_DIR}/runsu3rme01
+
+  (Of course, the shorthand ${SPNCCI_SU3RME_DIR} only works if
+  SPNCCI_SU3RME_DIR is a single directory, not a list of directories.)
 
   Language: Python 3
 
   A. E. McCoy and M. A. Caprio
   Department of Physics, University of Notre Dame
 
-  - 6/3/17 (mac): Created, based on runsu3rme01.
-
+  - 5/14/19 (aem): Created.
 """
 
 import glob
@@ -44,37 +45,24 @@ su3rme.operator_subdirectory_list += ["rununittensor01"]
 # build task list
 ##################################################################
 
-Nsigma_max_list = mcscript.utils.value_range(6,10,2)
-nslaves_list = [1,2,4,8,23,32]
-su3rme_mode_list = ["count","binary"]
+Nsigma_max_list = mcscript.utils.value_range(0,10,2)
+
 task_list = [
     {
-        "nuclide" : (2,2),
-        ## "Nmax" : None,
+        "nuclide" : (3,3),
+        ## "Nmax" : Nmax,
         "Nstep" : 2,
-        "N1v" : 0,
-        "Nsigma_0" : 6,
+        "N1v" : 1,
+        "Nsigma_0" : 11,
         "Nsigma_max" : Nsigma_max,
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "su3rme_descriptor_template" : su3rme.su3rme_descriptor_template_Nsigmamax,
-        "su3rme_mode" : su3rme_mode,
+        "su3rme_mode" : "binary",
         "model_space_file_bra" : None,
-        "model_space_file_ket" : None,
-        # for timing pool
-        "nslaves" : nslaves
+        "model_space_file_ket" : None
     }
-    for nslaves in nslaves_list
     for Nsigma_max in Nsigma_max_list
-    for su3rme_mode in su3rme_mode_list
 ]
-
-
-## def do_runs(task):
-##     """ Do runs iterating over Nmax."""
-## 
-##     for Nsigma_max in Nsigma_max_list:
-##         task["Nsigma_max"] = Nsigma_max
-##         spncci.do_generate_lsu3shell_rmes(task)
 
 ################################################################
 # run control
@@ -86,7 +74,7 @@ def task_descriptor(task):
 
 def task_pool(task):
     """"""
-    return ("nslaves{nslaves:02d}-{su3rme_mode[0]}".format(**task))
+    return ("Nsigmamax{Nsigma_max:02d}".format(**task))
 
 ##################################################################
 # task control
@@ -97,7 +85,8 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        su3rme.do_generate_lsu3shell_rmes
+        # su3rme.do_generate_lsu3shell_generator_rmes
+        su3rme.do_generate_lsu3shell_unittensor_rmes
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]

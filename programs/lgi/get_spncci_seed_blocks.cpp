@@ -33,72 +33,27 @@ files in directory seeds containing:
 12/29/17 (aem): Created. 
 ****************************************************************/
 #include <fstream>  
+
 #include "fmt/format.h"
+#include "lgi/lgi_solver.h"
+#include "lgi/lgi_unit_tensors.h"
+#include "mcutils/eigen.h"
 #include "mcutils/parsing.h"
 #include "sp3rlib/u3coef.h"
-#include "lgi/lgi_solver.h"
-#include "mcutils/eigen.h"
-#include "lgi/lgi_unit_tensors.h"
 #include "spncci/spncci_basis.h"
 #include "u3shell/relative_operator.h"
-///
-#include "mcutils/io.h"
+
 
 // Testing function 
-namespace lgi{
-
-void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
-  {
-
-    // num_rows, num_cols, rmes
-    // rmes are by column then by row
-    // output in binary mode 
-    std::ios_base::openmode mode_argument = std::ios_base::out;
-    mode_argument |= std::ios_base::binary;
-    std::ofstream expansion_file;
-    expansion_file.open(filename,mode_argument);
-
-    if (!expansion_file)
-     {
-        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-        return;
-     }
-   
-    mcutils::WriteBinary<int>(expansion_file,lgi::binary_format_code);
-    // floating point precision
-    mcutils::WriteBinary<int>(expansion_file,lgi::binary_float_precision);
-
-
-    for(auto& block : lgi_expansions)
-      {
-        int num_rows=block.rows();
-        int num_cols=block.cols();
-
-        assert(num_rows==static_cast<RMEIndexType>(num_rows));
-        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_rows);
-
-        assert(num_cols==static_cast<RMEIndexType>(num_cols));
-        mcutils::WriteBinary<RMEIndexType>(expansion_file,num_cols);
-        
-        for(int j=0; j<num_cols; ++j)
-          for(int i=0; i<num_rows; ++i)
-            {
-              auto rme=block(i,j);
-
-              if (lgi::binary_float_precision==4)
-                mcutils::WriteBinary<float>(expansion_file,rme);
-              else if (lgi::binary_float_precision==8)
-                mcutils::WriteBinary<double>(expansion_file,rme);
-            }
-      }
-  }
-}//namespace
+namespace lgi{}//namespace
 
 int main(int argc, char **argv)
 {
   if(argc<3)
   {
     std::cout<<"Syntax: Z N Nmax "<<std::endl;
+    std::cout<<" or "<<std::endl;
+    std::cout<<"Syntax: Z N Nmax lgi_filename lgi_expansion_filename"<<std::endl;
     std::exit(EXIT_FAILURE);
   }
 
@@ -130,9 +85,6 @@ int main(int argc, char **argv)
   // Generate Nsigma0 from nuclei and type 
   HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
 
-  // Operator parameters
-  std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
-  std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
 
   // Unit tensor parameters
   int J0=-1;
@@ -156,12 +108,15 @@ int main(int argc, char **argv)
       lsu3shell_basis_provenance,lsu3shell_space
     );
 
-
-  std::cout<<lsu3shell_basis_filename<<std::endl;
   ////////////////////////////////////////////////////////////////
-  // solve for LGIs
-  ////////////////////////////////////////////////////////////////
+  // TODO: If lgi and lgi expansion file names not provided, solve for LGI
   // std::cout << "Solve for LGIs..." << std::endl;
+  ////////////////////////////////////////////////////////////////
+  // Operator parameters
+  std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
+  std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
+
+
   lgi::MultiplicityTaggedLGIVector lgi_families;
   lsu3shell::OperatorBlocks lgi_expansions;
   std::vector<int> lsu3hsell_index_lookup_table;
@@ -179,6 +134,9 @@ int main(int argc, char **argv)
   // std::cout<<"write expansion to file "<<std::endl;
   std::string lgi_expansion_filename="seeds/lgi_expansions.dat";
   lgi::WriteExpansion(lgi_expansion_filename,lgi_expansions);
+
+
+
   ////////////////////////////////////////////////////////////////
   // Generate Seed blocks 
   ////////////////////////////////////////////////////////////////

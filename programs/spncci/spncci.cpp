@@ -968,7 +968,16 @@ int main(int argc, char **argv)
                 hamiltonian_matrix
               );
 
-            // spncci::WriteMatrixToFile(hamiltonian_matrix, hw); // For matrix analysis
+            // spncci::WriteMatrixToFile(hamiltonian_matrix, hw);
+            // std::cout<<hamiltonian_matrix<<std::endl;
+            // long int num_nonzero_rmes=0;
+            // for(int i=0; i<hamiltonian_matrix.rows(); ++i)
+            //   for(int j=0; j<=i; ++j)
+            //     {
+            //       if(fabs(hamiltonian_matrix(i,j))>10e-4)
+            //         num_nonzero_rmes++;
+            //     }
+            // std::cout<<"number of non-zero rmes "<<num_nonzero_rmes<<std::endl;
 
             std::cout << fmt::format("  Diagonalizing: J={}",J) << std::endl;
             spncci::SolveHamiltonian(

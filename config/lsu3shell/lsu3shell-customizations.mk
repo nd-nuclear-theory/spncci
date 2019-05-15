@@ -20,7 +20,7 @@
 #      missing from the lsu3shell project.mk and relegated to config.mk:
 #
 #        # GNU Scientific Library
-#        LDLIBS += -lgsl 
+#        LDLIBS += -lgsl
 #        LDLIBS += -lgslcblas 
 #        CXXFLAGS += -DHAVE_INLINE
 #
@@ -113,13 +113,13 @@ search_dirs_include +=  $(EIGEN3_DIR)/include/eigen3
 # Boost library
 
 search_prefix += $(BOOST_ROOT)
-LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
+LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono 
 
 # GNU OpenMP library
 #
 # needed for MFDn eigensolver with gcc 6
 
-LDFLAGS += -lgomp
+LDFLAGS += -lgomp -static
 
 # SU3LIB numerical precision
 #
