@@ -46,8 +46,9 @@ void IdentityTest(
   
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::OperatorBlocks<double>,3> isospin_component_matrices_lsjt;
-  // basis::OperatorLabelsJT operator_labels;
+
   basis::RelativeOperatorParametersLSJT operator_labels;
+
   basis::ReadRelativeOperatorLSJT(
     interaction_file,relative_space_lsjt,operator_labels,
     isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, true
@@ -109,7 +110,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   
   std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
   std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
-  // basis::OperatorLabelsJT operator_labels;
+
   basis::RelativeOperatorParametersLSJT operator_labels;
   basis::ReadRelativeOperatorLSJT(
     interaction_file,relative_lsjt_space,operator_labels,
@@ -202,7 +203,7 @@ void UpcoupleQmass(int Nmax, int Jmax)
       std::cout<<filename<<std::endl;
       std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
       std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
-      // basis::OperatorLabelsJT operator_labels;
+
       basis::RelativeOperatorParametersLSJT operator_labels;
       basis::ReadRelativeOperatorLSJT(
         filename,relative_lsjt_space,operator_labels,
@@ -246,7 +247,7 @@ void UpcoupleQisovector(int Nmax, int Jmax)
       std::cout<<filename<<std::endl;
       std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
       std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
-      // basis::OperatorLabelsJT operator_labels;
+
       basis::RelativeOperatorParametersLSJT operator_labels;
       basis::ReadRelativeOperatorLSJT(
         filename,relative_lsjt_space,operator_labels,
@@ -307,7 +308,7 @@ QCheck()
 
       std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
       std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
-      // basis::OperatorLabelsJT operator_labels;
+
       basis::RelativeOperatorParametersLSJT operator_labels;
       basis::ReadRelativeOperatorLSJT(
         filename,relative_lsjt_space,operator_labels,
