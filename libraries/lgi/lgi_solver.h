@@ -39,7 +39,7 @@ namespace lgi
   // output mode
   extern int binary_format_code;
   extern int binary_float_precision;
-  // typedef short unsigned int RMEIndexType;
+  typedef short unsigned int RMEIndexType;
 
 
   void 
