@@ -12,7 +12,7 @@
 #include <omp.h>  
 
 #include "fmt/format.h"
-#include "lsu3shell/lsu3shell_rme.h"
+// #include "lsu3shell/lsu3shell_rme.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/io.h"
 #include "mcutils/eigen.h"
@@ -194,11 +194,11 @@ namespace lgi
     int num_rows=block.rows();
     int num_cols=block.cols();
 
-    assert(num_rows==static_cast<lsu3shell::RMEIndexType>(num_rows));
-    mcutils::WriteBinary<lsu3shell::RMEIndexType>(out_file,num_rows);
+    assert(num_rows==static_cast<lgi::RMEIndexType>(num_rows));
+    mcutils::WriteBinary<lgi::RMEIndexType>(out_file,num_rows);
 
-    assert(num_cols==static_cast<lsu3shell::RMEIndexType>(num_cols));
-    mcutils::WriteBinary<lsu3shell::RMEIndexType>(out_file,num_cols);
+    assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
+    mcutils::WriteBinary<lgi::RMEIndexType>(out_file,num_cols);
 
     
     for(int j=0; j<num_cols; ++j)
@@ -399,9 +399,9 @@ namespace lgi
     {
       
       //Read in number of rows and columns
-      lsu3shell::RMEIndexType rows,cols;
-      mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,rows);
-      mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,cols);
+      lgi::RMEIndexType rows,cols;
+      mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,rows);
+      mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,cols);
 
       // Read in RMEs and case to double matrix 
       //TODO Change to MatrixFloatType for spncci

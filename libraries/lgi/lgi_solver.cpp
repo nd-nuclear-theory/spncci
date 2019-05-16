@@ -225,11 +225,11 @@ void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks
         int num_rows=block.rows();
         int num_cols=block.cols();
 
-        assert(num_rows==static_cast<lsu3shell::RMEIndexType>(num_rows));
-        mcutils::WriteBinary<lsu3shell::RMEIndexType>(expansion_file,num_rows);
+        assert(num_rows==static_cast<lgi::RMEIndexType>(num_rows));
+        mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_rows);
 
-        assert(num_cols==static_cast<lsu3shell::RMEIndexType>(num_cols));
-        mcutils::WriteBinary<lsu3shell::RMEIndexType>(expansion_file,num_cols);
+        assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
+        mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_cols);
         
         for(int j=0; j<num_cols; ++j)
           for(int i=0; i<num_rows; ++i)
@@ -273,10 +273,10 @@ void ReadLGIExpansion(int num_lgi_subspaces,const std::string& filename, basis::
     for(int i=0; i<num_lgi_subspaces; ++i)
       {
         basis::OperatorBlock<double>& block=lgi_expansions[i];
-        lsu3shell::RMEIndexType rows, cols;
+        lgi::RMEIndexType rows, cols;
         // Read in number of rows and cols
-        mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,rows);
-        mcutils::ReadBinary<lsu3shell::RMEIndexType>(in_stream,cols);
+        mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,rows);
+        mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,cols);
 
         /////////////////////////////////////////////////////////////////////////////////
         // Read in RMEs and cast to double matrix 
