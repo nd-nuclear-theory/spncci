@@ -241,10 +241,6 @@ int main(int argc, char **argv)
   // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
 
-<<<<<<< HEAD
-  // basis::OperatorLabelsJT operator_labels;
-=======
->>>>>>> e264f6499d7d359160811c9c89ca85a95c430c08
   basis::RelativeOperatorParametersLSJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
