@@ -270,7 +270,7 @@ namespace u3shell
       basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
       std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
       std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
-      basis::OperatorLabelsJT operator_labels;
+      basis::RelativeOperatorParametersLSJT operator_labels;
       
       basis::ReadRelativeOperatorLSJT(
         interaction_filename,relative_space_lsjt,operator_labels,

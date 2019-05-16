@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   basis::RelativeSpaceLSJT relative_space_lsjt;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_blocks_lsjt;
-  basis::OperatorLabelsJT operator_labels;
+  basis::RelativeOperatorParametersLSJT operator_labels;
   
   // Reads in relative operator and fills out isospin_component_sectors_lsjt, 
   // isospin_component_blocks_lsjt, operator_labels and relative_space_lsjt.
