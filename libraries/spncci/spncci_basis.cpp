@@ -434,6 +434,7 @@ namespace spncci
       const spncci::BabySpNCCISpace& space,
       const u3shell::OperatorLabelsU3S& operator_labels
     )
+    : BaseSectors(space)
   // Based loosely on u3shell::SectorsU3SPN constructor.
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
@@ -471,7 +472,7 @@ namespace spncci
           if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
         }
   }
@@ -675,7 +676,7 @@ namespace spncci
     int irrep_family_index_bra, int irrep_family_index_ket
   )
   {
-   
+
     // std::cout<<"irrep family1 "<<irrep_family_index_1<<"  irrep family2 "<<irrep_family_index_2<<std::endl;
     // int hypersector_index=0;
     for (int bra_subspace_index=0; bra_subspace_index<baby_spncci_space.size(); ++bra_subspace_index)
@@ -688,11 +689,11 @@ namespace spncci
           // Check if baby spncci subspaces contained in either the bra or the ket irrep families
           //
           // Check bra subspace
-          bool allowed_subspace=false; 
+          bool allowed_subspace=false;
           if(irrep_family_index_bra==-1 && irrep_family_index_bra==-1 )
             allowed_subspace=true;
 
-          else if(irrep_family_index_bra==bra_subspace.irrep_family_index() 
+          else if(irrep_family_index_bra==bra_subspace.irrep_family_index()
                   &&irrep_family_index_ket==ket_subspace.irrep_family_index()
                   )
             allowed_subspace=true;
@@ -711,13 +712,13 @@ namespace spncci
           for(int observable_subspace_index=0; observable_subspace_index<observable_space.size(); ++observable_subspace_index)
             {
               bool allowed_subspace = true;
-              const u3shell::ObservableSubspaceU3S& 
+              const u3shell::ObservableSubspaceU3S&
                 observable_subspace=observable_space.GetSubspace(observable_subspace_index);
 
               // U(1)
               allowed_subspace
                 &=(ket_subspace.omega().N()+observable_subspace.N0()-bra_subspace.omega().N() == 0);
-              
+
               // spin
               //
               // Note: Basic two-body constaints can be placed on Sp

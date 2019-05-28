@@ -9,7 +9,7 @@
   between these subspaces.
 
   Language: C++11
-                                 
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -48,18 +48,18 @@ namespace u3shell {
     // member needs copying
 
     // default constructor
-    inline U3SPN() 
+    inline U3SPN()
       : Sp_(0), Sn_(0) {}
 
     // construction from (omegaS,Sp,Sn)
-    inline U3SPN(const u3::U3S& omegaS, const HalfInt& Sp, const HalfInt& Sn) 
+    inline U3SPN(const u3::U3S& omegaS, const HalfInt& Sp, const HalfInt& Sn)
       : omegaS_(omegaS), Sp_(Sp), Sn_(Sn) {}
 
     // alternative construction
-    inline U3SPN(const u3::U3& omega, const HalfInt& Sp, const HalfInt& Sn, const HalfInt& S) 
-      : Sp_(Sp), Sn_(Sn) 
+    inline U3SPN(const u3::U3& omega, const HalfInt& Sp, const HalfInt& Sn, const HalfInt& S)
+      : Sp_(Sp), Sn_(Sn)
       {
-        omegaS_=u3::U3S(omega,S); 
+        omegaS_=u3::U3S(omega,S);
       }
 
     ////////////////////////////////////////////////////////////////
@@ -131,13 +131,13 @@ namespace u3shell {
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
-    
+
     private:
 
     u3::U3S omegaS_;
@@ -150,7 +150,7 @@ namespace u3shell {
   // basis indexing in U3SPN scheme
   ////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
@@ -178,9 +178,9 @@ namespace u3shell {
   //
   // Within the full space, subspaces are ordered lexicographically by
   // (omega,S).
-  // 
+  //
   ////////////////////////////////////////////////////////////////
-  
+
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ namespace u3shell {
     : public basis::BaseSpace<SubspaceU3SPN>
   // Space class for two-body states of given U(3)xS.
   {
-    
+
   public:
 
     // constructor
@@ -261,7 +261,7 @@ namespace u3shell {
 
     // constructor
 
-    SectorsU3SPN() {};
+    SectorsU3SPN() = default;
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 
