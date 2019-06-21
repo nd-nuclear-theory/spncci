@@ -8,7 +8,9 @@
 
   1/16/18 (aem): Created based on unit_tensor.h
   1/30/18 (aem): Extracted all seed and recurrence functions from
-    computational control 
+    computational control.
+  6/21/19 (aem): Factored seed set up and recurrence into separate 
+    functions.
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_RECURRENCE_
@@ -42,6 +44,22 @@ void GetLGIPairsForRecurrence(
       const spncci::SigmaIrrepMap& sigma_irrep_map,
       std::vector<spncci::LGIPair>& lgi_pairs
     );
+  // Not currently used.
+  //
+  // Generate vector of lgi pairs with ket<=bra and ordered based on size of the sum of
+  // the dimension of the bra and ket Sp3RSpaces.  
+
+void GetLGIPairsForRecurrence(
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+      const std::vector<int>& lgi_full_space_index_lookup,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      int Nmax,
+      std::vector<spncci::LGIPair>& lgi_pairs
+    );
+  // Alternative sorting of LGI pairs with ordering based on number of steps in recurrence (Nn,max)
+  // Checks that file exits before adding it to the set of lgi pairs.
+  // Only considers pairs with ket<=bra
 
 
   void 
@@ -91,29 +109,84 @@ void GetLGIPairsForRecurrence(
   // Recursively computes unit tensor hyperblocks for Nnp>=Nn from 
   // recurrence relation derived in McCoy2018
 
- bool
-    GenerateUnitTensorHyperblocks(
+ // bool
+ //    GenerateUnitTensorHyperblocks(
+ //      const spncci::LGIPair& lgi_pair,
+ //      int Nmax, int N1v,
+ //      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+ //      const std::vector<int>& lgi_full_space_index_lookup,
+ //      const spncci::SpNCCISpace& spncci_space,
+ //      const spncci::BabySpNCCISpace& baby_spncci_space,
+ //      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+ //      const spncci::KMatrixCache& k_matrix_cache,
+ //      const spncci::KMatrixCache& kinv_matrix_cache,
+ //      spncci::OperatorBlocks& lgi_transformations,
+ //      bool transform_lgi_families,
+ //      u3::UCoefCache& u_coef_cache,
+ //      u3::PhiCoefCache& phi_coef_cache,
+ //      spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+ //      basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+ //      );
+ //    //DEPRECATED
+ //    // Compute baby spncci hyperblocks for unit tensors from seeds
+ //    //
+ //    // Output:
+ //    //  baby_spncci_hypersectors 
+ //    //  unit_tensor_hyperblocks
+
+void DoRecurrenceInitialization(
+  int Nmax, int N1v,
+  const spncci::LGIPair& lgi_pair,
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  const std::vector<int>& lgi_full_space_index_lookup,
+  const spncci::BabySpNCCISpace& baby_spncci_space,
+  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  spncci::OperatorBlocks& lgi_transformations,
+  bool transform_lgi_families,
+  std::map<spncci::NnPair,std::set<int>>& unit_tensor_subspace_subsets,
+  spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds,
+  spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds_conj,
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds,
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds_conj
+  );
+  // Setting up seeds for use in recurrence.
+  //
+  // + Reads in seed labels and RMEs from file
+  // + Applies lgi_transformations to do change of basis if transform_lgi_families is true
+  // + Seed hypersectors and their conjugates stored in baby_spncci_hypersector_seeds and 
+  //   baby_spncci_hypersector_seeds_conj, respectively  
+  // + RMEs and conjugate of RMEs stored in unit_tensor_hyperblocks_seeds and 
+  //   unit_tensor_hyperblocks_seeds_conj, respectively
+  // + Based on list of unit tensors with non-zero matrix elements obtained from file,
+  //   creates map containing list of unit_tensor_indices corresponding to unit tensors 
+  //   which will have non-zero matrix elements in the recurrence for each pair <Nnp,Nn> 
+
+
+bool GenerateUnitTensorHyperblocks(
       const spncci::LGIPair& lgi_pair,
       int Nmax, int N1v,
-      const lgi::MultiplicityTaggedLGIVector& lgi_families,
-      const std::vector<int>& lgi_full_space_index_lookup,
       const spncci::SpNCCISpace& spncci_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const spncci::KMatrixCache& k_matrix_cache,
       const spncci::KMatrixCache& kinv_matrix_cache,
-      spncci::OperatorBlocks& lgi_transformations,
-      bool transform_lgi_families,
+      std::map<spncci::NnPair,std::set<int>>& unit_tensor_subspace_subsets,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds_conj,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds_conj,
       u3::UCoefCache& u_coef_cache,
       u3::PhiCoefCache& phi_coef_cache,
       spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
       basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
-      );
-    // Compute baby spncci hyperblocks for unit tensors from seeds
+    );
+    // Compute unit tensor RMEs between many-body basis states with Nnp>=Nn in irreps
+    // determined by lgi_pair using recurrence relation derived in McCoy2018.  
     //
     // Output:
     //  baby_spncci_hypersectors 
     //  unit_tensor_hyperblocks
+
 
 } //namespace 
 

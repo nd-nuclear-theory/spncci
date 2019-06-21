@@ -25,7 +25,8 @@ namespace spncci
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
       spncci::Vector& eigenvalues,
-      spncci::Matrix& eigenvectors
+      spncci::Matrix& eigenvectors,
+      bool verbose
     )
   {
 
@@ -56,7 +57,8 @@ namespace spncci
       // use Eigen::SelfAdjointEigenSolver
       {
 
-        std::cout << "  Using solver: Eigen::SelfAdjointEigenSolver" << std::endl;
+        if(verbose)
+          std::cout << "  Using solver: Eigen::SelfAdjointEigenSolver" << std::endl;
 
         // define eigensolver and compute
         Eigen::SelfAdjointEigenSolver<spncci::OperatorBlock> eigensolver(hamiltonian_matrix);
@@ -75,9 +77,12 @@ namespace spncci
 
 
         int eigensolver_status = eigensolver.info();
-        std::cout
-          << fmt::format("  Eigensolver reports: status {}",eigensolver_status)
-          << std::endl;
+        if(verbose)
+          {
+            std::cout
+            << fmt::format("  Eigensolver reports: status {}",eigensolver_status)
+            << std::endl;
+          }
         assert(eigensolver_status==Eigen::Success);
 
         // save eigenresults
@@ -87,8 +92,8 @@ namespace spncci
     else
       // use Spectra::SymEigsSolver
       {
-
-        std::cout << "  Using solver: Spectra::SymEigsSolver" << std::endl;
+        if(verbose)
+          std::cout << "  Using solver: Spectra::SymEigsSolver" << std::endl;
 
         // define eigensolver and compute
         Spectra::DenseSymMatProd<spncci::MatrixFloatType> matvec(hamiltonian_matrix);
@@ -118,10 +123,12 @@ namespace spncci
 
         int eigensolver_status = eigensolver.info();
         int eigensolver_num_iterations = eigensolver.num_iterations();
-        std::cout
-          << fmt::format("  Eigensolver reports: eigenvectors {} status {} num_iterations {}",converged_eigenvectors,eigensolver_status,eigensolver_num_iterations)
-          << std::endl;
-
+        if(verbose)
+          {
+            std::cout
+              << fmt::format("  Eigensolver reports: eigenvectors {} status {} num_iterations {}",converged_eigenvectors,eigensolver_status,eigensolver_num_iterations)
+              << std::endl;
+          }
         // TODO: Mark, what is going on here.  Should converged eigenvectors equal number of eigenvalues?
 
         assert(converged_eigenvectors=eigensolver.eigenvalues().size());  // should this always be true?
@@ -132,12 +139,13 @@ namespace spncci
         eigenvalues = eigensolver.eigenvalues();
         eigenvectors = eigensolver.eigenvectors();
       }
-
-    // diagnostic output: eigenvalues
-    std::cout << fmt::format("  Eigenvalues:") << std::endl
-              << mcutils::FormatMatrix(eigenvalues.transpose(),"8.5f","    ")
-              << std::endl;
-
+      if(verbose)
+        {
+          // diagnostic output: eigenvalues
+          std::cout << fmt::format("  Eigenvalues:") << std::endl
+                    << mcutils::FormatMatrix(eigenvalues.transpose(),"8.5f","    ")
+                    << std::endl;
+        }
     // check eigenvector norms
     spncci::Vector eigenvector_norms(eigenvectors.cols());
     for (int eigenvector_index=0; eigenvector_index<actual_num_eigenvalues; ++eigenvector_index)

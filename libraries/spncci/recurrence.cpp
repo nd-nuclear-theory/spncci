@@ -309,6 +309,50 @@ void GenerateRecurrenceUnitTensors(
   }
 
 
+void GetLGIPairsForRecurrence(
+      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+      const std::vector<int>& lgi_full_space_index_lookup,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      int Nmax,
+      std::vector<spncci::LGIPair>& lgi_pairs
+    )
+  {
+
+    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
+    std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
+    for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
+      for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
+        {
+          int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+          int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+
+          std::string lgi_unit_tensor_filename
+            =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
+    
+          bool verbose=false;
+          bool files_found=FileExists(lgi_unit_tensor_filename,verbose);
+          if(files_found)
+            {
+              int t=(Nmax-spncci_space[irrep_family_index_bra].Nex())
+                      +(Nmax-spncci_space[irrep_family_index_ket].Nex());
+              sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
+            }
+        }
+    std::cout<<"sorted map"<<std::endl;
+    for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
+      {
+        std::cout<<it->first<<std::endl;
+        for(const auto& pair : it->second)
+          lgi_pairs.push_back(pair);  
+      }
+      
+    // for(auto pair: lgi_pairs)
+    //   std::cout<<pair.first<<"  "<<pair.second<<std::endl;
+
+  }
+
+
 
 
 
@@ -991,25 +1035,221 @@ ComputeUnitTensorHyperblocks(
   // std::cout<<"end recurrence"<<std::endl;
   }
 
-  bool
-    GenerateUnitTensorHyperblocks(
-      const spncci::LGIPair& lgi_pair,
-      int Nmax, int N1v,
-      const lgi::MultiplicityTaggedLGIVector& lgi_families,
-      const std::vector<int>& lgi_full_space_index_lookup,
-      const spncci::SpNCCISpace& spncci_space,
-      const spncci::BabySpNCCISpace& baby_spncci_space,
-      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-      const spncci::KMatrixCache& k_matrix_cache,
-      const spncci::KMatrixCache& kinv_matrix_cache,
-      spncci::OperatorBlocks& lgi_transformations,
-      bool transform_lgi_families,
-      u3::UCoefCache& u_coef_cache,
-      u3::PhiCoefCache& phi_coef_cache,
-      spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
-      basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
-      )
-  {
+  // bool
+  //   GenerateUnitTensorHyperblocks(
+  //     const spncci::LGIPair& lgi_pair,
+  //     int Nmax, int N1v,
+  //     const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  //     const std::vector<int>& lgi_full_space_index_lookup,
+  //     const spncci::SpNCCISpace& spncci_space,
+  //     const spncci::BabySpNCCISpace& baby_spncci_space,
+  //     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  //     const spncci::KMatrixCache& k_matrix_cache,
+  //     const spncci::KMatrixCache& kinv_matrix_cache,
+  //     spncci::OperatorBlocks& lgi_transformations,
+  //     bool transform_lgi_families,
+  //     u3::UCoefCache& u_coef_cache,
+  //     u3::PhiCoefCache& phi_coef_cache,
+  //     spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+  //     basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+  //     )
+  // {
+  //   int irrep_family_index_bra,irrep_family_index_ket;
+  //   std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+
+  //   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
+  //   std::vector<int> rho0_values;
+
+  //   int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+  //   int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+
+  //   std::string lgi_unit_tensor_filename
+  //     =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
+  //   bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
+
+  //   bool files_found_test=FileExists(lgi_unit_tensor_filename,false);
+  //   // std::cout<<"files found "<<files_found<<"  "<<files_found_test<<std::endl;
+
+  // // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
+  // // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
+  //   basis::OperatorBlocks<double> unit_tensor_seed_blocks;
+  //   std::string seed_filename
+  //     =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
+  //   files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
+
+  //   // if(not files_found)
+  //   //   {
+  //   //     std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "
+  //   //               <<irrep_family_index_ket<<" not found"<<std::endl;
+  //   //     return false;
+  //   //   }
+
+  //   if(transform_lgi_families)
+  //     spncci::TransformSeeds(index1,index2,lgi_transformations,unit_tensor_seed_blocks);
+
+
+  //   // Identify unit tensor subspaces for recurrence
+  //   std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+  //   spncci::GenerateRecurrenceUnitTensors(
+  //     Nmax,N1v,lgi_unit_tensors,
+  //     unit_tensor_space,unit_tensor_subspace_subsets
+  //   );
+
+  //   // std::cout<<"generate Nn0 hypersectors"<<std::endl;
+  //   // Generate Nn=0 hypersectors to be computed by conjugation
+  //   bool Nn0_conjugate_hypersectors=true;
+  //   std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
+    
+  //   spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_Nn0(
+  //     Nmax, baby_spncci_space, unit_tensor_space,
+  //     unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets_Nn0,
+  //     irrep_family_index_ket, irrep_family_index_bra,
+  //     Nn0_conjugate_hypersectors
+  //   );
+
+
+  //   // Generate all other hypersectors for Nnp>=Nn
+  //   // std::cout<<" generate hypersectors"<<std::endl;
+  //   Nn0_conjugate_hypersectors=false;
+  //   std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
+    
+  //   baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
+  //     Nmax,baby_spncci_space, unit_tensor_space,
+  //     unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets,
+  //     irrep_family_index_bra,irrep_family_index_ket,
+  //     Nn0_conjugate_hypersectors
+  //   );
+
+  //   // zero initialize hypersectors 
+  //   //
+  //   // (0,Nnp) conjugate sectors 
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" arrived at allocation barrier"<<std::endl;
+
+  //   // #pragma omp barrier
+
+  //   basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
+  //   basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
+
+
+  //   ////////////////////////////////////////////////////////////////////////////////////////////////////
+  //   // Diagnostic information 
+  //   ////////////////////////////////////////////////////////////////////////////////////////////////////
+  //   // long int num_N0_rmes=basis::GetNumHyperoperatorME(baby_spncci_hypersectors_Nn0);
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" allocated for Nn0 "<<num_N0_rmes<<std::endl;
+
+  //   // #pragma omp barrier
+
+  //   // long int num_rmes=basis::GetNumHyperoperatorME(baby_spncci_hypersectors);
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" rmes "<<num_rmes<<std::endl;
+
+  //   // #pragma omp barrier
+  //   ////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+  //   // (Nnp,Nn) sectors for Nnp>Nn
+  //   basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" allocated for blocks"<<std::endl;
+
+  //   // #pragma omp barrier
+
+  //   // Initialize hypersectors with seeds
+  //   // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
+  //   // std::cout<<" populate hypersectors with seeds"<<std::endl;
+  //   spncci::PopulateHypersectorsWithSeeds(
+  //     irrep_family_index_bra, irrep_family_index_ket,lgi_families,
+  //     baby_spncci_space,unit_tensor_space,
+  //     baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
+  //     lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
+  //     unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
+  //   );
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" populated seeds"<<std::endl;
+
+  //   // #pragma omp barrier
+
+
+  //   // std::cout<<"Compute Nn=0 blocks"<<std::endl;
+  //   spncci::ComputeUnitTensorHyperblocks(
+  //     Nmax,N1v,u_coef_cache,phi_coef_cache,
+  //     k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
+  //     unit_tensor_space,baby_spncci_hypersectors_Nn0,
+  //     unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
+  //   );
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" computed Nn0 blocks"<<std::endl;
+
+  //   // #pragma omp barrier
+
+  //   // std::cout<<"Add Nn0 blocks to hyperblocks"<<std::endl;
+  //   spncci::AddNn0BlocksToHyperblocks(
+  //     baby_spncci_space,unit_tensor_space,
+  //     baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
+  //     unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
+  //   );
+
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" added Nn0 blocks"<<std::endl;
+
+  //   // #pragma omp barrier
+   
+  //   // std::cout<<"Compute unit tensor hyperblocks"<<std::endl;
+  //   spncci::ComputeUnitTensorHyperblocks(
+  //     Nmax,N1v,u_coef_cache,phi_coef_cache,
+  //     k_matrix_cache,kinv_matrix_cache,spncci_space,baby_spncci_space,
+  //     unit_tensor_space,baby_spncci_hypersectors,
+  //     unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
+  //   );
+
+  //   // #pragma omp critical
+  //   //     std::cout<<"thread "<<omp_get_thread_num()<<" computed blocks"<<std::endl;
+
+  //   // #pragma omp barrier
+
+  //   // std::cout<<"hypersectors"<<std::endl;
+  //   // spncci::PrintHypersectors(
+  //   //   baby_spncci_space,unit_tensor_space, 
+  //   //   baby_spncci_hypersectors,unit_tensor_hyperblocks
+  //   //   );
+
+  //   // TODO?:will need to pass spncci expansions if check needed in the future
+  //   // bool check_unit_tensors=false;
+  //   // if(check_unit_tensors)
+  //   //   CheckHyperBlocks(
+  //   //     irrep_family_index_bra,irrep_family_index_ket,
+  //   //     run_parameters,spncci_space,unit_tensor_space,
+  //   //     lgi_unit_tensor_labels,baby_spncci_space,spncci_expansions,
+  //   //     baby_spncci_hypersectors,unit_tensor_hyperblocks
+  //   //   );
+  //   return true;
+  // }
+
+void DoRecurrenceInitialization(
+  int Nmax, int N1v,
+  const spncci::LGIPair& lgi_pair,
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  const std::vector<int>& lgi_full_space_index_lookup,
+  const spncci::BabySpNCCISpace& baby_spncci_space,
+  const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+  spncci::OperatorBlocks& lgi_transformations,
+  bool transform_lgi_families,
+  std::map<spncci::NnPair,std::set<int>>& unit_tensor_subspace_subsets,
+  spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds,
+  spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds_conj,
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds,
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds_conj
+  )
+{
+    //////////////////////////////////////////////////////////////////////
+    // Extract lgi index  labels 
     int irrep_family_index_bra,irrep_family_index_ket;
     std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
 
@@ -1021,32 +1261,85 @@ ComputeUnitTensorHyperblocks(
 
     std::string lgi_unit_tensor_filename
       =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
-    bool files_found=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
+    bool files_found_test=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
+
+    // bool files_found_test=FileExists(lgi_unit_tensor_filename,false);
+    // std::cout<<"files found "<<files_found<<"  "<<files_found_test<<std::endl;
 
   // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
   // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
     basis::OperatorBlocks<double> unit_tensor_seed_blocks;
     std::string seed_filename
       =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
-    files_found&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
-
-    // if(not files_found)
-    //   {
-    //     std::cout<<"seeds and operators for "<<irrep_family_index_bra<<"  "
-    //               <<irrep_family_index_ket<<" not found"<<std::endl;
-    //     return false;
-    //   }
+    files_found_test&=lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
     if(transform_lgi_families)
       spncci::TransformSeeds(index1,index2,lgi_transformations,unit_tensor_seed_blocks);
 
-
-    // Identify unit tensor subspaces for recurrence
-    std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+  // Identify unit tensor subspaces for recurrence
+    // std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
     spncci::GenerateRecurrenceUnitTensors(
       Nmax,N1v,lgi_unit_tensors,
       unit_tensor_space,unit_tensor_subspace_subsets
     );
+
+    // spncci::BabySpNCCIHypersectors baby_spncci_hypersector_seeds;
+    baby_spncci_hypersector_seeds
+      =spncci::BabySpNCCIHypersectors(
+        lgi_families,baby_spncci_space,unit_tensor_space,
+        unit_tensor_subspace_subsets[spncci::NnPair(0,0)],
+        irrep_family_index_bra,irrep_family_index_ket
+      );
+
+    // spncci::BabySpNCCIHypersectors baby_spncci_hypersector_seeds_conj;
+    baby_spncci_hypersector_seeds_conj
+      =spncci::BabySpNCCIHypersectors(
+        lgi_families,baby_spncci_space,unit_tensor_space,
+        unit_tensor_subspace_subsets[spncci::NnPair(0,0)],
+        irrep_family_index_ket,irrep_family_index_bra
+      );
+
+      // std::cout<<"baby spncci seed hypersectors"<<std::endl;
+      // std::cout<<baby_spncci_hypersector_seeds.DebugStr()<<std::endl;
+    // basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds;
+    basis::SetHyperoperatorToZero(baby_spncci_hypersector_seeds,unit_tensor_hyperblocks_seeds);
+
+    // basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds_conj;
+    basis::SetHyperoperatorToZero(baby_spncci_hypersector_seeds_conj,unit_tensor_hyperblocks_seeds_conj);
+    spncci::PopulateHypersectorsWithSeeds(
+      irrep_family_index_bra, irrep_family_index_ket,lgi_families,
+      baby_spncci_space,unit_tensor_space,
+      baby_spncci_hypersector_seeds_conj,baby_spncci_hypersector_seeds,
+      lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
+      unit_tensor_hyperblocks_seeds_conj,unit_tensor_hyperblocks_seeds
+    );
+    //////////////////////////////////////////////////////////////////////
+
+}
+
+
+  bool
+    GenerateUnitTensorHyperblocks(
+      const spncci::LGIPair& lgi_pair,
+      int Nmax, int N1v,
+      const spncci::SpNCCISpace& spncci_space,
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
+      const spncci::KMatrixCache& k_matrix_cache,
+      const spncci::KMatrixCache& kinv_matrix_cache,
+      std::map<spncci::NnPair,std::set<int>>& unit_tensor_subspace_subsets,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds,
+      const spncci::BabySpNCCIHypersectors& baby_spncci_hypersector_seeds_conj,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds,
+      const basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks_seeds_conj,
+      u3::UCoefCache& u_coef_cache,
+      u3::PhiCoefCache& phi_coef_cache,
+      spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
+      basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
+      )
+  {
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
 
     // std::cout<<"generate Nn0 hypersectors"<<std::endl;
     // Generate Nn=0 hypersectors to be computed by conjugation
@@ -1060,12 +1353,11 @@ ComputeUnitTensorHyperblocks(
       Nn0_conjugate_hypersectors
     );
 
-
-    // Generate all other hypersectors for Nnp>=Nn
-    // std::cout<<" generate hypersectors"<<std::endl;
+    // Hypersectors for Nnp>=Nn
     Nn0_conjugate_hypersectors=false;
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
     
+    // (Nnp,Nn) sectors for Nnp>Nn
     baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
       Nmax,baby_spncci_space, unit_tensor_space,
       unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets,
@@ -1073,60 +1365,35 @@ ComputeUnitTensorHyperblocks(
       Nn0_conjugate_hypersectors
     );
 
-    // zero initialize hypersectors 
-    //
-    // (0,Nnp) conjugate sectors 
-
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" arrived at allocation barrier"<<std::endl;
-
-    // #pragma omp barrier
-
+    //Zero initialize hyperblocks for both Nn=0 and Nnp>=Nn sectors 
     basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Diagnostic information 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    // long int num_N0_rmes=basis::GetNumHyperoperatorME(baby_spncci_hypersectors_Nn0);
-
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" allocated for Nn0 "<<num_N0_rmes<<std::endl;
-
-    // #pragma omp barrier
-
-    // long int num_rmes=basis::GetNumHyperoperatorME(baby_spncci_hypersectors);
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" rmes "<<num_rmes<<std::endl;
-
-    // #pragma omp barrier
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    // (Nnp,Nn) sectors for Nnp>Nn
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
 
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" allocated for blocks"<<std::endl;
+    //Iterate over seed hypersectors and identify corresponding hypersector in hyperblocks or hyperblocks_Nn0
+    //Transfer seeds into hyperblocks for recurrence
+    for(int seed_hypersector_index=0; seed_hypersector_index<baby_spncci_hypersector_seeds.size(); ++seed_hypersector_index)
+      {
+        int bra_index,ket_index,operator_index,multiplicity_index;
+        std::tie(bra_index,ket_index,operator_index,multiplicity_index)
+          =baby_spncci_hypersector_seeds.GetHypersector(seed_hypersector_index).Key();
+        int hypersector_index
+          =baby_spncci_hypersectors.LookUpHypersectorIndex(bra_index,ket_index,operator_index,multiplicity_index);
 
-    // #pragma omp barrier
+        unit_tensor_hyperblocks[hypersector_index]=unit_tensor_hyperblocks_seeds[seed_hypersector_index];
+      }
 
-    // Initialize hypersectors with seeds
-    // Add lgi unit tensor blocks to hyperblocks for both Nn=0 and all remaining sectors 
-    // std::cout<<" populate hypersectors with seeds"<<std::endl;
-    spncci::PopulateHypersectorsWithSeeds(
-      irrep_family_index_bra, irrep_family_index_ket,lgi_families,
-      baby_spncci_space,unit_tensor_space,
-      baby_spncci_hypersectors_Nn0,baby_spncci_hypersectors,
-      lgi_unit_tensors,rho0_values,unit_tensor_seed_blocks,
-      unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
-    );
+    //Transfer conjugate hypersectors into Nn0 hypersectors for recurrence
+    for(int seed_hypersector_index=0; seed_hypersector_index<baby_spncci_hypersector_seeds_conj.size(); ++seed_hypersector_index)
+      {
+        int bra_index,ket_index,operator_index,multiplicity_index;
+        std::tie(bra_index,ket_index,operator_index,multiplicity_index)
+          =baby_spncci_hypersector_seeds_conj.GetHypersector(seed_hypersector_index).Key();
+        int hypersector_index
+          =baby_spncci_hypersectors_Nn0.LookUpHypersectorIndex(bra_index,ket_index,operator_index,multiplicity_index);
 
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" populated seeds"<<std::endl;
-
-    // #pragma omp barrier
-
+        unit_tensor_hyperblocks_Nn0[hypersector_index]=unit_tensor_hyperblocks_seeds_conj[seed_hypersector_index];
+      }
 
     // std::cout<<"Compute Nn=0 blocks"<<std::endl;
     spncci::ComputeUnitTensorHyperblocks(
@@ -1136,11 +1403,6 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_hypersector_subsets_Nn0,unit_tensor_hyperblocks_Nn0
     );
 
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" computed Nn0 blocks"<<std::endl;
-
-    // #pragma omp barrier
-
     // std::cout<<"Add Nn0 blocks to hyperblocks"<<std::endl;
     spncci::AddNn0BlocksToHyperblocks(
       baby_spncci_space,unit_tensor_space,
@@ -1148,12 +1410,6 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_hyperblocks_Nn0,unit_tensor_hyperblocks
     );
 
-
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" added Nn0 blocks"<<std::endl;
-
-    // #pragma omp barrier
-   
     // std::cout<<"Compute unit tensor hyperblocks"<<std::endl;
     spncci::ComputeUnitTensorHyperblocks(
       Nmax,N1v,u_coef_cache,phi_coef_cache,
@@ -1161,29 +1417,11 @@ ComputeUnitTensorHyperblocks(
       unit_tensor_space,baby_spncci_hypersectors,
       unit_tensor_hypersector_subsets,unit_tensor_hyperblocks
     );
-
-    // #pragma omp critical
-    //     std::cout<<"thread "<<omp_get_thread_num()<<" computed blocks"<<std::endl;
-
-    // #pragma omp barrier
-
-    // std::cout<<"hypersectors"<<std::endl;
-    // spncci::PrintHypersectors(
-    //   baby_spncci_space,unit_tensor_space, 
-    //   baby_spncci_hypersectors,unit_tensor_hyperblocks
-    //   );
-
-    // TODO?:will need to pass spncci expansions if check needed in the future
-    // bool check_unit_tensors=false;
-    // if(check_unit_tensors)
-    //   CheckHyperBlocks(
-    //     irrep_family_index_bra,irrep_family_index_ket,
-    //     run_parameters,spncci_space,unit_tensor_space,
-    //     lgi_unit_tensor_labels,baby_spncci_space,spncci_expansions,
-    //     baby_spncci_hypersectors,unit_tensor_hyperblocks
-    //   );
     return true;
   }
+
+
+
 
 } // End namespace 
   

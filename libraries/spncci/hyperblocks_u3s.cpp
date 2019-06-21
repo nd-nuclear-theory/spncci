@@ -297,8 +297,9 @@ void GetBabySpNCCIHyperBlocks(
     // Check if file found
     if(not bool(hypersectors_stream))
       {
-        std::cout<<filename+" not found."<<std::endl;
-        assert(hypersectors_stream);
+        // std::cout<<filename+" not found."<<std::endl;
+        // assert(hypersectors_stream);
+        return;
       }
     spncci::LGIPair lgi_pair_in;
     spncci::ReadObservableHypersectors(hypersectors_stream,lgi_pair_in,list_baby_spncci_hypersectors,num_hypersectors);
@@ -624,21 +625,63 @@ void ComputeManyBodyRMEs(
     basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
     spncci::BabySpNCCIHypersectors baby_spncci_hypersectors;
     
-    // Generate Unit tensor blocks if lgi pair seed files found.
-    // If files not found, function returns false.
-    bool files_found
-      =spncci::GenerateUnitTensorHyperblocks(
-          lgi_pair,run_parameters.Nmax, run_parameters.N1v,
-          lgi_families,lgi_full_space_index_lookup,
-          spncci_space,baby_spncci_space,unit_tensor_space,
-          k_matrix_cache,kinv_matrix_cache,lgi_transformations,
-          run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
-          baby_spncci_hypersectors,unit_tensor_hyperblocks
-        );
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+    spncci::BabySpNCCIHypersectors baby_spncci_hypersector_seeds;
+    spncci::BabySpNCCIHypersectors baby_spncci_hypersector_seeds_conj;
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds;
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds_conj;
+
+    spncci::DoRecurrenceInitialization(
+      run_parameters.Nmax, run_parameters.N1v,lgi_pair,lgi_families,lgi_full_space_index_lookup,
+      baby_spncci_space,unit_tensor_space,lgi_transformations,run_parameters.transform_lgi,
+      unit_tensor_subspace_subsets, baby_spncci_hypersector_seeds,baby_spncci_hypersector_seeds_conj,
+      unit_tensor_hyperblocks_seeds,unit_tensor_hyperblocks_seeds_conj
+    );
+
+
+
+    // spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_test;
+    // basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_test;
+    bool files_found=
+    spncci::GenerateUnitTensorHyperblocks(
+      lgi_pair, run_parameters.Nmax, run_parameters.N1v,
+      spncci_space,baby_spncci_space,unit_tensor_space,k_matrix_cache,kinv_matrix_cache,
+      unit_tensor_subspace_subsets,baby_spncci_hypersector_seeds,baby_spncci_hypersector_seeds_conj,
+      unit_tensor_hyperblocks_seeds,unit_tensor_hyperblocks_seeds_conj,
+      u_coef_cache,phi_coef_cache,baby_spncci_hypersectors,unit_tensor_hyperblocks
+    );
+    assert(files_found);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//     // Generate Unit tensor blocks if lgi pair seed files found.
+//     // If files not found, function returns false.
+//     bool files_found
+//       =spncci::GenerateUnitTensorHyperblocks(
+//           lgi_pair,run_parameters.Nmax, run_parameters.N1v,
+//           lgi_families,lgi_full_space_index_lookup,
+//           spncci_space,baby_spncci_space,unit_tensor_space,
+//           k_matrix_cache,kinv_matrix_cache,lgi_transformations,
+//           run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
+//           baby_spncci_hypersectors,unit_tensor_hyperblocks
+//         );
+
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// //Testing
+// // std::cout<<"comparing blocks"<<std::endl;
+// for(int i=0; i<unit_tensor_hyperblocks.size(); ++i)
+//   for(int j=0; j<unit_tensor_hyperblocks[i].size(); ++j)
+//   {
+//     spncci::OperatorBlock& test=unit_tensor_hyperblocks_test[i][j];
+//     spncci::OperatorBlock& block=unit_tensor_hyperblocks[i][j];
+//     if(not mcutils::IsZero(block-test,1e-6))
+//       std::cout<<"blocks don't match "<<std::endl<<block<<std::endl<<std::endl<<test<<std::endl<<std::endl;
+//   }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // If seeds corresponding to lgi pair do not exist, continue to next pair
-    if(not files_found)
-      return;
+    // if(not files_found)
+    //   return;
 
     // Initialize hyperblocks for (irrep2,irrep1)
     spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
@@ -650,19 +693,35 @@ void ComputeManyBodyRMEs(
           
     if(not is_diagonal)
       {  
-        // std::cout<<"conjugate pair"<<std::endl;
-        bool files_found2
-        =spncci::GenerateUnitTensorHyperblocks(
-            lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
-            lgi_families,lgi_full_space_index_lookup,
-            spncci_space,baby_spncci_space,unit_tensor_space,
-            k_matrix_cache,kinv_matrix_cache,lgi_transformations,
-            run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
-            baby_spncci_hypersectors2,unit_tensor_hyperblocks2
-          );
+        // // std::cout<<"conjugate pair"<<std::endl;
+        // bool files_found2
+        // =spncci::GenerateUnitTensorHyperblocks(
+        //     lgi_pair2,run_parameters.Nmax, run_parameters.N1v,
+        //     lgi_families,lgi_full_space_index_lookup,
+        //     spncci_space,baby_spncci_space,unit_tensor_space,
+        //     k_matrix_cache,kinv_matrix_cache,lgi_transformations,
+        //     run_parameters.transform_lgi,u_coef_cache,phi_coef_cache,
+        //     baby_spncci_hypersectors2,unit_tensor_hyperblocks2
+        //   );
+
+
+
+        spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_test;
+        basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_test;
+        spncci::GenerateUnitTensorHyperblocks(
+          lgi_pair2, run_parameters.Nmax, run_parameters.N1v,
+          spncci_space,baby_spncci_space,unit_tensor_space,k_matrix_cache,
+          kinv_matrix_cache,unit_tensor_subspace_subsets,
+          baby_spncci_hypersector_seeds_conj,baby_spncci_hypersector_seeds,
+          unit_tensor_hyperblocks_seeds_conj,unit_tensor_hyperblocks_seeds,
+          u_coef_cache,phi_coef_cache,
+          baby_spncci_hypersectors2,unit_tensor_hyperblocks2
+        );
+
+
 
         // If we've made it this far (passed files_found) then files for (irrep2,irrep1) should exist
-        assert(files_found2);
+        // assert(files_found2);
       }
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // // Contract and regroup

@@ -538,7 +538,6 @@ namespace spncci
     const spncci::BabySpNCCISpace& space,
     const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
     const std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn,
-    // const std::vector<int>& operator_subset,
     std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
     int irrep_family_index_1, int irrep_family_index_2, bool Nn0_conjugate_hypersectors
   )
@@ -636,6 +635,91 @@ namespace spncci
             }
         }
   }
+
+
+    BabySpNCCIHypersectors::BabySpNCCIHypersectors(
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    const spncci::BabySpNCCISpace& space,
+    const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
+    const std::set<int>& operator_subset,
+    // std::vector<int>& unit_tensor_hypersector_subset,
+    int irrep_family_index_1, int irrep_family_index_2
+  )
+  {
+    // Baby spncci hyperspector constructor for LGI only (Nn=Nnp=0)
+    //  needed for creating seed hypersectors 
+    //
+    // hypersectors are restricted based on angular momentum adddition and SU(3) coupling
+    // unit_tensor_hypersector_subsets.resize(Nmax+1);
+    //TODO: redo so that there is a single look up of the appropriate baby spncci index
+    
+    // Get LGI labels 
+    u3::U3 sigma1, sigma2;
+    HalfInt Sp1,Sn1,S1,Sp2,Sn2,S2;
+    
+    const lgi::LGI& lgi_1=lgi_families[irrep_family_index_1].irrep;
+    std::tie(std::ignore,sigma1,Sp1,Sn1,S1)=lgi_1.Key();
+    
+
+    const lgi::LGI& lgi_2=lgi_families[irrep_family_index_2].irrep;
+    std::tie(std::ignore,sigma2,Sp2,Sn2,S2)=lgi_2.Key();
+    
+    // Get baby spncci subspace indices for lgi
+    int bra_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma1,Sp1,Sn1,S1,sigma1));
+    int ket_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma2,Sp2,Sn2,S2,sigma2));
+
+    // retrieve subspaces for lgi
+    const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
+    const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+    //Initialize hypersector_index
+    int hypersector_index=0;
+
+    // For each operator subspace, check if its an allowed operator subspace determined
+    // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
+    for(int operator_subspace_index : operator_subset)
+      {
+        bool allowed_subspace = true;
+        const u3shell::RelativeUnitTensorSubspaceU3S&
+          operator_subspace=operator_space.GetSubspace(operator_subspace_index);
+
+        // U(1) constraint
+        allowed_subspace &= (ket_subspace.omega().N() + operator_subspace.N0() - bra_subspace.omega().N() == 0);
+        
+        // spin constraints
+        //
+        // Note: Basic two-body constaints can be placed on Sp
+        // and Sn triangularity based on two-body nature of
+        // operator, so (delta Sp)<=2 and (delta Sn)<=2.  However, in
+        // general, the operator does not have sharp Sp0 or Sn0.
+        allowed_subspace &= am::AllowedTriangle(ket_subspace.S(),operator_subspace.S0(),bra_subspace.S());
+        allowed_subspace &= abs(int(ket_subspace.Sp()-bra_subspace.Sp()))<=2;
+        allowed_subspace &= abs(int(ket_subspace.Sn()-bra_subspace.Sn()))<=2;
+        if (!allowed_subspace)
+          continue;
+
+        // find SU(3) multiplicity and check SU(3) selection
+        int multiplicity = u3::OuterMultiplicity(
+            ket_subspace.omega().SU3(),operator_subspace.x0(),
+            bra_subspace.omega().SU3()
+          );
+
+        // push sectors (tagged by multiplicity)
+        for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+          {
+            PushHypersector(
+              HypersectorType(
+                bra_subspace_index,ket_subspace_index,operator_subspace_index,
+                bra_subspace, ket_subspace,operator_subspace,
+                multiplicity_index
+                )
+              );
+            // unit_tensor_hypersector_subset.push_back(hypersector_index);
+            // ++hypersector_index;
+          }
+      }
+  }
+
 
 
   void PrintHypersectors(

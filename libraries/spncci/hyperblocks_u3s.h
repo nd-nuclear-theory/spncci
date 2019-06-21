@@ -7,7 +7,9 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  1/2/19 (aem): Created based on branching_u3s 
+  1/2/19 (aem): Created based on branching_u3s
+  6/21/19 (aem): Updated ComputeManyBodyRMEs to use new seed set
+    up and recurrence functions. 
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_HYPERBLOCKS_U3S_H_
@@ -89,5 +91,11 @@ void ComputeManyBodyRMEs(
   u3::PhiCoefCache& phi_coef_cache,
   const spncci::LGIPair& lgi_pair
   );
+  //Calculates many-body matrix elements of operators defined by observables_relative_rmes.  
+  //
+  // Calculates unit tensor hyperblocks for given lgi pair and it's conjugate
+  // Contracts unit tensor hyperblocks with relative rmes of operators to get operator rme hyperblocks
+  // Writes hyperblocks to file
+
 }//namespace
 #endif

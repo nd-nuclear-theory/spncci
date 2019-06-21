@@ -37,6 +37,7 @@
   1/16/18 (aem) : Added new BabySpNCCIHypersector contructor for
     updated recurrence scheme
   1/31/18 (aem) : Add ObservableBabySpNCCIHypersector class
+  6/21/19 (aem) : Add BabySpNCCIHypersectors constructor for seed hypersectors
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -640,6 +641,21 @@ namespace spncci
       //      restrict hypersectors to include baby spncci subspaces for a given
       //      irrep family pair.  If irrep_family_index=-1, then there is no 
       //      restriction by irrep family.
+      //    Nn0_conjugate_hypersectors : Generate hypersectors for special case that 
+      //      Nn=0 and Nnp!=0.  irrep_family_index_bra and irrep_family_index_ket are 
+      //      passed as flipped, so hypersectors enumerate for Nnp'=0 and Nn'!=0. 
+
+      BabySpNCCIHypersectors(
+        const lgi::MultiplicityTaggedLGIVector& lgi_families,
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
+        const std::set<int>& operator_subset,
+        // std::vector<int>& unit_tensor_hypersector_subset,
+        int irrep_family_index_1, int irrep_family_index_2
+      );
+      // Constructor for setting up hypersectors for only the LGI of each irrep family
+      // for use in storing seed RMEs for unit tensor recurrence. 
+
   };
 
   void PrintHypersectors(

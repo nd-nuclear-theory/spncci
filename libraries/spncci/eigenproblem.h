@@ -8,7 +8,7 @@
 
   7/6/17 (mac): Extracted from computation_control.
   12/10/17 (mac): Clean comments and remove J argument.
-
+  6/21/19 (aem) : Added verbose flag
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_EIGENPROBLEM_H_
@@ -26,7 +26,8 @@ namespace spncci
       int eigensolver_max_iterations,
       double eigensolver_tolerance,
       spncci::Vector& eigenvalues,
-      spncci::Matrix& eigenvectors
+      spncci::Matrix& eigenvectors,
+      bool verbose=true
     );
  // Solve the Hamiltonian matrix (in a single J-space) for energy eigenvalues and vectors 
  //

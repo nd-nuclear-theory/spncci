@@ -11,7 +11,7 @@
   2/23/11 (mac): Renamed from mc_arithmetic to arithmetic.
   3/9/16 (mac): Imported into spncci project as utilities.h.
   3/26/17 (mac): Add deprecation notes.
-
+  6/11/19 (aem): Add FileExists function to check if file exits
 ****************************************************************/
 
 // TODO (mac) -- eliminate ONLYIF and sqr  in favor of copies in mcutils::arithmetic
@@ -28,11 +28,42 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
+#include <unistd.h>
 #include "gsl/gsl_sf.h"
 #include "eigen3/Eigen/Eigen"
 #include "basis/operator.h"
 
 // extern double zero_threshold;
+
+
+inline bool FileExists(std::string filename, bool verbose)
+  {
+    int res = access(filename.c_str(), R_OK);
+    if (res < 0) 
+      {
+        if (errno == ENOENT) 
+          {
+            if(verbose)
+              std::cout<<filename<<" does not exit"<<std::endl;
+          }
+        else if (errno == EACCES) 
+          {
+            if(verbose)
+              std::cout<<filename<<" not readible"<<std::endl;
+            exit(EXIT_FAILURE);
+          } 
+        else 
+          {
+            if(verbose)
+              std::cout<<"unknown error associated with "<<filename<<std::endl;
+          }
+        return false;
+      }
+
+    else
+      return true;
+  }
+
 
 
 // ONLYIF(cond,x) evaluates and returns x only if cond is true
