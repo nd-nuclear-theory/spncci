@@ -81,7 +81,7 @@
   2/15/18 (aem) : Removed gamma_max=0 lgi
     + Cleaned up codes and factored spncci.cpp into simpler functions
   5/2/19 (aem) : Moved ComputeManyBodyRMEs into hyperblocks_u3s
-
+  6/21/19 (aem) : Extracted variance calculation functions into variance.{h,cpp}
 
 Notes:
 branching2 currently used for branching.  branching has old definitions still temp used for 
@@ -116,6 +116,8 @@ basis statistics
 #include "spncci/transform_basis.h"
 #include "spncci/vcs_cache.h"
 #include "spncci/hyperblocks_u3s.h"
+
+#include "spncci/variance.h"
 ////////////////////////////////////////////////////////////////
 // WIP code
 //
@@ -123,330 +125,263 @@ basis statistics
 ////////////////////////////////////////////////////////////////
 namespace spncci
 {
-//////////////////////////////////////////
 
-  void GetVarianceBlock(
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const u3shell::ObservableSpaceU3S& observable_space,
-    const HalfInt& J0,
-    const spncci::SpaceSpBasis& spbasis_bra, //For a given J
-    const spncci::SpaceSpBasis& spbasis_ket, //For a given J
-    const std::vector<spncci::LGIPair>& lgi_pairs, //Defines tiles to get computed 
-    int observable_index, int hw_index,
-    spncci::OperatorBlock& operator_matrix
-  )
-  //
-  {
-    // Get dimension of basis 
-    int basis_size_bra=spbasis_bra.FullDimension();
-    int basis_size_ket=spbasis_ket.FullDimension();
-    HalfInt Jp=spbasis_bra.J();
-    HalfInt J=spbasis_ket.J();
-
-    std::vector<std::vector<int>> offsets_bra;
-    std::vector<std::vector<int>> offsets_ket;
-    spncci::GetSpBasisOffsets(spbasis_bra,offsets_bra);
-    spncci::GetSpBasisOffsets(spbasis_ket,offsets_ket);
-
-    //Set up full matrix 
-    operator_matrix=spncci::OperatorBlock::Zero(basis_size_bra,basis_size_ket);
-
-    //Private Caches
-    u3::WCoefCache w_cache;
-    // std::cout<<"entering variances for loop"<<std::endl;
-    #pragma omp parallel for schedule(dynamic) private(w_cache)
-    for(int i=0; i<lgi_pairs.size(); ++i)
-      { 
-        const spncci::LGIPair& lgi_pair=lgi_pairs[i];
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-        // Generate irrep pair tile
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-        int irrep_family_index_bra, irrep_family_index_ket;
-        std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
-        const int spbasis_index_bra=spbasis_bra.LookUpSubspaceIndex(irrep_family_index_bra);
-        const int spbasis_index_ket=spbasis_ket.LookUpSubspaceIndex(irrep_family_index_ket);
-    
-        const spncci::SubspaceSpBasis& spbasis_subspace_bra=spbasis_bra.GetSubspace(spbasis_index_bra);
-        const spncci::SubspaceSpBasis& spbasis_subspace_ket=spbasis_ket.GetSubspace(spbasis_index_ket);
-    
-        const std::vector<int>& offsets_bra_subspace=offsets_bra[spbasis_index_bra];
-        const std::vector<int>& offsets_ket_subspace=offsets_ket[spbasis_index_ket];
-    
-        const int tile_dimension_bra=spbasis_subspace_bra.dimension();
-        const int tile_dimension_ket=spbasis_subspace_ket.dimension();
-        
-        // std::cout<<"tile dimensions "<<tile_dimension_bra<<"  "<<tile_dimension_ket<<std::endl;
-
-        if(tile_dimension_ket==0 || tile_dimension_bra==0)
-          continue;
-
-        const int start_index_bra=offsets_bra_subspace[0];
-        const int start_index_ket=offsets_ket_subspace[0];
-        /////////////////////////////////////////////////////////////////////////////////////////////////
-        //// Get tiles an accumulate in operator_matrix
-        /////////////////////////////////////////////////////////////////////////////////////////////////
-        bool get_adjoint=irrep_family_index_bra<irrep_family_index_ket;
-        // std::cout<<"irrep pair "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<"  "<<get_adjoint<<std::endl;
-        if(get_adjoint)
-          {
-            // std::cout<<"adjoint tile "<<std::endl;
-            spncci::LGIPair lgi_pair_adjoint(irrep_family_index_ket,irrep_family_index_bra);
-            std::vector<spncci::ObservableHypersectorLabels> list_baby_spncci_hypersectors;
-            basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks;
-
-
-            spncci::GetBabySpNCCIHyperBlocks(
-              observable_index,hw_index,lgi_pair_adjoint,
-              list_baby_spncci_hypersectors,
-              baby_spncci_observable_hyperblocks
-              );
-
-            spncci::OperatorBlock adjoint_tile;
-            spncci::GetOperatorTile(
-              baby_spncci_space,observable_space,
-              spbasis_subspace_ket,spbasis_subspace_bra,
-              offsets_ket_subspace,offsets_bra_subspace,
-              J0,J,Jp,hw_index,observable_index,
-              lgi_pair_adjoint,w_cache,
-              list_baby_spncci_hypersectors,
-              baby_spncci_observable_hyperblocks,
-              adjoint_tile
-            );
-            
-
-            // std::cout<<adjoint_tile<<std::endl;
-            // std::cout<<"dimensions "<<start_index_ket<<"  "<<start_index_bra<<"  "<<tile_dimension_ket<<"  "<<tile_dimension_bra<<std::endl;
-            // std::cout<<adjoint_tile.rows()<<"  "<<adjoint_tile.cols()<<std::endl;
-            operator_matrix.block(start_index_bra,start_index_ket,tile_dimension_bra,tile_dimension_ket)
-              =adjoint_tile.transpose();
-          }
-        else
-          {
-            // std::cout<<"tile"<<std::endl;
-
-            std::vector<spncci::ObservableHypersectorLabels> list_baby_spncci_hypersectors;
-            basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks;
-            spncci::GetBabySpNCCIHyperBlocks(
-              observable_index,hw_index,lgi_pair,
-              list_baby_spncci_hypersectors,
-              baby_spncci_observable_hyperblocks
-              );
-
-            // std::cout<<"get operator tile "<<std::endl;
-            spncci::OperatorBlock tile;
-            spncci::GetOperatorTile(
-              baby_spncci_space,observable_space,spbasis_subspace_bra,spbasis_subspace_ket,
-              offsets_bra_subspace,offsets_ket_subspace,J0,Jp,J,hw_index,observable_index,
-              lgi_pair,w_cache,list_baby_spncci_hypersectors,baby_spncci_observable_hyperblocks,
-              tile
-            );
-            
-            // std::cout<<tile<<std::endl;
-
-            operator_matrix.block(start_index_bra,start_index_ket,tile_dimension_bra,tile_dimension_ket)=tile;
-          }
-      } //lgi_pair
-  }
-
-void CalculateVariance(
-  const spncci::OperatorBlock& eigenvectors,
-  const spncci::OperatorBlock& operator_matrix,
-  spncci::OperatorBlock& variance_block
+void SortIrrepFamiliesByNex(
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  std::vector<std::vector<int>>& irrep_families_by_Nex,
+  int Nmax
   )
   {
-    variance_block=eigenvectors.transpose()*operator_matrix*operator_matrix.transpose()*eigenvectors;
-  }
-
-void GetVariances(
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const u3shell::ObservableSpaceU3S& observable_space,
-    int observable_index, int hw_index, const HalfInt& J0,
-    const std::vector<std::pair<int,int>>& sectors_J,
-    spncci::RunParameters& run_parameters,
-    std::set<int>& irrep_families_H,
-    std::vector<std::set<int>>& list_irrep_families_V,
-    std::vector<std::vector<std::vector<double>>>& variances
-  )
- // TODO: generalize to take list of observables 
-  {
-    const std::vector<HalfInt>& Jvalues=run_parameters.J_values;
-    // std::cout<<"Set up J branched basis for H space"<<std::endl;
-    std::vector<spncci::SpaceSpBasis> spbasis_H_byJ(Jvalues.size());
-    for(int j=0; j<Jvalues.size(); ++j)
-      spbasis_H_byJ[j]=SpaceSpBasis(baby_spncci_space, Jvalues[j], irrep_families_H);
-
-    // std::cout<<"create list of lgi pairs"<<std::endl;
-    std::vector<spncci::LGIPair>lgi_pairs_H;
-    for(int irrep_family_index_bra : irrep_families_H)
-      for(int irrep_family_index_ket : irrep_families_H)
-        {
-          if (irrep_family_index_bra>=irrep_family_index_ket)
-            lgi_pairs_H.emplace_back(irrep_family_index_bra,irrep_family_index_ket);
-        }
-    
-    // observable_index and J0 for Hamiltonian are both zero
-    int observable_index_H=0;
-    HalfInt J0_H=0;
-
-    // std::cout<<"Set up eigenvector and eigenvalue containers"<<std::endl;
-    std::vector<spncci::Vector> eigenvalues(Jvalues.size());  // eigenvalues by J subspace
-    std::vector<spncci::Matrix> eigenvectors(Jvalues.size());  // eigenvectors by J subspace
-    
-    // std::cout<<"For each J, construct Hamiltonian and get eigensystem"<<std::endl;
-    for(int j=0; j<Jvalues.size(); ++j)
+    irrep_families_by_Nex.resize(Nmax/2+1);
+    for(int index=0; index<lgi_families.size(); ++index)
       {
-        const HalfInt& J=Jvalues[j]; 
-        // set up eigensystem containers
-        spncci::Vector& eigenvalues_J = eigenvalues[j];
-        spncci::Matrix& eigenvectors_J = eigenvectors[j];   
-        
-        // Get truncated basis branched to J
-        const spncci::SpaceSpBasis& spbasis_H=spbasis_H_byJ[j];
-        
-        // std::cout<<"construct Hamiltonian"<<std::endl;
-        spncci::OperatorBlock hamiltonian_matrix;
-        spncci::ConstructSymmetricOperatorMatrix(
-            baby_spncci_space,observable_space,
-            J0_H,spbasis_H,spbasis_H,lgi_pairs_H,
-            observable_index_H, hw_index,
-            hamiltonian_matrix
-          );
-
-        // std::cout<<"Solve Hamiltonian"<<std::endl;
-        spncci::SolveHamiltonian(
-            hamiltonian_matrix,
-            run_parameters.num_eigenvalues,
-            run_parameters.eigensolver_num_convergence,
-            run_parameters.eigensolver_max_iterations,
-            run_parameters.eigensolver_tolerance,
-            eigenvalues_J,eigenvectors_J
-          );
-      }//end j
-
-
-    // std::cout<<"Initializing variances container"<<std::endl;
-    variances.resize(list_irrep_families_V.size());
-    for(int i=0; i<list_irrep_families_V.size(); ++i)
-      variances[i].resize(Jvalues.size());
-
-    // std::cout<<"Iterate over different sets of irrep familiy indices defining difference variance subspaces"<<std::endl;
-    for(int i=0; i<list_irrep_families_V.size(); ++i)
-      {
-        // std::cout<<"iteration "<<i<<std::endl;
-        const std::set<int>& irrep_families_V=list_irrep_families_V[i];
-        //create list of lgi pairs 
-        std::vector<spncci::LGIPair>lgi_pairs_HV;
-        for(int irrep_family_index_bra : irrep_families_H)
-          for(int irrep_family_index_ket : irrep_families_V)
-            {
-              // std::cout<<"irrep pairs "<<irrep_family_index_bra<<"  "<<irrep_family_index_ket<<std::endl;
-              lgi_pairs_HV.emplace_back(irrep_family_index_bra,irrep_family_index_ket);
-            }
-        
-        // std::cout<<"Iterate over J sectors of operator"<<std::endl;
-        for(const std::pair<int,int>& J_pair : sectors_J)
-          {
-
-            int jp,j; 
-            std::tie(jp,j)=J_pair;
-            const HalfInt& Jp=Jvalues[jp];
-            const HalfInt& J=Jvalues[j];
-
-            // std::cout<<"get J branched basis for H and V space"<<std::endl<<Jp<<"  "<<J<<std::endl;
-            const spncci::SpaceSpBasis& spbasis_H=spbasis_H_byJ[jp];
-            spncci::SpaceSpBasis spbasis_V=SpaceSpBasis(baby_spncci_space, J, irrep_families_V);
-            
-            std::cout<<spbasis_V.DebugStr()<<std::endl;
-   
-           //Calculate block of matrix used to calculate variance <H|Op|V>
-            spncci::OperatorBlock operator_block;
-            spncci::GetVarianceBlock(
-              baby_spncci_space, observable_space,J0,
-              spbasis_H, spbasis_V, lgi_pairs_HV, 
-              observable_index, hw_index,operator_block
-            );
-
-            // std::cout<<"operator block"<<std::endl<<operator_block<<std::endl<<std::endl;
-            spncci::OperatorBlock variance_block;
-            const spncci::OperatorBlock& eigenvectors_J = eigenvectors[jp];
-            CalculateVariance(eigenvectors_J,operator_block,variance_block);
-            // std::cout<<"variance block"<<std::endl<<variance_block<<std::endl<<std::endl;
-            // std::cout<<"eigenvectors "<<std::endl<<eigenvectors_J<<std::endl;
-            // Store variances in vector 
-            std::vector<double>& variances_J=variances[i][jp];
-            variances_J.resize(eigenvectors_J.cols());
-            std::cout<<"variances "<<variances_J.size()<<std::endl;
-            for(int r=0; r<variances_J.size(); ++r)
-            {
-              variances_J[r]=variance_block(r,r);
-              std::cout<<variances_J[r]<<std::endl;
-            }
-            
-          }
-        // std::cout<<"finished J sectors "<<std::endl;
+        int Nex=lgi_families[index].irrep.Nex();
+        irrep_families_by_Nex[Nex/2].push_back(index);
       }
-    // std::cout<<"finished variance function "<<std::endl;
+
+    for(auto Nex_set: irrep_families_by_Nex)
+    {
+      std::cout<<"-----------------"<<std::endl;
+      for(auto index : Nex_set)
+      {
+        std::cout<<"  index: "<<index<<std::endl;
+      }
+    }
   }
+
+
+void SortIrrepFamiliesByNex(
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    std::vector<int>& irrep_families,
+    std::vector<std::vector<int>>& irrep_families_by_Nex,
+    int Nmax
+  )
+  {
+    irrep_families_by_Nex.resize(Nmax/2+1);
+    for(int index : irrep_families)
+      {
+        int Nex=lgi_families[index].irrep.Nex();
+        irrep_families_by_Nex[Nex/2].push_back(index);
+      }
+
+    for(auto Nex_set: irrep_families_by_Nex)
+    {
+      std::cout<<"-----------------"<<std::endl;
+      for(auto index : Nex_set)
+      {
+        std::cout<<"  index: "<<index<<std::endl;
+      }
+    }
+  }
+
 
 void DefineVarianceTruncatedSpace(
-    const lgi::MultiplicityTaggedLGIVector& lgi_families,
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const u3shell::ObservableSpaceU3S& observable_space,
-    int observable_index, int hw_index, int J_index, int eigenvalue_index,
-    // const std::vector<std::pair<int,int>>& sectors_J,
-    spncci::RunParameters& run_parameters,
-    int dominante_irrep_family_index
+    const std::vector<std::vector<std::vector<double>>>& variances,
+    const std::vector<std::set<int>>& list_irrep_families_V,
+    int eigenvalue_index,
+    std::vector<std::vector<int>>& irrep_families_by_variance
 )
+//DEPRECATED
   {
-    // set up J sectors for Hamiltonian
-    std::vector<std::pair<int,int>> sectors_J;
-    sectors_J.emplace_back(J_index,J_index);
-    int J0=0; //for Hamiltonian
-
-    // Set up H space 
-    std::set<int> irrep_families_H; 
-    irrep_families_H.insert(dominante_irrep_family_index);
-
-    // Set up V space for each other irrep family
-    std::vector<std::set<int>> list_irrep_families_V;
-    for(int i=0; i<lgi_families.size(); ++i)
-    // for(int i=0; i<3; ++i)
-      {
-        std::set<int> families;
-        if(i==dominante_irrep_family_index)
-          continue;
-
-        families.insert(i);
-        list_irrep_families_V.push_back(families);    
-      }
-
-    std::vector<std::vector<std::vector<double>>> variances;
-    spncci::GetVariances(
-      baby_spncci_space,observable_space,observable_index,
-      hw_index,J0,sectors_J,run_parameters,
-      irrep_families_H,list_irrep_families_V,variances
-    );
-
-
-    std::vector<std::vector<int>> irrep_families_by_variance(5); 
+    irrep_families_by_variance.resize(8); 
     for(int i=0; i<list_irrep_families_V.size(); ++i)
       {
-        int irrep_family_index=*(list_irrep_families_V[i].begin()); //Only on index in set 
+        int irrep_family_index=*(list_irrep_families_V[i].begin()); //Only one irrep_family_index in set 
         double variance=variances[i][0][eigenvalue_index]; //Only 1 J values 
         if(variance>=100)
           irrep_families_by_variance[0].push_back(irrep_family_index);
-        else if (variance>=10)
+        else if (variance>=50)
           irrep_families_by_variance[1].push_back(irrep_family_index); 
-        else if (variance>=1)
-          irrep_families_by_variance[2].push_back(irrep_family_index);
-        else if (variance>1e-1)
-          irrep_families_by_variance[3].push_back(irrep_family_index);
-        else 
+        else if (variance>=10)
+          irrep_families_by_variance[2].push_back(irrep_family_index); 
+        else if (variance>=5)
+          irrep_families_by_variance[3].push_back(irrep_family_index); 
+        else if (variance>=1)          
           irrep_families_by_variance[4].push_back(irrep_family_index);
+        else if (variance>=5e-1)
+          irrep_families_by_variance[5].push_back(irrep_family_index); 
+
+        else if (variance>1e-1)
+          irrep_families_by_variance[6].push_back(irrep_family_index);
+        else 
+          irrep_families_by_variance[7].push_back(irrep_family_index);
+
+        std::cout<<fmt::format("irrep family variance {:2d}  {:8f}",irrep_family_index, variance)<<std::endl;
       }
+    // for(auto& vector :irrep_families_by_variance)
+    //   std::cout<<"num irrep families "<<vector.size()<<std::endl;
 
   }
 
+
+void TestingVariances(
+    const spncci::RunParameters& run_parameters, 
+    int hw_index, int J_index, int eigenvalue_index,
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
+    const std::vector<int>& irrep_families,
+    const std::set<int>& reference_H,
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    double variance_threshold
+  )
+  {
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Testing variance calculation
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get variance for each irrep family with trial wavefunction defined by projection onto dominant irrep 
+
+    // //Set up H space 
+    // int dominant_irrep_family_index=3;
+    // std::set<int> reference_H; 
+    // reference_H.insert(dominant_irrep_family_index);
+    
+
+    // Setting up Hamiltonian eigenproblem in H space
+    int observable_index=0;
+    // int J_index=0;
+    // int eigenvalue_index=0;
+
+    std::vector<std::pair<int,int>> sectors_J;
+    sectors_J.emplace_back(J_index,J_index);
+
+    //Observable space for Hamiltonian
+    const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
+
+    // Compute variance of each irrep family outside of H space 
+    std::vector<std::vector<std::vector<double>>> variances;
+    std::vector<int> irrep_families_V;
+    spncci::GetVariancesForIrrepFamilies(
+        irrep_families,baby_spncci_space,observable_space,
+        observable_index,hw_index,run_parameters,
+        reference_H,variances,irrep_families_V
+    );
+
+    //Returns list of irrep families ordered by variance with repsect to reference_H
+    // double variance_threshold=10;
+    std::vector<int> irrep_families_by_variance_initial;
+    spncci::SortIrrepFamiliesByVariance(
+      variances,irrep_families_V,J_index,
+      eigenvalue_index,irrep_families_by_variance_initial,
+      variance_threshold
+    );
+
+    // //Sort by Nsex
+    // std::vector<std::vector<int>> irrep_families_by_Nex;
+    // spncci::SortIrrepFamiliesByNex(
+    //   lgi_families,irrep_families_by_variance_initial,
+    //   irrep_families_by_Nex,run_parameters.Nmax
+    // );
+
+    // Resorting irrep families by Nex, then by variance if reference space increased each iteration
+    std::vector<int> irrep_families_by_variance;
+    std::set<int> irrep_families_H=reference_H;
+    std::vector<int> irrep_families_by_variance_temp;
+    // for(std::vector<int> irrep_families_by_variance_temp : irrep_families_by_Nex)
+    //   { 
+        int num_iterations=irrep_families_by_variance_initial.size();
+        irrep_families_by_variance_temp=irrep_families_by_variance_initial;
+        for(int i=0; i<num_iterations; ++i)
+          {
+            int irrep_family_index=irrep_families_by_variance_temp[0];
+            
+            // std::cout<<"Adding family"<<irrep_family_index<<std::endl;
+            //Add to reference subspaces
+            irrep_families_H.insert(irrep_family_index);
+
+            irrep_families_by_variance.push_back(irrep_family_index);
+          
+            std::vector<std::vector<std::vector<double>>> variances_temp;
+            std::vector<int> individual_irrep_families_V_temp;
+            spncci::GetVariancesForIrrepFamilies(
+              irrep_families,baby_spncci_space,observable_space,
+              observable_index,hw_index,run_parameters,
+              irrep_families_H,variances_temp,individual_irrep_families_V_temp
+            );
+
+            // std::cout<<"Sorting by variance "<<std::endl;
+            irrep_families_by_variance_temp.resize(0);
+            
+            spncci::SortIrrepFamiliesByVariance(
+              variances_temp, individual_irrep_families_V_temp,J_index,
+              eigenvalue_index,irrep_families_by_variance_temp
+            );
+          }
+      // }
+  
+
+      ////////////////////////////////////////////////////////////////////////////////////////////
+      // reinitializing irrep_families_H with just the dominant irrep
+      irrep_families_H=reference_H; 
+      std::cout<<"Starting with irrep families:";
+      for (auto it=irrep_families_H.begin(); it != irrep_families_H.end(); ++it) 
+        std::cout << ' ' << *it; 
+      std::cout<<std::endl;
+      // std::cout<<"Dominant irrep family index "<<dominant_irrep_family_index<<std::endl;
+      // irrep_families_H.insert(dominant_irrep_family_index);
+
+      // For each irrep family index in with non-zero variance, add to H space one by one
+      // and compute energies and variances
+      std::vector<std::pair<double,double>>variences_for_irrep_families(irrep_families_by_variance.size());
+      // for(const int irrep_family_index : irrep_families_by_variance)
+
+
+      for(int i=0; i<irrep_families_by_variance.size(); ++i)
+        {
+          int irrep_family_index=irrep_families_by_variance[i];
+          irrep_families_H.insert(irrep_family_index);
+          // std::cout<<"---------------------------------------------"<<std::endl;
+          // std::cout<<"irrep family index "<<irrep_family_index<<std::endl;
+          // set up up V space. In this case, there is only 1 V space. 
+
+          const std::vector<HalfInt>& Jvalues=run_parameters.J_values;
+          std::vector<spncci::SpaceSpBasis> spbasis_H_byJ(Jvalues.size());
+          for(int j=0; j<Jvalues.size(); ++j)
+            spbasis_H_byJ[j]=spncci::SpaceSpBasis(baby_spncci_space, Jvalues[j], irrep_families_H);
+
+
+          //Get eigenvalues and vectors for Hamiltonian in H subspaces
+          std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
+          std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
+          spncci::GetEigensystemH(
+            baby_spncci_space,observable_space,hw_index,run_parameters,
+            irrep_families_H,spbasis_H_byJ,eigenvalues, eigenvectors 
+          );
+
+          std::set<int> irrep_families_V;
+          for(int index=0; index<lgi_families.size(); ++index)
+            {
+              // int index=*(subspace.begin()); //Only one irrep_family_index in set 
+              if( not irrep_families_H.count(index))
+                irrep_families_V.insert(index);
+            }
+
+          if(irrep_families_V.size()==0)
+            {
+              std::cout<<"H space is full space "<<std::endl;
+              continue;
+            }
+          int J0=0;
+          std::vector<std::vector<double>> variances(run_parameters.J_values.size());
+          spncci::GetVariances(
+            baby_spncci_space,observable_space,observable_index, hw_index,J0,
+            sectors_J,run_parameters,irrep_families_H,irrep_families_V,
+            spbasis_H_byJ,eigenvectors, variances
+          );
+
+
+          double eigenvalue=eigenvalues[J_index][eigenvalue_index];
+          double variance=variances[J_index][eigenvalue_index];
+          variences_for_irrep_families[i]=std::pair<double,double>(eigenvalue,variance);
+
+        }
+      for(int i=0; i<irrep_families_by_variance.size(); ++i)
+        {
+          int irrep_family_index=irrep_families_by_variance[i];
+          double eigenvalue,variance;
+          std::tie(eigenvalue,variance)=variences_for_irrep_families[i];
+          std::cout<<fmt::format("{:8.4f}  {:8.4f}  {:3d}",variance,eigenvalue,irrep_family_index)<<std::endl;
+        }
+  }
 
 }// end namespace
 
@@ -718,7 +653,16 @@ int main(int argc, char **argv)
   std::cout<<"Starting recurrence and contraction"<<std::endl;
 
   std::vector<spncci::LGIPair> lgi_pairs;
-  spncci::GetLGIPairsForRecurrence(lgi_families,spncci_space,sigma_irrep_map,lgi_pairs);
+  // spncci::GetLGIPairsForRecurrence(lgi_families,spncci_space,sigma_irrep_map,lgi_pairs);
+
+
+  // Get list of lgi pairs with non-zero matrix elements between them.
+  // Restricted to ket<=bra.
+  spncci::GetLGIPairsForRecurrence(
+    lgi_families,lgi_full_space_index_lookup,spncci_space,
+    sigma_irrep_map,run_parameters.Nmax,lgi_pairs
+  );
+
   // lgi_pairs.emplace_back(0,0);
 
   spncci::ObservableHypersectorsByLGIPairTable
@@ -828,98 +772,211 @@ int main(int argc, char **argv)
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
     {
 
+      int observable_index=0;
+      int J_index=0;
+      int eigenvalue_index=0;
+      double variance_threshold=1.0;
+
+      // initialize H space 
+      int dominant_irrep_family_index=3;
+      std::set<int> reference_H; 
+      reference_H.insert(dominant_irrep_family_index);
+
+      //initialize list of irrep families
+      std::vector<int> irrep_families;
+      for(int i=0; i<lgi_families.size(); ++i)
+        irrep_families.push_back(i);
+
+      //Test variance calculation
+      spncci::TestingVariances(
+        run_parameters, hw_index,J_index,eigenvalue_index,
+        baby_spncci_space,observable_spaces,irrep_families,
+        reference_H,lgi_families,variance_threshold
+      );
+
+
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Testing variance calculation
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if(false)
+      {
       const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[0];
 
       std::vector<std::pair<int,int>> sectors_J;
       for(int i=0; i<run_parameters.J_values.size(); ++i)
         sectors_J.emplace_back(i,i);
 
-      std::set<int> irrep_families_H; 
-      irrep_families_H.insert(3);
-      irrep_families_H.insert(31);
-      irrep_families_H.insert(88);
-      irrep_families_H.insert(13);
-      irrep_families_H.insert(28);
-      irrep_families_H.insert(29);
-      irrep_families_H.insert(0);
-      irrep_families_H.insert(6);
-      irrep_families_H.insert(78);
-      irrep_families_H.insert(85);
-      irrep_families_H.insert(89);
-      irrep_families_H.insert(90);
-      irrep_families_H.insert(92);
-      irrep_families_H.insert(93);
-      irrep_families_H.insert(95);
-      irrep_families_H.insert(168);
-      irrep_families_H.insert(175);
-      irrep_families_H.insert(10);
-      irrep_families_H.insert(11);
-      irrep_families_H.insert(30);
-      irrep_families_H.insert(32);
-      irrep_families_H.insert(33);
-      irrep_families_H.insert(34);
-      irrep_families_H.insert(35);
-      irrep_families_H.insert(58);
-      irrep_families_H.insert(62);
-      irrep_families_H.insert(63);
-      irrep_families_H.insert(65);
-      irrep_families_H.insert(82);
-      irrep_families_H.insert(83);
+      // Get variance for each irrep family with trial wavefunction defined by projection onto dominant irrep 
+      int observable_index=0;
+      int J_index=0;
+      int eigenvalue_index=0;
+      
+      int dominant_irrep_family_index=3;
+      std::set<int> reference_H; 
+      reference_H.insert(dominant_irrep_family_index);
+      // reference_H.insert(0); //TEMP
+      
+      std::cout<<"Organize families by Nex"<<std::endl;
+      std::vector<std::vector<int>> irrep_families_by_Nex;
+      spncci::SortIrrepFamiliesByNex(lgi_families,irrep_families_by_Nex,run_parameters.Nmax);
 
-      irrep_families_H.insert(26);
-      irrep_families_H.insert(27);
-      irrep_families_H.insert(77);
-      irrep_families_H.insert(169);
-      irrep_families_H.insert(170);
-
-      irrep_families_H.insert(7);
-      irrep_families_H.insert(8);
-      irrep_families_H.insert(9);
-      irrep_families_H.insert(24);
-      irrep_families_H.insert(59);
-      irrep_families_H.insert(60);
-      irrep_families_H.insert(79);
-      irrep_families_H.insert(80);
-      irrep_families_H.insert(91);
-      irrep_families_H.insert(138);
-      irrep_families_H.insert(156);
-      irrep_families_H.insert(158);
-      irrep_families_H.insert(162);
-      irrep_families_H.insert(162);
-      irrep_families_H.insert(165);
-      irrep_families_H.insert(171);
-
-
-
-      std::vector<std::set<int>> list_irrep_families_V;
-      // std::set<int> families;
-      for(int i=0; i<lgi_families.size(); ++i)
-      // for(int i=0; i<3; ++i)
-        {
-          std::set<int> families;
-          if(irrep_families_H.count(i))
-            continue;
-          families.insert(i);
-          list_irrep_families_V.push_back(families);    
-        }
-
-      std::cout<<"calculating variances"<<std::endl;
-      std::vector<std::vector<std::vector<double>>> variances;
-      spncci::GetVariances(
-        baby_spncci_space, observable_space,0,hw_index,0,sectors_J,run_parameters,
-        irrep_families_H,list_irrep_families_V,variances
+      //For Nsex=0 irrep families, calculation variance, then sort by variance and truncate space 
+      // to include only those with largest variance
+      std::vector<std::vector<std::vector<double>>> variances_Nex0;
+      std::vector<int> Nex0_irrep_families_V;
+      spncci::GetVariancesForIrrepFamilies(
+        irrep_families_by_Nex[0],baby_spncci_space,observable_space,
+        observable_index,hw_index,run_parameters,
+        reference_H,variances_Nex0,Nex0_irrep_families_V
       );
 
-      // std::cout<<"printing variances "<<std::endl;
-      // for(auto& variances_observable: variances)
-      //   for(auto& variances_J :variances_observable)
-      //     // for(double variance : variances_J)
-      //       std::cout<<variances_J[0]<<std::endl;
+
+      //Returns ordered list of pairs <variance,irrep_family_index>
+      std::cout<<"Sorting Nex=0"<<std::endl;
+      std::vector<int> irrep_families_by_variance_Nex0;
+      spncci::SortIrrepFamiliesByVariance(
+        variances_Nex0,Nex0_irrep_families_V,J_index,
+        eigenvalue_index,irrep_families_by_variance_Nex0
+      );
+
+      for(int a : irrep_families_by_variance_Nex0)
+        std::cout<<"a "<<a<<std::endl;
 
 
+
+
+      ////////////////////////////////////////////////////////////////////////////////////////////
+      std::vector<std::vector<std::vector<double>>> variances;
+       std::vector<int> individual_irrep_families_V;
+      std::cout<<"Get variance for each irrep family for dominant irrep"<<std::endl;
+      std::vector<int> irrep_families;
+      for(int i=0; i<lgi_families.size(); ++i)
+        irrep_families.push_back(i);
+
+      spncci::GetVariancesForIrrepFamilies(
+        irrep_families,baby_spncci_space,observable_space,
+        observable_index,hw_index,run_parameters,
+        reference_H,variances,individual_irrep_families_V
+      );
+
+      //Returns ordered list of pairs <variance,irrep_family_index>
+      std::cout<<"Initial sorting "<<std::endl;
+      std::vector<int> irrep_families_by_variance_initial;
+       // int J_index=0;
+      spncci::SortIrrepFamiliesByVariance(
+        variances, individual_irrep_families_V,J_index,
+        eigenvalue_index,irrep_families_by_variance_initial
+      );
+      ////////////////////////////////////////////////////////////////////////////////////////////
+      // Resorting by increasing reference basis 
+      // for(int i=0; i<irrep_families_by_variance.size(); ++i)
+      std::vector<int> irrep_families_by_variance2=irrep_families_by_variance_initial;
+      std::vector<int> irrep_families_by_variance;
+      for(int i=0; i<irrep_families_by_variance_initial.size(); ++i)
+        {
+          // std::cout<<"-------------------------------------------"<<std::endl;
+          int irrep_family_index=irrep_families_by_variance2[0];
+          
+          std::cout<<"Adding family"<<irrep_family_index<<std::endl;
+          //Add to reference subspaces
+          reference_H.insert(irrep_family_index);
+          //Add to ordered list of irrep families 
+          irrep_families_by_variance.push_back(irrep_family_index);
+        
+          std::vector<std::vector<std::vector<double>>> variances2;
+          std::vector<int> individual_irrep_families_V2;
+          spncci::GetVariancesForIrrepFamilies(
+            irrep_families,baby_spncci_space,observable_space,
+            observable_index,hw_index,run_parameters,
+            reference_H,variances2,individual_irrep_families_V2
+          );
+
+          // std::cout<<"Sorting by variance "<<std::endl;
+          irrep_families_by_variance2.resize(0);
+          
+          spncci::SortIrrepFamiliesByVariance(
+            variances2, individual_irrep_families_V2,J_index,
+            eigenvalue_index,irrep_families_by_variance2
+          );
+
+
+        }
+
+      ////////////////////////////////////////////////////////////////////////////////////////////
+      std::set<int> irrep_families_H; 
+      std::cout<<"Dominant irrep family index "<<dominant_irrep_family_index<<std::endl;
+      irrep_families_H.insert(dominant_irrep_family_index);
+      irrep_families_H.insert(0); //TEMP
+      // For each irrep family index in with non-zero variance, add to H space one by one
+      // and compute energies and variances
+      std::vector<std::pair<double,double>>variences_for_irrep_families(irrep_families_by_variance.size());
+      // for(const int irrep_family_index : irrep_families_by_variance)
+
+
+      for(int i=0; i<irrep_families_by_variance.size(); ++i)
+        {
+          int irrep_family_index=irrep_families_by_variance[i];
+          irrep_families_H.insert(irrep_family_index);
+          std::cout<<"---------------------------------------------"<<std::endl;
+          std::cout<<"irrep family index "<<irrep_family_index<<std::endl;
+          // set up up V space. In this case, there is only 1 V space. 
+
+          const std::vector<HalfInt>& Jvalues=run_parameters.J_values;
+          std::vector<spncci::SpaceSpBasis> spbasis_H_byJ(Jvalues.size());
+          for(int j=0; j<Jvalues.size(); ++j)
+            spbasis_H_byJ[j]=spncci::SpaceSpBasis(baby_spncci_space, Jvalues[j], irrep_families_H);
+
+
+          //Get eigenvalues and vectors for Hamiltonian in H subspaces
+          std::vector<spncci::Vector> eigenvalues;  // eigenvalues by J subspace
+          std::vector<spncci::Matrix> eigenvectors;  // eigenvectors by J subspace
+          spncci::GetEigensystemH(
+            baby_spncci_space,observable_space,hw_index,run_parameters,
+            irrep_families_H,spbasis_H_byJ,eigenvalues, eigenvectors 
+          );
+
+          std::set<int> irrep_families_V;
+          for(int index=0; index<lgi_families.size(); ++index)
+            {
+              // int index=*(subspace.begin()); //Only one irrep_family_index in set 
+              if( not irrep_families_H.count(index))
+                irrep_families_V.insert(index);
+            }
+
+          if(irrep_families_V.size()==0)
+            {
+              std::cout<<"H space is full space "<<std::endl;
+              continue;
+            }
+          int J0=0;
+          std::vector<std::vector<double>> variances(run_parameters.J_values.size());
+          spncci::GetVariances(
+            baby_spncci_space,observable_space,observable_index, hw_index,J0,
+            sectors_J,run_parameters,irrep_families_H,irrep_families_V,
+            spbasis_H_byJ,eigenvectors, variances
+          );
+
+          // for(int j=0; j<run_parameters.J_values.size(); ++j)
+          //   {
+          //     HalfInt J=J_values[j];
+              double eigenvalue=eigenvalues[0][0];
+              double variance=variances[0][0];
+              variences_for_irrep_families[i]=std::pair<double,double>(eigenvalue,variance);
+
+            // }
+
+        }
+      for(int i=0; i<irrep_families_by_variance.size(); ++i)
+        {
+          int irrep_family_index=irrep_families_by_variance[i];
+          double eigenvalue,variance;
+          std::tie(eigenvalue,variance)=variences_for_irrep_families[i];
+          std::cout<<fmt::format("{:3d}  {:8.4f}  {:8.4f} ",irrep_family_index,eigenvalue,variance)<<std::endl;
+        }
+      }//false
+       ////////////////////////////////////////////////////////////////////////////////////////////
+      // End variance calculations
+      ////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
