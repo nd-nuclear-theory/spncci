@@ -276,6 +276,12 @@ namespace u3shell {
     //   operator_labels (OperatorLabelsU3S): NxSU(3)xS character of operator
     //   spin_scalar (bool): whether or not to additionally impose
     //     Sp0=0 and Sn0=0 (in which case it is assumed S0=0)
+
+    SectorsU3SPN(
+      const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket, 
+      const OperatorLabelsU3S& operator_labels,bool spin_scalar
+    );
+    // See above for description.  Allows for possibility of different bra and ket spaces
   };
 
 

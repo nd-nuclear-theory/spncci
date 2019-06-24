@@ -21,6 +21,7 @@
     stream arguments.
   10/11/17 (aem) : Extract GetLGIExpansion from spncci/computation_control
   2/8/18 (aem) : removed lgi_families with gamma_max=0
+  6/24/19 (aem) : Moved TransformOperatorTpSpBasis to lgi_unit_tensor
 ****************************************************************/
 
 #ifndef LGI_PROB_H_
@@ -120,14 +121,7 @@ void ReadLGIExpansion(
   //  lgi_expansions
 
 
-  void
-    TransformOperatorToSpBasis(
-        const u3shell::SectorsU3SPN& sectors,
-        const basis::OperatorBlocks<double>& basis_transformation_matrices,
-        const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
-        basis::OperatorBlocks<double>& spncci_operator_matrices
-      );
-  // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
+
 
 }
 #endif

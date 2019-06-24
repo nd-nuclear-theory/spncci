@@ -23,6 +23,30 @@
 
 namespace lgi
 {
+
+  void
+    TransformOperatorToSpBasis(
+        const u3shell::SectorsU3SPN& sectors,
+        const basis::OperatorBlocks<double>& basis_transformation_matrices,
+        const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+        basis::OperatorBlocks<double>& spncci_operator_matrices
+      );
+  // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
+
+
+  void
+  TransformOperatorToSpBasis(
+    const u3shell::SpaceU3SPN& space_bra, 
+    const u3shell::SpaceU3SPN& space_ket, 
+    const u3shell::SectorsU3SPN& sectors,
+    const basis::OperatorBlocks<double>& basis_transformation_matrices,
+    const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+    std::unordered_map<u3shell::U3SPN,int,boost::hash<u3shell::U3SPN>> lgi_lookup_table,
+    basis::OperatorBlocks<double>& spncci_operator_matrices
+  );
+  // Similarity transformation from LSU3Shell basis to SpNCCI basis when bra and ket spaces differ. 
+
+
     // zero tolerance 
   extern double zero_tolerance;
 

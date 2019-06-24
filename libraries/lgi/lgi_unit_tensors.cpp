@@ -31,6 +31,69 @@ namespace lgi
   int binary_format_code = 1;
   int binary_float_precision=8;
 
+
+  void
+  TransformOperatorToSpBasis(
+      const u3shell::SectorsU3SPN& sectors,
+      const basis::OperatorBlocks<double>& basis_transformation_matrices,
+      const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+      basis::OperatorBlocks<double>& spncci_operator_matrices
+    )
+  {
+    // for each sector, look up bra and ket subspaces 
+    spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
+    
+    // #pragma omp parallel for schedule(runtime)
+    for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
+      {
+        int i=sectors.GetSector(s).bra_subspace_index();
+        int j=sectors.GetSector(s).ket_subspace_index();
+
+        // get transformation matrices and transpose bra transformation matrix
+        const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
+        const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
+
+        // transform operator to spncci basis
+        spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
+      }
+  }
+  
+  void
+  TransformOperatorToSpBasis(
+    const u3shell::SpaceU3SPN& space_bra, 
+    const u3shell::SpaceU3SPN& space_ket, 
+    const u3shell::SectorsU3SPN& sectors,
+    const basis::OperatorBlocks<double>& basis_transformation_matrices,
+    const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+    std::unordered_map<u3shell::U3SPN,int,boost::hash<u3shell::U3SPN>> lgi_lookup_table,
+    basis::OperatorBlocks<double>& spncci_operator_matrices
+  )
+  {
+    // for each sector, look up bra and ket subspaces 
+    spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
+    
+    // #pragma omp parallel for schedule(runtime)
+    for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
+      {
+        int bra_index=sectors.GetSector(s).bra_subspace_index();
+        int ket_index=sectors.GetSector(s).ket_subspace_index();
+        const u3shell::SubspaceU3SPN& subspace_bra=space_bra.GetSubspace(bra_index);
+        const u3shell::SubspaceU3SPN& subspace_ket=space_ket.GetSubspace(ket_index);
+
+        int i=lgi_lookup_table[subspace_bra.U3SPN()];
+        int j=lgi_lookup_table[subspace_ket.U3SPN()];
+
+        // get transformation matrices and transpose bra transformation matrix
+        const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
+        const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
+
+        // transform operator to spncci basis
+        spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
+      }
+  }
+
+
+
   void RegroupSeedBlocks(
       int unit_tensor_index,
       const u3shell::SectorsU3SPN& unit_tensor_sectors,

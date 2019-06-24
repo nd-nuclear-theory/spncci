@@ -54,13 +54,16 @@ namespace lsu3shell
   ReadLSU3ShellRMEs(
       bool sp3r_generators,
       const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
+      const LSU3ShellBasisTable& lsu3_basis_table_bra,
+      const u3shell::SpaceU3SPN& space_bra, 
+      const LSU3ShellBasisTable& lsu3_basis_table_ket,
+      const u3shell::SpaceU3SPN& space_ket, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
-      double scale_factor=1.
+      double scale_factor
     );
+
   // Read LSU3Shell RMEs.
   //
   // Global mode:
@@ -70,13 +73,29 @@ namespace lsu3shell
   //   sp3r_generators (input) : tempory fix for error arising when generator rmes are not 
   //      truncated as a string.  If true, then string truncation applied, else, read in normally
   //   filename (input): name of binary rme file
-  //   lsu3_basis_table (input): information on LSU3shell basis states
-  //   space (input): U3SPN basis
+  //   lsu3_basis_table_bra,lsu3_basis_table_ket (input): information on LSU3shell basis states
+  //   space_bra,space_bra (input): U3SPN bases
   //   operator_labels (input): U3ST tensorial labels for operator being input
   //   sectors (input): U3SPN sectors for operator being input
   //   matrix_vector (output): matrices for operator blocks
   //   scale_factor (input,optional): scale factor for rmes on input,
   //     e.g., for conversion from relative to intrinsic operator
+
+
+  void 
+  ReadLSU3ShellRMEs(
+      bool sp3r_generators,
+      const std::string& filename,
+      const LSU3ShellBasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      lsu3shell::OperatorBlocks& blocks,
+      double scale_factor=1.
+    );
+
+  //Wrapper function for when bra space and ket space are the same.
+
 
   void 
   ReadLSU3ShellRMEs(
