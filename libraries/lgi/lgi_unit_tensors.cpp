@@ -137,6 +137,10 @@ namespace lgi
       }// sector index
   }
 
+
+
+//TODO: allow for different bra and ket spaces 
+
   void ComputeUnitTensorSeedBlocks(
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
       const std::string& relative_unit_tensor_filename_template,
@@ -192,6 +196,7 @@ namespace lgi
                 unit_tensor_spncci_matrices
               );
 
+///TODO: Check if RegroupSeedBlocks requires modification
             // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
             // by lgi then by tensor
             lgi::RegroupSeedBlocks(
@@ -218,6 +223,108 @@ namespace lgi
           }
       }
   }
+
+
+  void ComputeUnitTensorSeedBlocks(
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      const std::string& relative_unit_tensor_filename_template,
+      const u3shell::SpaceU3SPN& lsu3shell_space_bra, 
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_bra,
+      const u3shell::SpaceU3SPN& lsu3shell_space_ket, 
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_ket,
+      const MultiplicityTaggedLGIVector& lgi_vector,
+      const basis::OperatorBlocks<double>& lgi_expansions,
+      lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
+      std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3shell_index_lookup_table,
+      bool restrict_seeds
+    )
+  {
+    // Compute unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion 
+    // and write blocks to file in binary format
+    //
+    // Container for seed labels and indices for lookup when writing to file
+    // lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels
+
+    unit_tensor_spncci_matrices_array.resize(lgi_unit_tensor_labels.size());
+
+    #pragma omp parallel
+      {
+        lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
+       
+        // For each unit tensor 
+        #pragma omp for schedule(dynamic) nowait
+        for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+          {
+            // Get labels of corresponding unit tensor 
+            basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
+            const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+
+            // Get file name containing lsu3shell rmes of unit tensor 
+            std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
+
+            // generate unit tensor sectors in lsu3shell basis
+            const bool spin_scalar = false; // All spin values allowed
+            u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space_bra,lsu3shell_space_ket,unit_tensor_labels,spin_scalar);
+
+            // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
+            basis::OperatorBlocks<double> unit_tensor_lsu3shell_matrices;
+            bool include_sp3r_generators=false;
+            double scale_factor=1.0;
+            lsu3shell::ReadLSU3ShellRMEs(
+                include_sp3r_generators,filename,
+                lsu3shell_basis_table_bra,lsu3shell_space_bra,
+                lsu3shell_basis_table_ket,lsu3shell_space_ket,
+                unit_tensor_labels,unit_tensor_sectors,
+                unit_tensor_lsu3shell_matrices,scale_factor
+              );
+
+            //Create lookup table to be able to identify which lgi the lsu3shell subspace correspond to 
+            std::unordered_map<u3shell::U3SPN,int,boost::hash<u3shell::U3SPN>> lgi_lookup_table;
+            int i=0;
+            for(auto lgi_tagged : lgi_vector)
+              {
+                lgi_lookup_table[lgi_tagged.irrep]=i;
+                ++i;
+              }
+
+            lgi::TransformOperatorToSpBasis(
+              lsu3shell_space_bra,lsu3shell_space_ket,
+                unit_tensor_sectors,lgi_expansions,
+                unit_tensor_lsu3shell_matrices,
+                lgi_lookup_table,
+                unit_tensor_spncci_matrices
+                );
+
+////// TODO: finish updating to take different bra and ket subspaces...
+
+            // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
+            // by lgi then by tensor
+            lgi::RegroupSeedBlocks(
+                unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
+                lgi_grouped_seed_labels_temp,unit_tensor_spncci_matrices,
+                lsu3shell_index_lookup_table,restrict_seeds
+              );
+
+            // Matrix copy into final container
+            #pragma omp critical(matrix_copy)
+              unit_tensor_spncci_matrices_array[unit_tensor_index]=unit_tensor_spncci_matrices;
+
+          }
+
+       #pragma omp critical(regroup)
+          { 
+            std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
+            for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
+              {
+                auto& seed_labels=it->second;
+                auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+                accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+              }
+          }
+      }
+  }
+
 
 
   void WriteHeader(std::ostream& out_file)

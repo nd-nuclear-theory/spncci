@@ -93,8 +93,16 @@ void GetLGIExpansion(
   // Outputs 
   //   lgi::MultiplicityTaggedLGIVector lgi_families;
   //   basis::OperatorBlocks<double> lgi_expansions;
-  //   lsu3hsell_index_lookup_table: look up take relating 
-  //   lsu3shell subspace index to lgi family index
+  //   lsu3hsell_index_lookup_table: look up table relating 
+  //    lsu3shell subspace index to lgi family index needed
+  //    when there are lsu3shell subspaces with no lgi
+
+void WriteLSU3ShellToLGIConversionTable(const std::vector<int>& lsu3shell_index_lookup_table);
+  // Write out table that converts lsu3shell subspace index to lgi index 
+
+void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_table);
+  // Read in table that converts lsu3shell subspace index to lgi index
+
 
 
 void WriteExpansion(

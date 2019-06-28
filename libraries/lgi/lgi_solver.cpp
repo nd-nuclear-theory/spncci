@@ -198,6 +198,35 @@ namespace lgi
       );
   }
 
+void WriteLSU3ShellToLGIConversionTable(const std::vector<int>& lsu3shell_index_lookup_table)
+  {
+    std::ofstream outstream;
+    outstream.open("lsu3shell_to_lgi_conversion_table.dat");
+    outstream<<lsu3shell_index_lookup_table.size()<<std::endl;
+    for(int lsu3shell_index=0; lsu3shell_index<lsu3shell_index_lookup_table.size(); ++lsu3shell_index)
+      outstream<<"{:3d}  {:3d}"<<std::endl;
+
+    outstream.close();
+  }
+
+void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_table)
+  {
+    std::ifstream instream;
+    instream.open("lsu3shell_to_lgi_conversion_table.dat");
+    int num_lsu3shell_subspaces;
+    instream >> num_lsu3shell_subspaces;
+    lsu3shell_index_lookup_table.resize(num_lsu3shell_subspaces);
+    int line_count=0;
+    while(line_count<num_lsu3shell_subspaces)
+      {
+        // parse line
+        int lsu3shell_index, lgi_index;
+        instream>>lsu3shell_index>>lgi_index;
+        lsu3shell_index_lookup_table[lsu3shell_index]=lgi_index;
+      }
+  }
+
+
 void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
   {
 
