@@ -103,7 +103,7 @@ su3rme_subdirectory_list = []
 
 # executable files
 # ... from lsu3shell
-# recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
+recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
 su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
 su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
 # ... from spncci

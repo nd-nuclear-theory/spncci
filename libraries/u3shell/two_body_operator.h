@@ -70,9 +70,9 @@ namespace u3shell
     // scalar multiplications
     inline CoefficientsPN& operator* (float coef)
     {
-      pppp = coef*pppp;
-      nnnn = coef*nnnn;
-      pnnp = coef*pnnp;
+      pppp *= pppp;
+      nnnn *= nnnn;
+      pnnp *= pnnp;
       return *this;
     }
 
@@ -85,6 +85,25 @@ namespace u3shell
     TwoBodyUnitTensorCoefficientsU3SPN;
   // Storage of all three pn-scheme coefficients for given U(3)xS
   // two-body unit tensor labels.
+  //
+  // Also used to represent coefficients of other similarly-labeled
+  // objects, in particular, biquads.
+
+  typedef
+    std::map<u3shell::TwoBodyUnitTensorLabelsU3S,std::vector<u3shell::CoefficientsPN>>
+    TwoBodyUnitTensorCoefficientsRecouplerU3SPN;
+  // Storage of all three pn-scheme coefficients for given U(3)xS
+  // two-body unit tensor labels group for easy export to LSU3Shell Recoupler input file.
+  //
+  // Also used to represent coefficients of other similarly-labeled
+  // objects, in particular, biquads.
+
+
+  typedef
+    std::map<u3shell::TwoBodyUnitTensorLabelsU3S,std::vector<std::vector<u3shell::CoefficientsPN>>> 
+      TwoBodyOperatorCoefficientsU3SPN;
+  // Storage of all three pn-scheme coefficients for given 
+  // two-body operator decomposed into U(3)xS tensors.
   //
   // Also used to represent coefficients of other similarly-labeled
   // objects, in particular, biquads.
@@ -192,6 +211,38 @@ namespace u3shell
   //   output_stream (std::ofstream) : an open text-mode output stream
   //   biquad_coefficients_pn (u3shell::TwoBodyUnitTensorCoefficientsU3SPN)
   //     : the biquad coefficients
+
+
+  void WriteTwoBodyInteractionRecoupler(
+      std::string filename,
+      u3shell::TwoBodyOperatorCoefficientsU3SPN& biquad_coefficients_pn
+    );
+  // Write two-body operator pn-scheme biquad coefficients in format
+  // expected by TD's recoupler.
+  //
+  // Output format:
+  //
+  //   The expected input for TD's recouple consists of a sequence of
+  //   label line / coefficient line pairs.  Any Pauli-forbidden
+  //   like-nucleon coefficient should be set to zero.
+  //
+  //     label line:
+  //       eta1p eta2p eta2 eta1
+  //         rhop=1 lambdap mup 2Sp
+  //         rho=1  lambda  mu  2S
+  //         rho0_max  lambda0 mu0 2S0
+  //
+  //     coefficient line: for each kappa0, for each rho0
+  //       pppp nnnn pnnp
+  //
+  //   Note the ordering of eta values, determined by the labeling
+  //   convention discussed in the comments for
+  //   TransformTwoBodyUnitTensorToBiquad.
+
+  // Arguments:
+  //   filename : output file
+  //   biquad_coefficients_pn : the biquad coefficients
+
 
 void
 GenerateTwoBodyUnitTensorLabelsU3ST(

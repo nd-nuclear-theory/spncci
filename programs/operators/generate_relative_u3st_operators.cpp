@@ -58,7 +58,7 @@ namespace u3shell
               int kappa0=1;
               int L0=0;
               std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
-              Nrel_operator[key]+=(2.*N)/A*coef;
+              Nrel_operator[key]+=(2.*coef/A)*u3shell::Nrel(bra,ket);
             }
   }
 
@@ -102,7 +102,7 @@ namespace u3shell
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+            double Brme=u3shell::Brel(bra,ket);
             if (fabs(Brme)>zero_threshold)
               K2intr[key]+=-sqrt(1.5)*Brme*intrinsic_factor*coef;
 
@@ -119,7 +119,7 @@ namespace u3shell
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+            double Arme=u3shell::Arel(bra,ket);
             if (fabs(Arme)>zero_threshold)
               K2intr[key]+=-sqrt(1.5)*Arme*intrinsic_factor*coef;
           }
@@ -176,7 +176,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,T0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              double Brme=u3shell::Brel(bra,ket);
 
 
               if (fabs(Brme)>zero_threshold)
@@ -199,7 +199,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,T0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              double Arme=u3shell::Arel(bra,ket);
               if (fabs(Arme)>zero_threshold)
                 Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef*isospin_coefficient;
             }
@@ -232,7 +232,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              double Brme=u3shell::Brel(bra,ket);
               if (fabs(Brme)>zero_threshold)
                R2intr[key]+=sqrt(1.5)*Brme*intrinsic_factor*coef;
             }
@@ -251,7 +251,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              double Arme=u3shell::Arel(bra,ket);
               if (fabs(Arme)>zero_threshold)
                 R2intr[key]+=sqrt(1.5)*Arme*intrinsic_factor*coef;
             }

@@ -135,7 +135,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
       int kappa0,L0;
       std::tie(op_labels, kappa0,L0)=it->first;
       double rme=it->second;
-      double check=u3shell::RelativeKineticEnergyOperator(op_labels.bra(), op_labels.ket());
+      double check=u3shell::K2rel(op_labels.bra(), op_labels.ket());
       if(fabs(rme)>zero_threshold)
         std::cout<<fmt::format("{:40} {} {}   {:10.4f}   {:10.4f}  {:5.2f}",op_labels.Str(), kappa0,L0,rme,check,rme/check)<<std::endl;
     }
@@ -225,7 +225,7 @@ void UpcoupleQmass(int Nmax, int Jmax)
         int kappa0,L0;
         std::tie(op_labels, kappa0,L0)=it->first;
         double rme=it->second;
-        double check=u3shell::RelativeMassQuadrupoleOperator(op_labels.bra(), op_labels.ket());        
+        double check=u3shell::Qrel(op_labels.bra(), op_labels.ket());        
         if(fabs(rme)>zero_threshold)
           std::cout<<fmt::format("{} {} {}   {}  {}  {}",op_labels.Str(), kappa0,L0,rme,check, check/rme)<<std::endl;
       }
@@ -269,7 +269,7 @@ void UpcoupleQisovector(int Nmax, int Jmax)
         int kappa0,L0;
         std::tie(op_labels, kappa0,L0)=it->first;
         double rme=it->second;
-        double check=u3shell::RelativeMassQuadrupoleOperator(op_labels.bra(), op_labels.ket());        
+        double check=u3shell::Qrel(op_labels.bra(), op_labels.ket());        
         if(fabs(rme)>zero_threshold)
           std::cout<<fmt::format("{} {} {}   {}  {}  {}",op_labels.Str(), kappa0,L0,rme,check, check/rme)<<std::endl;
       }

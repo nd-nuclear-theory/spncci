@@ -39,7 +39,7 @@ namespace u3shell
               u3shell::RelativeStateLabelsU3ST bra(Np,S,T);
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,2),0,0,bra,ket);
-              double rme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              double rme=u3shell::Brel(bra,ket);
               if (fabs(rme)>zero_threshold)
                 Brel_operator[relative_unit_tensor]+=2.*rme/A;
             }
@@ -61,7 +61,7 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
               u3shell::RelativeStateLabelsU3ST bra(Np,S,T);
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(2,0),0,0,bra,ket);
-              double rme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              double rme=u3shell::Arel(bra,ket);
               if (fabs(rme)>zero_threshold)
                 Arel_operator[relative_unit_tensor]+=2.*rme/A;
             }
@@ -78,7 +78,7 @@ void ArelRelativeUnitTensorExpansion(int Nmin, int Nmax,
               u3shell::RelativeStateLabelsU3ST bra(N,S,T);
               u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
               u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
-              double rme=u3shell::RelativeNumberOperator(bra,ket);
+              double rme=u3shell::Nrel(bra,ket);
               if (fabs(rme)>zero_threshold)
                 Nrel_operator[relative_unit_tensor]+=(2.*N)/A;
             }
@@ -114,7 +114,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           Np=N-2;
            bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
-          double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+          double Brme=u3shell::Brel(bra,ket);
           if (fabs(Brme)>zero_threshold)
             // Division by 2 for comparison with Tomas Trel (convert from moshinsky to mechanics convention)
             Trel_operator[relative_unit_tensor]+=-sqrt(1.5)*Brme/2.;
@@ -132,7 +132,7 @@ void TrelRelativeUnitTensorExpansion(int Nmin,int Nmax,u3shell::RelativeUnitTens
           Np=N+2;
           bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
           relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
-          double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+          double Arme=u3shell::Arel(bra,ket);
           if (fabs(Arme)>zero_threshold)
             // Division by 2 for comparison with Tomas Trel (convert from moshinsky to mechanics convention)
             Trel_operator[relative_unit_tensor]+=-sqrt(1.5)*Arme/2.;
