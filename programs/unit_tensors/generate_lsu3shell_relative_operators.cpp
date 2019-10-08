@@ -1,7 +1,7 @@
 /****************************************************************
   generate_lsu3shell_relative_tensors.cpp
 
-  For a given nucleus, Nmax and N_step, generates input files for LSU3Shell 
+  For a given valence shell, Nmax and N_step, generates input files for LSU3Shell 
   RecoupleSU3Interaction which recouples operators into format
   required by SU3RME. Input files include 
 
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   // process arguments
   if(argc<5+1)
     {
-      std::cout<<"Syntax: Nmax Nstep N1B J0 T0"<<std::endl;
+      std::cout<<"Syntax: Nmax Nstep N1v J0 T0"<<std::endl;
       std::exit(EXIT_FAILURE);
     }
   // int Z=std::stoi(argv[1]);

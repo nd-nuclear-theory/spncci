@@ -50,17 +50,27 @@ void GetLGIPairsForRecurrence(
   // the dimension of the bra and ket Sp3RSpaces.  
 
 void GetLGIPairsForRecurrence(
-      const lgi::MultiplicityTaggedLGIVector& lgi_families,
       const std::vector<int>& lgi_full_space_index_lookup,
       const spncci::SpNCCISpace& spncci_space,
-      const spncci::SigmaIrrepMap& sigma_irrep_map,
       int Nmax,
       std::vector<spncci::LGIPair>& lgi_pairs
     );
   // Alternative sorting of LGI pairs with ordering based on number of steps in recurrence (Nn,max)
-  // Checks that file exits before adding it to the set of lgi pairs.
+  // Checks that seed file exits before adding it to the set of lgi pairs.
   // Only considers pairs with ket<=bra
 
+void GetLGIPairsForRecurrence(
+      const std::vector<int>& lgi_full_space_index_lookup,
+      const spncci::SpNCCISpace& spncci_space,
+      int Nmax,
+      const std::vector<int>& trial_subspace,
+      const std::vector<int>& test_subspace,
+      std::vector<spncci::LGIPair>& lgi_pairs
+    );
+    //Generates lgi pairs for recurrence for variance truncation calculation.
+    // Includes:
+    //  Pairs of lgi belonging to trial space included when ket<=bra
+    //  Pairs of lgi where of one lgi belonging to trial subspace and on to the test subspace and ket<=bra 
 
   void 
   PopulateHypersectorsWithSeeds(

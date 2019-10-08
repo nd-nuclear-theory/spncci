@@ -309,35 +309,69 @@ void GenerateRecurrenceUnitTensors(
   }
 
 
-void GetLGIPairsForRecurrence(
-      const lgi::MultiplicityTaggedLGIVector& lgi_families,
+void AddLGIPairNnSorted(
       const std::vector<int>& lgi_full_space_index_lookup,
       const spncci::SpNCCISpace& spncci_space,
-      const spncci::SigmaIrrepMap& sigma_irrep_map,
+      int Nmax,
+      int irrep_family_index_bra,
+      int irrep_family_index_ket,
+      std::map<int, std::vector<spncci::LGIPair>, std::greater<int> >& sort_map
+    )
+  {
+    int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+    int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+
+    std::string lgi_unit_tensor_filename
+      =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
+
+    bool verbose=false;
+    bool files_found=FileExists(lgi_unit_tensor_filename,verbose);
+    if(files_found)
+      {
+        int t=(Nmax-spncci_space[irrep_family_index_bra].Nex())
+                +(Nmax-spncci_space[irrep_family_index_ket].Nex());
+        sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
+      }
+
+  }
+
+
+void GetLGIPairsForRecurrence(
+      // const lgi::MultiplicityTaggedLGIVector& lgi_families,
+      const std::vector<int>& lgi_full_space_index_lookup,
+      const spncci::SpNCCISpace& spncci_space,
+      // const spncci::SigmaIrrepMap& sigma_irrep_map,
       int Nmax,
       std::vector<spncci::LGIPair>& lgi_pairs
     )
   {
+    // number of irrep famlies in space
+    int num_irrep_families=lgi_full_space_index_lookup.size();
 
     // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
     std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
-    for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
+    for(int irrep_family_index_bra=0; irrep_family_index_bra<num_irrep_families; ++irrep_family_index_bra)
       for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
         {
-          int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
-          int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+          spncci::AddLGIPairNnSorted(
+              lgi_full_space_index_lookup,spncci_space,Nmax,
+              irrep_family_index_bra,irrep_family_index_bra,sort_map
+            );
 
-          std::string lgi_unit_tensor_filename
-            =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
+          // int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+          // int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+
+          // std::string lgi_unit_tensor_filename
+          //   =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
     
-          bool verbose=false;
-          bool files_found=FileExists(lgi_unit_tensor_filename,verbose);
-          if(files_found)
-            {
-              int t=(Nmax-spncci_space[irrep_family_index_bra].Nex())
-                      +(Nmax-spncci_space[irrep_family_index_ket].Nex());
-              sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
-            }
+          // bool verbose=false;
+          // bool files_found=FileExists(lgi_unit_tensor_filename,verbose);
+          // if(files_found)
+          //   {
+          //     int t=(Nmax-spncci_space[irrep_family_index_bra].Nex())
+          //             +(Nmax-spncci_space[irrep_family_index_ket].Nex());
+          //     sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
+          //   }
         }
     std::cout<<"sorted map"<<std::endl;
     for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
@@ -354,6 +388,57 @@ void GetLGIPairsForRecurrence(
 
 
 
+
+
+void GetLGIPairsForRecurrence(
+      const std::vector<int>& lgi_full_space_index_lookup,
+      const spncci::SpNCCISpace& spncci_space,
+      int Nmax,
+      const std::vector<int>& trial_subspace,
+      const std::vector<int>& test_subspace,
+      std::vector<spncci::LGIPair>& lgi_pairs
+    )
+  {
+    // number of irrep famlies in space
+    int num_irrep_families=lgi_full_space_index_lookup.size();
+
+    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
+    std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
+
+    //Create pairs for calculating RMEs all irrep family pairs in trial subspace
+    for(int irrep_family_index_ket : trial_subspace)
+      for(int irrep_family_index_bra : trial_subspace)
+        {
+          if(irrep_family_index_ket<=irrep_family_index_bra)
+            spncci::AddLGIPairNnSorted(
+                lgi_full_space_index_lookup,spncci_space,Nmax,
+                irrep_family_index_bra,irrep_family_index_bra,sort_map
+              );
+        }
+    //Create pairs for test subspace with trial subpace 
+    for(int irrep_family_index_ket : trial_subspace)
+      for(int irrep_family_index_bra : test_subspace)
+        {
+          if(irrep_family_index_ket<=irrep_family_index_bra)
+            spncci::AddLGIPairNnSorted(
+                lgi_full_space_index_lookup,spncci_space,Nmax,
+                irrep_family_index_bra,irrep_family_index_bra,sort_map
+              );
+          else
+            spncci::AddLGIPairNnSorted(
+                lgi_full_space_index_lookup,spncci_space,Nmax,
+                irrep_family_index_bra,irrep_family_index_bra,sort_map
+              );
+        }
+
+    std::cout<<"sort the lgi pairs"<<std::endl;
+    for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
+      {
+        std::cout<<it->first<<std::endl;
+        for(const auto& pair : it->second)
+          lgi_pairs.push_back(pair);  
+      }
+  }
 
 
 

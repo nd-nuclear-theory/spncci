@@ -228,7 +228,7 @@ void TestingVariances(
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Testing variance calculation
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Get variance for each irrep family with trial wavefunction defined by projection onto dominant irrep 
+    // Get variance for each irrep family with reference wavefunction defined by projection onto dominant irrep 
 
     // //Set up H space 
     // int dominant_irrep_family_index=3;
@@ -516,7 +516,7 @@ int main(int argc, char **argv)
   //////////////////////////////////////////////////////////////////
   // NEW BRANCHING
   //TODO: MAKE Vector with indices corresponding to run_parameters.J_values
-  // vector be comes space with subspaces SpaceSpBasis in sectorsJ etcs.
+  // vector becomes space with subspaces SpaceSpBasis in sectorsJ etcs.
   std::vector<spncci::SpaceSpBasis> spaces_spbasis(run_parameters.J_values.size());
   for(int j=0; j<run_parameters.J_values.size(); ++j)
     {
@@ -658,10 +658,19 @@ int main(int argc, char **argv)
 
   // Get list of lgi pairs with non-zero matrix elements between them.
   // Restricted to ket<=bra.
-  spncci::GetLGIPairsForRecurrence(
-    lgi_families,lgi_full_space_index_lookup,spncci_space,
-    sigma_irrep_map,run_parameters.Nmax,lgi_pairs
-  );
+  //
+  // If doing variance truncation run only generate lgi pairs needed for variance calculation
+  //TODO: Finish.  Need to populate reference and test subspace vectors
+  bool variance_truncation_run=false;
+  if(variance_truncation_run)
+    {
+      std::vector<int> reference_subspace;
+      std::vector<int> test_subspace;
+      spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space, run_parameters.Nmax,reference_subspace,test_subspace,lgi_pairs);
+    }
+  // Otherwise, get standard set of lgi pairs
+  else
+    spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs);
 
   // lgi_pairs.emplace_back(0,0);
 

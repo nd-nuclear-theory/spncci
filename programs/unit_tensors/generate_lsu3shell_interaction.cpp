@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   //Container for biquad coefficients of interaction.  Stored by kappa0, by rho0.
   u3shell::TwoBodyOperatorCoefficientsU3SPN interaction_biquad_coefficieints_pn;
 
-  std::cout<<"Starting interaction unit tensor contraction"<<std::endl;
+  // std::cout<<"Starting interaction unit tensor contraction"<<std::endl;
   std::clock_t start_contraction;
   start_contraction=std::clock();  
 
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
       u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels=relative_unit_tensor_labels[i];
       u3shell::TwoBodyUnitTensorCoefficientsU3SPN& biquad_coefficients_pn=biquad_coefficients_pn_list[i];
 
-      // Reorganize biquads to correct ordering for recoupler
+      // std::cout<<"Reorganize biquads to correct ordering for recoupler"<<std::endl;
       u3shell::TwoBodyUnitTensorCoefficientsRecouplerU3SPN biquad_coefficients_pn_recoupler;
       u3shell::RegroupBiquadsForRecoupler(biquad_coefficients_pn,biquad_coefficients_pn_recoupler);
 
@@ -183,9 +183,11 @@ int main(int argc, char **argv)
       int kappa0_max=u3::BranchingMultiplicitySO3(x0, L0);
 
       //For each kappa0 value, check if there is a non-zero interaction rme.  If so, contract with expanded unit tensor 
+      // std::cout<<"iterating over kappa"<<std::endl;
       for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
         {
           std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(unit_tensor_labels,kappa0,L0);
+          // std::cout<<"count "<<interaction_u3st.count(key)<<std::endl;
           if (interaction_u3st.count(key))
             {
               double rme=interaction_u3st[key];
@@ -224,7 +226,7 @@ int main(int argc, char **argv)
   //Strips path to file from filename so only the actual filename remains
   std::vector<std::string> split_filename; 
   boost::split(split_filename, filename, boost::is_any_of("/")); 
-  std::string output_filename=split_filename[split_filename.size()-1]+"_recoupler";
+  std::string output_filename=fmt::format("{}_Nrelmax{:02d}_recoupler",split_filename[split_filename.size()-1],Nmax);
 
   std::cout<<"writing to file "<<output_filename<<std::endl;
   u3shell::WriteTwoBodyInteractionRecoupler(output_filename,interaction_biquad_coefficieints_pn);

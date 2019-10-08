@@ -485,6 +485,9 @@ namespace u3shell {
       u3shell::TwoBodyOperatorCoefficientsU3SPN& biquad_coefficients_pn
     )
   {
+      
+      double lsu3shell_zero_threshold=9.0e-6;
+
       std::ofstream output_stream(filename);
       for (const auto& key_value : biquad_coefficients_pn)
         {
@@ -525,16 +528,46 @@ namespace u3shell {
             for(auto& coefficients_pn : coefficients_vector)
               {
                 if(
-                    (fabs(coefficients_pn.pppp)>zero_threshold)
-                    ||(fabs(coefficients_pn.nnnn)>zero_threshold)
-                    ||(fabs(coefficients_pn.pnnp)>zero_threshold)
+                    (fabs(coefficients_pn.pppp)>lsu3shell_zero_threshold)
+                    ||(fabs(coefficients_pn.nnnn)>lsu3shell_zero_threshold)
+                    ||(fabs(coefficients_pn.pnnp)>lsu3shell_zero_threshold)
                   )
                    
                    { non_zero=true; break;}
               }
           if(non_zero)
           {
-            // label line
+          // ////////////////////////////////////////////////////////////////////////////////////
+          // // Testing
+          // ////////////////////////////////////////////////////////////////////////////////////
+          //   // label line
+          //   std::cout
+          //     << fmt::format(
+          //         "{:d} {:d} {:d} {:d}   "
+          //         "{:d} {:d} {:d} {:d}   "
+          //         "{:d} {:d} {:d} {:d}   "
+          //         "{:d} {:d} {:d} {:d}   ",
+          //         eta1p,eta2p,eta2,eta1,
+          //         1,xp.lambda(),xp.mu(),TwiceValue(Sp),
+          //         1,x.mu(),x.lambda(),TwiceValue(S),
+          //         rho0_max,x0.lambda(),x0.mu(),TwiceValue(S0)
+          //       )
+          //     << std::endl;
+          //     for(auto& coefficients_vector : coefficient_array)
+          //       for(auto& coefficients_pn : coefficients_vector)
+          //         {
+          //           // coefficient line
+          //           std::cout
+          //             << fmt::format(
+          //                 "{:+e} {:+e} {:+e}",
+          //                 coefficients_pn.pppp,
+          //                 coefficients_pn.nnnn,
+          //                 coefficients_pn.pnnp
+          //               )
+          //             << std::endl;
+          //         }
+
+          //   ////////////////////////////////////////////////////////////////////////////////////
             output_stream
               << fmt::format(
                   "{:d} {:d} {:d} {:d}   "
