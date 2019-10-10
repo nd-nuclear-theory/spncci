@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
   // std::cout<<"write expansion to file "<<std::endl;
   std::string lgi_expansion_filename="seeds/lgi_expansions.dat";
-  lgi::WriteExpansion(lgi_expansion_filename,lgi_expansions);
+  lgi::WriteLGIExpansions(lgi_expansion_filename,lgi_expansions);
 
 
 

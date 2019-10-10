@@ -105,7 +105,7 @@ void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_
 
 
 
-void WriteExpansion(
+void WriteLGIExpansions(
     const std::string& filename, 
     const lsu3shell::OperatorBlocks& lgi_expansions
   );
@@ -113,6 +113,29 @@ void WriteExpansion(
   // Inputs
   //  filename: output filename
   //  lgi_expansion : operator blocks containing lgi expansion 
+
+void WriteLGIExpansions(
+  const std::string& filename, 
+  const lsu3shell::OperatorBlock& lgi_expansion
+  );
+  // Writes expansion of single LGI subspace in terms of lsu3shell basis at su3 reduced level
+  //  File is binary. 
+  // Inputs:
+  //  filename : output filename
+  //  lgi_expansion : matrix containing LGI expansion.  
+  //      Columns represent different LGI, rows are U(3)S basis states 
+
+void WriteLGIExpansionsText(
+  const std::string& filename, 
+  const lsu3shell::OperatorBlock& lgi_expansion
+  );
+
+  // Writes expansion of single LGI subspace in terms of lsu3shell basis at su3 reduced level
+  //  File is text.
+  // Inputs:
+  //  filename : output filename
+  //  lgi_expansion : matrix containing LGI expansion.  
+  //      Columns represent different LGI, rows are U(3)S basis states 
 
 
 void ReadLGIExpansion(

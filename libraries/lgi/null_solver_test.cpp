@@ -64,6 +64,22 @@ int main(int argc, char **argv)
 
   {
     std::cout << std::endl
+              << "Test 3.5..." << std::endl;
+  
+    // generate test matrix
+    // Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2,2);
+    Eigen::MatrixXd A(2,2);
+    A << 1e-13, 1e-14, 1e-15,1e-16;
+
+    // solve!
+    Eigen::MatrixXd null_vectors;
+    double threshold = 1e-12;
+    lgi::FindNullSpaceSVD(A,null_vectors,threshold,true);
+  }
+
+
+  {
+    std::cout << std::endl
               << "Test 4..." << std::endl;
   
     // generate test matrix
