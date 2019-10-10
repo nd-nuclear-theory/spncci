@@ -100,20 +100,47 @@
 #
 # The origin of the NDEBUG flag is uncertain, but gcc 
 
-CXXFLAGS += -DCPP0X_STD_TR1
+## From Tomas's config file
+CXX := CC
+MPICXX := CC
+#CXXFLAGS += -std=c++14
 CXXFLAGS += -DNDEBUG
+CXXFLAGS += -fopenmp
+CXXFLAGS += -ffast-math -funroll-loops
+CXXFLAGS += -DHAVE_INLINE
+#CXXFLAGS += -O3
+
+CXXFLAGS += $(GSL_INC)
+
+
+install_prefix := $(HOME)/$(NERSC_HOST)/local/su3shell
+
+# CXXFLAGS += -DCPP0X_STD_TR1
+# CXXFLAGS += -DNDEBUG
 
 # Eigen
 #
 # Provide special "include" path, since lsu3shell #include directives use a
 # different path convention for the Eigen header files.
 
-search_dirs_include +=  $(EIGEN3_DIR)/include/eigen3
 
+search_dirs_include +=  $(EIGEN3_DIR)/include/eigen3
+search_dirs_lib += $(BOOST_LIB)
 # Boost library
 
 search_prefix += $(BOOST_ROOT)
+search_prefix += $(HDF5_PAR_DIR) $(GSL_DIR) $(CRAY_LIBSCI_PREFIX_DIR)
+
+LDLIBS += -dynamic
 LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono 
+
+# GNU Scientific Library
+LDLIBS += -lgsl 
+LDLIBS += -lgslcblas
+LDLIBS += -lsci_gnu 
+CPPFLAGS += -DHAVE_INLINE
+
+
 
 # GNU OpenMP library
 #
@@ -127,15 +154,16 @@ LDFLAGS += -lgomp -static
 #   SU3QUAD: quad precision under ifort
 #   SU3QUAD_GNU: quad precision under gnu
 
+FC := ftn -frecursive
+FFLAGS += -O3
+FFLAGS += -fopenmp
+FFLAGS += -ffast-math -funroll-loops
+
 FFLAGS += -DSU3DBL
 ##FFLAGS += -DSU3QUAD
 ##FFLAGS += -DSU3QUAD_GNU
 
-# GNU Scientific Library
-LDLIBS += -lgsl 
-LDLIBS += -lgslcblas 
-CPPFLAGS += -DHAVE_INLINE
-
+fortran_libs := -lgfortran
 ################################################################
 # special targets
 ################################################################
