@@ -35,8 +35,8 @@
         
       The file contains 
         binary_float_precision<int> : either 4 or 8.  Gives binary float precision
-        nrow<int> : Corresponds to dim[U(3) subspace]
-        ncol<int> : Corresponds to num LGI dim[Sp(3,R) subspace]
+        nrow<uint32_t> : Corresponds to dim[U(3) subspace]
+        ncol<uint32_t> : Corresponds to num LGI dim[Sp(3,R) subspace]
         Followed by vectors containing U(3) expansion of each LGI.
   
 
@@ -70,6 +70,12 @@ int main(int argc, char **argv)
     std::cout<<"    single: expansions for all LGI written to a single file"<<std::endl;
     std::cout<<"    individual: expansions for each LGI subspace written separate file"<<std::endl;
     std::cout<<"    individual-text: expansions for each LGI subspace written separate file in text mode"<<std::endl;
+    std::cout<<std::endl
+      <<"Requires directory named lsu3shell_rme in cwd which containing files:"<<std::endl
+      <<"   Brel.rme"<<std::endl
+      <<"   Nrel.rme"<<std::endl
+      <<"   lsu3shell_basis.dat"<<std::endl;
+
     std::exit(EXIT_FAILURE);
   }
 

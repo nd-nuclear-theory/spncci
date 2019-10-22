@@ -41,6 +41,7 @@ namespace lgi
   extern int binary_format_code;
   extern int binary_float_precision;
   typedef short unsigned int RMEIndexType;
+  typedef uint32_t LGIIndexType;
 
 
   void 

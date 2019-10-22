@@ -256,11 +256,11 @@ void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBl
         int num_rows=block.rows();
         int num_cols=block.cols();
 
-        assert(num_rows==static_cast<lgi::RMEIndexType>(num_rows));
-        mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_rows);
+        assert(num_rows==static_cast<lgi::LGIIndexType>(num_rows));
+        mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_rows);
 
-        assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
-        mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_cols);
+        assert(num_cols==static_cast<lgi::LGIIndexType>(num_cols));
+        mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_cols);
         
         for(int j=0; j<num_cols; ++j)
           for(int i=0; i<num_rows; ++i)
@@ -300,11 +300,11 @@ void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBl
     int num_rows=lgi_expansion.rows();
     int num_cols=lgi_expansion.cols();
 
-    assert(num_rows==static_cast<lgi::RMEIndexType>(num_rows));
-    mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_rows);
+    assert(num_rows==static_cast<lgi::LGIIndexType>(num_rows));
+    mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_rows);
 
-    assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
-    mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_cols);
+    assert(num_cols==static_cast<lgi::LGIIndexType>(num_cols));
+    mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_cols);
     
     for(int j=0; j<num_cols; ++j)
       for(int i=0; i<num_rows; ++i)
@@ -373,10 +373,10 @@ void ReadLGIExpansion(int num_lgi_subspaces,const std::string& filename, basis::
     for(int i=0; i<num_lgi_subspaces; ++i)
       {
         basis::OperatorBlock<double>& block=lgi_expansions[i];
-        lgi::RMEIndexType rows, cols;
+        lgi::LGIIndexType rows, cols;
         // Read in number of rows and cols
-        mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,rows);
-        mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,cols);
+        mcutils::ReadBinary<lgi::LGIIndexType>(in_stream,rows);
+        mcutils::ReadBinary<lgi::LGIIndexType>(in_stream,cols);
 
         /////////////////////////////////////////////////////////////////////////////////
         // Read in RMEs and cast to double matrix 
