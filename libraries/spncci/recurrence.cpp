@@ -345,45 +345,28 @@ void GetLGIPairsForRecurrence(
       std::vector<spncci::LGIPair>& lgi_pairs
     )
   {
-    // number of irrep famlies in space
-    int num_irrep_families=lgi_full_space_index_lookup.size();
 
     // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
     std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
+  
+    int num_irrep_families=lgi_full_space_index_lookup.size();
     for(int irrep_family_index_bra=0; irrep_family_index_bra<num_irrep_families; ++irrep_family_index_bra)
       for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
         {
           spncci::AddLGIPairNnSorted(
-              lgi_full_space_index_lookup,spncci_space,Nmax,
-              irrep_family_index_bra,irrep_family_index_bra,sort_map
-            );
-
-          // int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
-          // int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
-
-          // std::string lgi_unit_tensor_filename
-          //   =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
-    
-          // bool verbose=false;
-          // bool files_found=FileExists(lgi_unit_tensor_filename,verbose);
-          // if(files_found)
-          //   {
-          //     int t=(Nmax-spncci_space[irrep_family_index_bra].Nex())
-          //             +(Nmax-spncci_space[irrep_family_index_ket].Nex());
-          //     sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
-          //   }
+            lgi_full_space_index_lookup,spncci_space,Nmax,
+            irrep_family_index_bra,irrep_family_index_ket,sort_map
+          );
         }
-    std::cout<<"sorted map"<<std::endl;
+
+    // std::cout<<"sorted map"<<std::endl;
     for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
       {
-        std::cout<<it->first<<std::endl;
+        // std::cout<<it->first<<std::endl;
+
         for(const auto& pair : it->second)
           lgi_pairs.push_back(pair);  
       }
-      
-    // for(auto pair: lgi_pairs)
-    //   std::cout<<pair.first<<"  "<<pair.second<<std::endl;
-
   }
 
 
