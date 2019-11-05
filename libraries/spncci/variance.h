@@ -101,6 +101,22 @@ void SortIrrepFamiliesByVariance(
   // Orders irrep families from largest to smallest variance,
   //  input: variances, irrep_families_V, J_index, eigenvalue_index
   //  output: irrep_families_by_variance
+void SortIrrepFamiliesByNex(
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  std::vector<std::vector<int>>& irrep_families_by_Nex,
+  int Nmax
+  );
+
+void TestingVariances(
+    const spncci::RunParameters& run_parameters, 
+    int hw_index, int J_index, int eigenvalue_index,
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
+    const std::vector<int>& irrep_families,
+    const std::set<int>& reference_H,
+    const lgi::MultiplicityTaggedLGIVector& lgi_families,
+    double variance_threshold
+  );
 
 
 }

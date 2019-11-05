@@ -8,8 +8,8 @@ $(eval $(begin-module))
 # module_units_cpp-h := 
 # module_units_f := 
 module_programs_cpp := spncci rme2txt make_6j_table_q3
-# module_programs_cpp := spncci_MPI spncci rme2txt make_6j_table_q3
-## module_programs_cpp += get_spncci_dimensions
+module_programs_cpp += spncci_variance
+# module_programs_cpp += get_spncci_dimensions
 # module_programs_f :=
 # module_generated :=
 
