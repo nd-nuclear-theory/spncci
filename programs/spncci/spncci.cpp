@@ -82,6 +82,7 @@
     + Cleaned up codes and factored spncci.cpp into simpler functions
   5/2/19 (aem) : Moved ComputeManyBodyRMEs into hyperblocks_u3s
   6/21/19 (aem) : Extracted variance calculation functions into variance.{h,cpp}
+  11/5/19 (aem) : Stripped out truncation tests and bundled initialization
 
 Notes:
 branching2 currently used for branching.  branching has old definitions still temp used for 
@@ -116,8 +117,8 @@ basis statistics
 #include "spncci/transform_basis.h"
 #include "spncci/vcs_cache.h"
 #include "spncci/hyperblocks_u3s.h"
-
 #include "spncci/variance.h"
+#include "spncci/parameters.h"
 ////////////////////////////////////////////////////////////////
 // WIP code
 //
@@ -158,16 +159,14 @@ int main(int argc, char **argv)
 
   //Read in lgi families and generate spaces at different branching levels
   //Nlimit allows for different irreps to be truncated to different Nmax
+  //For now just set to Nmax for all irreps 
   int Nlimit=run_parameters.Nmax;
   spncci::SetUpSpNCCISpaces(
       run_parameters,lgi_families,spncci_space,sigma_irrep_map,
       baby_spncci_space,spu3s_space,spls_space,spj_space,
       spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
-      // results_stream,
       Nlimit
-      // ,restrict_sp3r_to_u3_branching
     );
-
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Results file: Writing parameters and basis statistics
@@ -206,8 +205,6 @@ int main(int argc, char **argv)
       restrict_positive_N0
     );
 
-  // for(auto tensor :unit_tensor_labels)
-  //   std::cout<<tensor.Str()<<std::endl;
 
   // generate unit tensor subspaces
   u3shell::RelativeUnitTensorSpaceU3S
@@ -236,30 +233,11 @@ int main(int argc, char **argv)
   for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
       observable_spaces[ob_num]=u3shell::ObservableSpaceU3S(observable_symmetries_u3s[ob_num]);
 
-
-
-  // ////////////////////////////////////////////////////////////////
-  // // set up indexing for branching
-  // ////////////////////////////////////////////////////////////////
-  // std::cout << "Set up basis indexing for branching..." << std::endl;
-  // //////////////////////////////////////////////////////////////////
-  // // NEW BRANCHING
-  // //TODO: MAKE Vector with indices corresponding to run_parameters.J_values
-  // // vector becomes space with subspaces SpaceSpBasis in sectorsJ etcs.
-  // std::vector<spncci::SpaceSpBasis> spaces_spbasis(run_parameters.J_values.size());
-  // for(int j=0; j<run_parameters.J_values.size(); ++j)
-  //   {
-  //     const HalfInt& J=run_parameters.J_values[j];
-  //     spaces_spbasis[j]=spncci::SpaceSpBasis(baby_spncci_space,J);
-  //   }
-
-
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
   ////////////////////////////////////////////////////////////////
   if (run_parameters.count_only)
     {
-
       // termination
       results_stream.close();
 
@@ -267,28 +245,6 @@ int main(int argc, char **argv)
       std::exit(EXIT_SUCCESS);
     }
 
-// <<<<<<< Updated upstream
-//   ////////////////////////////////////////////////////////////////
-//   // precompute K matrices
-//   ////////////////////////////////////////////////////////////////
-//   std::cout << "Precompute K matrices..." << std::endl;
-
-//   // timing start
-//   mcutils::SteadyTimer timer_k_matrices;
-//   timer_k_matrices.Start();
-
-//   // traverse distinct sigma values in SpNCCI space, generating K
-//   // matrices for each
-//   // spncci::KMatrixCache k_matrix_cache;
-//   spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
-//   spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,kinv_matrix_cache,restrict_sp3r_to_u3_branching);
-
-//   // timing stop
-//   timer_k_matrices.Stop();
-//   std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
-
-// =======
-// >>>>>>> Stashed changes
   ///////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"setting up lgi unit tensor blocks"<<std::endl;
   // Get list of unit tensor labels between lgi's
@@ -378,15 +334,24 @@ int main(int argc, char **argv)
       for(int i=0; i<lgi_pairs.size(); ++i)
         {
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
+          // mcutils::SteadyTimer timer_pair;
+          // timer_pair.Start();
           spncci::ComputeManyBodyRMEs(
               run_parameters,lgi_families,lgi_full_space_index_lookup,
               spncci_space,baby_spncci_space,unit_tensor_space, observable_spaces,
               observables_relative_rmes,k_matrix_cache,kinv_matrix_cache,
               lgi_transformations,u_coef_cache,phi_coef_cache,lgi_pair
             );
+          // timer_pair.Stop();
+          // int bra,ket;
+          // std::tie(bra,ket)=lgi_pair;
+          // std::string out=fmt::format("Recurrence for pair ({:3d},{:3d}) took {}",bra,ket,timer_pair.ElapsedTime());
+          // std::cout<<out<<std::endl;
+
         }// end lgi_pair
 
       //After recurrence completed, dealocate coefficient caches
+      std::cout<<"ucoef cache size: "<<u_coef_cache.size()<<std::endl;
       u_coef_cache.clear();
       phi_coef_cache.clear();
 
@@ -476,19 +441,8 @@ int main(int argc, char **argv)
             //Testing
             //Eigen matrix cast to float is not a good idea
             int binary_float_precision=8;
-            std::string test_filename="test.dat";
-            spncci::WriteEigenvectors(eigenvectors_J,J,test_filename,binary_float_precision);
-
-            spncci::OperatorBlock eigenvectors_test;
-            spncci::ReadEigenvectors(test_filename,eigenvectors_test);
-
-            if(mcutils::IsZero(eigenvectors_J-eigenvectors_test))
-              std::cout<<"success for J="<<J<<std::endl;
-            else
-              {
-                std::cout<<"eigenvectors_J"<<std::endl<<eigenvectors_J<<std::endl;
-                std::cout<<"eigenvectors_test"<<std::endl<<eigenvectors_test<<std::endl;
-              }
+            std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
+            spncci::WriteEigenvectors(eigenvectors_J,J,eigv_filename,binary_float_precision);
 
             //////////////////////////////////////////////////////////////////
           }
@@ -496,55 +450,10 @@ int main(int argc, char **argv)
         // results output: eigenvalues
         spncci::WriteEigenvalues(results_stream,run_parameters.J_values,eigenvalues,run_parameters.gex);
 
-        //TODO: Switch to writing out eigenvectors and move decompositions to post-processor
-        // spncci::WriteEigenvectors()
-
-        //////////////////////////////////////////////////////////////
         // do decompositions
-        ////////////////////////////////////////////////////////////////
-
-        std::cout << "Calculate eigenstate decompositions..." << std::endl;
-        mcutils::SteadyTimer timer_decompositions;
-        timer_decompositions.Start();
-
-        // decomposition matrices:
-        //   - vector over J
-        //   - matrix over (basis_subspace_index,eigenstate_index)
-        //
-        // That is, decompositions are stored as column vectors, within a
-        // matrix, much like the eigenstates themselves.
-        std::vector<spncci::Matrix> Nex_decompositions;
-        std::vector<spncci::Matrix> baby_spncci_decompositions;
-        Nex_decompositions.resize(run_parameters.J_values.size());
-        baby_spncci_decompositions.resize(run_parameters.J_values.size());
-
-        // calculate decompositions
-        spncci::CalculateNexDecompositions(
-          spaces_spbasis,eigenvectors,Nex_decompositions,
-          run_parameters.Nsigma0,run_parameters.Nmax
-        );
-
-        spncci::CalculateBabySpNCCIDecompositions(
-          spaces_spbasis,eigenvectors,baby_spncci_decompositions,
-          baby_spncci_space.size()
-        );
-
-        timer_decompositions.Stop();
-        std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
-
-        // // results output: decompositions
-        spncci::WriteDecompositions(
-          results_stream,"Nex",".6f",spaces_spbasis,
-          Nex_decompositions,run_parameters.gex
-        );
-
-        spncci::WriteDecompositions(
-          results_stream,"BabySpNCCI",".4e",spaces_spbasis,
-          baby_spncci_decompositions,run_parameters.gex
-        );
+        spncci::GenerateDecompositions(baby_spncci_space,spaces_spbasis,run_parameters, hw,results_stream);
 
       }// End Hamiltonian section
-
       
       {
       //////////////////////////////////////////////////////////////

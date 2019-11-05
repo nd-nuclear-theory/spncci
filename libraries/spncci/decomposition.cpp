@@ -8,6 +8,8 @@
 
 #include "spncci/decomposition.h"
 #include "mcutils/eigen.h"
+#include "mcutils/profiling.h"
+#include "spncci/results_output.h"
 
 namespace spncci
 {
@@ -56,45 +58,6 @@ namespace spncci
   //   accumulate to ->  P(v1;m)   P(v2;m)  P(v3;m)
   //                     ...
 
-  // void CalculateNexDecompositions(
-  //     const spncci::SpaceSpJ& spj_space,
-  //     const std::vector<spncci::Matrix>& eigenvectors,
-  //     std::vector<spncci::Matrix>& Nex_decompositions,
-  //     HalfInt Nsigma0,
-  //     int Nmax
-  //   )
-  // {
-  //   for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
-  //     // for each J subspace
-  //     {
-  //       // set up aliases for current J subspace
-  //       const SubspaceSpJ& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
-  //       const spncci::Matrix& eigenvectors_J = eigenvectors[spj_subspace_index];
-  //       spncci::Matrix& Nex_decompositions_J = Nex_decompositions[spj_subspace_index];
-
-  //       // initialize decomposition matrix
-  //       const int decomposition_size = Nmax+1;
-  //       const int num_eigenvectors = eigenvectors_J.cols();
-  //       Nex_decompositions_J = spncci::Matrix::Zero(decomposition_size,num_eigenvectors);
-
-  //       // accumulate probability
-  //       for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
-  //         // for each (composite) state
-  //         {
-  //           // retrieve basis state information
-  //           StateSpJ spj_state(spj_subspace,spj_state_index);
-  //           int offset = spj_state.offset();
-  //           int degeneracy = spj_state.degeneracy();
-  //           int Nex = int(spj_state.N()-Nsigma0);
-  //           assert((0<=Nex)&&(Nex<=Nmax));
-
-  //           // accumulate probability from this (composite) state
-  //           Nex_decompositions_J.row(Nex) += eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
-  //         }
-            
-          
-  //     }
-  // }
 
 
 void CalculateNexDecompositions(
@@ -230,5 +193,86 @@ void CalculateBabySpNCCIDecompositions(
     }
 
 }
+
+
+  void GenerateDecompositions(
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const spncci::RunParameters& run_parameters,
+    const std::vector<spncci::Matrix>& eigenvectors,
+    double hw,
+    std::ofstream& results_stream
+    )
+  {
+  
+    //////////////////////////////////////////////////////////////
+    // do decompositions
+    ////////////////////////////////////////////////////////////////
+    std::cout << "Calculate eigenstate decompositions..." << std::endl;
+    mcutils::SteadyTimer timer_decompositions;
+    timer_decompositions.Start();
+
+    // decomposition matrices:
+    //   - vector over J
+    //   - matrix over (basis_subspace_index,eigenstate_index)
+    //
+    // That is, decompositions are stored as column vectors, within a
+    // matrix, much like the eigenstates themselves.
+    std::vector<spncci::Matrix> Nex_decompositions;
+    std::vector<spncci::Matrix> baby_spncci_decompositions;
+    Nex_decompositions.resize(run_parameters.J_values.size());
+    baby_spncci_decompositions.resize(run_parameters.J_values.size());
+
+    // calculate decompositions
+    spncci::CalculateNexDecompositions(
+      spaces_spbasis,eigenvectors,Nex_decompositions,
+      run_parameters.Nsigma0,run_parameters.Nmax
+    );
+
+    spncci::CalculateBabySpNCCIDecompositions(
+      spaces_spbasis,eigenvectors,baby_spncci_decompositions,
+      baby_spncci_space.size()
+    );
+
+    // // results output: decompositions
+    spncci::WriteDecompositions(
+      results_stream,"Nex",".6f",spaces_spbasis,
+      Nex_decompositions,run_parameters.gex
+    );
+
+    spncci::WriteDecompositions(
+      results_stream,"BabySpNCCI",".4e",spaces_spbasis,
+      baby_spncci_decompositions,run_parameters.gex
+    );
+
+    timer_decompositions.Stop();
+    std::cout << fmt::format("  (Decompositions: {})",timer_decompositions.ElapsedTime()) << std::endl;
+ 
+  }
+
+
+  void GenerateDecompositions(
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const spncci::RunParameters& run_parameters,
+    // const std::vector<spncci::Matrix>& eigenvectors,
+    double hw,
+    std::ofstream& results_stream
+    )
+  {
+
+    //Read in eigenvectors from files fro each J and store in matrix vector
+    std::vector<spncci::Matrix> eigenvectors(run_parameters.J_values.size());
+    for(int j=0; j<run_parameters.J_values.size(); ++j)
+      {
+        HalfInt J=run_parameters.J_values[j];
+        std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
+        spncci::Matrix& eigenvectors_J=eigenvectors[j];
+        spncci::ReadEigenvectors(eigv_filename,eigenvectors_J);
+      }
+    spncci::GenerateDecompositions(baby_spncci_space,spaces_spbasis,run_parameters,eigenvectors,hw,results_stream);
+
+  }
+
 
 }  // namespace
