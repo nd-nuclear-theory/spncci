@@ -337,39 +337,58 @@ void WriteEigenvalues(
     }
 }
 
-  // void WriteDecompositions(
-  //     std::ostream& out_stream,
-  //     const std::string& decomposition_name,
-  //     const std::string& format_string,
-  //     const spncci::SpaceSpJ& spj_space,
-  //     const std::vector<spncci::Matrix>& decompositions,
-  //     int gex
-  //   )
-  // {
-  //   StartNewSection(out_stream,fmt::format("Decompositions: {}",decomposition_name));
 
-  //   for (int subspace_index=0; subspace_index<spj_space.size(); ++subspace_index)
-  //     {
-  //       // retrieve information for subspace
-  //       HalfInt J = spj_space.GetSubspace(subspace_index).J();
-  //       const spncci::Matrix& decompositions_J = decompositions[subspace_index];
+void WriteEigenvectors(
+  spncci::Matrix& eigenvectors,
+  const HalfInt& J,
+  std::ofstream& out_file,
+  const int& binary_float_precision
+  )
+  {
+    int rows=eigenvectors.rows();
+    int cols=eigenvectors.cols();
+    mcutils::WriteBinary<int>(out_file,TwiceValue(J));
+    mcutils::WriteBinary<int>(out_file,binary_float_precision);
+    mcutils::WriteBinary<int>(out_file,rows);
+    mcutils::WriteBinary<int>(out_file,cols);
 
-  //       // short circuit empty subspace
-  //       if (decompositions_J.cols()==0)
-  //         continue;
+    int size=rows*cols;
 
-  //       // write header comment for subspace
-  //       out_stream
-  //         << fmt::format(
-  //             "# decompositions for subspace J={:.1f}, gex={:1d} ({:d}x{:d})",
-  //             float(J),gex,decompositions_J.rows(),decompositions_J.cols()
-  //           )
-  //         << std::endl;
+    // write matrix.  Order is column major (Eigen default)
+    if(binary_float_precision==4)
+      {
+        Eigen::MatrixXf buffer_matrix=eigenvectors.cast<float>();
+        out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*binary_float_precision);
+      }  
+      
+    else if (binary_float_precision==8)
+      {
+        Eigen::MatrixXd buffer_matrix=eigenvectors;
+        out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*binary_float_precision);
 
-  //       // write decompositions
-  //       out_stream << mcutils::FormatMatrix(decompositions_J,format_string) << std::endl;
-  //     }
-  // }
+      }
+  }
+
+
+void WriteEigenvectors(
+  spncci::Matrix& eigenvectors,
+  const HalfInt& J,
+  const std::string& filename,
+  const int& binary_float_precision
+  )
+  {
+    std::ios_base::openmode mode_argument = std::ios_base::out | std::ios_base::binary;
+    std::ofstream out_file;
+    out_file.open(filename,mode_argument);
+
+    if (!out_file)
+      {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+      }
+    spncci::WriteEigenvectors(eigenvectors,J,out_file,binary_float_precision);
+  }
+
 
 void WriteDecompositions(
     std::ostream& out_stream,
@@ -406,51 +425,48 @@ void WriteDecompositions(
     }
 }
 
-  // void WriteObservables(
-  //     std::ostream& out_stream,
-  //     const std::vector<spncci::SectorsSpJ>& observable_sectors,
-  //     const std::vector<spncci::OperatorBlocks>& observable_results_matrices,
-  //     int gex
-  //   )
-  // {
-  //   StartNewSection(out_stream,"Observables");
-  //   out_stream << "# observable_index sector_index J_bra gex_bra J_ket gex_ket rows cols" << std::endl;
-  //   for (int observable_index=0; observable_index<observable_results_matrices.size(); ++observable_index)
-  //     {
-        
-  //       // retrieve sectors
-  //       const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
+void ReadEigenvectors(  
+    const std::string& filename,
+    spncci::OperatorBlock& eigenvectors
+  )
+  {
+    std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
+    std::ifstream in_stream;
+    in_stream.open(filename,mode_argument);
 
-  //       // tabulate observable on each sector
-  //       for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
-  //         {
-            
-  //           // retrieve sector information
-  //           const spncci::SectorsSpJ::SectorType& sector = sectors.GetSector(sector_index);
-  //           const HalfInt bra_J = sector.bra_subspace().J();
-  //           const HalfInt ket_J = sector.ket_subspace().J();
+    if (!in_stream)
+      {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+      }
+    
 
-  //           // retrieve block
-  //           const spncci::OperatorBlock& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
+    int twice_J,binary_float_precision, rows, cols;
+    mcutils::ReadBinary<int>(in_stream,twice_J);
+    mcutils::ReadBinary<int>(in_stream,binary_float_precision);    
+    mcutils::ReadBinary<int>(in_stream,rows);
+    mcutils::ReadBinary<int>(in_stream,cols);
+    
+    HalfInt J=HalfInt(twice_J,2);
 
-  //           // short circuit empty block
-  //           if ((observable_results_matrix.rows()==0)||(observable_results_matrix.cols()==0))
-  //             continue;
+    
+    // Read matrix.  Order is column major (Eigen default)
+    if(lgi::binary_float_precision==4)
+      {
+        float buffer[rows*cols];
+        in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+        eigenvectors
+            =Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+      }
+    else if (lgi::binary_float_precision==8)
+      {
+        double buffer[rows*cols];
+        in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+        eigenvectors
+          =Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+      }
+  }
 
-  //           out_stream
-  //             << fmt::format(
-  //               "{:d} {:d} {:.1f} {:d} {:.1f} {:d} {:d} {:d} ",
-  //               observable_index,sector_index,double(bra_J),gex,double(ket_J),gex,
-  //               observable_results_matrix.rows(),observable_results_matrix.cols()
-  //               )
-  //             << std::endl;
-  //           out_stream
-  //             << mcutils::FormatMatrix(observable_results_matrix,"13.6e")
-  //             << std::endl;
-
-  //         }
-  //     }
-  // }
 
 
 void WriteObservables(

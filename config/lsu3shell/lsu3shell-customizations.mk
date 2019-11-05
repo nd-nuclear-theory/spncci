@@ -119,7 +119,7 @@ LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
 #
 # needed for MFDn eigensolver with gcc 6
 
-LDFLAGS += -lgomp -static
+LDFLAGS += -lgomp #-static
 
 # SU3LIB numerical precision
 #

@@ -120,7 +120,7 @@ void
            // std::cout<<"Iterate over baby spncci hypersectors. "<<baby_spncci_hypersectors.size()<<std::endl; 
             for(int baby_spncci_hypersector_index=0; baby_spncci_hypersector_index<baby_spncci_hypersectors.size(); ++baby_spncci_hypersector_index)
               {
-                // std::cout<<"get hypersector "<<baby_spncci_hypersector_index<<std::endl;
+                // std::cout<<"get conj hypersector "<<baby_spncci_hypersector_index<<std::endl;
                 const auto& baby_spncci_hypersector=baby_spncci_hypersectors.GetHypersector(baby_spncci_hypersector_index);
 
                 // std::cout<<"Check if hypersector contains desired unit tensor subspace"<<std::endl;

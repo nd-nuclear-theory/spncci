@@ -116,40 +116,118 @@ namespace spncci
 
 int main(int argc, char **argv)
 {
+  // std::cout<<"entering spncci"<<std::endl;
+  // ////////////////////////////////////////////////////////////////
+  // // initialization
+  // ////////////////////////////////////////////////////////////////
+  // bool check_unit_tensors=false;
+
+  // // SU(3) caching
+  // u3::U3CoefInit();
+  // u3::g_u_cache_enabled = true;
+
+  // // parameters for certain calculations
+  // spncci::g_zero_tolerance = 1e-6;
+  // spncci::g_suppress_zero_sectors = true;
+
+  // // Default binary mode, unless environment variable SPNCCI_RME_MODE
+  // // set to "text".
+  // //
+  // // This is meant as an ad hoc interface until text mode i/o is abolished.
+  // lsu3shell::g_rme_binary_format = true;
+  // char* spncci_rme_mode_cstr = std::getenv("SPNCCI_RME_MODE");
+  // if (spncci_rme_mode_cstr!=NULL)
+  //   {
+  //     const std::string spncci_rme_mode = std::getenv("SPNCCI_RME_MODE");
+  //     if (spncci_rme_mode=="text")
+  //       lsu3shell::g_rme_binary_format = false;
+  //   }
+
+  // // run parameters
+  // std::cout << "Reading control file..." << std::endl;
+  // spncci::RunParameters run_parameters;
+
+  // // Eigen OpenMP multithreading mode
+  // Eigen::initParallel();
+  // // Eigen::setNbThreads(0);
+
+  // // open output files
+  // std::ofstream results_stream("spncci.res");
+
+  // // results output: code information
+  // spncci::StartNewSection(results_stream,"CODE");
+  // spncci::WriteCodeInformation(results_stream,run_parameters);
+
+  // // results output: run parameters
+  // spncci::StartNewSection(results_stream,"PARAMETERS");
+  // spncci::WriteRunParameters(results_stream,run_parameters);
+
+  // std::cout<<"Nmax="<<run_parameters.Nmax<<std::endl;
+
+  // // /////////////////////////////////////////////////////////////////////////////////////
+  // // // set up SpNCCI space
+  // // ////////////////////////////////////////////////////////////////
+  // bool restrict_sp3r_to_u3_branching=false;
+  //   if(run_parameters.A<6)
+  //     restrict_sp3r_to_u3_branching=true;
+
+  // lgi::MultiplicityTaggedLGIVector lgi_families;
+  // spncci::SpNCCISpace spncci_space;
+  // spncci::SigmaIrrepMap sigma_irrep_map;
+  // spncci::BabySpNCCISpace baby_spncci_space;
+  // spncci::SpaceSpU3S spu3s_space;
+  // spncci::SpaceSpLS spls_space;
+  // spncci::SpaceSpJ spj_space;
+
+  // //Read in lgi families and generate spaces at different branching levels
+  // //Nlimit allows for different irreps to be truncated to different Nmax
+  // int Nlimit=run_parameters.Nmax;
+  // spncci::SetUpSpNCCISpaces(
+  //     run_parameters,lgi_families,spncci_space,sigma_irrep_map,
+  //     baby_spncci_space,spu3s_space,spls_space,spj_space,
+  //     results_stream,Nlimit,restrict_sp3r_to_u3_branching
+  //   );
+
   std::cout<<"entering spncci"<<std::endl;
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
-  bool check_unit_tensors=false;
-
-  // SU(3) caching
-  u3::U3CoefInit();
-  u3::g_u_cache_enabled = true;
-
-  // parameters for certain calculations
-  spncci::g_zero_tolerance = 1e-6;
-  spncci::g_suppress_zero_sectors = true;
-
-  // Default binary mode, unless environment variable SPNCCI_RME_MODE
-  // set to "text".
-  //
-  // This is meant as an ad hoc interface until text mode i/o is abolished.
-  lsu3shell::g_rme_binary_format = true;
-  char* spncci_rme_mode_cstr = std::getenv("SPNCCI_RME_MODE");
-  if (spncci_rme_mode_cstr!=NULL)
-    {
-      const std::string spncci_rme_mode = std::getenv("SPNCCI_RME_MODE");
-      if (spncci_rme_mode=="text")
-        lsu3shell::g_rme_binary_format = false;
-    }
-
-  // run parameters
+  //Initializes extern variables and calls Eigen::initParallel() and u3::U3CoefInit()
+  spncci::InitializeSpNCCI();
+  
   std::cout << "Reading control file..." << std::endl;
   spncci::RunParameters run_parameters;
+  std::cout<<"Nmax="<<run_parameters.Nmax<<std::endl;
+  
+  ///////////////////////////////////////////////////////////////////////////////////////
+  //// set up SpNCCI spaces
+  ///////////////////////////////////////////////////////////////////////////////////////
+  lgi::MultiplicityTaggedLGIVector lgi_families;
+  spncci::SpNCCISpace spncci_space;
+  spncci::SigmaIrrepMap sigma_irrep_map;
+  spncci::BabySpNCCISpace baby_spncci_space;
+  spncci::SpaceSpU3S spu3s_space; //Not used 
+  spncci::SpaceSpLS spls_space; //Not used
+  spncci::SpaceSpJ spj_space;  //Only used in obselete code
+  std::vector<spncci::SpaceSpBasis> spaces_spbasis;
+  spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
 
-  // Eigen OpenMP multithreading mode
-  Eigen::initParallel();
-  // Eigen::setNbThreads(0);
+  //Read in lgi families and generate spaces at different branching levels
+  //Nlimit allows for different irreps to be truncated to different Nmax
+  int Nlimit=run_parameters.Nmax;
+  spncci::SetUpSpNCCISpaces(
+      run_parameters,lgi_families,spncci_space,sigma_irrep_map,
+      baby_spncci_space,spu3s_space,spls_space,spj_space,
+      spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
+      // results_stream,
+      Nlimit
+      // ,restrict_sp3r_to_u3_branching
+    );
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  // Results file: Writing parameters and basis statistics
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
 
   // open output files
   std::ofstream results_stream("spncci.res");
@@ -162,31 +240,13 @@ int main(int argc, char **argv)
   spncci::StartNewSection(results_stream,"PARAMETERS");
   spncci::WriteRunParameters(results_stream,run_parameters);
 
-  std::cout<<"Nmax="<<run_parameters.Nmax<<std::endl;
+  // results output: basis information
+  spncci::StartNewSection(results_stream,"BASIS");
+  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
+  spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
+  spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
 
-  // /////////////////////////////////////////////////////////////////////////////////////
-  // // set up SpNCCI space
-  // ////////////////////////////////////////////////////////////////
-  bool restrict_sp3r_to_u3_branching=false;
-    if(run_parameters.A<6)
-      restrict_sp3r_to_u3_branching=true;
 
-  lgi::MultiplicityTaggedLGIVector lgi_families;
-  spncci::SpNCCISpace spncci_space;
-  spncci::SigmaIrrepMap sigma_irrep_map;
-  spncci::BabySpNCCISpace baby_spncci_space;
-  spncci::SpaceSpU3S spu3s_space;
-  spncci::SpaceSpLS spls_space;
-  spncci::SpaceSpJ spj_space;
-
-  //Read in lgi families and generate spaces at different branching levels
-  //Nlimit allows for different irreps to be truncated to different Nmax
-  int Nlimit=run_parameters.Nmax;
-  spncci::SetUpSpNCCISpaces(
-      run_parameters,lgi_families,spncci_space,sigma_irrep_map,
-      baby_spncci_space,spu3s_space,spls_space,spj_space,
-      results_stream,Nlimit,restrict_sp3r_to_u3_branching
-    );
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Enumerate unit tensor space
@@ -242,12 +302,12 @@ int main(int argc, char **argv)
   // NEW BRANCHING
   //TODO: MAKE Vector with indices corresponding to run_parameters.J_values
   // vector becomes space with subspaces SpaceSpBasis in sectorsJ etcs.
-  std::vector<spncci::SpaceSpBasis> spaces_spbasis(run_parameters.J_values.size());
-  for(int j=0; j<run_parameters.J_values.size(); ++j)
-    {
-      const HalfInt& J=run_parameters.J_values[j];
-      spaces_spbasis[j]=spncci::SpaceSpBasis(baby_spncci_space,J);
-    }
+  // std::vector<spncci::SpaceSpBasis> spaces_spbasis(run_parameters.J_values.size());
+  // for(int j=0; j<run_parameters.J_values.size(); ++j)
+  //   {
+  //     const HalfInt& J=run_parameters.J_values[j];
+  //     spaces_spbasis[j]=spncci::SpaceSpBasis(baby_spncci_space,J);
+  //   }
   //////////////////////////////////////////////////////////////////
   // Testing 
   //////////////////////////////////////////////////////////////////
@@ -326,28 +386,28 @@ int main(int argc, char **argv)
   mcutils::SteadyTimer timer_k_matrices;
   timer_k_matrices.Start();
 
-  // traverse distinct sigma values in SpNCCI space, generating K
-  // matrices for each
-  // spncci::KMatrixCache k_matrix_cache;
-  spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
-  spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,kinv_matrix_cache,restrict_sp3r_to_u3_branching);
+  // // traverse distinct sigma values in SpNCCI space, generating K
+  // // matrices for each
+  // // spncci::KMatrixCache k_matrix_cache;
+  // spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
+  // spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,kinv_matrix_cache,restrict_sp3r_to_u3_branching);
 
-  // timing stop
-  timer_k_matrices.Stop();
-  std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
+  // // timing stop
+  // timer_k_matrices.Stop();
+  // std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
 
-  std::cout<<"Kmatrices "<<std::endl;
-  for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
-    {
-      std::cout<<"sigma "<<it->first.Str()<<std::endl;
-      for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
-      {
-        std::cout<<"  omega"<<it2->first.Str()<<std::endl;
-        auto matrix=it2->second;
-        std::cout<<matrix<<std::endl;
-        // std::cout<<matrix.inverse()<<std::endl;
-      }
-    }
+  // std::cout<<"Kmatrices "<<std::endl;
+  // for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
+  //   {
+  //     std::cout<<"sigma "<<it->first.Str()<<std::endl;
+  //     for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
+  //     {
+  //       std::cout<<"  omega"<<it2->first.Str()<<std::endl;
+  //       auto matrix=it2->second;
+  //       std::cout<<matrix<<std::endl;
+  //       // std::cout<<matrix.inverse()<<std::endl;
+  //     }
+  //   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"setting up lgi unit tensor blocks"<<std::endl;
