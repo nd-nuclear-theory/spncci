@@ -96,6 +96,7 @@ basis statistics
 #include <iostream>
 #include <sys/resource.h>
 #include <omp.h>
+#include <unordered_set>
 
 #include "Spectra/SymEigsSolver.h"  // from spectra
 #include "am/halfint.h"
@@ -125,7 +126,142 @@ basis statistics
 // to extract to spncci library when ready
 ////////////////////////////////////////////////////////////////
 namespace spncci
-{}// end namespace
+{
+  void ConstructSymmetricOperatorMatrix2(
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const u3shell::ObservableSpaceU3S& observable_space,
+    const HalfInt& J0,
+    const spncci::SpaceSpBasis& spbasis_bra, //For a given J
+    const spncci::SpaceSpBasis& spbasis_ket, //For a given J
+    const std::vector<spncci::LGIPair>& lgi_pairs_recurrence,
+    int observable_index, int hw_index,
+    spncci::OperatorBlock& operator_matrix
+  )
+  {
+    // Get J of basese
+    HalfInt Jp=spbasis_bra.J();
+    HalfInt J=spbasis_ket.J();
+    
+    //Resize Operator matrix
+    int basis_size_bra=spbasis_bra.FullDimension();
+    int basis_size_ket=spbasis_ket.FullDimension();
+    operator_matrix=spncci::OperatorBlock::Zero(basis_size_bra,basis_size_ket);
+
+    //From list of lgi pairs from the recurrence (for which there are non-zero RMEs)
+    //create a lookup table for checking if a given lgi pair in basis corresponds to a non-zero tile
+    std::unordered_set<spncci::LGIPair,boost::hash<spncci::LGIPair>> lgi_pair_lookup_table;
+    for(spncci::LGIPair pair : lgi_pairs_recurrence)
+      lgi_pair_lookup_table.insert(pair);
+
+    std::vector<std::vector<int>> offsets_bra;
+    std::vector<std::vector<int>> offsets_ket;
+    spncci::GetSpBasisOffsets(spbasis_bra,offsets_bra);
+    spncci::GetSpBasisOffsets(spbasis_ket,offsets_ket);
+
+    u3::WCoefCache w_cache;
+    std::vector<spncci::OperatorBlock> tiles;
+    
+    // Iterate through bases for bra and ket.  Each subspaces corresponds to a single irrep family (irrep subspace)
+    // TODO: Parallelize? 
+    for(int bra_subspace_index=0; bra_subspace_index<spbasis_bra.size(); ++bra_subspace_index)
+      for(int ket_subspace_index=0; ket_subspace_index<spbasis_ket.size(); ++ket_subspace_index)
+        {
+          const spncci::SubspaceSpBasis& spbasis_subspace_bra=spbasis_bra.GetSubspace(bra_subspace_index);
+          const spncci::SubspaceSpBasis& spbasis_subspace_ket=spbasis_ket.GetSubspace(ket_subspace_index);
+
+          const int irrep_family_index_bra=spbasis_subspace_bra.irrep_family_index();
+          const int irrep_family_index_ket=spbasis_subspace_ket.irrep_family_index();
+
+          const int tile_dimension_bra=spbasis_subspace_bra.dimension();
+          const int tile_dimension_ket=spbasis_subspace_ket.dimension();
+
+          // If ket>bra, then need to construct adjoint tile and take transpose
+          bool adjoint=irrep_family_index_ket>irrep_family_index_bra;
+          
+          // In some cases, no states in the irrep will contribute to a given J subspace
+          // Usually only happens for low Nmax calculations of if irrep is a high Nsex irrep. 
+          if(tile_dimension_ket==0 || tile_dimension_bra==0)
+            continue;
+
+          spncci::LGIPair lgi_pair;
+          lgi_pair=adjoint?spncci::LGIPair(irrep_family_index_ket,irrep_family_index_bra):
+                            spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
+          
+          spncci::OperatorBlock tile;
+
+          // If lgi pair is in lookup table, 
+          if(lgi_pair_lookup_table.count(lgi_pair)==0)
+            {
+              //Construct tile of zeros
+              tile=Eigen::MatrixXd::Zero(tile_dimension_bra,tile_dimension_ket);
+            }
+          else
+            {
+              /////////////////////////////////////////////////////////////////////////////////////////////////
+              //// Open files containing hyperblocks and hypersectors interating over thread number
+              /////////////////////////////////////////////////////////////////////////////////////////////////
+              std::vector<spncci::ObservableHypersectorLabels> list_baby_spncci_hypersectors;
+              basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks;
+
+              spncci::GetBabySpNCCIHyperBlocks(
+                observable_index,hw_index,lgi_pair,
+                list_baby_spncci_hypersectors,
+                baby_spncci_observable_hyperblocks
+                );
+
+              //Look up offset vectors 
+              const std::vector<int>& offsets_bra_subspace=offsets_bra[bra_subspace_index];
+              const std::vector<int>& offsets_ket_subspace=offsets_ket[ket_subspace_index];
+
+              // If adjoint=true, then get tile for LGI pair (ket_lgi,bra_lgi) and transpose, 
+              // otherwise, just get tile corresponding to LGI pair
+              if(adjoint)
+                {
+                  spncci::OperatorBlock temp_tile;
+                  spncci::GetOperatorTile(
+                    baby_spncci_space,observable_space,spbasis_subspace_ket,spbasis_subspace_bra,
+                    offsets_ket_subspace,offsets_bra_subspace,J0,J,Jp,hw_index,observable_index,
+                    lgi_pair,w_cache,list_baby_spncci_hypersectors,baby_spncci_observable_hyperblocks,
+                    temp_tile
+                  );
+
+                  tile=temp_tile.transpose();
+                }
+              else
+                {
+                  spncci::GetOperatorTile(
+                    baby_spncci_space,observable_space,spbasis_subspace_bra,spbasis_subspace_ket,
+                    offsets_bra_subspace,offsets_ket_subspace,J0,Jp,J,hw_index,observable_index,
+                    lgi_pair,w_cache,list_baby_spncci_hypersectors,baby_spncci_observable_hyperblocks,
+                    tile
+                  );
+                }
+            }
+
+          // Accumulating tiles in vector.
+          tiles.push_back(tile);
+        }
+
+    // Check that blocks are being constructed in order Patrick wants
+    int row_offset=0;
+    int tile_index=0;
+    for(int row_tile_index=0; row_tile_index<spbasis_bra.size(); ++row_tile_index)
+      {
+        int rows=tiles[tile_index].rows();
+        int col_offset=0;
+        for(int col_tile_index=0; col_tile_index<spbasis_ket.size(); ++col_tile_index) 
+          {
+            int cols=tiles[tile_index].cols();
+            assert(rows==tiles[tile_index].rows());
+            operator_matrix.block(row_offset,col_offset,rows,cols)=tiles[tile_index];
+            ++tile_index;
+            col_offset+=cols;
+          }
+        row_offset+=rows;
+      }
+  }
+
+}// end namespace
 
 ////////////////////////////////////////////////////////////////
 // main body
@@ -414,12 +550,28 @@ int main(int argc, char **argv)
             std::cout<<"  Constructing Hamiltonian matrix"<<std::endl;
 
             spncci::OperatorBlock hamiltonian_matrix;
-            spncci::ConstructSymmetricOperatorMatrix(
-                baby_spncci_space,observable_space,
-                J00,spbasis_bra,spbasis_ket,lgi_pairs,
-                observable_index, hw_index,
-                hamiltonian_matrix
-              );
+            // spncci::ConstructSymmetricOperatorMatrix(
+            //     baby_spncci_space,observable_space,
+            //     J00,spbasis_bra,spbasis_ket,lgi_pairs,
+            //     observable_index, hw_index,
+            //     hamiltonian_matrix
+            //   );
+
+            // spncci::OperatorBlock operator_matrix2;
+            spncci::ConstructSymmetricOperatorMatrix2(
+              baby_spncci_space,observable_space,
+              J00,spbasis_bra, spbasis_ket, lgi_pairs,
+              observable_index,hw_index,hamiltonian_matrix
+            );
+
+            // if(not mcutils::IsZero(hamiltonian_matrix-operator_matrix2))
+            //   {
+            //     std::cout<<"matrix 1 "<<std::endl;
+            //     std::cout<<hamiltonian_matrix<<std::endl;
+            //     std::cout<<"matrix 2"<<std::endl;
+            //     std::cout<<operator_matrix2<<std::endl;
+            //   }
+
             timer_hamiltonian.Stop();
             std::cout<<fmt::format("    time: {}",timer_hamiltonian.ElapsedTime())<<std::endl;
 
