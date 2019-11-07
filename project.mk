@@ -50,7 +50,9 @@ LDLIBS += -lgslcblas
 CPPFLAGS += -DHAVE_INLINE
 
 # MKL and ScaLAPACK
-LDLIBS += -mkl 
+CXXFLAGS += $(MKL_CXXFLAGS)
+LDFLAGS += $(MKL_LDFLAGS)
+LDLIBS += $(MKL_LDLIBS)
 #LDLIBS += -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64
 
 # Eigen
