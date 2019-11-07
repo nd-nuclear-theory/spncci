@@ -14,7 +14,7 @@
 #include <iostream>
 
 
-#include "am/wigner_gsl.h"  
+#include "am/wigner_gsl.h"
 #include "fmt/format.h"
 #include "mcutils/eigen.h"
 #include "mcutils/parsing.h"
@@ -29,11 +29,11 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to U3S level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
 
   SubspaceSpBasis::SubspaceSpBasis(
     const HalfInt& J,
-    const u3shell::U3SPN& sigmaSPN, 
+    const u3shell::U3SPN& sigmaSPN,
     int irrep_family_index,
     const BabySpNCCISpace& baby_spncci_space
   )
@@ -73,7 +73,7 @@ namespace spncci
                 int degeneracy=gamma_max*upsilon_max*kappa_max;
                 omegaLLabels state_labels(omega,L);
                 PushStateLabels(state_labels,degeneracy);
-                
+
                 // record auxiliary state information
                 state_kappa_max_.push_back(kappa_max);
                 state_upsilon_max_.push_back(upsilon_max);
@@ -116,14 +116,14 @@ namespace spncci
 
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
-  
+
         // set up alias
         const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
-  
+
         // create new subspace -- only if not already constructed for this (omega,S)
         const u3shell::U3SPN& sigmaSPN = baby_spncci_subspace.sigmaSPN();
         int irrep_family_index = baby_spncci_subspace.irrep_family_index();
-        
+
         if(ContainsSubspace(irrep_family_index))
           continue;
 
@@ -183,13 +183,14 @@ namespace spncci
   }
 
 
-// // TODO: FIX. DONT REALLY NEED SECTORS 
+// // TODO: FIX. DONT REALLY NEED SECTORS
 //   SectorsSpBasis::SectorsSpBasis(
 //         const SpaceSpBasis& space_bra,
 //         const SpaceSpBasis& space_ket,
 //         HalfInt J0,
 //         basis::SectorDirection sector_direction
 //     )
+//     : BaseSectors(space)
 //   {
 //     HalfInt Jp=spbasis_bra.J();
 //     HalfInt J=spbasis_ket.J();
@@ -211,7 +212,7 @@ namespace spncci
 //           const SubspaceType& ket_subspace = space_ket.GetSubspace(ket_subspace_index);
 
 //           // push sector
-//           PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace));
+//           PushSector(bra_subspace_index,ket_subspace_index);
 //         }
 //   }
 
@@ -226,7 +227,7 @@ namespace spncci
     const spncci::SpaceSpBasis& spbasis,
     std::vector<std::vector<int>>& offsets
     )
-  {   
+  {
     offsets.resize(spbasis.size());
     int offset=0;
     for(int subspace_index=0; subspace_index<spbasis.size(); ++subspace_index)
@@ -254,7 +255,7 @@ namespace spncci
     //   }
 
   }
-    
+
 
   void ConstructOperatorMatrix(
     const spncci::BabySpNCCISpace& baby_spncci_space,
@@ -268,7 +269,7 @@ namespace spncci
     spncci::OperatorBlock& operator_matrix
   )
   {
-    // Get dimension of basis 
+    // Get dimension of basis
     int basis_size_bra=spbasis_bra.FullDimension();
     int basis_size_ket=spbasis_ket.FullDimension();
     HalfInt Jp=spbasis_bra.J();
@@ -280,7 +281,7 @@ namespace spncci
     spncci::GetSpBasisOffsets(spbasis_ket,offsets_ket);
 
 
-    //Set up full matrix 
+    //Set up full matrix
     operator_matrix=spncci::OperatorBlock::Zero(basis_size_bra,basis_size_ket);
 
     int num_files=nums_lgi_pairs.size();
@@ -293,17 +294,17 @@ namespace spncci
         // Open files containing hyperblocks and hypersectors interating over thread number
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         std::ifstream hyperblocks_stream;
-        // #pragma omp single 
+        // #pragma omp single
         {
           std::string filename=fmt::format(
               "hyperblocks/observable_hyperblocks_{:02d}_{:02d}_{:02d}.rmes",observable_index,hw_index,thread_num
             );
-          
+
           std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
-          
-           
+
+
           hyperblocks_stream.open(filename,mode_argument);
-          
+
           // Check if file found
           if(not bool(hyperblocks_stream))
             {
@@ -312,17 +313,17 @@ namespace spncci
             }
         }
 
-        std::ifstream hypersectors_stream; 
-        // #pragma omp single 
+        std::ifstream hypersectors_stream;
+        // #pragma omp single
         {
           std::string filename=fmt::format(
               "hyperblocks/observable_hypersectors_{:02d}_{:02d}.rmes",observable_index,thread_num
             );
-          
+
           std::ios_base::openmode mode_argument = std::ios_base::in | std::ios_base::binary;
-          
+
           hypersectors_stream.open(filename,mode_argument);
-          
+
           // Check if file found
           if(not bool(hypersectors_stream))
             {
@@ -344,7 +345,7 @@ namespace spncci
             // spncci::LGIPair lgi_pair_test;
             basis::OperatorHyperblocks<double> baby_spncci_observable_hyperblocks;
 
-            //Each thread, one at a time, reads in observable hypersectors 
+            //Each thread, one at a time, reads in observable hypersectors
             // and hyperblocks for a given lgi pair.
             #pragma omp critical (read_observabl_hyperblocks)
               {
@@ -353,7 +354,7 @@ namespace spncci
                   hypersectors_stream,lgi_pair,
                   list_baby_spncci_hypersectors,num_hypersectors
                   );
-              
+
                 // std::cout<<"reading observable hyperblocks"<<std::endl;
                 spncci::ReadObservableHyperblocks(
                   hyperblocks_stream,lgi_pair,
@@ -361,11 +362,11 @@ namespace spncci
                 );
 
               }
-  
+
             int irrep_family_index_bra, irrep_family_index_ket;
             std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
             //////////////////////////////////////////////////////////////////////////////////////////
-            //Branching and insert into matrix 
+            //Branching and insert into matrix
             //////////////////////////////////////////////////////////////////////////////////////////
             // std::cout<<"branching to J"<<std::endl;
             for(int observable_hypersector_index=0; observable_hypersector_index<list_baby_spncci_hypersectors.size(); ++observable_hypersector_index)
@@ -381,8 +382,8 @@ namespace spncci
                 // std::cout<<"Basis information"<<std::endl;
                 const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
                 const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
-                
-                // std::cout<<fmt::format("baby spncci {} {}  {} {}", 
+
+                // std::cout<<fmt::format("baby spncci {} {}  {} {}",
                 //   irrep_family_index_bra,irrep_family_index_ket,
                 //   baby_spncci_subspace_bra.irrep_family_index(),
                 //   baby_spncci_subspace_ket.irrep_family_index()
@@ -396,7 +397,7 @@ namespace spncci
                 const u3::U3& omegap=baby_spncci_subspace_bra.omega();
                 HalfInt Sp=baby_spncci_subspace_bra.S();
                 MultiplicityTagged<int>::vector Lp_list=u3::BranchingSO3(omegap.SU3());
-                
+
                 const u3::U3& omega=baby_spncci_subspace_ket.omega();
                 HalfInt S=baby_spncci_subspace_ket.S();
                 MultiplicityTagged<int>::vector L_list=u3::BranchingSO3(omega.SU3());
@@ -442,11 +443,11 @@ namespace spncci
                     // std::cout<<"omegap Lp "<<omegap.Str()<<"  "<<Lp<<std::endl;
                     // std::cout<<spbasis_subspace_bra.DebugStr()<<std::endl;
                     // if(not spbasis_subspace_bra.ContainsState(state_labels))
-                    //   continue;        
+                    //   continue;
 
 
 
-                    // std::cout<<"contained state "<<std::endl;            
+                    // std::cout<<"contained state "<<std::endl;
                     int spbasis_state_index_bra=spbasis_subspace_bra.LookUpStateIndex(state_labels);
                     // std::cout<<"index "<<spbasis_state_index_bra<<std::endl;
 
@@ -456,7 +457,7 @@ namespace spncci
                     // int upsilon_max=state_upsilon_max_bra[spbasis_state_index_bra];
                     // int multiplicity_bra=spbasis_state_bra.degeneracy()/kappap_max;
                     // std::cout<<"getting offset "<<std::endl;
-                    
+
                     // int index_bra=state_offsets_bra[spbasis_state_index_bra];
                     // std::cout<<"iterate over possible L values "<<std::endl;
                     for(auto L_tagged : L_list)
@@ -467,7 +468,7 @@ namespace spncci
                           continue;
 
                         int kappa_max=L_tagged.tag;
-                        int spbasis_state_index_ket=spbasis_subspace_ket.LookUpStateIndex(spncci::omegaLLabels(omega,L));  
+                        int spbasis_state_index_ket=spbasis_subspace_ket.LookUpStateIndex(spncci::omegaLLabels(omega,L));
                         if(spbasis_state_index_ket==-1)
                           continue;
 
@@ -481,7 +482,7 @@ namespace spncci
                         //   <<"  "<<index_bra<<std::endl;
                         for(int kappap=1; kappap<=kappap_max; ++kappap)
                         {
-                          
+
                           int index_ket=offsets_ket[spbasis_index_ket][spbasis_state_index_ket];
                           // std::cout<<"initial ket "<<spbasis_index_ket<<"  "
                           //   <<spbasis_state_index_ket<<"  "<<index_ket<<std::endl;
@@ -490,7 +491,7 @@ namespace spncci
                             {
                               spncci::MatrixFloatType Wcoef
                                 =u3::WCached(w_cache,omega.SU3(),kappa,L,x0,kappa0,L0,omegap.SU3(),kappap,Lp,rho0);
-                              
+
                               // std::cout<<Wcoef<<"  "<<LSJcoef<<"  "<<std::endl;
                               // std::cout<<block<<std::endl;
                               // std::cout<<"kappas "<<kappap_max<<"  "<<kappa_max<<std::endl;
