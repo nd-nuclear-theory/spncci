@@ -33,6 +33,8 @@ modules += programs/operators programs/unit_tensors programs/su3calc programs/va
 modules += programs/linear_algebra
 modules += programs/spncci programs/lgi
 
+modules += programs/rotor
+
 ################################################################
 # extras -- list of extra files to be included
 # in distribution tar file
