@@ -532,7 +532,7 @@ int main(int argc, char **argv)
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
             // write basis information file
-            std::string basis_filename = fmt::format("basis-J{03.1f}.dat", float(J));
+            std::string basis_filename = fmt::format("basis-J{:03.1f}.dat", float(J));
             std::cout << "  Writing basis information to file " << basis_filename << std::endl;
             std::ofstream basis_stream(basis_filename);
             basis_stream << fmt::format("{:d}", spbasis_bra.size()) << std::endl;
@@ -559,9 +559,11 @@ int main(int argc, char **argv)
 
             // spncci::OperatorBlock operator_matrix2;
             std::string filename = fmt::format(
-                "hamiltonian-hw{:04.1f}-J{03.1f}",
+                "hamiltonian-hw{:04.1f}-J{:03.1f}",
                 run_parameters.hw_values.at(hw_index), float(J)
               );
+            std::cout<<"filename is "<<filename<<std::endl;
+
             spncci::WriteSymmetricOperatorMatrix(
               baby_spncci_space,observable_space,
               J00,spbasis_bra, spbasis_ket, lgi_pairs,
@@ -573,13 +575,6 @@ int main(int argc, char **argv)
               observable_index,hw_index,hamiltonian_matrix
             );
 
-            // if(not mcutils::IsZero(hamiltonian_matrix-operator_matrix2))
-            //   {
-            //     std::cout<<"matrix 1 "<<std::endl;
-            //     std::cout<<hamiltonian_matrix<<std::endl;
-            //     std::cout<<"matrix 2"<<std::endl;
-            //     std::cout<<operator_matrix2<<std::endl;
-            //   }
 
             timer_hamiltonian.Stop();
             std::cout<<fmt::format("    time: {}",timer_hamiltonian.ElapsedTime())<<std::endl;
