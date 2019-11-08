@@ -85,7 +85,7 @@
   11/5/19 (aem) : Stripped out truncation tests and bundled initialization
 
 Notes:
-branching2 currently used for branching.  branching has old definitions still temp used for 
+branching2 currently used for branching.  branching has old definitions still temp used for
 basis statistics
 ****************************************************************/
 
@@ -127,25 +127,23 @@ basis statistics
 ////////////////////////////////////////////////////////////////
 namespace spncci
 {
-  void ConstructSymmetricOperatorMatrix2(
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const u3shell::ObservableSpaceU3S& observable_space,
-    const HalfInt& J0,
-    const spncci::SpaceSpBasis& spbasis_bra, //For a given J
-    const spncci::SpaceSpBasis& spbasis_ket, //For a given J
-    const std::vector<spncci::LGIPair>& lgi_pairs_recurrence,
-    int observable_index, int hw_index,
-    spncci::OperatorBlock& operator_matrix
-  )
+  void WriteSymmetricOperatorMatrix(
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const u3shell::ObservableSpaceU3S& observable_space,
+      const HalfInt& J0,
+      const spncci::SpaceSpBasis& spbasis_bra, //For a given J
+      const spncci::SpaceSpBasis& spbasis_ket, //For a given J
+      const std::vector<spncci::LGIPair>& lgi_pairs_recurrence,
+      int observable_index, int hw_index,
+      const std::string& filename
+    )
   {
-    // Get J of basese
+    // open output file
+    std::ofstream out_stream(filename);
+
+    // Get J of bases
     HalfInt Jp=spbasis_bra.J();
     HalfInt J=spbasis_ket.J();
-    
-    //Resize Operator matrix
-    int basis_size_bra=spbasis_bra.FullDimension();
-    int basis_size_ket=spbasis_ket.FullDimension();
-    operator_matrix=spncci::OperatorBlock::Zero(basis_size_bra,basis_size_ket);
 
     //From list of lgi pairs from the recurrence (for which there are non-zero RMEs)
     //create a lookup table for checking if a given lgi pair in basis corresponds to a non-zero tile
@@ -159,10 +157,9 @@ namespace spncci
     spncci::GetSpBasisOffsets(spbasis_ket,offsets_ket);
 
     u3::WCoefCache w_cache;
-    std::vector<spncci::OperatorBlock> tiles;
-    
+
     // Iterate through bases for bra and ket.  Each subspaces corresponds to a single irrep family (irrep subspace)
-    // TODO: Parallelize? 
+    // TODO: Parallelize?
     for(int bra_subspace_index=0; bra_subspace_index<spbasis_bra.size(); ++bra_subspace_index)
       for(int ket_subspace_index=0; ket_subspace_index<spbasis_ket.size(); ++ket_subspace_index)
         {
@@ -177,19 +174,19 @@ namespace spncci
 
           // If ket>bra, then need to construct adjoint tile and take transpose
           bool adjoint=irrep_family_index_ket>irrep_family_index_bra;
-          
+
           // In some cases, no states in the irrep will contribute to a given J subspace
-          // Usually only happens for low Nmax calculations of if irrep is a high Nsex irrep. 
+          // Usually only happens for low Nmax calculations of if irrep is a high Nsex irrep.
           if(tile_dimension_ket==0 || tile_dimension_bra==0)
             continue;
 
           spncci::LGIPair lgi_pair;
           lgi_pair=adjoint?spncci::LGIPair(irrep_family_index_ket,irrep_family_index_bra):
                             spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket);
-          
+
           spncci::OperatorBlock tile;
 
-          // If lgi pair is in lookup table, 
+          // If lgi pair is in lookup table,
           if(lgi_pair_lookup_table.count(lgi_pair)==0)
             {
               //Construct tile of zeros
@@ -209,11 +206,11 @@ namespace spncci
                 baby_spncci_observable_hyperblocks
                 );
 
-              //Look up offset vectors 
+              //Look up offset vectors
               const std::vector<int>& offsets_bra_subspace=offsets_bra[bra_subspace_index];
               const std::vector<int>& offsets_ket_subspace=offsets_ket[ket_subspace_index];
 
-              // If adjoint=true, then get tile for LGI pair (ket_lgi,bra_lgi) and transpose, 
+              // If adjoint=true, then get tile for LGI pair (ket_lgi,bra_lgi) and transpose,
               // otherwise, just get tile corresponding to LGI pair
               if(adjoint)
                 {
@@ -238,27 +235,17 @@ namespace spncci
                 }
             }
 
-          // Accumulating tiles in vector.
-          tiles.push_back(tile);
+          // write tile to file
+          mcutils::WriteBinary<int32_t>(out_stream, 2*sizeof(int32_t));
+          mcutils::WriteBinary<int32_t>(out_stream, tile_dimension_bra);
+          mcutils::WriteBinary<int32_t>(out_stream, tile_dimension_ket);
+          mcutils::WriteBinary<int32_t>(out_stream, 2*sizeof(int32_t));
+          int32_t num_matrix_elements = tile_dimension_bra*tile_dimension_ket;
+          mcutils::WriteBinary<int32_t>(out_stream, num_matrix_elements*sizeof(double));
+          mcutils::WriteBinary<double>(out_stream, tile.data(), num_matrix_elements);
+          mcutils::WriteBinary<int32_t>(out_stream, num_matrix_elements*sizeof(double));
         }
-
-    // Check that blocks are being constructed in order Patrick wants
-    int row_offset=0;
-    int tile_index=0;
-    for(int row_tile_index=0; row_tile_index<spbasis_bra.size(); ++row_tile_index)
-      {
-        int rows=tiles[tile_index].rows();
-        int col_offset=0;
-        for(int col_tile_index=0; col_tile_index<spbasis_ket.size(); ++col_tile_index) 
-          {
-            int cols=tiles[tile_index].cols();
-            assert(rows==tiles[tile_index].rows());
-            operator_matrix.block(row_offset,col_offset,rows,cols)=tiles[tile_index];
-            ++tile_index;
-            col_offset+=cols;
-          }
-        row_offset+=rows;
-      }
+    out_stream.close();
   }
 
 }// end namespace
@@ -275,11 +262,11 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   //Initializes extern variables and calls Eigen::initParallel() and u3::U3CoefInit()
   spncci::InitializeSpNCCI();
-  
+
   std::cout << "Reading control file..." << std::endl;
   spncci::RunParameters run_parameters;
   std::cout<<"Nmax="<<run_parameters.Nmax<<std::endl;
-  
+
   ///////////////////////////////////////////////////////////////////////////////////////
   //// set up SpNCCI spaces
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -287,7 +274,7 @@ int main(int argc, char **argv)
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;
   spncci::BabySpNCCISpace baby_spncci_space;
-  spncci::SpaceSpU3S spu3s_space; //Not used 
+  spncci::SpaceSpU3S spu3s_space; //Not used
   spncci::SpaceSpLS spls_space; //Not used
   spncci::SpaceSpJ spj_space;  //Only used in obselete code
   std::vector<spncci::SpaceSpBasis> spaces_spbasis;
@@ -295,7 +282,7 @@ int main(int argc, char **argv)
 
   //Read in lgi families and generate spaces at different branching levels
   //Nlimit allows for different irreps to be truncated to different Nmax
-  //For now just set to Nmax for all irreps 
+  //For now just set to Nmax for all irreps
   int Nlimit=run_parameters.Nmax;
   spncci::SetUpSpNCCISpaces(
       run_parameters,lgi_families,spncci_space,sigma_irrep_map,
@@ -427,9 +414,9 @@ int main(int argc, char **argv)
       std::string lgi_transformations_filename="lgi_transformations.dat";
       spncci::ReadTransformationMatrices(lgi_transformations_filename,lgi_transformations);
     }
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"begin parallel region"<<std::endl;
-  
+
   //Declaring shared variables
   int num_files;
   spncci::ObservableHypersectorsByLGIPairTable
@@ -463,7 +450,7 @@ int main(int argc, char **argv)
       // For each LGI pair, compute SU(3)xSU(2) reduced many-body matrix elements of unit tensors.
       // Then contract unit tensors with relative matrix elements of observables
       // Write observable hypersectors and hyperblocks to separate file for each LGI pair, each
-      // observabel and each hw. 
+      // observabel and each hw.
       //
       // Note: Only observable hypersectors with irrep_family_bra>=irrep_family_ket written to files
       // If diagonal sector, only upper triangle stored.  --Is this still correct?
@@ -544,6 +531,19 @@ int main(int argc, char **argv)
 
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
+            // write basis information file
+            std::string basis_filename = fmt::format("basis-J{03.1f}.dat", float(J));
+            std::cout << "  Writing basis information to file " << basis_filename << std::endl;
+            std::ofstream basis_stream(basis_filename);
+            basis_stream << fmt::format("{:d}", spbasis_bra.size()) << std::endl;
+            for (std::size_t subspace_index=0; subspace_index < spbasis_bra.size(); ++subspace_index)
+            {
+              basis_stream << fmt::format(
+                  "{:d}", spbasis_bra.GetSubspace(subspace_index).full_dimension()
+                ) << std::endl;
+            }
+            basis_stream.close();
+
             mcutils::SteadyTimer timer_hamiltonian;
             timer_hamiltonian.Start();
 
@@ -558,7 +558,16 @@ int main(int argc, char **argv)
             //   );
 
             // spncci::OperatorBlock operator_matrix2;
-            spncci::ConstructSymmetricOperatorMatrix2(
+            std::string filename = fmt::format(
+                "hamiltonian-hw{:04.1f}-J{03.1f}",
+                run_parameters.hw_values.at(hw_index), float(J)
+              );
+            spncci::WriteSymmetricOperatorMatrix(
+              baby_spncci_space,observable_space,
+              J00,spbasis_bra, spbasis_ket, lgi_pairs,
+              observable_index,hw_index,filename
+            );
+            spncci::ConstructSymmetricOperatorMatrix(
               baby_spncci_space,observable_space,
               J00,spbasis_bra, spbasis_ket, lgi_pairs,
               observable_index,hw_index,hamiltonian_matrix
@@ -606,7 +615,7 @@ int main(int argc, char **argv)
         spncci::GenerateDecompositions(baby_spncci_space,spaces_spbasis,run_parameters, hw,results_stream);
 
       }// End Hamiltonian section
-      
+
       {
       //////////////////////////////////////////////////////////////
       // calculate observable RMEs
@@ -673,7 +682,7 @@ int main(int argc, char **argv)
 
               std::cout<<"calculate observable results"<<std::endl;
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
-              
+
               observable_results_matrix = eigenvectors[bra_index].transpose()
                 * observable_block
                 * eigenvectors[ket_index];
