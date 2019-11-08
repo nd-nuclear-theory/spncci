@@ -50,7 +50,7 @@ namespace u3shell {
         PushSubspace(subspace);
       }
   }
-  
+
   SectorsU3S::SectorsU3S(SpaceU3S& space, const OperatorLabelsU3S& operator_labels)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
@@ -79,7 +79,7 @@ namespace u3shell {
           if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
         }
   }

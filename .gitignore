@@ -70,3 +70,6 @@ libraries/moshinsky/test/
 *.dSYM
 *.pyc
 
+# Doxygen output
+doc/html/
+doc/latex/
