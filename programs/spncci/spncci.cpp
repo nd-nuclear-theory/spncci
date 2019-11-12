@@ -534,14 +534,20 @@ int main(int argc, char **argv)
             // write basis information file
             std::string basis_filename = fmt::format("basis-J{:03.1f}.dat", float(J));
             std::cout << "  Writing basis information to file " << basis_filename << std::endl;
-            std::ofstream basis_stream(basis_filename);
-            basis_stream << fmt::format("{:d}", spbasis_bra.size()) << std::endl;
+            std::ostringstream basis_str_stream;
+            std::size_t true_dimension = 0;
             for (std::size_t subspace_index=0; subspace_index < spbasis_bra.size(); ++subspace_index)
             {
-              basis_stream << fmt::format(
+              if (spbasis_bra.GetSubspace(subspace_index).full_dimension() <= 0)
+                continue;
+              ++true_dimension;
+              basis_str_stream << fmt::format(
                   "{:d}", spbasis_bra.GetSubspace(subspace_index).full_dimension()
                 ) << std::endl;
             }
+            std::ofstream basis_stream(basis_filename);
+            basis_stream << fmt::format("{:d}", true_dimension) << std::endl;
+            basis_stream << basis_str_stream.str();
             basis_stream.close();
 
             mcutils::SteadyTimer timer_hamiltonian;
