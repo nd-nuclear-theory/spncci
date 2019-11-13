@@ -2,7 +2,7 @@
   branching2.h
 
   Basis definitions for U(3)xS, LxS, and J branchings of SpNCCI basis.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -15,7 +15,7 @@
 #include "basis/degenerate.h"
 #include "sp3rlib/u3.h"
 #include "spncci/spncci_basis.h"
-#include "u3shell/u3spn_scheme.h"  
+#include "u3shell/u3spn_scheme.h"
 
 namespace spncci
 {
@@ -25,16 +25,16 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
 
   typedef std::pair<u3::U3,int> omegaLLabels;
-  
+
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to J level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   //   subspace: (sigma,Sp,Sn,S) irrep_family_index
   //     state: (omega,L)
   //       substates: (kappa,gamma,upsilon)
-  // 
+  //
   ////////////////////////////////////////////////////////////////
   //
   // Labeling
@@ -53,9 +53,9 @@ namespace spncci
   // States
   //
   // Within a subspace, states are ordered by first appearance of
-  // omega in irrep_family (sigma,Sp,Sn,S) then by L in order of 
-  // appearence in u3::BranchingSO3(omega).  
-  // 
+  // omega in irrep_family (sigma,Sp,Sn,S) then by L in order of
+  // appearence in u3::BranchingSO3(omega).
+  //
   // Degeneracy is kappa_max*gamma_max*upsilon_max.
   //
   ////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ namespace spncci
   class SubspaceSpBasis
     : public basis::BaseDegenerateSubspace<int,omegaLLabels>
     // SubspaceLabelsType (int) : irrep_family_index
-    //     Formerly   SubspaceLabelsType (u3::U3SPN): (sigma,Sp,Sn,S) 
+    //     Formerly   SubspaceLabelsType (u3::U3SPN): (sigma,Sp,Sn,S)
     // StateLabelsType (omegaLLabels): (omega,L)
     {
       public:
@@ -92,7 +92,7 @@ namespace spncci
 
       SubspaceSpBasis(
         const HalfInt& J,
-        const u3shell::U3SPN& sigmaSPN, 
+        const u3shell::U3SPN& sigmaSPN,
         int irrep_family_index,
         const BabySpNCCISpace& baby_spncci_space
       );
@@ -100,7 +100,7 @@ namespace spncci
       // subspace label accessors
       // u3shell::U3SPN sigmaSPN() const {return labels_;}
       u3shell::U3SPN sigmaSPN() const {return sigmaSPN_;}
-      
+
       HalfInt N() const {return sigmaSPN().U3().N();}
       u3::U3 sigma() const {return sigmaSPN().U3();}
       HalfInt S() const {return sigmaSPN().S();}
@@ -139,7 +139,7 @@ namespace spncci
   class StateSpBasis
     : public basis::BaseDegenerateState<SubspaceSpBasis>
   {
-    
+
     public:
 
     // pass-through constructors
@@ -153,7 +153,7 @@ namespace spncci
         const typename SubspaceType::StateLabelsType& state_labels
       )
       // Construct state by reverse lookup on labels.
-      : basis::BaseDegenerateState<SubspaceSpBasis>(subspace,state_labels) 
+      : basis::BaseDegenerateState<SubspaceSpBasis>(subspace,state_labels)
       {}
 
     // pass-through accessors for subspace labels
@@ -167,7 +167,7 @@ namespace spncci
     omegaLLabels omegaL() const {return labels();}
     u3::U3 omega() const {return labels().first;}
     int L() const {return labels().second;}
-    int Nn() const 
+    int Nn() const
     {
       return int(omega().N()-N());
     }
@@ -191,7 +191,7 @@ namespace spncci
     }
 
     private:
- 
+
   };
 
   // ////////////////////////////////////////////////////////////////
@@ -201,7 +201,7 @@ namespace spncci
   class SpaceSpBasis
     : public basis::BaseDegenerateSpace<SubspaceSpBasis>
   {
-    
+
     public:
 
     // constructor
@@ -237,7 +237,7 @@ namespace spncci
 
     // constructor
 
-    SectorsSpBasis() {};
+    SectorsSpBasis() = default;
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 

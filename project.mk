@@ -33,6 +33,8 @@ modules += programs/operators programs/unit_tensors programs/su3calc programs/va
 modules += programs/linear_algebra
 modules += programs/spncci programs/lgi
 
+modules += programs/rotor
+
 ################################################################
 # extras -- list of extra files to be included
 # in distribution tar file
@@ -50,7 +52,9 @@ LDLIBS += -lgslcblas
 CPPFLAGS += -DHAVE_INLINE
 
 # MKL and ScaLAPACK
-LDLIBS += -mkl 
+CXXFLAGS += $(MKL_CXXFLAGS)
+LDFLAGS += $(MKL_LDFLAGS)
+LDLIBS += $(MKL_LDLIBS)
 #LDLIBS += -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64
 
 # Eigen

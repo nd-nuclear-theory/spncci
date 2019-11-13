@@ -13,8 +13,11 @@
 #ifndef SPNCCI_SPNCCI_DECOMPOSITION_H_
 #define SPNCCI_SPNCCI_DECOMPOSITION_H_
 
+// #include <iostream>
+#include <fstream>
 #include "spncci/branching2.h"
 #include "spncci/branching.h"
+#include "spncci/parameters.h"
 
 namespace spncci
 {
@@ -93,6 +96,33 @@ void CalculateBabySpNCCIDecompositions(
   //   baby_spncci_decompositions (output): decompositions of eigenvectors
   //   baby_spncci_space_size (input): number of BabySpNCCI subspaces
   //     (used to size the decomposition matrix)
+
+  void GenerateDecompositions(
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      const spncci::RunParameters& run_parameters,
+      const std::vector<spncci::Matrix>& eigenvectors,
+      double hw,
+      std::ofstream& results_stream
+      );
+
+  // Generate decompositions of spncci wavefunctions by Sp(3,R)>U(3) and Nmax
+  // and then writes decompositions to results_stream.
+
+  void GenerateDecompositions(
+      const spncci::BabySpNCCISpace& baby_spncci_space,
+      const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      const spncci::RunParameters& run_parameters,
+      double hw,
+      std::ofstream& results_stream
+      );
+  // First reads in eigenvectors from file, then generates 
+  // decompositions of spncci wavefunctions by Sp(3,R)>U(3) and Nmax.
+  // Writes resulting decompositions to results_stream.
+
+  // Eigenvectors are spected to be in files (one for each J and hw) with name:
+  //    "eigenvector_2J_hw.dat" 
+
 
 }  // namespace
 

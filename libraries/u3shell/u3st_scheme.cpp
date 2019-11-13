@@ -20,13 +20,13 @@ namespace u3shell {
     // set values
     labels_ = SubspaceLabelsType(N,S,T,g);
     // validate subspace labels
-    assert(ValidLabels()); 
-    PushStateLabels(1); 
+    assert(ValidLabels());
+    PushStateLabels(1);
   }
 
   bool RelativeSubspaceU3ST::ValidLabels() const
   {
-    bool valid = true; 
+    bool valid = true;
     // truncation
     valid &= (N()+g())%2==0;
 
@@ -76,21 +76,22 @@ namespace u3shell {
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
         const SubspaceType& subspace = GetSubspace(subspace_index);
-        
-        std::string subspace_string 
+
+        std::string subspace_string
           = fmt::format(
               "index {:3} {} size {:3}",
               subspace_index,
               subspace.Str(),
               subspace.size()
             );
-                        
+
         os << subspace_string << std::endl;
       }
     return os.str();
   }
 
   RelativeSectorsU3ST::RelativeSectorsU3ST(RelativeSpaceU3ST& space)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -101,12 +102,13 @@ namespace u3shell {
 
           // push sectors (taking unit multiplicity)
           int multiplicity_index = 1;
-          PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
-          
+          PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
+
         }
   }
 
   RelativeSectorsU3ST::RelativeSectorsU3ST(RelativeSpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -140,7 +142,7 @@ namespace u3shell {
           if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
         }
   }
@@ -154,10 +156,10 @@ namespace u3shell {
     labels_ = SubspaceLabelsType(omega,S,T,g);
 
     // validate subspace labels
-    assert(ValidLabels()); 
+    assert(ValidLabels());
 
     // set up indexing
-    // iterate over oscillator quanta for particle 1 
+    // iterate over oscillator quanta for particle 1
     u3::SU3 x = omega.SU3();
     for (int Nr = 0; Nr <= N(); ++Nr)
       {
@@ -173,13 +175,13 @@ namespace u3shell {
           continue;
 
         // keep surviving states
-        PushStateLabels(StateLabelsType(Nr,Ncm)); 
+        PushStateLabels(StateLabelsType(Nr,Ncm));
       }
   }
 
   bool RelativeCMSubspaceU3ST::ValidLabels() const
   {
-    bool valid = true; 
+    bool valid = true;
     // truncation
     valid &= (N()+g())%2==0;
 
@@ -205,19 +207,19 @@ namespace u3shell {
       // for lambda in 0..N
       for (int lambda=0; lambda<=N; ++lambda)
         //for mu in 0..floor(N/2)
-        for (int mu=0; mu<=N/2; ++mu)       
+        for (int mu=0; mu<=N/2; ++mu)
           // for each S in 0..1
           for (int S=0; S<=1; ++S)
             // for each T in 0..1
             for (int T=0; T<=1; ++T)
-              
+
               {
                 // g is fixed by g~N
                 int g = N%2;
-                
+
                 // create U(3) label
                 u3::SU3 x(lambda,mu);
-                
+
                 // check validity of U(3) before attempting construction
                 if (!u3::U3::ValidLabels(N,x))
                   continue;
@@ -225,7 +227,7 @@ namespace u3shell {
                 // construct subspace
                 u3::U3 omega(N,x);
                 RelativeCMSubspaceU3ST subspace(omega,S,T,g);
-      
+
                 // push subspace if nonempty
                 if (subspace.size()!=0)
                   PushSubspace(subspace);
@@ -240,21 +242,22 @@ namespace u3shell {
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
   const SubspaceType& subspace = GetSubspace(subspace_index);
-        
-        std::string subspace_string 
+
+        std::string subspace_string
           = fmt::format(
               "index {:3} {} size {:3}",
               subspace_index,
               subspace.Str(),
               subspace.size()
             );
-                        
+
         os << subspace_string << std::endl;
       }
     return os.str();
   }
 
   RelativeCMSectorsU3ST::RelativeCMSectorsU3ST(RelativeCMSpaceU3ST& space)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -265,12 +268,13 @@ namespace u3shell {
 
           // push sectors (taking unit multiplicity)
           int multiplicity_index = 1;
-          PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
-          
+          PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
+
   }
   }
 
   RelativeCMSectorsU3ST::RelativeCMSectorsU3ST(RelativeCMSpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -303,7 +307,7 @@ namespace u3shell {
     if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
   }
   }
@@ -317,10 +321,10 @@ namespace u3shell {
     labels_ = SubspaceLabelsType(omega,S,T,g);
 
     // validate subspace labels
-    assert(ValidLabels()); 
+    assert(ValidLabels());
 
     // set up indexing
-    // iterate over oscillator quanta for particle 1 
+    // iterate over oscillator quanta for particle 1
     u3::SU3 x = omega.SU3();
     for (int N1 = 0; N1 <= N(); ++N1)
       {
@@ -340,14 +344,14 @@ namespace u3shell {
           continue;
 
         // keep surviving states
-        PushStateLabels(StateLabelsType(N1,N2)); 
+        PushStateLabels(StateLabelsType(N1,N2));
       }
 
   }
 
   bool TwoBodySubspaceU3ST::ValidLabels() const
   {
-    bool valid = true; 
+    bool valid = true;
     // truncation
     valid &= (N()+g())%2==0;
 
@@ -372,19 +376,19 @@ namespace u3shell {
       // for lambda in 0..N
       for (int lambda=0; lambda<=N; ++lambda)
         //for mu in 0..floor(N/2)
-        for (int mu=0; mu<=N/2; ++mu)      	
+        for (int mu=0; mu<=N/2; ++mu)
           // for each S in 0..1
           for (int S=0; S<=1; ++S)
             // for each T in 0..1
             for (int T=0; T<=1; ++T)
-              
+
               {
                 // g is fixed by g~N
                 int g = N%2;
-                
+
                 // create U(3) label
                 u3::SU3 x(lambda,mu);
-                
+
                 // check validity of U(3) before attempting construction
                 if (!u3::U3::ValidLabels(N,x))
                   continue;
@@ -392,7 +396,7 @@ namespace u3shell {
                 // construct subspace
                 u3::U3 omega(N,x);
                 TwoBodySubspaceU3ST subspace(omega,S,T,g);
-			
+
                 // push subspace if nonempty
                 if (subspace.size()!=0)
                   PushSubspace(subspace);
@@ -407,21 +411,22 @@ namespace u3shell {
     for (int subspace_index=0; subspace_index<size(); ++subspace_index)
       {
 	const SubspaceType& subspace = GetSubspace(subspace_index);
-        
-        std::string subspace_string 
+
+        std::string subspace_string
           = fmt::format(
               "index {:3} {} size {:3}",
               subspace_index,
               subspace.Str(),
               subspace.size()
             );
-                        
+
         os << subspace_string << std::endl;
       }
     return os.str();
   }
 
   TwoBodySectorsU3ST::TwoBodySectorsU3ST(TwoBodySpaceU3ST& space)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -432,12 +437,13 @@ namespace u3shell {
 
           // push sectors (taking unit multiplicity)
           int multiplicity_index = 1;
-          PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
-          
+          PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
+
 	}
   }
 
   TwoBodySectorsU3ST::TwoBodySectorsU3ST(TwoBodySpaceU3ST& space, const OperatorLabelsU3ST& operator_labels)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -470,7 +476,7 @@ namespace u3shell {
 	  if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
 	}
   }

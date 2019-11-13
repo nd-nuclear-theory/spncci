@@ -434,6 +434,7 @@ namespace spncci
       const spncci::BabySpNCCISpace& space,
       const u3shell::OperatorLabelsU3S& operator_labels
     )
+    : BaseSectors(space)
   // Based loosely on u3shell::SectorsU3SPN constructor.
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
@@ -471,7 +472,7 @@ namespace spncci
           if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
         }
   }

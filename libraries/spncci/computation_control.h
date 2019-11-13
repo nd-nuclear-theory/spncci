@@ -43,11 +43,15 @@
 #include "spncci/parameters.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/parameters.h"
+#include "spncci/vcs_cache.h"
+#include "spncci/branching2.h"
 
 
 namespace spncci
 {
-    void SetUpSpNCCISpaces(
+  void InitializeSpNCCI();
+
+  void SetUpSpNCCISpaces(
       spncci::RunParameters& run_parameters,
       lgi::MultiplicityTaggedLGIVector& lgi_families,
       spncci::SpNCCISpace& spncci_space,
@@ -56,26 +60,22 @@ namespace spncci
       spncci::SpaceSpU3S& spu3s_space,
       spncci::SpaceSpLS& spls_space,
       spncci::SpaceSpJ& spj_space,
-      std::ofstream& results_stream,
-      int Nlimit,
-      bool restrict_sp3r_to_u3_branching
+      std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      spncci::KMatrixCache& k_matrix_cache, 
+      spncci::KMatrixCache& kinv_matrix_cache,
+      int Nlimit
     );
-// void ComputeManyBodyRMEs(
-//   const spncci::RunParameters& run_parameters,
-//   const lgi::MultiplicityTaggedLGIVector& lgi_families,
-//   const std::vector<int>& lgi_full_space_index_lookup,
-//   const spncci::SpNCCISpace& spncci_space,
-//   const spncci::BabySpNCCISpace& baby_spncci_space,
-//   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
-//   const std::vector<u3shell::ObservableSpaceU3S>& observable_spaces,
-//   const std::vector<std::vector<u3shell::RelativeRMEsU3SSubspaces>>& observables_relative_rmes,
-//   const spncci::KMatrixCache& k_matrix_cache,
-//   const spncci::KMatrixCache& kinv_matrix_cache,
-//   spncci::OperatorBlocks& lgi_transformations,
-//   u3::UCoefCache& u_coef_cache,
-//   u3::PhiCoefCache& phi_coef_cache,
-//   const spncci::LGIPair& lgi_pair
-//   );
+  //Reads in lgi labels from file "lgi_families.dat"
+  //Constructs different spaces 
+
+   void SetUpSpNCCISpaces(
+      spncci::RunParameters& run_parameters,
+      lgi::MultiplicityTaggedLGIVector& lgi_families,
+      spncci::SpNCCISpace& spncci_space,
+      spncci::BabySpNCCISpace& baby_spncci_space,
+      std::vector<spncci::SpaceSpBasis>& spaces_spbasis
+    );
+   //Just sets up spaces used in spncci calculations.  No basis statistics
 
 }  // namespace
 

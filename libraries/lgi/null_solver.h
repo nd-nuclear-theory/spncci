@@ -7,6 +7,8 @@
   University of Notre Dame
 
   1/19/17 (aem,mac): Created.
+  10/10/19 (aem): Updated null solver to handel case when matrix
+    is zero matrix
 ****************************************************************/
 #ifndef NULL_SOLVER_H_
 #define NULL_SOLVER_H_

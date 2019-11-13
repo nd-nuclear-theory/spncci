@@ -126,7 +126,9 @@ namespace lgi
 
     for(int i=0; i<BrelNcm_matrices.size();++i)
       {
-        // std::cout<<BrelNcm_matrices[i]<<std::endl;
+        // std::cout<<"BrelNcm matrix "<<std::endl;
+        // std::cout<<BrelNcm_matrices[i]<<std::endl<<std::endl;
+
         Eigen::MatrixXd null_vectors;
         lgi::FindNullSpaceSVD(BrelNcm_matrices[i],null_vectors,threshold);
         // std::cout<<null_vectors<<std::endl;
@@ -227,7 +229,7 @@ void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_
   }
 
 
-void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
+void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
   {
 
     // num_rows, num_cols, rmes
@@ -254,11 +256,11 @@ void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks
         int num_rows=block.rows();
         int num_cols=block.cols();
 
-        assert(num_rows==static_cast<lgi::RMEIndexType>(num_rows));
-        mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_rows);
+        assert(num_rows==static_cast<lgi::LGIIndexType>(num_rows));
+        mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_rows);
 
-        assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
-        mcutils::WriteBinary<lgi::RMEIndexType>(expansion_file,num_cols);
+        assert(num_cols==static_cast<lgi::LGIIndexType>(num_cols));
+        mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_cols);
         
         for(int j=0; j<num_cols; ++j)
           for(int i=0; i<num_rows; ++i)
@@ -274,6 +276,75 @@ void WriteExpansion(const std::string& filename, const lsu3shell::OperatorBlocks
   }
 
       
+
+void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBlock& lgi_expansion)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::out;
+    mode_argument |= std::ios_base::binary;
+    std::ofstream expansion_file;
+    expansion_file.open(filename,mode_argument);
+
+    if (!expansion_file)
+     {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+     }
+   
+    // floating point precision
+    mcutils::WriteBinary<int>(expansion_file,lgi::binary_float_precision);
+
+    int num_rows=lgi_expansion.rows();
+    int num_cols=lgi_expansion.cols();
+
+    assert(num_rows==static_cast<lgi::LGIIndexType>(num_rows));
+    mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_rows);
+
+    assert(num_cols==static_cast<lgi::LGIIndexType>(num_cols));
+    mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_cols);
+    
+    for(int j=0; j<num_cols; ++j)
+      for(int i=0; i<num_rows; ++i)
+        {
+          auto rme=lgi_expansion(i,j);
+
+          if (lgi::binary_float_precision==4)
+            mcutils::WriteBinary<float>(expansion_file,rme);
+          else if (lgi::binary_float_precision==8)
+            mcutils::WriteBinary<double>(expansion_file,rme);
+        }
+  }
+  
+void WriteLGIExpansionsText(const std::string& filename, const lsu3shell::OperatorBlock& lgi_expansion)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row    
+    std::ofstream expansion_file;
+    expansion_file.open(filename);
+
+    if (!expansion_file)
+     {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+     }
+   
+    int num_rows=lgi_expansion.rows();
+    int num_cols=lgi_expansion.cols();
+    expansion_file << num_rows << num_cols<<std::endl;
+    
+    for(int j=0; j<num_cols; ++j)
+      for(int i=0; i<num_rows; ++i)
+          expansion_file<<lgi_expansion(i,j);
+        
+      expansion_file<<std::endl;
+  }
+
+
+
 
 
 void ReadLGIExpansion(int num_lgi_subspaces,const std::string& filename, basis::OperatorBlocks<double>& lgi_expansions)
@@ -302,10 +373,10 @@ void ReadLGIExpansion(int num_lgi_subspaces,const std::string& filename, basis::
     for(int i=0; i<num_lgi_subspaces; ++i)
       {
         basis::OperatorBlock<double>& block=lgi_expansions[i];
-        lgi::RMEIndexType rows, cols;
+        lgi::LGIIndexType rows, cols;
         // Read in number of rows and cols
-        mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,rows);
-        mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,cols);
+        mcutils::ReadBinary<lgi::LGIIndexType>(in_stream,rows);
+        mcutils::ReadBinary<lgi::LGIIndexType>(in_stream,cols);
 
         /////////////////////////////////////////////////////////////////////////////////
         // Read in RMEs and cast to double matrix 

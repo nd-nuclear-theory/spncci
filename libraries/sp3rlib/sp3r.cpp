@@ -12,7 +12,7 @@
 #include <sstream>
 #include <utility>
 
-#include "gsl/gsl_sf.h"  
+#include "gsl/gsl_sf.h"
 
 
 #include "sp3rlib/sp3r.h"
@@ -92,7 +92,7 @@
      std::string U3Subspace::DebugStr() const
      {
       std::ostringstream ss;
-      
+
     // print subspace labels
       u3::U3 omega = labels();
       ss << "subspace " << omega.Str() << std::endl;
@@ -125,7 +125,7 @@
     // enumerate states
     //
     // for each raising polynomial n
-    //   obtain all allowed couplings omega (sigma x n -> omega) 
+    //   obtain all allowed couplings omega (sigma x n -> omega)
     //     (with their multiplicities rho_max)
     //   for each allowed coupling omega
     //      store to states multimap as key value pair
@@ -145,7 +145,7 @@
         u3::U3 omega = omega_tagged.irrep;
         int rho_max = omega_tagged.tag;
         for(int rho=1; rho<=rho_max; ++rho)
-          states[omega].push_back(MultiplicityTagged<u3::U3>(n,rho));         
+          states[omega].push_back(MultiplicityTagged<u3::U3>(n,rho));
        }
      }
 
@@ -154,35 +154,19 @@
      {
       // retrieve omega key of this group of states
       u3::U3 omega = it->first;
-     
-      // retrieve upsilon multiplicity states  
-      const MultiplicityTagged<u3::U3>::vector& multiplicities=it->second;
-      
 
-      // set up subspace
-      //
-      // Note: Creation followed by push_back means U3Subspace is
-      // *copied* into vector.  
-      //
-      // Option 1: Define a lightweight
-      // constructor for U3Subspace, which just saves omega.  Push
-      // the (empty) subspace into the Sp3RSpace.  Then use an Init
-      // method to actually populate the subspace.  This runs up
-      // against "private" protections in BaseSubspace (which could
-      // be removed.)
-      //
-      // Option 2: Use C++11 emplace_back!  However, this requires
-      // also modifying BaseSubspace to provide an "EmplaceSubspace"
-      // with appropriate arguments, which would be difficult.
-       PushSubspace(U3Subspace(omega,multiplicities.size()));
-       subspaces_.back().Init(multiplicities);      
+      // retrieve upsilon multiplicity states
+      const MultiplicityTagged<u3::U3>::vector& multiplicities=it->second;
+
+      // emplace subspace into space
+      EmplaceSubspace(omega,multiplicities.size(),multiplicities);
      }
 
    }
 
 
   Sp3RSpace::Sp3RSpace(
-    const u3::U3& sigma, int Nn_max, 
+    const u3::U3& sigma, int Nn_max,
     const RestrictedSpanakopitaType& spanakopita
   )
   {
@@ -196,10 +180,8 @@
         // retrieve omega key of this group of states
         u3::U3 omega=it->first.irrep;
         int upsilon_max=it->first.tag;
-        PushSubspace(U3Subspace(omega,upsilon_max));
-
         const auto& states = it->second;
-        subspaces_.back().Init(states);
+        EmplaceSubspace(omega,upsilon_max,states);
       }
   }
 
@@ -227,7 +209,7 @@
     return ss.str();
   }
 
-  
+
   std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
   {
     // partition irreps by Nn
@@ -236,7 +218,7 @@
     std::vector<int> IrrepPartionN;
     for(int i=0; i<irrep.size(); i++ )
       {
-        u3::U3 omega=irrep.GetSubspace(i).labels();     
+        u3::U3 omega=irrep.GetSubspace(i).labels();
 
         if ( Nn_last!=int(omega.N()-Ns) )
           {

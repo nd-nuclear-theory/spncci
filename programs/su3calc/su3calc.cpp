@@ -45,6 +45,7 @@
 
   10/17/16 (mac): Create, extending su3_coupler.
   6/25/17 (mac): Update keywords.  Add SO(3) branching.
+  11/6/19 (aem): Fixed bug
 
 ****************************************************************/
 
@@ -115,7 +116,7 @@ void DoW(int lambda1, int mu1, int kappa1, int L1, int lambda2, int mu2, int kap
     << std::endl;
 
   // calculate
-  double value = u3::W(x1,kappa1,L2,x2,kappa2,L2,x3,kappa3,L3,rho0);
+  double value = u3::W(x1,kappa1,L1,x2,kappa2,L2,x3,kappa3,L3,rho0);
   std::cout << fmt::format("{:+.8f}",value) << std::endl;
 }
 
