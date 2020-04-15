@@ -33,12 +33,12 @@
             setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
 
         Ex (NERSC m2032):
-            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
-            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
-            setenv SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
-            setenv SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
-            setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
+            SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
+            SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
+            SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
+            SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
+            PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
         Example of pre-expanded rme files (see script/su3rme-untar.csh):
 
@@ -158,6 +158,10 @@ def generate_observable_rmes(task):
         {}_hw{:.1f}_Nmax{:02d}_u3st.dat
 
     """
+    # if relative_observabels directory already exist, remove and recreate fresh copy
+    if (os.path.exists("relative_observables")):
+        mcscript.call(["rm", "-r","relative_observables"])
+
 
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")

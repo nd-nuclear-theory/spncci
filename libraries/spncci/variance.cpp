@@ -7,6 +7,8 @@
 ****************************************************************/
 #include "spncci/variance.h"
 
+#include <fstream>
+
 #include "fmt/format.h"
 #include "spncci/hyperblocks_u3s.h"
 #include "spncci/eigenproblem.h"
@@ -365,6 +367,47 @@ void SortIrrepFamiliesByVariance(
       }
   }
 
+
+
+void SortIrrepFamiliesByVariance(
+    const std::vector<std::vector<std::vector<double>>>& variances,
+    const std::vector<int>& irrep_families_V,
+    int J_index, int eigenvalue_index,
+    std::vector<int>& irrep_families_by_variance,
+    std::vector<double>& variances_sorted,
+    double variance_threshold
+  )
+  // Orders irrep families from largest to smallest variance 
+  {
+    // Define set which will be used to sort irrep families from largest to smallest variance
+    // Set takes pair of values <variance,irrep_family_index>
+    //
+    // Insert variance, index pairs into set
+    std::set<std::pair<double,int>,std::greater<std::pair<double,int>>> irrep_family_sorter;
+    for(int i=0; i<irrep_families_V.size(); ++i)
+      {
+        int irrep_family_index=irrep_families_V[i];
+        double variance=variances[i][J_index][eigenvalue_index]; //Only 1 J values 
+        
+        // If variance is above threshold, include in sorter
+        if(variance>variance_threshold)
+          {
+            std::pair<double,int>key_value(variance,irrep_family_index);
+            irrep_family_sorter.insert(key_value); 
+          }
+      }
+
+    // Use sorter to define list of irrep family indices ordered according to variance
+    for(auto& key_value :irrep_family_sorter)
+      {
+        int irrep_family_index;
+        double variance;
+        std::tie(variance,irrep_family_index)=key_value;
+        irrep_families_by_variance.push_back(irrep_family_index);
+        variances_sorted.push_back(variance);
+        // std::cout<<"family: "<<irrep_family_index<<"  variance: "<<variance<<std::endl;
+      }
+  }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  // Removed from spncci main.  TODO: sort through and decide what to keep. 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -502,74 +545,84 @@ void TestingVariances(
     //Returns list of irrep families ordered by variance with repsect to reference_H
     // double variance_threshold=10;
     std::vector<int> irrep_families_by_variance_initial;
+    std::vector<double> variances_sorted;
     spncci::SortIrrepFamiliesByVariance(
       variances,irrep_families_V,J_index,
       eigenvalue_index,irrep_families_by_variance_initial,
-      variance_threshold
+      variances_sorted,variance_threshold
     );
 
-    // //Sort by Nsex
-    // std::vector<std::vector<int>> irrep_families_by_Nex;
-    // spncci::SortIrrepFamiliesByNex(
-    //   lgi_families,irrep_families_by_variance_initial,
-    //   irrep_families_by_Nex,run_parameters.Nmax
-    // );
+    //TODO: Remove for now.  May want to re-include later
+    //Sort by Nsex
+    std::vector<std::vector<int>> irrep_families_by_Nex;
+    spncci::SortIrrepFamiliesByNex(
+      lgi_families,irrep_families_by_variance_initial,
+      irrep_families_by_Nex,run_parameters.Nmax
+    );
 
-    // Resorting irrep families by Nex, then by variance if reference space increased each iteration
     std::vector<int> irrep_families_by_variance;
-    std::set<int> irrep_families_H=reference_H;
-    std::vector<int> irrep_families_by_variance_temp;
-    // for(std::vector<int> irrep_families_by_variance_temp : irrep_families_by_Nex)
-    //   { 
-        int num_iterations=irrep_families_by_variance_initial.size();
-        irrep_families_by_variance_temp=irrep_families_by_variance_initial;
-        for(int i=0; i<num_iterations; ++i)
-          {
-            int irrep_family_index=irrep_families_by_variance_temp[0];
-            
-            // std::cout<<"Adding family"<<irrep_family_index<<std::endl;
-            //Add to reference subspaces
-            irrep_families_H.insert(irrep_family_index);
+    for(auto list : irrep_families_by_Nex)
+      for(int index : list)
+        irrep_families_by_variance.push_back(index);
 
-            irrep_families_by_variance.push_back(irrep_family_index);
+    // // Resorting irrep families by Nex, then by variance if reference space increased each iteration
+    // std::vector<int> irrep_families_by_variance;
+    // std::set<int> irrep_families_H=reference_H;
+    // std::vector<int> irrep_families_by_variance_temp;
+    // // for(std::vector<int> irrep_families_by_variance_temp : irrep_families_by_Nex)
+    // //   { 
+    //     int num_iterations=irrep_families_by_variance_initial.size();
+    //     irrep_families_by_variance_temp=irrep_families_by_variance_initial;
+    //     for(int i=0; i<num_iterations; ++i)
+    //       {
+    //         int irrep_family_index=irrep_families_by_variance_temp[0];
+            
+    //         // std::cout<<"Adding family"<<irrep_family_index<<std::endl;
+    //         //Add to reference subspaces
+    //         irrep_families_H.insert(irrep_family_index);
+
+    //         irrep_families_by_variance.push_back(irrep_family_index);
           
-            std::vector<std::vector<std::vector<double>>> variances_temp;
-            std::vector<int> individual_irrep_families_V_temp;
-            spncci::GetVariancesForIrrepFamilies(
-              irrep_families,baby_spncci_space,observable_space,
-              observable_index,hw_index,run_parameters,
-              irrep_families_H,variances_temp,individual_irrep_families_V_temp
-            );
+    //         std::vector<std::vector<std::vector<double>>> variances_temp;
+    //         std::vector<int> individual_irrep_families_V_temp;
+    //         spncci::GetVariancesForIrrepFamilies(
+    //           irrep_families,baby_spncci_space,observable_space,
+    //           observable_index,hw_index,run_parameters,
+    //           irrep_families_H,variances_temp,individual_irrep_families_V_temp
+    //         );
 
-            // std::cout<<"Sorting by variance "<<std::endl;
-            irrep_families_by_variance_temp.resize(0);
+    //         // std::cout<<"Sorting by variance "<<std::endl;
+    //         irrep_families_by_variance_temp.resize(0);
             
-            spncci::SortIrrepFamiliesByVariance(
-              variances_temp, individual_irrep_families_V_temp,J_index,
-              eigenvalue_index,irrep_families_by_variance_temp
-            );
-          }
-      // }
+    //         spncci::SortIrrepFamiliesByVariance(
+    //           variances_temp, individual_irrep_families_V_temp,J_index,
+    //           eigenvalue_index,irrep_families_by_variance_temp
+    //         );
+    //       }
+    //   // }
   
 
-      ////////////////////////////////////////////////////////////////////////////////////////////
-      // reinitializing irrep_families_H with just the dominant irrep
-      irrep_families_H=reference_H; 
-      std::cout<<"Starting with irrep families:";
-      for (auto it=irrep_families_H.begin(); it != irrep_families_H.end(); ++it) 
-        std::cout << ' ' << *it; 
-      std::cout<<std::endl;
-      // std::cout<<"Dominant irrep family index "<<dominant_irrep_family_index<<std::endl;
-      // irrep_families_H.insert(dominant_irrep_family_index);
+    //   ////////////////////////////////////////////////////////////////////////////////////////////
+    //   // reinitializing irrep_families_H with just the dominant irrep
+    //   irrep_families_H=reference_H; 
+    //   std::cout<<"Starting with irrep families:";
+    //   for (auto it=irrep_families_H.begin(); it != irrep_families_H.end(); ++it) 
+    //     std::cout << ' ' << *it; 
+    //   std::cout<<std::endl;
+    //   // std::cout<<"Dominant irrep family index "<<dominant_irrep_family_index<<std::endl;
+    //   // irrep_families_H.insert(dominant_irrep_family_index);
 
       // For each irrep family index in with non-zero variance, add to H space one by one
       // and compute energies and variances
-      std::vector<std::pair<double,double>>variences_for_irrep_families(irrep_families_by_variance.size());
-      // for(const int irrep_family_index : irrep_families_by_variance)
-
-
+      // std::vector<std::pair<double,double>>variences_for_irrep_families(irrep_families_by_variance.size());
+    std::vector<std::pair<double,double>>variences_for_irrep_families(irrep_families_by_variance_initial.size());
+      
+      //Setting irrep families H to intial reference H 
+      std::set<int> irrep_families_H=reference_H;
       for(int i=0; i<irrep_families_by_variance.size(); ++i)
+      // for(int i=0; i<irrep_families_by_variance_initial.size(); ++i)
         {
+          // int irrep_family_index=irrep_families_by_variance_initial[i];
           int irrep_family_index=irrep_families_by_variance[i];
           irrep_families_H.insert(irrep_family_index);
           // std::cout<<"---------------------------------------------"<<std::endl;
@@ -617,13 +670,22 @@ void TestingVariances(
           variences_for_irrep_families[i]=std::pair<double,double>(eigenvalue,variance);
 
         }
+      std::ofstream out_file;
+      out_file.open("variances.dat");
+
+      // for(int i=0; i<irrep_families_by_variance_initial.size(); ++i)
       for(int i=0; i<irrep_families_by_variance.size(); ++i)
         {
+          // int irrep_family_index=irrep_families_by_variance_initial[i];
           int irrep_family_index=irrep_families_by_variance[i];
+          double individual_variance=variances_sorted[i];
           double eigenvalue,variance;
           std::tie(eigenvalue,variance)=variences_for_irrep_families[i];
-          std::cout<<fmt::format("{:8.4f}  {:8.4f}  {:3d}",variance,eigenvalue,irrep_family_index)<<std::endl;
+          //When doing Nex sorted variances, individual variance not correct
+          out_file<<fmt::format("{:3d}  {:8.4f}  {:8.4f}  {:8.4f}",irrep_family_index,individual_variance,eigenvalue,variance)<<std::endl;
+          std::cout<<fmt::format("{:3d}  {:8.4f}  {:8.4f}  {:8.4f}",irrep_family_index,individual_variance,eigenvalue,variance)<<std::endl;
         }
+      out_file.close();
   }
 
 

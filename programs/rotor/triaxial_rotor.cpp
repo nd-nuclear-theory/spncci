@@ -4,8 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-
-
+#include <math.h>
 #include "eigen3/Eigen/Dense"
 #include "fmt/format.h"
 #include "am/wigner_gsl.h"
@@ -13,9 +12,24 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 
+#define PI 3.14159265
 
 namespace rotor
 {
+
+  double GetGamma(const u3::SU3& x)
+  {return atan(sqrt(3)*(x.mu()+1)/(2*x.lambda()+x.mu()+3));}
+
+  void GetA(double alpha, double gamma, std::vector<double>&A)
+  // Based on np-8-1958-237-Davydov
+  {
+    A.resize(3);
+    for(int k=1; k<=3; ++k)
+      {
+        A[k-1]=alpha/sqr(sin(gamma-2*PI/3*k));
+      }
+  }
+
 
   void GetLambda(const u3::SU3& x, std::vector<double>& lambda)
   // Based on eq4.5 in zpa-329-1988-33-Castanos
@@ -47,34 +61,21 @@ namespace rotor
       std::vector<double> D;
       GetD(x,lambda,D);
 
+      //First coefficient      
+      coefs[0]=lambda[1]*lambda[2]/(2*sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
+      coefs[0]=coefs[0]+lambda[0]*lambda[2]/(2*sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
+      coefs[0]=coefs[0]+lambda[0]*lambda[1]/(2*sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
+      
+      //Second coefficient 
+      coefs[1]=lambda[0]/(2*sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
+      coefs[1]=coefs[1]+lambda[1]/(2*sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
+      coefs[1]=coefs[1]+lambda[2]/(2*sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
 
-      coefs[0]=0; 
-      for(int i=0; i<3; i++)
-        {
-          if(D[i]==0)
-            continue;
-          // std::cout<<coefs[0]<<std::endl;
-          // std::cout<<"D "<<D[i]<<"  lambda "<<lambda[i]<<"  A "<<A[i]<<std::endl;
-          // std::cout<<"lambdas "<<lambda[0]*lambda[1]*lambda[2]/D[i<<std::endl;
-          coefs[0]=coefs[0]+lambda[0]*lambda[1]*lambda[2]/D[i]*A[i];
-          // std::cout<<coefs[0]<<std::endl;
-        }
+      coefs[2]=1/(2*sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
+      coefs[2]=coefs[2]+1/(2*sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
+      coefs[2]=coefs[2]+1/(2*sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
+      
 
-      coefs[1]=0;
-      for(int i=0; i<3; i++)
-        {
-          if(D[i]==0)
-            continue;
-          coefs[1]+=lambda[i]*lambda[i]/D[i]*A[i];
-        }
-
-      coefs[2]=0;
-      for(int i=0; i<3; i++)
-        {
-          if(D[i]==0)
-            continue;
-          coefs[2]+=lambda[i]/D[i]*A[i];
-        }
     }
 
   // double casimirSU3=Casimir2(x);
@@ -113,18 +114,24 @@ namespace rotor
             for(int kappa_bar=1; kappa_bar<=kappa_bar_max; ++kappa_bar)
               {
                 
-                for(int m=1; m<=3; ++m)
+                for(int m=1; m<=1; ++m)
                 {
-                // std::cout<<"Lbar "<<Lbar<<"  "<<kappa_bar<<std::endl;
+                
+                // // std::cout<<"Lbar "<<Lbar<<"  "<<kappa_bar<<std::endl;
                 // std::cout<<"    "
-                // <<sqr(am::Unitary6J(L,1,L,2,Lbar,m))<<"  "
-                // <<u3::W(x,kappa_bar,Lbar,u3::SU3(1,1),1,2,x,kappap,L,1)<<"  "
-                // <<u3::W(x,kappa,L,u3::SU3(1,1),1,2,x,kappa_bar,Lbar,1)<<std::endl;
+                // <<am::Unitary6J(L,m,Lbar,m,L,0)<<"  "
+                // <<ParitySign(L+Lbar+m)*Hat(Lbar)/Hat(L)/Hat(m)<<std::endl;
+                // // <<sqr(am::Unitary6J(L,1,L,2,Lbar,m))<<"  "
+                // std::cout<<"SU3 coefs "
+                // <<L<<"  "<<Lbar<<"  "<<m<<std::endl
+                // <<kappa<<" "<<kappa_bar<<"  "<<kappap<<std::endl
+                // <<"  "<<u3::W(x,kappa_bar,Lbar,u3::SU3(1,1),1,2,x,kappap,L,1)<<"  "
+                // <<"  "<<u3::W(x,kappa,L,u3::SU3(1,1),1,2,x,kappa_bar,Lbar,1)<<std::endl;
 
-                rme+=ParitySign(L+Lbar+1)*Hat(Lbar)/Hat(L)*L*(L+1)
+
+                rme+=ParitySign(m)*Hat(m)
+                      *am::Unitary6J(L,m,Lbar,m,L,0)*L*(L+1)
                       *sqr(am::Unitary6J(L,1,L,2,Lbar,m))
-                      // *4*(x.lambda()+x.mu()+3)*(x.lambda()+x.mu())-x.lambda()*x.mu()
-                      // *6*Casimir2(x)
                       *u3::W(x,kappa_bar,Lbar,u3::SU3(1,1),1,2,x,kappap,L,1)
                       *u3::W(x,kappa,L,u3::SU3(1,1),1,2,x,kappa_bar,Lbar,1);
                 }
@@ -133,6 +140,37 @@ namespace rotor
          return rme*6*Casimir2(x);
       }
 
+
+  void GetHamiltonianMatrix(
+    const u3::SU3& x, const MultiplicityTagged<int>::vector& basis,
+    Eigen::MatrixXd& Hrot, std::vector<double>coefs
+  )
+    {
+
+      Hrot=Eigen::MatrixXd::Zero(basis.size(),basis.size());
+      for(int i=0; i<basis.size(); ++i)
+        {
+          auto& state=basis[i];
+          int L=state.irrep;
+          int kappa=state.tag;
+          for(int ip=0; ip<=i; ++ip)
+            {
+              auto& statep=basis[ip];
+              int Lp=statep.irrep;
+              int kappap=statep.tag;
+              if(Lp!=L)
+                continue;
+
+              double ham=coefs[0]*L*(L+1)
+                          +coefs[1]*rotor::X3RME(x,L,kappap,kappa)
+                          +coefs[2]*rotor::X4RME(x, L,kappap,kappa);
+
+              Hrot(i,ip)=ham;
+              Hrot(ip,i)=ham;
+            }
+        }
+    }
+ 
 
 }
 
@@ -150,6 +188,7 @@ int main(int argc, char **argv)
   // SU(3) caching
   u3::U3CoefInit();
 
+  // If we assum a maximially asymmetric (triaxial) rotor with lambda=mu
   u3::SU3 x(2,2);
   MultiplicityTagged<int>::vector Lvalues=BranchingSO3(x);
   MultiplicityTagged<int>::vector basis;
@@ -166,103 +205,119 @@ int main(int argc, char **argv)
 
   // Calculate coefficients
   std::vector<double> A(3);
-  // for(int i=0; i<3; ++i)
-  //   A[i]=rand()%10;
 
-  A[0]=0;
-  A[1]=-0.17;
-  A[2]=-0.01;
-  double a=-.065;
-  double b=-.01;
+  //Fit parameter
+  // double alpha=.108; (split=1)
+  double alpha=.075;
+  double split=.8;
 
+  double alpha1=split*alpha;
+
+  //Get angle based on SU(3) labels
+  double gamma=rotor::GetGamma(x);
+  std::cout<<"gamma is: "<<gamma/PI<<"Pi "<<std::endl;
+  
+
+  // A is based on Daydov model expression for moment of intertia
+  rotor::GetA(alpha1,gamma,A);
+  std::cout<<"A coefs"<<std::endl;
+  for(auto a : A)
+    std::cout<<a<<std::endl;
+
+  std::cout<<"-------"<<std::endl;
   std::vector<double> coefs;
   rotor::GetCoefs(x,A,coefs);
 
+  std::cout<<"Rotor coefs"<<std::endl;
   for(auto coef : coefs)
-    std::cout<<coef<<std::endl<<std::endl;
+    std::cout<<coef<<std::endl;
+ std::cout<<"-------"<<std::endl;
 
   // Construct matrix of Hrot_su3
-  Eigen::MatrixXd Hrot;
-  Hrot=Eigen::MatrixXd::Zero(basis.size(),basis.size());
-  for(int i=0; i<basis.size(); ++i)
-    {
-      auto& state=basis[i];
-      int L=state.irrep;
-      int kappa=state.tag;
-    for(int ip=0; ip<=i; ++ip)
-      {
-        auto& statep=basis[ip];
-        int Lp=statep.irrep;
-        int kappap=statep.tag;
-        if(Lp!=L)
-          continue;
+  Eigen::MatrixXd Hrot1;
+  rotor::GetHamiltonianMatrix(x,basis,Hrot1,coefs);
+  
 
-        // double ham=coefs[0]*L*(L+1)
-        //             +coefs[1]*rotor::X3RME(x,L,kappap,kappa)
-        //             +coefs[2]*rotor::X4RME(x, L,kappap,kappa);
+  std::cout<<Hrot1<<std::endl<<std::endl;
 
+  //Get eigenvalues
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver1(Hrot1);
 
-        double ham=a*rotor::X3RME(x,L,kappap,kappa)
-                    +b*rotor::X4RME(x, L,kappap,kappa);
+  int eigensolver_status1 = eigensolver1.info();
+  assert(eigensolver_status1==Eigen::Success);
 
+  // save eigenresults
+  auto eigenvalues1 = eigensolver1.eigenvalues();
+  auto eigenvectors1 = eigensolver1.eigenvectors();
 
-        // std::cout<<L<<"  "<<kappap<<"  "<<kappa<<"  "<<rotor::X3RME(x,L,kappap,kappa)<<"  "
-        //   <<rotor::X4RME(x, L,kappap,kappa)<<std::endl;
+  std::cout<<eigenvalues1<<std::endl<<std::endl;
 
-        Hrot(i,ip)=ham;
-        Hrot(ip,i)=ham;
-      }
-    }
-  for(auto a : A)
+  std::cout<<eigenvectors1<<std::endl;
+
+  std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  u3::SU3 x2(3,0);
+  double alpha2=alpha*(1-split);
+  double gamma2=rotor::GetGamma(x2);
+  std::cout<<"gamma is: "<<gamma2/PI<<"Pi "<<std::endl;
+  
+  std::vector<double> A2(3);
+  rotor::GetA(alpha2,gamma2,A2);
+  std::cout<<"A coefs"<<std::endl;
+  for(auto a : A2)
     std::cout<<a<<std::endl;
-  std::cout<<std::endl;
+
+  std::cout<<"-------"<<std::endl;
+  std::vector<double> coefs2;
+  rotor::GetCoefs(x2,A2,coefs2);
+  for(auto coef : coefs2)
+    std::cout<<coef<<std::endl;
+  std::cout<<"-------"<<std::endl;
+
+    // Construct matrix of Hrot_su3
+  Eigen::MatrixXd Hrot2;
+  rotor::GetHamiltonianMatrix(x,basis,Hrot2,coefs2);
+  
+
+  std::cout<<Hrot2<<std::endl<<std::endl;
+
+  //Get eigenvalues
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver2(Hrot2);
+
+  int eigensolver_status2 = eigensolver2.info();
+  assert(eigensolver_status2==Eigen::Success);
+
+  // save eigenresults
+  auto eigenvalues2 = eigensolver2.eigenvalues();
+  auto eigenvectors2 = eigensolver2.eigenvectors();
+
+  std::cout<<eigenvalues2<<std::endl<<std::endl;
+
+  std::cout<<eigenvectors2<<std::endl;
+
+  std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+
+  
+  Eigen::MatrixXd Hrot=Hrot1+Hrot2;
 
   std::cout<<Hrot<<std::endl<<std::endl;
 
-  // spncci::Vector& eigenvalues,
-  // spncci::Matrix& eigenvectors,
-  
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(Hrot);
+  //Get eigenvalues
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(Hrot);
 
-    int eigensolver_status = eigensolver.info();
-    assert(eigensolver_status==Eigen::Success);
+  int eigensolver_status = eigensolver.info();
+  assert(eigensolver_status==Eigen::Success);
 
-    // save eigenresults
-    auto eigenvalues = eigensolver.eigenvalues();
-    auto eigenvectors = eigensolver.eigenvectors();
+  // save eigenresults
+  auto eigenvalues = eigensolver.eigenvalues();
+  auto eigenvectors = eigensolver.eigenvectors();
 
-    std::cout<<eigenvalues<<std::endl<<std::endl;
+  std::cout<<eigenvalues<<std::endl<<std::endl;
 
-    std::cout<<eigenvectors<<std::endl;
+  std::cout<<eigenvectors<<std::endl;
 
+std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+std::cout<<"Testing "<<std::endl;
 
-
-
-// u3::SU3 x1(1,1);
-// double c2=(x.lambda()+x.mu()+3)*(x.lambda()+x.mu())-x.lambda()*x.mu();
-// double me=-1*u3::W(x,1,3,u3::SU3(1,1),1,1,x,1,3,1)*2*sqrt(c2/3);
-// std::cout<<"me "<<me<<"  "<<sqrt(3*4)/me<<std::endl;
-
-// // double sum=0;
-// double sum1=0;
-// for(auto state : basis)
-//   {
-//     int L=state.irrep;
-//     int k=state.tag;
-    
-    
-//     for(int L1=1; L1<=2; L1++)
-//     // for(statep : basis)
-//       {
-//         // int Lp=statep.irrep;
-//         // int kp=statep.tag;
-//         sum1+=u3::W(x,k,L,x1,1,L1,x,1,3,1)*u3::W(x,k,L,x1,1,L1,x,1,3,1);
-//         // sum1+=u3::W(x,k,L,x1,1,L1,x,1,3,1)*u3::W(x,k,L,x1,1,L1,x,1,3,1);
-
-//       }
-    
-//   }
-// std::cout<<"  sum: "<<sum1<<std::endl;
-// std::cout<<u3::W(x,1,3,u3::SU3(1,1),1,2,x,1,3,1)<<std::endl;
 
 }

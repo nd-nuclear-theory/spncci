@@ -256,6 +256,9 @@ namespace spncci
     const spncci::SpaceSpBasis& spbasis,
     std::vector<std::vector<int>>& offsets
     );
+    // Iterate through J-branched spbasis and identify starting position
+    // of each irrep family in the basis listing.  Starting index stored
+    // in offsets indexed by subspace index. Subspaces are (sigma,Sp,Sn,S)
 
   void ConstructOperatorMatrix(
     const spncci::BabySpNCCISpace& baby_spncci_space,

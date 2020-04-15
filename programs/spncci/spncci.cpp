@@ -333,6 +333,9 @@ int main(int argc, char **argv)
   u3shell::RelativeUnitTensorSpaceU3S
     unit_tensor_space(run_parameters.Nmax,run_parameters.N1v,unit_tensor_labels);
 
+  // std::cout<<"unit tensor space "<<unit_tensor_space.size()<<std::endl;
+  // std::cout<<unit_tensor_space.Str()<<std::endl;
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //  Read in observables
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -402,6 +405,7 @@ int main(int argc, char **argv)
   // Otherwise, get standard set of lgi pairs
   else
     spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs);
+    
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -454,11 +458,15 @@ int main(int argc, char **argv)
       //
       // Note: Only observable hypersectors with irrep_family_bra>=irrep_family_ket written to files
       // If diagonal sector, only upper triangle stored.  --Is this still correct?
+
       for(int i=0; i<lgi_pairs.size(); ++i)
         {
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
           // mcutils::SteadyTimer timer_pair;
           // timer_pair.Start();
+          // #pragma omp critical
+          // 	std::cout<<"computing for lgi pair "<<i<<std::endl;
+
           spncci::ComputeManyBodyRMEs(
               run_parameters,lgi_families,lgi_full_space_index_lookup,
               spncci_space,baby_spncci_space,unit_tensor_space, observable_spaces,
@@ -484,7 +492,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // calculation mesh master loop
   ////////////////////////////////////////////////////////////////
-
+  // assert(0);
   // timing start
   mcutils::SteadyTimer timer_mesh;
   timer_mesh.Start();
@@ -496,6 +504,34 @@ int main(int argc, char **argv)
   std::cout << "Calculation mesh master loop..." << std::endl;
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
     {
+
+      //Variance truncation testing 
+      if(false)
+      {
+        int observable_index=0;
+        int J_index=1;
+        int eigenvalue_index=0;
+        double variance_threshold=0.0;
+
+        // initialize H space 
+        int dominant_irrep_family_index=3;
+        int subdominant_irrep_family_index=5;
+        std::set<int> reference_H; 
+        reference_H.insert(dominant_irrep_family_index);
+        reference_H.insert(subdominant_irrep_family_index);
+
+        //initialize list of irrep families
+        std::vector<int> irrep_families;
+        for(int i=0; i<lgi_families.size(); ++i)
+          irrep_families.push_back(i);
+
+        //Test variance calculation
+        spncci::TestingVariances(
+          run_parameters, hw_index,J_index,eigenvalue_index,
+          baby_spncci_space,observable_spaces,irrep_families,
+          reference_H,lgi_families,variance_threshold
+        );
+      }
 
       // retrieve mesh parameters
       double hw = run_parameters.hw_values[hw_index];
@@ -556,32 +592,27 @@ int main(int argc, char **argv)
             std::cout<<"  Constructing Hamiltonian matrix"<<std::endl;
 
             spncci::OperatorBlock hamiltonian_matrix;
-            // spncci::ConstructSymmetricOperatorMatrix(
-            //     baby_spncci_space,observable_space,
-            //     J00,spbasis_bra,spbasis_ket,lgi_pairs,
-            //     observable_index, hw_index,
-            //     hamiltonian_matrix
-            //   );
-
-            // spncci::OperatorBlock operator_matrix2;
-            std::string filename = fmt::format(
+             std::string filename = fmt::format(
                 "hamiltonian-hw{:04.1f}-J{:03.1f}",
                 run_parameters.hw_values.at(hw_index), float(J)
               );
             std::cout<<"filename is "<<filename<<std::endl;
 
-            spncci::WriteSymmetricOperatorMatrix(
-              baby_spncci_space,observable_space,
-              J00,spbasis_bra, spbasis_ket, lgi_pairs,
-              observable_index,hw_index,filename
-            );
+            if(false)
+              { 
+                spncci::WriteSymmetricOperatorMatrix(
+                  baby_spncci_space,observable_space,
+                  J00,spbasis_bra, spbasis_ket, lgi_pairs,
+                  observable_index,hw_index,filename
+                );
+              }
             spncci::ConstructSymmetricOperatorMatrix(
               baby_spncci_space,observable_space,
               J00,spbasis_bra, spbasis_ket, lgi_pairs,
               observable_index,hw_index,hamiltonian_matrix
             );
 
-
+            // assert(0);
             timer_hamiltonian.Stop();
             std::cout<<fmt::format("    time: {}",timer_hamiltonian.ElapsedTime())<<std::endl;
 
@@ -605,7 +636,6 @@ int main(int argc, char **argv)
             int binary_float_precision=8;
             std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
             spncci::WriteEigenvectors(eigenvectors_J,J,eigv_filename,binary_float_precision);
-
             //////////////////////////////////////////////////////////////////
           }
 
@@ -650,15 +680,16 @@ int main(int argc, char **argv)
         }
 
 
-      // std::cout<<"calculate observable results"<<std::endl;
+      std::cout<<"calculate observable results"<<std::endl;
       for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
         {
+          std::cout<<"starting observable loop for observable "<<observable_index<<std::endl;
           HalfInt J0 = run_parameters.observable_J0_values[observable_index];
           auto&sectors=observable_sectors[observable_index];
 
           observable_results_matrices[observable_index].resize(sectors.size());
 
-          // std::cout<<"Get corresponding observable space"<<std::endl;
+          std::cout<<"Get corresponding observable space"<<std::endl;
           const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
           for(int sector_index=0; sector_index<sectors.size(); ++sector_index)
@@ -672,6 +703,7 @@ int main(int argc, char **argv)
               const HalfInt bra_J=run_parameters.J_values[bra_index];
               const HalfInt ket_J=run_parameters.J_values[ket_index];
 
+              std::cout<<"for "<<bra_J<<"  "<<ket_J<<std::endl;
               spncci::OperatorBlock observable_block;
               spncci::ConstructSymmetricOperatorMatrix(
                   baby_spncci_space,observable_space,

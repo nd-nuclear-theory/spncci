@@ -8,6 +8,7 @@ $(eval $(begin-module))
 # module_units_cpp-h := 
 # module_units_f := 
 module_programs_cpp := generate_relative_u3st_operators truncate_interaction
+module_programs_cpp += test_operator_symmetries
 # module_programs_f :=
 # module_generated :=
 

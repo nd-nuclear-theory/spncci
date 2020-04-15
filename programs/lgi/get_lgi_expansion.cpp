@@ -28,7 +28,7 @@
 
   Output if "individual" file partition chosen, creates input files for LSU3Shell code SU3RME_Sp3R_MPI
       Lgi_families.dat
-        Contians Nex lambda mu 2Sp 2Sn 2S <lgi_expansions_filename>
+        Contains Nex lambda mu 2Sp 2Sn 2S <lgi_expansions_filename>
       
       For each lgi, there is a separate binary file containing the lgi expansion called    
           lgi_expansions_Nex_lambda_mu_2Sp_2Sn_2S.dat 
@@ -118,9 +118,10 @@ int main(int argc, char **argv)
   std::string su3rme_filename_base="lsu3shell_rme";
   std::string lsu3shell_basis_filename=su3rme_filename_base+"/lsu3shell_basis.dat"; // Will need to include path to file
 
-  // Generate Nsigma0 from nuclei and type 
+  // Generate Nsigma0 and N1v from nuclei and type 
   HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
-
+  int N1v=spncci::ValenceShellForNuclide(nuclide);
+  
   // Operator parameters
   std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
   std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
@@ -128,8 +129,6 @@ int main(int argc, char **argv)
   // Unit tensor parameters
   int J0=-1;
   int T0=-1;
-
-  int N1v=spncci::ValenceShellForNuclide(nuclide);
 
   ////////////////////////////////////////////////////////////////
   // read lsu3shell basis
@@ -239,12 +238,7 @@ int main(int argc, char **argv)
           <<std::endl;
 
           lgi::WriteLGIExpansionsText(expansion_filename, lgi_expansion);
-          // std::cout<<"Code incomplete.  Please use different partition option"<<std::endl;
-          // lgi::WriteLGIExpansions(expansion_filename,lgi_expansion);
         }
-
-
-      // file_partition!="individual-text"
     }
     
 }

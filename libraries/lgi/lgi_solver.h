@@ -86,7 +86,7 @@ void GetLGIExpansion(
     lsu3shell::OperatorBlocks& lgi_expansions,
     std::vector<int>& lsu3shell_index_lookup_table
   );
-  // Get list of LGI labels, multiplicities and expansion in lsu3shell basis
+  // Get list of LGI labels and multiplicities and lgi expansions in lsu3shell basis
   //
   // Inputs
   //  lsu3shell_basis_table,lsu3shell_space,  Filenames and A

@@ -219,15 +219,14 @@ namespace spncci
 
 
 
-
-
-
-
   void GetSpBasisOffsets(
     const spncci::SpaceSpBasis& spbasis,
     std::vector<std::vector<int>>& offsets
     )
   {
+    // Iterate through J-branched basis and identify starting position
+    // of each irrep family in the basis listing.  Starting index stored
+    // in offsets indexed by subspace index. 
     offsets.resize(spbasis.size());
     int offset=0;
     for(int subspace_index=0; subspace_index<spbasis.size(); ++subspace_index)
@@ -243,17 +242,6 @@ namespace spncci
           }
       }
     assert(spbasis.FullDimension()==offset);
-    // std::cout<<"getting offsets "<<std::endl;
-    // std::cout<<"full dimension "<<spbasis.FullDimension()<<std::endl;
-    // for(int subspace_index=0; subspace_index<spbasis.size(); ++subspace_index)
-    //   {
-    //     const spncci::SubspaceSpBasis& subspace=spbasis.GetSubspace(subspace_index);
-    //     for(int state_index=0; state_index<subspace.size(); ++state_index)
-    //       {
-    //         std::cout<<subspace_index<<"  "<<state_index<<"  "<<offsets[subspace_index][state_index]<<std::endl;
-    //       }
-    //   }
-
   }
 
 
