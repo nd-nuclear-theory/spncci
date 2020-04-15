@@ -786,7 +786,8 @@ void GetOperatorTile(
         const int start_index_bra=offsets_bra_subspace[0];
         const int start_index_ket=offsets_ket_subspace[0];
 
-        // std::cout<<"Put tile in matrix"<<std::endl;
+        // std::cout<<"Put tile in matrix "<<start_index_bra<<"  "<<start_index_ket<<std::endl;
+        // std::cout<<tile<<std::endl;
         operator_matrix.block(start_index_bra,start_index_ket,tile_dimension_bra,tile_dimension_ket)=tile;
         
         
@@ -848,7 +849,7 @@ void GetOperatorTile(
             // std::cout<<"tile size "<<adjoint_tile.rows()<<"  "<<adjoint_tile.cols()<<std::endl;
             operator_matrix.block(start_index_bra_adjoint,start_index_ket_adjoint,
                                   tile_dimension_bra_adjoint,tile_dimension_ket_adjoint)
-              =adjoint_tile.transpose();
+              =ParitySign(J-Jp)*Hat(J)/Hat(Jp)*adjoint_tile.transpose();
           }
 
       } //lgi_pair

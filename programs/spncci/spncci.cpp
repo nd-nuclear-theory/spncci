@@ -689,7 +689,7 @@ int main(int argc, char **argv)
 
           observable_results_matrices[observable_index].resize(sectors.size());
 
-          std::cout<<"Get corresponding observable space"<<std::endl;
+          // std::cout<<"Get corresponding observable space"<<std::endl;
           const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
           for(int sector_index=0; sector_index<sectors.size(); ++sector_index)
@@ -704,6 +704,11 @@ int main(int argc, char **argv)
               const HalfInt ket_J=run_parameters.J_values[ket_index];
 
               std::cout<<"for "<<bra_J<<"  "<<ket_J<<std::endl;
+              
+              //TEMP
+              if (bra_J>ket_J)
+                continue;
+
               spncci::OperatorBlock observable_block;
               spncci::ConstructSymmetricOperatorMatrix(
                   baby_spncci_space,observable_space,
@@ -712,17 +717,33 @@ int main(int argc, char **argv)
                   observable_block
                 );
 
+              // std::cout<<mcutils::FormatMatrix(observable_block,"+.4f")<<std::endl;
 
-              std::cout<<"calculate observable results"<<std::endl;
+              spncci::OperatorBlock observable_block2;
+              spncci::ConstructSymmetricOperatorMatrix(
+                  baby_spncci_space,observable_space,
+                  J0,spbasis_ket,spbasis_bra,lgi_pairs,
+                  observable_index, hw_index,
+                  observable_block2
+                );
+
+              spncci::OperatorBlock test=ParitySign(ket_J-bra_J)*Hat(ket_J)/Hat(bra_J)*observable_block2.adjoint()-observable_block;
+              if (not mcutils::IsZero(test,1e-5))
+              {            
+                std::cout<<mcutils::FormatMatrix(observable_block,"+.2f")<<std::endl
+                <<std::endl<<mcutils::FormatMatrix(observable_block2,"+.2f")<<std::endl;
+                std::cout<<std::endl<<mcutils::FormatMatrix(test,"+.2f")<<std::endl;
+              // std::cout<<"calculate observable results"<<std::endl;
+              }
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
               observable_results_matrix = eigenvectors[bra_index].transpose()
                 * observable_block
                 * eigenvectors[ket_index];
 
-              std::cout
-                << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
-                << std::endl;
+              // std::cout
+              //   << fmt::format("Observable {} bra_J {} ket_J {}",observable_index,bra_J,ket_J)
+              //   << std::endl;
             }
         }
 
