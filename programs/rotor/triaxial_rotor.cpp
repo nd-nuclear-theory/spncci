@@ -87,6 +87,7 @@ namespace rotor
       }
 
     double X3RME(const u3::SU3& x, int L, int kappap, int kappa)
+    // [LxQ].L
       {
         
         // std::cout<<"       "<<L<<"  "<<kappa<<"  "<<kappap<<"    "<<am::Unitary6J(L,2,L,1,L,1)<<"  "
@@ -102,6 +103,7 @@ namespace rotor
 
 
     double X4RME(const u3::SU3& x, int L, int kappap, int kappa)
+    // [LxQ].[QxL]
       {
         // std::cout<<std::endl<<"Calculating X4"<<std::endl;
         // std::cout<<kappap<<"  "<<kappa<<std::endl;

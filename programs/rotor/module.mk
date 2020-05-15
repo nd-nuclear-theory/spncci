@@ -7,7 +7,7 @@ $(eval $(begin-module))
 # module_units_h := 
 # module_units_cpp-h := 
 # module_units_f := 
-module_programs_cpp := triaxial_rotor
+module_programs_cpp := triaxial_rotor sp3r_rotor
 module_programs_cpp +=  
 # module_programs_f :=
 # module_generated :=
