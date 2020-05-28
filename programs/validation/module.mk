@@ -7,8 +7,7 @@ $(eval $(begin-module))
 # module_units_h := 
 # module_units_cpp-h := 
 # module_units_f := 
-module_programs_cpp := check_wcoef_orthogonality conjugation_matrix_check
-module_programs_cpp += 
+module_programs_cpp_test := check_wcoef_orthogonality conjugation_matrix_check
 # module_programs_f :=
 # module_generated :=
 
