@@ -9,8 +9,6 @@ $(eval $(begin-module))
 # module_units_f := 
 module_programs_cpp := get_lgi_expansion get_spncci_seed_blocks
 module_programs_cpp += transform_seed_blocks 
-module_programs_cpp += generate_truncated_lsu3shell_basis
-module_programs_cpp += test_lsu3shell
 ## module_programs_cpp += get_spncci_dimensions
 # module_programs_f :=
 # module_generated :=
