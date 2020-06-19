@@ -103,6 +103,22 @@
 CXXFLAGS += -DCPP0X_STD_TR1
 CXXFLAGS += -DNDEBUG
 
+#Additional flags from T. Dytrych config file 
+MPICXX := CC
+LDLIBS += -dynamic
+LDLIBS += -lsci_gnu
+CXXFLAGS += -ffast-math -funroll-loops
+CXXFLAGS += $(GSL_INC)
+FC := ftn -frecursive
+FFLAGS += -O3
+FFLAGS += -fopenmp
+FFLAGS += -ffast-math -funroll-loops
+fortran_libs := -lgfortran
+
+
+# keep binaries separate by target architecture
+install_prefix := $(install_prefix)/su3shell
+
 # Eigen
 #
 # Provide special "include" path, since lsu3shell #include directives use a
@@ -112,7 +128,7 @@ search_dirs_include +=  $(EIGEN3_DIR)/include/eigen3
 
 # Boost library
 
-search_prefix += $(BOOST_ROOT)
+search_prefix += $(BOOST_ROOT) $(BOOST_DIR)
 LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono 
 
 # GNU OpenMP library
