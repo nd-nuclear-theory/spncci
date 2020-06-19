@@ -24,11 +24,6 @@ namespace lsu3shell
   // data structures for lsu3shell basis labels
   ////////////////////////////////////////////////////////////////
 
-  // TODO: Abolish confusingly abbreviated "LSU3" in favor of
-  // "LSU3Shell" in all names. DONE
-  //
-  // grep -r LSU3ShellBasis . --include="*.h" --include="*.cpp" -l   
-
   struct LSU3ShellBasisGroupLabels
   // Data on the "multiplicity group" underlying an lsu3shell basis state.
   //
