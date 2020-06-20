@@ -109,10 +109,14 @@ discussion and procedures in ndconfig/INSTALL.md.
 
   || @NERSC:
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  || % source ~/code/spncci/ndconfig/env-gnu-nersc.csh
+  || % source ~/code/spncci/config/ndconfig/env-gnu-nersc.csh
   || % module load cray-libsci
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+  Or, we have wrapped these together as
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  || % source ~/code/spncci/config/lsu3shell/env-gnu-nersc.csh
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
   Although a parallel make is much faster, the fortran libraries cannot be made
   in parallel.  So, it is fastest if you build them first:
 
