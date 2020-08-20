@@ -405,8 +405,7 @@ int main(int argc, char **argv)
   // Otherwise, get standard set of lgi pairs
   else
     spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs);
-    
-
+    // lgi_pairs.emplace_back(5,5);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // If transforming LGI basis
@@ -636,6 +635,7 @@ int main(int argc, char **argv)
             int binary_float_precision=8;
             std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
             std::cout<<"write eigenvector"<<std::endl;
+            std::cout<<eigenvectors_J<<std::endl;
             spncci::WriteEigenvectors(eigenvectors_J,J,eigv_filename,binary_float_precision);
             //////////////////////////////////////////////////////////////////
           }
@@ -740,7 +740,7 @@ int main(int argc, char **argv)
               // }
               //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-              Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
+              // Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
               observable_results_matrix = eigenvectors[bra_index].transpose()
                 * observable_block

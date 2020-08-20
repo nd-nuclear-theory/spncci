@@ -173,6 +173,69 @@ namespace rotor
         }
     }
  
+  //Fit parameter
+  // double alpha=.108; (split=1) 
+// No spliting over irreps 
+void GetSU3RotorEnergies(const u3::SU3& x, double alpha)
+{ 
+  //Construct basis for irrep by branching to SO(3)
+  MultiplicityTagged<int>::vector Lvalues=BranchingSO3(x);
+  MultiplicityTagged<int>::vector basis;
+  for(auto L_tagged : Lvalues)
+    {
+      int L=L_tagged.irrep;
+      int kappa_max=L_tagged.tag;
+      for(int kappa=1; kappa<=kappa_max; ++kappa)
+        {
+          basis.emplace_back(L,kappa);
+          std::cout<<L<<"  "<<kappa<<std::endl;
+        }
+    }
+
+  //Get angle based on SU(3) labels
+  double gamma=rotor::GetGamma(x);
+  std::cout<<"gamma is: "<<gamma/PI<<"Pi "<<std::endl;
+  
+  // Calculate coefficients
+  std::vector<double> A(3);
+
+  // A is based on Daydov model expression for moment of intertia
+  rotor::GetA(alpha,gamma,A);
+  // std::cout<<"A coefs"<<std::endl;
+  // for(auto a : A)
+  //   std::cout<<a<<std::endl;
+
+  //Compute coefficients for terms in the Hamiltonian  
+  std::vector<double> coefs;
+  rotor::GetCoefs(x,A,coefs);
+
+  // std::cout<<"Rotor coefs"<<std::endl;
+ //  for(auto coef : coefs)
+ //    std::cout<<coef<<std::endl;
+ // std::cout<<"-------"<<std::endl;
+
+  // Construct matrix of Hrot_su3
+  Eigen::MatrixXd Hrot;
+  rotor::GetHamiltonianMatrix(x,basis,Hrot,coefs);
+  
+
+  // std::cout<<Hrot1<<std::endl<<std::endl;
+
+  //Get eigenvalues
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(Hrot);
+
+  int eigensolver_status = eigensolver.info();
+  assert(eigensolver_status==Eigen::Success);
+
+  // save eigenresults
+  auto eigenvalues = eigensolver.eigenvalues();
+  auto eigenvectors = eigensolver.eigenvectors();
+
+  std::cout<<eigenvalues<<std::endl<<std::endl;
+
+  std::cout<<eigenvectors<<std::endl;
+
+}
 
 }
 
@@ -189,137 +252,95 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // SU(3) caching
   u3::U3CoefInit();
-
+  double alpha=1.0;
   // If we assum a maximially asymmetric (triaxial) rotor with lambda=mu
-  u3::SU3 x(2,2);
-  MultiplicityTagged<int>::vector Lvalues=BranchingSO3(x);
-  MultiplicityTagged<int>::vector basis;
-  for(auto L_tagged : Lvalues)
-    {
-      int L=L_tagged.irrep;
-      int kappa_max=L_tagged.tag;
-      for(int kappa=1; kappa<=kappa_max; ++kappa)
-        {
-          basis.emplace_back(L,kappa);
-          std::cout<<L<<"  "<<kappa<<std::endl;
-        }
-    }
+  if(true)
+  { u3::SU3 x(2,2);
+    std::cout<<x.Str()<<std::endl;
+    rotor::GetSU3RotorEnergies(x, alpha);
+    std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+  }
+  if(true)
+  {
+    u3::SU3 x(3,0);
+    std::cout<<x.Str()<<std::endl;
+    rotor::GetSU3RotorEnergies(x, alpha);
+    std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+  }
 
-  // Calculate coefficients
-  std::vector<double> A(3);
+  if(true)
+  {
+    u3::SU3 x(5,0);
+    std::cout<<x.Str()<<std::endl;
+    rotor::GetSU3RotorEnergies(x, alpha);
+    std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+  }
 
-  //Fit parameter
-  // double alpha=.108; (split=1)
-  double alpha=.075;
-  double split=.8;
-
-  double alpha1=split*alpha;
-
-  //Get angle based on SU(3) labels
-  double gamma=rotor::GetGamma(x);
-  std::cout<<"gamma is: "<<gamma/PI<<"Pi "<<std::endl;
-  
-
-  // A is based on Daydov model expression for moment of intertia
-  rotor::GetA(alpha1,gamma,A);
-  std::cout<<"A coefs"<<std::endl;
-  for(auto a : A)
-    std::cout<<a<<std::endl;
-
-  std::cout<<"-------"<<std::endl;
-  std::vector<double> coefs;
-  rotor::GetCoefs(x,A,coefs);
-
-  std::cout<<"Rotor coefs"<<std::endl;
-  for(auto coef : coefs)
-    std::cout<<coef<<std::endl;
- std::cout<<"-------"<<std::endl;
-
-  // Construct matrix of Hrot_su3
-  Eigen::MatrixXd Hrot1;
-  rotor::GetHamiltonianMatrix(x,basis,Hrot1,coefs);
-  
-
-  std::cout<<Hrot1<<std::endl<<std::endl;
-
-  //Get eigenvalues
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver1(Hrot1);
-
-  int eigensolver_status1 = eigensolver1.info();
-  assert(eigensolver_status1==Eigen::Success);
-
-  // save eigenresults
-  auto eigenvalues1 = eigensolver1.eigenvalues();
-  auto eigenvectors1 = eigensolver1.eigenvectors();
-
-  std::cout<<eigenvalues1<<std::endl<<std::endl;
-
-  std::cout<<eigenvectors1<<std::endl;
-
-  std::cout<<"-------------------------------------------------------------------------"<<std::endl;
   //////////////////////////////////////////////////////////////////////////////////////////////////
-  u3::SU3 x2(3,0);
-  double alpha2=alpha*(1-split);
-  double gamma2=rotor::GetGamma(x2);
-  std::cout<<"gamma is: "<<gamma2/PI<<"Pi "<<std::endl;
+
+
+//   u3::SU3 x2(3,0);
+//   double alpha2=alpha*(1-split);
+//   double gamma2=rotor::GetGamma(x2);
+//   std::cout<<"gamma is: "<<gamma2/PI<<"Pi "<<std::endl;
   
-  std::vector<double> A2(3);
-  rotor::GetA(alpha2,gamma2,A2);
-  std::cout<<"A coefs"<<std::endl;
-  for(auto a : A2)
-    std::cout<<a<<std::endl;
+//   std::vector<double> A2(3);
+//   rotor::GetA(alpha2,gamma2,A2);
+//   std::cout<<"A coefs"<<std::endl;
+//   for(auto a : A2)
+//     std::cout<<a<<std::endl;
 
-  std::cout<<"-------"<<std::endl;
-  std::vector<double> coefs2;
-  rotor::GetCoefs(x2,A2,coefs2);
-  for(auto coef : coefs2)
-    std::cout<<coef<<std::endl;
-  std::cout<<"-------"<<std::endl;
+//   std::cout<<"-------"<<std::endl;
+//   std::vector<double> coefs2;
+//   rotor::GetCoefs(x2,A2,coefs2);
+//   for(auto coef : coefs2)
+//     std::cout<<coef<<std::endl;
+//   std::cout<<"-------"<<std::endl;
 
-    // Construct matrix of Hrot_su3
-  Eigen::MatrixXd Hrot2;
-  rotor::GetHamiltonianMatrix(x,basis,Hrot2,coefs2);
+//     // Construct matrix of Hrot_su3
+//   Eigen::MatrixXd Hrot2;
+//   rotor::GetHamiltonianMatrix(x,basis,Hrot2,coefs2);
   
 
-  std::cout<<Hrot2<<std::endl<<std::endl;
+//   std::cout<<Hrot2<<std::endl<<std::endl;
 
-  //Get eigenvalues
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver2(Hrot2);
+//   //Get eigenvalues
+//   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver2(Hrot2);
 
-  int eigensolver_status2 = eigensolver2.info();
-  assert(eigensolver_status2==Eigen::Success);
+//   int eigensolver_status2 = eigensolver2.info();
+//   assert(eigensolver_status2==Eigen::Success);
 
-  // save eigenresults
-  auto eigenvalues2 = eigensolver2.eigenvalues();
-  auto eigenvectors2 = eigensolver2.eigenvectors();
+//   // save eigenresults
+//   auto eigenvalues2 = eigensolver2.eigenvalues();
+//   auto eigenvectors2 = eigensolver2.eigenvectors();
 
-  std::cout<<eigenvalues2<<std::endl<<std::endl;
+//   std::cout<<eigenvalues2<<std::endl<<std::endl;
 
-  std::cout<<eigenvectors2<<std::endl;
+//   std::cout<<eigenvectors2<<std::endl;
 
-  std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+//   std::cout<<"-------------------------------------------------------------------------"<<std::endl;
 
   
-  Eigen::MatrixXd Hrot=Hrot1+Hrot2;
+//   Eigen::MatrixXd Hrot=Hrot1+Hrot2;
 
-  std::cout<<Hrot<<std::endl<<std::endl;
+//   std::cout<<Hrot<<std::endl<<std::endl;
 
-  //Get eigenvalues
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(Hrot);
+//   //Get eigenvalues
+//   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(Hrot);
 
-  int eigensolver_status = eigensolver.info();
-  assert(eigensolver_status==Eigen::Success);
+//   int eigensolver_status = eigensolver.info();
+//   assert(eigensolver_status==Eigen::Success);
 
-  // save eigenresults
-  auto eigenvalues = eigensolver.eigenvalues();
-  auto eigenvectors = eigensolver.eigenvectors();
+//   // save eigenresults
+//   auto eigenvalues = eigensolver.eigenvalues();
+//   auto eigenvectors = eigensolver.eigenvectors();
 
-  std::cout<<eigenvalues<<std::endl<<std::endl;
+//   std::cout<<eigenvalues<<std::endl<<std::endl;
 
-  std::cout<<eigenvectors<<std::endl;
+//   std::cout<<eigenvectors<<std::endl;
 
-std::cout<<"-------------------------------------------------------------------------"<<std::endl;
-std::cout<<"Testing "<<std::endl;
+// std::cout<<"-------------------------------------------------------------------------"<<std::endl;
+// std::cout<<"Testing "<<std::endl;
 
 
 }

@@ -428,8 +428,9 @@ def get_lgi_file(task):
     else :
         mcscript.call(
             [
-                "ln",
-                "-s",
+                # "ln",
+                # "-s",
+                'cp',
                 task["truncation_filename"],
                 "lgi_families.dat"
             ]

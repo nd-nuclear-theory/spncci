@@ -8,6 +8,7 @@
 #include "fmt/format.h"
 #include "am/wigner_gsl.h"
 #include "am/am.h"
+#include "lgi/lgi.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/sp3r.h"
@@ -32,11 +33,17 @@ namespace sp3r
 
       Eigen::MatrixXd Q;
       if(omega.N()+2 == omegap.N())
-        Q = u3::W(omega.SU3(),kappa,L,u3::SU3(2,0),1,2,omegap.SU3(),kappap, Lp,1)
-            *sqrt(15.0/16.0/pi)*Sp3rRaisingOperator(sp3r_space, omegap, omega, K_matrices);
+        {
+          Q = u3::W(omega.SU3(),kappa,L,u3::SU3(2,0),1,2,omegap.SU3(),kappap, Lp,1)
+              *sqrt(15.0/16.0/pi)*Sp3rRaisingOperator(sp3r_space, omegap, omega, K_matrices);
+          std::cout<<"A "<<Sp3rRaisingOperator(sp3r_space, omegap, omega, K_matrices)<<std::endl;
+        }
       if(omega.N() == omegap.N())
+      {
         Q = u3::W(omega.SU3(),kappa,L,u3::SU3(1,1),1,2,omegap.SU3(),kappap, Lp,1)
             *sqrt(15.0/16.0/pi)*U3Operator(sp3r_space, omegap, omega);
+            std::cout<<"C11 "<<U3Operator(sp3r_space, omegap, omega)<<std::endl;
+      }
       if(omega.N()-2 == omegap.N())
         Q = u3::W(omega.SU3(),kappa,L,u3::SU3(0,2),1,2,omegap.SU3(),kappap, Lp,1)
             *sqrt(15.0/16/pi)*sp3r::Sp3rLoweringOperator(sp3r_space, omegap, omega, K_matrices);
@@ -66,21 +73,36 @@ int main(int argc, char **argv)
   // not currently used 
   double hbarc=197.327; //MeVfm
   double mc2=938.92; //MeV 
-  double hw=15.0; //MeV
+  double hw=20.0; //MeV
   double b2=hbarc*hbarc/mc2/hw;
+  std::cout<<b2<<std::endl;
   // coef=sqrt(15.0/16/pi)*b2;
 
   //7Be ground state band 
-  u3::U3 sigma(12,u3::SU3(3,0));
+  lgi::NuclideType nuclei;
+  nuclei[0]=4;
+  nuclei[1]=3;
+  HalfInt N0=lgi::Nsigma0ForNuclide(nuclei,true);
+  std::cout<<"N0 "<<N0<<std::endl;
+
+  u3::U3 sigma(N0,u3::SU3(3,0));
   HalfInt S(1,2);
   int Nmax=2;
   sp3r::Sp3RSpace sp3r_space(sigma,Nmax);
   vcs::MatrixCache K_matrices;
   vcs::GenerateKMatrices(sp3r_space,K_matrices);
+  std::cout<<"Kmatrices "<<std::endl;
+  for(auto it=K_matrices.begin(); it!=K_matrices.end(); ++it)
+    {
+        std::cout<<it->first.Str()<<std::endl;
+        auto matrix=it->second;
+        std::cout<<matrix<<std::endl;
+        // std::cout<<matrix.inverse()<<std::endl;
+    }
 
   std::vector<u3::U3> u3_irreps;
   u3_irreps.push_back(sigma);
-  u3_irreps.emplace_back(14,u3::SU3(5,0));
+  u3_irreps.emplace_back(N0+2,u3::SU3(5,0));
 
   std::map<std::tuple<HalfInt,int,HalfInt,int>,double> transitions;
   std::set<HalfInt> Jp_set;
@@ -122,7 +144,8 @@ int main(int argc, char **argv)
                           std::tuple<HalfInt,int,HalfInt,int> key(J,n,Jp,np);
                           
                           //Convert RME to Edmonds/Suhonen convention and store in map
-                          transitions[key]=Hat(Jp)*Q(0,0); //Single value for current irreps 
+                          // transitions[key]=Hat(Jp)*Q(0,0); //Single value for current irreps 
+                          transitions[key]=Q(0,0); //Single value for current irreps 
                           
                         }
                   }
@@ -177,7 +200,7 @@ std::cout<<"--------------------------------"<<std::endl;
         double trans2=transitions[key2];
 
         double BE2_lower=trans2*trans2/am::dim(J);
-        double BE2_upper=trans1*trans2/am::dim(J);
+        double BE2_upper=trans1*trans1/am::dim(J);
 
         if(am::AllowedTriangle(J,Jp,2) && (J>=Jp))
           std::cout<<fmt::format("{:5}   {:5}  {: 6.5}    {: 6.5}    {: 6.5}",Jp.Str(),J.Str(),BE2_upper,BE2_lower,BE2_upper/BE2_lower)<<std::endl;
@@ -191,7 +214,7 @@ std::cout<<"--------------------------------"<<std::endl;
         if((Jp==HalfInt(9,2) or Jp==HalfInt(11,2)))
           continue;
 
-        
+
         std::tuple<HalfInt,int,HalfInt,int> key1(Jp,2,J,1);
         std::tuple<HalfInt,int,HalfInt,int> key2(Jp,2,J,2);
 

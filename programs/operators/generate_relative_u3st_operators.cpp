@@ -312,7 +312,13 @@ int main(int argc, char **argv)
   const double pi=boost::math::constants::pi<double>();
 
   if(argc<5)
-    std::cout<<"Syntax: A Nmax N1B <operator_filename_base> "<<std::endl;
+    {
+      std::cout<<"Syntax: A Nmax N1B <operator_filename_base> "<<std::endl
+      <<"or "
+      <<std::endl<<"Syntax: Z N Nmax N1B <operator_filename_base> "<<std::endl;
+      exit(EXIT_FAILURE);
+    }
+
   
   u3::U3CoefInit();
   int A,N,Z,Nmax,N1B;
