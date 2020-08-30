@@ -4,6 +4,8 @@
 
 project_name := spncci
 
+install_prefix := $(install_prefix)/spncci
+
 ################################################################
 # modules -- list of directories in which to search
 # for module.mk include files
