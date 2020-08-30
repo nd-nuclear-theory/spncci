@@ -1,8 +1,24 @@
 /****************************************************************
-  computation_control.cpp
+  get_u3s_subspaces.cpp
+
+  Syntax:
+
+    get_u3s_subspaces basis_filename dimensions_filename
+
+      basis_filename: input LSU3shell basis filename, typically
+      Z{}-N{}-Nmax{:02d}_basis.dat
+
+      dimensions_filename: output U3S dimensions filename, typically
+      u3s_subspace_labels_Z{}_N{}_Nmax{:02d}.dat
+
+  Example:
+ 
+    get_u3s_subspaces ~/results/mcaprio/lsu3shell/runmac0549/results/Z3-N3-Nmax06_basis.dat u3s_subspace_labels_Z3_N3_Nmax06.dat
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
+
+  08/29/20 (mac): Simplify command line arguments.
 
 ****************************************************************/
 #include <fstream>
@@ -20,12 +36,12 @@
 
 namespace lsu3shell
 {
-  void ReadLSU3ShellBasis(
+  void ReadLSU3ShellBasisAndAccumulate(
       const std::string& filename, 
       std::map<std::tuple<int,int,int,int,int,int>,int>& u3s_subspace_labels_set
     )
   // Read basis states labels from LSU3Shell basis file and accumulate by N(lambda,mu)S labels
-  // Based on RadLSU3ShellBasis in lsu3shell/lsu3shell_basis.cpp
+  // Based on ReadLSU3ShellBasis in lsu3shell/lsu3shell_basis.cpp
   {
     // open basis file
     std::ifstream basis_stream(filename.c_str());
@@ -73,6 +89,7 @@ namespace lsu3shell
   }
 
 void WriteU3SLabels(std::string filename, const std::map<std::tuple<int,int,int,int,int,int>,int>& u3s_subspace_labels_set)
+// Write U3S labels and dimensions.
   {
     std::ofstream outfile;
     outfile.open(filename);
@@ -114,27 +131,25 @@ void WriteU3SBranchedLabels(std::string filename, const std::map<std::tuple<int,
 int main(int argc, char **argv)
 {
   
-  if(argc<5)
+  if(argc<2+1)
   {
-    std::cout<<"Syntax: nucleus_label filename"<<std::endl;
+    // std::cout<<"Syntax: nucleus_label filename"<<std::endl;
     exit(0);
   }
 
-  int Z=std::stoi(argv[1]);
-  int N=std::stoi(argv[2]);
-  std::string lsu3shell_filename=argv[3];
-  int Nmax=std::stoi(argv[4]);
-  // SU(3) caching
+  std::string lsu3shell_filename=argv[1];
+  std::string u3s_filename=argv[2];
+
+    // SU(3) caching
   u3::U3CoefInit();
 
   
   std::map<std::tuple<int,int,int,int,int,int>,int> u3s_subspace_labels_set;
-  lsu3shell::ReadLSU3ShellBasis(lsu3shell_filename, u3s_subspace_labels_set);
+  lsu3shell::ReadLSU3ShellBasisAndAccumulate(lsu3shell_filename, u3s_subspace_labels_set);
   
-  std::string u3s_filename=fmt::format("u3s_subspace_labels_Z{}_N{}_Nmax{:02d}.dat",Z,N,Nmax);
   lsu3shell::WriteU3SLabels(u3s_filename,u3s_subspace_labels_set);
   
-  std::string u3sl_filename=fmt::format("u3sl_subspace_labels_Z{}_N{}_Nmax{:02d}.dat",Z,N,Nmax);
-  lsu3shell::WriteU3SBranchedLabels(u3sl_filename,u3s_subspace_labels_set);
+  // std::string u3sl_filename=fmt::format("u3sl_subspace_labels_Z{}_N{}_Nmax{:02d}.dat",Z,N,Nmax);
+  // lsu3shell::WriteU3SBranchedLabels(u3sl_filename,u3s_subspace_labels_set);
 
 } 
