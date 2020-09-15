@@ -106,7 +106,7 @@ CXXFLAGS += -DNDEBUG
 #Additional flags from T. Dytrych config file 
 MPICXX := CC
 LDLIBS += -dynamic
-LDLIBS += -lsci_gnu
+## LDLIBS += -lsci_gnu
 CXXFLAGS += -ffast-math -funroll-loops
 ## CXXFLAGS += $(GSL_INC)
 FC := ftn -frecursive
@@ -159,7 +159,7 @@ CPPFLAGS += -DHAVE_INLINE
 # target to generate just codes needed for spncci
 
 programs_for_spncci = programs/tools/SU3RME_MPI programs/tools/ncsmSU3xSU2IrrepsTabular programs/upstreams/RecoupleSU3Operator
-executables_for_spncci = $(addsuffix $(binary_ext),$(base_programs))
+executables_for_spncci = $(addsuffix $(binary_ext),$(programs_for_spncci))
 
 .PHONY: for-spncci
 for-spncci: $(programs_for_spncci)
