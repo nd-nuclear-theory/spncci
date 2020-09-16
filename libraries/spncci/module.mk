@@ -6,7 +6,7 @@ $(eval $(begin-module))
 
 module_units_h :=
 module_units_cpp-h := spncci_common spncci_basis 
-module_units_cpp-h += branching branching2
+module_units_cpp-h += branching2 branching 
 module_units_cpp-h += vcs_cache eigenproblem computation_control
 module_units_cpp-h += explicit_construction recurrence parameters
 module_units_cpp-h += io_control results_output decomposition transform_basis

@@ -96,7 +96,12 @@ int main(int argc, char **argv)
   spncci::SpNCCISpace spncci_space;
   spncci::BabySpNCCISpace baby_spncci_space;
   std::vector<spncci::SpaceSpBasis> spaces_spbasis;
-  spncci::SetUpSpNCCISpaces(run_parameters,lgi_families,spncci_space,baby_spncci_space,spaces_spbasis);
+  spncci::SigmaIrrepMap sigma_irrep_map; //Not used here
+  spncci::SetUpSpNCCISpaces(
+    run_parameters,lgi_families,
+    spncci_space,sigma_irrep_map,
+    baby_spncci_space,spaces_spbasis
+    );
 
   // // Read in Jn sets for defining truncation 
   // // Read in eigenvectors from files

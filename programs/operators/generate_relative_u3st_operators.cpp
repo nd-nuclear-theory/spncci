@@ -260,6 +260,7 @@ namespace u3shell
 
   void Tintr(int Nmax,u3shell::RelativeRMEsU3ST& Tintr, int A, double hbar_omega, double coef=1.0, bool moshinsky_convention=false)
   {
+    // Something weird with coef factor.  Won't work for moshinsky_convention=true
     coef*=hbar_omega/(4*(KroneckerDelta(moshinsky_convention,false)));
     k2intr(Nmax,Tintr, A, coef, moshinsky_convention);
   }

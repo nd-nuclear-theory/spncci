@@ -90,14 +90,22 @@ namespace spncci
 
   void WriteRunParameters(std::ostream& out_stream, const spncci::RunParameters& run_parameters);
 
+  // void WriteBasisStatistics(
+  //     std::ostream& out_stream,
+  //     const spncci::SpNCCISpace& spncci_space,
+  //     const spncci::BabySpNCCISpace& baby_spncci_space,
+  //     const spncci::SpaceSpU3S& spu3s_space,
+  //     const spncci::SpaceSpLS& spls_space,
+  //     const spncci::SpaceSpJ& spj_space
+  //   );
+
   void WriteBasisStatistics(
       std::ostream& out_stream,
       const spncci::SpNCCISpace& spncci_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      const spncci::SpaceSpU3S& spu3s_space,
-      const spncci::SpaceSpLS& spls_space,
-      const spncci::SpaceSpJ& spj_space
+      const std::vector<spncci::SpaceSpBasis>& spaces_spbasis
     );
+
 
   void WriteSpU3SSubspaceListing(
       std::ostream& out_stream,

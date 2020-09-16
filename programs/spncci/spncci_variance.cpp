@@ -1,3 +1,4 @@
+// DEPRECATED
 /****************************************************************
   spncci.cpp
 
@@ -206,9 +207,9 @@ int main(int argc, char **argv)
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;
   spncci::BabySpNCCISpace baby_spncci_space;
-  spncci::SpaceSpU3S spu3s_space; //Not used 
-  spncci::SpaceSpLS spls_space; //Not used
-  spncci::SpaceSpJ spj_space;  //Only used in obselete code
+  // spncci::SpaceSpU3S spu3s_space; //Not used 
+  // spncci::SpaceSpLS spls_space; //Not used
+  // spncci::SpaceSpJ spj_space;  //Only used in obselete code
   std::vector<spncci::SpaceSpBasis> spaces_spbasis;
   spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
 
@@ -216,12 +217,8 @@ int main(int argc, char **argv)
   //Nlimit allows for different irreps to be truncated to different Nmax
   int Nlimit=run_parameters.Nmax;
   spncci::SetUpSpNCCISpaces(
-      run_parameters,lgi_families,spncci_space,sigma_irrep_map,
-      baby_spncci_space,spu3s_space,spls_space,spj_space,
-      spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
-      // results_stream,
-      Nlimit
-      // ,restrict_sp3r_to_u3_branching
+      run_parameters,lgi_families,spncci_space,
+      baby_spncci_space,spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
     );
 
 
@@ -242,7 +239,7 @@ int main(int argc, char **argv)
 
   // results output: basis information
   spncci::StartNewSection(results_stream,"BASIS");
-  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
+  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spaces_spbasis);
   spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
   spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
 

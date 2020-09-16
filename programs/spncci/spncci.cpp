@@ -83,10 +83,11 @@
   5/2/19 (aem) : Moved ComputeManyBodyRMEs into hyperblocks_u3s
   6/21/19 (aem) : Extracted variance calculation functions into variance.{h,cpp}
   11/5/19 (aem) : Stripped out truncation tests and bundled initialization
+  8/26/20 (aem) : Removed dependencies on obselete basis classes SpaceSpU3S, SpaceSpLS,SpaceSpJ
+                  and update basis statistics written to results file
 
 Notes:
-branching2 currently used for branching.  branching has old definitions still temp used for
-basis statistics
+branching2 currently used for branching. 
 ****************************************************************/
 
 #include <cstdio>
@@ -272,7 +273,7 @@ int main(int argc, char **argv)
   ///////////////////////////////////////////////////////////////////////////////////////
   lgi::MultiplicityTaggedLGIVector lgi_families;
   spncci::SpNCCISpace spncci_space;
-  spncci::SigmaIrrepMap sigma_irrep_map;
+  spncci::SigmaIrrepMap sigma_irrep_map; //Container for spncci space irreps.  Must stay in scope for spncci_space 
   spncci::BabySpNCCISpace baby_spncci_space;
   spncci::SpaceSpU3S spu3s_space; //Not used
   spncci::SpaceSpLS spls_space; //Not used
@@ -283,14 +284,54 @@ int main(int argc, char **argv)
   //Read in lgi families and generate spaces at different branching levels
   //Nlimit allows for different irreps to be truncated to different Nmax
   //For now just set to Nmax for all irreps
-  int Nlimit=run_parameters.Nmax;
+  // int Nlimit=run_parameters.Nmax;
+  // spncci::SetUpSpNCCISpaces(
+  //     run_parameters,lgi_families,spncci_space,sigma_irrep_map,
+  //     baby_spncci_space,spu3s_space,spls_space,spj_space,
+  //     spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
+  //     Nlimit
+  //   );
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  lgi::MultiplicityTaggedLGIVector lgi_families2;
+  spncci::SpNCCISpace spncci_space2;
+  
+  spncci::BabySpNCCISpace baby_spncci_space2;
+  spncci::SigmaIrrepMap sigma_irrep_map2;
+  // spncci::SpaceSpU3S spu3s_space2; //Not used
+  // spncci::SpaceSpLS spls_space2; //Not used
+  // spncci::SpaceSpJ spj_space2;  //Only used in obselete code
+  std::vector<spncci::SpaceSpBasis> spaces_spbasis2;
+  spncci::KMatrixCache k_matrix_cache2, kinv_matrix_cache2;
+
+ 
+  bool verbose_basis=true;
   spncci::SetUpSpNCCISpaces(
-      run_parameters,lgi_families,spncci_space,sigma_irrep_map,
-      baby_spncci_space,spu3s_space,spls_space,spj_space,
-      spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
-      Nlimit
+      run_parameters,lgi_families,spncci_space,sigma_irrep_map,baby_spncci_space,
+      spaces_spbasis,k_matrix_cache, kinv_matrix_cache,verbose_basis
     );
 
+  // for(int space_index=0; space_index<spncci_space.size(); ++space_index)
+  //   {
+  //     auto space1=spncci_space[space_index].Sp3RSpace();
+  //     auto space2=spncci_space2[space_index].Sp3RSpace();
+  //     std::cout<<fmt::format("space 1: {}   {}  space 2: {}   {}",
+  //       space1.size(), space1.size(), 
+  //       space2.size(), space2.size()
+  //       )<<std::endl;
+  //     std::cout<<space1.DebugStr()<<std::endl;
+  //     std::cout<<"----------"<<std::endl;
+  //     std::cout<<space2.DebugStr()<<std::endl;
+  //     // for(int subspace_index=0; subspace_index<space1.size(); ++subspace_index)
+  //     //   {
+  //     //     auto subspace1=space1.GetSubspace(subspace_index);
+  //     //     auto subspace2=space2.GetSubspace(subspace_index);
+  //     //     std::cout<<subspace1.LabelStr()<<"   "<<subspace2.LabelStr()<<"  "<<(subspace1.LabelStr()==subspace2.LabelStr())<<std::endl;
+  //     //   }
+  //   }
+
+  // assert(0);
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Results file: Writing parameters and basis statistics
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -308,8 +349,9 @@ int main(int argc, char **argv)
 
   // results output: basis information
   spncci::StartNewSection(results_stream,"BASIS");
-  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
-  spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
+  // spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spu3s_space,spls_space,spj_space);
+  spncci::WriteBasisStatistics(results_stream,spncci_space,baby_spncci_space,spaces_spbasis);
+  // spncci::WriteSpU3SSubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
   spncci::WriteBabySpNCCISubspaceListing(results_stream,baby_spncci_space,run_parameters.Nsigma0);
 
 
@@ -611,6 +653,9 @@ int main(int argc, char **argv)
               observable_index,hw_index,hamiltonian_matrix
             );
 
+
+            // std::cout<<hamiltonian_matrix<<std::endl<<std::endl;
+            
             // assert(0);
             timer_hamiltonian.Stop();
             std::cout<<fmt::format("    time: {}",timer_hamiltonian.ElapsedTime())<<std::endl;
@@ -619,6 +664,9 @@ int main(int argc, char **argv)
 
             mcutils::SteadyTimer timer_eigensolver;
             timer_eigensolver.Start();
+            std::cout<<"num eigenvalues :"<<run_parameters.num_eigenvalues<<std::endl;
+            std::cout<<"num convergence :"<<run_parameters.eigensolver_num_convergence<<std::endl;
+            std::cout<<"basis dimension :"<<hamiltonian_matrix.rows()<<std::endl;
             spncci::SolveHamiltonian(
                 hamiltonian_matrix,
                 run_parameters.num_eigenvalues,
@@ -635,7 +683,7 @@ int main(int argc, char **argv)
             int binary_float_precision=8;
             std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
             std::cout<<"write eigenvector"<<std::endl;
-            std::cout<<eigenvectors_J<<std::endl;
+            // std::cout<<eigenvectors_J<<std::endl;
             spncci::WriteEigenvectors(eigenvectors_J,J,eigv_filename,binary_float_precision);
             //////////////////////////////////////////////////////////////////
           }
@@ -740,7 +788,7 @@ int main(int argc, char **argv)
               // }
               //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-              // Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
+              Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
               observable_results_matrix = eigenvectors[bra_index].transpose()
                 * observable_block
@@ -775,5 +823,5 @@ std::cout << fmt::format("(Mesh master loop: {})",timer_mesh.ElapsedTime()) << s
 
 results_stream.close();
 
-
+// assert(0);
 }

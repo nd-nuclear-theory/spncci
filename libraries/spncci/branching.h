@@ -10,6 +10,9 @@
     branching_u3lsj.
   6/21/17 (mac): Add SpJ basis definitions.
 
+DEPRECATED.  
+  Still used in branching_u3lsj.h and programs/unit_tensors/explicit.cpp
+
 ****************************************************************/
 
 #ifndef SPNCCI_BRANCHING_H_

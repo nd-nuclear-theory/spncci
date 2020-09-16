@@ -186,8 +186,10 @@ namespace spncci
       spncci::RunParameters& run_parameters,
       lgi::MultiplicityTaggedLGIVector& lgi_families,
       spncci::SpNCCISpace& spncci_space,
+      spncci::SigmaIrrepMap& sigma_irrep_map,
       spncci::BabySpNCCISpace& baby_spncci_space,
-      std::vector<spncci::SpaceSpBasis>& spaces_spbasis
+      std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      bool verbose
     )
   {
     std::cout << "Set up SpNCCI space..." << std::endl;
@@ -204,8 +206,19 @@ namespace spncci
     if(run_parameters.A<6)
       restrict_sp3r_to_u3_branching=true;
 
-    spncci::SigmaIrrepMap sigma_irrep_map;
+    // spncci::SigmaIrrepMap sigma_irrep_map;
     spncci::GenerateSpNCCISpace(lgi_families,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
+
+    if(verbose)
+      {
+        for(int i=0; i<spncci_space.size(); ++i)
+          std::cout<<i<<"  "<<spncci_space[i].Str()<<spncci_space[i].gamma_max()<<std::endl;
+
+        // diagnostics
+        std::cout << fmt::format("  Irrep families {}",spncci_space.size()) << std::endl;
+        std::cout << fmt::format("  TotalU3Subspaces {}",spncci::TotalU3Subspaces(spncci_space)) << std::endl;
+        std::cout << fmt::format("  TotalDimensionU3S {}",spncci::TotalDimensionU3S(spncci_space)) << std::endl;
+      }
 
     // build baby spncci space 
     baby_spncci_space=spncci::BabySpNCCISpace(spncci_space);
@@ -219,5 +232,53 @@ namespace spncci
       }
 
   }
+
+
+  void SetUpSpNCCISpaces(
+      spncci::RunParameters& run_parameters,
+      lgi::MultiplicityTaggedLGIVector& lgi_families,
+      spncci::SpNCCISpace& spncci_space,
+      spncci::SigmaIrrepMap& sigma_irrep_map,
+      spncci::BabySpNCCISpace& baby_spncci_space,
+      std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      spncci::KMatrixCache& k_matrix_cache, 
+      spncci::KMatrixCache& kinv_matrix_cache,
+      bool verbose
+    )
+    {
+      // Set up SpNCCI Spaces 
+      // spncci::SigmaIrrepMap sigma_irrep_map;
+      spncci::SetUpSpNCCISpaces(run_parameters,lgi_families,spncci_space,sigma_irrep_map,baby_spncci_space,spaces_spbasis,verbose);
+        ////////////////////////////////////////////////////////////////
+      // precompute K matrices
+      ////////////////////////////////////////////////////////////////
+      std::cout << "Precompute K matrices..." << std::endl;
+      bool restrict_sp3r_to_u3_branching=false;
+        if(run_parameters.A<6)
+          restrict_sp3r_to_u3_branching=true;
+      // timing start
+      mcutils::SteadyTimer timer_k_matrices;
+      timer_k_matrices.Start();
+
+      // traverse distinct sigma values in SpNCCI space, generating K
+      spncci::PrecomputeKMatrices(sigma_irrep_map,k_matrix_cache,kinv_matrix_cache,restrict_sp3r_to_u3_branching);
+
+      // timing stop
+      timer_k_matrices.Stop();
+      std::cout << fmt::format("(Task time: {})",timer_k_matrices.ElapsedTime()) << std::endl;
+
+      std::cout<<"Kmatrices "<<std::endl;
+      for(auto it=k_matrix_cache.begin(); it!=k_matrix_cache.end(); ++it)
+        {
+          std::cout<<"sigma "<<it->first.Str()<<std::endl;
+          for(auto it2=it->second.begin();  it2!=it->second.end(); ++it2)
+          {
+            std::cout<<"  omega"<<it2->first.Str()<<std::endl;
+            auto matrix=it2->second;
+            std::cout<<matrix<<std::endl;
+            // std::cout<<matrix.inverse()<<std::endl;
+          }
+        }
+    }
 
 }  // namespace

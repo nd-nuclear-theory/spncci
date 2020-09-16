@@ -29,6 +29,9 @@
       + Moved PopulateHypersectorsWithSeeds to spncci/recurrence
       + Elimiated GetUnitTensorSeedBlocks. Functionality moved to
         stand-alone programs/lgi/get_spncci_seed_blocks
+  8/26/20 (aem) : Update basis setup and removed dependencies on
+        spncci branched basis classes (SpaceSpU3S, SpaceSpLS,SpaceSpJ)
+ )
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_
@@ -65,17 +68,30 @@ namespace spncci
       spncci::KMatrixCache& kinv_matrix_cache,
       int Nlimit
     );
-  //Reads in lgi labels from file "lgi_families.dat"
-  //Constructs different spaces 
 
-   void SetUpSpNCCISpaces(
+  void SetUpSpNCCISpaces(
       spncci::RunParameters& run_parameters,
       lgi::MultiplicityTaggedLGIVector& lgi_families,
       spncci::SpNCCISpace& spncci_space,
+      spncci::SigmaIrrepMap& sigma_irrep_map,
       spncci::BabySpNCCISpace& baby_spncci_space,
-      std::vector<spncci::SpaceSpBasis>& spaces_spbasis
+      std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      bool verbose=false
     );
-   //Just sets up spaces used in spncci calculations.  No basis statistics
+   //Just sets up spaces used in spncci calculations.  
+
+  void SetUpSpNCCISpaces(
+      spncci::RunParameters& run_parameters,
+      lgi::MultiplicityTaggedLGIVector& lgi_families,
+      spncci::SpNCCISpace& spncci_space,
+      spncci::SigmaIrrepMap& sigma_irrep_map,
+      spncci::BabySpNCCISpace& baby_spncci_space,
+      std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+      spncci::KMatrixCache& k_matrix_cache, 
+      spncci::KMatrixCache& kinv_matrix_cache,
+      bool verbose=false
+    );
+     // Sets up spaces used in spncci calculations and computes K matrices for basis orthogonalization
 
 }  // namespace
 
