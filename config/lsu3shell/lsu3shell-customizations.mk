@@ -103,6 +103,22 @@
 CXXFLAGS += -DCPP0X_STD_TR1
 CXXFLAGS += -DNDEBUG
 
+#Additional flags from T. Dytrych config file 
+MPICXX := CC
+LDLIBS += -dynamic
+## LDLIBS += -lsci_gnu
+CXXFLAGS += -ffast-math -funroll-loops
+## CXXFLAGS += $(GSL_INC)
+FC := ftn -frecursive
+FFLAGS += -O3
+FFLAGS += -fopenmp
+FFLAGS += -ffast-math -funroll-loops
+fortran_libs := -lgfortran
+
+
+# keep binaries separate by target architecture
+install_prefix := $(install_prefix)/su3shell
+
 # Eigen
 #
 # Provide special "include" path, since lsu3shell #include directives use a
@@ -112,7 +128,7 @@ search_dirs_include +=  $(EIGEN3_DIR)/include/eigen3
 
 # Boost library
 
-search_prefix += $(BOOST_ROOT)
+search_prefix += $(BOOST_ROOT) $(BOOST_DIR)
 LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono 
 
 # GNU OpenMP library
@@ -142,14 +158,13 @@ CPPFLAGS += -DHAVE_INLINE
 
 # target to generate just codes needed for spncci
 
-base_programs = programs/tools/SU3RME_MPI
+programs_for_spncci = programs/tools/SU3RME_MPI programs/tools/ncsmSU3xSU2IrrepsTabular programs/upstreams/RecoupleSU3Operator
+executables_for_spncci = $(addsuffix $(binary_ext),$(programs_for_spncci))
 
-base_executables = $(addsuffix $(binary_ext),$(base_programs))
+.PHONY: for-spncci
+for-spncci: $(programs_for_spncci)
 
-.PHONY: base
-base: $(base_programs)
-
-.PHONY: install-base
-install-base: base
-	@echo Installing base to $(install_dir_bin)...
-	install -D $(base_executables) --target-directory=$(install_dir_bin)
+.PHONY: install-for-spncci
+install-for-spncci: for-spncci
+	@echo Installing base executables for spncci to $(install_dir_bin)...
+	install -D $(executables_for_spncci) --target-directory=$(install_dir_bin)
