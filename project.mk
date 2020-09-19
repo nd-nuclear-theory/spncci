@@ -4,6 +4,8 @@
 
 project_name := spncci
 
+install_prefix := $(install_prefix)/spncci
+
 ################################################################
 # modules -- list of directories in which to search
 # for module.mk include files
@@ -115,24 +117,3 @@ FFLAGS += -DSU3LM82
 
 search_prefix += $(SPECTRA_DIR)
 search_dirs_include += $(EIGEN3_DIR)/include/eigen3
-
-################################################################
-# special targets
-################################################################
-
-# target to generate just codes needed for spncci run (not unit tests)
-
-base_programs = programs/operators/generate_relative_u3st_operators
-base_programs += programs/unit_tensors/generate_lsu3shell_model_space programs/unit_tensors/generate_lsu3shell_relative_operators
-base_programs += programs/spncci/spncci
-base_programs += programs/su3calc/su3calc programs/su3calc/sp3rcalc
-base_executables = $(addsuffix $(binary_ext),$(base_programs))
-
-
-.PHONY: base
-base: $(base_programs)
-
-.PHONY: install-base
-install-base: base
-	@echo Installing base to $(install_dir_bin)...
-	install -D $(base_executables) --target-directory=$(install_dir_bin)
