@@ -463,7 +463,8 @@ def write_lookup_table(index_lookup):
     """
     Create file containing lookup table
     """
-    filename="seeds/lgi_full_space_lookup_table.dat"
+    # filename="seeds/lgi_full_space_lookup_table.dat"
+    filename="lgi_full_space_lookup_table.dat"
     with open(filename, 'w') as outstream:
         for index in range(len(index_lookup)):
             full_space_index=index_lookup[index]
