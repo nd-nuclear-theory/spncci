@@ -104,6 +104,7 @@ import glob
 import mcscript
 import os
 import su3rme
+
 ################################################################
 # global configuration
 ################################################################
@@ -124,10 +125,35 @@ truncation_subdirectory = []
 
 
 # ... from spncci
+# DEPRECATED: TODO, e.g., replace
+#   generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
+# with
+#   spncci_filename("generate_relative_u3st_operators")
+
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
 generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
 spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 seed_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
+
+################################################################
+# filename utilities
+################################################################
+
+def lsu3shell_filename(name):
+    """Construct filename for an lsu3shell executable."""
+
+    if os.path.isfile(mcscript.utils.expand_path(name)):
+        return mcscript.utils.expand_path(name)
+    return os.path.join(mcscript.parameters.run.install_dir, "su3shell", "bin", name)
+
+def spncci_filename(name):
+    """Construct filename for a spncci executable."""
+
+    if os.path.isfile(mcscript.utils.expand_path(name)):
+        return mcscript.utils.expand_path(name)
+    return os.path.join(mcscript.parameters.run.install_dir, "spncci", "bin", name)
+
+
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
 ################################################################
