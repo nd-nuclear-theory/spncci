@@ -137,8 +137,9 @@ namespace spncci
 
     if (!out_file)
       {
-        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-        return;
+        std::cerr << "ERROR: Could not open file '" << filename << "'!" << std::endl;
+        exit(EXIT_FAILURE);
+        // return;
       }
 
     int num_hyperblocks=baby_spncci_observable_hyperblocks.size(); 
@@ -260,8 +261,9 @@ void ReadObservableHyperblocks(
 
     if (!out_file)
       {
-        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
-        return;
+        std::cerr << "ERROR: Could not open file '" << filename << "'!" << std::endl;
+        exit(EXIT_FAILURE);
+        // return;
       }
 
     int num_hypersectors=baby_spncci_observable_hypersectors.size(); 
