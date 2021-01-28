@@ -249,6 +249,142 @@ namespace spncci
     out_stream.close();
   }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Temp for getting probabilities for Nex states 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  void CalculateNex0BabySpNCCILDecompositions(
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const std::vector<spncci::Matrix>& eigenvectors,
+    HalfInt Nsigma0,
+    double hw
+    // std::vector<spncci::Matrix>& LS_decompositions
+  )
+{
+  std::cout<<"Doing babyspncciL decompositions"<<std::endl;
+  std::vector<spncci::Matrix> babyspncciL_decompositions(spaces_spbasis.size());
+  // LS_decompositions.resize(spaces_spbasis.size());
+  
+  std::ofstream decomposition_file;
+  decomposition_file.open (fmt::format("babyspncciL_decompositions_{:2.1f}.dat",hw));
+
+  for (int spj_space_index=0; spj_space_index<spaces_spbasis.size(); ++spj_space_index)
+    // for each J subspace
+    {
+      
+      const SpaceSpBasis& spj_space=spaces_spbasis[spj_space_index];
+      const spncci::Matrix& eigenvectors_J = eigenvectors[spj_space_index];
+      spncci::Matrix& babyspncciL_decompositions_J = babyspncciL_decompositions[spj_space_index];
+      
+      //Get number of baby spncci L labels for Nex=0
+      std::map<std::pair<int,int>,int> babyspncciL_indexing;
+      int index=0;
+      for(int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
+        {
+          const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
+          for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
+            {
+              // std::cout<<"retrieve basis state information"<<std::endl;
+              StateSpBasis spj_state(spj_subspace,spj_state_index);
+              int Nex = int(spj_state.omega().N()-Nsigma0);
+              if(Nex !=0)
+                continue;
+
+              int baby_spncci_subspace_index = spj_state.baby_spncci_subspace_index();
+              int L=spj_state.L();
+              
+              std::pair<int,int>babyspncciL(baby_spncci_subspace_index,L);
+              if(babyspncciL_indexing.count(babyspncciL)==0)
+                {
+                  babyspncciL_indexing[babyspncciL]=index;
+                  index++;
+                }
+            }
+        }
+
+      // std::cout<<"initialize decomposition matrix"<<std::endl;
+      const int num_eigenvectors = eigenvectors_J.cols();
+      // std::cout<<L_basis.size()<<"  "<<num_eigenvectors<<std::endl;
+      babyspncciL_decompositions_J = spncci::Matrix::Zero(babyspncciL_indexing.size(),num_eigenvectors);
+      // std::cout<<"here"<<std::endl;
+      int offset=0;
+      for(int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
+        {
+          // std::cout<<"set up aliases for current J subspace"<<std::endl;
+          const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
+
+          // std::cout<<"accumulate probability"<<std::endl;
+          for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
+            // for each (composite) state
+            {
+              // retrieve basis state information
+              StateSpBasis spj_state(spj_subspace,spj_state_index);
+              int degeneracy = spj_state.degeneracy();
+              
+
+              int Nex = int(spj_state.omega().N()-Nsigma0); 
+              int baby_spncci_subspace_index = spj_state.baby_spncci_subspace_index();
+              int L=spj_state.L();
+              
+              if(Nex == 0)
+                {
+                  std::pair<int,int>babyspncciL(baby_spncci_subspace_index,L);
+                  index=babyspncciL_indexing[babyspncciL];
+                  babyspncciL_decompositions_J.row(index) += eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
+                }
+
+              offset+=degeneracy; 
+            }
+        }
+
+      mcutils::ChopMatrix( babyspncciL_decompositions_J,1e-6);
+      decomposition_file<<"J="<<spj_space.J().Str()<<std::endl;
+      for(auto itr=babyspncciL_indexing.begin(); itr!=babyspncciL_indexing.end(); itr++)
+        {
+          int L, babyspncci_index;
+          std::tie(babyspncci_index,L) = itr->first;
+
+
+          int index=itr->second;
+          decomposition_file<<babyspncci_index<<" "<<L<<"  "<<mcutils::FormatMatrix(babyspncciL_decompositions_J.row(index),".6f")<<std::endl;
+        }
+      decomposition_file<<std::endl;
+
+    }//end J loop
+  decomposition_file.close();
+
+}
+
+  void InspectWavefunctionU3LSForLowNex(
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const spncci::RunParameters& run_parameters,
+    double hw
+    )
+  {
+
+    //Read in eigenvectors from files fro each J and store in matrix vector
+    std::vector<spncci::Matrix> eigenvectors(run_parameters.J_values.size());
+    for(int j=0; j<run_parameters.J_values.size(); ++j)
+      {
+        HalfInt J=run_parameters.J_values[j];
+        std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
+        spncci::Matrix& eigenvectors_J=eigenvectors[j];
+        spncci::ReadEigenvectors(eigv_filename,eigenvectors_J);
+      }
+  
+    CalculateNex0BabySpNCCILDecompositions(spaces_spbasis,eigenvectors,run_parameters.Nsigma0,hw);
+
+
+  }
+
+
+
+
+
+
+
 }// end namespace
 
 ////////////////////////////////////////////////////////////////
@@ -470,6 +606,9 @@ int main(int argc, char **argv)
   mcutils::SteadyTimer timer_recurrence;
   timer_recurrence.Start();
 
+  std::ofstream timing_output;
+  timing_output.open("recurrence_timing.dat");
+
   #pragma omp parallel shared(observable_hypersectors_mesh,num_files)
     {
       // Parallelization is currently set up so that each thread needs at least on lgi pair
@@ -490,7 +629,6 @@ int main(int argc, char **argv)
       u3::UCoefCache u_coef_cache;
       u3::PhiCoefCache phi_coef_cache;
 
-
       #pragma omp for schedule(dynamic) nowait
       // For each LGI pair, compute SU(3)xSU(2) reduced many-body matrix elements of unit tensors.
       // Then contract unit tensors with relative matrix elements of observables
@@ -502,11 +640,15 @@ int main(int argc, char **argv)
 
       for(int i=0; i<lgi_pairs.size(); ++i)
         {
+
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
-          // mcutils::SteadyTimer timer_pair;
-          // timer_pair.Start();
-          // #pragma omp critical
-          // 	std::cout<<"computing for lgi pair "<<i<<std::endl;
+          mcutils::SteadyTimer timer_pair;
+          int bra,ket;
+          std::tie(bra,ket)=lgi_pair;
+
+          timer_pair.Start();
+          #pragma omp critical
+          	timing_output<<fmt::format("Computing for lgi pair {:3d} : ({:3d},{:3d})",i,bra,ket)<<std::endl;
 
           spncci::ComputeManyBodyRMEs(
               run_parameters,lgi_families,lgi_full_space_index_lookup,
@@ -514,20 +656,22 @@ int main(int argc, char **argv)
               observables_relative_rmes,k_matrix_cache,kinv_matrix_cache,
               lgi_transformations,u_coef_cache,phi_coef_cache,lgi_pair
             );
-          // timer_pair.Stop();
-          // int bra,ket;
-          // std::tie(bra,ket)=lgi_pair;
-          // std::string out=fmt::format("Recurrence for pair ({:3d},{:3d}) took {}",bra,ket,timer_pair.ElapsedTime());
-          // std::cout<<out<<std::endl;
+          timer_pair.Stop();
+
+          std::string out_str=fmt::format("Recurrence for pair {:3d} : ({:3d},{:3d}) took {}",i, bra,ket,timer_pair.ElapsedTime());
+          #pragma omp critical
+            timing_output<<out_str<<std::endl;
 
         }// end lgi_pair
 
       //After recurrence completed, dealocate coefficient caches
-      std::cout<<"ucoef cache size: "<<u_coef_cache.size()<<std::endl;
+      // std::cout<<"ucoef cache size: "<<u_coef_cache.size()<<std::endl;
       u_coef_cache.clear();
       phi_coef_cache.clear();
 
     } //end parallel region
+     
+  timing_output.close();
   timer_recurrence.Stop();
   std::cout<<"Recurrence: "<<timer_recurrence.ElapsedTime()<<std::endl;
   ////////////////////////////////////////////////////////////////
@@ -696,6 +840,12 @@ int main(int argc, char **argv)
         std::cout<<"Writing decompositions"<<std::endl;
         spncci::GenerateDecompositions(baby_spncci_space,spaces_spbasis,run_parameters, hw,results_stream);
 
+        if(true)
+          {
+            std::cout<<"Inspect Wavefunction Nex=0"<<std::endl;
+            spncci::InspectWavefunctionU3LSForLowNex(baby_spncci_space,spaces_spbasis,run_parameters,hw);
+          }
+
       }// End Hamiltonian section
 
       {
@@ -764,6 +914,38 @@ int main(int argc, char **argv)
                   observable_block
                 );
 
+              if (false)
+                {
+                  // Write observable block to file 
+                  std::string obsv_filename=fmt::format(
+                    "observable{:02d}_Jp{:02.1f}_J{:02.1f}_hw{:02.1f}.dat",
+                    observable_index,float(bra_J),float(ket_J),hw
+                    );
+                          // output in binary mode 
+                  std::ios_base::openmode mode_argument_op = std::ios_base::out;
+                  std::ofstream operator_outstream;
+                  // Eigen::MatrixXd block=observable_block;
+                  operator_outstream.open(obsv_filename,mode_argument_op);
+                  mcutils::WriteBinary<int>(operator_outstream,observable_block.rows());
+                  mcutils::WriteBinary<int>(operator_outstream,observable_block.cols());
+                  mcutils::WriteBinary<double>(operator_outstream,observable_block.data(),observable_block.size());
+                  operator_outstream.close();
+
+                }
+
+              if(true){
+                if (bra_J==2 && ket_J==1)
+                  if (run_parameters.Nmax==0 && observable_index==3)
+                    {
+                      std::cout<<"bra"<<std::endl;
+                      std::cout<<spbasis_bra.DebugStr(true)<<std::endl<<std::endl;
+                      std::cout<<"ket"<<std::endl;
+                      std::cout<<spbasis_ket.DebugStr(true)<<std::endl<<std::endl;
+
+                      std::cout<<observable_block<<std::endl<<std::endl;
+                    }
+              }
+              
               //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
               //test code 
               //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

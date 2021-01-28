@@ -116,6 +116,7 @@ void CalculateNexDecompositions(
       std::vector<spncci::Matrix>& baby_spncci_decompositions,
       int baby_spncci_space_size
     )
+  //DEPRECATED
   {
     for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
       // for each J subspace
@@ -148,6 +149,97 @@ void CalculateNexDecompositions(
           
       }
   }
+
+
+void CalculateLSDecompositions(
+    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
+    const std::vector<spncci::Matrix>& eigenvectors,
+    double hw
+    // std::vector<spncci::Matrix>& LS_decompositions
+  )
+{
+  std::cout<<"Doing LS decompositions"<<std::endl;
+  std::vector<spncci::Matrix> LS_decompositions(spaces_spbasis.size());
+  // LS_decompositions.resize(spaces_spbasis.size());
+  
+  std::ofstream ls_decomposition_file;
+  ls_decomposition_file.open (fmt::format("LS_decompositions_{:2.1f}.dat",hw));
+
+  for (int spj_space_index=0; spj_space_index<spaces_spbasis.size(); ++spj_space_index)
+    // for each J subspace
+    {
+      
+      const SpaceSpBasis& spj_space=spaces_spbasis[spj_space_index];
+      const spncci::Matrix& eigenvectors_J = eigenvectors[spj_space_index];
+      spncci::Matrix& LS_decompositions_J = LS_decompositions[spj_space_index];
+      // std::cout<<"J="<<spj_space.J()<<std::endl;
+      //Get number of L subspaces and L values for given J
+      std::map<std::pair<int,HalfInt>,int> LS_basis;
+      int index=0;
+      for(int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
+        {
+          const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
+          for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
+            {
+              // std::cout<<"retrieve basis state information"<<std::endl;
+              StateSpBasis spj_state(spj_subspace,spj_state_index);
+              int L=spj_state.L();
+              HalfInt S= spj_state.S();
+              std::pair<int,HalfInt>LS(L,S);
+              if(LS_basis.count(LS)==0)
+                {
+                  LS_basis[LS]=index;
+                  index++;
+                }
+            }
+        }
+
+      // std::cout<<"initialize decomposition matrix"<<std::endl;
+      const int num_eigenvectors = eigenvectors_J.cols();
+      // std::cout<<L_basis.size()<<"  "<<num_eigenvectors<<std::endl;
+      LS_decompositions_J = spncci::Matrix::Zero(LS_basis.size(),num_eigenvectors);
+      // std::cout<<"here"<<std::endl;
+      int offset=0;
+      for(int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
+        {
+          // std::cout<<"set up aliases for current J subspace"<<std::endl;
+          const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
+
+          // std::cout<<"accumulate probability"<<std::endl;
+          for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
+            // for each (composite) state
+            {
+              // retrieve basis state information
+              StateSpBasis spj_state(spj_subspace,spj_state_index);
+              std::pair<int,HalfInt>LS(spj_state.L(),spj_state.S());
+              index=LS_basis[LS];
+              int degeneracy = spj_state.degeneracy();
+
+              // std::cout<<"accumulate probability from this (composite) state"<<std::endl;
+              LS_decompositions_J.row(index) += eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
+              // std::cout<<"----------------------"<<std::endl<<baby_spncci_subspace_index<<std::endl<<std::endl;
+              // std::cout<<baby_spncci_decompositions_J<<std::endl<<std::endl;
+              offset+=degeneracy; 
+            }
+        }
+
+      mcutils::ChopMatrix(LS_decompositions_J,1e-6);
+      ls_decomposition_file<<"J="<<spj_space.J().Str()<<std::endl;
+      for(auto itr=LS_basis.begin(); itr!=LS_basis.end(); itr++)
+        {
+          int L;
+          HalfInt S;
+          std::tie(L,S) = itr->first;
+          int index=itr->second;
+          ls_decomposition_file<<L<<" "<<S<<"  "<<mcutils::FormatMatrix(LS_decompositions_J.row(index),".6f")<<std::endl;
+        }
+      ls_decomposition_file<<std::endl;
+
+    }//end J loop
+  ls_decomposition_file.close();
+
+}
+
 
 void CalculateBabySpNCCIDecompositions(
     const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
@@ -233,6 +325,11 @@ void CalculateBabySpNCCIDecompositions(
       spaces_spbasis,eigenvectors,baby_spncci_decompositions,
       baby_spncci_space.size()
     );
+    
+    //TEMP: to be replaced with full function later
+    
+    spncci::CalculateLSDecompositions(spaces_spbasis,eigenvectors,hw);
+
 
     // // results output: decompositions
     spncci::WriteDecompositions(
@@ -273,6 +370,11 @@ void CalculateBabySpNCCIDecompositions(
     spncci::GenerateDecompositions(baby_spncci_space,spaces_spbasis,run_parameters,eigenvectors,hw,results_stream);
 
   }
+
+
+
+
+
 
 
 }  // namespace

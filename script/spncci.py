@@ -207,17 +207,26 @@ def generate_observable_rmes(task):
     for hw in mcscript.utils.value_range(*task["hw_range"]):    
 
         # generate load file
-        interaction_filename = mcscript.utils.search_in_subdirectories(
-            interaction_directory_list,
-            interaction_subdirectory_list,
-            task["interaction_filename_template"].format(hw=hw),
-            error_message="relative interaction file not found"
-        )
-        hamiltonian_input_lines = [
-            "{}".format(hw),
-            "Tintr 1.",
-            "INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
-        ]
+        ## Temporary fudge
+        if task["interaction"] != "Isospin":
+            interaction_filename = mcscript.utils.search_in_subdirectories(
+                interaction_directory_list,
+                interaction_subdirectory_list,
+                task["interaction_filename_template"].format(hw=hw),
+                error_message="relative interaction file not found"
+            )
+        hamiltonian_input_lines = ["{}".format(hw)] 
+        ## If either parameters not specified or include_kinetic is true 
+        if not("include_kinetic" in task) or (task.get("include_kinetic") == True):
+            hamiltonian_input_lines.append("Tintr 1.")
+        
+        ## Temporary fudge
+        if task["interaction"]=="Isospin":
+            hamiltonian_input_lines.append("Isospin 1.")
+        else:
+            hamiltonian_input_lines.append(
+                    "INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
+                )
 
         if task["use_coulomb"]==True:
             coulomb_filename = mcscript.utils.search_in_subdirectories(
@@ -227,6 +236,8 @@ def generate_observable_rmes(task):
                 error_message="relative interaction file not found (for Coulomb interaction)"
             )
             hamiltonian_input_lines+=["COUL 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
+        
+        print(hamiltonian_input_lines)
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 

@@ -79,6 +79,23 @@ namespace u3shell
             }
   }
 
+  void Isospin(int Nmax, u3shell::RelativeRMEsU3ST& isospin_operator, int A, double coef=1.0, bool moshinsky_convention=false)
+  {
+    for (int N=0; N<=Nmax; N++)
+      for (int S=0;S<=1; S++)
+        for (int T=0;T<=1; T++)
+          if ((N+S+T)%2==1)
+            {
+              u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
+              int kappa0=1;
+              int L0=0;
+              std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
+              isospin_operator[key]+=(2*T*(T+1.))/A/(A-1)*coef;
+            }
+  }
+
   void k2intr(int Nmax,u3shell::RelativeRMEsU3ST& K2intr, int A, double coef=1.0, bool moshinsky_convention=false)
   {
     u3shell::RelativeStateLabelsU3ST bra,ket;
@@ -160,7 +177,7 @@ namespace u3shell
     int kappa0=1; 
     int L0=2;
 
-    std::cout<<"coefficient "<<coef<<std::endl;
+    // std::cout<<"coefficient "<<coef<<std::endl;
     double intrinsic_factor=2./A;
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
@@ -371,15 +388,15 @@ int main(int argc, char **argv)
         line_stream >> hbar_omega;
         mcutils::ParsingCheck(line_stream,line_count,line);
         b2=hbarc*hbarc/mc2/hbar_omega;
-        std::cout<<"bsqr= "<<b2<<std::endl;
-        std::cout<<"pi= "<<pi<<std::endl;
+        // std::cout<<"bsqr= "<<b2<<std::endl;
+        // std::cout<<"pi= "<<pi<<std::endl;
         continue;
       }
 
     line_stream >> operator_type >> coef;
     mcutils::ParsingCheck(line_stream,line_count,line);
 
-    std::cout<<operator_type<<"  "<<coef<<std::endl;
+    // std::cout<<operator_type<<"  "<<coef<<std::endl;
 
     if(operator_type=="ID") 
       u3shell::Id(Nmax+2*N1B,Operator, A, coef);
@@ -387,6 +404,10 @@ int main(int argc, char **argv)
       u3shell::Nintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Spin") 
       u3shell::Spin(Nmax+2*N1B,Operator, A, coef);
+
+    else if(operator_type=="Isospin") 
+      u3shell::Isospin(Nmax+2*N1B,Operator, A, coef);
+
     else if(operator_type=="r2intr")
       // Factor of 1/A on coef is to compute
       // the mean square of the radius   
@@ -425,7 +446,7 @@ int main(int argc, char **argv)
       {
         line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
         mcutils::ParsingCheck(line_stream,line_count,line);
-        std::cout<<alpha*sqrt(mc2*hbar_omega)<<std::endl;
+        // std::cout<<alpha*sqrt(mc2*hbar_omega)<<std::endl;
         coef*=alpha*sqrt(mc2*hbar_omega);
         // coef*=alpha*sqrt(mc2*hbar_omega);
         Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
@@ -434,7 +455,7 @@ int main(int argc, char **argv)
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl
                <<"The allowed operator types are:"<<std::endl
-               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Qpintr, Qnintr, Tintr, INT, COUL"<<std::endl;
+               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Qpintr, Qnintr, Tintr, INT, COUL, Isospin"<<std::endl;
 
         std::exit(EXIT_FAILURE);
       }
