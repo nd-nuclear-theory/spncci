@@ -5,6 +5,8 @@
   University of Notre Dame
 
   11/2/17 (aem): Created.
+  5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
+    basis::RelativeOperatorParametersLSJT for reading in operators
 ****************************************************************/
 #include <iostream>
 #include <fstream>
@@ -36,8 +38,8 @@ int main(int argc, char **argv)
   basis::RelativeSpaceLSJT relative_space_lsjt;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_blocks_lsjt;
-  basis::OperatorLabelsJT operator_labels;
-  
+  basis::RelativeOperatorParametersLSJT operator_labels;
+
   // Reads in relative operator and fills out isospin_component_sectors_lsjt, 
   // isospin_component_blocks_lsjt, operator_labels and relative_space_lsjt.
   basis::ReadRelativeOperatorLSJT(

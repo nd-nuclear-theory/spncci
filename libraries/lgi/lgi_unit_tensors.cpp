@@ -10,12 +10,14 @@
 #include <iostream>
 #include <fstream>
 #include <omp.h>  
+
+#include "fmt/format.h"
+// #include "lsu3shell/lsu3shell_rme.h"
+#include "lgi/lgi_solver.h"
 #include "mcutils/io.h"
 #include "mcutils/eigen.h"
-#include "fmt/format.h"
-#include "lgi/lgi_solver.h"
 #include "mcutils/parsing.h" //For ReadUnitTensorLabels
-#include "mcutils/io.h"//For ReadUnitTensorLabels
+
 
 
 namespace lgi
@@ -29,13 +31,76 @@ namespace lgi
   int binary_format_code = 1;
   int binary_float_precision=8;
 
+
+  void
+  TransformOperatorToSpBasis(
+      const u3shell::SectorsU3SPN& sectors,
+      const basis::OperatorBlocks<double>& basis_transformation_matrices,
+      const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+      basis::OperatorBlocks<double>& spncci_operator_matrices
+    )
+  {
+    // for each sector, look up bra and ket subspaces 
+    spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
+    
+    // #pragma omp parallel for schedule(runtime)
+    for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
+      {
+        int i=sectors.GetSector(s).bra_subspace_index();
+        int j=sectors.GetSector(s).ket_subspace_index();
+
+        // get transformation matrices and transpose bra transformation matrix
+        const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
+        const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
+
+        // transform operator to spncci basis
+        spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
+      }
+  }
+  
+  void
+  TransformOperatorToSpBasis(
+    const u3shell::SpaceU3SPN& space_bra, 
+    const u3shell::SpaceU3SPN& space_ket, 
+    const u3shell::SectorsU3SPN& sectors,
+    const basis::OperatorBlocks<double>& basis_transformation_matrices,
+    const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
+    std::unordered_map<u3shell::U3SPN,int,boost::hash<u3shell::U3SPN>> lgi_lookup_table,
+    basis::OperatorBlocks<double>& spncci_operator_matrices
+  )
+  {
+    // for each sector, look up bra and ket subspaces 
+    spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
+    
+    // #pragma omp parallel for schedule(runtime)
+    for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
+      {
+        int bra_index=sectors.GetSector(s).bra_subspace_index();
+        int ket_index=sectors.GetSector(s).ket_subspace_index();
+        const u3shell::SubspaceU3SPN& subspace_bra=space_bra.GetSubspace(bra_index);
+        const u3shell::SubspaceU3SPN& subspace_ket=space_ket.GetSubspace(ket_index);
+
+        int i=lgi_lookup_table[subspace_bra.U3SPN()];
+        int j=lgi_lookup_table[subspace_ket.U3SPN()];
+
+        // get transformation matrices and transpose bra transformation matrix
+        const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
+        const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
+
+        // transform operator to spncci basis
+        spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
+      }
+  }
+
+
+
   void RegroupSeedBlocks(
       int unit_tensor_index,
       const u3shell::SectorsU3SPN& unit_tensor_sectors,
       const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
       basis::OperatorBlocks<double>& unit_tensor_spncci_matrices,
-      std::vector<int>& lsu3hsell_index_lookup_table,
+      std::vector<int>& lsu3shell_index_lookup_table,
       bool restrict_seeds
     )
   {    
@@ -50,8 +115,8 @@ namespace lgi
         int bra_subspace_index = sector.bra_subspace_index();
         int ket_subspace_index = sector.ket_subspace_index();
 
-        int bra_lgi_index=lsu3hsell_index_lookup_table[bra_subspace_index];
-        int ket_lgi_index=lsu3hsell_index_lookup_table[ket_subspace_index];
+        int bra_lgi_index=lsu3shell_index_lookup_table[bra_subspace_index];
+        int ket_lgi_index=lsu3shell_index_lookup_table[ket_subspace_index];
 
         // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
         bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
@@ -71,6 +136,10 @@ namespace lgi
           
       }// sector index
   }
+
+
+
+//TODO: allow for different bra and ket spaces 
 
   void ComputeUnitTensorSeedBlocks(
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
@@ -127,6 +196,7 @@ namespace lgi
                 unit_tensor_spncci_matrices
               );
 
+///TODO: Check if RegroupSeedBlocks requires modification
             // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
             // by lgi then by tensor
             lgi::RegroupSeedBlocks(
@@ -153,6 +223,108 @@ namespace lgi
           }
       }
   }
+
+
+  void ComputeUnitTensorSeedBlocks(
+      const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
+      const std::string& relative_unit_tensor_filename_template,
+      const u3shell::SpaceU3SPN& lsu3shell_space_bra, 
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_bra,
+      const u3shell::SpaceU3SPN& lsu3shell_space_ket, 
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_ket,
+      const MultiplicityTaggedLGIVector& lgi_vector,
+      const basis::OperatorBlocks<double>& lgi_expansions,
+      lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
+      std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3shell_index_lookup_table,
+      bool restrict_seeds
+    )
+  {
+    // Compute unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion 
+    // and write blocks to file in binary format
+    //
+    // Container for seed labels and indices for lookup when writing to file
+    // lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels
+
+    unit_tensor_spncci_matrices_array.resize(lgi_unit_tensor_labels.size());
+
+    #pragma omp parallel
+      {
+        lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
+       
+        // For each unit tensor 
+        #pragma omp for schedule(dynamic) nowait
+        for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+          {
+            // Get labels of corresponding unit tensor 
+            basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
+            const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+
+            // Get file name containing lsu3shell rmes of unit tensor 
+            std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
+
+            // generate unit tensor sectors in lsu3shell basis
+            const bool spin_scalar = false; // All spin values allowed
+            u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space_bra,lsu3shell_space_ket,unit_tensor_labels,spin_scalar);
+
+            // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
+            basis::OperatorBlocks<double> unit_tensor_lsu3shell_matrices;
+            bool include_sp3r_generators=false;
+            double scale_factor=1.0;
+            lsu3shell::ReadLSU3ShellRMEs(
+                include_sp3r_generators,filename,
+                lsu3shell_basis_table_bra,lsu3shell_space_bra,
+                lsu3shell_basis_table_ket,lsu3shell_space_ket,
+                unit_tensor_labels,unit_tensor_sectors,
+                unit_tensor_lsu3shell_matrices,scale_factor
+              );
+
+            //Create lookup table to be able to identify which lgi the lsu3shell subspace correspond to 
+            std::unordered_map<u3shell::U3SPN,int,boost::hash<u3shell::U3SPN>> lgi_lookup_table;
+            int i=0;
+            for(auto lgi_tagged : lgi_vector)
+              {
+                lgi_lookup_table[lgi_tagged.irrep]=i;
+                ++i;
+              }
+
+            lgi::TransformOperatorToSpBasis(
+              lsu3shell_space_bra,lsu3shell_space_ket,
+                unit_tensor_sectors,lgi_expansions,
+                unit_tensor_lsu3shell_matrices,
+                lgi_lookup_table,
+                unit_tensor_spncci_matrices
+                );
+
+////// TODO: finish updating to take different bra and ket subspaces...
+
+            // std::cout<<"Re-organize unit tensor seed bocks "<<std::endl;
+            // by lgi then by tensor
+            lgi::RegroupSeedBlocks(
+                unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
+                lgi_grouped_seed_labels_temp,unit_tensor_spncci_matrices,
+                lsu3shell_index_lookup_table,restrict_seeds
+              );
+
+            // Matrix copy into final container
+            #pragma omp critical(matrix_copy)
+              unit_tensor_spncci_matrices_array[unit_tensor_index]=unit_tensor_spncci_matrices;
+
+          }
+
+       #pragma omp critical(regroup)
+          { 
+            std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
+            for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
+              {
+                auto& seed_labels=it->second;
+                auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+                accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+              }
+          }
+      }
+  }
+
 
 
   void WriteHeader(std::ostream& out_file)
@@ -192,11 +364,11 @@ namespace lgi
     int num_rows=block.rows();
     int num_cols=block.cols();
 
-    assert(num_rows==static_cast<RMEIndexType>(num_rows));
-    mcutils::WriteBinary<RMEIndexType>(out_file,num_rows);
+    assert(num_rows==static_cast<lgi::RMEIndexType>(num_rows));
+    mcutils::WriteBinary<lgi::RMEIndexType>(out_file,num_rows);
 
-    assert(num_cols==static_cast<RMEIndexType>(num_cols));
-    mcutils::WriteBinary<RMEIndexType>(out_file,num_cols);
+    assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
+    mcutils::WriteBinary<lgi::RMEIndexType>(out_file,num_cols);
 
     
     for(int j=0; j<num_cols; ++j)
@@ -398,8 +570,8 @@ namespace lgi
       
       //Read in number of rows and columns
       lgi::RMEIndexType rows,cols;
-      mcutils::ReadBinary<RMEIndexType>(in_stream,rows);
-      mcutils::ReadBinary<RMEIndexType>(in_stream,cols);
+      mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,rows);
+      mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,cols);
 
       // Read in RMEs and case to double matrix 
       //TODO Change to MatrixFloatType for spncci

@@ -30,8 +30,10 @@ namespace lsu3shell
   void 
   ReadLSU3ShellRMEsText(
       const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
+      const LSU3ShellBasisTable& lsu3_basis_table_bra,
+      const u3shell::SpaceU3SPN& space_bra, 
+      const LSU3ShellBasisTable& lsu3_basis_table_ket,
+      const u3shell::SpaceU3SPN& space_ket, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
@@ -59,10 +61,8 @@ namespace lsu3shell
 
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
-        // std::tie(omegaSPNi,group_size_i,start_index_i)=lsu3_basis_table[i];
-        // std::tie(omegaSPNj,group_size_j,start_index_j)=lsu3_basis_table[j];
-        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table[i];
-        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table[j];
+        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table_bra[i];
+        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table_ket[j];
 
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
@@ -70,8 +70,8 @@ namespace lsu3shell
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
         // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
         // extract and store matrix elements
-        int i_space=space.LookUpSubspaceIndex(group_i.omegaSPN);
-        int j_space=space.LookUpSubspaceIndex(group_j.omegaSPN);
+        int i_space=space_bra.LookUpSubspaceIndex(group_i.omegaSPN);
+        int j_space=space_ket.LookUpSubspaceIndex(group_j.omegaSPN);
 
         // warn if file provides an rme of multiplicity zero
         //
@@ -132,8 +132,10 @@ namespace lsu3shell
   ReadLSU3ShellRMEsBinary(
       bool sp3r_generators,
       const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
+      const LSU3ShellBasisTable& lsu3_basis_table_bra,
+      const u3shell::SpaceU3SPN& space_bra, 
+      const LSU3ShellBasisTable& lsu3_basis_table_ket,
+      const u3shell::SpaceU3SPN& space_ket, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
@@ -172,16 +174,16 @@ namespace lsu3shell
 
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
-        assert((i<lsu3_basis_table.size())&&(j<lsu3_basis_table.size()));
-        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table[i];
-        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table[j];
+        assert((i<lsu3_basis_table_bra.size())&&(j<lsu3_basis_table_ket.size()));
+        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table_bra[i];
+        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table_ket[j];
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
         // std::cout<<fmt::format("{}  {}  {}", group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
         // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
-        int i_subspace_index=space.LookUpSubspaceIndex(group_i.omegaSPN);
-        int j_subspace_index=space.LookUpSubspaceIndex(group_j.omegaSPN);
+        int i_subspace_index=space_bra.LookUpSubspaceIndex(group_i.omegaSPN);
+        int j_subspace_index=space_ket.LookUpSubspaceIndex(group_j.omegaSPN);
         assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
 
         // verify multiplicity given in file
@@ -251,8 +253,10 @@ namespace lsu3shell
   ReadLSU3ShellRMEs(
       bool sp3r_generators,
       const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
+      const LSU3ShellBasisTable& lsu3_basis_table_bra,
+      const u3shell::SpaceU3SPN& space_bra, 
+      const LSU3ShellBasisTable& lsu3_basis_table_ket,
+      const u3shell::SpaceU3SPN& space_ket, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
@@ -260,16 +264,21 @@ namespace lsu3shell
     )
   {
 
+      // LSU3ShellBasisTable lsu3_basis_table_bra=lsu3_basis_table;
+      // LSU3ShellBasisTable lsu3_basis_table_ket=lsu3_basis_table;
+      // u3shell::SpaceU3SPN space_bra=space;
+      // u3shell::SpaceU3SPN space_ket=space;
+
     // std::ios_base::openmode mode_argument = std::ios_base::in;
     // if (g_rme_binary_format)
     //   mode_argument |= std::ios_base::binary;
 
     if (g_rme_binary_format)
       // binary format
-      ReadLSU3ShellRMEsBinary(sp3r_generators,filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
+      ReadLSU3ShellRMEsBinary(sp3r_generators,filename,lsu3_basis_table_bra,space_bra,lsu3_basis_table_ket,space_ket,operator_labels,sectors,blocks,scale_factor);
     else
       // text format
-      ReadLSU3ShellRMEsText(filename,lsu3_basis_table,space,operator_labels,sectors,blocks,scale_factor);
+      ReadLSU3ShellRMEsText(filename,lsu3_basis_table_bra,space_bra,lsu3_basis_table_ket,space_ket,operator_labels,sectors,blocks,scale_factor);
 
     if (g_verbose_rme_block_statistics)
       {
@@ -288,6 +297,33 @@ namespace lsu3shell
                                  
   }
 
+
+  void 
+  ReadLSU3ShellRMEs(
+      bool sp3r_generators,
+      const std::string& filename,
+      const LSU3ShellBasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space, 
+      const u3shell::OperatorLabelsU3ST& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      lsu3shell::OperatorBlocks& blocks,
+      double scale_factor
+    )
+  //Wrapper function for when bra space and ket space are the same.
+  {
+      const LSU3ShellBasisTable& lsu3_basis_table_bra=lsu3_basis_table;
+      const LSU3ShellBasisTable& lsu3_basis_table_ket=lsu3_basis_table;
+      const u3shell::SpaceU3SPN& space_bra=space;
+      const u3shell::SpaceU3SPN& space_ket=space;
+      ReadLSU3ShellRMEs(
+        sp3r_generators,filename,
+        lsu3_basis_table_bra,space_bra, 
+        lsu3_basis_table_ket,space_ket,
+        operator_labels,sectors,
+        blocks,scale_factor
+      );
+  }
+
   void 
   ReadLSU3ShellRMEs(
       const std::string& filename,
@@ -299,6 +335,11 @@ namespace lsu3shell
       double scale_factor
     )
   {
+    LSU3ShellBasisTable lsu3_basis_table_bra=lsu3_basis_table;
+    LSU3ShellBasisTable lsu3_basis_table_ket=lsu3_basis_table;
+    u3shell::SpaceU3SPN space_bra=space;
+    u3shell::SpaceU3SPN space_ket=space;
+
     bool sp3r_generators=false;
     lsu3shell::ReadLSU3ShellRMEs(
       sp3r_generators,filename,lsu3_basis_table,space, 

@@ -5,6 +5,8 @@
   University of Notre Dame
 
   6/15/16 (aem,mac): Created.
+  5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
+    basis::RelativeOperatorParametersLSJT for reading in operators
 ****************************************************************/
 #include <fstream>
 
@@ -48,8 +50,7 @@ void RelativeToTwoBody(
   // std::string interaction_file="/afs/crc.nd.edu/user/a/amccoy/projects/spncci/data/jisp16_Nmax20_hw20.0_rel.dat";
   // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
-
-  basis::OperatorLabelsJT operator_labels;
+  basis::RelativeOperatorParametersLSJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
   basis::ReadRelativeOperatorLSJT(
@@ -200,54 +201,6 @@ void CompareToMFDN(
 }
 
 
-  // ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // //// Identity Operator  TODO make into function
-  // ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // u3shell::RelativeRMEsU3ST identity_relative_rmes;
-
-  // for(auto tensor : relative_unit_tensors)
-  //   {
-  //     if(
-  //       (tensor.x0()==u3::SU3(0,0))
-  //       &&(tensor.S0()==0)
-  //       &&(tensor.T0()==0)
-  //       &&(tensor.bra()==tensor.ket())
-  //       )
-  //       {
-  //         u3shell::IndexedRelativeUnitTensorLabelsU3ST index_tensor(tensor,1,0);
-  //         identity_relative_rmes[index_tensor]=1;
-  //       }
-  //   }
-  // u3shell::IndexedTwoBodyTensorRMEsU3ST id_two_body_rmes;
-  // u3shell::ConvertRelativeTensorToTwoBodyTensor(Nmax,N1v,identity_relative_rmes, id_two_body_rmes);
-  // PrintTwoBodyIndexedRMEU3ST(id_two_body_rmes);
-
-  // std::map<u3shell::TwoBodyBraketLST,double> two_body_rmes_lst;
-  // u3shell::BranchTwoBodyNLST(id_two_body_rmes,two_body_rmes_lst);
-  // // std::cout<<"Branch NLST"<<std::endl;
-  // // for(auto it=two_body_rmes_lst.begin(); it!=two_body_rmes_lst.end(); ++it)
-  // //   {
-  // //     TwoBodyBraketLST braket=it->first;
-  // //     double rme=it->second;
-  // //     TwoBodyStateLabelsLST bra,ket;
-  // //     int L0;
-  // //     HalfInt S0,T0;
-  // //     std::tie(L0,S0,T0,bra,ket)=braket;
-  // //     int N1,L1,N2,L2,L,N1p,L1p,N2p,L2p,Lp;
-  // //     HalfInt Sp,Tp,S,T;
-  // //     std::tie(N1,L1,N2,L2,L,S,T)=ket;
-  // //     std::tie(N1p,L1p,N2p,L2p,Lp,Sp,Tp)=bra;
-  // //     if(fabs(rme)>zero_threshold)
-  // //     std::cout<<fmt::format("{} {} {} {} {} {} {} || {} {} {} || {} {} {} {} {} {} {}   {}",
-  // //       N1p,L1p,N2p,L2p,Lp,Sp,Tp,L0,S0,T0,N1,L1,N2,L2,L,S,T,rme)<<std::endl;
-  // //   }
-
-  // std::map<u3shell::TwoBodyBraketJJJT,double> id_two_body_rme_jjjt;
-  // u3shell::BranchTwoBodyU3STToJJJT(Jmax, J0, id_two_body_rmes, id_two_body_rme_jjjt);
-
-  // std::cout<<"Identity JJJT "<<std::endl;
-  // u3shell::PrintTwoBodyMatrixElementsJJJT(id_two_body_rme_jjjt);
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -288,7 +241,7 @@ int main(int argc, char **argv)
   // std::string interaction_file="../../data/jisp16_Nmax20_hw20.0_rel.dat";
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
 
-  basis::OperatorLabelsJT operator_labels;
+  basis::RelativeOperatorParametersLSJT operator_labels;
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
   basis::ReadRelativeOperatorLSJT(

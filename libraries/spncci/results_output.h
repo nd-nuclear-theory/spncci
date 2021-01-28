@@ -90,14 +90,22 @@ namespace spncci
 
   void WriteRunParameters(std::ostream& out_stream, const spncci::RunParameters& run_parameters);
 
+  // void WriteBasisStatistics(
+  //     std::ostream& out_stream,
+  //     const spncci::SpNCCISpace& spncci_space,
+  //     const spncci::BabySpNCCISpace& baby_spncci_space,
+  //     const spncci::SpaceSpU3S& spu3s_space,
+  //     const spncci::SpaceSpLS& spls_space,
+  //     const spncci::SpaceSpJ& spj_space
+  //   );
+
   void WriteBasisStatistics(
       std::ostream& out_stream,
       const spncci::SpNCCISpace& spncci_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      const spncci::SpaceSpU3S& spu3s_space,
-      const spncci::SpaceSpLS& spls_space,
-      const spncci::SpaceSpJ& spj_space
+      const std::vector<spncci::SpaceSpBasis>& spaces_spbasis
     );
+
 
   void WriteSpU3SSubspaceListing(
       std::ostream& out_stream,
@@ -148,14 +156,28 @@ namespace spncci
   //   out_stream (input): output stream
   //   ...
 
-  // void WriteDecompositions(
-  //     std::ostream& out_stream,
-  //     const std::string& decomposition_name,
-  //     const std::string& format_string,
-  //     const spncci::SpaceSpJ& spj_space,
-  //     const std::vector<spncci::Matrix>& decompositions,
-  //     int gex
-  //   );
+  void WriteEigenvectors(
+    spncci::Matrix& eigenvectors,
+    const HalfInt& J,
+    std::ofstream& out_file,
+    const int& binary_float_precision
+  );
+  //Writes eigenvectors for a given J to out_file stream. 
+
+  void WriteEigenvectors(
+    spncci::Matrix& eigenvectors,
+    const HalfInt& J,
+    const std::string& filename,
+    const int& binary_float_precision
+  );
+  //Writes eigenvectors for a given J to file
+
+void ReadEigenvectors(  
+    const std::string& filename,
+    spncci::OperatorBlock& eigenvectors
+  );
+
+//TEMP
 
   void WriteDecompositions(
     std::ostream& out_stream,
@@ -210,7 +232,6 @@ namespace spncci
   //   spncci::ObservableHyperblocksTable& observable_hyperblocks_table
   //   );
   
-
 
 }  // namespace
 

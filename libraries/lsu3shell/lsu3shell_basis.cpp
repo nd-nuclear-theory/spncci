@@ -52,7 +52,7 @@ namespace lsu3shell
         line_stream
           >>ip>>alpha_p_max>>Np>>lambda_p>>mu_p>>twice_Sp 
           >>in>>alpha_n_max>>Nn>>lambda_n>>mu_n>>twice_Sn 
-          >>rho0_max>>lambda >> mu>>twice_S;
+          >>rho0_max>>lambda>>mu>>twice_S;
 
         // convert parameter data types
         Nex=Nn+Np;
@@ -67,20 +67,20 @@ namespace lsu3shell
         assert(am::AllowedTriangle(Sp,Sn,S));
         assert(u3::OuterMultiplicity(xp,xn,x)==rho0_max);
 
-        // std::cout<<fmt::format("Nex {}  Nsigma_0 {}  x {}",Nex, Nsigma_0,x.Str())<<std::endl;
+        // current group irrep labels
         u3::U3 omega(Nsigma_0+Nex,x);
         u3::U3S omegaS(omega,S);
         u3shell::U3SPN omegaSPN(omegaS,Sp,Sn);
 
         // computing indexing information
-        int start_index=subspace_dimensions[omegaSPN];
+        int start_index=subspace_dimensions[omegaSPN];  // starting index is based on dimensions so far for this omegaSPN (may be zero)
         int dim=alpha_n_max*alpha_p_max*rho0_max;
-        subspace_dimensions[omegaSPN]+=dim;
+        subspace_dimensions[omegaSPN]+=dim;  // increment dimension count for this omegaSPN to take into account current group 
         
         // store entry
         LSU3ShellBasisGroupLabels lsu3_basis_group_labels(omegaSPN,ip,in,Np,Nn,Nex);
-        LSU3ShellBasisGroupData mult_group(lsu3_basis_group_labels,dim,start_index);
-        lsu3_basis_table.push_back(mult_group);
+        LSU3ShellBasisGroupData multiplicity_group(lsu3_basis_group_labels,dim,start_index);
+        lsu3_basis_table.push_back(multiplicity_group);
 
         // store provenence records
         std::vector<LSU3ShellBasisGroupLabels>& subspace_provenance_list = subspace_provenances[omegaSPN];

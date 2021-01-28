@@ -115,8 +115,7 @@ namespace u3shell {
   }
 
 
-
-  double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+  double Nrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
     double rme=0;
     if (bra==ket)
@@ -124,9 +123,18 @@ namespace u3shell {
     return rme;
   }
 
-  double RelativeSp3rRaisingOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+  double Hrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
     double rme=0;
+    if (bra==ket)
+      rme=ket.eta()+3/2.;
+    return rme;
+  }
+
+  //RME expression based on McCoy thesis 2018
+  double Arel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+  {
+    double rme=0.;
     int eta=ket.eta();
     int etap=bra.eta();
     if(
@@ -134,22 +142,16 @@ namespace u3shell {
         && (bra.T()==bra.T()) // delta on isospin
         && ((etap-eta)==2)      //only connect states with eta+2=etap 
       )
-        {
-          u3::U3 sigma(HalfInt(eta%2)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 omega(HalfInt(eta)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 omegap(HalfInt(etap)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          MultiplicityTagged<u3::U3>n_rho(u3::U3(omega.N()-sigma.N(),0,0),1);
-          MultiplicityTagged<u3::U3>np_rhop(u3::U3(omegap.N()-sigma.N(),0,0),1);
-          rme=(sqrt(vcs::Omega(np_rhop.irrep, omegap)-vcs::Omega(n_rho.irrep, omega))
-                    *vcs::U3BosonCreationRME(sigma,np_rhop,omegap,sigma,n_rho,omega));
-        }
+        rme=std::sqrt((eta+2)*(eta+1)/2);
+
     return rme;
   }
 
-  double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+//RME expression based on McCoy thesis 2018
+  double Brel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
 
-    double rme=0;
+    double rme=0.0;
     int eta=ket.eta();
     int etap=bra.eta();
     if((eta==0)||(eta==1))
@@ -160,43 +162,51 @@ namespace u3shell {
         && (bra.T()==bra.T()) // delta on isospin
         && ((eta-etap)==2)      //only connect states with eta+2=etap 
       )
-        {
-          u3::U3 sigma(HalfInt(eta%2)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 omega(HalfInt(eta)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          u3::U3 omegap(HalfInt(etap)+HalfInt(1,2),HalfInt(1,2),HalfInt(1,2));
-          MultiplicityTagged<u3::U3>n_rho(u3::U3(omega.N()-sigma.N(),0,0),1);
-          MultiplicityTagged<u3::U3>np_rhop(u3::U3(omegap.N()-sigma.N(),0,0),1);
-          rme=parity(etap-eta)
-                    *sqrt(1.*u3::dim(omega)/u3::dim(omegap))
-                    *sqrt(vcs::Omega(n_rho.irrep, omega)-vcs::Omega(np_rhop.irrep, omegap))
-                    *vcs::U3BosonCreationRME(sigma,n_rho,omega,sigma,np_rhop,omegap);
-        }
+        rme=std::sqrt((eta+2)*(eta+1)/2);
+    
     return rme;
   }
 
-  double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+  //RME expression based on McCoy thesis 2018
+  double Crel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+    {
+      double rme=0.0;
+      int eta=ket.eta();
+      int etap=bra.eta();
+      if((eta==0)||(eta==1))
+        return rme;
+      
+      if(
+          (bra.S()==ket.S())    // delta on spin
+          && (bra.T()==bra.T()) // delta on isospin
+          && (eta==etap)      //only connect states with eta+2=etap 
+        )
+          rme=std::sqrt(4.*(eta*eta+3*eta)/3);
+      
+      return rme;
+
+    }
+
+  double K2rel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
     double rme=0;
     if (bra.eta()==ket.eta())
       // 1.5 from the 3/2 zero point energy for a single particle
-      rme=u3shell::RelativeNumberOperator(bra,ket)+1.5;
+      rme=u3shell::Nrel(bra,ket)+1.5;
     if (bra.eta()==(ket.eta()+2))
-      rme=-sqrt(1.5)*u3shell::RelativeSp3rRaisingOperator(bra,ket);
+      rme=-sqrt(1.5)*u3shell::Arel(bra,ket);
     if (bra.eta()==(ket.eta()-2))
-      rme=-sqrt(1.5)*u3shell::RelativeSp3rLoweringOperator(bra,ket);
+      rme=-sqrt(1.5)*u3shell::Brel(bra,ket);
 
     return rme;
   }
 
-  double RelativeMassQuadrupoleOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
+  double Qrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket)
   {
     double rme=0;
-    if (bra.eta()==ket.eta())
-      rme=std::sqrt(4.*(ket.eta()*ket.eta()+3*ket.eta()));
-    if (bra.eta()==(ket.eta()+2))
-      rme=sqrt(3)*u3shell::RelativeSp3rRaisingOperator(bra,ket);
-    if (bra.eta()==(ket.eta()-2))
-      rme=sqrt(3)*u3shell::RelativeSp3rLoweringOperator(bra,ket);
+    rme+=std::sqrt(3)*u3shell::Crel(bra,ket);
+    rme+=std::sqrt(3)*u3shell::Arel(bra,ket);
+    rme+=std::sqrt(3)*u3shell::Brel(bra,ket);
 
     return rme;
   }

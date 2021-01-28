@@ -58,7 +58,8 @@ task_list = [
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "su3rme_descriptor_template" : su3rme.su3rme_descriptor_template_Nsigmamax,
         "su3rme_mode" : su3rme_mode,
-
+        "model_space_file_bra" : None,
+        "model_space_file_ket" : None,
         # for timing pool
         "nslaves" : nslaves
     }

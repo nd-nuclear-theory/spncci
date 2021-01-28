@@ -60,9 +60,10 @@ namespace u3shell {
         PushSubspace(subspace);
       }
   }
-  
+
   SectorsU3SPN::SectorsU3SPN(const SpaceU3SPN& space, const OperatorLabelsU3S& operator_labels,
                              bool spin_scalar)
+    : BaseSectors(space)
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
@@ -70,6 +71,47 @@ namespace u3shell {
           // retrieve subspaces
           const SubspaceU3SPN& bra_subspace = space.GetSubspace(bra_subspace_index);
           const SubspaceU3SPN& ket_subspace = space.GetSubspace(ket_subspace_index);
+
+          // verify selection rules
+          bool allowed = true;
+          // U(1)
+          allowed &= (ket_subspace.N() + operator_labels.N0() - bra_subspace.N() == 0);
+          // spin
+          allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0(),bra_subspace.S());
+          // proton and neutron spin
+          if (spin_scalar)
+            {
+              assert(operator_labels.S0()==0);
+              allowed &= (ket_subspace.Sp()==bra_subspace.Sp()) && (ket_subspace.Sn()==bra_subspace.Sn());
+              }
+          // find SU(3) multiplicity and check SU(3) selection
+          int multiplicity = 0;
+          if (allowed)
+            {
+              multiplicity = u3::OuterMultiplicity(ket_subspace.SU3(),operator_labels.x0(),bra_subspace.SU3());
+              allowed &= (multiplicity > 0);
+            }
+
+          // push sectors (tagged by multiplicity)
+          if (allowed)
+            for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+              {
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
+              }
+        }
+  }
+
+  SectorsU3SPN::SectorsU3SPN(
+    const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket, 
+    const OperatorLabelsU3S& operator_labels,bool spin_scalar
+  )
+  {
+    for (int bra_subspace_index=0; bra_subspace_index<space_bra.size(); ++bra_subspace_index)
+      for (int ket_subspace_index=0; ket_subspace_index<space_ket.size(); ++ket_subspace_index)
+        {
+          // retrieve subspaces
+          const SubspaceU3SPN& bra_subspace = space_bra.GetSubspace(bra_subspace_index);
+          const SubspaceU3SPN& ket_subspace = space_ket.GetSubspace(ket_subspace_index);
 
           // verify selection rules
           bool allowed = true;

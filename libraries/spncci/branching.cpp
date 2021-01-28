@@ -17,7 +17,7 @@
 #include "am/wigner_gsl.h"
 #include "fmt/format.h"
 #include "mcutils/parsing.h"
-#include "spncci/unit_tensor.h"
+// #include "spncci/unit_tensor.h"
 
 namespace spncci
 {
@@ -830,10 +830,12 @@ namespace spncci
         HalfInt J0,
         basis::SectorDirection sector_direction
     )
+    : BaseSectors(space)
+
   {
     for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
-	{
+        {
           // enforce canonical ordering
           if (
               (sector_direction == basis::SectorDirection::kCanonical)
@@ -851,8 +853,8 @@ namespace spncci
           // to add parity selection: allowed &= ((ket_subspace.g()+g0+bra_subspace.g())%2==0);
 
           // push sector
-	  if (allowed)
-            PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace));
+          if (allowed)
+            PushSector(bra_subspace_index,ket_subspace_index);
         }
   }
 

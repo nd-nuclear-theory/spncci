@@ -6,14 +6,16 @@
 
 ****************************************************************/
 #include <fstream>
+#include <iostream>
 #include <omp.h>
 
 #include "fmt/format.h"
+#include "lsu3shell/lsu3shell_rme.h"
 #include "lgi/lgi_solver.h"
 #include "lgi/null_solver.h"
 #include "utilities/utilities.h"
-
-extern double zero_threshold;
+#include "mcutils/io.h"
+#include "mcutils/parsing.h"
 
 namespace lgi
 {
@@ -124,7 +126,9 @@ namespace lgi
 
     for(int i=0; i<BrelNcm_matrices.size();++i)
       {
-        // std::cout<<BrelNcm_matrices[i]<<std::endl;
+        // std::cout<<"BrelNcm matrix "<<std::endl;
+        // std::cout<<BrelNcm_matrices[i]<<std::endl<<std::endl;
+
         Eigen::MatrixXd null_vectors;
         lgi::FindNullSpaceSVD(BrelNcm_matrices[i],null_vectors,threshold);
         // std::cout<<null_vectors<<std::endl;
@@ -196,32 +200,199 @@ namespace lgi
       );
   }
 
-
-  void
-  TransformOperatorToSpBasis(
-      const u3shell::SectorsU3SPN& sectors,
-      const basis::OperatorBlocks<double>& basis_transformation_matrices,
-      const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
-      basis::OperatorBlocks<double>& spncci_operator_matrices
-    )
+void WriteLSU3ShellToLGIConversionTable(const std::vector<int>& lsu3shell_index_lookup_table)
   {
-    // for each sector, look up bra and ket subspaces 
-    spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
-    
-    // #pragma omp parallel for schedule(runtime)
-    for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
+    std::ofstream outstream;
+    outstream.open("lsu3shell_to_lgi_conversion_table.dat");
+    outstream<<lsu3shell_index_lookup_table.size()<<std::endl;
+    for(int lsu3shell_index=0; lsu3shell_index<lsu3shell_index_lookup_table.size(); ++lsu3shell_index)
+      outstream<<"{:3d}  {:3d}"<<std::endl;
+
+    outstream.close();
+  }
+
+void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_table)
+  {
+    std::ifstream instream;
+    instream.open("lsu3shell_to_lgi_conversion_table.dat");
+    int num_lsu3shell_subspaces;
+    instream >> num_lsu3shell_subspaces;
+    lsu3shell_index_lookup_table.resize(num_lsu3shell_subspaces);
+    int line_count=0;
+    while(line_count<num_lsu3shell_subspaces)
       {
-        int i=sectors.GetSector(s).bra_subspace_index();
-        int j=sectors.GetSector(s).ket_subspace_index();
-
-        // get transformation matrices and transpose bra transformation matrix
-        const Eigen::MatrixXd& bra=basis_transformation_matrices[i].transpose();
-        const Eigen::MatrixXd& ket=basis_transformation_matrices[j];
-
-        // transform operator to spncci basis
-        spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
+        // parse line
+        int lsu3shell_index, lgi_index;
+        instream>>lsu3shell_index>>lgi_index;
+        lsu3shell_index_lookup_table[lsu3shell_index]=lgi_index;
       }
   }
+
+
+void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBlocks& lgi_expansions)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::out;
+    mode_argument |= std::ios_base::binary;
+    std::ofstream expansion_file;
+    expansion_file.open(filename,mode_argument);
+
+    if (!expansion_file)
+     {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+     }
+   
+    mcutils::WriteBinary<int>(expansion_file,lgi::binary_format_code);
+    // floating point precision
+    mcutils::WriteBinary<int>(expansion_file,lgi::binary_float_precision);
+
+
+    for(auto& block : lgi_expansions)
+      {
+        int num_rows=block.rows();
+        int num_cols=block.cols();
+
+        assert(num_rows==static_cast<lgi::LGIIndexType>(num_rows));
+        mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_rows);
+
+        assert(num_cols==static_cast<lgi::LGIIndexType>(num_cols));
+        mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_cols);
+        
+        for(int j=0; j<num_cols; ++j)
+          for(int i=0; i<num_rows; ++i)
+            {
+              auto rme=block(i,j);
+
+              if (lgi::binary_float_precision==4)
+                mcutils::WriteBinary<float>(expansion_file,rme);
+              else if (lgi::binary_float_precision==8)
+                mcutils::WriteBinary<double>(expansion_file,rme);
+            }
+      }
+  }
+
+      
+
+void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBlock& lgi_expansion)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::out;
+    mode_argument |= std::ios_base::binary;
+    std::ofstream expansion_file;
+    expansion_file.open(filename,mode_argument);
+
+    if (!expansion_file)
+     {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+     }
+   
+    // floating point precision
+    mcutils::WriteBinary<int>(expansion_file,lgi::binary_float_precision);
+
+    int num_rows=lgi_expansion.rows();
+    int num_cols=lgi_expansion.cols();
+
+    assert(num_rows==static_cast<lgi::LGIIndexType>(num_rows));
+    mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_rows);
+
+    assert(num_cols==static_cast<lgi::LGIIndexType>(num_cols));
+    mcutils::WriteBinary<lgi::LGIIndexType>(expansion_file,num_cols);
+    
+    for(int j=0; j<num_cols; ++j)
+      for(int i=0; i<num_rows; ++i)
+        {
+          auto rme=lgi_expansion(i,j);
+
+          if (lgi::binary_float_precision==4)
+            mcutils::WriteBinary<float>(expansion_file,rme);
+          else if (lgi::binary_float_precision==8)
+            mcutils::WriteBinary<double>(expansion_file,rme);
+        }
+  }
   
+void WriteLGIExpansionsText(const std::string& filename, const lsu3shell::OperatorBlock& lgi_expansion)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row    
+    std::ofstream expansion_file;
+    expansion_file.open(filename);
+
+    if (!expansion_file)
+     {
+        std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+        return;
+     }
+   
+    int num_rows=lgi_expansion.rows();
+    int num_cols=lgi_expansion.cols();
+    expansion_file << num_rows << num_cols<<std::endl;
+    
+    for(int j=0; j<num_cols; ++j)
+      for(int i=0; i<num_rows; ++i)
+          expansion_file<<lgi_expansion(i,j);
+        
+      expansion_file<<std::endl;
+  }
+
+
+
+
+
+void ReadLGIExpansion(int num_lgi_subspaces,const std::string& filename, basis::OperatorBlocks<double>& lgi_expansions)
+  {
+
+    // num_rows, num_cols, rmes
+    // rmes are by column then by row
+    // output in binary mode 
+    std::ios_base::openmode mode_argument = std::ios_base::in;
+    mode_argument |= std::ios_base::binary;
+    std::ifstream in_stream(filename, mode_argument);
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+    // if (!in_stream)
+    //  {
+    //     std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+    //     return;
+    //  }
+   
+    int binary_format_code;
+    int binary_float_precision;
+    mcutils::ReadBinary<int>(in_stream,binary_format_code);
+    mcutils::ReadBinary<int>(in_stream,binary_float_precision);
+
+
+    lgi_expansions.resize(num_lgi_subspaces);
+    for(int i=0; i<num_lgi_subspaces; ++i)
+      {
+        basis::OperatorBlock<double>& block=lgi_expansions[i];
+        lgi::LGIIndexType rows, cols;
+        // Read in number of rows and cols
+        mcutils::ReadBinary<lgi::LGIIndexType>(in_stream,rows);
+        mcutils::ReadBinary<lgi::LGIIndexType>(in_stream,cols);
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // Read in RMEs and cast to double matrix 
+        if(binary_float_precision==4)
+          {
+            float buffer[rows*cols];
+            in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+            block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+          }
+        else if (binary_float_precision==8)
+          {
+            double buffer[rows*cols];
+            in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+            block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+          }
+      }
+  }
 
 }// end namespace

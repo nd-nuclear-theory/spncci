@@ -195,7 +195,7 @@ namespace lgi
     {
       lgi_full_space_lookup_table.resize(num_irrep_families);
       // open input file
-      std::string filename="seeds/lgi_full_space_lookup_table.dat";
+      std::string filename="lgi_full_space_lookup_table.dat";
       std::ifstream stream(filename);
       mcutils::StreamCheck(bool(stream),filename,"Failed to open LGI input file");
 

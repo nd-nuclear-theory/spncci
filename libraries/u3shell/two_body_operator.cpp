@@ -10,6 +10,8 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
+#include <fstream>
 
 #include "fmt/format.h"
 #include "am/am.h"
@@ -17,7 +19,7 @@
 #include "sp3rlib/u3coef.h"
 #include "u3shell/unu3.h" 
 
-double zero_threshold=10e-13;
+double zero_threshold=10e-8;
 
 namespace u3shell {
 
@@ -477,6 +479,124 @@ namespace u3shell {
             }
         }
   }
+
+  void WriteTwoBodyInteractionRecoupler(
+      std::string filename,
+      u3shell::TwoBodyOperatorCoefficientsU3SPN& biquad_coefficients_pn
+    )
+  {
+      
+      double lsu3shell_zero_threshold=9.0e-6;
+
+      std::ofstream output_stream(filename);
+      for (const auto& key_value : biquad_coefficients_pn)
+        {
+          // extract unit tensor labels and coefficients
+          const u3shell::TwoBodyUnitTensorLabelsU3S& biquad_labels= key_value.first;
+          const std::vector<std::vector<CoefficientsPN>>& coefficient_array=key_value.second;
+                  
+          // extract unit tensor label groups
+          u3shell::OperatorLabelsU3S::KeyType operator_labels_key;
+          int rho0_max;
+          u3shell::TwoBodyStateLabelsU3S::KeyType bra_key, ket_key;
+          std::tie(operator_labels_key,rho0_max,bra_key,ket_key) = biquad_labels.Key();
+
+          // extract operator label groups
+          //
+          // Note: pn-scheme labels still contain dummy isosopin variable, to be ignored.
+          int N0;
+          u3::SU3 x0;
+          HalfInt S0;
+          int g0;
+          std::tie(N0,x0,S0,g0) = operator_labels_key;
+        
+          // extract bra labels
+          int eta1p, eta2p;
+          u3::SU3 xp;
+          HalfInt Sp;
+          std::tie(eta1p,eta2p,xp,Sp) = bra_key;
+
+          // extract ket labels
+          int eta1, eta2;
+          u3::SU3 x;
+          HalfInt S;
+          std::tie(eta1,eta2,x,S) = ket_key;  
+
+          // check that one of the coefficients is non-zero, may not be necessary
+          bool non_zero=false;
+          for(auto& coefficients_vector : coefficient_array)
+            for(auto& coefficients_pn : coefficients_vector)
+              {
+                if(
+                    (fabs(coefficients_pn.pppp)>lsu3shell_zero_threshold)
+                    ||(fabs(coefficients_pn.nnnn)>lsu3shell_zero_threshold)
+                    ||(fabs(coefficients_pn.pnnp)>lsu3shell_zero_threshold)
+                  )
+                   
+                   { non_zero=true; break;}
+              }
+          if(non_zero)
+          {
+          // ////////////////////////////////////////////////////////////////////////////////////
+          // // Testing
+          // ////////////////////////////////////////////////////////////////////////////////////
+          //   // label line
+          //   std::cout
+          //     << fmt::format(
+          //         "{:d} {:d} {:d} {:d}   "
+          //         "{:d} {:d} {:d} {:d}   "
+          //         "{:d} {:d} {:d} {:d}   "
+          //         "{:d} {:d} {:d} {:d}   ",
+          //         eta1p,eta2p,eta2,eta1,
+          //         1,xp.lambda(),xp.mu(),TwiceValue(Sp),
+          //         1,x.mu(),x.lambda(),TwiceValue(S),
+          //         rho0_max,x0.lambda(),x0.mu(),TwiceValue(S0)
+          //       )
+          //     << std::endl;
+          //     for(auto& coefficients_vector : coefficient_array)
+          //       for(auto& coefficients_pn : coefficients_vector)
+          //         {
+          //           // coefficient line
+          //           std::cout
+          //             << fmt::format(
+          //                 "{:+e} {:+e} {:+e}",
+          //                 coefficients_pn.pppp,
+          //                 coefficients_pn.nnnn,
+          //                 coefficients_pn.pnnp
+          //               )
+          //             << std::endl;
+          //         }
+
+          //   ////////////////////////////////////////////////////////////////////////////////////
+            output_stream
+              << fmt::format(
+                  "{:d} {:d} {:d} {:d}   "
+                  "{:d} {:d} {:d} {:d}   "
+                  "{:d} {:d} {:d} {:d}   "
+                  "{:d} {:d} {:d} {:d}   ",
+                  eta1p,eta2p,eta2,eta1,
+                  1,xp.lambda(),xp.mu(),TwiceValue(Sp),
+                  1,x.mu(),x.lambda(),TwiceValue(S),
+                  rho0_max,x0.lambda(),x0.mu(),TwiceValue(S0)
+                )
+              << std::endl;
+              for(auto& coefficients_vector : coefficient_array)
+                for(auto& coefficients_pn : coefficients_vector)
+                  {
+                    // coefficient line
+                    output_stream
+                      << fmt::format(
+                          "{:+e} {:+e} {:+e}",
+                          coefficients_pn.pppp,
+                          coefficients_pn.nnnn,
+                          coefficients_pn.pnnp
+                        )
+                      << std::endl;
+                  }
+            }
+        }
+  }
+
 
 ////////////////////////////////////////////////////////////////
 // two-body unit tensor enumeration

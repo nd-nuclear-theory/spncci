@@ -21,6 +21,7 @@
     stream arguments.
   10/11/17 (aem) : Extract GetLGIExpansion from spncci/computation_control
   2/8/18 (aem) : removed lgi_families with gamma_max=0
+  6/24/19 (aem) : Moved TransformOperatorTpSpBasis to lgi_unit_tensor
 ****************************************************************/
 
 #ifndef LGI_PROB_H_
@@ -35,6 +36,13 @@
 
 namespace lgi
 {
+
+  // output mode
+  extern int binary_format_code;
+  extern int binary_float_precision;
+  typedef short unsigned int RMEIndexType;
+  typedef uint32_t LGIIndexType;
+
 
   void 
     GenerateLGIExpansion(
@@ -78,7 +86,7 @@ void GetLGIExpansion(
     lsu3shell::OperatorBlocks& lgi_expansions,
     std::vector<int>& lsu3shell_index_lookup_table
   );
-  // Get list of LGI labels, multiplicities and expansion in lsu3shell basis
+  // Get list of LGI labels and multiplicities and lgi expansions in lsu3shell basis
   //
   // Inputs
   //  lsu3shell_basis_table,lsu3shell_space,  Filenames and A
@@ -86,18 +94,66 @@ void GetLGIExpansion(
   // Outputs 
   //   lgi::MultiplicityTaggedLGIVector lgi_families;
   //   basis::OperatorBlocks<double> lgi_expansions;
-  //   lsu3hsell_index_lookup_table: look up take relating 
-  //   lsu3shell subspace index to lgi family index
+  //   lsu3hsell_index_lookup_table: look up table relating 
+  //    lsu3shell subspace index to lgi family index needed
+  //    when there are lsu3shell subspaces with no lgi
+
+void WriteLSU3ShellToLGIConversionTable(const std::vector<int>& lsu3shell_index_lookup_table);
+  // Write out table that converts lsu3shell subspace index to lgi index 
+
+void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_table);
+  // Read in table that converts lsu3shell subspace index to lgi index
 
 
-  void
-    TransformOperatorToSpBasis(
-        const u3shell::SectorsU3SPN& sectors,
-        const basis::OperatorBlocks<double>& basis_transformation_matrices,
-        const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
-        basis::OperatorBlocks<double>& spncci_operator_matrices
-      );
-  // Similarity transformation from LSU3shell basis to Sp(3,R)xSU(2) basis
+
+void WriteLGIExpansions(
+    const std::string& filename, 
+    const lsu3shell::OperatorBlocks& lgi_expansions
+  );
+  // Write expansion of lgi's in lsu3shell basis as su3 reduced level
+  // Inputs
+  //  filename: output filename
+  //  lgi_expansion : operator blocks containing lgi expansion 
+
+void WriteLGIExpansions(
+  const std::string& filename, 
+  const lsu3shell::OperatorBlock& lgi_expansion
+  );
+  // Writes expansion of single LGI subspace in terms of lsu3shell basis at su3 reduced level
+  //  File is binary. 
+  // Inputs:
+  //  filename : output filename
+  //  lgi_expansion : matrix containing LGI expansion.  
+  //      Columns represent different LGI, rows are U(3)S basis states 
+
+void WriteLGIExpansionsText(
+  const std::string& filename, 
+  const lsu3shell::OperatorBlock& lgi_expansion
+  );
+
+  // Writes expansion of single LGI subspace in terms of lsu3shell basis at su3 reduced level
+  //  File is text.
+  // Inputs:
+  //  filename : output filename
+  //  lgi_expansion : matrix containing LGI expansion.  
+  //      Columns represent different LGI, rows are U(3)S basis states 
+
+
+void ReadLGIExpansion(
+    int num_lgi_subspaces,
+    const std::string& filename,
+    basis::OperatorBlocks<double>& lgi_expansions
+  );
+  // Read LGI expansion from file 
+  // Inputs:
+  //  num_lgi_subspaces
+  //  filename
+  //
+  // Outputs
+  //  lgi_expansions
+
+
+
 
 }
 #endif

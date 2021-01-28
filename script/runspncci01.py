@@ -6,21 +6,22 @@
 
     Environment:
       SPNCCI_INTERACTION_DIR -- base directory for relative lsjt interaction files
-      SPNCCI_LSU3SHELL_DIR -- base directory for unit tensor rme files
+      SPNCCI_SEED_DIR -- base directory for unit tensor rme files
 
     Ex (NDCRC nuclthy):
       setenv SPNCCI_INTERACTION_DIR /afs/crc.nd.edu/group/nuclthy/data/interaction/rel
-      setenv SPNCCI_LSU3SHELL_DIR /afs/crc.nd.edu/group/nuclthy/data/spncci/lsu3shell
+      setenv SPNCCI_SEED_DIR /afs/crc.nd.edu/group/nuclthy/data/spncci/seeds
 
     Ex (NERSC m2032):
       setenv SPNCCI_INTERACTION_DIR /project/projectdirs/m2032/data/interaction/rel
-      setenv SPNCCI_LSU3SHELL_DIR /project/projectdirs/m2032/data/spncci/lsu3shell
+      setenv SPNCCI_SEED_DIR [TODO]
 
-    Mark A. Caprio
+    Mark A. Caprio and Anna E. McCoy
     University of Notre Dame
 
     + 1/8/17 (mac): Created.
     + 2/23/17 (mac): Implement basic scripting.
+    + 9/24/20 (aem): Updated to reflect current scripting
 
 """
 
@@ -31,13 +32,26 @@ import os
 mcscript.init()
 
 ##################################################################
-# directory configuration
+# data file search paths
 ##################################################################
+## spncci.py searches for interaction file in subdirectorys 
+## spncci.interaction_subdirectory_list in directory SPNCCI_INTERACTION_DIR
+spncci.interaction_subdirectory_list += ["",
+"JISP16_Nmax20",
+"Daejeon16_Nmax40",
+"N3LO"
+]
 
-interaction_directory = os.environ["SPNCCI_INTERACTION_DIR"]
-unit_tensor_directory = os.environ["SPNCCI_LSU3SHELL_DIR"]
-interaction_filename_template = os.path.join(interaction_directory,"JISP16_Nmax20","JISP16_Nmax20_hw{:2.1f}_rel.dat")
-unit_tensor_directory_template = os.path.join(unit_tensor_directory,"lsu3shell_{Nsigma_ex_max:02d}")  # TODO label by N and Z; no longer "directory"
+#Template for specific interaction filename
+interaction_filename_template = "JISP16_Nmax20_hw{hw:2.1f}_rel.dat"
+
+## subdirectories containing seeds for spncci recurrence 
+## in directory SPNCCI_SEED_DIR
+spncci.seed_subdirectory_list += [
+     "runaem0031", #6Li
+     "runaem0079", #7Be
+     "runaem0080"  #7Li
+    ]
 
 ##################################################################
 # build task list
@@ -49,18 +63,31 @@ task_list = [
         "Nmax" : Nmax,
         "Nstep" : 2,
         "N1v" : 1,
-        "Nsigma_0" : 11,
-        "Nsigma_ex_max" : Nsigma_ex_max,
-        "num_eigenvalues" : 10,
-        "J0" : 0,
+        "Nsigma_max" : Nsigma_max,
         "J_range" : (1,3,2), #min, max, step
         "hw_range" : (20,20,2.5), # min, max, step
+        "seed_descriptor_template" : spncci.seed_descriptor_template_Nsigmamax,
+        ## If hyperblocks_dir set to none, temporary directory created in run directory
+        "hyperblocks_dir" : None,
+        # Tag for interaction
+        "interaction" : "JISP16",
+        # Interaction filename template
         "interaction_filename_template" :interaction_filename_template,
-        "unit_tensor_directory" : unit_tensor_directory_template,
-        "observables" : ["r2intr"]
+        "use_coulomb" : True,
+        "coulomb_filename" : "coulomb_Nmax20_steps500_rel.dat",
+        # "observables" : [(<Observable name>,J)]
+        "observables" : [("r2intr",0),("Qintr",2),("Qpintr",2),("Qnintr",2)],
+        "num_eigenvalues" : 5,
+        #parameters for spncci basis truncation
+        "truncation_filename": None,
+        "transformation_filename": None,
+        # eigensolver convergence parameters
+        "eigensolver_num_convergence" : 2*5+1, # docs for Spectra SymEigsSolver say to take "ncv>=2*nev" and want smaller than dim of matrix 
+        "eigensolver_max_iterations" : 100, # at least 100 times num_eigenvalues, possible more
+        "eigensolver_tolerance" : 1e-6 
     }
-    for Nsigma_ex_max in mcscript.utils.value_range(0,6,2)  # CAVEAT: Nmax0 requires special treatment for num eigenvectors
-    for Nmax in mcscript.utils.value_range(Nsigma_ex_max,20,2)
+    for Nsigma_max in mcscript.utils.value_range(0,6,2)  
+    for Nmax in mcscript.utils.value_range(Nsigma_max,20,2)
 ]
 
 ################################################################
@@ -69,11 +96,12 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-Nsigmaexmax{Nsigma_ex_max:02d}-Nmax{Nmax:02d}".format(**task))
+    coulomb = int(task["use_coulomb"])
+    return ("Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task))
 
 def task_pool(task):
     """"""
-    return ("{Nsigma_ex_max:02d}-{Nmax:02d}".format(**task))
+    return ("{Nsigma_max:02d}-{Nmax:02d}".format(**task))
 
 
 ##################################################################

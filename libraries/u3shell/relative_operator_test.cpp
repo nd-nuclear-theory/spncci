@@ -60,68 +60,86 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   test_relative();
 
-  int Nmax=2;
-  int N1v=1;
-  u3shell::RelativeSpaceU3ST space(Nmax);
-  std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> relative_unit_tensor_labels;
-
-  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensor_labels);
-  for(auto it=relative_unit_tensor_labels.begin(); it!=relative_unit_tensor_labels.end(); ++it)
-    {
-      std::cout<<it->first<<std::endl;
-      std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_vec=it->second;
-      for(auto tensor : unit_vec)
-        std::cout<<tensor.Str()<<std::endl;
-    }
-
+  if(false)
   {
     int Nmax=2;
     int N1v=1;
-    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
-    std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
-    int index=0;
-    for(auto& tensor : relative_unit_tensors)
-     {
-        std::cout<<index<<"   "<<tensor.Str()<<std::endl;
-        index++;
-      }  
-  }
+    u3shell::RelativeSpaceU3ST space(Nmax);
+    std::map<int,std::vector<u3shell::RelativeUnitTensorLabelsU3ST>> relative_unit_tensor_labels;
 
-  {
-    int Nmax=4;
-    int N1v=1;
-    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
-    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
-    std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
-    int index=0;
-    for(auto& tensor : relative_unit_tensors)
-     {
-        std::cout<<index<<"   "<<tensor.Str()<<std::endl;
-        index++;
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensor_labels);
+    for(auto it=relative_unit_tensor_labels.begin(); it!=relative_unit_tensor_labels.end(); ++it)
+      {
+        std::cout<<it->first<<std::endl;
+        std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_vec=it->second;
+        for(auto tensor : unit_vec)
+          std::cout<<tensor.Str()<<std::endl;
       }
+
+    {
+      int Nmax=2;
+      int N1v=1;
+      std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
+      u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
+      std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
+      int index=0;
+      for(auto& tensor : relative_unit_tensors)
+       {
+          std::cout<<index<<"   "<<tensor.Str()<<std::endl;
+          index++;
+        }  
+    }
+
+    {
+      int Nmax=4;
+      int N1v=1;
+      std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensors;
+      u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, N1v,relative_unit_tensors);
+      std::cout<<std::endl<<relative_unit_tensors.size()<<std::endl;
+      int index=0;
+      for(auto& tensor : relative_unit_tensors)
+       {
+          std::cout<<index<<"   "<<tensor.Str()<<std::endl;
+          index++;
+        }
+    }
   }
   
 
-  // u3shell::RelativeStateLabelsU3ST bra;
-  // u3shell::RelativeStateLabelsU3ST ket;
-
-  // bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  // ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  // std::cout<<"Number operator    "<<u3shell::RelativeNumberOperator(bra,ket)<<std::endl;
-  // std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
 
 
-  // bra=u3shell::RelativeStateLabelsU3ST(4,1,0);
-  // ket=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  // std::cout<<"Raising operator   "<<u3shell::RelativeSp3rRaisingOperator(bra,ket)<<std::endl;
-  // std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+
+if(true)
+{
+    int Nmax=20;
+    int S=0;
+    int T=0;
+    std::cout<<"B relative operator"<<std::endl;
+    for(int N=2; N<=Nmax; N++)
+      {
+        int Np=N-2;
+        u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+        u3shell::RelativeStateLabelsU3ST bra(Np,S,T);              
+        double Brme1=u3shell::Brel(bra,ket);
+        double Brme2=std::sqrt((N+2)*(N+1)/2);
+        std::cout<<fmt::format("{:.4f}  {:.4f} ",Brme1, Brme2)<<std::endl;
+      }
+
+    // Arel
+    std::cout<<std::endl<<"A relative operator"<<std::endl;
+    for(int N=0; N<=Nmax; N++)
+      {
+        int Np=N+2;
+        u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+        u3shell::RelativeStateLabelsU3ST bra(Np,S,T);   
+
+        double Arme1=u3shell::Arel(bra,ket);
+        double Arme2=std::sqrt((N+2)*(N+1)/2);
+        std::cout<<fmt::format("{:.4f}  {:.4f} ",Arme1, Arme2)<<std::endl;
+      }
 
 
-  // bra=u3shell::RelativeStateLabelsU3ST(2,1,0);
-  // ket=u3shell::RelativeStateLabelsU3ST(4,1,0);
-  // std::cout<<"Lowering operator  "<<u3shell::RelativeSp3rLoweringOperator(bra,ket)<<std::endl;
-  // std::cout<<"Kinetic operator   "<<u3shell::RelativeKineticEnergyOperator(bra,ket)<<std::endl;
+}
 
 
 

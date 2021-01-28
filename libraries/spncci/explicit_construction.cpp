@@ -16,7 +16,7 @@
 
 namespace spncci
 {
-  typedef std::vector<basis::OperatorBlocks<double>> PolynomialMatrices; 
+  typedef std::vector<basis::OperatorBlocks<double>> PolynomialMatrices;
 
   void
   GenerateSpRaisingPolynomials(
@@ -27,7 +27,7 @@ namespace spncci
       PolynomialMatrices& polynomial_matrices
     )
   {
-    
+
     const sp3r::Sp3RSpace& u3_subspaces=sp_irrep_family.Sp3RSpace();
     u3shell::U3SPN sigmaSPN(sp_irrep_family);
     int lgi_lsu3shell_subspace_index=lsu3shell_space.LookUpSubspaceIndex(sigmaSPN);
@@ -42,10 +42,10 @@ namespace spncci
         int omega_lsu3shell_subspace_index
           =lsu3shell_space.LookUpSubspaceIndex(u3shell::U3SPN(omega,sigmaSPN.Sp(),sigmaSPN.Sn(),sigmaSPN.S()));
 
-        // resize matrix vector for omega polynomials 
+        // resize matrix vector for omega polynomials
         polynomial_matrices[w].resize(omega_subspace.size());
 
-        // iterate over n_rho "states" in u3 subspace 
+        // iterate over n_rho "states" in u3 subspace
         for(int i=0; i<omega_subspace.size(); ++i)
           {
             MultiplicityTagged<u3::U3> n_rho(omega_subspace.GetStateLabels(i));
@@ -53,7 +53,7 @@ namespace spncci
             bool init=true;
             for(int w_bar=0; w_bar<omegapp_list.size(); ++w_bar)
               {
-                
+
                 u3::U3 omega_bar(omega.N()-2,omegapp_list[w_bar].irrep);
                 // check if omega_bar is a valid U3 state and in irrep
                 if(not omega_bar.Valid())
@@ -68,15 +68,15 @@ namespace spncci
                 int omega_bar_lsu3shell_subspace_index
                   =lsu3shell_space.LookUpSubspaceIndex(u3shell::U3SPN(omega_bar,sigmaSPN.Sp(),sigmaSPN.Sn(),sigmaSPN.S()));
 
-                // get Aintr matrix 
+                // get Aintr matrix
                 int Arel_sector_index
                   =Arel_sectors.LookUpSectorIndex(omega_lsu3shell_subspace_index,omega_bar_lsu3shell_subspace_index);
 
                 const Eigen::MatrixXd& A=Arel_matrices[Arel_sector_index];
-                
+
                 // special case: if Nn=2, then polynomial is A
                 if((omega.N()-sigmaSPN.N())==2)
-                  { 
+                  {
                     polynomial_matrices[w][i]=A;
                     continue;
                   }
@@ -98,11 +98,11 @@ namespace spncci
                     u3::U3 n_bar(omega_bar_subspace.GetStateLabels(j).irrep);
                     int rho_bar=omega_bar_subspace.GetStateLabels(j).tag;
 
-                    double 
+                    double
                     coef=2./int(n.N())*vcs::BosonCreationRME(n,n_bar)
                           *u3::U(sigmaSPN.U3().SU3(),n_bar.SU3(), omega.SU3(),u3::SU3(2,0),
                                   omega_bar.SU3(),rho_bar,1,n.SU3(),1,1);
-                  
+
                     // std::cout<<polynomial_matrices[omega_bar_index][j].rows()<<std::endl<<std::endl;
                     // std::cout<<"A "<<A.rows()<<" "<<A.cols()<<std::endl<<A<<std::endl;
                     // std::cout<<polynomial_matrices[w][i].rows()<<std::endl<<std::endl;
@@ -114,7 +114,7 @@ namespace spncci
   }
 
 
-  void 
+  void
   ConstructSpNCCIBasisExplicit(
       const u3shell::SpaceU3SPN& lsu3shell_space,
       const spncci::SpNCCISpace& sp_irrep_families,
@@ -129,14 +129,14 @@ namespace spncci
     )
   {
     // Get expansion from file
-    basis::OperatorBlocks<double> lgi_expansions; 
+    basis::OperatorBlocks<double> lgi_expansions;
     std::string lgi_expansion_filename="lgi_expansions.dat";
     lgi::ReadBlocks(lgi_expansion_filename,lgi_families.size(),lgi_expansions);
 
     u3::UCoefCache u_coef_cache;
     // Generate raising polynomials
     // std::cout<<"generate polynomial matrices"<<std::endl;
-    std::vector<PolynomialMatrices> polynomial_matrices_by_lgi_family(sp_irrep_families.size()); 
+    std::vector<PolynomialMatrices> polynomial_matrices_by_lgi_family(sp_irrep_families.size());
     for(int p=0; p<sp_irrep_families.size(); ++p)
       {
         const spncci::SpNCCIIrrepFamily& sp_irrep_family=sp_irrep_families[p];
@@ -158,7 +158,7 @@ namespace spncci
         // extract sp3r properties
         const sp3r::Sp3RSpace& u3_subspaces=sp_irrep_families[irrep_family_index].Sp3RSpace();
         int omega_index=u3_subspaces.LookUpSubspaceIndex(subspace.omega());
-        const auto& u3_subspace=u3_subspaces.GetSubspace(omega_index); 
+        const auto& u3_subspace=u3_subspaces.GetSubspace(omega_index);
         basis::OperatorBlocks<double>& raising_polynomials=polynomial_matrices_by_lgi_family[irrep_family_index][omega_index];
 
         // define aliases to the relevant lsu3shell subspaces
@@ -216,7 +216,7 @@ namespace spncci
 
             spncci_expansion=Eigen::MatrixXd::Zero(rows,upsilon_max*gamma_max);
             Eigen::MatrixXd k_matrix_inverse = kinv_matrix_cache.at(subspace.sigma()).at(subspace.omega());
-            
+
             int phase = ParitySign(
                 u3::ConjugationGrade(subspace.sigma().SU3())
                 +u3::ConjugationGrade(subspace.omega().SU3())
@@ -232,9 +232,9 @@ namespace spncci
                 omega_expansion_temp+=phase*k_matrix_inverse(u_bar,u)*raising_polynomials[u_bar]*lgi_expansion;
               }
 
-              // Populating spncci_expansion with omega expansions. 
+              // Populating spncci_expansion with omega expansions.
               // omega_expansion_temp
-              // u=upsilon-1 
+              // u=upsilon-1
               // g=gamma-1
               // index in expansion is upsilon_max(gamma-1)+(upsilon-1)
               for(int g=0; g<gamma_max; ++g)
@@ -249,7 +249,7 @@ namespace spncci
   }
 
 
-  void 
+  void
   ComputeUnitTensorSectorsExplicit(
     const u3::U3& sigmap, const u3::U3& sigma,
     const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor,
@@ -264,9 +264,9 @@ namespace spncci
     )
     {
       // #pragma omp parallel
-        
+
       // #pragma omp for schedule(runtime)
-     
+
       // for each of the unit tensors in lsu3shell basis
 
       for(int s=0; s<lsu3shell_operator_sectors.size(); ++s)
@@ -280,17 +280,17 @@ namespace spncci
           u3shell::U3SPN lsu3shell_ket_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_ket_index).labels();
           u3shell::U3SPN lsu3shell_bra_subspace_labels=lsu3shell_space.GetSubspace(lsu3shell_bra_index).labels();
 
-          // look up unit tensor subspace index 
+          // look up unit tensor subspace index
           u3shell::UnitTensorSubspaceLabels unit_tensor_labels(unit_tensor.x0(),unit_tensor.S0(),unit_tensor.bra().eta(),unit_tensor.ket().eta());
           int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels);
-          
+
           // look up unit tensor index
           std::tuple<int,int,int,int,int> unit_tensor_state_labels(
               int(unit_tensor.T0()), int(unit_tensor.bra().S()),
               int(unit_tensor.bra().T()),int(unit_tensor.ket().S()),int(unit_tensor.ket().T())
             );
           int unit_tensor_index=unit_tensor_space.GetSubspace(unit_tensor_subspace_index).LookUpStateIndex(unit_tensor_state_labels);
-          
+
           // Look up baby spncci index
           spncci::BabySpNCCISubspaceLabels baby_spncci_labels_bra(
               sigmap,
@@ -300,9 +300,9 @@ namespace spncci
               lsu3shell_bra_subspace_labels.U3()
             );
           int baby_spncci_subspace_index_bra=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels_bra);
-            
+
           // If baby spncci index=-1, then omega is not in sigma irrep
-          // so go to next omega.   
+          // so go to next omega.
           if(baby_spncci_subspace_index_bra==-1)
             continue;
 
@@ -324,7 +324,7 @@ namespace spncci
                     baby_spncci_subspace_index_bra,baby_spncci_subspace_index_ket,
                     unit_tensor_subspace_index, rho0
                   );
-            
+
             // If not in hypersector set, continue.
             if(hypersector_index==-1)
               continue;
@@ -339,7 +339,7 @@ namespace spncci
             // std::cout<<temp<<std::endl;
 
             // std::cout<<fmt::format(" bra : {} x {}  operator : {} x {}  ket : {} x {}",
-            //   bra_expansion.rows(), bra_expansion.cols(), 
+            //   bra_expansion.rows(), bra_expansion.cols(),
             //   lsu3shell_operator_matrices[s].rows(), lsu3shell_operator_matrices[s].cols(),
             //   ket_expansion.rows(), ket_expansion.cols()
             //   )<<std::endl;
@@ -348,10 +348,10 @@ namespace spncci
             unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]+=temp;
             // std::cout<<"hypersector "<<hypersector_index<<"  tensor "<<unit_tensor_index<<std::endl;
             // std::cout<<"temp "<<temp<<" in hypersectors "<<unit_tensor_hyperblocks[hypersector_index][unit_tensor_index]<<std::endl<<std::endl;
-        }          
+        }
     }
 
-  void 
+  void
   CheckUnitTensorRecurrence(
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
@@ -361,7 +361,7 @@ namespace spncci
     )
     {
       // Comparing recurrence to explicit hyperblocks and printing error message if difference between
-      // hyperblocks exceeds tolerance of 1e-4   
+      // hyperblocks exceeds tolerance of 1e-4
       bool errors=false;
       for(int i=0; i<unit_tensor_hyperblocks.size(); ++i)
         for(int j=0; j<unit_tensor_hyperblocks[i].size(); ++j)
@@ -374,7 +374,7 @@ namespace spncci
             auto& tensor_subspace=unit_tensor_space.GetSubspace(tensor);
             int Sp,Tp,S,T,T0;
             std::tie(T0,Sp,Tp,S,T)=tensor_subspace.GetStateLabels(j);
-            
+
             const Eigen::MatrixXd matrix1=unit_tensor_hyperblocks[i][j];
 
             // std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
@@ -403,10 +403,10 @@ namespace spncci
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      // Checking the other direction 
+      // Checking the other direction
 
       // Comparing recurrence to explicit hyperblocks and printing error message if difference between
-      // hyperblocks exceeds tolerance of 1e-4   
+      // hyperblocks exceeds tolerance of 1e-4
       errors=false;
       for(int i=0; i<unit_tensor_hyperblocks_explicit.size(); ++i)
         for(int j=0; j<unit_tensor_hyperblocks_explicit[i].size(); ++j)
@@ -419,7 +419,7 @@ namespace spncci
             auto& tensor_subspace=unit_tensor_space.GetSubspace(tensor);
             int Sp,Tp,S,T,T0;
             std::tie(T0,Sp,Tp,S,T)=tensor_subspace.GetStateLabels(j);
-            
+
             const Eigen::MatrixXd matrix1=unit_tensor_hyperblocks_explicit[i][j];
 
             // std::cout<<bra_subspace.LabelStr()<<"  "<<ket_subspace.LabelStr()<<"  "<<tensor_subspace.LabelStr()<<"  "
@@ -472,10 +472,10 @@ namespace spncci
       );
 
 
-    // Zero initialize hypersectors 
+    // Zero initialize hypersectors
     // basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_explicit;
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit);
-    
+
     const std::string relative_unit_tensor_filename_template=run_parameters.relative_unit_tensor_filename_template;
 
     // for each unit tensor
@@ -483,8 +483,8 @@ namespace spncci
       {
         const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor = lgi_unit_tensor_labels[unit_tensor_index];
 
-        // get unit tensor labels 
-        u3::SU3 x0; 
+        // get unit tensor labels
+        u3::SU3 x0;
         HalfInt S0,T0,Sp,Tp,S,T;
         int etap,eta;
         std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor.FlatKey();
@@ -494,7 +494,7 @@ namespace spncci
         int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
         auto& subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
-        // Get unit tensor index in subspace 
+        // Get unit tensor index in subspace
         int unit_tensor_state_index
           =subspace.LookUpStateIndex(std::tuple<int,int,int,int,int>(int(T0), int(Sp),int(Tp),int(S),int(T)));
 
@@ -502,8 +502,8 @@ namespace spncci
         const bool spin_scalar = false;
         u3shell::SectorsU3SPN unit_tensor_sectors;
         unit_tensor_sectors = u3shell::SectorsU3SPN(lsu3shell_space,unit_tensor,spin_scalar);
-        
-        // read in lsu3shell rms for unit tensor 
+
+        // read in lsu3shell rms for unit tensor
         basis::OperatorBlocks<double> unit_tensor_lsu3shell_blocks;
         std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
         lsu3shell::ReadLSU3ShellRMEs(
@@ -520,7 +520,7 @@ namespace spncci
             unit_tensor_hyperblocks_explicit
           );
 
-        // Compute conjugate unit tensor hyperblocks if not diagonal sectors 
+        // Compute conjugate unit tensor hyperblocks if not diagonal sectors
         if(not (sigmap==sigma))
           {
             spncci::ComputeUnitTensorSectorsExplicit(
@@ -530,14 +530,14 @@ namespace spncci
                 unit_tensor_hyperblocks_explicit
               );
           }
-      } // end unit tensor index 
+      } // end unit tensor index
   }
 
 void ExplicitBasisConstruction(
       const spncci::RunParameters& run_parameters,
       const spncci::SpNCCISpace& spncci_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
-      spncci::KMatrixCache& k_matrix_cache, 
+      spncci::KMatrixCache& k_matrix_cache,
       spncci::KMatrixCache& kinv_matrix_cache,
       bool restrict_sp3r_to_u3_branching,
       basis::OperatorBlocks<double>& spncci_expansions
@@ -558,7 +558,7 @@ void ExplicitBasisConstruction(
 
     // lgi::MultiplicityTaggedLGIVector lgi_families;
     // basis::OperatorBlocks<double> lgi_expansions;
-    
+
     lgi::MultiplicityTaggedLGIVector lgi_families;
     std::string lgi_filename="lgi_families.dat";
     lgi::ReadLGISet(lgi_filename, run_parameters.Nsigma0,lgi_families);
@@ -573,7 +573,7 @@ void ExplicitBasisConstruction(
     u3shell::SectorsU3SPN Aintr_sectors;
     basis::OperatorBlocks<double> Aintr_matrices;
     lsu3shell::ReadLSU3ShellSymplecticRaisingOperatorRMEs(
-        lsu3shell_basis_table,lsu3shell_space, 
+        lsu3shell_basis_table,lsu3shell_space,
         run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
         run_parameters.A
       );
@@ -607,7 +607,7 @@ void ExplicitBasisConstruction(
 
 
       spncci::ExplicitlyComputeUnitTensorHyperBlocks(
-          sigmap, sigma,run_parameters, 
+          sigmap, sigma,run_parameters,
           unit_tensor_space,lgi_unit_tensor_labels,
           baby_spncci_space, spncci_expansions,
           baby_spncci_hypersectors,
@@ -617,7 +617,7 @@ void ExplicitBasisConstruction(
 
         std::cout<<"print hypersectors explicit"<<std::endl;
         spncci::PrintHypersectors(
-          baby_spncci_space,unit_tensor_space, 
+          baby_spncci_space,unit_tensor_space,
           baby_spncci_hypersectors,unit_tensor_hyperblocks_explicit
           );
 

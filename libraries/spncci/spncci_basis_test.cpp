@@ -42,7 +42,8 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
 
   // read in LGIs for 6Li
-  std::string filename = "../../data/lgi_set/lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
+  // std::string filename = "../../data/lgi_set/lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
+  std::string filename = "../../data/lgi_set/lgi_test-2.dat";  // test file in data/lgi_set/lgi_test.dat
   lgi::MultiplicityTaggedLGIVector multiplicity_tagged_lgi_vector;
   HalfInt Nsigma0=lgi::Nsigma0ForNuclide({3,3});
   lgi::ReadLGISet(filename,Nsigma0,multiplicity_tagged_lgi_vector);
@@ -189,7 +190,58 @@ int main(int argc, char **argv)
 
   }
 
-  if(true)
+if(true)
+  {
+    std::cout<<"observable space"<<std::endl;
+    // build list of observable labels 
+    std::set<u3shell::IndexedOperatorLabelsU3S> observable_labels_set;
+    for(auto& unit_tensor : unit_tensor_labels)
+      {
+        int N0=unit_tensor.N0();
+        u3::SU3 x0=unit_tensor.x0();
+        HalfInt S0=unit_tensor.S0();
+        int kappa0_max=u3::BranchingMultiplicitySO3(x0,0);
+        if(kappa0_max>0)
+          {
+            u3shell::OperatorLabelsU3S labels_u3s(N0,x0,S0);
+            
+            // kappa0=1 and L0=0
+            observable_labels_set.emplace(labels_u3s,1,0);
+          }
+      }
+
+    std::vector<u3shell::IndexedOperatorLabelsU3S>observable_labels;
+    for(auto& labels : observable_labels_set)
+      observable_labels.push_back(labels);
+    // Construct observable space
+
+    u3shell::ObservableSpaceU3S observable_space(observable_labels);
+    // std::cout<<observable_space.Str()<<std::endl;
+
+    spncci::ObservableBabySpNCCIHypersectors observable_hypersectors(baby_spncci_space,observable_space,1,0,true);
+    std::cout<<observable_hypersectors.DebugStr()<<std::endl;
+    // for(int observable_hypersector_index=0; 
+    //     observable_hypersector_index<observable_hypersectors.size();
+    //     ++observable_hypersector_index
+    //   )
+    //   {
+    //     int baby_spncci_index_bra, baby_spncci_index_ket, operator_subspace_index, rho0;
+    //     std::tie(baby_spncci_index_bra,baby_spncci_index_ket,operator_subspace_index,rho0)
+    //       =list_baby_spncci_hypersectors[observable_hypersector_index];
+
+    //     spncci::OperatorBlock& block=baby_spncci_observable_hyperblocks[observable_hypersector_index][0];
+    //     int block_rows=block.rows();
+    //     int block_cols=block.cols();
+
+    //     // std::cout<<"Basis information"<<std::endl;
+    //     const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
+    //     const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
+    //   }
+
+  }
+
+
+  if(false)
   {
     u3::U3CoefInit();
     std::cout<<"testing baby spncci reordering"<<std::endl;

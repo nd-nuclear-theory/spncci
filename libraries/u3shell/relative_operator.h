@@ -9,6 +9,7 @@
   5/25/16 (mac): Created with code from two_body_operator and
                  tensor_labels.
   12/6/16 (aem): Added optional parameters to GenerateRelativeUnitTensors
+  9/13/19 (aem): Rename relative operators to be consistent with other libraries/programs
 ****************************************************************/
 
 #ifndef RELATIVE_OPERATOR_H_
@@ -87,16 +88,24 @@ namespace u3shell
   // Overload of above function where container is map with unit tensors sorted by N0. 
 
 
-  double RelativeNumberOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  double Nrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  // U(3) RME of relative number operator between relative harmonic oscillator states (bra and ket)
 
-  double RelativeSp3rRaisingOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  double Arel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  // U(3) RME of Sp(3,R) raising operator between relative harmonic oscillator states (bra and ket)
+  
+  double Brel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  // U(3) RME of Sp(3,R) lowering operator between relative harmonic oscillator states (bra and ket)
+  
+  double Crel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  // U(3) RME of tensor of relative U(3) generators between relative harmonic oscillator states (bra and ket)
+  
+  double K2rel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  // U(3) RME of k^2 between relative harmonic oscillator states (bra and ket)
 
-  double RelativeSp3rLoweringOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
-
-  double RelativeKineticEnergyOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
-
-  double RelativeMassQuadrupoleOperator(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
-
+  double Qrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
+  // U(3) RME of mass quadrupole operator between relative harmonic oscillator states (bra and ket)
+  
 }  // namespace
 
 #endif

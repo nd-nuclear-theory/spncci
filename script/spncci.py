@@ -33,12 +33,12 @@
             setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
 
         Ex (NERSC m2032):
-            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
-            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
-            setenv SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
-            setenv SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
-            setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
+            SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
+            SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
+            SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
+            SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
+            SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
+            PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
         Example of pre-expanded rme files (see script/su3rme-untar.csh):
 
@@ -104,6 +104,7 @@ import glob
 import mcscript
 import os
 import su3rme
+
 ################################################################
 # global configuration
 ################################################################
@@ -124,10 +125,35 @@ truncation_subdirectory = []
 
 
 # ... from spncci
+# DEPRECATED: TODO, e.g., replace
+#   generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
+# with
+#   spncci_filename("generate_relative_u3st_operators")
+
 generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
 generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
 spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 seed_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
+
+################################################################
+# filename utilities
+################################################################
+
+def lsu3shell_filename(name):
+    """Construct filename for an lsu3shell executable."""
+
+    if os.path.isfile(mcscript.utils.expand_path(name)):
+        return mcscript.utils.expand_path(name)
+    return os.path.join(mcscript.parameters.run.install_dir, "su3shell", "bin", name)
+
+def spncci_filename(name):
+    """Construct filename for a spncci executable."""
+
+    if os.path.isfile(mcscript.utils.expand_path(name)):
+        return mcscript.utils.expand_path(name)
+    return os.path.join(mcscript.parameters.run.install_dir, "spncci", "bin", name)
+
+
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
 ################################################################
@@ -158,6 +184,10 @@ def generate_observable_rmes(task):
         {}_hw{:.1f}_Nmax{:02d}_u3st.dat
 
     """
+    # if relative_observabels directory already exist, remove and recreate fresh copy
+    if (os.path.exists("relative_observables")):
+        mcscript.call(["rm", "-r","relative_observables"])
+
 
     mcscript.utils.mkdir("relative_observables")
     os.chdir("relative_observables")
@@ -177,17 +207,26 @@ def generate_observable_rmes(task):
     for hw in mcscript.utils.value_range(*task["hw_range"]):    
 
         # generate load file
-        interaction_filename = mcscript.utils.search_in_subdirectories(
-            interaction_directory_list,
-            interaction_subdirectory_list,
-            task["interaction_filename_template"].format(hw=hw),
-            error_message="relative interaction file not found"
-        )
-        hamiltonian_input_lines = [
-            "{}".format(hw),
-            "Tintr 1.",
-            "INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
-        ]
+        ## Temporary fudge
+        if task["interaction"] != "Isospin":
+            interaction_filename = mcscript.utils.search_in_subdirectories(
+                interaction_directory_list,
+                interaction_subdirectory_list,
+                task["interaction_filename_template"].format(hw=hw),
+                error_message="relative interaction file not found"
+            )
+        hamiltonian_input_lines = ["{}".format(hw)] 
+        ## If either parameters not specified or include_kinetic is true 
+        if not("include_kinetic" in task) or (task.get("include_kinetic") == True):
+            hamiltonian_input_lines.append("Tintr 1.")
+        
+        ## Temporary fudge
+        if task["interaction"]=="Isospin":
+            hamiltonian_input_lines.append("Isospin 1.")
+        else:
+            hamiltonian_input_lines.append(
+                    "INT 1. {} {} {} {} {}".format(J_max_jisp,J0,T0,g0,interaction_filename,**task)
+                )
 
         if task["use_coulomb"]==True:
             coulomb_filename = mcscript.utils.search_in_subdirectories(
@@ -197,6 +236,8 @@ def generate_observable_rmes(task):
                 error_message="relative interaction file not found (for Coulomb interaction)"
             )
             hamiltonian_input_lines+=["COUL 1. {} {} {} {} {}".format(J_max_coulomb,J0,T0,g0,coulomb_filename,**task)]
+        
+        print(hamiltonian_input_lines)
         hamiltonian_load_filename = "hamiltonian.load"
         mcscript.utils.write_input(hamiltonian_load_filename,hamiltonian_input_lines,verbose=True)
 
@@ -424,8 +465,9 @@ def get_lgi_file(task):
     else :
         mcscript.call(
             [
-                "ln",
-                "-s",
+                # "ln",
+                # "-s",
+                'cp',
                 task["truncation_filename"],
                 "lgi_families.dat"
             ]
@@ -458,7 +500,8 @@ def write_lookup_table(index_lookup):
     """
     Create file containing lookup table
     """
-    filename="seeds/lgi_full_space_lookup_table.dat"
+    # filename="seeds/lgi_full_space_lookup_table.dat"
+    filename="lgi_full_space_lookup_table.dat"
     with open(filename, 'w') as outstream:
         for index in range(len(index_lookup)):
             full_space_index=index_lookup[index]

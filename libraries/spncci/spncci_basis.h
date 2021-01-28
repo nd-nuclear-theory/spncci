@@ -4,7 +4,7 @@
   SpNCCI basis storage at Sp(3,R) irrep level.
 
   Includes branched dimension calculation functions.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -12,8 +12,8 @@
   3/11/16 (aem,mac): Implement basis irrep construction and traversal.
   3/17/16 (aem,mac): Remove superfluous data members from LGI.
   9/8/16  (aem): Rename LGI to SpIrrep and moved LGI read function to lgi.h
-  12/5/16 (aem): Change SpIrrepVector from vector of SpIrreps to 
-                 vector of MultiplicityTagged SpIrreps where tag is 
+  12/5/16 (aem): Change SpIrrepVector from vector of SpIrreps to
+                 vector of MultiplicityTagged SpIrreps where tag is
                  number of times sigma Sp Sn S occur in basis.
   1/26/17 (mac): Change SigmaIrrepMap from map to unordered_map.
   1/31/17 (mac):
@@ -27,16 +27,17 @@
   2/21/17 (mac):
     - Add intrinsic coordinate mode for PrecomputeKMatrices.
     - Impose explicit attribute on SpNCCI space constructor.
-  6/7/17 (mac): 
+  6/7/17 (mac):
     - Extract PrecomputeKMatrices to vcs_cache.
     - Extract legacy GenerateSpNCCIIrrepFamilyPairs to unit_tensor_test.
-  7/1/17 (aem) : Added intrinsic option for Nsigma0ForNuclide. 
+  7/1/17 (aem) : Added intrinsic option for Nsigma0ForNuclide.
   9/27/17 (aem) : Removed gamma_max=0 lgi from spncci space
   10/4/17 (aem): Modified Sp3r->U(3) branching restriction
   10/11/17 (aem) : Moved Nsigma0ForNuclide to lgi.h
   1/16/18 (aem) : Added new BabySpNCCIHypersector contructor for
     updated recurrence scheme
   1/31/18 (aem) : Add ObservableBabySpNCCIHypersector class
+  6/21/19 (aem) : Add BabySpNCCIHypersectors constructor for seed hypersectors
 ****************************************************************/
 
 #ifndef SPNCCI_BASIS_H_
@@ -45,12 +46,12 @@
 #include <array>
 #include <unordered_map>
 
-#include "basis/hypersector.h"    
+#include "basis/hypersector.h"
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_common.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"
-#include "u3shell/unit_tensor_space_u3s.h"  
+#include "u3shell/unit_tensor_space_u3s.h"
 #include "u3shell/upcoupling.h"
 #include "lgi/lgi.h"
 
@@ -113,16 +114,16 @@ namespace spncci
     //   (int) : the truncation Nn_max to use for this SpIrrep
   };
 
-  class NmaxTruncator 
+  class NmaxTruncator
     : public TruncatorInterface
   {
     public:
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
-    
+
     // construct by given Nmax
-    inline NmaxTruncator(const HalfInt& Nsigma_0, int Nmax) 
+    inline NmaxTruncator(const HalfInt& Nsigma_0, int Nmax)
       : Nsigma_0_(Nsigma_0), Nmax_(Nmax) {}
 
     ////////////////////////////////////////////////////////////////
@@ -134,7 +135,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     // truncation information
     ////////////////////////////////////////////////////////////////
-    
+
     private:
     HalfInt Nsigma_0_;
     int Nmax_;
@@ -144,16 +145,16 @@ namespace spncci
   ////////////////////////////////////////////////////////////////
   // Alternative truncator
   ////////////////////////////////////////////////////////////////
-  class NlimitTruncator 
+  class NlimitTruncator
     : public TruncatorInterface
   {
     public:
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
-    
+
     // construct by given Nmax
-    inline NlimitTruncator(const HalfInt& Nsigma_0, int Nmax, int Nlimit) 
+    inline NlimitTruncator(const HalfInt& Nsigma_0, int Nmax, int Nlimit)
       : Nsigma_0_(Nsigma_0), Nmax_(Nmax), Nlimit_(Nlimit){}
 
     ////////////////////////////////////////////////////////////////
@@ -165,7 +166,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     // truncation information
     ////////////////////////////////////////////////////////////////
-    
+
     private:
     HalfInt Nsigma_0_;
     int Nmax_;
@@ -196,7 +197,7 @@ namespace spncci
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
     // null constructor
-    
+
     // inline SpIrrep():Nex_(-999){};
     // inline SpIrrep():{};
     inline
@@ -234,7 +235,7 @@ namespace spncci
     //
     // i.e., multiplicity of LGIs with givensigma x Sp x Sn x S
     int gamma_max() const {return gamma_max_;};
-    
+
     // irrep branching info
     const sp3r::Sp3RSpace& Sp3RSpace() const
     {
@@ -244,7 +245,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
     std::string DebugStr() const;
 
@@ -276,7 +277,7 @@ namespace spncci
 
     // irrep family size
     int gamma_max_;
-    
+
     // quick-reference information
     const sp3r::Sp3RSpace* sp_space_ptr_;
   };
@@ -310,11 +311,11 @@ namespace spncci
   // Arguments:
   //   lgi_vector (MultiplicityTaggedLGIVector): vector of LGIs for which we
   //     must generate branchings (INPUT)
-  //   truncator (TruncatorInterface): "truncator" object, which provides a 
+  //   truncator (TruncatorInterface): "truncator" object, which provides a
   //     function to map each given sigma to its desired Nn_max truncation
-  //   spncci_space(SpNCCISpace): vector of Sp(3,R)xSU(2) irreps with pointer to 
+  //   spncci_space(SpNCCISpace): vector of Sp(3,R)xSU(2) irreps with pointer to
   //     SigmaIrrepMap which contains the branched reduced states (OUTPUT)
-  //   sigma_irrep_map (SigmaIrrepMap): 
+  //   sigma_irrep_map (SigmaIrrepMap):
   //     mappings from sigma to its irrep indexing (OUTPUT)
 
   ////////////////////////////////////////////////////////////////
@@ -419,7 +420,7 @@ namespace spncci
   //   omega (U3): subspace U(3) label
   //
   // state labels within subspace: (gamma,upsilon) -> (dummy)
-  // 
+  //
   //   gamma (int): index of SpNCCI irrep within family defined by LGI
   //     quantum numbers (1<=gamma<=gamma_max)
   //
@@ -514,7 +515,7 @@ namespace spncci
     // Dump subspace contents (or, rather, dimension info).
 
     private:
-    
+
     // dimension info
     int gamma_max_, upsilon_max_;
     // backwards lookup into SpNCCISpace
@@ -525,7 +526,7 @@ namespace spncci
   class BabySpNCCISpace
     : public basis::BaseSpace<BabySpNCCISubspace>
   {
-    
+
   public:
 
     // constructor
@@ -558,7 +559,7 @@ namespace spncci
 
     // constructor
 
-    BabySpNCCISectors() {};
+    BabySpNCCISectors() = default;
     // default constructor -- provided since required for certain
     // purposes by STL container classes
 
@@ -590,12 +591,12 @@ namespace spncci
         const spncci::BabySpNCCISpace& space,
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space
       );
-      // Enumerate sector pairs connected by u3S subspaces of 
+      // Enumerate sector pairs connected by u3S subspaces of
       // relative unit tensors
       //
       // Arguments:
       //   space (BabySpNCCISpace): the space
-      //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space 
+      //   operator_space (u3shell::RelativeUnitTensorSpaceU3S) : operator space
 
 
     BabySpNCCIHypersectors(
@@ -604,13 +605,13 @@ namespace spncci
         int irrep_family_index_1=-1, int irrep_family_index_2=-1
       );
       //Overload of notation
-      // Enumerate sector pairs connected by u3S subspaces of 
+      // Enumerate sector pairs connected by u3S subspaces of
       // relative observables for Nnp>=Nn
       //
       // Arguments:
       //   space (BabySpNCCISpace): the space
-      //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space 
-      //   irrep_family_index=-1 means no restriction on which irrep family.    
+      //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space
+      //   irrep_family_index=-1 means no restriction on which irrep family.
 
       BabySpNCCIHypersectors(
         int Nmax,
@@ -618,28 +619,43 @@ namespace spncci
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
         const std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn,
         std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
-        int irrep_family_index_1=-1, int irrep_family_index_2=-1, 
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1,
         bool Nn0_conjugate_hypersectors=false
       );
 
       //Overload of notation
-      // Enumerate unit tensor hypersector connected by baby spncci subspaces 
+      // Enumerate unit tensor hypersector connected by baby spncci subspaces
       //
       // Arguments:
       //    space : full baby spncci space
       //    operator_space : unit tensor space.  Subspaces by x0,S0,etap,eta
       //
       //    operator_subset : vector of unit_tensor_subspace indices which have
-      //      may have non-zero rmes between the given irrep family pair. 
+      //      may have non-zero rmes between the given irrep family pair.
       //
       //    unit_tensor_hypersector_subset: is a vector of vectors of indices
-      //      for unit hypersectors organized by Nsum=Nn+Nnp.  Each previous 
+      //      for unit hypersectors organized by Nsum=Nn+Nnp.  Each previous
       //      Nsum must be computed before the recurrence can go to the next Nsum.
       //
       //    irrep_family_index : index of irrep family in SpNCCISpace.  Used to
       //      restrict hypersectors to include baby spncci subspaces for a given
-      //      irrep family pair.  If irrep_family_index=-1, then there is no 
+      //      irrep family pair.  If irrep_family_index=-1, then there is no
       //      restriction by irrep family.
+      //    Nn0_conjugate_hypersectors : Generate hypersectors for special case that 
+      //      Nn=0 and Nnp!=0.  irrep_family_index_bra and irrep_family_index_ket are 
+      //      passed as flipped, so hypersectors enumerate for Nnp'=0 and Nn'!=0. 
+
+      BabySpNCCIHypersectors(
+        const lgi::MultiplicityTaggedLGIVector& lgi_families,
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::RelativeUnitTensorSpaceU3S& operator_space,
+        const std::set<int>& operator_subset,
+        // std::vector<int>& unit_tensor_hypersector_subset,
+        int irrep_family_index_1, int irrep_family_index_2
+      );
+      // Constructor for setting up hypersectors for only the LGI of each irrep family
+      // for use in storing seed RMEs for unit tensor recurrence. 
+
   };
 
   void PrintHypersectors(
@@ -661,26 +677,20 @@ namespace spncci
     // default constructor -- provided since required for certain
     // purposes by STL container classes
 
-
     ObservableBabySpNCCIHypersectors(
         const spncci::BabySpNCCISpace& baby_spncci_space,
         const u3shell::ObservableSpaceU3S& observable_space,
-        int irrep_family_index_1=-1, int irrep_family_index_2=-1
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1, bool restrict_lower_triangle=false
       );
-      //Overload of notation
-      // Enumerate sector pairs connected by u3S subspaces of 
-      // relative observables between states in either of the two irrep families
-      //
+      // Enumerate hypersectors between baby spncci subsaces for a set of operators in observables space
+      // 
       // Arguments:
-      //   space (BabySpNCCISpace): the space
-      //   operator_space (u3shell::ObservableSpaceU3S) : observable operator space 
-      //   irrep_family_index=-1 means no restriction on which irrep family.    
-
-    ObservableBabySpNCCIHypersectors(
-        const spncci::BabySpNCCISpace& baby_spncci_space,
-        const u3shell::ObservableSpaceU3S& observable_space,
-        int irrep_family_index_1, int irrep_family_index_2, bool restrict_lower_triangle
-      );
+      //    baby_spncci_space : Sp3rU3S subspaces
+      //    observable_space : operator space [U(1)xSU(3)xSU(2) tensors]
+      //    irrep_family_index_1, irrep_family_index_2 : index of irrep family of interest
+      //      + if -1, then construct for all pairs of irrep families, not just one pair
+      //    restrict_lower_triangle : if  true, only construct hyperspectors for lower triangle of
+      //      full matrix.  (irrep_family_index_bra>=irrep_family_index_ket)
 
   };
 

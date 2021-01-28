@@ -6,6 +6,8 @@
 
   2/14/17 (aem,mac): Created.
   2/21/17 (aem,mac): Update input parsing.  Add parsing checks.
+  5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
+    basis::RelativeOperatorParametersLSJT for reading in operators
 ****************************************************************/
 #include <iostream>
 #include <fstream>
@@ -56,7 +58,7 @@ namespace u3shell
               int kappa0=1;
               int L0=0;
               std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
-              Nrel_operator[key]+=(2.*N)/A*coef;
+              Nrel_operator[key]+=(2.*coef/A)*u3shell::Nrel(bra,ket);
             }
   }
 
@@ -74,6 +76,23 @@ namespace u3shell
               int L0=0;
               std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
               Spin_operator[key]+=(2*S*(S+1.))/A/(A-1)*coef;
+            }
+  }
+
+  void Isospin(int Nmax, u3shell::RelativeRMEsU3ST& isospin_operator, int A, double coef=1.0, bool moshinsky_convention=false)
+  {
+    for (int N=0; N<=Nmax; N++)
+      for (int S=0;S<=1; S++)
+        for (int T=0;T<=1; T++)
+          if ((N+S+T)%2==1)
+            {
+              u3shell::RelativeStateLabelsU3ST bra(N,S,T);
+              u3shell::RelativeStateLabelsU3ST ket(N,S,T); 
+              u3shell::RelativeUnitTensorLabelsU3ST relative_unit_tensor(u3::SU3(0,0),0,0,bra,ket);
+              int kappa0=1;
+              int L0=0;
+              std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(relative_unit_tensor,kappa0,L0);
+              isospin_operator[key]+=(2*T*(T+1.))/A/(A-1)*coef;
             }
   }
 
@@ -100,7 +119,7 @@ namespace u3shell
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+            double Brme=u3shell::Brel(bra,ket);
             if (fabs(Brme)>zero_threshold)
               K2intr[key]+=-sqrt(1.5)*Brme*intrinsic_factor*coef;
 
@@ -117,7 +136,7 @@ namespace u3shell
             bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
             relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
             key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-            double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+            double Arme=u3shell::Arel(bra,ket);
             if (fabs(Arme)>zero_threshold)
               K2intr[key]+=-sqrt(1.5)*Arme*intrinsic_factor*coef;
           }
@@ -158,7 +177,7 @@ namespace u3shell
     int kappa0=1; 
     int L0=2;
 
-    std::cout<<"coefficient "<<coef<<std::endl;
+    // std::cout<<"coefficient "<<coef<<std::endl;
     double intrinsic_factor=2./A;
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
@@ -174,7 +193,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,T0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              double Brme=u3shell::Brel(bra,ket);
 
 
               if (fabs(Brme)>zero_threshold)
@@ -197,7 +216,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,T0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              double Arme=u3shell::Arel(bra,ket);
               if (fabs(Arme)>zero_threshold)
                 Qintr[key]+=sqrt(3)*Arme*intrinsic_factor*coef*isospin_coefficient;
             }
@@ -230,7 +249,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(0,2),0,0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Brme=u3shell::RelativeSp3rLoweringOperator(bra,ket);
+              double Brme=u3shell::Brel(bra,ket);
               if (fabs(Brme)>zero_threshold)
                R2intr[key]+=sqrt(1.5)*Brme*intrinsic_factor*coef;
             }
@@ -249,7 +268,7 @@ namespace u3shell
               bra=u3shell::RelativeStateLabelsU3ST(Np,S,T);
               relative_unit_tensor=u3shell::RelativeUnitTensorLabelsU3ST(u3::SU3(2,0),0,0,bra,ket);
               key=std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int>(relative_unit_tensor,kappa0,L0);
-              double Arme=u3shell::RelativeSp3rRaisingOperator(bra,ket);
+              double Arme=u3shell::Arel(bra,ket);
               if (fabs(Arme)>zero_threshold)
                 R2intr[key]+=sqrt(1.5)*Arme*intrinsic_factor*coef;
             }
@@ -258,6 +277,7 @@ namespace u3shell
 
   void Tintr(int Nmax,u3shell::RelativeRMEsU3ST& Tintr, int A, double hbar_omega, double coef=1.0, bool moshinsky_convention=false)
   {
+    // Something weird with coef factor.  Won't work for moshinsky_convention=true
     coef*=hbar_omega/(4*(KroneckerDelta(moshinsky_convention,false)));
     k2intr(Nmax,Tintr, A, coef, moshinsky_convention);
   }
@@ -270,8 +290,7 @@ namespace u3shell
       basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
       std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
       std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
-      basis::OperatorLabelsJT operator_labels;
-      
+      basis::RelativeOperatorParametersLSJT operator_labels;
       basis::ReadRelativeOperatorLSJT(
         interaction_filename,relative_space_lsjt,operator_labels,
         isospin_component_sectors_lsjt, isospin_component_matrices_lsjt, true
@@ -311,7 +330,13 @@ int main(int argc, char **argv)
   const double pi=boost::math::constants::pi<double>();
 
   if(argc<5)
-    std::cout<<"Syntax: A Nmax N1B <operator_filename_base> "<<std::endl;
+    {
+      std::cout<<"Syntax: A Nmax N1B <operator_filename_base> "<<std::endl
+      <<"or "
+      <<std::endl<<"Syntax: Z N Nmax N1B <operator_filename_base> "<<std::endl;
+      exit(EXIT_FAILURE);
+    }
+
   
   u3::U3CoefInit();
   int A,N,Z,Nmax,N1B;
@@ -363,15 +388,15 @@ int main(int argc, char **argv)
         line_stream >> hbar_omega;
         mcutils::ParsingCheck(line_stream,line_count,line);
         b2=hbarc*hbarc/mc2/hbar_omega;
-        std::cout<<"bsqr= "<<b2<<std::endl;
-        std::cout<<"pi= "<<pi<<std::endl;
+        // std::cout<<"bsqr= "<<b2<<std::endl;
+        // std::cout<<"pi= "<<pi<<std::endl;
         continue;
       }
 
     line_stream >> operator_type >> coef;
     mcutils::ParsingCheck(line_stream,line_count,line);
 
-    std::cout<<operator_type<<"  "<<coef<<std::endl;
+    // std::cout<<operator_type<<"  "<<coef<<std::endl;
 
     if(operator_type=="ID") 
       u3shell::Id(Nmax+2*N1B,Operator, A, coef);
@@ -379,6 +404,10 @@ int main(int argc, char **argv)
       u3shell::Nintr(Nmax+2*N1B,Operator, A, coef);
     else if(operator_type=="Spin") 
       u3shell::Spin(Nmax+2*N1B,Operator, A, coef);
+
+    else if(operator_type=="Isospin") 
+      u3shell::Isospin(Nmax+2*N1B,Operator, A, coef);
+
     else if(operator_type=="r2intr")
       // Factor of 1/A on coef is to compute
       // the mean square of the radius   
@@ -417,7 +446,7 @@ int main(int argc, char **argv)
       {
         line_stream >> Jmax >> J0 >> T0 >> g0 >> interaction_filename;  
         mcutils::ParsingCheck(line_stream,line_count,line);
-        std::cout<<alpha*sqrt(mc2*hbar_omega)<<std::endl;
+        // std::cout<<alpha*sqrt(mc2*hbar_omega)<<std::endl;
         coef*=alpha*sqrt(mc2*hbar_omega);
         // coef*=alpha*sqrt(mc2*hbar_omega);
         Interaction(Nmax+2*N1B, Jmax, J0, T0, g0, interaction_filename,Operator,A, coef);
@@ -426,7 +455,7 @@ int main(int argc, char **argv)
       {
         std::cout<<fmt::format("{} is not a valid operator type",operator_type)<<std::endl
                <<"The allowed operator types are:"<<std::endl
-               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Qpintr, Qnintr, Tintr, INT, COUL"<<std::endl;
+               <<"    Id, Lintr, k2intr, r2intr, Nintr, Qintr, Qpintr, Qnintr, Tintr, INT, COUL, Isospin"<<std::endl;
 
         std::exit(EXIT_FAILURE);
       }

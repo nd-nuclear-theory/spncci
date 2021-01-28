@@ -2,13 +2,16 @@
   branching.h
 
   Basis definitions for U(3)xS, LxS, and J branchings of SpNCCI basis.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
   6/6/17 (mac): Created, as reimplementation of branching_u3s and
     branching_u3lsj.
   6/21/17 (mac): Add SpJ basis definitions.
+
+DEPRECATED.  
+  Still used in branching_u3lsj.h and programs/unit_tensors/explicit.cpp
 
 ****************************************************************/
 
@@ -21,7 +24,7 @@
 #include "spncci/spncci_basis.h"
 // #include "spncci/unit_tensor.h"
 // #include "u3shell/tensor_labels.h"
-#include "u3shell/u3spn_scheme.h"  
+#include "u3shell/u3spn_scheme.h"
 // #include "u3shell/upcoupling.h"
 // #include "lgi/lgi.h"
 
@@ -36,7 +39,7 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to U3S level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   //   subspace: (omega,S)
   //     state: (sigma,Sp,Sn)
@@ -128,7 +131,7 @@ namespace spncci
   class StateSpU3S
     : public basis::BaseDegenerateState<SubspaceSpU3S>
   {
-    
+
     public:
 
     // pass-through constructors
@@ -142,7 +145,7 @@ namespace spncci
         const typename SubspaceType::StateLabelsType& state_labels
       )
       // Construct state by reverse lookup on labels.
-      : basis::BaseDegenerateState<SubspaceSpU3S>(subspace,state_labels) 
+      : basis::BaseDegenerateState<SubspaceSpU3S>(subspace,state_labels)
       {}
 
     // pass-through accessors for subspace labels
@@ -154,7 +157,7 @@ namespace spncci
 
     // state label accessors
     u3shell::U3SPN sigmaSPN() const {return labels();}
-    int Nn() const 
+    int Nn() const
     {
       return int(N()-sigmaSPN().U3().N());
     }
@@ -177,7 +180,7 @@ namespace spncci
     }
 
     private:
- 
+
   };
 
   ////////////////////////////////////////////////////////////////
@@ -187,7 +190,7 @@ namespace spncci
   class SpaceSpU3S
     : public basis::BaseDegenerateSpace<SubspaceSpU3S>
   {
-    
+
     public:
 
     // constructor
@@ -222,9 +225,9 @@ namespace spncci
       :rho0_(0), kappa0_(0), L0_(0){}
 
     // construction from labels
-    inline 
+    inline
       SectorLabelsSpU3S(
-          int bra_index, int ket_index, 
+          int bra_index, int ket_index,
           const u3shell::OperatorLabelsU3S& tensor_labels,
           int kappa0, int L0, int rho0
         )
@@ -233,18 +236,18 @@ namespace spncci
 
     inline
       SectorLabelsSpU3S(
-          int bra_index, int ket_index, 
+          int bra_index, int ket_index,
           const u3shell::IndexedOperatorLabelsU3S& tensor_labels,
           int rho0
         )
       : bra_index_( bra_index), ket_index_(ket_index), rho0_(rho0)
     {
-      std::tie(tensor_labels_,kappa0_,L0_)=tensor_labels; 
+      std::tie(tensor_labels_,kappa0_,L0_)=tensor_labels;
     }
 
-    inline 
+    inline
       SectorLabelsSpU3S(
-          int bra_index, int ket_index, 
+          int bra_index, int ket_index,
           const u3shell::OperatorLabelsU3ST& tensor_labels,
           int kappa0, int L0, int rho0
         )
@@ -258,7 +261,7 @@ namespace spncci
     ////////////////////////////////////////////////////////////////
     int bra_index() const {return bra_index_;}
     int ket_index() const {return ket_index_;}
-    u3shell::OperatorLabelsU3S 
+    u3shell::OperatorLabelsU3S
       operator_labels() const {return tensor_labels_;}
     int N0() const {return tensor_labels_.N0();}
     u3::SU3 x0() const {return tensor_labels_.x0();}
@@ -305,7 +308,7 @@ namespace spncci
   // typedef std::unordered_map<spncci::SectorLabelsU3S,int,boost::hash<spncci::SectorLabelsU3S>> SectorLabelsU3SCache;
 
   void GetSectorsSpU3S(
-      const spncci::SpaceSpU3S& space, 
+      const spncci::SpaceSpU3S& space,
       const std::vector<u3shell::IndexedOperatorLabelsU3S>& relative_tensor_labels,
       std::vector<spncci::SectorLabelsSpU3S>& sector_vector
     );
@@ -316,7 +319,7 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to LS level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   //   subspace: (L,S)
   //     state: (omega,kappa,sigma,Sp,Sn)
@@ -412,7 +415,7 @@ namespace spncci
   class StateSpLS
     : public basis::BaseDegenerateState<SubspaceSpLS>
   {
-    
+
     public:
 
     // pass-through constructors
@@ -426,7 +429,7 @@ namespace spncci
         const typename SubspaceType::StateLabelsType& state_labels
       )
       // Construct state by reverse lookup on labels.
-      : basis::BaseDegenerateState<SubspaceSpLS>(subspace,state_labels) 
+      : basis::BaseDegenerateState<SubspaceSpLS>(subspace,state_labels)
       {}
 
     // pass-through accessors for subspace labels
@@ -482,7 +485,7 @@ namespace spncci
     }
 
     private:
- 
+
   };
 
   ////////////////////////////////////////////////////////////////
@@ -492,7 +495,7 @@ namespace spncci
   class SpaceSpLS
     : public basis::BaseDegenerateSpace<SubspaceSpLS>
   {
-    
+
     public:
 
     // constructor
@@ -531,9 +534,9 @@ namespace spncci
       :bra_index_(-1), ket_index_(-1){}
 
     // construction from labels
-    inline 
+    inline
       SectorLabelsSpLS(
-          int bra_index, int ket_index, 
+          int bra_index, int ket_index,
           const OperatorLabelsLS& tensor_labels
         )
       : bra_index_( bra_index), ket_index_(ket_index),tensor_labels_(tensor_labels)
@@ -590,15 +593,15 @@ namespace spncci
 
 
   void GetSectorsSpLS(
-      const spncci::SpaceSpLS& space_bra, 
+      const spncci::SpaceSpLS& space_bra,
       const spncci::SpaceSpLS& space_ket,
       const std::vector<OperatorLabelsLS>& tensor_labels,
       std::vector<spncci::SectorLabelsSpLS>& sector_labels
     );
-  // Generates a cache of SectorLabelsU3S from operator labels given in 
+  // Generates a cache of SectorLabelsU3S from operator labels given in
   // relative_tensor_rmes, which are U(1)xSU(3)xSU(2) tensors labeled
-  // by (N0,x0,S0,kappa0,L0). 
-  // 
+  // by (N0,x0,S0,kappa0,L0).
+  //
   // space_bra (input) : space for bra used to define sectors
   // space_ket (input) : space for ket used to define sectors
   // relative_tensor_rmes (input) : container of rme labels keys and rme values
@@ -606,7 +609,7 @@ namespace spncci
   // u3_sectors (output) : container with SectorLabelsSpU3S keys and index values
 
   //////////////////////////////
-  void 
+  void
   ContractAndRegroupSpU3S(
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
       const spncci::BabySpNCCISpace& baby_spncci_space,
@@ -617,11 +620,11 @@ namespace spncci
       const std::vector<spncci::SectorLabelsSpU3S>& target_sectors_u3s,
       basis::OperatorBlocks<double>& target_blocks_u3s
     );
-  // Sum over observables relative rmes and unit tensor baby spncci hyperblocks. 
-  // Resulting matrix blocks accumulated in corser-grain SpU3S blocks 
+  // Sum over observables relative rmes and unit tensor baby spncci hyperblocks.
+  // Resulting matrix blocks accumulated in corser-grain SpU3S blocks
 
 
-  // void 
+  // void
   // ContractAndRegroupLSJ(
   //       const HalfInt& Jp,const HalfInt& J0, const HalfInt& J,
   //       u3::WCoefCache& w_cache,
@@ -646,7 +649,7 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
   // SpNCCI basis branched to J level
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   //   subspace: J
   //     state: ((L,S),omega,kappa,sigma,Sp,Sn)
@@ -739,7 +742,7 @@ namespace spncci
   class StateSpJ
     : public basis::BaseDegenerateState<SubspaceSpJ>
   {
-    
+
     public:
 
     // pass-through constructors
@@ -753,7 +756,7 @@ namespace spncci
         const typename SubspaceType::StateLabelsType& state_labels
       )
       // Construct state by reverse lookup on labels.
-      : basis::BaseDegenerateState<SubspaceSpJ>(subspace,state_labels) 
+      : basis::BaseDegenerateState<SubspaceSpJ>(subspace,state_labels)
       {}
 
     // pass-through accessors for subspace labels
@@ -769,7 +772,7 @@ namespace spncci
     int L() const {return std::get<0>(LS());}
     HalfInt S() const {return std::get<1>(LS());}
     HalfInt N() const {return omega().N();}
-    int Nn() const 
+    int Nn() const
     {
       return int(N()-sigmaSPN().U3().N());
     }
@@ -809,7 +812,7 @@ namespace spncci
     }
 
     private:
- 
+
   };
 
   ////////////////////////////////////////////////////////////////
@@ -819,7 +822,7 @@ namespace spncci
   class SpaceSpJ
     : public basis::BaseDegenerateSpace<SubspaceSpJ>
   {
-    
+
     public:
 
     // constructor
@@ -851,7 +854,7 @@ namespace spncci
 
     // constructor
 
-    SectorsSpJ() {};
+    SectorsSpJ() = default;
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 
