@@ -272,7 +272,7 @@ namespace spncci
       for(int s=0; s<lsu3shell_operator_sectors.size(); ++s)
         {
           // extract U3SPN labels
-          auto& lsu3shell_sector=lsu3shell_operator_sectors.GetSector(s);
+          const auto& lsu3shell_sector=lsu3shell_operator_sectors.GetSector(s);
           int lsu3shell_bra_index=lsu3shell_sector.bra_subspace_index();
           int lsu3shell_ket_index=lsu3shell_sector.ket_subspace_index();
           int rho0=lsu3shell_sector.multiplicity_index();
