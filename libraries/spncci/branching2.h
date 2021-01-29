@@ -7,6 +7,8 @@
   University of Notre Dame
 
   9/18/18 (aem): Created based on branching.h
+
+  TODO: Restructure branching2, spncci_basis and hyperblocks_u3s
 ****************************************************************/
 
 #ifndef SPNCCI_BRANCHING2_H_
