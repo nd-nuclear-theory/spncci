@@ -16,10 +16,8 @@
 #define SPNCCI_SPNCCI_HYPERBLOCKS_U3S_H_
 
 #include "spncci/spncci_basis.h"
-// #include "spncci/unit_tensor.h"
 #include "spncci/recurrence.h"
 #include "spncci/branching2.h" //SpaceSpBasis
-#include "spncci/branching_u3s.h" //ObservableHypersectorsTable
 #include "spncci/parameters.h"
 namespace spncci
 {

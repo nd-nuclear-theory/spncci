@@ -22,7 +22,6 @@
 #include "fmt/format.h"
 
 #include "spncci/branching2.h"
-#include "spncci/branching_u3s.h"
 #include "spncci/parameters.h"
 
 namespace spncci
