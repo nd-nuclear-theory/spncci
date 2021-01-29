@@ -129,41 +129,6 @@ namespace spncci
 
   }
 
-  void WriteSpU3SSubspaceListing(
-      std::ostream& out_stream,
-      const spncci::SpaceSpU3S& spu3s_space,
-      HalfInt Nsigma0
-    )
-  {
-
-    // SpU3S
-    StartNewSection(out_stream,"SpU3S (listing)");
-    out_stream
-      << "# subspace_index " << std::endl
-      << "# Nex omega.N omega.lambda omega.mu" << std::endl
-      << "# S " << std::endl
-      << "# dim" << std::endl;
-    for (int subspace_index=0; subspace_index<spu3s_space.size(); ++subspace_index)
-      {
-        const SubspaceSpU3S& spu3s_subspace = spu3s_space.GetSubspace(subspace_index);
-        const u3::U3 omega = spu3s_subspace.omega();
-        int Nex = int(spu3s_subspace.omega().N()-Nsigma0);
-        out_stream
-          << fmt::format(
-              "{:5d}   "
-              "{:2d} {:5.1f} {:3d} {:3d}   "
-              "{:5.1f}   "
-              "{:5d}",
-              subspace_index,
-              Nex,float(omega.N()),omega.SU3().lambda(),omega.SU3().mu(),
-              float(spu3s_subspace.S()),
-              spu3s_subspace.full_dimension()
-            )
-          << std::endl;
-      }
-
-
-  }
 
   void WriteBabySpNCCISubspaceListing(
       std::ostream& out_stream,
@@ -204,57 +169,6 @@ namespace spncci
       }
 
   }
-
-
-    void WriteU3SHypersectorSectorInformation(
-      std::ostream& out_stream,
-      const spncci::SpaceU3S& space_u3s,
-      int num_observables, 
-      const std::vector<spncci::ObservableHypersectorsU3S>& observables_hypersectors_u3s
-    )
-  {
-
-    StartNewSection(out_stream,"U3S sector dimensions");
-    out_stream
-      << "# observable_index num_sectors max_sector_entries observable_entries"
-      << std::endl;
-
-    // for each observable, enumerate sectors 
-    int total_entries = 0;  // total across observables, but not across hw
-    int max_sector_entries = 0;
-    long int max_observable_entries = 0;
-    for(int observable_index=0; observable_index<num_observables; ++observable_index) 
-      {
-        const spncci::ObservableHypersectorsU3S& hypersectors_u3s
-                =observables_hypersectors_u3s[observable_index];
-
-        // do counting for this observable
-        long int observable_entries = 0;
-        for(int sector_index=0; sector_index<hypersectors_u3s.size(); ++sector_index)
-          {
-            const auto& hypersector_u3s=hypersectors_u3s.GetHypersector(sector_index);
-            int rows=space_u3s.GetSubspace(hypersector_u3s.bra_subspace_index()).full_dimension();
-            int cols=space_u3s.GetSubspace(hypersector_u3s.ket_subspace_index()).full_dimension();
-            int sector_entries = rows*cols;
-            max_sector_entries = std::max(max_sector_entries,sector_entries);
-            observable_entries += sector_entries;
-          }
-
-        // write statistics for this observable
-        out_stream
-          << fmt::format(
-              "{:2d} {:5d} {:10d} {:10d}",
-              observable_index,hypersectors_u3s.size(),max_sector_entries,observable_entries
-            )
-          << std::endl;
-
-
-        // accumulate counting from this observable -- totals across observables are not currently output
-        max_observable_entries = std::max(max_observable_entries,observable_entries);
-        total_entries += observable_entries;
-      }
-  }
-
 
 
   void WriteCalculationParameters(std::ostream& out_stream, double hw)

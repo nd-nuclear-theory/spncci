@@ -12,6 +12,7 @@
     to accept std::ostream for output and extract to lgi.
   10/11/17 (aem) : Extract Nsigma0ForNuclide from spncci_basis
   1/15/18 (aem) : Updated Read LGI to be consistant with write functions
+  1/28/21 (aem) : Removed deprecated WriteLGIExpansion function.
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
@@ -150,21 +151,13 @@ namespace lgi
   // STYLE: maybe LGI::vector would be more consistent
   typedef MultiplicityTagged<lgi::LGI>::vector MultiplicityTaggedLGIVector;
 
+  std::string LGIFamilyStr(const MultiplicityTagged<lgi::LGI>& lgi_family);
+
   void
     WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families,std::ostream& os);
 
   void
     WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families, const std::string& filename);
-
-
-  void 
-  WriteLGIExpansion(
-    int Z, int N, int Nmax,
-    const lgi::MultiplicityTaggedLGIVector& lgi_families,
-    lsu3shell::OperatorBlocks&lgi_expansions,
-    const std::string& filename
-  );
-
 
   void 
   ReadLGISet(

@@ -58,7 +58,7 @@ namespace lgi
     return ss.str();
   }
 
-  std::string LGIOutputStr(const MultiplicityTagged<lgi::LGI>& lgi_family)
+  std::string LGIFamilyStr(const MultiplicityTagged<lgi::LGI>& lgi_family)
     {
       int Nex;
       u3::U3 sigma;
@@ -85,7 +85,7 @@ namespace lgi
       {
         std::tie(Nex,sigma,Sp,Sn,S)=lgi_count.irrep.Key();
         int count=lgi_count.tag;
-        os<<LGIOutputStr(lgi_count)<<std::endl;
+        os<<LGIFamilyStr(lgi_count)<<std::endl;
       }
   }
 
@@ -97,51 +97,6 @@ namespace lgi
     WriteLGILabels(lgi_families, os); 
     os.close();
   }
-
-  void 
-  WriteLGIExpansionHeader(int Z, int N, int Nmax, std::ostream& os)
-    {
-      os<<"# Z  N  Nmax"<<std::endl;
-      os<<"#  Nex lambda mu 2Sp 2Sn 2S gamma_max"<<std::endl;
-      os<<fmt::format("{}  {}  {}", Z, N, Nmax)<<std::endl;
-    }
-
-  void 
-  WriteLGIExpansion(
-    const lgi::MultiplicityTaggedLGIVector& lgi_families,
-    const lsu3shell::OperatorBlocks&lgi_expansions,
-    std::ostream& os
-  )
-  {
-    for(int i=0; i<lgi_families.size(); ++i)
-      {
-        const auto& lgi_family=lgi_families[i];
-        os<<LGIOutputStr(lgi_family)<<std::endl;
-        os<<mcutils::FormatMatrix(lgi_expansions[i], ".8f")<<std::endl;
-      }
-  }
-
-
-  void 
-  WriteLGIExpansion(
-    int Z, int N, int Nmax,
-    const lgi::MultiplicityTaggedLGIVector& lgi_families,
-    lsu3shell::OperatorBlocks&lgi_expansion,
-    const std::string& filename
-  )
-    {
-      // Open file
-      std::ofstream os;
-      os.open(filename);
-
-      // Write header 
-      WriteLGIExpansionHeader(Z,N,Nmax,os);
-      
-      //Write expansions 
-      WriteLGIExpansion(lgi_families,lgi_expansion,os);
-
-      os.close();
-    }
 
 
   void ReadLGISet(

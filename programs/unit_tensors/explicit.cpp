@@ -41,6 +41,7 @@
   6/17/17 (aem): Updated to use new symplectic operator i/o
   9/27/17 (aem): Updated to use intrinic definition of lgi
   10/4/17 (aem): Adapted for all A (including A<6)
+  1/28/21 (aem): Removed unnecessary dependencies on branching_u3s, branching_u3lsj and upcoupling
 ****************************************************************/
 
 #include <cstdio>
@@ -51,16 +52,8 @@
 #include "fmt/format.h"
 #include "lgi/lgi_solver.h"
 #include "mcutils/profiling.h"
-
-#include "spncci/explicit_construction.h"
-#include "spncci/io_control.h"
-
-// to vett as moved into computation_control 
 #include "mcutils/eigen.h"
-#include "spncci/branching_u3s.h"
-#include "spncci/branching_u3lsj.h"
-#include "u3shell/upcoupling.h"
-
+#include "spncci/explicit_construction.h"
 
 ////////////////////////////////////////////////////////////////
 // explicit construction checks

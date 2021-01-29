@@ -411,63 +411,16 @@ int main(int argc, char **argv)
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map; //Container for spncci space irreps.  Must stay in scope for spncci_space 
   spncci::BabySpNCCISpace baby_spncci_space;
-  spncci::SpaceSpU3S spu3s_space; //Not used
-  spncci::SpaceSpLS spls_space; //Not used
-  spncci::SpaceSpJ spj_space;  //Only used in obselete code
+
   std::vector<spncci::SpaceSpBasis> spaces_spbasis;
   spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
 
-  //Read in lgi families and generate spaces at different branching levels
-  //Nlimit allows for different irreps to be truncated to different Nmax
-  //For now just set to Nmax for all irreps
-  // int Nlimit=run_parameters.Nmax;
-  // spncci::SetUpSpNCCISpaces(
-  //     run_parameters,lgi_families,spncci_space,sigma_irrep_map,
-  //     baby_spncci_space,spu3s_space,spls_space,spj_space,
-  //     spaces_spbasis,k_matrix_cache, kinv_matrix_cache,
-  //     Nlimit
-  //   );
-
-
-  ///////////////////////////////////////////////////////////////////////////////////////
-  lgi::MultiplicityTaggedLGIVector lgi_families2;
-  spncci::SpNCCISpace spncci_space2;
-  
-  spncci::BabySpNCCISpace baby_spncci_space2;
-  spncci::SigmaIrrepMap sigma_irrep_map2;
-  // spncci::SpaceSpU3S spu3s_space2; //Not used
-  // spncci::SpaceSpLS spls_space2; //Not used
-  // spncci::SpaceSpJ spj_space2;  //Only used in obselete code
-  std::vector<spncci::SpaceSpBasis> spaces_spbasis2;
-  spncci::KMatrixCache k_matrix_cache2, kinv_matrix_cache2;
-
- 
   bool verbose_basis=true;
   spncci::SetUpSpNCCISpaces(
       run_parameters,lgi_families,spncci_space,sigma_irrep_map,baby_spncci_space,
       spaces_spbasis,k_matrix_cache, kinv_matrix_cache,verbose_basis
     );
 
-  // for(int space_index=0; space_index<spncci_space.size(); ++space_index)
-  //   {
-  //     auto space1=spncci_space[space_index].Sp3RSpace();
-  //     auto space2=spncci_space2[space_index].Sp3RSpace();
-  //     std::cout<<fmt::format("space 1: {}   {}  space 2: {}   {}",
-  //       space1.size(), space1.size(), 
-  //       space2.size(), space2.size()
-  //       )<<std::endl;
-  //     std::cout<<space1.DebugStr()<<std::endl;
-  //     std::cout<<"----------"<<std::endl;
-  //     std::cout<<space2.DebugStr()<<std::endl;
-  //     // for(int subspace_index=0; subspace_index<space1.size(); ++subspace_index)
-  //     //   {
-  //     //     auto subspace1=space1.GetSubspace(subspace_index);
-  //     //     auto subspace2=space2.GetSubspace(subspace_index);
-  //     //     std::cout<<subspace1.LabelStr()<<"   "<<subspace2.LabelStr()<<"  "<<(subspace1.LabelStr()==subspace2.LabelStr())<<std::endl;
-  //     //   }
-  //   }
-
-  // assert(0);
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Results file: Writing parameters and basis statistics
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -600,8 +553,6 @@ int main(int argc, char **argv)
 
   //Declaring shared variables
   int num_files;
-  spncci::ObservableHypersectorsByLGIPairTable
-    observable_hypersectors_mesh(run_parameters.num_observables);
 
   mcutils::SteadyTimer timer_recurrence;
   timer_recurrence.Start();
@@ -609,7 +560,7 @@ int main(int argc, char **argv)
   std::ofstream timing_output;
   timing_output.open("recurrence_timing.dat");
 
-  #pragma omp parallel shared(observable_hypersectors_mesh,num_files)
+  #pragma omp parallel shared(num_files)
     {
       // Parallelization is currently set up so that each thread needs at least on lgi pair
       //    TODO:Remove this restriction.

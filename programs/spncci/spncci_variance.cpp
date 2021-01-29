@@ -320,42 +320,6 @@ int main(int argc, char **argv)
       std::cout<<"J="<<J<<std::endl<<spaces_spbasis_subset[j].DebugStr()<<std::endl;
     }
 
-//Will eventually remove.  For now just taking out of scope.
-{
-  ////////////////////////////////////////////////////////////////
-  // Enumerate U3S sectors for observables
-  ////////////////////////////////////////////////////////////////
-  std::cout << "Enumerating u3s sectors..." << std::endl;
-
-  // enumerate u3S space from baby spncci for each observable
-  spncci::SpaceU3S space_u3s(baby_spncci_space);
-
-
-  // Generate vector of hypersectors for each observable
-  std::vector<spncci::ObservableHypersectorsU3S>
-    observable_hypersectors_by_observable(run_parameters.num_observables);
-  for(int ob_num=0; ob_num<run_parameters.num_observables; ++ob_num)
-    observable_hypersectors_by_observable[ob_num]=spncci::ObservableHypersectorsU3S(space_u3s,observable_spaces[ob_num]);
-
-  // Write observable u3s hypersector information to results file
-  spncci::WriteU3SHypersectorSectorInformation(
-      results_stream,space_u3s,run_parameters.num_observables,
-      observable_hypersectors_by_observable
-    );
-
-  // // set up basis indexing for branching
-
-  // determine J sectors for each observable
-  std::vector<spncci::SectorsSpJ> observable_sectors;
-  observable_sectors.resize(run_parameters.num_observables);
-
-  for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-    {
-      const int J0=run_parameters.observable_J0_values[observable_index];
-      observable_sectors[observable_index] = spncci::SectorsSpJ(spj_space,J0);
-    }
-}
-
   ////////////////////////////////////////////////////////////////
   // terminate counting only run
   ////////////////////////////////////////////////////////////////
@@ -456,19 +420,6 @@ int main(int argc, char **argv)
 
   // lgi_pairs.emplace_back(0,0);
 
-  spncci::ObservableHypersectorsByLGIPairTable
-    observable_hypersectors_mesh(run_parameters.num_observables);
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // For debugging 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // // by observable, by hw, by lgi pair
-  // spncci::ObservableHyperblocksByLGIPairTable observable_hyperblocks_mesh(run_parameters.num_observables);
-
-  // // Presize table
-  // for(int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
-  //   observable_hyperblocks_mesh[observable_index].resize(run_parameters.hw_values.size());
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //TODO: If doing change of basis for irrep families, read in transformation matrices
   spncci::OperatorBlocks lgi_transformations;
@@ -498,7 +449,7 @@ int main(int argc, char **argv)
   mcutils::SteadyTimer timer_recurrence;
   timer_recurrence.Start();
 
-  #pragma omp parallel shared(observable_hypersectors_mesh,num_files)//,num_lgi_pairs_per_thread)
+  #pragma omp parallel shared(num_files)//,num_lgi_pairs_per_thread)
     {
       #pragma omp single
       {

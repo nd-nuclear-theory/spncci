@@ -20,7 +20,7 @@
 #include <string>
 
 #include "fmt/format.h"
-#include "spncci/branching.h"
+
 #include "spncci/branching2.h"
 #include "spncci/branching_u3s.h"
 #include "spncci/parameters.h"
@@ -90,15 +90,6 @@ namespace spncci
 
   void WriteRunParameters(std::ostream& out_stream, const spncci::RunParameters& run_parameters);
 
-  // void WriteBasisStatistics(
-  //     std::ostream& out_stream,
-  //     const spncci::SpNCCISpace& spncci_space,
-  //     const spncci::BabySpNCCISpace& baby_spncci_space,
-  //     const spncci::SpaceSpU3S& spu3s_space,
-  //     const spncci::SpaceSpLS& spls_space,
-  //     const spncci::SpaceSpJ& spj_space
-  //   );
-
   void WriteBasisStatistics(
       std::ostream& out_stream,
       const spncci::SpNCCISpace& spncci_space,
@@ -106,35 +97,18 @@ namespace spncci
       const std::vector<spncci::SpaceSpBasis>& spaces_spbasis
     );
 
-
-  void WriteSpU3SSubspaceListing(
-      std::ostream& out_stream,
-      const spncci::SpaceSpU3S& spu3s_space,
-      HalfInt Nsigma0
-    );
-  // Write listing of SpU3S basis subspaces.
-  //
-  // This is technically superfluous, since all information on SpU3S
-  // subspaces can be deduced from the listing of BabySpNCCI
-  // subspaces.  Therefore, reliance on this listing is discouraged.
-  //
-  // Arguments:
-  //     out_stream (input): output stream
-  //     spu3s_space (input): SpU3S basis
-  //     Nsigma0 (input): U(1) label of lowest configuration
-
   void WriteBabySpNCCISubspaceListing(
       std::ostream& out_stream,
       const spncci::BabySpNCCISpace& baby_spncci_space,
       HalfInt Nsigma0
     );
 
-   void WriteU3SHypersectorSectorInformation(
-      std::ostream& out_stream,
-      const spncci::SpaceU3S& space_u3s,
-      int num_observables, 
-      const std::vector<spncci::ObservableHypersectorsU3S>& observables_hypersectors_u3s
-    );
+   // void WriteU3SHypersectorSectorInformation(
+   //    std::ostream& out_stream,
+   //    const spncci::SpaceU3S& space_u3s,
+   //    int num_observables, 
+   //    const std::vector<spncci::ObservableHypersectorsU3S>& observables_hypersectors_u3s
+   //  );
 
   void WriteCalculationParameters(
       std::ostream& out_stream,

@@ -23,7 +23,7 @@
 
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/io.h"
-#include "spncci/branching_u3s.h"
+#include "spncci/hyperblocks_u3s.h"
 #include "u3shell/unit_tensor_space_u3s.h"
 
 

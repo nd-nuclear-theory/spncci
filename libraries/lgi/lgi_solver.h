@@ -152,8 +152,5 @@ void ReadLGIExpansion(
   // Outputs
   //  lgi_expansions
 
-
-
-
 }
 #endif

@@ -24,6 +24,11 @@
 namespace spncci
 {
 
+  typedef std::vector<spncci::ObservableBabySpNCCIHypersectors> ObservableHypersectorsTable;
+  typedef std::tuple<int,int,int,int> ObservableHypersectorLabels;
+  typedef std::vector< std::vector<basis::OperatorHyperblocks<double>>> ObservableHyperblocksTable;
+
+
 	void ContractBabySpNCCISymmetricHypersectors(
 	  const spncci::LGIPair& lgi_pair,
 	  int num_observables, int num_hw_values,

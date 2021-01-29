@@ -31,7 +31,9 @@
         stand-alone programs/lgi/get_spncci_seed_blocks
   8/26/20 (aem) : Update basis setup and removed dependencies on
         spncci branched basis classes (SpaceSpU3S, SpaceSpLS,SpaceSpJ)
- )
+  1/24/21 (aem) : Deleted obselete SetUpSpNCCISpaces function using
+        SpaceSpU3S, SpaceSpLS,SpaceSpJ
+ 
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_COMPUTATION_CONTROL_H_
@@ -40,9 +42,6 @@
 #include <fstream>
 
 #include "lgi/lgi.h"
-#include "spncci/branching_u3s.h"
-#include "spncci/branching_u3lsj.h"
-#include "spncci/branching.h"
 #include "spncci/parameters.h"
 #include "spncci/spncci_basis.h"
 #include "spncci/parameters.h"
@@ -53,21 +52,6 @@
 namespace spncci
 {
   void InitializeSpNCCI();
-
-  void SetUpSpNCCISpaces(
-      spncci::RunParameters& run_parameters,
-      lgi::MultiplicityTaggedLGIVector& lgi_families,
-      spncci::SpNCCISpace& spncci_space,
-      spncci::SigmaIrrepMap& sigma_irrep_map,
-      spncci::BabySpNCCISpace& baby_spncci_space,
-      spncci::SpaceSpU3S& spu3s_space,
-      spncci::SpaceSpLS& spls_space,
-      spncci::SpaceSpJ& spj_space,
-      std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
-      spncci::KMatrixCache& k_matrix_cache, 
-      spncci::KMatrixCache& kinv_matrix_cache,
-      int Nlimit
-    );
 
   void SetUpSpNCCISpaces(
       spncci::RunParameters& run_parameters,

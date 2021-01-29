@@ -16,19 +16,10 @@
 // #include <iostream>
 #include <fstream>
 #include "spncci/branching2.h"
-#include "spncci/branching.h"
 #include "spncci/parameters.h"
 
 namespace spncci
 {
-
-  // void CalculateNexDecompositions(
-  //     const spncci::SpaceSpJ& spj_space,
-  //     const std::vector<spncci::Matrix>& eigenvectors,
-  //     std::vector<spncci::Matrix>& Nex_decompositions,
-  //     HalfInt Nsigma0,
-  //     int Nmax
-  //   );
 
   void CalculateNexDecompositions(
     const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,

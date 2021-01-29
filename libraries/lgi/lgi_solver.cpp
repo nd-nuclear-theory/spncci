@@ -335,12 +335,7 @@ void WriteLGIExpansionsText(const std::string& filename, const lsu3shell::Operat
     int num_rows=lgi_expansion.rows();
     int num_cols=lgi_expansion.cols();
     expansion_file << num_rows << num_cols<<std::endl;
-    
-    for(int j=0; j<num_cols; ++j)
-      for(int i=0; i<num_rows; ++i)
-          expansion_file<<lgi_expansion(i,j);
-        
-      expansion_file<<std::endl;
+    expansion_file<<mcutils::FormatMatrix(lgi_expansion, ".8f")<<std::endl;        
   }
 
 

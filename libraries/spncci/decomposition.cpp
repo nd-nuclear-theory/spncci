@@ -110,47 +110,6 @@ void CalculateNexDecompositions(
 }
 
 
-  void CalculateBabySpNCCIDecompositions(
-      const spncci::SpaceSpJ& spj_space,
-      const std::vector<spncci::Matrix>& eigenvectors,
-      std::vector<spncci::Matrix>& baby_spncci_decompositions,
-      int baby_spncci_space_size
-    )
-  //DEPRECATED
-  {
-    for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
-      // for each J subspace
-      {
-        // set up aliases for current J subspace
-        const SubspaceSpJ& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
-        const spncci::Matrix& eigenvectors_J = eigenvectors[spj_subspace_index];
-        spncci::Matrix& baby_spncci_decompositions_J = baby_spncci_decompositions[spj_subspace_index];
-
-        // initialize decomposition matrix
-        const int decomposition_size = baby_spncci_space_size;
-        const int num_eigenvectors = eigenvectors_J.cols();
-        baby_spncci_decompositions_J = spncci::Matrix::Zero(decomposition_size,num_eigenvectors);
-
-        // accumulate probability
-        for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
-          // for each (composite) state
-          {
-            // retrieve basis state information
-            StateSpJ spj_state(spj_subspace,spj_state_index);
-            int offset = spj_state.offset();
-            int degeneracy = spj_state.degeneracy();
-            int baby_spncci_subspace_index = spj_state.baby_spncci_subspace_index();
-            assert((0<=baby_spncci_subspace_index)&&(baby_spncci_subspace_index<baby_spncci_space_size));
-
-            // accumulate probability from this (composite) state
-            baby_spncci_decompositions_J.row(baby_spncci_subspace_index) += eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
-          }
-            
-          
-      }
-  }
-
-
 void CalculateLSDecompositions(
     const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
     const std::vector<spncci::Matrix>& eigenvectors,
