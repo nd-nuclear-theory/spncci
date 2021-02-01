@@ -160,7 +160,6 @@ namespace spncci
     u3::WCoefCache w_cache;
 
     // Iterate through bases for bra and ket.  Each subspaces corresponds to a single irrep family (irrep subspace)
-    // TODO: Parallelize?
     for(int bra_subspace_index=0; bra_subspace_index<spbasis_bra.size(); ++bra_subspace_index)
       for(int ket_subspace_index=0; ket_subspace_index<spbasis_ket.size(); ++ket_subspace_index)
         {
@@ -249,142 +248,6 @@ namespace spncci
     out_stream.close();
   }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Temp for getting probabilities for Nex states 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  void CalculateNex0BabySpNCCILDecompositions(
-    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
-    const std::vector<spncci::Matrix>& eigenvectors,
-    HalfInt Nsigma0,
-    double hw
-    // std::vector<spncci::Matrix>& LS_decompositions
-  )
-{
-  std::cout<<"Doing babyspncciL decompositions"<<std::endl;
-  std::vector<spncci::Matrix> babyspncciL_decompositions(spaces_spbasis.size());
-  // LS_decompositions.resize(spaces_spbasis.size());
-  
-  std::ofstream decomposition_file;
-  decomposition_file.open (fmt::format("babyspncciL_decompositions_{:2.1f}.dat",hw));
-
-  for (int spj_space_index=0; spj_space_index<spaces_spbasis.size(); ++spj_space_index)
-    // for each J subspace
-    {
-      
-      const SpaceSpBasis& spj_space=spaces_spbasis[spj_space_index];
-      const spncci::Matrix& eigenvectors_J = eigenvectors[spj_space_index];
-      spncci::Matrix& babyspncciL_decompositions_J = babyspncciL_decompositions[spj_space_index];
-      
-      //Get number of baby spncci L labels for Nex=0
-      std::map<std::pair<int,int>,int> babyspncciL_indexing;
-      int index=0;
-      for(int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
-        {
-          const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
-          for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
-            {
-              // std::cout<<"retrieve basis state information"<<std::endl;
-              StateSpBasis spj_state(spj_subspace,spj_state_index);
-              int Nex = int(spj_state.omega().N()-Nsigma0);
-              if(Nex !=0)
-                continue;
-
-              int baby_spncci_subspace_index = spj_state.baby_spncci_subspace_index();
-              int L=spj_state.L();
-              
-              std::pair<int,int>babyspncciL(baby_spncci_subspace_index,L);
-              if(babyspncciL_indexing.count(babyspncciL)==0)
-                {
-                  babyspncciL_indexing[babyspncciL]=index;
-                  index++;
-                }
-            }
-        }
-
-      // std::cout<<"initialize decomposition matrix"<<std::endl;
-      const int num_eigenvectors = eigenvectors_J.cols();
-      // std::cout<<L_basis.size()<<"  "<<num_eigenvectors<<std::endl;
-      babyspncciL_decompositions_J = spncci::Matrix::Zero(babyspncciL_indexing.size(),num_eigenvectors);
-      // std::cout<<"here"<<std::endl;
-      int offset=0;
-      for(int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
-        {
-          // std::cout<<"set up aliases for current J subspace"<<std::endl;
-          const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
-
-          // std::cout<<"accumulate probability"<<std::endl;
-          for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
-            // for each (composite) state
-            {
-              // retrieve basis state information
-              StateSpBasis spj_state(spj_subspace,spj_state_index);
-              int degeneracy = spj_state.degeneracy();
-              
-
-              int Nex = int(spj_state.omega().N()-Nsigma0); 
-              int baby_spncci_subspace_index = spj_state.baby_spncci_subspace_index();
-              int L=spj_state.L();
-              
-              if(Nex == 0)
-                {
-                  std::pair<int,int>babyspncciL(baby_spncci_subspace_index,L);
-                  index=babyspncciL_indexing[babyspncciL];
-                  babyspncciL_decompositions_J.row(index) += eigenvectors_J.block(offset,0,degeneracy,num_eigenvectors).colwise().squaredNorm();
-                }
-
-              offset+=degeneracy; 
-            }
-        }
-
-      mcutils::ChopMatrix( babyspncciL_decompositions_J,1e-6);
-      decomposition_file<<"J="<<spj_space.J().Str()<<std::endl;
-      for(auto itr=babyspncciL_indexing.begin(); itr!=babyspncciL_indexing.end(); itr++)
-        {
-          int L, babyspncci_index;
-          std::tie(babyspncci_index,L) = itr->first;
-
-
-          int index=itr->second;
-          decomposition_file<<babyspncci_index<<" "<<L<<"  "<<mcutils::FormatMatrix(babyspncciL_decompositions_J.row(index),".6f")<<std::endl;
-        }
-      decomposition_file<<std::endl;
-
-    }//end J loop
-  decomposition_file.close();
-
-}
-
-  void InspectWavefunctionU3LSForLowNex(
-    const spncci::BabySpNCCISpace& baby_spncci_space,
-    const std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
-    const spncci::RunParameters& run_parameters,
-    double hw
-    )
-  {
-
-    //Read in eigenvectors from files fro each J and store in matrix vector
-    std::vector<spncci::Matrix> eigenvectors(run_parameters.J_values.size());
-    for(int j=0; j<run_parameters.J_values.size(); ++j)
-      {
-        HalfInt J=run_parameters.J_values[j];
-        std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
-        spncci::Matrix& eigenvectors_J=eigenvectors[j];
-        spncci::ReadEigenvectors(eigv_filename,eigenvectors_J);
-      }
-  
-    CalculateNex0BabySpNCCILDecompositions(spaces_spbasis,eigenvectors,run_parameters.Nsigma0,hw);
-
-
-  }
-
-
-
-
-
-
-
 }// end namespace
 
 ////////////////////////////////////////////////////////////////
@@ -415,6 +278,7 @@ int main(int argc, char **argv)
   std::vector<spncci::SpaceSpBasis> spaces_spbasis;
   spncci::KMatrixCache k_matrix_cache, kinv_matrix_cache;
 
+  // 
   bool verbose_basis=true;
   spncci::SetUpSpNCCISpaces(
       run_parameters,lgi_families,spncci_space,sigma_irrep_map,baby_spncci_space,
@@ -458,7 +322,6 @@ int main(int argc, char **argv)
       unit_tensor_labels,J0_for_unit_tensors,T0_for_unit_tensors,
       restrict_positive_N0
     );
-
 
   // generate unit tensor subspaces
   u3shell::RelativeUnitTensorSpaceU3S
@@ -522,22 +385,8 @@ int main(int argc, char **argv)
   // Get list of lgi pairs with non-zero matrix elements between them.
   // Restricted to ket<=bra.
   //
-  // If doing variance truncation run only generate lgi pairs needed for variance calculation
-  //    TODO: Finish.  Need to populate reference and test subspace vectors
-  //      For now, just set variance_truncation_run to false
-  bool variance_truncation_run=false;
   std::vector<spncci::LGIPair> lgi_pairs;
-  if(variance_truncation_run)
-    {
-      std::vector<int> reference_subspace;
-      std::vector<int> test_subspace;
-      spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space, run_parameters.Nmax,reference_subspace,test_subspace,lgi_pairs);
-    }
-  // Otherwise, get standard set of lgi pairs
-  else
-    spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs);
-    // lgi_pairs.emplace_back(5,5);
-
+  spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // If transforming LGI basis
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -563,18 +412,17 @@ int main(int argc, char **argv)
   #pragma omp parallel shared(num_files)
     {
       // Parallelization is currently set up so that each thread needs at least on lgi pair
-      //    TODO:Remove this restriction.
       #pragma omp single
-      {
-        int num_threads=omp_get_num_threads();
-        if(num_threads>lgi_pairs.size())
-          {
-            std::cout<<"Too many threads.  Only "<<lgi_pairs.size()<<" needed."<<std::endl;
-            assert(num_threads<=lgi_pairs.size());
-          }
+        {
+          int num_threads=omp_get_num_threads();
+          if(num_threads>lgi_pairs.size())
+            {
+              std::cout<<"Too many threads.  Only "<<lgi_pairs.size()<<" needed."<<std::endl;
+              assert(num_threads<=lgi_pairs.size());
+            }
 
-        num_files=num_threads;
-      }
+          num_files=num_threads;
+        }
 
       //private coefficient caches--avoids locks and barriers
       u3::UCoefCache u_coef_cache;
@@ -584,14 +432,12 @@ int main(int argc, char **argv)
       // For each LGI pair, compute SU(3)xSU(2) reduced many-body matrix elements of unit tensors.
       // Then contract unit tensors with relative matrix elements of observables
       // Write observable hypersectors and hyperblocks to separate file for each LGI pair, each
-      // observabel and each hw.
+      // observable and each hw.
       //
       // Note: Only observable hypersectors with irrep_family_bra>=irrep_family_ket written to files
       // If diagonal sector, only upper triangle stored.  --Is this still correct?
-
       for(int i=0; i<lgi_pairs.size(); ++i)
         {
-
           const spncci::LGIPair& lgi_pair=lgi_pairs[i];
           mcutils::SteadyTimer timer_pair;
           int bra,ket;
@@ -628,7 +474,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // calculation mesh master loop
   ////////////////////////////////////////////////////////////////
-  // assert(0);
+
   // timing start
   mcutils::SteadyTimer timer_mesh;
   timer_mesh.Start();
@@ -640,35 +486,6 @@ int main(int argc, char **argv)
   std::cout << "Calculation mesh master loop..." << std::endl;
   for(int hw_index=0; hw_index<run_parameters.hw_values.size(); ++hw_index)
     {
-
-      //Variance truncation testing 
-      if(false)
-      {
-        int observable_index=0;
-        int J_index=1;
-        int eigenvalue_index=0;
-        double variance_threshold=0.0;
-
-        // initialize H space 
-        int dominant_irrep_family_index=3;
-        int subdominant_irrep_family_index=5;
-        std::set<int> reference_H; 
-        reference_H.insert(dominant_irrep_family_index);
-        reference_H.insert(subdominant_irrep_family_index);
-
-        //initialize list of irrep families
-        std::vector<int> irrep_families;
-        for(int i=0; i<lgi_families.size(); ++i)
-          irrep_families.push_back(i);
-
-        //Test variance calculation
-        spncci::TestingVariances(
-          run_parameters, hw_index,J_index,eigenvalue_index,
-          baby_spncci_space,observable_spaces,irrep_families,
-          reference_H,lgi_families,variance_threshold
-        );
-      }
-
       // retrieve mesh parameters
       double hw = run_parameters.hw_values[hw_index];
 
@@ -693,9 +510,6 @@ int main(int argc, char **argv)
             const HalfInt& J=run_parameters.J_values[subspace_index];
             spncci::Vector& eigenvalues_J = eigenvalues[subspace_index];
             spncci::Matrix& eigenvectors_J = eigenvectors[subspace_index];
-            //////////////////////////////////////////////////////////////////
-            // NEW BRANCHING
-            //////////////////////////////////////////////////////////////////
             HalfInt J00 = run_parameters.observable_J0_values[observable_index];
 
             const spncci::SpaceSpBasis& spbasis_bra=spaces_spbasis[subspace_index];
@@ -703,25 +517,34 @@ int main(int argc, char **argv)
 
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
-            // write basis information file
-            std::string basis_filename = fmt::format("basis-J{:03.1f}.dat", float(J));
-            std::cout << "  Writing basis information to file " << basis_filename << std::endl;
-            std::ostringstream basis_str_stream;
-            std::size_t true_dimension = 0;
-            for (std::size_t subspace_index=0; subspace_index < spbasis_bra.size(); ++subspace_index)
-            {
-              if (spbasis_bra.GetSubspace(subspace_index).full_dimension() <= 0)
-                continue;
-              ++true_dimension;
-              basis_str_stream << fmt::format(
-                  "{:d}", spbasis_bra.GetSubspace(subspace_index).full_dimension()
-                ) << std::endl;
-            }
-            std::ofstream basis_stream(basis_filename);
-            basis_stream << fmt::format("{:d}", true_dimension) << std::endl;
-            basis_stream << basis_str_stream.str();
-            basis_stream.close();
+            
+            if(false)
+              {
+                // Write basis information to file
+                //
+                // Number of states in full basis
+                // For each subspace (irrep family): Number of states in given subspace
+                std::string basis_filename = fmt::format("basis-J{:03.1f}.dat", float(J));
+                std::cout << "  Writing basis information to file " << basis_filename << std::endl;
+                std::ostringstream basis_str_stream;
+                std::size_t true_dimension = 0;
+                for (std::size_t subspace_index=0; subspace_index < spbasis_bra.size(); ++subspace_index)
+                {
+                  if (spbasis_bra.GetSubspace(subspace_index).full_dimension() <= 0)
+                    continue;
+                  ++true_dimension;
+                  basis_str_stream << fmt::format(
+                      "{:d}", spbasis_bra.GetSubspace(subspace_index).full_dimension()
+                    ) << std::endl;
+                }
+                std::ofstream basis_stream(basis_filename);
+                basis_stream << fmt::format("{:d}", true_dimension) << std::endl;
+                basis_stream << basis_str_stream.str();
+                basis_stream.close();
+              }
 
+
+            //Start timer for Hamiltonian construction
             mcutils::SteadyTimer timer_hamiltonian;
             timer_hamiltonian.Start();
 
@@ -748,8 +571,6 @@ int main(int argc, char **argv)
               observable_index,hw_index,hamiltonian_matrix
             );
 
-
-            // std::cout<<hamiltonian_matrix<<std::endl<<std::endl;
             
             // assert(0);
             timer_hamiltonian.Stop();
@@ -778,24 +599,19 @@ int main(int argc, char **argv)
             int binary_float_precision=8;
             std::string eigv_filename=fmt::format("eigenvector_{:02d}_{:02.1f}.dat",TwiceValue(J),hw);
             std::cout<<"write eigenvector"<<std::endl;
-            // std::cout<<eigenvectors_J<<std::endl;
             spncci::WriteEigenvectors(eigenvectors_J,J,eigv_filename,binary_float_precision);
             //////////////////////////////////////////////////////////////////
           }
 
-        // results output: eigenvalues
+        // Write eigenvalues to results_stream
         std::cout<<"Writing eigenvalues"<<std::endl;
         spncci::WriteEigenvalues(results_stream,run_parameters.J_values,eigenvalues,run_parameters.gex);
 
-        // do decompositions
-        std::cout<<"Writing decompositions"<<std::endl;
+        // Generate decompositions and write to results_stream
+        std::cout<<"Generating decompositions"<<std::endl;
+        // NOTE: Function now reads eigenvectors from file before doing decomposition.  
+        // TODO: Extract to postprocessing code 
         spncci::GenerateDecompositions(baby_spncci_space,spaces_spbasis,run_parameters, hw,results_stream);
-
-        if(true)
-          {
-            std::cout<<"Inspect Wavefunction Nex=0"<<std::endl;
-            spncci::InspectWavefunctionU3LSForLowNex(baby_spncci_space,spaces_spbasis,run_parameters,hw);
-          }
 
       }// End Hamiltonian section
 
@@ -803,6 +619,7 @@ int main(int argc, char **argv)
       //////////////////////////////////////////////////////////////
       // calculate observable RMEs
       ////////////////////////////////////////////////////////////////
+      // TODO: Set flag to only do observable 0 (Hamiltonian) if debugging 
 
       std::cout << "Calculate observable results..." << std::endl;
       mcutils::SteadyTimer timer_observables;
@@ -815,7 +632,7 @@ int main(int argc, char **argv)
       std::vector<spncci::OperatorBlocks> observable_results_matrices;
       observable_results_matrices.resize(run_parameters.num_observables);
 
-      //Get sectors
+      //std::cout<<"Get allowed (Jp,J) for each observable"<<std::endl;
       std::vector<std::vector<std::pair<int,int>>> observable_sectors(run_parameters.num_observables);
       for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
         {
@@ -831,17 +648,15 @@ int main(int argc, char **argv)
               }
         }
 
-
-      std::cout<<"calculate observable results"<<std::endl;
+      // std::cout<<"calculate observable expectation value for each allowed (Jp,J)"<<std::endl;
       for (int observable_index=0; observable_index<run_parameters.num_observables; ++observable_index)
         {
-          std::cout<<"starting observable loop for observable "<<observable_index<<std::endl;
+          std::cout<<"Starting loop for observable "<<observable_index<<std::endl;
           HalfInt J0 = run_parameters.observable_J0_values[observable_index];
           auto&sectors=observable_sectors[observable_index];
 
           observable_results_matrices[observable_index].resize(sectors.size());
 
-          // std::cout<<"Get corresponding observable space"<<std::endl;
           const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
           for(int sector_index=0; sector_index<sectors.size(); ++sector_index)
@@ -855,8 +670,6 @@ int main(int argc, char **argv)
               const HalfInt bra_J=run_parameters.J_values[bra_index];
               const HalfInt ket_J=run_parameters.J_values[ket_index];
 
-              // std::cout<<"for "<<bra_J<<"  "<<ket_J<<std::endl;
-
               spncci::OperatorBlock observable_block;
               spncci::ConstructSymmetricOperatorMatrix(
                   baby_spncci_space,observable_space,
@@ -865,62 +678,7 @@ int main(int argc, char **argv)
                   observable_block
                 );
 
-              if (false)
-                {
-                  // Write observable block to file 
-                  std::string obsv_filename=fmt::format(
-                    "observable{:02d}_Jp{:02.1f}_J{:02.1f}_hw{:02.1f}.dat",
-                    observable_index,float(bra_J),float(ket_J),hw
-                    );
-                          // output in binary mode 
-                  std::ios_base::openmode mode_argument_op = std::ios_base::out;
-                  std::ofstream operator_outstream;
-                  // Eigen::MatrixXd block=observable_block;
-                  operator_outstream.open(obsv_filename,mode_argument_op);
-                  mcutils::WriteBinary<int>(operator_outstream,observable_block.rows());
-                  mcutils::WriteBinary<int>(operator_outstream,observable_block.cols());
-                  mcutils::WriteBinary<double>(operator_outstream,observable_block.data(),observable_block.size());
-                  operator_outstream.close();
-
-                }
-
-              if(true){
-                if (bra_J==2 && ket_J==1)
-                  if (run_parameters.Nmax==0 && observable_index==3)
-                    {
-                      std::cout<<"bra"<<std::endl;
-                      std::cout<<spbasis_bra.DebugStr(true)<<std::endl<<std::endl;
-                      std::cout<<"ket"<<std::endl;
-                      std::cout<<spbasis_ket.DebugStr(true)<<std::endl<<std::endl;
-
-                      std::cout<<observable_block<<std::endl<<std::endl;
-                    }
-              }
               
-              //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-              //test code 
-              //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-              // std::cout<<mcutils::FormatMatrix(observable_block,"+.4f")<<std::endl;
-
-              // spncci::OperatorBlock observable_block2;
-              // spncci::ConstructSymmetricOperatorMatrix(
-              //     baby_spncci_space,observable_space,
-              //     J0,spbasis_ket,spbasis_bra,lgi_pairs,
-              //     observable_index, hw_index,
-              //     observable_block2
-              //   );
-
-
-              // spncci::OperatorBlock test=ParitySign(ket_J-bra_J)*Hat(ket_J)/Hat(bra_J)*observable_block2.adjoint()-observable_block;
-              // if (not mcutils::IsZero(test,1e-5))
-              // {            
-              //   std::cout<<mcutils::FormatMatrix(observable_block,"+.2f")<<std::endl
-              //   <<std::endl<<mcutils::FormatMatrix(observable_block2,"+.2f")<<std::endl;
-              //   std::cout<<std::endl<<mcutils::FormatMatrix(test,"+.2f")<<std::endl;
-              // // std::cout<<"calculate observable results"<<std::endl;
-              // }
-              //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
               observable_results_matrix = eigenvectors[bra_index].transpose()
@@ -945,7 +703,7 @@ int main(int argc, char **argv)
         observable_results_matrices,run_parameters.gex
       );
 
-      }//observable
+      }//End observable section 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   }

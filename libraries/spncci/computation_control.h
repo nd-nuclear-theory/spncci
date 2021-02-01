@@ -62,7 +62,18 @@ namespace spncci
       std::vector<spncci::SpaceSpBasis>& spaces_spbasis,
       bool verbose=false
     );
-   //Just sets up spaces used in spncci calculations.  
+  // Sets up spaces used in spncci calculations.  
+  // input:
+  //    run_parameters : Code run parameters including Nmax, Nsigma0, A and J_values
+  //    verbose (optional): If true, print basis str (default false)
+  //
+  // output:
+  //    lgi_families : List of lgi labels and associated multiplicities read in from file 
+  //    spncci_space : 
+  //    sigma_irrep_map :
+  //    baby_spncci_space :
+  //    spaces_spbasis : 
+
 
   void SetUpSpNCCISpaces(
       spncci::RunParameters& run_parameters,
@@ -75,7 +86,8 @@ namespace spncci
       spncci::KMatrixCache& kinv_matrix_cache,
       bool verbose=false
     );
-     // Sets up spaces used in spncci calculations and computes K matrices for basis orthogonalization
+    // Sets up spaces used in spncci calculations and computes K matrices for basis orthogonalization
+    // 
 
 }  // namespace
 
