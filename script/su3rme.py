@@ -349,6 +349,9 @@ def generate_model_space_file(task):
 
 
 def generate_u3s_subspace_labels(task):
+    # TODO 10/07/20 (mac): update to new simple filename arguments for
+    # get_u3s_subspaces (see example handler in lsu3shell.py)
+    raise mcscript.ScriptError("Need to update generate_u3s_subspace_labels")
     (Z,N)=task["nuclide"]
     mcscript.call([
         u3s_subspace_lister_executable,
