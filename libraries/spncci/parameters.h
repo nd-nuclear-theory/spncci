@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   6/17/17 (mac): Created, extracted from spncci.cpp.
   6/26/17 (mac): Remove dependence of parameters on command line arguments.
   10/24/17 (mac): Add eigensolver parameters and pass-through interaction
@@ -21,6 +23,7 @@
 
 namespace spncci
 {
+  //TODO extract out lsu3shell file information.  Only used in explicit construction. 
 
   struct RunParameters
   // Structure to store input parameters for run.

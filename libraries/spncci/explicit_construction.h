@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   2/19/17 (mac): Extracted from unit tensor test codes
     (compute_unit_tensor_rmes.cpp and explicit.cpp).
   2/21/17 (aem): Add explict construction of full spncci basis
@@ -22,7 +24,6 @@
 #define SPNCCI_SPNCCI_EXPLICIT_CONSTRUCTION_H_
 
 #include "spncci/spncci_basis.h"
-// #include "spncci/unit_tensor.h"
 #include "spncci/vcs_cache.h"
 #include "spncci/parameters.h"
 

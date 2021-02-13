@@ -4,7 +4,9 @@
   Code to generate results tabulations.
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   6/17/17 (mac): Created.
   6/24/17 (mac): Add SpU3S subspace listing.
@@ -21,9 +23,8 @@
 
 #include "fmt/format.h"
 
-#include "spncci/branching2.h"
 #include "spncci/parameters.h"
-
+#include "spncci/spncci_basis.h"
 namespace spncci
 {
 

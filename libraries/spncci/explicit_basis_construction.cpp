@@ -7,8 +7,10 @@
   WARNING: Will not build since requires old version of
   lgi::GenerateLGIExpansion with stream arguments.
 
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   1/17/17 (aem): Created.
 ****************************************************************/

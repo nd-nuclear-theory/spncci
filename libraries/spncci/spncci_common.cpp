@@ -1,7 +1,7 @@
 /****************************************************************
   spncci_common.cpp
 
-  Anna E. McCoy and Mark A. Caprio
+  Mark A. Caprio
   University of Notre Dame
 
 ****************************************************************/

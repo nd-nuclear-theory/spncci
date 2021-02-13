@@ -4,7 +4,9 @@
   Caching of K matrices for spncci code.
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   6/7/17 (mac): Extracted from spncci_basis.
   10/4/17 (aem): Add option for K matrices computed in basis with

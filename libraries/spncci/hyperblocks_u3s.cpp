@@ -1,8 +1,8 @@
 /****************************************************************
   branching_u3s.cpp
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy 
+  TRIUMF
 
 ****************************************************************/
 
@@ -14,9 +14,8 @@
 #include "fmt/format.h"
 #include "mcutils/parsing.h"
 #include "mcutils/eigen.h"
-// #include "spncci/branching2.h"
 #include "spncci/io_control.h"
-// #include "spncci/unit_tensor.h"
+
 
 namespace spncci
 {

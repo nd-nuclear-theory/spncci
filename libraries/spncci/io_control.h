@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   2/19/17 (mac): Extracted from unit tensor test codes
     (compute_unit_tensor_rmes.cpp and explicit.cpp).
   6/4/17 (mac): Revise to rescale rmes from relative to intrinsic operators

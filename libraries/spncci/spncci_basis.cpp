@@ -2,7 +2,7 @@
   spncci_basis.cpp
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
 
 ****************************************************************/
 
@@ -11,6 +11,8 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <set>
+
 #include "mcutils/parsing.h"
 #include "fmt/format.h"
 #include "am/halfint_fmt.h"
@@ -883,6 +885,188 @@ namespace spncci
             if(num_subspaces[i]==num)
               ordered_subspaces[j]=i;
       }
+  }
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Branched spncci basis 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  SubspaceSpBasis::SubspaceSpBasis(
+    const HalfInt& J,
+    const u3shell::U3SPN& sigmaSPN,
+    int irrep_family_index,
+    const BabySpNCCISpace& baby_spncci_space
+  )
+  {
+
+    // save labels
+    // labels_ = sigmaSPN;
+    labels_ = irrep_family_index;
+    sigmaSPN_=sigmaSPN;
+    dimension_=0;
+    // scan BabySpNCCISpace for states to accumulate
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
+      {
+
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace = baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+
+        if(baby_spncci_subspace.irrep_family_index()!=irrep_family_index)
+          continue;
+
+        // push state
+        const u3::U3& omega=baby_spncci_subspace.omega();
+        const HalfInt& S=baby_spncci_subspace.S();
+        int gamma_max=baby_spncci_subspace.gamma_max();
+        int upsilon_max=baby_spncci_subspace.upsilon_max();
+
+        //Should be the same for all states with same irrep_family_index
+        gamma_max_=gamma_max;
+
+        MultiplicityTagged<int>::vector so3_irreps=u3::BranchingSO3(omega.SU3());
+        for(auto& tagged_L : so3_irreps)
+          {
+            int L=tagged_L.irrep;
+            int kappa_max=tagged_L.tag;
+            if(am::AllowedTriangle(L,S,J))
+              {
+                int degeneracy=gamma_max*upsilon_max*kappa_max;
+                omegaLLabels state_labels(omega,L);
+                PushStateLabels(state_labels,degeneracy);
+
+                // record auxiliary state information
+                state_kappa_max_.push_back(kappa_max);
+                state_upsilon_max_.push_back(upsilon_max);
+                state_baby_spncci_subspace_index_.push_back(baby_spncci_subspace_index);
+
+                // increment dimension of subspace 
+                dimension_+=degeneracy;
+              }
+          }
+      }
+  }
+
+  std::string SubspaceSpBasis::LabelStr() const
+  {
+    return sigmaSPN().Str();
+  }
+
+  std::string SubspaceSpBasis::DebugStr() const
+  {
+    std::ostringstream os;
+
+    for (int state_index=0; state_index<size(); ++state_index)
+      {
+        const StateSpBasis state(*this,state_index);
+
+        os << fmt::format(
+            "  index {} sigmaSPN {} omega,L {}, {} multiplicity {} offset {}",
+            state_index,
+            state.sigmaSPN().Str(),state.omega().Str(),state.L(),
+            state.degeneracy(),state.offset()
+          ) << std::endl;
+      }
+
+    return os.str();
+  }
+
+  SpaceSpBasis::SpaceSpBasis(const BabySpNCCISpace& baby_spncci_space, const HalfInt& J)
+  {
+    J_=J;
+
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
+      {
+
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+
+        // create new subspace -- only if not already constructed for this (omega,S)
+        const u3shell::U3SPN& sigmaSPN = baby_spncci_subspace.sigmaSPN();
+        int irrep_family_index = baby_spncci_subspace.irrep_family_index();
+
+        if(ContainsSubspace(irrep_family_index))
+          continue;
+
+        PushSubspace(SubspaceSpBasis(J,sigmaSPN,irrep_family_index,baby_spncci_space));
+      }
+  }
+
+
+  SpaceSpBasis::SpaceSpBasis(const BabySpNCCISpace& baby_spncci_space, const HalfInt& J, std::set<int>irrep_family_subset)
+  {
+    J_=J;
+
+    for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
+      {
+  
+        // set up alias
+        const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
+  
+        // create new subspace -- only if not already constructed for this (omega,S)
+        const u3shell::U3SPN& sigmaSPN = baby_spncci_subspace.sigmaSPN();
+        int irrep_family_index = baby_spncci_subspace.irrep_family_index();
+        
+        if(not irrep_family_subset.count(irrep_family_index))
+          continue;
+
+        if(ContainsSubspace(irrep_family_index))
+          continue;
+
+        PushSubspace(SubspaceSpBasis(J,sigmaSPN,irrep_family_index,baby_spncci_space));
+      }
+  }
+
+
+
+
+
+
+  std::string SpaceSpBasis::DebugStr(bool show_subspaces) const
+  {
+    std::ostringstream os;
+
+    for (int subspace_index=0; subspace_index<size(); ++subspace_index)
+      {
+        // set up alias
+        const SubspaceType& subspace = GetSubspace(subspace_index);
+
+        os << fmt::format(
+            "subspace_index {} labels {} size {} full_dimension {}",
+            subspace_index,subspace.LabelStr(),subspace.size(),subspace.full_dimension()
+          ) << std::endl;
+        if (show_subspaces)
+          os << subspace.DebugStr();
+
+      }
+
+    return os.str();
+  }
+
+
+  void GetSpBasisOffsets(
+    const spncci::SpaceSpBasis& spbasis,
+    std::vector<std::vector<int>>& offsets
+    )
+  {
+    // Iterate through J-branched basis and identify starting position
+    // of each irrep family in the basis listing.  Starting index stored
+    // in offsets indexed by subspace index. 
+    offsets.resize(spbasis.size());
+    int offset=0;
+    for(int subspace_index=0; subspace_index<spbasis.size(); ++subspace_index)
+      {
+        const spncci::SubspaceSpBasis& subspace=spbasis.GetSubspace(subspace_index);
+        offsets[subspace_index].resize(subspace.size());
+        const std::vector<int>& multiplicities=subspace.state_multiplicities();
+        for(int state_index=0; state_index<subspace.size(); ++state_index)
+          {
+            offsets[subspace_index][state_index]=offset;
+            int multiplicity=multiplicities[state_index];
+            offset+=multiplicity;
+          }
+      }
+    assert(spbasis.FullDimension()==offset);
   }
 
 }  // namespace

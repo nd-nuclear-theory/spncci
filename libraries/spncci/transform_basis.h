@@ -3,8 +3,10 @@
 
   Code to generate spncci basis transformations
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame and TRIUMF
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   7/11/18 (aem): Created.
 ****************************************************************/
@@ -16,7 +18,6 @@
 #include <string>
 
 #include "fmt/format.h"
-#include "spncci/branching2.h"
 #include "spncci/hyperblocks_u3s.h"
 #include "spncci/parameters.h"
 

@@ -3,8 +3,10 @@
 
   Some globally configurable numerical typedefs and configuration parameters for SpNCCI.
 
-  Anna E. McCoy and Mark A. Caprio
+  Mark A. Caprio
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   2/27/17 (mac): Created.
   7/5/17 (mac): Overhaul switchable matrix precision typedefs.

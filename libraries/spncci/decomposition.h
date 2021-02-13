@@ -4,7 +4,9 @@
   Code to generate eigenfunction decompositions.
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   6/22/17 (mac): Created.
   12/15/18 (aem): Updated decomposition to use new basis indexing
@@ -13,9 +15,8 @@
 #ifndef SPNCCI_SPNCCI_DECOMPOSITION_H_
 #define SPNCCI_SPNCCI_DECOMPOSITION_H_
 
-// #include <iostream>
 #include <fstream>
-#include "spncci/branching2.h"
+#include "spncci/spncci_basis.h"
 #include "spncci/parameters.h"
 
 namespace spncci

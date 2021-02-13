@@ -4,8 +4,10 @@
 
   U(3)xS layer of SpNCCI basis branching.
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   1/2/19 (aem): Created based on branching_u3s
   6/21/19 (aem): Updated ComputeManyBodyRMEs to use new seed set
@@ -17,7 +19,6 @@
 
 #include "spncci/spncci_basis.h"
 #include "spncci/recurrence.h"
-#include "spncci/branching2.h" //SpaceSpBasis
 #include "spncci/parameters.h"
 namespace spncci
 {

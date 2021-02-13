@@ -1,8 +1,8 @@
 /****************************************************************
   unit_tensor.cpp
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  University of Notre Dame and TRIUMF
 
 ****************************************************************/
 

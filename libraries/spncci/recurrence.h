@@ -3,8 +3,10 @@
 
   Unit tensor recursive evaluation
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   1/16/18 (aem): Created based on unit_tensor.h
   1/30/18 (aem): Extracted all seed and recurrence functions from
@@ -119,30 +121,6 @@ void GetLGIPairsForRecurrence(
   // Recursively computes unit tensor hyperblocks for Nnp>=Nn from 
   // recurrence relation derived in McCoy2018
 
- // bool
- //    GenerateUnitTensorHyperblocks(
- //      const spncci::LGIPair& lgi_pair,
- //      int Nmax, int N1v,
- //      const lgi::MultiplicityTaggedLGIVector& lgi_families,
- //      const std::vector<int>& lgi_full_space_index_lookup,
- //      const spncci::SpNCCISpace& spncci_space,
- //      const spncci::BabySpNCCISpace& baby_spncci_space,
- //      const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
- //      const spncci::KMatrixCache& k_matrix_cache,
- //      const spncci::KMatrixCache& kinv_matrix_cache,
- //      spncci::OperatorBlocks& lgi_transformations,
- //      bool transform_lgi_families,
- //      u3::UCoefCache& u_coef_cache,
- //      u3::PhiCoefCache& phi_coef_cache,
- //      spncci::BabySpNCCIHypersectors& baby_spncci_hypersectors,
- //      basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks
- //      );
- //    //DEPRECATED
- //    // Compute baby spncci hyperblocks for unit tensors from seeds
- //    //
- //    // Output:
- //    //  baby_spncci_hypersectors 
- //    //  unit_tensor_hyperblocks
 
 void DoRecurrenceInitialization(
   int Nmax, int N1v,

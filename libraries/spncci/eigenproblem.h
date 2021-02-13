@@ -6,9 +6,12 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   7/6/17 (mac): Extracted from computation_control.
   12/10/17 (mac): Clean comments and remove J argument.
   6/21/19 (aem) : Added verbose flag
+
 ****************************************************************/
 
 #ifndef SPNCCI_SPNCCI_EIGENPROBLEM_H_

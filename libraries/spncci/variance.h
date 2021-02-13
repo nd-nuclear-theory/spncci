@@ -3,8 +3,10 @@
 
   Compute variance of operators in spncci basis
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame and TRIUMF
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   6/17/19 (aem): Created.
 ****************************************************************/
@@ -13,7 +15,6 @@
 #define SPNCCI_VARIANCE_H_
 
 #include "spncci/spncci_basis.h"
-#include "spncci/branching2.h" //SpaceSpBasis
 #include "spncci/parameters.h"
 // Functions used to calculate variance of operator matrix when the 
 // space is broken up into a reference space H and the remainder of the full space V

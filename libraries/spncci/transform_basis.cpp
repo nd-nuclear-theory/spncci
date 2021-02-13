@@ -1,8 +1,8 @@
 /****************************************************************
   transform_basis.cpp
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame and TRIUMF
+  Anna E. McCoy
+  TRIUMF
 
 ****************************************************************/
 #include "spncci/transform_basis.h"
