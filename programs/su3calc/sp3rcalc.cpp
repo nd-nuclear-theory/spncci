@@ -88,8 +88,10 @@
        18.0   4   1    20.0   5   0
        18.0   4   1    20.0   6   1
 
-  Anna E. McCoy and Mark A. Caprio
+  Mark A. Caprio
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   6/25/17 (mac): Created, with framework from su3calc.
 

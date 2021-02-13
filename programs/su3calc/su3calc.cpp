@@ -43,6 +43,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   10/17/16 (mac): Create, extending su3_coupler.
   6/25/17 (mac): Update keywords.  Add SO(3) branching.
   11/6/19 (aem): Fixed bug
