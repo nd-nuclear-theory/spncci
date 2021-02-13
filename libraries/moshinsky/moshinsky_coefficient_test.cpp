@@ -4,8 +4,10 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   3/7/16 (aem,mac): Created to test moshinky.h, moshinsky.cpp.
-  5/11/16 (aem,mac): Update namespace.
+  5/11/16 (aem): Update namespace.
 ****************************************************************/
 #include <iomanip>
 #include <iostream>

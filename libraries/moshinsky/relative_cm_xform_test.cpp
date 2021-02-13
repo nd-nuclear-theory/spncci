@@ -4,6 +4,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   6/15/16 (aem,mac): Created.
 ****************************************************************/
 #include <fstream>

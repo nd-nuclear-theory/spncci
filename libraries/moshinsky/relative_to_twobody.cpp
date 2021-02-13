@@ -2,7 +2,9 @@
   relative_to_twobody.cpp
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   6/15/16 (aem,mac): Created.
   5/14/19 (aem): Updated   basis::OperatorLabelsJT to 

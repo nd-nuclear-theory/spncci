@@ -3,6 +3,8 @@
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
+ 
+  SPDX-License-Identifier: MIT
 
   10/20/16 (aem,mac): Created to test unitarity of moshinsky 
   						        transformation.
