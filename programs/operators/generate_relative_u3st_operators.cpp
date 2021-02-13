@@ -4,6 +4,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   2/14/17 (aem,mac): Created.
   2/21/17 (aem,mac): Update input parsing.  Add parsing checks.
   5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
