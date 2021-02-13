@@ -1,9 +1,12 @@
 /****************************************************************
   check_Wcoef_orthogonality.cpp
 
-  Checking orthogonality of SU(3) coupling coefficients                                  
-  Anna E. McCoy and Mark A. Caprio
+  Checking orthogonality of SU(3) coupling coefficients  
+                                  
+  Anna E. McCoy
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   3/10/16 (aem): Created.
 ****************************************************************/

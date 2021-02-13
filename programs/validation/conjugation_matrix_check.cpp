@@ -1,11 +1,14 @@
 /****************************************************************
-  check_Wcoef_orthogonality.cpp
+  conjugation_matrix_check.cpp
 
-  Checking orthogonality of SU(3) coupling coefficients                                  
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Checking definition of conjugation matrix as function of identity coupled coefficient                                  
+  
+  Anna E. McCoy
+  TRIUMF
+  
+  SPDX-License-Identifier: MIT
 
-  3/10/16 (aem): Created.
+  08/28/18 (aem): Created.
 ****************************************************************/
 #include "fmt/format.h"
 
