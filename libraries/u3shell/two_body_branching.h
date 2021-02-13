@@ -3,10 +3,14 @@
 
   Branching U(3)xSU(2)xSU(2) two-body rme's
                                   
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   1/7/17 (aem): Created.
+
+  DEPRECATED: Removed from build
 ****************************************************************/
 #ifndef TWO_BODY_BRANCHING_H_
 #define TWO_BODY_BRANCHING_H_

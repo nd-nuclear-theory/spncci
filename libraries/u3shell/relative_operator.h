@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   5/25/16 (mac): Created with code from two_body_operator and
                  tensor_labels.
   12/6/16 (aem): Added optional parameters to GenerateRelativeUnitTensors

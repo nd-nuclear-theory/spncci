@@ -1,6 +1,8 @@
 /****************************************************************
   two_body_branching.cpp
 
+  Anna E. McCoy
+  University of Notre Dame
 ****************************************************************/
 #include "u3shell/two_body_branching.h"
 #include "am/halfint.h"

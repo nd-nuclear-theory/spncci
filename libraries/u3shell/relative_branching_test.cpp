@@ -1,8 +1,10 @@
 /****************************************************************
   relative_branching_test.cpp
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   11/2/17 (aem): Created.
   5/14/19 (aem): Updated   basis::OperatorLabelsJT to 

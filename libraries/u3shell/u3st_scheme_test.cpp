@@ -4,6 +4,9 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+  
+  5/11/16 (aem) : Created. 
 ****************************************************************/
 
 #include "u3shell/u3st_scheme.h"

@@ -6,7 +6,9 @@
   Language: C++11
                                  
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   4/4/17 (aem,mac): Created.
   1/31/18 (aem) : Add ObservableSpaceU3S for relative observables

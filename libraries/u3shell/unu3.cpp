@@ -1,7 +1,7 @@
 /****************************************************************
   un.cpp
 
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
 
   based heavily on lsu3shell CUNMASTER

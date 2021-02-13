@@ -13,6 +13,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   9/6/16 (mac): Created, based on a subset of u3st_scheme and u3::U3S.
   9/8/16 (mac): Add default constructors.
   2/17/16 (mac): Rename SubspaceU3SPN method Str to LabelStr.

@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   5/15/16 (mac): Created.
   5/18/16 (mac): Rough in interface.
   9/15/16 (aem): Added antisymmetry constraint on U(3)xSU(2) biquads

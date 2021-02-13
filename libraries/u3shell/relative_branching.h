@@ -3,8 +3,10 @@
 
   Branching U(3)xSU(2)xSU(2) relative rme's
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   11/2/17 (aem): Created.
 ****************************************************************/

@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   5/15/16 (mac): Created as tensor.h.
   5/25/16 (mac): Rename to tensor_labels.h.  Extract 
     non-isospin-scheme labels as separate class

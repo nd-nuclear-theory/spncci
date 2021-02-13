@@ -9,6 +9,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   5/11/16 (aem,mac): Created, styled after indexing_lsjt.h.
   5/12/16 (aem,mac): Restructure by U(3) subspace.
   5/14/16 (mac): Implement sectors.  Impose canonical ordering on two-body states.

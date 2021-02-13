@@ -1,10 +1,8 @@
 /****************************************************************
   interaction_truncations.cpp
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
-
-  11/6/17 (aem): Created.
+  Anna E. McCoy
+  TRIUMF
 ****************************************************************/
 #include "u3shell/interaction_truncation.h"
 #include "fmt/format.h"

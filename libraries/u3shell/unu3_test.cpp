@@ -1,10 +1,10 @@
 /****************************************************************
-  sp3r_test.cpp
+  unu3_test.cpp
 
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
 
-  3/10/16 (aem,mac): Created.
+  3/10/16 (aem): Created.
 ****************************************************************/
 
 #include "u3shell/unu3.h"

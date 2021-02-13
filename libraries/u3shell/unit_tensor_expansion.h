@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   4/9/16 (mac): Created.
   9/7/16 (aem): Added Trel operator and renamed Nrel to Nintr
 ****************************************************************/

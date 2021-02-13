@@ -4,7 +4,6 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  6/14/16 (aem,mac): Created to import relative jisp16 files.
 ****************************************************************/
 #include "u3shell/upcoupling.h"
 

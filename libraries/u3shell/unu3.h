@@ -3,10 +3,12 @@
 
   U(N) to U(3) branching and generating allowed U(3)xSU(2) state labels
                                   
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
 
-  3/7/16 (aem,mac): Created based on lsu3shell CUNMASTER.cpp
+  SPDX-License-Identifier: MIT
+
+  3/7/16 (aem): Created based on lsu3shell CUNMASTER.cpp
   9/15/16 (aem): Changed storage container of allowed U3S irreps
 ****************************************************************/
 

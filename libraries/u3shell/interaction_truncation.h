@@ -3,8 +3,10 @@
 
   Truncations for relative two-body interaction 
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX short-form identifiers
 
   11/2/17 (aem): Created.
 ****************************************************************/

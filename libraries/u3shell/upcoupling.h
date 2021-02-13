@@ -2,7 +2,9 @@
   upcoupling.h
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   6/14/16 (aem,mac): Created to import relative jisp16 files.
   2/2/17 (mac):
