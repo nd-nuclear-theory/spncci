@@ -5,6 +5,8 @@
                                   
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
+  
+  SPDX-License-Identifier: MIT
 
   3/7/16 (aem,mac): Created based on prototype u3states.py, u3.py, and so3.py.
   3/8/16 (aem,mac): Add U3ST structure and rename U3S structure.

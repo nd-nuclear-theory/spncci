@@ -3,6 +3,8 @@
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
+  
+  SPDX-License-Identifier: MIT 
 
   3/10/16 (aem,mac): Created.
 

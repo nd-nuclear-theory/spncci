@@ -3,10 +3,12 @@
 
   Sp(3,R) labeling and branching.
                                   
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TIRUMF
 
-  9/27/17  (aem,mac): Created. Code extracted from sp3r
+  SPDX-License-Identifier: MIT
+
+  9/27/17  (aem): Created. Code extracted from sp3r
 ****************************************************************/
 
 #ifndef SP3RCOEF_H_

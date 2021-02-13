@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   3/9/16 (aem,mac): Extracted from u3.h.
   6/25/17 (mac): Restore and fix template specialization for
     MultiplicityTagged<int>::Str().

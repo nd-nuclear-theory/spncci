@@ -4,11 +4,13 @@
   Define vector coherent state methods for Sp(3,R).
 
   Anna E. McCoy
-  University of Notre Dame
+  University of Notre Dame and TRIUMF 
+
+  SPDX-License-Identifier: MIT
 
   Created by Anna E. McCoy on 3/9/16.   
  
-  3/9/16 (aem): Created based on prototype vcs.py.
+  3/9/16 (aem): Created.
   1/6/17 (aem): Changed phase convention for U3BosonCreation from
                 R->L to L->R.
   2/20/17 (aem): Added is_intrinsic option to Kmatrices to allow

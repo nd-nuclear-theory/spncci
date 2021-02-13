@@ -6,7 +6,7 @@
   Anna E. McCoy
   University of Notre Dame
 
-  Created by Anna E. McCoy and M. A. Caprio on 6/6/16.   
+  SPDX-License-Identifier: MIT
  
   3/9/16 (aem): Created based on prototype vcs.py and sp3r.py.
 
@@ -20,20 +20,6 @@
 
 namespace sp3r
 {
-  // double NumberOperatorU3(
-  //         const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
-  //         const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
-  //         );
-
-  // double Sp3rRaisingOperator(
-  //         const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
-  //         const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
-  //         );
-
-  // double Sp3rLoweringOperator(
-  //         const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
-  //         const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
-  //         );
 
   Eigen::MatrixXd  Sp3rRaisingOperator(
       const sp3r::Sp3RSpace& sp3r_space, 

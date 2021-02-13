@@ -1,7 +1,7 @@
 /****************************************************************
  sp3r_operators.cpp
 
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
 
 ****************************************************************/

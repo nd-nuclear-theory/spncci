@@ -4,7 +4,9 @@
   Sp(3,R) labeling and branching.
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   3/9/16 (aem,mac): Created based on prototype spstates.py, sp3r.py,
     and coefficients.py.
@@ -171,7 +173,7 @@ namespace sp3r
     // constructor
     Sp3RSpace(const u3::U3& sigma, int Nn_max, bool restrict_sp3r_to_u3_branching=false);
     // Constructs all U3 subspaces up to given Nn_max.
-
+    // Note, restrict_sp3r_to_u3_branching = true not currently implemented. 
 
     Sp3RSpace(
       const u3::U3& sigma, int Nn_max,

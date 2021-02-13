@@ -6,10 +6,10 @@
   Anna E. McCoy
   University of Notre Dame
 
-  Created by Anna E. McCoy on 3/9/16.   
+  SPDX-License-Identifier: MIT 
  
-  3/9/16 (aem): Created based on prototype vcs.py.
-	10/4/17 (aem) : Add tests for A<6 Kmatrices
+   3/9/16 (aem) : Created.
+  10/4/17 (aem) : Add tests for A<6 Kmatrices
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h"

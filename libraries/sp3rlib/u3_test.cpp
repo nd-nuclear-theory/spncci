@@ -4,6 +4,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT 
+
   3/7/16 (aem,mac): Created.
   3/8/16 (aem,mac): Add tests for U3ST.
   3/9/16 (aem,mac): Update includes and namespaces.

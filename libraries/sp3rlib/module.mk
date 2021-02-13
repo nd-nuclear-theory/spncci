@@ -5,7 +5,7 @@ $(eval $(begin-module))
 ################################################################
 
 module_units_h := multiplicity_tagged
-module_units_cpp-h := u3 vcs sp3r u3coef sp3r_operator sp3rcoef
+module_units_cpp-h := u3 vcs sp3r u3coef sp3r_operator
 
 # module_units_f := 
 module_programs_cpp_test := u3_test sp3r_test u3coef_test vcs_test
