@@ -1,3 +1,13 @@
+/****************************************************************
+  Calculate B(E2) transitions in SU(3) model analytically
+  
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
+
+  01/28/21 (aem) : Created
+****************************************************************/
 
 #include <iostream>
 #include <fstream>

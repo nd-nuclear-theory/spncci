@@ -1,3 +1,13 @@
+/****************************************************************
+  Calculate rigid rotor spectrum in Sp(3,R) framework
+  
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
+
+  05/15/20 (aem) : Created
+****************************************************************/
 
 #include <iostream>
 #include <fstream>
