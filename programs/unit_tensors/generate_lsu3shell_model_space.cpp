@@ -13,6 +13,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   5/29/17 (mac): Extracted from generate_lsu3shell_relative_tensors.cpp.
 
 ****************************************************************/

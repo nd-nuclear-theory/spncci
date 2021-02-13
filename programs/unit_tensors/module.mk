@@ -15,7 +15,7 @@ module_programs_cpp += explicit
 ## module_programs_cpp += check_lsu3shell_rmes
 module_programs_cpp += generate_krel_squared
 ## module_programs_cpp += lgi_solver_test
-# module_programs_cpp += compute_unit_tensor_rmes generate_nintr
+# module_programs_cpp += compute_unit_tensor_rmes
 
 # module_programs_f :=
 # module_generated :=

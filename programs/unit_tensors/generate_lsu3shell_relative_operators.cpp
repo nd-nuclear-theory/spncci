@@ -24,6 +24,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   - 8/8/16 (aem,mac): Created.
   - 11/7/16 (aem): Updated documentation.
   - 12/2/16 (aem): Add bool for U(N)->U(3) restriction on ops.

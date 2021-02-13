@@ -15,8 +15,10 @@
             in model space.  Can only take values of 1 or 2. 
     ...
 
-  Anna E. McCoy and Mark A. Caprio
-  TRIUMF and University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX short-form identifiers
 
   - 9/12/19 (aem): Created.
  

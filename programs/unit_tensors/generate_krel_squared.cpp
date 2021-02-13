@@ -1,11 +1,14 @@
 /****************************************************************
   generate_nintr.cpp
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
-
+  
 	Generates kinetic energy for comparison with lsu3shell
 	The kinetic energy is given by k^2 without any 2*mass
 	factors.
+
+  Anna E. McCoy
+  University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   1/9/17 (aem): Created.
 ****************************************************************/

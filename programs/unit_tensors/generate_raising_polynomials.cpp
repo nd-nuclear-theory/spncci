@@ -1,7 +1,11 @@
 /****************************************************************
   generate_raising_polynomials.cpp
-  Anna E. McCoy and Mark A. Caprio
+
+
+  Anna E. McCoy
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   1/16/16 (aem): Created.
 ****************************************************************/

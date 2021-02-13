@@ -33,7 +33,9 @@
     % ln -s ../../data/relative_observables/lsu3shell_rme_6Li_Nmax02/ lsu3shell_rme
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   2/16/17 (mac): Created.  Based on compute_unit_tensor_rmes.cpp.
   2/18/17 (mac): Implement normalization test.
