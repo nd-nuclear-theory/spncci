@@ -6,6 +6,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.
   12/2/16 (aem): Added bool for U(N)->U(3) restriction on operators

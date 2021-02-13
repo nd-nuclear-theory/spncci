@@ -2,7 +2,7 @@
   lsu3shell_rme.cpp
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
 
 ****************************************************************/
 #include "lsu3shell/lsu3shell_rme.h"

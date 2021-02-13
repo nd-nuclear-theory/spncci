@@ -4,6 +4,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   7/5/16 (aem,mac): Created.
 ****************************************************************/
 #include "lsu3shell/lsu3shell_rme.h"
