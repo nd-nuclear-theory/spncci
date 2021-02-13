@@ -5,8 +5,10 @@
   unit tensor rmes computed using the LSU3Shell SU3RME code and
   writes unit tensor blocks to file
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   12/29/17 (aem): Created. Based on GetUnitTensorSeedBlocks from
     spncci/computation_control

@@ -4,7 +4,9 @@
   Null solver for LGI extraction.
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   1/19/17 (aem,mac): Created.
   10/10/19 (aem): Updated null solver to handel case when matrix

@@ -1,8 +1,8 @@
 /****************************************************************
   lgi_unit_tensors.cpp
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  Anna E. McCoy
+  TRIUMF
 
 ****************************************************************/
 #include "lgi/lgi_unit_tensors.h"

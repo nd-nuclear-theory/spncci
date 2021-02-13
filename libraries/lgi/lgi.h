@@ -4,7 +4,9 @@
   Interface for lsu3shell basis.
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   9/8/16 (aem,mac): Created.
   1/31/17 (mac): Rename LGIVector to MultiplicityTaggedLGIVector.

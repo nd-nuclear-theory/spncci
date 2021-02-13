@@ -4,7 +4,9 @@
   Interface for lsu3shell basis.
                                   
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   8/1/16 (aem,mac): Created.
   9/7/16 (mac): Split from lsu3shell_interface.

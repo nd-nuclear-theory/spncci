@@ -4,6 +4,8 @@
   Anna E. McCoy 
   TRIUMF
 
+  SPDX-License-Identifier: MIT
+
   10/11/19 (aem): Created.
   
   For a given pair of LGI, print out RMEs for each unit tensor 

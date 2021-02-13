@@ -4,6 +4,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   3/7/16 (aem,mac): Created.
   2/15/18 (aem): Update tests for Nsigma0ForNuclide and ReadLGISet
 ****************************************************************/

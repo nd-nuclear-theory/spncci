@@ -2,7 +2,7 @@
   lgi.cpp
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
 
 ****************************************************************/
 #include "lgi/lgi.h"

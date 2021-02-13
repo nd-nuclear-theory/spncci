@@ -4,6 +4,9 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
+  1/19/17 (aem) : Created.
 ****************************************************************/
 
 #include "lgi/null_solver.h"
