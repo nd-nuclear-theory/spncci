@@ -6,6 +6,8 @@
   Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   Created by Mark A. Caprio on 2/17/11.   
   Drawing upon libmc/mcutils C code.
   2/23/11 (mac): Renamed from mc_arithmetic to arithmetic.
