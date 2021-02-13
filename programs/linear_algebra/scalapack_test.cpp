@@ -9,7 +9,9 @@
   i j rows cols
 
   Anna E. McCoy and Patrick J. Fasano
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   01/11/19 (pjf): Create.
 ****************************************************************/

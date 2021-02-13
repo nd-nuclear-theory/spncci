@@ -4,8 +4,10 @@
   Carry out timing trials for dense matrix diagonalization with
   Spectra solver.
 
-  Anna E. McCoy and Mark A. Caprio
+  Mark A. Caprio
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   2/14/17 (mac): Create, based on example from spectra/README.md.
     + Update coding conventions (for includes and namespaces).
