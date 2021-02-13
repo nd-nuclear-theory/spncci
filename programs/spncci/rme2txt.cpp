@@ -12,6 +12,8 @@
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
+  
+  SPDX-License-Identifier: MIT
 
   6/12/17 (mac): Created.
   6/23/17 (mac): Update to read rme binary file format v1,

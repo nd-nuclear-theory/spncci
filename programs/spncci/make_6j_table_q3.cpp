@@ -28,8 +28,10 @@
     J J_bar J_bar_bar coeff
     ...
 
-  Anna E. McCoy and Mark A. Caprio
+  Mark A. Caprio
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   7/16/17 (mac): Created.
 ****************************************************************/

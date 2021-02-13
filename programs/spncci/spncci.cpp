@@ -66,7 +66,9 @@
 
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   2/20/17 (mac): Created (starting from explicit.cpp).
   4/9/17 (aem): Incorporated baby spncci hypersectors
@@ -551,26 +553,27 @@ int main(int argc, char **argv)
             std::cout<<"  Constructing Hamiltonian matrix"<<std::endl;
 
             spncci::OperatorBlock hamiltonian_matrix;
-             std::string filename = fmt::format(
-                "hamiltonian-hw{:04.1f}-J{:03.1f}",
-                run_parameters.hw_values.at(hw_index), float(J)
-              );
-            std::cout<<"filename is "<<filename<<std::endl;
-
-            if(false)
-              { 
-                spncci::WriteSymmetricOperatorMatrix(
-                  baby_spncci_space,observable_space,
-                  J00,spbasis_bra, spbasis_ket, lgi_pairs,
-                  observable_index,hw_index,filename
-                );
-              }
             spncci::ConstructSymmetricOperatorMatrix(
               baby_spncci_space,observable_space,
               J00,spbasis_bra, spbasis_ket, lgi_pairs,
               observable_index,hw_index,hamiltonian_matrix
             );
 
+
+            if(false)
+              { 
+                std::string filename = fmt::format(
+                "hamiltonian-hw{:04.1f}-J{:03.1f}",
+                run_parameters.hw_values.at(hw_index), float(J)
+                );
+                std::cout<<"filename is "<<filename<<std::endl;
+                
+                spncci::WriteSymmetricOperatorMatrix(
+                  baby_spncci_space,observable_space,
+                  J00,spbasis_bra, spbasis_ket, lgi_pairs,
+                  observable_index,hw_index,filename
+                );
+              }
             
             // assert(0);
             timer_hamiltonian.Stop();
