@@ -83,7 +83,9 @@
   Language: Python 3
 
   A. E. McCoy and M. A. Caprio
-  Department of Physics, University of Notre Dame
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   1/8/17 (aem,mac): Created with code from compute_relative_tensors_lsu3shell_rmes.py.
   2/23/17 (aem,mac): Update rme invocation and add spncci handler.

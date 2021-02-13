@@ -78,8 +78,9 @@
   Language: Python 3
 
   A. E. McCoy and M. A. Caprio
-  Department of Physics, University of Notre Dame
-  TRIUMF National Lab
+  University of Notre Dame and TRIUMF
+
+  SPDX-License-Identifier: MIT
 
   2/16/18 (aem): Created with code extracted from spncci.py.
 
