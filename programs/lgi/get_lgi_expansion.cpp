@@ -43,6 +43,8 @@
   Anna E. McCoy
   TRIUMF
 
+  SPDX-License-Identifier: MIT
+
   3/30/19 (aem): Recreated. 
   10/10/19 (aem): Added option to write lgi expansion to separate files 
 ****************************************************************/

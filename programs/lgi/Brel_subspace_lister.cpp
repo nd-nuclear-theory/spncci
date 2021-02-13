@@ -1,5 +1,15 @@
 
-//  Program that generates bra model space for Brel given an input model space
+/****************************************************************
+  Program that generates bra model space for Brel given an input model space
+  
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
+
+  03/30/19 (aem) : Created
+****************************************************************/
+
 
 #include <iostream>
 #include <fstream>
@@ -8,6 +18,8 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
 #include "lgi/lgi.h"
+
+
 
 typedef std::tuple<int,int,int,int,u3::SU3> U3SubspaceLabel;
 int main(int argc, char **argv)

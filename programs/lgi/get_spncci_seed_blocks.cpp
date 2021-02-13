@@ -30,6 +30,13 @@ files in directory seeds containing:
         rows, cols, rmes
 
 
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
+
+
+
 12/29/17 (aem): Created. 
 ****************************************************************/
 #include <fstream>  

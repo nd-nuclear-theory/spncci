@@ -1,15 +1,21 @@
 /****************************************************************
-transform_seed_blocks.cpp
+  transform_seed_blocks.cpp
 
-Transforms seed blocks by finding "Hamiltonian preferred" basis 
-for Sp(3,R) subspace defined by all irreps with same Sp(3,R)SpSnS
-labels.  
+  Transforms seed blocks by finding "Hamiltonian preferred" basis 
+  for Sp(3,R) subspace defined by all irreps with same Sp(3,R)SpSnS
+  labels.  
 
-Transformations are obtained from eigenvectors of Hamiltonian matrix
-in small spaces
+  Transformations are obtained from eigenvectors of Hamiltonian matrix
+  in small spaces
 
-7/19/18 (aem): Created. 
-11/29/19 (aem): Overhall
+
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
+
+  07/19/18 (aem): Created. 
+  11/29/19 (aem): Overhall
 ****************************************************************/
 #include <fstream>  
 

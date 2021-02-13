@@ -16,8 +16,11 @@
     get_u3s_subspaces ~/results/mcaprio/lsu3shell/runmac0549/results/Z3-N3-Nmax06_basis.dat u3s_subspace_labels_Z3_N3_Nmax06.dat
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame
+  University of Notre Dame and TRIUMF
 
+  SPDX-License-Identifier: MIT
+
+  11/12/19 (aem): Created.
   08/29/20 (mac): Simplify command line arguments.
 
 ****************************************************************/
