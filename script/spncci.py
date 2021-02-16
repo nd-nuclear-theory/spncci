@@ -19,6 +19,8 @@
             interaction files will be sought within subdirectories
             named in spncci.interaction_subdirectory_list
 
+        SPNCCI_SEED_DIR -- base directory containing seeds for SpNCCI recurrence.
+
         Ex (personal workstation):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
@@ -38,6 +40,7 @@
             SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
             SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
             SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
+            SPNCCI_SEED_DIR ${SCRATCH}/seeds/
             PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
         Example of pre-expanded rme files (see script/su3rme-untar.csh):
