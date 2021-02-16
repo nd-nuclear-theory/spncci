@@ -11,6 +11,8 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   8/8/16 (aem,mac): Created.
   9/7/16 (mac): Remove header from operator list.
   9/10/16 (mac): Update filenames.

@@ -21,6 +21,8 @@
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
+  
+  SPDX-License-Identifier: MIT
 
   9/7/16 (aem,mac): Created, starting frrom
     generate_lsu3shell_two_body_tensors.cpp.

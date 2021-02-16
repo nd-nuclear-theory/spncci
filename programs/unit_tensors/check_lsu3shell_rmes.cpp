@@ -5,8 +5,10 @@
   lsu3shell::ReadLSU3ShellRMEs and/or lgi::GenerateLGIExpansion with
   stream arguments.
 
-  Anna E. McCoy and Mark A. Caprio
+  Anna E. McCoy
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 
   12/2/16 (aem): Created.
 ****************************************************************/
