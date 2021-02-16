@@ -99,7 +99,6 @@ project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
 su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
-su3rme_data_directory=os.environ["SU3SHELL_DATA"]
 su3rme_subdirectory_list = []
 
 # executable files
@@ -116,6 +115,7 @@ u3s_subspace_lister_executable=os.path.join(project_root,"spncci","programs","lg
 # relative operator construction (A-independent)
 ################################################################
 def setup_su3shell_directories(task):
+    su3rme_data_directory=os.environ["SU3SHELL_DATA"]
     directory_name=su3rme_data_directory+"/rme"
     mcscript.call(["mkdir","-p",directory_name])
 
