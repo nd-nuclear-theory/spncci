@@ -3,6 +3,8 @@
 
   Anna E. McCoy
   University of Notre Dame
+
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "u3shell/two_body_branching.h"
 #include "am/halfint.h"

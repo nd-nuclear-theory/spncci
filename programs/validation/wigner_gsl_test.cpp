@@ -2,6 +2,11 @@
  wigner_gsl_test.cpp
 
  Checks orthogonality of wigner coefficients
+
+  Anna E. McCoy
+  University of Notre Dame
+
+ SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "fmt/format.h"
 #include "am/wigner_gsl.h"

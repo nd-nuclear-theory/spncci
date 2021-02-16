@@ -4,6 +4,7 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "u3shell/relative_operator.h"
 

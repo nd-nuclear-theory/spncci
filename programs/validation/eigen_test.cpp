@@ -9,8 +9,9 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/11/16 (aem,mac): Created.
+  SPDX-License-Identifier: MIT
 
+  3/11/16 (aem,mac): Created.
 ****************************************************************/
 
 

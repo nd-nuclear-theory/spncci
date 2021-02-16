@@ -4,6 +4,7 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 
 #include "u3shell/unit_tensor_space_u3s.h"

@@ -1,7 +1,11 @@
-"""
-Matrix elements in the U3-boson basis and laddering functions 
-"""
-#######################################################################################################
+##################################################################################
+# Matrix elements in the U3-boson basis and laddering functions 
+#
+# Anna E. McCoy
+# University of Notre Dame
+#
+# SPDX-License-Identifier: MIT
+##################################################################################
 import numpy
 from u3states import *
 from spstates import *

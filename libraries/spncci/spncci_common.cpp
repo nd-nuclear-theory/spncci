@@ -4,6 +4,7 @@
   Mark A. Caprio
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 
 #include "spncci/spncci_common.h"

@@ -3,7 +3,8 @@
 
   Anna E. McCoy
   TRIUMF
-
+  
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "lgi/lgi_unit_tensors.h"
 #include <omp.h>

@@ -6,8 +6,7 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
-  3/10/16 (aem,mac): Created based on prototype u3.py and 
-  T. Dytrych CSU3Master.
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
 

@@ -3,6 +3,8 @@
                                   
   Anna E. McCoy
   TRIUMF
+
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "u3shell/interaction_truncation.h"
 #include "fmt/format.h"

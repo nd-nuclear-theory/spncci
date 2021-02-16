@@ -1,3 +1,10 @@
+##################################################################################
+#	Anna E. McCoy
+#	University of Notre Dame
+#
+#	SPDX-License-Identifier: MIT
+##################################################################################
+
 import math
 from u3states import *
 import so3

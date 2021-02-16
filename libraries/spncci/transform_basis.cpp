@@ -4,6 +4,7 @@
   Anna E. McCoy
   TRIUMF
 
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "spncci/transform_basis.h"
 

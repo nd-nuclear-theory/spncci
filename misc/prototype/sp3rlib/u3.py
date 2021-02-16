@@ -1,4 +1,10 @@
-###U3 and SU(3) coefficients and functions
+##################################################################################
+# U3 and SU(3) coefficients and functions
+#   Anna E. McCoy
+#   University of Notre Dame
+#
+#   SPDX-License-Identifier: MIT
+##################################################################################
 
 import numpy
 import sys

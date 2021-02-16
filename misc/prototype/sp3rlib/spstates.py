@@ -1,7 +1,12 @@
-"""
-Classes for Sp(3,R) states, reduced states
-Operator class for SU(3) tensor operators
-"""
+##################################################################################
+# Classes for Sp(3,R) states, reduced states 
+# Operator class for SU(3) tensor operators
+# 
+#   Anna E. McCoy
+#   University of Notre Dame
+#
+#   SPDX-License-Identifier: MIT
+##################################################################################
 
 
 from u3states import *

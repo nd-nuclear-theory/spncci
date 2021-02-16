@@ -1,6 +1,9 @@
 /****************************************************************
   shell_comparison.cpp
 
+  Branches Q operator constructed from relative Sp(3,R) generators
+  to NLSJT basis for comparison with shell relative file
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 

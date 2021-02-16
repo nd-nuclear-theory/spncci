@@ -4,6 +4,8 @@
   Anna E. McCoy
   University of Notre Dame
 
+  SPDX-License-Identifier: MIT
+
   based heavily on lsu3shell CUNMASTER
 ****************************************************************/
 #include "u3shell/unu3.h"

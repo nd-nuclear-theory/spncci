@@ -1,7 +1,11 @@
-##################################################################################################################################################
-##  Generating irreps corresponding to the different symmetries
-## 2/9/16 version: changes irrep ordering in some cases 
-##################################################################################################################################################
+##################################################################################
+# Generating irreps corresponding to the different symmetries	
+# 
+# 	Anna E. McCoy
+#	University of Notre Dame
+#
+#	SPDX-License-Identifier: MIT
+##################################################################################
 
 import math
 import sys

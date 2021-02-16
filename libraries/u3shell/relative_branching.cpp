@@ -1,6 +1,10 @@
 /****************************************************************
   relative_branching.cpp
-  
+
+  Anna E. McCoy
+  TRIUMF
+
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "u3shell/relative_branching.h"
 

@@ -1,6 +1,12 @@
-##Classes for U3 and SU(3) states 
+##################################################################################
+# Classes for U3 and SU(3) states 
+# 
+#   Anna E. McCoy
+#   University of Notre Dame
+#
+#   SPDX-License-Identifier: MIT
+##################################################################################
 
-##################################################################################################################
 class SU3State:
     """
     state with SU(3) symmetry, not branched to L

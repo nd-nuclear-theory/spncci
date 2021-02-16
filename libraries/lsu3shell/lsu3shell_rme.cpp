@@ -4,6 +4,7 @@
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame and TRIUMF
 
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "lsu3shell/lsu3shell_rme.h"
 

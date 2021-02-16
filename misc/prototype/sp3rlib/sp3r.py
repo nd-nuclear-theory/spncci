@@ -1,3 +1,10 @@
+##################################################################################
+#	Anna E. McCoy
+#	University of Notre Dame
+#
+#	SPDX-License-Identifier: MIT
+##################################################################################
+
 import numpy
 import numpy.linalg
 from u3states import *

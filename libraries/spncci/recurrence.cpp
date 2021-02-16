@@ -4,6 +4,7 @@
   Anna E. McCoy
   University of Notre Dame and TRIUMF
 
+  SPDX-License-Identifier: MIT
 ****************************************************************/
 
 #include "spncci/recurrence.h"
