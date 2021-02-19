@@ -61,7 +61,7 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return spncci.relative_operator_descriptor(task)
+    return su3rme.relative_operator_descriptor(task)
 
 def task_pool(task):
     """"""
@@ -76,7 +76,7 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        spncci.do_generate_relative_operators
+        su3rme.do_generate_relative_operators
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]
