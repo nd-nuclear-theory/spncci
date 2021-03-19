@@ -33,7 +33,7 @@ namespace u3shell
     const basis::RelativeSpaceLSJT& relative_space_lsjt,
     const std::unordered_map<u3shell::RelativeStateSectorNLST,double,boost::hash<u3shell::RelativeStateSectorNLST>>& rmes_nlst,
     std::array<basis::RelativeSectorsLSJT,3>& isospin_component_sectors_lsjt,
-    std::array<basis::MatrixVector,3>& isospin_component_blocks_lsjt
+    std::array<basis::OperatorBlocks<double>,3>& isospin_component_blocks_lsjt
     );
    // Branching relative matrix elements from NLST to NLSJT.  J-branched rmes stored in block container
 
@@ -41,7 +41,7 @@ namespace u3shell
     const u3shell::RelativeRMEsU3ST& interaction_u3st,
     const basis::RelativeSpaceLSJT& relative_space_lsjt,
     std::array<basis::RelativeSectorsLSJT,3>& isospin_component_sectors_lsjt,
-    std::array<basis::MatrixVector,3>& isospin_component_blocks_lsjt
+    std::array<basis::OperatorBlocks<double>,3>& isospin_component_blocks_lsjt
     );
 	// Branch relative rmes from U3ST to NLSJT
 

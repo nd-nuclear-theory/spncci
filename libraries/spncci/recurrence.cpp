@@ -18,6 +18,7 @@
 #include "sp3rlib/u3coef.h"
 #include "spncci/spncci_common.h"
 #include "spncci/transform_basis.h"
+#include "utilities/utilities.h"
 
 extern double zero_threshold;
 

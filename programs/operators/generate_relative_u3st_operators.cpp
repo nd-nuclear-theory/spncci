@@ -10,6 +10,7 @@
   2/21/17 (aem,mac): Update input parsing.  Add parsing checks.
   5/14/19 (aem): Updated   basis::OperatorLabelsJT to 
     basis::RelativeOperatorParametersLSJT for reading in operators
+  3/19/21 (aem) : Removed dependency on utilities/utilities.h
 ****************************************************************/
 #include <iostream>
 #include <fstream>
@@ -107,7 +108,7 @@ namespace u3shell
     int kappa0=1; 
     int L0=0;
 
-    double intrinsic_factor=2.*(1.+KroneckerDelta(moshinsky_convention,false))/A;
+    double intrinsic_factor=2.*(1.+mcutils::KroneckerDelta(moshinsky_convention,false))/A;
 
     for(int N=0; N<=Nmax; N++)
       for(int S=0; S<=1; ++S)
@@ -280,7 +281,7 @@ namespace u3shell
   void Tintr(int Nmax,u3shell::RelativeRMEsU3ST& Tintr, int A, double hbar_omega, double coef=1.0, bool moshinsky_convention=false)
   {
     // Something weird with coef factor.  Won't work for moshinsky_convention=true
-    coef*=hbar_omega/(4*(KroneckerDelta(moshinsky_convention,false)));
+    coef*=hbar_omega/(4*(mcutils::KroneckerDelta(moshinsky_convention,false)));
     k2intr(Nmax,Tintr, A, coef, moshinsky_convention);
   }
 
@@ -291,7 +292,7 @@ namespace u3shell
       // Read in the interaction from file
       basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
       std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
-      std::array<basis::MatrixVector,3> isospin_component_matrices_lsjt;
+      std::array<basis::OperatorBlocks<double>,3> isospin_component_matrices_lsjt;
       basis::RelativeOperatorParametersLSJT operator_labels;
       basis::ReadRelativeOperatorLSJT(
         interaction_filename,relative_space_lsjt,operator_labels,

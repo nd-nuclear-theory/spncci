@@ -35,7 +35,7 @@ namespace rotor
     A.resize(3);
     for(int k=1; k<=3; ++k)
       {
-        A[k-1]=alpha/sqr(sin(gamma-2*PI/3*k));
+        A[k-1]=alpha/mcutils::sqr(sin(gamma-2*PI/3*k));
       }
   }
 
@@ -71,18 +71,18 @@ namespace rotor
       GetD(x,lambda,D);
 
       //First coefficient      
-      coefs[0]=lambda[1]*lambda[2]/(2*sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
-      coefs[0]=coefs[0]+lambda[0]*lambda[2]/(2*sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
-      coefs[0]=coefs[0]+lambda[0]*lambda[1]/(2*sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
+      coefs[0]=lambda[1]*lambda[2]/(2*mcutils::sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
+      coefs[0]=coefs[0]+lambda[0]*lambda[2]/(2*mcutils::sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
+      coefs[0]=coefs[0]+lambda[0]*lambda[1]/(2*mcutils::sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
       
       //Second coefficient 
-      coefs[1]=lambda[0]/(2*sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
-      coefs[1]=coefs[1]+lambda[1]/(2*sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
-      coefs[1]=coefs[1]+lambda[2]/(2*sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
+      coefs[1]=lambda[0]/(2*mcutils::sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
+      coefs[1]=coefs[1]+lambda[1]/(2*mcutils::sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
+      coefs[1]=coefs[1]+lambda[2]/(2*mcutils::sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
 
-      coefs[2]=1/(2*sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
-      coefs[2]=coefs[2]+1/(2*sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
-      coefs[2]=coefs[2]+1/(2*sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
+      coefs[2]=1/(2*mcutils::sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
+      coefs[2]=coefs[2]+1/(2*mcutils::sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
+      coefs[2]=coefs[2]+1/(2*mcutils::sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
       
 
     }
@@ -132,7 +132,7 @@ namespace rotor
                 // std::cout<<"    "
                 // <<am::Unitary6J(L,m,Lbar,m,L,0)<<"  "
                 // <<ParitySign(L+Lbar+m)*Hat(Lbar)/Hat(L)/Hat(m)<<std::endl;
-                // // <<sqr(am::Unitary6J(L,1,L,2,Lbar,m))<<"  "
+                // // <<mcutils::sqr(am::Unitary6J(L,1,L,2,Lbar,m))<<"  "
                 // std::cout<<"SU3 coefs "
                 // <<L<<"  "<<Lbar<<"  "<<m<<std::endl
                 // <<kappa<<" "<<kappa_bar<<"  "<<kappap<<std::endl
@@ -142,7 +142,7 @@ namespace rotor
 
                 rme+=ParitySign(m)*Hat(m)
                       *am::Unitary6J(L,m,Lbar,m,L,0)*L*(L+1)
-                      *sqr(am::Unitary6J(L,1,L,2,Lbar,m))
+                      *mcutils::sqr(am::Unitary6J(L,1,L,2,Lbar,m))
                       *u3::W(x,kappa_bar,Lbar,u3::SU3(1,1),1,2,x,kappap,L,1)
                       *u3::W(x,kappa,L,u3::SU3(1,1),1,2,x,kappa_bar,Lbar,1);
                 }

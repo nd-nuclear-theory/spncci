@@ -80,8 +80,8 @@ namespace u3shell {
                  );
         int biquad_grade = eta1+eta2+ConjugationGrade(x)+int(S)+int(T);
         double biquad_norm_factor = 1/(
-                             sqrt(1+KroneckerDelta(eta1p,eta2p))
-                             *sqrt(1+KroneckerDelta(eta1,eta2))
+                             sqrt(1+mcutils::KroneckerDelta(eta1p,eta2p))
+                             *sqrt(1+mcutils::KroneckerDelta(eta1,eta2))
                              );
 
         // iterate over outer multiplicity on cross projector

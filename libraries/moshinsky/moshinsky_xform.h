@@ -19,6 +19,7 @@
                     TransformRelativeUnitTensorToTwobodyTensor.
                  Renamed MoshinskyTransformUnitTensor to 
                     MoshinskyTransformTensor.
+  3/19/21 (aem): Removed dependence on utilities/utilities.h in favor of mcutils
 ****************************************************************/
 
 #ifndef MOSHINSKY_H_

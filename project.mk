@@ -36,7 +36,7 @@ modules += programs/linear_algebra
 modules += programs/spncci programs/lgi
 
 modules += programs/rotor
-
+modules += programs/su3shell
 ################################################################
 # extras -- list of extra files to be included
 # in distribution tar file

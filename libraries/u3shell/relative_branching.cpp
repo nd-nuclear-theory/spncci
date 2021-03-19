@@ -49,7 +49,7 @@ namespace u3shell
               u3shell::RelativeStateLabelsNLST ket_nlst(N,L,S,T);
               u3shell::RelativeStateSectorNLST sector(L0,S0,T0,bra_nlst,ket_nlst);
               // double coef=u3::WCached(w_cache,u3::SU3(N,0), 1,L, x0, kappa0, L0, u3::SU3(Np,0),1,Lp,1);
-              rmes_nlst[sector]+=parity(n+np)*u3::WCached(w_cache,u3::SU3(N,0), 1,L, x0, kappa0, L0, u3::SU3(Np,0),1,Lp,1)*rme;
+              rmes_nlst[sector]+=ParitySign(n+np)*u3::WCached(w_cache,u3::SU3(N,0), 1,L, x0, kappa0, L0, u3::SU3(Np,0),1,Lp,1)*rme;
               // std::cout<<fmt::format("{} {} {} {}  {} {} {} {}  {} {} {} {} {}  {}  {} ",Np,Lp,Sp,Tp,N,L,S,T, x0, kappa0,L0,S0,T0, )
             }
       }
@@ -62,7 +62,7 @@ namespace u3shell
     const basis::RelativeSpaceLSJT& relative_space_lsjt,
     const std::unordered_map<u3shell::RelativeStateSectorNLST,double,boost::hash<u3shell::RelativeStateSectorNLST>>& rmes_nlst,
     std::array<basis::RelativeSectorsLSJT,3>& isospin_component_sectors_lsjt,
-    std::array<basis::MatrixVector,3>& isospin_component_blocks_lsjt
+    std::array<basis::OperatorBlocks<double>,3>& isospin_component_blocks_lsjt
     )
 
   {  // setting up J sectors 
@@ -139,7 +139,7 @@ namespace u3shell
     const u3shell::RelativeRMEsU3ST& interaction_u3st,
     const basis::RelativeSpaceLSJT& relative_space_lsjt,
     std::array<basis::RelativeSectorsLSJT,3>& isospin_component_sectors_lsjt,
-    std::array<basis::MatrixVector,3>& isospin_component_blocks_lsjt
+    std::array<basis::OperatorBlocks<double>,3>& isospin_component_blocks_lsjt
     )
   {  
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

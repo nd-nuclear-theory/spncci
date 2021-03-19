@@ -29,7 +29,8 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <unordered_map>
-  
+#include "basis/operator.h"
+#include "mcutils/arithmetic.h"
 #include "sp3rlib/sp3r.h"  
 
 namespace vcs
@@ -56,9 +57,9 @@ namespace vcs
   //   (double) : Omega factor
   {
     double value=0;
-    value += (2*sqr(double(omega.f1()))-sqr(double(n.f1()))+8*(double(omega.f1())-double(n.f1()))-2*(2*double(omega.f1())-double(n.f1())));
-    value += (2*sqr(double(omega.f2()))-sqr(double(n.f2()))+8*(double(omega.f2())-double(n.f2()))-4*(2*double(omega.f2())-double(n.f2())));
-    value += (2*sqr(double(omega.f3()))-sqr(double(n.f3()))+8*(double(omega.f3())-double(n.f3()))-6*(2*double(omega.f3())-double(n.f3())));
+    value += (2*mcutils::sqr(double(omega.f1()))-mcutils::sqr(double(n.f1()))+8*(double(omega.f1())-double(n.f1()))-2*(2*double(omega.f1())-double(n.f1())));
+    value += (2*mcutils::sqr(double(omega.f2()))-mcutils::sqr(double(n.f2()))+8*(double(omega.f2())-double(n.f2()))-4*(2*double(omega.f2())-double(n.f2())));
+    value += (2*mcutils::sqr(double(omega.f3()))-mcutils::sqr(double(n.f3()))+8*(double(omega.f3())-double(n.f3()))-6*(2*double(omega.f3())-double(n.f3())));
     return value/4.;
 
   }

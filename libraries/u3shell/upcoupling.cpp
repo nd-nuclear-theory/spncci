@@ -192,7 +192,7 @@ namespace u3shell
                         double u3_coef=u3::WCached(w_cache,ket.x(), 1,L, x0, kappa0, L0, bra.x(),1,Lp,1)
                           *u3::dim(x0)*am::dim(Lp)/(u3::dim(bra.x())*am::dim(L0));
                         std::tuple<u3shell::RelativeUnitTensorLabelsU3ST,int,int> key(operator_labels,kappa0,L0);
-                        rme_map[key]+=u3_coef*rme_nlst*parity(n+np);
+                        rme_map[key]+=u3_coef*rme_nlst*ParitySign(n+np);
                         /*if (fabs(rme_map[key]) <= zero_threshold) {
                           rme_map[key] = 0;
                         }*/

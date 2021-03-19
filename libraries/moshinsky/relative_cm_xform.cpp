@@ -85,7 +85,7 @@ namespace u3shell
                     u3shell::RelativeCMBraketNLST braket_rel_cm(L0,S0,T0,bra_rel_cm,ket_rel_cm);
                     rel_cm_lst_map[braket_rel_cm]
                       =am::Unitary9J(L0,0,L0,Lr,Lcm,L,Lrp,Lcm,Lp)
-                      *parity(Lr+Lrp+L+Lp)*rme_rel;
+                      *ParitySign(Lr+Lrp+L+Lp)*rme_rel;
                   }
       }
   }
@@ -124,7 +124,7 @@ namespace u3shell
                   {
                     u3shell::RelativeCMUnitTensorLabelsU3ST tensor_cm(x0,S0,T0,rho0,bra,ket);
                     relative_cm_u3st_map[tensor_cm]
-                      =//parity(x.lambda()+x.mu()+xp.lambda()+xp.mu()+Np+N)
+                      =//ParitySign(x.lambda()+x.mu()+xp.lambda()+xp.mu()+Np+N)
                         u3::U(x0,xr,xp,x_cm,xrp,1,1,x,1,rho0);
                   }
                 }

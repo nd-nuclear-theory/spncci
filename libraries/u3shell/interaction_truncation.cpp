@@ -241,7 +241,7 @@ namespace u3shell
       // Read in the interaction from file
       basis::RelativeSpaceLSJT relative_space_lsjt;
       std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
-      std::array<basis::MatrixVector,3> isospin_component_blocks_lsjt;
+      std::array<basis::OperatorBlocks<double>,3> isospin_component_blocks_lsjt;
 
       basis::RelativeOperatorParametersLSJT operator_labels;
       

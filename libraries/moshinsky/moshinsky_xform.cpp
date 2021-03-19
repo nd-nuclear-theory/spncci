@@ -8,10 +8,10 @@
 ****************************************************************/
 #include <cmath>
 #include "fmt/format.h"
-
+#include "am/halfint.h"
 #include "sp3rlib/u3coef.h"
 #include "moshinsky/moshinsky_xform.h"
-
+#include "mcutils/gsl.h"
 extern double zero_threshold;
 
 namespace u3shell
@@ -22,11 +22,11 @@ namespace u3shell
     int Kmax=std::max(std::max(int(J+M),int(J-M)),int(J-Mp));
 		
     for(int K=0; K<=Kmax; K++)
-      moshinsky_coef+=parity(K)*Choose(int(J+M),int(J-Mp-K))*Choose(int(J-M),K);
+      moshinsky_coef+=ParitySign(K)*mcutils::Choose(int(J+M),int(J-Mp-K))*mcutils::Choose(int(J-M),K);
     moshinsky_coef
-      *=parity(int(J-Mp))
-      *sqrt(Factorial(int(J+Mp))*Factorial(int(J-Mp))
-           /(pow(2.,TwiceValue(J))*Factorial(int(J+M))*Factorial(int(J-M)))
+      *=ParitySign(int(J-Mp))
+      *sqrt(mcutils::Factorial(int(J+Mp))*mcutils::Factorial(int(J-Mp))
+           /(pow(2.,TwiceValue(J))*mcutils::Factorial(int(J+M))*mcutils::Factorial(int(J-M)))
           );
     return moshinsky_coef;
   }
@@ -116,7 +116,7 @@ namespace u3shell
           // int exchange_phase=phase_even?1:-1;
           // overall factor for the bra
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
-          double coef=norm?(1./std::sqrt(1.+KroneckerDelta(eta1p,eta2p))):1;
+          double coef=norm?(1./std::sqrt(1.+mcutils::KroneckerDelta(eta1p,eta2p))):1;
           bra_moshinky_12(bra_state_index,0)=coef*MoshinskyCoefficient(etap, eta_cm, eta1p, eta2p,xp);
         } 
       // iterate over ket subspace
@@ -129,7 +129,7 @@ namespace u3shell
 
           // overall factor for the ket
           // the factor of 1/sqrt(1+delta) comes from the normalization for particles in the same shell
-          double coef=norm?(1./std::sqrt(1.+KroneckerDelta(eta1,eta2))):1;
+          double coef=norm?(1./std::sqrt(1.+mcutils::KroneckerDelta(eta1,eta2))):1;
           ket_moshinky_12(0,ket_state_index)=coef*MoshinskyCoefficient(eta, eta_cm,eta1,eta2,x);
         }  
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

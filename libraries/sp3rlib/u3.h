@@ -28,7 +28,8 @@
 #include "am/halfint.h"
 #include "am/am.h"
 #include "sp3rlib/multiplicity_tagged.h"
-#include "utilities/utilities.h"
+#include "mcutils/arithmetic.h"
+// #include "utilities/utilities.h"
 
 namespace u3 
 {
@@ -156,7 +157,7 @@ namespace u3
   inline double Casimir2( const u3::SU3& x)
   //Second order Casimir 
   {
-    return 2./3*(sqr(x.lambda())+x.lambda()*x.mu()+sqr(x.mu())+3*x.lambda()+3*x.mu());
+    return 2./3*(mcutils::sqr(x.lambda())+x.lambda()*x.mu()+mcutils::sqr(x.mu())+3*x.lambda()+3*x.mu());
   } 
 
   inline double Casimir3(const u3::SU3& x)

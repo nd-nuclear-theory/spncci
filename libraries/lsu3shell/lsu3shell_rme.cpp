@@ -454,7 +454,7 @@ namespace lsu3shell
               double residual = std::fabs(rme2-rme1);
               ++entries_compared;
               max_residual = std::max(max_residual,residual);
-              total_sqr_residual += sqr(residual);
+              total_sqr_residual += mcutils::sqr(residual);
               bool entries_agree = (residual <= tolerance);
               // std::cout<<std::endl<<fmt::format("residual {}  tolerance {}  bool {}", residual,tolerance,entries_agree)<<std::endl<<std::endl;
               success &= entries_agree;

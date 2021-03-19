@@ -61,9 +61,7 @@ int main(int argc, char **argv)
       std::cout<<"Syntax: Nmax Nstep N1v J0 T0"<<std::endl;
       std::exit(EXIT_FAILURE);
     }
-  // int Z=std::stoi(argv[1]);
-  // int N=std::stoi(argv[2]);
-  // int A=N+Z;
+
   int Nmax=std::stoi(argv[1]);
   int Nstep=std::stoi(argv[2]); // will be either 1 or 2
   int N1B=std::stoi(argv[3]);
@@ -71,12 +69,8 @@ int main(int argc, char **argv)
   int T0=std::stoi(argv[5]);
   assert((Nstep==2)||(Nstep==1));
   int Nmin=Nmax%Nstep;
-  // int T0=-1;
-  // // int T0=0;
-  // int J0=-1;
+
   bool un_u3_restrict=false;
-  // if( (N==0) || (Z==0) )
-  //   un_u3_restrict=true;
 
   // set up output stream for SU3RME control file
   std::string relative_operator_filename("relative_operators.dat");
@@ -116,7 +110,7 @@ int main(int argc, char **argv)
   for(int unit_tensor_index=0; unit_tensor_index<num_unit_tensors; ++unit_tensor_index)
     {
       const u3shell::OperatorLabelsU3ST& operator_labels = relative_unit_tensor_labels[unit_tensor_index];
-      std::string file_name_base = fmt::format("relative_unit_{:06d}",unit_tensor_index);
+      std::string file_name_base = fmt::format("relative_unit_tensor_{:06d}",unit_tensor_index);
       control_stream
         << fmt::format(
             "{:s} {:3d} {:3d} {:3d} {:3d}",
@@ -175,57 +169,7 @@ int main(int argc, char **argv)
       )
     << std::endl;
 
-  // ////////////////////////////////////////////////////////////////
-  // // symplectic operators -- intrinsic version (A-dependent) -- DEPRECATED
-  // ////////////////////////////////////////////////////////////////
-  // 
-  // // Generate Brel operator up to Nmax cutoff
-  // std::string Brel_file_name_base=fmt::format("Brel_{:02d}_Nmax{:02d}",A,Nmax);
-  // std::string Brel_file_name=fmt::format("{}.recoupler",Brel_file_name_base);
-  // u3shell::RelativeUnitTensorCoefficientsU3ST Brel_operator;
-  // u3shell::BrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Brel_operator,A);  // TODO remove A dependence
-  // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Brel_operator,Brel_file_name,un_u3_restrict);
-  // 
-  // // Generate Arel operator up to Nmax cutoff
-  // std::string Arel_file_name_base=fmt::format("Arel_{:02d}_Nmax{:02d}",A,Nmax);
-  // std::string Arel_file_name=fmt::format("{}.recoupler",Arel_file_name_base);
-  // u3shell::RelativeUnitTensorCoefficientsU3ST Arel_operator;
-  // u3shell::ArelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Arel_operator,A);  // TODO remove A dependence
-  // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Arel_operator,Arel_file_name,un_u3_restrict);
-  // 
-  // // Generate Nrel operator up to Nmax cutoff
-  // std::string Nrel_file_name_base=fmt::format("Nrel_{:02d}_Nmax{:02d}",A,Nmax);
-  // u3shell::RelativeUnitTensorCoefficientsU3ST Nrel_operator;
-  // u3shell::NrelRelativeUnitTensorExpansion(Nmin,Nmax+2*N1B,Nrel_operator,A);  // TODO remove A dependence
-  // std::string Nrel_file_name=fmt::format("{}.recoupler",Nrel_file_name_base);
-  // lsu3shell::GenerateLSU3ShellOperator(Nmax+2*N1B,Nrel_operator,Nrel_file_name,un_u3_restrict);
-  // 
-  // // generate control file entries for lsu3shell SU3RME
-  // control_stream
-  //   << fmt::format(
-  //       "{:s} {:3d} {:3d} {:3d} {:3d}",
-  //       Brel_file_name_base,
-  //       -2,0,2,0
-  //     )
-  //   << std::endl;
-  // control_stream
-  //   << fmt::format(
-  //       "{:s} {:3d} {:3d} {:3d} {:3d}",
-  //       Arel_file_name_base,
-  //       2,2,0,0
-  //     )
-  //   << std::endl;
-  // control_stream
-  //   << fmt::format(
-  //       "{:s} {:3d} {:3d} {:3d} {:3d}",
-  //       Nrel_file_name_base,
-  //       0,0,0,0
-  //     )
-  //   << std::endl;
 
-  ////////////////////////////////////////////////////////////////
-  // termination
-  ////////////////////////////////////////////////////////////////
 
   control_stream.close();
 }

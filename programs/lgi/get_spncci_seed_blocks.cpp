@@ -35,8 +35,6 @@ files in directory seeds containing:
 
   SPDX-License-Identifier: MIT
 
-
-
 12/29/17 (aem): Created. 
 ****************************************************************/
 #include <fstream>  
@@ -149,7 +147,7 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // std::cout<<"Generate tensors "<<std::endl;
   // Get list of unit tensor labels between lgi's 
-  // TODOL change to restrict N0 after testing
+  // TODO: Can we restrict N0?
   bool restrict_positive_N0=false;
   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensor_labels;
   u3shell::GenerateRelativeUnitTensorLabelsU3ST(
