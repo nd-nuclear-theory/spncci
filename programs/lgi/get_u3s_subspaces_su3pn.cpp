@@ -1,5 +1,8 @@
 /****************************************************************
-  get_u3s_subspaces.cpp
+  get_u3s_subspaces_su3pn.cpp
+
+  DEPRECATED from the beginning (!): This is ad hoc adaptation of
+  get_u3s_subspaces to include SUp(3) and SUn(3) in the binning key.
 
   Syntax:
 
@@ -16,12 +19,10 @@
     get_u3s_subspaces ~/results/mcaprio/lsu3shell/runmac0549/results/Z3-N3-Nmax06_basis.dat u3s_subspace_labels_Z3_N3_Nmax06.dat
 
   Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame and TRIUMF
+  University of Notre Dame
 
-  SPDX-License-Identifier: MIT
-
-  11/12/19 (aem): Created.
-  08/29/20 (mac): Simplify command line arguments.
+  03/21/21 (mac): Created, by patching get_u3s_subspaces key definition and
+  output statement.
 
 ****************************************************************/
 #include <fstream>
@@ -41,7 +42,7 @@ namespace lsu3shell
 {
   void ReadLSU3ShellBasisAndAccumulate(
       const std::string& filename, 
-      std::map<std::tuple<int,int,int,int,int,int>,int>& u3s_subspace_labels_set
+      std::map<std::tuple<int,int,int,int,int,int,int,int,int,int,int,int>,int>& u3s_subspace_labels_set  // patched for pn (mac)
     )
   // Read basis states labels from LSU3Shell basis file and accumulate by N(lambda,mu)S labels
   // Based on ReadLSU3ShellBasis in lsu3shell/lsu3shell_basis.cpp
@@ -83,7 +84,8 @@ namespace lsu3shell
         assert(u3::OuterMultiplicity(xp,xn,x)==rho0_max);
 
         int dim=alpha_n_max*alpha_p_max*rho0_max;
-        std::tuple<int,int,int,int,int,int> labels(Nex,lambda,mu,twice_Sp,twice_Sn,twice_S);
+        std::tuple<int,int,int,int,int,int,int,int,int,int,int,int>
+          labels(Nex,lambda,mu,twice_Sp,twice_Sn,twice_S,Np,lambda_p,mu_p,Nn,lambda_n,mu_n);  // patched for pn (mac); put wp and wn last to preserve existing block structure in sort
         u3s_subspace_labels_set[labels]+=dim;
       }
 
@@ -91,43 +93,28 @@ namespace lsu3shell
     basis_stream.close();
   }
 
-void WriteU3SLabels(std::string filename, const std::map<std::tuple<int,int,int,int,int,int>,int>& u3s_subspace_labels_set)
+void WriteU3SLabels(std::string filename, const std::map<std::tuple<int,int,int,int,int,int,int,int,int,int,int,int>,int>& u3s_subspace_labels_set)  // patched for pn (mac)
 // Write U3S labels and dimensions.
   {
     std::ofstream outfile;
     outfile.open(filename);
     for(auto it=u3s_subspace_labels_set.begin(); it!=u3s_subspace_labels_set.end(); ++it)
       {
+        int Np,lambda_p,mu_p,Nn,lambda_n,mu_n;  // patched for pn (mac)
         int Nex,lambda,mu,twice_S,twice_Sp,twice_Sn;
-        std::tie(Nex,lambda,mu,twice_Sp,twice_Sn,twice_S)=it->first;
+        std::tie(
+            Nex,lambda,mu,twice_Sp,twice_Sn,twice_S,
+            Np,lambda_p,mu_p,Nn,lambda_n,mu_n  // patched for pn (mac)
+          )=it->first;
         int dim=it->second;
-        outfile<<fmt::format("{:2d} {:3d} {:3d} {:3d} {:3d} {:3d} {:4d}",Nex,lambda,mu,twice_Sp,twice_Sn,twice_S,dim)<<std::endl;
+        outfile<<fmt::format(
+            "{:2d} {:3d} {:3d} {:2d} {:3d} {:3d} {:2d} {:3d} {:3d} {:3d} {:3d} {:3d} {:4d}",  // patched for pn (mac)
+            Np,lambda_p,mu_p,Nn,lambda_n,mu_n,  // patched for pn (mac)
+            Nex,lambda,mu,twice_Sp,twice_Sn,twice_S,dim
+          )<<std::endl;
       }
     outfile.close();
   }
-
-// void WriteU3SBranchedLabels(std::string filename, const std::map<std::tuple<int,int,int,int,int,int>,int>& u3s_subspace_labels_set)
-//   {
-//     std::ofstream outfile;
-//     outfile.open(filename);
-//     for(auto it=u3s_subspace_labels_set.begin(); it!=u3s_subspace_labels_set.end(); ++it)
-//       {
-//         int Nex,lambda,mu,twice_Sp,twice_Sn,twice_S;
-//         std::tie(Nex,lambda,mu,twice_Sp,twice_Sn,twice_S)=it->first;
-//         int dim=it->second;
-//         MultiplicityTagged<int>::vector branched_states=u3::BranchingSO3(u3::SU3(lambda,mu));
-//         for(auto tagged_L : branched_states)
-//           {
-//             int L=tagged_L.irrep;
-//             int kappa_max=tagged_L.tag;
-//             for(int kappa=1; kappa<=kappa_max; ++kappa)
-//               outfile<<fmt::format("{:2d} {:3d} {:3d} {:3d} {:3d} {:4d}",
-//                 Nex,lambda,mu,kappa,L,twice_Sp,twice_Sn,twice_S,dim)<<std::endl;    
-//           }
-//         
-//       }
-//     outfile.close();
-//   }
 
 }//namespace
 
@@ -147,7 +134,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
 
   
-  std::map<std::tuple<int,int,int,int,int,int>,int> u3s_subspace_labels_set;
+  std::map<std::tuple<int,int,int,int,int,int,int,int,int,int,int,int>,int> u3s_subspace_labels_set;  // patched for pn (mac)
   lsu3shell::ReadLSU3ShellBasisAndAccumulate(lsu3shell_filename, u3s_subspace_labels_set);
   
   lsu3shell::WriteU3SLabels(u3s_filename,u3s_subspace_labels_set);
