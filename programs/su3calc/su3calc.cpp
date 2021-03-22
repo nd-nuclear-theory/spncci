@@ -8,37 +8,43 @@
 
     product lambda1 mu1 lambda2 mu2
 
-    >>> product 1 1 1 1
-    (1,1) x (1,1):
-      ((0,0),1)
-      ((0,3),1)
-      ((1,1),2)
-      ((2,2),1)
-      ((3,0),1)
+      >>> product 1 1 1 1
+      (1,1) x (1,1):
+        ((0,0),1)
+        ((0,3),1)
+        ((1,1),2)
+        ((2,2),1)
+        ((3,0),1)
 
     branching lambda mu
 
-    >>> branching 2 2
-    (2,2):
-      (0,1)
-      (2,2)
-      (3,1)
-      (4,1)
+      >>> branching 2 2
+      (2,2):
+        (0,1)
+        (2,2)
+        (3,1)
+        (4,1)
 
     W lambda1 mu1 kappa1 L1 lambda2 mu2 kappa2 L2 lambda3 mu3 kappa3 L3 rho0
 
-    >>> W 2 0 1 0 0 0 1 0 2 0 1 0 1
-    (2,0) 1 0 x (0,0) 1 0 -> (0,0) 1 0 1
+      >>> W 2 0 1 0   0 0 1 0   2 0 1 0   1
+      (2,0) 1 0 x (0,0) 1 0 -> (0,0) 1 0 1
   
     U lambda1 mu1 lambda2 mu2 lambda mu lambda3 mu3 lambda12 mu12 rho12 rho12_3 lambda23 mu23 rho23 rho1_23
 
-    >>> U 0 0 2 0 2 0 0 0 2 0 1 1 2 0 1 1
-    U[(0,0),(2,0),(2,0),(0,0),(2,0),1,1,(2,0),1,1
-    +1.00000000
+      >>> U 0 0 2 0 2 0 0 0   2 0 1 1   2 0 1 1
+      U[(0,0),(2,0),(2,0),(0,0),(2,0),1,1,(2,0),1,1]
+      +1.00000000
 
-    >>> U 2 2 2 0 2 1 2 0 2 0 1 1 0 2 1 1
-    U[(2,2),(2,0),(2,1),(2,0),(2,0),1,1,(0,2),1,1
-    +0.36514837
+      >>> U 2 2 2 0 2 1 2 0   2 0 1 1   0 2 1 1
+      U[(2,2),(2,0),(2,1),(2,0),(2,0),1,1,(0,2),1,1]
+      +0.36514837
+
+    Z lambda2 mu2 lambda1 mu1 lambda mu lambda3 mu3 lambda12 mu12 rho12 rho12_3 lambda13 mu13 rho13 rho13_2
+
+      >>> Z 0 0 2 0 2 0 0 0   2 0 1 1   2 0 1 1
+      Z[(0,0),(2,0),(2,0),(0,0),(2,0),1,1,(2,0),1,1]
+      +1.00000000
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
@@ -46,8 +52,9 @@
   SPDX-License-Identifier: MIT
 
   10/17/16 (mac): Create, extending su3_coupler.
-  6/25/17 (mac): Update keywords.  Add SO(3) branching.
-  11/6/19 (aem): Fixed bug
+  06/25/17 (mac): Update keywords.  Add SO(3) branching.
+  11/06/19 (aem): Fix bug.
+  03/21/21 (mac): Add Z coefficient.
 
 ****************************************************************/
 
@@ -72,6 +79,7 @@ void DoHelp()
   std::cout << "  branching lambda mu" << std::endl;
   std::cout << "  W lambda1 mu1 kappa1 L1 lambda2 mu2 kappa2 L2 lambda3 mu3 kappa3 L3 rho0" << std::endl;
   std::cout << "  U lambda1 mu1 lambda2 mu2 lambda mu lambda3 mu3 lambda12 mu12 rho12 rho12_3 lambda23 mu23 rho23 rho1_23" << std::endl;
+  std::cout << "  Z lambda2 mu2 lambda1 mu1 lambda mu lambda3 mu3 lambda12 mu12 rho12 rho12_3 lambda13 mu13 rho23 rho13_2" << std::endl;
   std::cout << std::endl;
   std::cout << "Enter \"help\" for this help message." << std::endl;
   std::cout << "Enter \"exit\" to exit." << std::endl;
@@ -124,7 +132,8 @@ void DoW(int lambda1, int mu1, int kappa1, int L1, int lambda2, int mu2, int kap
 
 void DoU(
     int lambda1, int mu1, int lambda2, int mu2, int lambda, int mu, int lambda3, int mu3,
-    int lambda12, int mu12, int rho12, int rho12_3, int lambda23, int mu23, int rho23, int rho1_23
+    int lambda12, int mu12, int rho12, int rho12_3,
+    int lambda23, int mu23, int rho23, int rho1_23
   )
 {
   // label
@@ -137,13 +146,39 @@ void DoU(
 
   std::cout
     << fmt::format(
-      "U[{},{},{},{},{},{},{},{},{},{}",
+      "U[{},{},{},{},{},{},{},{},{},{}]",
       x1.Str(),x2.Str(),x.Str(),x3.Str(),x12.Str(),rho12,rho12_3,x23.Str(),rho23,rho1_23
       )
     << std::endl;
 
   // calculate
   double value = u3::U(x1,x2,x,x3,x12,rho12,rho12_3,x23,rho23,rho1_23);
+  std::cout << fmt::format("{:+.8f}",value) << std::endl;
+}
+
+void DoZ(
+    int lambda2, int mu2, int lambda1, int mu1, int lambda, int mu, int lambda3, int mu3,
+    int lambda12, int mu12, int rho12, int rho12_3,
+    int lambda13, int mu13, int rho13, int rho13_2
+  )
+{
+  // label
+  u3::SU3 x2(lambda2,mu2); 
+  u3::SU3 x1(lambda1,mu1); 
+  u3::SU3 x(lambda,mu); 
+  u3::SU3 x3(lambda3,mu3); 
+  u3::SU3 x12(lambda12,mu12); 
+  u3::SU3 x13(lambda13,mu13); 
+
+  std::cout
+    << fmt::format(
+      "Z[{},{},{},{},{},{},{},{},{},{}]",
+      x2.Str(),x1.Str(),x.Str(),x3.Str(),x12.Str(),rho12,rho12_3,x13.Str(),rho13,rho13_2
+      )
+    << std::endl;
+
+  // calculate
+  double value = u3::Z(x2,x1,x,x3,x12,rho12,rho12_3,x13,rho13,rho13_2);
   std::cout << fmt::format("{:+.8f}",value) << std::endl;
 }
 
@@ -215,21 +250,53 @@ int main(int argc, char **argv)
         {
           int lambda1, mu1, kappa1, L1, lambda2, mu2, kappa2, L2, lambda3, mu3, kappa3, L3, rho0;
           
-          line_stream >> lambda1 >> mu1 >> kappa1 >> L1 >> lambda2 >> mu2 >> kappa2 >> L2 >> lambda3 >> mu3 >> kappa3 >> L3 >> rho0; 
+          line_stream
+            >> lambda1 >> mu1 >> kappa1 >> L1
+            >> lambda2 >> mu2 >> kappa2 >> L2
+            >> lambda3 >> mu3 >> kappa3 >> L3
+            >> rho0; 
           mcutils::ParsingCheck(line_stream,line_count,line);
 
-          DoW(lambda1, mu1, kappa1, L1, lambda2, mu2, kappa2, L2, lambda3, mu3, kappa3, L3, rho0);
+          DoW(
+              lambda1, mu1, kappa1, L1,
+              lambda2, mu2, kappa2, L2,
+              lambda3, mu3, kappa3, L3,
+              rho0
+            );
         }
       else if (keyword=="U")
         {
 
           int lambda1, mu1, lambda2, mu2, lambda, mu, lambda3, mu3, lambda12, mu12, rho12, rho12_3, lambda23, mu23, rho23, rho1_23;
           
-          line_stream >> lambda1 >> mu1 >> lambda2 >> mu2 >> lambda >> mu >> lambda3 >> mu3
-                      >> lambda12 >> mu12 >> rho12 >> rho12_3 >> lambda23 >> mu23 >> rho23 >> rho1_23;
+          line_stream
+            >> lambda1 >> mu1 >> lambda2 >> mu2 >> lambda >> mu >> lambda3 >> mu3
+            >> lambda12 >> mu12 >> rho12 >> rho12_3
+            >> lambda23 >> mu23 >> rho23 >> rho1_23;
           mcutils::ParsingCheck(line_stream,line_count,line);
 
-          DoU(lambda1, mu1, lambda2, mu2, lambda, mu, lambda3, mu3, lambda12, mu12, rho12, rho12_3, lambda23, mu23, rho23, rho1_23);
+          DoU(
+              lambda1, mu1, lambda2, mu2, lambda, mu, lambda3, mu3,
+              lambda12, mu12, rho12, rho12_3,
+              lambda23, mu23, rho23, rho1_23
+            );
+        }
+      else if (keyword=="Z")
+        {
+
+          int lambda2, mu2, lambda1, mu1, lambda, mu, lambda3, mu3, lambda12, mu12, rho12, rho12_3, lambda13, mu13, rho13, rho13_2;
+          
+          line_stream
+            >> lambda2 >> mu2 >> lambda1 >> mu1 >> lambda >> mu >> lambda3 >> mu3
+            >> lambda12 >> mu12 >> rho12 >> rho12_3
+            >> lambda13 >> mu13 >> rho13 >> rho13_2;
+          mcutils::ParsingCheck(line_stream,line_count,line);
+
+          DoZ(
+              lambda2, mu2, lambda1, mu1, lambda, mu, lambda3, mu3,
+              lambda12, mu12, rho12, rho12_3,
+              lambda13, mu13, rho13, rho13_2
+            );
         }
       else
         {
