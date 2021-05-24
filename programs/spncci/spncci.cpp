@@ -519,7 +519,8 @@ int main(int argc, char **argv)
 
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
-            
+            std::cout<<"J = "<<J<<std::endl;
+            std::cout<<spbasis_bra.DebugStr()<<std::endl;
             if(false)
               {
                 // Write basis information to file
@@ -662,6 +663,8 @@ int main(int argc, char **argv)
 
           const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
+          std::cout<<"------------------------------------------------"<<std::endl;
+          std::cout<<"observable "<<observable_index<<std::endl;
           for(int sector_index=0; sector_index<sectors.size(); ++sector_index)
             {
               int bra_index,ket_index;
@@ -672,6 +675,7 @@ int main(int argc, char **argv)
 
               const HalfInt bra_J=run_parameters.J_values[bra_index];
               const HalfInt ket_J=run_parameters.J_values[ket_index];
+              std::cout<<bra_J<<"  "<<ket_J<<std::endl;
 
               spncci::OperatorBlock observable_block;
               spncci::ConstructSymmetricOperatorMatrix(
@@ -681,6 +685,7 @@ int main(int argc, char **argv)
                   observable_block
                 );
 
+              std::cout<<mcutils::FormatMatrix(observable_block,"9.4f")<<std::endl<<std::endl;
               
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 
@@ -705,9 +710,9 @@ int main(int argc, char **argv)
         results_stream,run_parameters.J_values,observable_sectors,
         observable_results_matrices,run_parameters.gex
       );
-
+      // std::cout<<"ho"<<std::endl;
       }//End observable section 
-
+    // std::cout<<"hi"<<std::endl;
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   }
 
