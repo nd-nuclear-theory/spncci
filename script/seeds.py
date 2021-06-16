@@ -106,8 +106,8 @@ interaction_subdirectory_list = []
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
 
-# seed_directory_list = os.environ["SPNCCI_SEED_DIR"].split(":")
-seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
+seed_directory_list = os.environ["SPNCCI_SEED_DIR"].split(":")
+# seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
 seed_subdirectory_list = []
 
 truncation_directory = os.environ["SPNCCI_TRUNCATION_DIR"]
@@ -268,6 +268,7 @@ def retrieve_seed_files(task):
 		error_message="Data directory for seed RMEs not found",
 		fail_on_not_found=False
 	)
+	print(seed_directory_list)
 	archive_filename = mcscript.utils.search_in_subdirectories(
 		seed_directory_list,
 		seed_subdirectory_list,
@@ -298,105 +299,6 @@ def retrieve_seed_files(task):
 
 
 	# link to data seed directory
-	
-
-
-################################################################
-# setting up lgis
-################################################################
-
-def get_lgi_file(task):
-	"""
-	Creates symbolic link from list of lgi families to be included in basis
-	to "lgi_families.dat". If no truncation file is given, symbolic link to 
-	list of full space of lgi families "seeds/lgi_families.dat". 
-	"""
-	# if link already exists, remove 
-
-	print("lgi_families.dat exits ",os.path.exists("lgi_families.dat"))
-	if (os.path.exists("lgi_families.dat")):
-		mcscript.call(["rm","-r","lgi_families.dat"])
-		print("removed lgi families file")
-
-	# if no truncation filename is given, then use full Nsigma,max space
-	if task["truncation_filename"]==None:
-		mcscript.call(
-			[
-				"cp",
-				"seeds/lgi_families.dat",
-				"lgi_families.dat"
-			]
-		)
-	
-	# create symbolic link to truncated list of lgi family labels
-	else :
-		mcscript.call(
-			[
-				"ln",
-				"-s",
-				task["truncation_filename"],
-				"lgi_families.dat"
-			]
-		)
-			
-def read_lgi_list(filename):
-	"""
-	Read in lgi family labels from filename
-	"""
-	lines = [line.rstrip('\n') for line in open(filename,'r')]
-	for line in lines:
-		lgi_labels=[[int(x) for x in line.split()][:-1] for line in lines]
-
-	return lgi_labels
-
-def lookup_table(lgi_labels_truncated,lgi_labels):
-	"""
-	Create look up table between lgi_family_index in basis and 
-	lgi_family_index in full space, which indexes the seed files 
-	"""
-	index_lookup=[]
-	for label in lgi_labels_truncated:
-		index=lgi_labels.index(label)
-		index_lookup.append(index)
-
-	return index_lookup
-
-
-def write_lookup_table(index_lookup):
-	"""
-	Create file containing lookup table
-	"""
-	filename="seeds/lgi_full_space_lookup_table.dat"
-	with open(filename, 'w') as outstream:
-		for index in range(len(index_lookup)):
-			full_space_index=index_lookup[index]
-			outstream.write("{} {}\n".format(index,full_space_index))
-
-	outstream.close()
-
-
-def generate_lgi_lookup_table(task):
-	"""
-	define lgi file containing lgi families
-	create look up table between lgi family indices in 
-	(possibly) truncated space and full space
-	"""
-	get_lgi_file(task)
-
-	# Get LGI labels of full space
-	lgi_labels=read_lgi_list("seeds/lgi_families.dat")
-
-	# print(lgi_labels)
-	# Get LGI labels of truncated space
-	lgi_labels_truncated=read_lgi_list("lgi_families.dat")
-	# print(lgi_labels_truncated)
-	
-	# Make look up table for related in truncated space index to full space index
-	index_lookup=lookup_table(lgi_labels_truncated,lgi_labels)
-
-	#write table to file
-	write_lookup_table(index_lookup)
-
 
 
 #

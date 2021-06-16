@@ -21,6 +21,8 @@
 
         SPNCCI_SEED_DIR -- base directory containing seeds for SpNCCI recurrence.
 
+        SPNCCI_TRUNCATION_DIR -- base directory containing truncated list of lgi
+
         Ex (personal workstation):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
@@ -109,6 +111,7 @@ import glob
 import mcscript
 import os
 import su3rme
+import seeds
 
 ################################################################
 # global configuration
@@ -121,8 +124,8 @@ interaction_subdirectory_list = []
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
 
-# seed_directory_list = os.environ["SPNCCI_SEED_DIR"].split(":")
-seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
+seed_directory_list = os.environ["SPNCCI_SEED_DIR"].split(":")
+# seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
 seed_subdirectory_list = []
 
 truncation_directory = os.environ["SPNCCI_TRUNCATION_DIR"]
@@ -288,155 +291,6 @@ def generate_observable_rmes(task):
             )
 
     os.chdir("..")
-
-
-################################################################
-# seed execution
-################################################################
-def generate_spncci_seed_files(task):
-    """
-    Generates:
-   
-    "seeds/lgi_families.dat": File containing a list of lgi family labels with 
-        their corresponding index 
-            i  twice_Nsigma lambda_sigma mu_sigma twice_Sp twice_Sn twice_S
-
-    For each pair of lgi families (i,j) with i>=j, there are two
-    files in directory seeds containing:
-        1. "seeds/seeds_00000i_00000j.rmes": All non-zero unit tensor seed blocks
-          
-            binary_format_code (1) and binary precision (4 or 8)
-            num_rows, num_cols, rmes...
-
-        2. "seeds/operators_00000i_00000j.dat": unit tensor labels corresponding
-            to each seed block
-          
-            lambda0, mu0, 2S0, 2T0, etap, 2Sp, 2Tp, eta, 2S, 2T, rho0
-             
-    "seeds/lgi_expansions.dat": File containing expansion of lgis in lsu3shell basis.
-            For each lsu3shell subspace, 
-                rows, cols, rmes
-
-    """
-    # if seed directory already exist, remove and recreate fresh copy
-    if (os.path.exists("seeds")):
-        mcscript.call(["rm", "-r","seeds"])
-
-    mcscript.utils.mkdir("seeds")
-
-
-    # generate seed rmes
-    command_line = [
-        generate_spncci_seed_files_executable,
-        "{nuclide[0]:d}".format(**task),
-        " {nuclide[1]:d}".format(**task),
-        " {Nsigma_max:d}".format(**task)
-    ]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
-    
-    # mcscript.call(["ls"])
-    # change seed directory name
-    seed_descriptor = task["seed_descriptor_template"].format(**task)
-    seed_directory = "seeds-{}".format(seed_descriptor)
-    
-    # if seed directory already exist, remove and recreate fresh copy
-    if (os.path.exists(seed_directory)):
-        mcscript.call(["rm", "-r",seed_directory])
-    
-    mcscript.call(["mv","seeds",seed_directory])
-
-
-def save_seed_files(task):
-    """Create archive of seed RMEs 
-
-    Some auxiliary files (e.g., the list of operators) are saved as well.
-
-    Manual follow-up: The rme files are bundled into tgz files and saved to
-    the current run's results directory.  They should then be moved
-    (manually) to the directory specified in SPNCCI_SEED_DIR, for
-    subsequent use.
-
-    """
-    seed_descriptor = task["seed_descriptor_template"].format(**task)
-
-    # generate archive
-    directory="seeds-{}".format(seed_descriptor)
-    archive_filename = "seeds-{}.tgz".format(seed_descriptor)
-
-
-    mcscript.call(
-        [
-            "tar", "-zcvf", archive_filename, "--format=posix", directory
-        ] 
-    )
-
-    #TODO: change to create ln to directory in results directory. 
-
-    # move archive to results directory (if in multi-task run)
-    if (mcscript.task.results_dir is not None):
-        mcscript.call(
-            [
-                "mv",
-                "--verbose",
-                archive_filename,
-                "--target-directory={}".format(mcscript.task.results_dir)
-            ]
-        )
-
-
-    # clean up working directory
-    # mcscript.call(["rm","-r", "seeds"])
-    mcscript.call(["rm","-r", "lsu3shell_rme"])
-
-
-def retrieve_seed_files(task):
-    """ Retrieve archive of seed RME files.
-
-    Files are retrieved into a subdirectory named seeds.
-    """
-    # identify seed data directory
-    seed_descriptor = task["seed_descriptor_template"].format(**task)
-    directory_name = mcscript.utils.search_in_subdirectories(
-        seed_directory_list,
-        seed_subdirectory_list,
-        "seeds-{}".format(seed_descriptor),
-        error_message="Data directory for seed RMEs not found",
-        fail_on_not_found=False
-    )
-    archive_filename = mcscript.utils.search_in_subdirectories(
-        seed_directory_list,
-        seed_subdirectory_list,
-        "seeds-{}.tgz".format(seed_descriptor),
-        error_message="Archive file for seed RMEs not found",
-        fail_on_not_found=False
-    )
-
-    # remove any existing symlink or data directory
-    if (os.path.exists("seeds")):
-        mcscript.call(["rm","-r","seeds"])
-        # print("hi")
-    
-
-    if (directory_name is not None):
-        print("seed directory ",directory_name)
-        mcscript.call(["ln", "-s", directory_name, "seeds"])
-
-    elif (archive_filename is not None):
-        # extract archive contents
-        directory_name="seeds-{}".format(seed_descriptor)
-        mcscript.call(["tar","-xf",archive_filename])
-        mcscript.call(["ln", "-s", directory_name, "seeds"])
-
-
-    else:
-        raise(mcscript.exception.ScriptError("Cannot find seed RME data"))
-
-
-    # link to data seed directory
-    
 
 
 ################################################################
@@ -649,11 +503,11 @@ def save_spncci_results(task):
     """
     # results file
     coulomb = int(task["use_coulomb"])
-    # results_descriptor="Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task)
+    descriptor="Z{nuclide[0]:d}-N{nuclide[1]:d}-{interaction:s}-{coulomb:1d}-Nsigmamax{Nsigma_max:02d}-Nmax{Nmax:02d}".format(coulomb=coulomb,**task)
     raw_res_filename = "spncci.res"
     new_res_filename = os.path.join(
         mcscript.task.results_dir,
-        "{name}-{descriptor}.res".format(name=mcscript.parameters.run.name,**task)
+        "{name}-{descriptor}.res".format(name=mcscript.parameters.run.name,descriptor=descriptor,**task)
     )
     mcscript.call(
         [
@@ -664,19 +518,13 @@ def save_spncci_results(task):
         ]
     )
 
-def do_seed_run(task):
-    """ Generate seed files from lsu3shell files.
-    """
-    su3rme.retrieve_su3rme_files(task)
-    generate_spncci_seed_files(task)
-    save_seed_files(task)
 
 def do_full_spncci_run(task):
     """ Carry out full task of constructing and diagonalizing
     Hamiltonian and other observables.
     """
     # stacksize_setup()
-    retrieve_seed_files(task)
+    seeds.retrieve_seed_files(task)
     generate_lgi_lookup_table(task)
     generate_observable_rmes(task)
     generate_spncci_control_file(task)
