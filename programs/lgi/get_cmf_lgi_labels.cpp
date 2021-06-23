@@ -61,7 +61,7 @@ struct RunParameters
   std::string output_filename;
   // mode
   lgi::NuclideType nuclide;
-  int Nmax; 
+  int Nmax;
 };
 
 RunParameters ProcessArguments(int argc, char **argv)
@@ -117,7 +117,7 @@ RunParameters ProcessArguments(int argc, char **argv)
 
 
 void read_lsu3shell_basis_dimensions(
-  const std::string& input_filename, 
+  const std::string& input_filename,
   const int N0,  const int A, const int Nmax,
   std::map<u3shell::U3SPN, Dimensions>& dimensions_by_irrep
   )
@@ -137,7 +137,7 @@ void read_lsu3shell_basis_dimensions(
         mcutils::ParsingCheck(line_stream,line_count,line);
 
         input_Nmax = std::max(input_Nmax, N_ex);
-        
+
         if (N_ex>Nmax)
           continue;
 
@@ -158,7 +158,7 @@ void read_lsu3shell_basis_dimensions(
        it != dimensions_by_irrep.end(); ++it)
     {
       bool valid_dimensions=true;
-      const Dimensions& dimensions=it->second; 
+      const Dimensions& dimensions=it->second;
       valid_dimensions &= (dimensions.total > 0);
       valid_dimensions &= (dimensions.cmf > 0);
       valid_dimensions &= (dimensions.LGI > 0);
@@ -172,10 +172,10 @@ void read_lsu3shell_basis_dimensions(
 
 void generate_cmf_lgi(int Nmax,HalfInt Nsigma0,std::map<u3shell::U3SPN, Dimensions>& dimensions_by_irrep,lgi::MultiplicityTaggedLGIVector& lgi_vector)
   {
-    // Iterate through the lsu3shell basis and remove CM contaminated states 
+    // Iterate through the lsu3shell basis and remove CM contaminated states
     for(int Nex=0; Nex<=Nmax; ++Nex)
       for(const auto& irrep_dimensions : dimensions_by_irrep)
-        {         
+        {
           const u3shell::U3SPN& irrep=irrep_dimensions.first;
           const auto& dimensions=irrep_dimensions.second;
 
@@ -197,10 +197,10 @@ void generate_cmf_lgi(int Nmax,HalfInt Nsigma0,std::map<u3shell::U3SPN, Dimensio
     for(auto& irrep_dimension: dimensions_by_irrep)
       irrep_dimension.second.LGI=irrep_dimension.second.cmf;
 
-    //Iterate through basis and identify LGI dimension by substracting 
+    //Iterate through basis and identify LGI dimension by substracting
     //U(3) irreps obtained by laddering from lower grade LGI.
     for(const auto& [lgi,dimensions] : dimensions_by_irrep)
-      { 
+      {
         HalfInt Sp(lgi.Sp()),Sn(lgi.Sn()), S(lgi.S());
         int Nn_max=Nmax-int(lgi.N()-Nsigma0);
         std::vector<u3::U3> raising_polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
@@ -245,13 +245,13 @@ int main(int argc, char **argv)
   generate_cmf_lgi(Nmax,Nsigma0,dimensions_by_irrep,lgi_vector);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  /// Get big block dimensions 
+  /// Get big block dimensions
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // build SpNCCI irrep branchings
   spncci::NmaxTruncator truncator(Nsigma0,Nmax);
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;
-  
+
   bool restrict_sp3r_to_u3_branching=false;
   spncci::GenerateSpNCCISpace(lgi_vector,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
 
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
     }
 
   // for(const auto& [sigma,upstreams] : factored_basis)
-  //     std::cout<<sigma.Str()<<"  "<<upstreams.size()<<std::endl;        
+  //     std::cout<<sigma.Str()<<"  "<<upstreams.size()<<std::endl;
 
   // Given S1 and S2, what are possible S0 (or T1,T2,T0)
   std::vector<SpinTuple> spin_tuples;
@@ -284,26 +284,26 @@ int main(int argc, char **argv)
         // Get max values for N1 and N2 of relative unit tensors
         int N0=int(sigma1.N()-sigma2.N());
         int N1_max=2*Nv+int(sigma1.N()-Nsigma0);
-        int N2_max=2*Nv+int(sigma2.N()-Nsigma0); 
+        int N2_max=2*Nv+int(sigma2.N()-Nsigma0);
 
         std::map<std::tuple<int,int,u3::SU3>,int> lgi_spatial_labels;
-        for (int N2=0; N2<=N2_max; ++N2)  
+        for (int N2=0; N2<=N2_max; ++N2)
           {
-            int N1=N2+N0; 
+            int N1=N2+N0;
             if ((N1>N1_max) or (N1<0))
               continue;
 
             u3::SU3 x1(N1,0), x2(0,N2);
             MultiplicityTagged<u3::SU3>::vector product_irreps = u3::KroneckerProduct(x1, x2);
             for(int i=0; i<product_irreps.size(); ++i)
-              { 
+              {
                 u3::SU3 x0(product_irreps[i].irrep);
                 int rho_max=u3::OuterMultiplicity(sigma2.SU3(), x0,sigma1.SU3());
                 if (rho_max>0)
                   {
-                    std::tuple<int,int,u3::SU3> labels(N1,N2,x0); 
+                    std::tuple<int,int,u3::SU3> labels(N1,N2,x0);
                     lgi_spatial_labels[labels]=rho_max;
-                  }                
+                  }
               }
           }
 
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
         int Nsex1=int(sigma1.N()-Nsigma0);
         int Nsex2=int(sigma2.N()-Nsigma0);
 
-        //Zero initialize with lgi spatial labels 
+        //Zero initialize with lgi spatial labels
         std::map<std::pair<int,int>,std::set<std::tuple<int,int,u3::SU3>>> spatial_unit_tensor_labels_by_Nex;
         for(auto& [label,num] : lgi_spatial_labels)
           spatial_unit_tensor_labels_by_Nex[std::pair<int,int>(0,0)].insert(label);
@@ -325,19 +325,19 @@ int main(int argc, char **argv)
             {
               std::pair<int,int> Nnpair(Nn1,Nn2);
 
-              // If Nn=0 for both irreps, initialize labels dictionary with lgi spatial labels      
+              // If Nn=0 for both irreps, initialize labels dictionary with lgi spatial labels
               if(Nn1==0 and Nn2==0)
                 for(auto& [label,num] : lgi_spatial_labels)
                   spatial_unit_tensor_labels_by_Nex[Nnpair].insert(label);
               else
-                {                  
-                  
+                {
+
                   // If both Nn1 and Nn2 are greater than zero, then source unit tensors
                   // also valid for target Nnpair.  (Term 1 of recurrence equation).
                   if (Nn1>0 and Nn2>0)
                     {
                       std::pair<int,int> Nnpair_source(Nn1-2,Nn2-2);
-                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];      
+                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];
                       for(auto& label : source_labels)
                         spatial_unit_tensor_labels_by_Nex[Nnpair].insert(label);
                     }
@@ -346,48 +346,48 @@ int main(int argc, char **argv)
                   std::vector<std::tuple<int,int,u3::SU3>> test_N1N2x0_values;
 
                   if(Nn2>0)
-                    {                  
+                    {
                       std::pair<int,int> Nnpair_source(Nn1,Nn2-2);
-                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];      
+                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];
                       for(auto& label : source_labels)
                         {
                           const auto& [N1,N2,x0] = label;
                           if (N1-2>=0)
-                            test_N1N2x0_values.emplace_back(N1-2,N2,x0);    
-                        
+                            test_N1N2x0_values.emplace_back(N1-2,N2,x0);
+
                           if (N2+2<=(N2_max+Nn2))
                             test_N1N2x0_values.emplace_back(N1,N2+2,x0);
                         }
                     }
                   //
-                  if(Nn2==0 and Nn1!=0)
+                  else if(Nn2==0 and Nn1!=0)
                     {
                       std::pair<int,int> Nnpair_source(Nn1-2,Nn2);
-                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];      
+                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];
                       for(auto& label : source_labels)
                         {
                           const auto& [N1,N2,x0] = label;
                           if (N2-2>=0)
                             test_N1N2x0_values.emplace_back(N1,N2-2,x0);
-                            
-                        
+
+
                           if (N1+2<=(N1_max+Nn1))
                             test_N1N2x0_values.emplace_back(N1+2,N2,x0);
                         }
                     }
-                  
+
                   for(auto& [N1_new,N2_new,x0] : test_N1N2x0_values)
                     {
-                      MultiplicityTagged<u3::SU3>::vector product_irreps 
+                      MultiplicityTagged<u3::SU3>::vector product_irreps
                         = u3::KroneckerProduct(u3::SU3(N1_new,0), u3::SU3(0,N2_new));
 
                       for(const auto& [x0_new,dummy] : product_irreps)
-                          if(u3::OuterMultiplicity(x0_new,u3::SU3(2,0),x0))
+                          if(u3::OuterMultiplicity(x0_new,Nn2==0 ? u3::SU3(0,2) : u3::SU3(2,0),x0))
                             {
                               std::tuple<int,int,u3::SU3> new_label(N1_new,N2_new,x0_new);
-                              spatial_unit_tensor_labels_by_Nex[Nnpair].insert(new_label);                            
-                            }   
-                    }  
+                              spatial_unit_tensor_labels_by_Nex[Nnpair].insert(new_label);
+                            }
+                    }
                 }
             }//end Nn2
           //end Nn1
@@ -395,7 +395,7 @@ int main(int argc, char **argv)
         //   {
         //     const auto& [Nn1,Nn2]=key;
         //     std::cout<<Nn1<<"  "<<Nn2<<"  "<<value.size()<<std::endl;
-        //   }                  
+        //   }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         const auto& irrep1=sigma_irrep_map[sigma1];
@@ -408,7 +408,7 @@ int main(int argc, char **argv)
             {
               const sp3r::U3Subspace& subspace1 = irrep1.GetSubspace(index1);
               const sp3r::U3Subspace& subspace2 = irrep2.GetSubspace(index2);
-              
+
               const u3::U3& omega1=subspace1.U3();
               const u3::U3& omega2=subspace2.U3();
               int upsilon_max1=subspace1.upsilon_max();
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
 
               int Nn1=int(omega1.N()-sigma1.N());
               int Nn2=int(omega2.N()-sigma2.N());
-              
+
               std::pair<int,int>Nnpair(Nn1,Nn2);
               const auto& spatial_unit_tensor_labels=spatial_unit_tensor_labels_by_Nex[Nnpair];
               for(const auto& [N1,N2,x0] : spatial_unit_tensor_labels)
@@ -429,8 +429,8 @@ int main(int argc, char **argv)
                     }
                 }
             }
-        
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////        
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         std::map<CompoundSpinTuple,int> lgi_spin_labels;
         for(const auto& [gamma_max1,Sp1,Sn1,S1] : upstreams1)
           for(const auto& [gamma_max2,Sp2,Sn2,S2] : upstreams2)
@@ -476,15 +476,15 @@ int main(int argc, char **argv)
         std::cout<<fmt::format("{:12}  {:12}  {:10}  {:10}  {:10} ",
           sigma1.Str(),sigma2.Str(),total_lgi_spatial,total_spatial,total_spins
           )<<std::endl;
-        
-        /// Now do spin 
+
+        /// Now do spin
 
 
 
-          
+
       }
 
-  
+
 
 
 
