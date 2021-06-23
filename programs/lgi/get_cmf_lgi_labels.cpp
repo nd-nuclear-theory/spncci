@@ -193,16 +193,16 @@ void generate_cmf_lgi(int Nmax,HalfInt Nsigma0,std::map<u3shell::U3SPN, Dimensio
               }
         }
 
-    //Copy cmf dimensions to lgi dimensions
+    // Copy cmf dimensions to lgi dimensions
     for(auto& irrep_dimension: dimensions_by_irrep)
       irrep_dimension.second.LGI=irrep_dimension.second.cmf;
 
-    //Iterate through basis and identify LGI dimension by substracting
-    //U(3) irreps obtained by laddering from lower grade LGI.
+    // Iterate through basis and identify LGI dimension by substracting
+    // U(3) irreps obtained by laddering from lower grade LGI.
     for(const auto& [lgi,dimensions] : dimensions_by_irrep)
       {
         HalfInt Sp(lgi.Sp()),Sn(lgi.Sn()), S(lgi.S());
-        int Nn_max=Nmax-int(lgi.N()-Nsigma0);
+        int Nn_max = Nmax - int(lgi.N() - Nsigma0);
         std::vector<u3::U3> raising_polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
 
         for(const u3::U3& n : raising_polynomial_labels)
@@ -316,79 +316,26 @@ int main(int argc, char **argv)
         int Nsex2=int(sigma2.N()-Nsigma0);
 
         //Zero initialize with lgi spatial labels
-        std::map<std::pair<int,int>,std::set<std::tuple<int,int,u3::SU3>>> spatial_unit_tensor_labels_by_Nex;
-        for(auto& [label,num] : lgi_spatial_labels)
-          spatial_unit_tensor_labels_by_Nex[std::pair<int,int>(0,0)].insert(label);
+        std::map<std::pair<int,int>,std::vector<std::tuple<int,int,u3::SU3>>> spatial_unit_tensor_labels_by_Nex;
 
         for(int Nn1=0; Nn1<=(Nmax-Nsex1); Nn1+=2)
           for(int Nn2=0; Nn2<=(Nmax-Nsex2); Nn2+=2)
             {
+              const int Nwex1 = Nn1 + Nsex1;
+              const int Nwex2 = Nn2 + Nsex2;
+              const int N0 = Nwex1-Nwex2;
+              int N1min = std::max(0, N0);
+              int N1max = Nwex1 + 2*Nv;
               std::pair<int,int> Nnpair(Nn1,Nn2);
-
-              // If Nn=0 for both irreps, initialize labels dictionary with lgi spatial labels
-              if(Nn1==0 and Nn2==0)
-                for(auto& [label,num] : lgi_spatial_labels)
-                  spatial_unit_tensor_labels_by_Nex[Nnpair].insert(label);
-              else
-                {
-
-                  // If both Nn1 and Nn2 are greater than zero, then source unit tensors
-                  // also valid for target Nnpair.  (Term 1 of recurrence equation).
-                  if (Nn1>0 and Nn2>0)
-                    {
-                      std::pair<int,int> Nnpair_source(Nn1-2,Nn2-2);
-                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];
-                      for(auto& label : source_labels)
-                        spatial_unit_tensor_labels_by_Nex[Nnpair].insert(label);
-                    }
-
-                  //Checking for all other cases
-                  std::vector<std::tuple<int,int,u3::SU3>> test_N1N2x0_values;
-
-                  if(Nn2>0)
-                    {
-                      std::pair<int,int> Nnpair_source(Nn1,Nn2-2);
-                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];
-                      for(auto& label : source_labels)
-                        {
-                          const auto& [N1,N2,x0] = label;
-                          if (N1-2>=0)
-                            test_N1N2x0_values.emplace_back(N1-2,N2,x0);
-
-                          if (N2+2<=(N2_max+Nn2))
-                            test_N1N2x0_values.emplace_back(N1,N2+2,x0);
-                        }
-                    }
-                  //
-                  else if(Nn2==0 and Nn1!=0)
-                    {
-                      std::pair<int,int> Nnpair_source(Nn1-2,Nn2);
-                      const auto& source_labels = spatial_unit_tensor_labels_by_Nex[Nnpair_source];
-                      for(auto& label : source_labels)
-                        {
-                          const auto& [N1,N2,x0] = label;
-                          if (N2-2>=0)
-                            test_N1N2x0_values.emplace_back(N1,N2-2,x0);
+              for (int N1 = N1min; N1<=N1max; ++N1)
+              {
+                auto prod = u3::KroneckerProduct({N1,0}, {0,N1-N0});
+                auto& vec = spatial_unit_tensor_labels_by_Nex[Nnpair];
+                for (const auto& [labels, mult] : prod)
+                  vec.emplace_back(N1,N1-N1min,labels);
+              }
 
 
-                          if (N1+2<=(N1_max+Nn1))
-                            test_N1N2x0_values.emplace_back(N1+2,N2,x0);
-                        }
-                    }
-
-                  for(auto& [N1_new,N2_new,x0] : test_N1N2x0_values)
-                    {
-                      MultiplicityTagged<u3::SU3>::vector product_irreps
-                        = u3::KroneckerProduct(u3::SU3(N1_new,0), u3::SU3(0,N2_new));
-
-                      for(const auto& [x0_new,dummy] : product_irreps)
-                          if(u3::OuterMultiplicity(x0_new,Nn2==0 ? u3::SU3(0,2) : u3::SU3(2,0),x0))
-                            {
-                              std::tuple<int,int,u3::SU3> new_label(N1_new,N2_new,x0_new);
-                              spatial_unit_tensor_labels_by_Nex[Nnpair].insert(new_label);
-                            }
-                    }
-                }
             }//end Nn2
           //end Nn1
         // for(const auto& [key,value] : spatial_unit_tensor_labels_by_Nex)
