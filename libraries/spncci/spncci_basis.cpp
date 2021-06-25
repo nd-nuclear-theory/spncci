@@ -1033,8 +1033,8 @@ namespace spncci
         const SubspaceType& subspace = GetSubspace(subspace_index);
 
         os << fmt::format(
-            "subspace_index {} labels {} size {} full_dimension {}",
-            subspace_index,subspace.LabelStr(),subspace.size(),subspace.full_dimension()
+            "subspace_index {} labels {} size {} dimension {}",
+            subspace_index,subspace.LabelStr(),subspace.size(),subspace.dimension()
           ) << std::endl;
         if (show_subspaces)
           os << subspace.DebugStr();
@@ -1067,7 +1067,7 @@ namespace spncci
             offset+=multiplicity;
           }
       }
-    assert(spbasis.FullDimension()==offset);
+    assert(spbasis.dimension()==offset);
   }
 
 }  // namespace

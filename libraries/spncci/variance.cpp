@@ -30,8 +30,8 @@ namespace spncci
   // For give lgi pairs, compute operator tiles and accumulate in operator matrix
   {
     // Get dimension of basis 
-    int basis_size_bra=spbasis_bra.FullDimension();
-    int basis_size_ket=spbasis_ket.FullDimension();
+    int basis_size_bra=spbasis_bra.dimension();
+    int basis_size_ket=spbasis_ket.dimension();
     HalfInt Jp=spbasis_bra.J();
     HalfInt J=spbasis_ket.J();
 
@@ -180,7 +180,7 @@ void GetEigensystemH(
         
         // Get truncated basis branched to J
         const spncci::SpaceSpBasis& spbasis_H=spbasis_H_byJ[j];
-        // std::cout<<"dimension of H space "<<spbasis_H.FullDimension()<<" for J="<<J<<std::endl;
+        // std::cout<<"dimension of H space "<<spbasis_H.dimension()<<" for J="<<J<<std::endl;
         
         // std::cout<<"construct Hamiltonian"<<std::endl;
         spncci::OperatorBlock hamiltonian_matrix;

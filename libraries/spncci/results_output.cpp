@@ -99,19 +99,19 @@ namespace spncci
     StartNewSection(out_stream,"BabySpNCCI");
     WriteKeyValue(out_stream,"subspaces",":d",baby_spncci_space.size());
     // WriteKeyValue(out_stream,"dimension",":d",baby_spncci_space.Dimension());
-    // WriteKeyValue(out_stream,"full_dimension",":d",baby_spncci_space.FullDimension());
+    // WriteKeyValue(out_stream,"full_dimension",":d",baby_spncci_space.dimension());
 
     // SpU3S
     // StartNewSection(out_stream,"SpU3S");
     // WriteKeyValue(out_stream,"subspaces",":d",spu3s_space.size());
     // WriteKeyValue(out_stream,"dimension",":d",spu3s_space.Dimension());
-    // WriteKeyValue(out_stream,"full_dimension",":d",spu3s_space.FullDimension());
+    // WriteKeyValue(out_stream,"full_dimension",":d",spu3s_space.dimension());
 
     // // SpJ
     // StartNewSection(out_stream,"SpJ");
     // WriteKeyValue(out_stream,"subspaces",":d",spj_space.size());
     // WriteKeyValue(out_stream,"dimension",":d",spj_space.Dimension());
-    // WriteKeyValue(out_stream,"full_dimension",":d",spj_space.FullDimension());
+    // WriteKeyValue(out_stream,"full_dimension",":d",spj_space.dimension());
 
     // SpJ
     StartNewSection(out_stream,"SpJ (listing)");
@@ -123,7 +123,7 @@ namespace spncci
         out_stream
           << fmt::format(
               "{:3d} {:4.1f} {:10d}",
-              subspace_index,double(spj_space.J()),spj_space.FullDimension()
+              subspace_index,double(spj_space.J()),spj_space.dimension()
             )
           << std::endl;
       }

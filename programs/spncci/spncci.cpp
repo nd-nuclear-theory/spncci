@@ -533,11 +533,11 @@ int main(int argc, char **argv)
                 std::size_t true_dimension = 0;
                 for (std::size_t subspace_index=0; subspace_index < spbasis_bra.size(); ++subspace_index)
                 {
-                  if (spbasis_bra.GetSubspace(subspace_index).full_dimension() <= 0)
+                  if (spbasis_bra.GetSubspace(subspace_index).dimension() <= 0)
                     continue;
                   ++true_dimension;
                   basis_str_stream << fmt::format(
-                      "{:d}", spbasis_bra.GetSubspace(subspace_index).full_dimension()
+                      "{:d}", spbasis_bra.GetSubspace(subspace_index).dimension()
                     ) << std::endl;
                 }
                 std::ofstream basis_stream(basis_filename);

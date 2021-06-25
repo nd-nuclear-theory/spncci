@@ -699,8 +699,8 @@ void GetOperatorTile(
   // obtain tiles in full matrix
   {
     // Get dimension of operator matrix 
-    int basis_size_bra=spbasis_bra.FullDimension();
-    int basis_size_ket=spbasis_ket.FullDimension();
+    int basis_size_bra=spbasis_bra.dimension();
+    int basis_size_ket=spbasis_ket.dimension();
 
     // Get angular momentum of bra and ket
     HalfInt Jp=spbasis_bra.J();
