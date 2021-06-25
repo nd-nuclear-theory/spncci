@@ -206,7 +206,7 @@ namespace spncci
     // inline SpIrrep():{};
     inline
       SpNCCIIrrepFamily(const lgi::LGI& lgi, int gamma_max)
-      : LGI(lgi), gamma_max_(gamma_max), sp_space_ptr_(NULL)
+      : LGI(lgi), gamma_max_(gamma_max), sp_space_ptr_(nullptr)
     {
     }
 
@@ -887,7 +887,7 @@ namespace spncci
   // ////////////////////////////////////////////////////////////////
 
   class SpaceSpBasis
-    : public basis::BaseDegenerateSpace<SubspaceSpBasis>
+    : public basis::BaseSpace<SubspaceSpBasis>
   {
 
     public:

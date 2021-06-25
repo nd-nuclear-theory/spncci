@@ -13,10 +13,10 @@ recurrence_indexing.h
       -> SpNCCISpinSubspace() [S]
         -> SpNCCISpinState() [SpSn] -> gamma_max
 
-    RecurrenceSpatialIndexing()
-    ->BasisSpatialIndexing()
-        ->OperatorSpatialIndexing()
-            ->UnitTensorSpatialIndexing()
+    RecurrenceSpatialIndexing() [sigma',sigma]
+    ->BasisSpatialIndexing() [omega',omega]->(upsilon_p x upsilon)
+        ->OperatorSpatialIndexing() [x0] ->rho0_max
+            ->UnitTensorSpatialIndexing() [Nbar_p,Nbar]
 
 
   Anna E. McCoy and Patrick J. Fasano
@@ -50,7 +50,7 @@ recurrence_indexing.h
 namespace spncci
 {
   ///////////////////////////////////////////////////////////////////////////////////////////
-  //   SpNCCILGISpace()
+  // SpNCCILGISpace()
   // ->SpNCCISpinSpace() [sigma]
   //   -> SpNCCISpinSubspace() [S]
   //     -> SpNCCISpinState() [SpSn] -> gamma_max
