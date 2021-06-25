@@ -8,20 +8,33 @@ recurrence_indexing.h
         -> omega (states (n,rho) -> upsilon)
 
     
-    SpNCCILGISpace()
-    ->SpNCCISpinSpace() [sigma]
-      -> SpNCCISpinSubspace() [S]
-        -> SpNCCISpinState() [SpSn] -> gamma_max
+    spncci::spatial::Space() []
+    ->spncci::spatial::LGISpace() [sigma]
+        ->spncci::spatial::U3Subspace() [omega]
+          ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 
-    RecurrenceSpatialIndexing() [sigma',sigma]
-    ->BasisSpatialIndexing() [omega',omega]->(upsilon_p x upsilon)
-        ->OperatorSpatialIndexing() [x0] ->rho0_max
-            ->UnitTensorSpatialIndexing() [Nbar_p,Nbar]
+    spin::Space() []
+    ->spin::LGISpace() [sigma]
+      ->spin::SpinSubspace() [S]
+        ->spin::[Iso]SpinState() [SpSn]/[T] -> gamma_max
+
+    spatial::RecurrenceSpace() []
+    ->spatial::RecurrenceLGISpace() [sigma,sigma']
+      ->spatial::RecurrenceNnsumSpace() [Nsum]
+        ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
+          ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
+            ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
+
+    spin::RecurrenceLGISpace() [sigma,sigma']
+    ->spin::RecurrenceSpinSpace() [S,S']
+      -> spin::RecurrenceS[PN/T]Subspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+        ->spin::RecurrenceOperatorState() [operator_index]
 
 
-  Anna E. McCoy and Patrick J. Fasano
-  Institute for Nuclear Theory  
-  and University of Notre Dame
+  Anna E. McCoy[1] and Patrick J. Fasano[2,3]
+  [1] Institute for Nuclear Theory  
+  [2] University of Notre Dame
+  [3] Lawrence Berkeley National Laboratory
 
   SPDX-License-Identifier: MIT
 
@@ -49,11 +62,13 @@ recurrence_indexing.h
 
 namespace spncci
 {
+namespace spin
+{
   ///////////////////////////////////////////////////////////////////////////////////////////
-  // SpNCCILGISpace()
-  // ->SpNCCISpinSpace() [sigma]
-  //   -> SpNCCISpinSubspace() [S]
-  //     -> SpNCCISpinState() [SpSn] -> gamma_max
+  // spin::Space() []
+  // ->spin::LGISpace() [sigma]
+  //   ->spin::SpinSubspace() [S]
+  //     ->spin::[Iso]SpinState() [SpSn]/[T] -> gamma_max
   ///////////////////////////////////////////////////////////////////////////////////////////
   
   using SpSn = std::tuple<HalfInt,HalfInt>;
@@ -133,5 +148,8 @@ class SpNCCILGISpace
   };
 
 
-}  // namespace
+
+}  // namespace spin
+
+}  // namespace spncci
 #endif
