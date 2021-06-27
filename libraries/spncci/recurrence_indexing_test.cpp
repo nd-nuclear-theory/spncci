@@ -20,7 +20,7 @@ int main(int argc, char **argv)
         //   spncci::ValenceShellForNuclide({2,1}),
 
   ////////////////////////////////////////////////////////////////
-  // set up SpNCCILGISpace
+  // set up SpinSpace
   ////////////////////////////////////////////////////////////////
 
   // read in LGIs for 6Li
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   HalfInt Nsigma0=lgi::Nsigma0ForNuclide({3,3});
   lgi::ReadLGISet(filename,Nsigma0,lgi_vector);
-  auto lgi_space=spncci::SpNCCILGISpace(lgi_vector);
+  auto spin_space=spncci::spin::Space(lgi_vector);
 
   if(true)
   {
@@ -38,31 +38,31 @@ int main(int argc, char **argv)
       std::cout << i << " " << lgi_vector[i].Str() << std::endl;
     std::cout << "********************************" << std::endl;
 
-    int num_sigma_spaces=lgi_space.size();
-    std::cout<<fmt::format("LGI space dimension: {}",lgi_space.dimension())<<std::endl;
-    for(int i=0; i<num_sigma_spaces; ++i)
+    int num_lgi_spaces=spin_space.size();
+    std::cout<<fmt::format("spin::Space dimension: {}",spin_space.dimension())<<std::endl;
+    for(int i=0; i<num_lgi_spaces; ++i)
       {
-        const spncci::SpNCCISpinSpace& sigma_space=lgi_space.GetSubspace(i);
-        int num_spin_subspaces=sigma_space.size();
-        const u3::U3& sigma=sigma_space.sigma(); 
-        std::cout<<fmt::format("Sigma Space : {}    Size: {:4d}   Dimension: {:4d}",sigma.Str(),num_spin_subspaces,sigma_space.dimension())<<std::endl;
+        const spncci::spin::LGISpace& lgi_space=spin_space.GetSubspace(i);
+        int num_subspaces=lgi_space.size();
+        const u3::U3& sigma=lgi_space.sigma(); 
+        std::cout<<fmt::format("Sigma Space : {}    Size: {:4d}   Dimension: {:4d}",sigma.Str(),num_subspaces,lgi_space.dimension())<<std::endl;
         
-        for(int j=0; j<num_spin_subspaces; ++j)
+        for(int j=0; j<num_subspaces; ++j)
           {
-            const spncci::SpNCCISpinSubspace& spin_subspace=sigma_space.GetSubspace(j);
+            const spncci::spin::SpNCCISpinSubspace& spin_subspace=lgi_space.GetSubspace(j);
             const HalfInt& S=spin_subspace.S();
             int num_spin_states=spin_subspace.size();
             std::cout<<fmt::format("    Spin Subspace : {}       Size: {:4d}   Dimension: {:4d}",S,num_spin_states,spin_subspace.dimension())<<std::endl;
             for (int k=0; k<num_spin_states; ++k)
               {
-                spncci::SpNCCISpinState spin_state(spin_subspace, k);
+                spncci::spin::SpinState spin_state(spin_subspace, k);
                 const HalfInt& Sp=spin_state.Sp();
                 const HalfInt& Sn=spin_state.Sn();
                 const int gamma=spin_state.degeneracy();
 
-                int state_index=lgi_space.GetSubspaceOffset(i)  // offset to given sigma subspace
-                      + lgi_space.GetSubspace(i).GetSubspaceOffset(j) 
-                      + lgi_space.GetSubspace(i).GetSubspace(j).GetStateOffset(k, gamma);
+                int state_index=spin_space.GetSubspaceOffset(i)  // offset to given sigma subspace
+                      + spin_space.GetSubspace(i).GetSubspaceOffset(j) 
+                      + spin_space.GetSubspace(i).GetSubspace(j).GetStateOffset(k, gamma);
 
                 
                 std::cout<<fmt::format("       Spin State : {} {}      gamma: {:4d}",Sp,Sn,gamma)<<std::endl;

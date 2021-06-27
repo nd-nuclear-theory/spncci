@@ -91,18 +91,18 @@ namespace spin
     };
 
 
- class SpNCCISpinState
+ class SpinState
     : public basis::BaseDegenerateState<SpNCCISpinSubspace>
   {
 
     public:
     // pass-through constructors
 
-      SpNCCISpinState(const SubspaceType& subspace, int index)
+      SpinState(const SubspaceType& subspace, int index)
         // Construct state by index.
         : basis::BaseDegenerateState<SpNCCISpinSubspace> (subspace, index) {}
     
-      SpNCCISpinState(
+      SpinState(
           const SubspaceType& subspace,
           const typename SubspaceType::StateLabelsType& state_labels
         )
@@ -119,37 +119,123 @@ namespace spin
     private:
   };
 
-class SpNCCISpinSpace
-    : public basis::BaseSpace<SpNCCISpinSubspace,std::tuple<u3::U3>>
-  {
-    public:
-    SpNCCISpinSpace() = default;
+  class LGISpace
+      : public basis::BaseSpace<SpNCCISpinSubspace,std::tuple<u3::U3>>
+    {
+      public:
+      LGISpace() = default;
+      
+      LGISpace(
+        const u3::U3& sigma, 
+        const std::map<HalfInt,MultiplicityTagged<SpSn>::vector>& spin_map
+        );
+
+      u3::U3 sigma() const {return std::get<0>(labels());}
+      
+    };
+
+
+  class Space
+      : public basis::BaseSpace<LGISpace>
+    {
     
-    SpNCCISpinSpace(
-      const u3::U3& sigma, 
-      const std::map<HalfInt,MultiplicityTagged<SpSn>::vector>& spin_map
-      );
+      public:
+      Space()=default;
+      Space(const lgi::MultiplicityTaggedLGIVector& lgi_vector);
 
-    u3::U3 sigma() const {return std::get<0>(labels());}
-    
-    private:
-    u3::U3 sigma_;
-  };
+      HalfInt Nsigma0() const {return Nsigma0_;}
+
+    HalfInt Nsigma0_;
+
+    };
 
 
-class SpNCCILGISpace
-    : public basis::BaseSpace<SpNCCISpinSpace>
+  }  // namespace spin
+  namespace spatial
   {
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // spncci::spatial::Space() []
+    // ->spncci::spatial::LGISpace() [sigma]
+    //     ->spncci::spatial::U3Subspace() [omega]
+    //       ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+  class U3Subspace
+      : public basis::BaseSubspace<std::tuple<u3::U3>,MultiplicityTagged<u3::U3>>
+      {
+        public:
+          U3Subspace() = default;
+          
+          U3Subspace(
+            const u3::U3& omega, 
+            const MultiplicityTagged<u3::U3>::vector& nrho_vector
+            );
+          
+          U3Subspace(const sp3r::U3Subspace& u3subspace);
+
+          u3::U3 omega() const {return std::get<0>(labels());}
+        
+        // private:
+        
+      };
+
+  class U3State
+      : public basis::BaseDegenerateState<U3Subspace>
+    {
+
+      public:
+      // pass-through constructors
+
+        U3State(const SubspaceType& subspace, int index)
+          // Construct state by index.
+          : basis::BaseDegenerateState<U3Subspace> (subspace, index) {}
+      
+        U3State(
+            const SubspaceType& subspace,
+            const typename SubspaceType::StateLabelsType& state_labels
+          )
+          // Construct state by reverse lookup on labels.
+          : basis::BaseDegenerateState<U3Subspace>(subspace,state_labels) {}
+
+        // // pass-through accessors for subspace labels
+        u3::U3 n() const {return labels().irrep;}
+        int rho() const {return labels().tag;}
+        
+      // private:
+
+    };
+
+    class LGISpace
+        : public basis::BaseSpace<U3Subspace,std::tuple<u3::U3>>
+      {
+        public:
+        LGISpace() = default;
+        LGISpace(const u3::U3& sigma, const int Nn_max);
+
+        u3::U3 sigma() const {return std::get<0>(labels());}
+        // private:
+
+      };
+
+    class Space
+        : public basis::BaseSpace<LGISpace>
+      {
+        public:
+          Space()=default;
+
+          // Construct from list of sigma
+          Space(
+            const std::vector<u3::U3>& sigma_vector, 
+            const int N0,
+            const int Nmax
+          );
+
+          // Construct from spin::Space
+          Space(const spin::Space& spin_space, const int Nmax);
+
+      };
   
-    public:
-    SpNCCILGISpace()=default;
-    SpNCCILGISpace(const lgi::MultiplicityTaggedLGIVector& lgi_vector);
-    // private:
-  };
-
-
-
-}  // namespace spin
+  }// namespace spatial
 
 }  // namespace spncci
 #endif
