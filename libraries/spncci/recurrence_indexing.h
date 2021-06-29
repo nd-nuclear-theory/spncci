@@ -10,7 +10,7 @@ recurrence_indexing.h
     
     spncci::spatial::Space() []
     ->spncci::spatial::LGISpace() [sigma]
-        ->spncci::spatial::U3Subspace() [omega]
+        ->spncci::spatial::U3Subspace() [omega] -> upsilon_max
           ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 
     spin::Space() []
@@ -73,13 +73,13 @@ namespace spin
   
   using SpSn = std::tuple<HalfInt,HalfInt>;
   
-  class SpNCCISpinSubspace
+  class SpinSubspace
     : public basis::BaseDegenerateSubspace<std::tuple<HalfInt>,SpSn>
     {
       public:
-        SpNCCISpinSubspace() = default;
+        SpinSubspace() = default;
         
-        SpNCCISpinSubspace(
+        SpinSubspace(
           const HalfInt& S, 
           const MultiplicityTagged<SpSn>::vector& spin_vector
           );
@@ -92,7 +92,7 @@ namespace spin
 
 
  class SpinState
-    : public basis::BaseDegenerateState<SpNCCISpinSubspace>
+    : public basis::BaseDegenerateState<SpinSubspace>
   {
 
     public:
@@ -100,14 +100,14 @@ namespace spin
 
       SpinState(const SubspaceType& subspace, int index)
         // Construct state by index.
-        : basis::BaseDegenerateState<SpNCCISpinSubspace> (subspace, index) {}
+        : basis::BaseDegenerateState<SpinSubspace> (subspace, index) {}
     
       SpinState(
           const SubspaceType& subspace,
           const typename SubspaceType::StateLabelsType& state_labels
         )
         // Construct state by reverse lookup on labels.
-        : basis::BaseDegenerateState<SpNCCISpinSubspace>(subspace,state_labels)
+        : basis::BaseDegenerateState<SpinSubspace>(subspace,state_labels)
         {}
 
     // pass-through accessors for subspace labels
@@ -116,11 +116,12 @@ namespace spin
     // state label accessors
     HalfInt Sp() const {return std::get<0>(labels());}
     HalfInt Sn() const {return std::get<1>(labels());}
-    private:
+    //TODO: accessor for gamma_max()
+
   };
 
   class LGISpace
-      : public basis::BaseSpace<SpNCCISpinSubspace,std::tuple<u3::U3>>
+      : public basis::BaseSpace<SpinSubspace,std::tuple<u3::U3>>
     {
       public:
       LGISpace() = default;
@@ -156,7 +157,7 @@ namespace spin
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // spncci::spatial::Space() []
     // ->spncci::spatial::LGISpace() [sigma]
-    //     ->spncci::spatial::U3Subspace() [omega]
+    //     ->spncci::spatial::U3Subspace() [omega] -> upsilon_max
     //       ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
@@ -173,14 +174,11 @@ namespace spin
           
           U3Subspace(const sp3r::U3Subspace& u3subspace);
 
-          u3::U3 omega() const {return std::get<0>(labels());}
-        
-        // private:
-        
+          u3::U3 omega() const {return std::get<0>(labels());}        
       };
 
   class U3State
-      : public basis::BaseDegenerateState<U3Subspace>
+      : public basis::BaseState<U3Subspace>
     {
 
       public:
@@ -188,14 +186,14 @@ namespace spin
 
         U3State(const SubspaceType& subspace, int index)
           // Construct state by index.
-          : basis::BaseDegenerateState<U3Subspace> (subspace, index) {}
+          : basis::BaseState<U3Subspace> (subspace, index) {}
       
         U3State(
             const SubspaceType& subspace,
             const typename SubspaceType::StateLabelsType& state_labels
           )
           // Construct state by reverse lookup on labels.
-          : basis::BaseDegenerateState<U3Subspace>(subspace,state_labels) {}
+          : basis::BaseState<U3Subspace>(subspace,state_labels) {}
 
         // // pass-through accessors for subspace labels
         u3::U3 n() const {return labels().irrep;}
@@ -206,14 +204,13 @@ namespace spin
     };
 
     class LGISpace
-        : public basis::BaseSpace<U3Subspace,std::tuple<u3::U3>>
+        : public basis::BaseDegenerateSpace<U3Subspace,std::tuple<u3::U3>>
       {
         public:
-        LGISpace() = default;
-        LGISpace(const u3::U3& sigma, const int Nn_max);
+          LGISpace() = default;
+          LGISpace(const u3::U3& sigma, const int Nn_max);
 
         u3::U3 sigma() const {return std::get<0>(labels());}
-        // private:
 
       };
 
@@ -226,15 +223,143 @@ namespace spin
           // Construct from list of sigma
           Space(
             const std::vector<u3::U3>& sigma_vector, 
-            const int N0,
+            const int Nsigma0,
             const int Nmax
           );
 
           // Construct from spin::Space
-          Space(const spin::Space& spin_space, const int Nmax);
+          Space(const spin::Space& spin_space, const int Nmax, const int Nsigma0);
+      };  
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
+  // spatial::RecurrenceSpace() []
+  // ->spatial::RecurrenceLGISpace() [sigma,sigma']
+  //   ->spatial::RecurrenceNnsumSpace() [Nsum]
+  //     ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
+  //       ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
+  //         ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
+  class RecurrenceOperatorSubspace
+      : public basis::BaseSubspace<std::tuple<u3::SU3>,std::tuple<int,int>>
+      {
+        public:
+          RecurrenceOperatorSubspace() = default;
+          
+          RecurrenceOperatorSubspace(
+            const u3::SU3& x0, 
+            const std::vector<std::tuple<int,int>>& Nbar_pairs
+          );
+          
+          u3::SU3 X0() const {return std::get<0>(labels());}
+        
+      };
+
+  class RecurrenceOperatorState
+      : public basis::BaseState<RecurrenceOperatorSubspace>
+    {
+
+      public:
+
+        RecurrenceOperatorState(const SubspaceType& subspace, int index)
+          // Construct state by index.
+          : basis::BaseState<RecurrenceOperatorSubspace> (subspace, index) {}
+      
+        RecurrenceOperatorState(
+            const SubspaceType& subspace,
+            const typename SubspaceType::StateLabelsType& state_labels
+          )
+          // Construct state by reverse lookup on labels.
+          : basis::BaseState<RecurrenceOperatorSubspace>(subspace,state_labels) {}
+
+        // // pass-through accessors for subspace labels
+        int Nbar() const {return std::get<0>(labels());}
+        int Nbar_p() const {return std::get<1>(labels());}
+
+    };
+
+    // spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
+    class RecurrenceU3Space
+        : public basis::BaseDegenerateSpace<RecurrenceOperatorSubspace,std::tuple<u3::U3,u3::U3>>
+      {
+        public:
+        RecurrenceU3Space() = default;
+
+        // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
+        RecurrenceU3Space(
+          const std::tuple<u3::U3,u3::U3> omega_pair, 
+          const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors
+        ); 
+
+        u3::U3 omega_ket() const {return std::get<0>(labels());}
+        u3::U3 omega_bra() const {return std::get<1>(labels());}
 
       };
-  
+
+
+      // spatial::RecurrenceNnsumSpace() [Nsum]
+    class RecurrenceNnsumSpace
+        : public basis::BaseDegenerateSpace<RecurrenceU3Space,std::tuple<int>>
+      {
+        public:
+          RecurrenceNnsumSpace() = default;
+
+          // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
+          RecurrenceNnsumSpace(
+            int Nnsum,
+            const std::vector<std::tuple<int,int>> u3subspace_index_pairs,
+            const LGISpace& lgi_space_ket,
+            const LGISpace& lgi_space_bra,
+            const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+          ); 
+
+          int Nnsum() {return std::get<0>(labels());}
+
+        private:
+
+          std::vector<std::tuple<int,int>> upsilon_pairs_;
+
+      };
+
+
+    // spatial::RecurrenceLGISpace() [sigma,sigma']
+    class RecurrenceLGISpace
+        : public basis::BaseSpace<RecurrenceNnsumSpace,std::tuple<u3::U3,u3::U3>>
+      {
+        public:
+          RecurrenceLGISpace() = default;
+
+          // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
+          RecurrenceLGISpace(
+            const LGISpace& lgi_space_ket,
+            const LGISpace& lgi_space_bra,
+            const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+          ); 
+
+          u3::U3 sigma_ket() {return std::get<0>(labels());}
+          u3::U3 sigma_bra() {return std::get<1>(labels());}
+
+        // private:
+      };
+
+    // spatial::RecurrenceSpace() []
+    class RecurrenceSpace
+        : public basis::BaseSpace<RecurrenceLGISpace>
+      {
+        public:
+          RecurrenceSpace() = default;
+
+          // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
+          RecurrenceSpace(
+            const spatial::Space& space_ket,
+            const spatial::Space& space_bra,
+            const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+          ); 
+
+        // private:
+      };
+
+
+
   }// namespace spatial
 
 }  // namespace spncci

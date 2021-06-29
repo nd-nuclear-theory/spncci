@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         
         for(int j=0; j<num_subspaces; ++j)
           {
-            const spncci::spin::SpNCCISpinSubspace& spin_subspace=lgi_space.GetSubspace(j);
+            const spncci::spin::SpinSubspace& spin_subspace=lgi_space.GetSubspace(j);
             const HalfInt& S=spin_subspace.S();
             int num_spin_states=spin_subspace.size();
             std::cout<<fmt::format("    Spin Subspace : {}       Size: {:4d}   Dimension: {:4d}",S,num_spin_states,spin_subspace.dimension())<<std::endl;
