@@ -10,7 +10,7 @@ recurrence_indexing.h
     
     spncci::spatial::Space() []
     ->spncci::spatial::LGISpace() [sigma]
-        ->spncci::spatial::U3Subspace() [omega] -> upsilon_max
+        ->spncci::spatial::U3Subspace() [omega]
           ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 
     spin::Space() []
@@ -157,7 +157,7 @@ namespace spin
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // spncci::spatial::Space() []
     // ->spncci::spatial::LGISpace() [sigma]
-    //     ->spncci::spatial::U3Subspace() [omega] -> upsilon_max
+    //     ->spncci::spatial::U3Subspace() [omega]
     //       ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
@@ -204,7 +204,7 @@ namespace spin
     };
 
     class LGISpace
-        : public basis::BaseDegenerateSpace<U3Subspace,std::tuple<u3::U3>>
+        : public basis::BaseSpace<U3Subspace,std::tuple<u3::U3>>
       {
         public:
           LGISpace() = default;
@@ -223,12 +223,12 @@ namespace spin
           // Construct from list of sigma
           Space(
             const std::vector<u3::U3>& sigma_vector, 
-            const int Nsigma0,
+            const HalfInt& Nsigma0,
             const int Nmax
           );
 
           // Construct from spin::Space
-          Space(const spin::Space& spin_space, const int Nmax, const int Nsigma0);
+          Space(const spin::Space& spin_space, const int& Nmax, const HalfInt& Nsigma0);
       };  
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////// 

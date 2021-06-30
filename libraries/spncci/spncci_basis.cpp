@@ -1059,7 +1059,7 @@ namespace spncci
       {
         const spncci::SubspaceSpBasis& subspace=spbasis.GetSubspace(subspace_index);
         offsets[subspace_index].resize(subspace.size());
-        const std::vector<int>& multiplicities=subspace.state_multiplicities();
+        const std::vector<int>& multiplicities=subspace.state_degeneracies();
         for(int state_index=0; state_index<subspace.size(); ++state_index)
           {
             offsets[subspace_index][state_index]=offset;

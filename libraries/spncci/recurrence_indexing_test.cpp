@@ -42,14 +42,14 @@ int main(int argc, char **argv)
     std::cout<<fmt::format("spin::Space dimension: {}",spin_space.dimension())<<std::endl;
     for(int i=0; i<num_lgi_spaces; ++i)
       {
-        const spncci::spin::LGISpace& lgi_space=spin_space.GetSubspace(i);
-        int num_subspaces=lgi_space.size();
-        const u3::U3& sigma=lgi_space.sigma(); 
-        std::cout<<fmt::format("Sigma Space : {}    Size: {:4d}   Dimension: {:4d}",sigma.Str(),num_subspaces,lgi_space.dimension())<<std::endl;
+        const spncci::spin::LGISpace& spin_lgi_space=spin_space.GetSubspace(i);
+        int num_subspaces=spin_lgi_space.size();
+        const u3::U3& sigma=spin_lgi_space.sigma(); 
+        std::cout<<fmt::format("spin::LGISpace : {}    Size: {:4d}   Dimension: {:4d}",sigma.Str(),num_subspaces,spin_lgi_space.dimension())<<std::endl;
         
         for(int j=0; j<num_subspaces; ++j)
           {
-            const spncci::spin::SpinSubspace& spin_subspace=lgi_space.GetSubspace(j);
+            const spncci::spin::SpinSubspace& spin_subspace=spin_lgi_space.GetSubspace(j);
             const HalfInt& S=spin_subspace.S();
             int num_spin_states=spin_subspace.size();
             std::cout<<fmt::format("    Spin Subspace : {}       Size: {:4d}   Dimension: {:4d}",S,num_spin_states,spin_subspace.dimension())<<std::endl;
@@ -58,23 +58,52 @@ int main(int argc, char **argv)
                 spncci::spin::SpinState spin_state(spin_subspace, k);
                 const HalfInt& Sp=spin_state.Sp();
                 const HalfInt& Sn=spin_state.Sn();
-                const int gamma=spin_state.degeneracy();
+                const int gamma_max=spin_state.degeneracy();
 
                 int state_index=spin_space.GetSubspaceOffset(i)  // offset to given sigma subspace
                       + spin_space.GetSubspace(i).GetSubspaceOffset(j) 
-                      + spin_space.GetSubspace(i).GetSubspace(j).GetStateOffset(k, gamma);
-
-                
-                std::cout<<fmt::format("       Spin State : {} {}      gamma: {:4d}",Sp,Sn,gamma)<<std::endl;
+                      + spin_space.GetSubspace(i).GetSubspace(j).GetStateOffset(k, gamma_max);
+      
+                std::cout<<fmt::format("       Spin State : {} {}      gamma: {:4d}",Sp,Sn,gamma_max)<<std::endl;
                 std::cout<<fmt::format("         index: {}",state_index)<<std::endl;
 
               }            
 
           }
       }
-
   }
 
+  if(true)
+  {
+    int Nmax=8;
+    spncci::spatial::Space spatial_space(spin_space, Nmax, Nsigma0);
+    std::cout<<fmt::format("spatial::Space dimension: {}",spatial_space.dimension())<<std::endl;
+    for(int i=0; i<spatial_space.size(); ++i)
+      {
+        const spncci::spatial::LGISpace& spatial_lgi_space=spatial_space.GetSubspace(i);
+        const u3::U3& sigma=spatial_lgi_space.sigma();
+        int num_spatial_lgi_subspace=spatial_lgi_space.size();
+        std::cout<<fmt::format("spatia::LGISpace : {}    Size: {:4d}   Dimension: {:4d}",sigma.Str(),num_spatial_lgi_subspace,spatial_lgi_space.dimension())<<std::endl; 
+        for(int j=0; j<num_spatial_lgi_subspace; ++j)
+          {
+            const spncci::spatial::U3Subspace u3subspace=spatial_lgi_space.GetSubspace(j);
+            const u3::U3& omega=u3subspace.omega();
+            const int& upsilon_max=u3subspace.size();
+            std::cout<<fmt::format("    U3Subspace : {}   upsilon_max : {:4d}   Dimension: {:4d}",omega.Str(),upsilon_max,u3subspace.dimension())<<std::endl; 
+            for(int k=0; k<upsilon_max; ++k)
+              {
+                spncci::spatial::U3State u3state(u3subspace,k);
+                const u3::U3& n=u3state.n();
+                const int& rho=u3state.rho();
+                std::cout<<fmt::format("       U3State : {} {} ",n.Str(),rho)<<std::endl;
 
+                int state_index=spatial_space.GetSubspaceOffset(i)
+                      + spatial_space.GetSubspace(i).GetSubspaceOffset(j) // omega offset upsilon=0
+                      + k;
+              }
+          }
+      }
+
+  }
 
 }

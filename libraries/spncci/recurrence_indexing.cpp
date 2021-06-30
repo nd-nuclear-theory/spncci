@@ -69,6 +69,7 @@ namespace spncci
         const u3::U3& omega=u3subspace.labels();
         for(int i=0; i<u3subspace.size(); ++i)
           {
+            labels_=omega;
             const auto&n_rho = u3subspace.GetStateLabels(i);
             PushStateLabels(n_rho);
           }
@@ -80,16 +81,15 @@ namespace spncci
         sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);
         for(int i=0; i<sp3r_space.size(); i++ )
           {
+            labels_=sigma;
             const auto& u3subspace=sp3r_space.GetSubspace(i);
-            const int& upsilon_max=u3subspace.size();
-            // Nn_max_=Nn_max;
-            PushSubspace(U3Subspace(u3subspace),upsilon_max);
+            PushSubspace(U3Subspace(u3subspace));
           }
       }
 
     Space::Space(
           const std::vector<u3::U3>& sigma_vector, 
-          const int Nsigma0,
+          const HalfInt& Nsigma0,
           const int Nmax
       )
       {
@@ -101,7 +101,7 @@ namespace spncci
         } 
       }
 
-    Space::Space(const spin::Space& spin_space, const int Nmax,const int Nsigma0)
+    Space::Space(const spin::Space& spin_space, const int& Nmax,const HalfInt& Nsigma0)
       {
         // Nsigma0_=spin_space.Nsigma0(); 
         for(int i=0; i<spin_space.size(); ++i)
@@ -156,11 +156,14 @@ namespace spncci
       labels_=Nnsum;
       for(const auto&[i_ket,i_bra] : partition)
         {
-          const u3::U3& omega_ket=lgi_space_ket.GetSubspace(i_ket).omega();
-          const u3::U3& omega_bra=lgi_space_bra.GetSubspace(i_bra).omega();
+          const auto& u3subspace_ket=lgi_space_ket.GetSubspace(i_ket);
+          const auto& u3subspace_bra=lgi_space_bra.GetSubspace(i_bra);
 
-          const int& upsilon_max_ket=lgi_space_ket.GetSubspaceDegeneracy(i_ket);
-          const int& upsilon_max_bra=lgi_space_bra.GetSubspaceDegeneracy(i_bra);
+          const u3::U3& omega_ket=u3subspace_ket.omega();
+          const u3::U3& omega_bra=u3subspace_bra.omega();
+
+          const int& upsilon_max_ket=u3subspace_ket.size();
+          const int& upsilon_max_bra=u3subspace_bra.size();
 
           upsilon_pairs_.push_back({upsilon_max_ket,upsilon_max_bra});
           PushSubspace(
