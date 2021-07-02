@@ -142,7 +142,7 @@ namespace spin
     
       public:
       Space()=default;
-      Space(const lgi::MultiplicityTaggedLGIVector& lgi_vector);
+      Space(const lgi::MultiplicityTaggedLGIVector& lgi_vector, int Nmax);
 
       HalfInt Nsigma0() const {return Nsigma0_;}
 
@@ -239,6 +239,17 @@ namespace spin
   //       ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
   //         ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
   ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
+    struct UnitTensorParameters
+      {
+        UnitTensorParameters(const int& N1v_,const HalfInt& Nsigma0_,const int& state_parity_)
+        :N1v(N1v_), Nsigma0(Nsigma0_), state_parity(state_parity_){};
+
+        int N1v;
+        HalfInt Nsigma0;
+        int state_parity;
+      };
+
+
   class RecurrenceOperatorSubspace
       : public basis::BaseSubspace<std::tuple<u3::SU3>,std::tuple<int,int>>
       {
@@ -286,8 +297,8 @@ namespace spin
 
         // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
         RecurrenceU3Space(
-          const std::tuple<u3::U3,u3::U3> omega_pair, 
-          const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors
+          const std::tuple<u3::U3,u3::U3>& omega_pair,
+          const UnitTensorParameters& unit_tensor_parameters
         ); 
 
         u3::U3 omega_ket() const {return std::get<0>(labels());}
@@ -309,13 +320,16 @@ namespace spin
             const std::vector<std::tuple<int,int>> u3subspace_index_pairs,
             const LGISpace& lgi_space_ket,
             const LGISpace& lgi_space_bra,
-            const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+            const UnitTensorParameters& unit_tensor_parameters
           ); 
 
-          int Nnsum() {return std::get<0>(labels());}
+          int Nnsum() const {return std::get<0>(labels());}
 
+          int upsilon_max_ket(const int i) const {return std::get<0>(upsilon_pairs_[i]);}
+          int upsilon_max_bra(const int i) const {return std::get<1>(upsilon_pairs_[i]);}
+          int unit_tensor_state_parity() const {return unit_tensor_state_parity_;}
         private:
-
+          int unit_tensor_state_parity_;
           std::vector<std::tuple<int,int>> upsilon_pairs_;
 
       };
@@ -332,13 +346,12 @@ namespace spin
           RecurrenceLGISpace(
             const LGISpace& lgi_space_ket,
             const LGISpace& lgi_space_bra,
-            const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+            const int& N1v, const HalfInt& Nsigma0
           ); 
 
-          u3::U3 sigma_ket() {return std::get<0>(labels());}
-          u3::U3 sigma_bra() {return std::get<1>(labels());}
-
-        // private:
+          u3::U3 sigma_ket() const {return std::get<0>(labels());}
+          u3::U3 sigma_bra() const {return std::get<1>(labels());}
+        
       };
 
     // spatial::RecurrenceSpace() []
@@ -352,7 +365,7 @@ namespace spin
           RecurrenceSpace(
             const spatial::Space& space_ket,
             const spatial::Space& space_bra,
-            const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+            const int& N1v, const HalfInt& Nsigma0
           ); 
 
         // private:

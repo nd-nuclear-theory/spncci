@@ -44,13 +44,15 @@ namespace spncci
         PushSubspace(SpinSubspace(S,spin_vector));
     }
   
-    Space::Space(const lgi::MultiplicityTaggedLGIVector& lgi_vector)
+    Space::Space(const lgi::MultiplicityTaggedLGIVector& lgi_vector,int Nmax)
     {
       std::map<u3::U3,std::map<HalfInt,MultiplicityTagged<SpSn>::vector>> sigma_spins_map;
       for(const auto& [lgi,gamma_max] : lgi_vector)
         {
           const auto& [Nex,sigma,Sp,Sn,S] = lgi.Key();
-          
+          if(Nex>Nmax)
+            continue;
+
           if (Nex==0)
             Nsigma0_=sigma.N();
 
@@ -97,7 +99,8 @@ namespace spncci
         {
           // Nsigma0_=Nsigma0;
           int Nn_max = Nmax-int(sigma.N()-Nsigma0);
-          PushSubspace(LGISpace(sigma,Nn_max));
+          if (Nn_max>=0)
+            PushSubspace(LGISpace(sigma,Nn_max));
         } 
       }
 
@@ -116,6 +119,10 @@ namespace spncci
     /////////////////////////////////////////////////////////////////////////////////////////////////////// 
     // Recurrence indexing (spatial)
     /////////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+
+
+
     RecurrenceOperatorSubspace::RecurrenceOperatorSubspace(
       const u3::SU3& x0, 
       const std::vector<std::tuple<int,int>>& Nbar_pairs
@@ -126,39 +133,66 @@ namespace spncci
         PushStateLabels(Nbar_pair);
     }
 
-    RecurrenceU3Space::RecurrenceU3Space(
-      const std::tuple<u3::U3,u3::U3> omega_pair, 
-      const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors
-    )
+RecurrenceU3Space::RecurrenceU3Space(
+          const std::tuple<u3::U3,u3::U3>& omega_pair,
+          const UnitTensorParameters& unit_tensor_parameters
+        )
     {
       labels_=omega_pair;
+      const auto&[omega,omega_p]=omega_pair;
       std::map<u3::SU3,std::vector<std::tuple<int,int>>> x0_Nbar_pairs;
-      for(const auto& [x0,Nbar,Nbar_p] : spatial_unit_tensors)
-          x0_Nbar_pairs[x0].push_back({Nbar,Nbar_p});
-        
       
+      ////////////////////////////////////////////////////////////////////////////////
+      // Create list of spatial unit tensors to pass through to operator subspace
+      int Nbar_max(2*unit_tensor_parameters.N1v+omega.N()
+                      -unit_tensor_parameters.Nsigma0);
+      
+      int Nbar_p_max(2*unit_tensor_parameters.N1v+omega_p.N()
+                      -unit_tensor_parameters.Nsigma0);
+
+      int N0(omega_p.N()-omega.N());
+      int Nbar_min=unit_tensor_parameters.state_parity;
+      for(int Nbar=Nbar_min; Nbar<=Nbar_max; Nbar+=2)
+          {
+            int Nbar_p=N0+Nbar;
+            if (Nbar_p<=Nbar_p_max & Nbar_p>=0)
+              {
+                MultiplicityTagged<u3::SU3>::vector possible_x0
+                      =u3::KroneckerProduct({Nbar_p,0},{0,Nbar});
+              
+                for(const auto& [x0,rho] : possible_x0)
+                  x0_Nbar_pairs[x0].push_back({Nbar,Nbar_p});
+              
+              }
+          }
+
+      ////////////////////////////////////////////////////////////////////////////////
+      // Construct operator subspaces 
+      ////////////////////////////////////////////////////////////////////////////////
       for(const auto& [x0,Nbar_pairs] : x0_Nbar_pairs)
         {
          int rho0_max=u3::OuterMultiplicity(omega_ket().SU3(),x0,omega_bra().SU3());
-         PushSubspace(RecurrenceOperatorSubspace(x0,Nbar_pairs),rho0_max); 
+         if(rho0_max>0)
+          PushSubspace(RecurrenceOperatorSubspace(x0,Nbar_pairs),rho0_max); 
         }
     } 
 
 
     RecurrenceNnsumSpace::RecurrenceNnsumSpace(
       int Nnsum,
-      const std::vector<std::tuple<int,int>> partition,
+      const std::vector<std::tuple<int,int>> u3subspace_index_pairs,
       const LGISpace& lgi_space_ket,
       const LGISpace& lgi_space_bra,
-      const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+      const UnitTensorParameters& unit_tensor_parameters
     )
     {
       labels_=Nnsum;
-      for(const auto&[i_ket,i_bra] : partition)
+      unit_tensor_state_parity_=unit_tensor_parameters.state_parity;
+
+      for(const auto&[i_ket,i_bra] : u3subspace_index_pairs)
         {
           const auto& u3subspace_ket=lgi_space_ket.GetSubspace(i_ket);
           const auto& u3subspace_bra=lgi_space_bra.GetSubspace(i_bra);
-
           const u3::U3& omega_ket=u3subspace_ket.omega();
           const u3::U3& omega_bra=u3subspace_bra.omega();
 
@@ -166,8 +200,9 @@ namespace spncci
           const int& upsilon_max_bra=u3subspace_bra.size();
 
           upsilon_pairs_.push_back({upsilon_max_ket,upsilon_max_bra});
+
           PushSubspace(
-            RecurrenceU3Space({omega_ket,omega_bra},spatial_unit_tensors),
+            RecurrenceU3Space({omega_ket,omega_bra},unit_tensor_parameters),
             upsilon_max_bra*upsilon_max_ket
             );
           }
@@ -177,42 +212,45 @@ namespace spncci
     RecurrenceLGISpace::RecurrenceLGISpace(
       const LGISpace& lgi_space_ket,
       const LGISpace& lgi_space_bra,
-      const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+      const int& N1v, const HalfInt& Nsigma0
     )
     {
       const u3::U3& sigma_ket=lgi_space_ket.sigma();
       const u3::U3& sigma_bra=lgi_space_bra.sigma();
+      // std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<std::endl;
       labels_={sigma_ket,sigma_bra};
 
-      // const HalfInt& Nsigma0_ket=lgi_space_ket.Nsigma0();
-      // const HalfInt& Nsigma0_bra=lgi_space_bra.Nsigma0();
-
+      // Partition pairs of omega',omega by Nnsum
       std::map<int,std::vector<std::tuple<int,int>>> Nnsum_partition;
       for(int i_ket=0; i_ket<lgi_space_ket.size(); ++i_ket)
         for(int i_bra=0; i_bra<lgi_space_bra.size(); ++i_bra)
           {
             const u3::U3& omega_ket=lgi_space_ket.GetSubspace(i_ket).omega();
-
             const u3::U3& omega_bra=lgi_space_bra.GetSubspace(i_bra).omega();
-
 
             int Nnsum=int(omega_ket.N()-sigma_ket.N() + omega_bra.N()-sigma_bra.N());
             Nnsum_partition[Nnsum].push_back({i_ket,i_bra});
           }
-      for(const auto& [Nnsum,partition] : Nnsum_partition)
-        PushSubspace(
-          RecurrenceNnsumSpace(
-            Nnsum,partition,
-            lgi_space_ket,lgi_space_bra,
-            spatial_unit_tensors
-            )
-          );
+
+      // Create RecurrenceNnsumSpaces.  On for each unit tensor state parity
+      for(int unit_tensor_state_parity=0; unit_tensor_state_parity<=1; ++unit_tensor_state_parity)
+        {
+          UnitTensorParameters unit_tensor_parameters(N1v,Nsigma0,unit_tensor_state_parity);
+          for(const auto& [Nnsum,partition] : Nnsum_partition)
+            PushSubspace(
+              RecurrenceNnsumSpace(
+                Nnsum,partition,
+                lgi_space_ket,lgi_space_bra,
+                unit_tensor_parameters
+                )
+              );
+        }
     }
 
     RecurrenceSpace::RecurrenceSpace(
       const spatial::Space& space_ket,
       const spatial::Space& space_bra,
-      const std::vector<std::tuple<u3::SU3,int,int>>& spatial_unit_tensors //pass through to Operator subspaces
+      const int& N1v, const HalfInt& Nsigma0
     )
     {
       for(int i_ket=0; i_ket<space_ket.size(); ++i_ket)
@@ -220,7 +258,7 @@ namespace spncci
           {
             const LGISpace& lgi_space_ket=space_ket.GetSubspace(i_ket);
             const LGISpace& lgi_space_bra=space_bra.GetSubspace(i_bra);
-            PushSubspace(RecurrenceLGISpace(lgi_space_ket,lgi_space_bra,spatial_unit_tensors));
+            PushSubspace(RecurrenceLGISpace(lgi_space_ket,lgi_space_bra,N1v,Nsigma0));
           }
     }
 
