@@ -34,7 +34,7 @@ import os
 import sys
 
 import mcscript
-import spncci
+import lsu3shell_operator as lsu3op
 
 mcscript.init()
 
@@ -43,7 +43,7 @@ mcscript.init()
 ##################################################################
 
 N1v_set = [0,1]
-Nsigma_max_set = mcscript.utils.value_range(0,11,1)
+Nsigma_max_set = mcscript.utils.value_range(0,14,1)
 
 task_list = [
     {
@@ -61,7 +61,7 @@ task_list = [
 
 def task_descriptor(task):
     """"""
-    return su3rme.relative_operator_descriptor(task)
+    return lsu3op.relative_operator_descriptor(task)
 
 def task_pool(task):
     """"""
@@ -76,9 +76,8 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        su3rme.do_generate_relative_operators
+        lsu3op.generate_relative_operators
         ],
-    # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]
     )
 

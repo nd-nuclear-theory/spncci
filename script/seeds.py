@@ -399,7 +399,6 @@ def generate_lgi_lookup_table(task):
 
 
 
-#
 def do_seed_run(task):
 	""" Generate seed files from lsu3shell files.
 	"""
@@ -407,7 +406,27 @@ def do_seed_run(task):
 	su3rme.retrieve_operator_files(task)
 
 	# generate model space file needed by lsu3shell codes
-	su3rme.generate_model_space_file(task)
+	su3rme.generate_model_space_files(task)
+
+	# generate basis listing for basis in which rmes are calculated
+	su3rme.generate_basis_table(task)
+
+	# generate operators rmes
+	su3rme.calculate_rmes(task)
+	print("cleaning up")
+	su3rme_cleanup(task)
+	generate_spncci_seed_files(task)
+	save_seed_files(task)
+
+################################################################################
+def do_seed_run_new(task):
+	""" Generate seed files for spncci
+	"""
+	# retrieve relevant operator files
+	su3rme.retrieve_operator_files(task)
+
+	# generate model space file needed by lsu3shell codes
+	su3rme.generate_model_space_files(task)
 
 	# generate basis listing for basis in which rmes are calculated
 	su3rme.generate_basis_table(task)
