@@ -150,7 +150,8 @@ LDLIBS += -lboost_mpi -lboost_serialization -lboost_system -lboost_chrono
 # GNU Scientific Library
 LDLIBS += -lgsl 
 LDLIBS += -lgslcblas
-LDLIBS += -lsci_gnu 
+#LDLIBS += -lsci_gnu 
+#LDLIBS += -mkl 
 CPPFLAGS += -DHAVE_INLINE
 
 

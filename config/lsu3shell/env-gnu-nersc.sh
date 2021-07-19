@@ -1,2 +1,2 @@
-source ${SPNCCI_PROJECT_ROOT_DIR}/config/ndconfig/env-gnu-nersc.sh
+source ${NDCONFIG_DIR}/env-gnu-nersc.sh
 module load cray-libsci
