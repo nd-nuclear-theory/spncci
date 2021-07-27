@@ -25,6 +25,9 @@
   - 10/11/17 (aem): 
       + Add MatrixFloatType and switched MatrixVector to OperatorBlocks
       + Extracted i/o for symplectic generator su3rmes from spncci_io
+  - 7/26/21 (aem): 
+      + ReadLSU3ShellRMEs now allows for different bra and ket spaces.
+      + Eliminated separate input routine for Brel and Nrel 
 ****************************************************************/
 
 #ifndef LSU3SHELL_RME_H_
@@ -54,7 +57,6 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEs(
-      bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table_bra,
       const u3shell::SpaceU3SPN& space_bra, 
@@ -63,7 +65,8 @@ namespace lsu3shell
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
-      double scale_factor
+      double scale_factor,
+      bool sp3r_generators=false
     );
 
   // Read LSU3Shell RMEs.
@@ -86,42 +89,18 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEs(
-      bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
-      double scale_factor=1.
+      double scale_factor=1.,
+      bool sp3r_generators=false
     );
 
   //Wrapper function for when bra space and ket space are the same.
 
-
-  void 
-  ReadLSU3ShellRMEs(
-      const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
-      const u3shell::OperatorLabelsU3ST& operator_labels,
-      const u3shell::SectorsU3SPN& sectors,
-      lsu3shell::OperatorBlocks& matrix_vector,
-      double scale_factor = 1.
-    );
-  // Wraper function for when sp3r_generators not specified. 
-
-
-  void
-    ReadLSU3ShellSymplecticOperatorRMEs(
-        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, lsu3shell::OperatorBlocks& Bintr_matrices,
-        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, lsu3shell::OperatorBlocks& Nintr_matrices,
-        int A
-      );
-    // Reads in Brel and Nrel su3rme files and applies appropriate scaling to convert to intrinsic operators using
-    // mechanics convention. 
 
   void
     ReadLSU3ShellSymplecticRaisingOperatorRMEs(
@@ -174,16 +153,6 @@ namespace lsu3shell
   //  Nrel_matrices (input): matrices for Nrel operator
   //  A (input): atomic mass number
   //  matrix_vector (output): container for Ncm matrix sectors.
-
-  // For reference, here is the old syntax:
-  //
-  // void GenerateNcmMatrixVector(
-  //   int A,      
-  //   std::ifstream& is_Nrel,
-  //   const lsu3shell::LSU3ShellBasisTable& lsu3_basis_table,
-  //   const u3shell::SpaceU3SPN& space, 
-  //   lsu3shell::OperatorBlocks& matrix_vector 
-  // );
 
 }
 #endif

@@ -56,8 +56,6 @@ int main(int argc, char **argv)
 {
   if(argc<3)
   {
-    std::cout<<"Syntax: Z N Nmax "<<std::endl;
-    std::cout<<" or "<<std::endl;
     std::cout<<"Syntax: Z N Nmax lgi_filename lgi_expansion_filename"<<std::endl;
     std::exit(EXIT_FAILURE);
   }
@@ -68,7 +66,8 @@ int main(int argc, char **argv)
 
   // Basis parameters
   int Nmax=std::stoi(argv[3]);
-  
+  std::string lgi_filename=argv[4];
+  std::string lgi_expansion_filename=argv[5];
 
   // zero tolerance 
   lgi::zero_tolerance=1e-6;
@@ -113,34 +112,50 @@ int main(int argc, char **argv)
       lsu3shell_basis_provenance,lsu3shell_space
     );
 
-  ////////////////////////////////////////////////////////////////
-  // TODO: If lgi and lgi expansion file names not provided, solve for LGI
-  // std::cout << "Solve for LGIs..." << std::endl;
-  ////////////////////////////////////////////////////////////////
-  // Operator parameters
-  std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
-  std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
+  basis::OperatorBlocks<double> lgi_expansions;
+  lgi::ReadLGIExpansion(lsu3shell_space.size(),lgi_expansion_filename,lgi_expansions);
+
+  lgi::MultiplicityTaggedLGIVector lgi_vector;
+  lgi::ReadLGISet(lgi_filename, Nsigma0,lgi_vector);
+
+  // ////////////////////////////////////////////////////////////////
+  // // TODO: If lgi and lgi expansion file names not provided, solve for LGI
+  // // std::cout << "Solve for LGIs..." << std::endl;
+  // ////////////////////////////////////////////////////////////////
+  // // Operator parameters
+  // std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
+  // std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
 
 
-  lgi::MultiplicityTaggedLGIVector lgi_families;
-  lsu3shell::OperatorBlocks lgi_expansions;
-  std::vector<int> lsu3hsell_index_lookup_table;
+  // lgi::MultiplicityTaggedLGIVector lgi_families;
+  // lsu3shell::OperatorBlocks lgi_expansions;
+  // // std::vector<int> lsu3hsell_index_lookup_table;
 
-  lgi::GetLGIExpansion(
-      lsu3shell_space,lsu3shell_basis_table,
-      Brel_filename,Nrel_filename,Z+N, Nsigma0,
-      lgi_families, lgi_expansions,
-      lsu3hsell_index_lookup_table
-    );
+  // lgi::GetLGIExpansion(
+  //     lsu3shell_space,lsu3shell_basis_table,
+  //     Brel_filename,Nrel_filename,Z+N, Nsigma0,
+  //     lgi_families, lgi_expansions
+  //   );
   
-  std::string lgi_filename="seeds/lgi_families.dat";
-  lgi::WriteLGILabels(lgi_families, lgi_filename);
+  // std::string lgi_filename="seeds/lgi_families.dat";
+  // lgi::WriteLGILabels(lgi_families, lgi_filename);
 
-  // std::cout<<"write expansion to file "<<std::endl;
-  std::string lgi_expansion_filename="seeds/lgi_expansions.dat";
-  lgi::WriteLGIExpansions(lgi_expansion_filename,lgi_expansions);
+  // // std::cout<<"write expansion to file "<<std::endl;
+  // std::string lgi_expansion_filename="seeds/lgi_expansions.dat";
+  // lgi::WriteLGIExpansions(lgi_expansion_filename,lgi_expansions);
 
 
+
+
+  // Create Lookup table for lgi in vector.  If no lgi exists, then lgi_indx=-1
+  std::vector<int> lsu3shell_index_lookup_table(lsu3shell_space.size(),-1);
+  for(int lgi_index=0; lgi_index<lgi_vector.size(); ++lgi_index)
+    {
+      const auto& [lgi,gamma] = lgi_vector[lgi_index];
+      u3shell::U3SPN u3spn = lgi.labels();
+      int lsu3shell_index = lsu3shell_space.LookUpSubspaceIndex(u3spn);
+      lsu3shell_index_lookup_table[lsu3shell_index]=lgi_index;
+    }
 
   ////////////////////////////////////////////////////////////////
   // Generate Seed blocks 
@@ -163,7 +178,7 @@ int main(int argc, char **argv)
       lgi_unit_tensor_labels,relative_unit_tensor_filename_template,
       lsu3shell_space, lsu3shell_basis_table,lgi_expansions,
       lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array, 
-      lsu3hsell_index_lookup_table,restrict_seeds
+      lsu3shell_index_lookup_table,restrict_seeds
     );
 
   // std::cout<<"write seeds to file"<<std::endl;

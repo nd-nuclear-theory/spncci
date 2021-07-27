@@ -239,41 +239,25 @@ int main(int argc, char **argv)
     //   }
 
 
-  u3shell::SectorsU3SPN Bintr_sectors, Aintr_sectors, Nintr_sectors;
-  basis::OperatorBlocks<double> Bintr_matrices, Aintr_matrices, Nintr_matrices;
-  lsu3shell::ReadLSU3ShellSymplecticOperatorRMEs(
-      lsu3shell_basis_table,lsu3shell_space, 
-      run_parameters.Brel_filename,Bintr_sectors,Bintr_matrices,
-      run_parameters.Nrel_filename,Nintr_sectors,Nintr_matrices,
-      run_parameters.A
-    );
+  u3shell::SectorsU3SPN Aintr_sectors;
+  basis::OperatorBlocks<double>Aintr_matrices;
 
   lsu3shell::ReadLSU3ShellSymplecticRaisingOperatorRMEs(
       lsu3shell_basis_table,lsu3shell_space, 
       run_parameters.Arel_filename,Aintr_sectors,Aintr_matrices,
       run_parameters.A
     );
-
-
-  const u3shell::SectorsU3SPN& Ncm_sectors = Nintr_sectors;
-  basis::OperatorBlocks<double> Ncm_matrices;
-  lsu3shell::GenerateLSU3ShellNcmRMEs(
-      lsu3shell_space,Nintr_sectors,Nintr_matrices,
-      run_parameters.A-1,
-      Ncm_matrices
-    );
-
   
   lgi::MultiplicityTaggedLGIVector lgi_families;
   basis::OperatorBlocks<double> lgi_expansions;
-  std::vector<int> lsu3shell_index_lookup_table;
-  
-  lgi::GenerateLGIExpansion(
-      lsu3shell_space, 
-      Bintr_sectors,Bintr_matrices,Ncm_sectors,Ncm_matrices,
-      run_parameters.Nsigma0,
-      lgi_families,lgi_expansions,
-      lsu3shell_index_lookup_table
+
+  lgi::GetLGIExpansion(
+      lsu3shell_space,lsu3shell_space,
+      lsu3shell_basis_table,lsu3shell_basis_table,
+      run_parameters.Brel_filename,
+      run_parameters.Nrel_filename,
+      run_parameters.A, run_parameters.Nsigma0,
+      lgi_families,lgi_expansions
     );
 
   // diagnostics

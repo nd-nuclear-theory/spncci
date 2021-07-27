@@ -302,6 +302,8 @@ def retrieve_archived_files(filename):
     Retrieve archived files and untar. 
     """
     
+    print(operator_directory_list)
+    print(operator_subdirectory_list)
     archive_filename = mcscript.utils.search_in_subdirectories(
         operator_directory_list,
         operator_subdirectory_list,

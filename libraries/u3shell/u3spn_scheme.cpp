@@ -106,11 +106,13 @@ namespace u3shell {
     const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket, 
     const OperatorLabelsU3S& operator_labels,bool spin_scalar
   )
+  : BaseSectors(space_bra,space_ket)
   {
+    // std::cout<<"space_bra size "<<space_bra.size()<<"  state_ket size "<<space_ket.size()<<std::endl;
     for (int bra_subspace_index=0; bra_subspace_index<space_bra.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space_ket.size(); ++ket_subspace_index)
         {
-          // retrieve subspaces
+          // std::cout<<"retrieve subspaces "<<bra_subspace_index<<"  "<<ket_subspace_index<<std::endl;
           const SubspaceU3SPN& bra_subspace = space_bra.GetSubspace(bra_subspace_index);
           const SubspaceU3SPN& ket_subspace = space_ket.GetSubspace(ket_subspace_index);
 
@@ -120,13 +122,13 @@ namespace u3shell {
           allowed &= (ket_subspace.N() + operator_labels.N0() - bra_subspace.N() == 0);
           // spin
           allowed &= am::AllowedTriangle(ket_subspace.S(),operator_labels.S0(),bra_subspace.S());
-          // proton and neutron spin
+          // std::cout<<"proton and neutron spin"<<std::endl;
           if (spin_scalar)
             {
               assert(operator_labels.S0()==0);
               allowed &= (ket_subspace.Sp()==bra_subspace.Sp()) && (ket_subspace.Sn()==bra_subspace.Sn());
               }
-          // find SU(3) multiplicity and check SU(3) selection
+          // std::cout<<" find SU(3) multiplicity and check SU(3) selection"<<std::endl;
           int multiplicity = 0;
           if (allowed)
             {
@@ -134,11 +136,12 @@ namespace u3shell {
               allowed &= (multiplicity > 0);
             }
 
-          // push sectors (tagged by multiplicity)
+          // std::cout<<"push sectors (tagged by multiplicity)"<<std::endl;
           if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector({bra_subspace_index,ket_subspace_index,multiplicity_index});
+                
               }
         }
   }

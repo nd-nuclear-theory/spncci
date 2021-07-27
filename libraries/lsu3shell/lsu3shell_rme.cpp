@@ -58,18 +58,15 @@ namespace lsu3shell
         int i,j;
         std::istringstream line_stream(line);
         line_stream >> i >> j;
-        // std::cout<<i<<" "<<j<<std::endl;
 
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
         const LSU3ShellBasisGroupData& group_i = lsu3_basis_table_bra[i];
         const LSU3ShellBasisGroupData& group_j = lsu3_basis_table_ket[j];
-
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
-        // std::cout<<fmt::format("{}  {}  {}", group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
-        // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
+        
         // extract and store matrix elements
         int i_space=space_bra.LookUpSubspaceIndex(group_i.omegaSPN);
         int j_space=space_ket.LookUpSubspaceIndex(group_j.omegaSPN);
@@ -131,7 +128,6 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEsBinary(
-      bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table_bra,
       const u3shell::SpaceU3SPN& space_bra, 
@@ -140,7 +136,8 @@ namespace lsu3shell
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
-      double scale_factor
+      double scale_factor,
+      bool sp3r_generators
     )
   {
     // open file
@@ -154,13 +151,18 @@ namespace lsu3shell
     int float_precision;
     mcutils::ReadBinary<int>(in_stream,float_precision);
     assert((float_precision==4)||(float_precision==8));
-    // std::cout
-    //   << fmt::format("RME input: filename {}, format_code {}, float_precision {}",filename,format_code,float_precision)
-    //   << std::endl;
+    std::cout
+      << fmt::format("RME input: filename {}, format_code {}, float_precision {}",filename,format_code,float_precision)
+      << std::endl;
 
     // allocate matrices for operator
+    for(int s=0; s<sectors.size(); ++s)
+      {
+        const auto& sector = sectors.GetSector(s);
+        const auto& bra_subspace = sector.bra_subspace();
+        const auto& ket_subspace = sector.bra_subspace();
+      }
     basis::SetOperatorToZero(sectors,blocks);
-
     // read rmes
     while(in_stream)
       {
@@ -175,14 +177,12 @@ namespace lsu3shell
 
         // retrieve lsu3shell basis multiplicity group information
         u3shell::U3SPN omegaSPNi, omegaSPNj;
-        assert((i<lsu3_basis_table_bra.size())&&(j<lsu3_basis_table_ket.size()));
+        assert((i<lsu3_basis_table_bra.size())&&(j<lsu3_basis_table_ket.size()));        
         const LSU3ShellBasisGroupData& group_i = lsu3_basis_table_bra[i];
         const LSU3ShellBasisGroupData& group_j = lsu3_basis_table_ket[j];
         u3::SU3 xi(group_i.omegaSPN.SU3());
         u3::SU3 xj(group_j.omegaSPN.SU3());
-        // std::cout<<fmt::format("{}  {}  {}", group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
         int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
-        // std::cout<<group_i.dim<<"  "<<group_j.dim<<"  "<<rho0_max<<std::endl;
         int i_subspace_index=space_bra.LookUpSubspaceIndex(group_i.omegaSPN);
         int j_subspace_index=space_ket.LookUpSubspaceIndex(group_j.omegaSPN);
         assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
@@ -191,6 +191,7 @@ namespace lsu3shell
         RMEIndexType num_rmes = group_i.dim*group_j.dim*rho0_max;
         if(rho0_max==0)
           std::cout<<fmt::format("{} {}  {}  {}  {}", i,j,group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
+        
         mcutils::VerifyBinary<RMEIndexType>(
             in_stream,num_rmes,
             fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
@@ -239,6 +240,7 @@ namespace lsu3shell
 
                 // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
                 // calculate the sector_index by offsetting from the sector with rho0=1.
+                // std::cout<<"Looking up sector index"<<std::endl;
                 int sector_index=sectors.LookUpSectorIndex(i_subspace_index,j_subspace_index,rho0);
                 assert(sector_index!=basis::kNone);
                 int row_index=group_i.start_index+gi;
@@ -252,7 +254,6 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEs(
-      bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table_bra,
       const u3shell::SpaceU3SPN& space_bra, 
@@ -261,7 +262,8 @@ namespace lsu3shell
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
-      double scale_factor
+      double scale_factor,
+      bool sp3r_generators
     )
   {
 
@@ -275,8 +277,11 @@ namespace lsu3shell
     //   mode_argument |= std::ios_base::binary;
 
     if (g_rme_binary_format)
+      {
+        std::cout<<"binary format"<<std::endl;
       // binary format
-      ReadLSU3ShellRMEsBinary(sp3r_generators,filename,lsu3_basis_table_bra,space_bra,lsu3_basis_table_ket,space_ket,operator_labels,sectors,blocks,scale_factor);
+      ReadLSU3ShellRMEsBinary(filename,lsu3_basis_table_bra,space_bra,lsu3_basis_table_ket,space_ket,operator_labels,sectors,blocks,scale_factor,sp3r_generators);
+      }
     else
       // text format
       ReadLSU3ShellRMEsText(filename,lsu3_basis_table_bra,space_bra,lsu3_basis_table_ket,space_ket,operator_labels,sectors,blocks,scale_factor);
@@ -301,14 +306,14 @@ namespace lsu3shell
 
   void 
   ReadLSU3ShellRMEs(
-      bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table,
       const u3shell::SpaceU3SPN& space, 
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
-      double scale_factor
+      double scale_factor,
+      bool sp3r_generators
     )
   //Wrapper function for when bra space and ket space are the same.
   {
@@ -316,72 +321,15 @@ namespace lsu3shell
       const LSU3ShellBasisTable& lsu3_basis_table_ket=lsu3_basis_table;
       const u3shell::SpaceU3SPN& space_bra=space;
       const u3shell::SpaceU3SPN& space_ket=space;
+
       ReadLSU3ShellRMEs(
-        sp3r_generators,filename,
+        filename,
         lsu3_basis_table_bra,space_bra, 
         lsu3_basis_table_ket,space_ket,
         operator_labels,sectors,
-        blocks,scale_factor
+        blocks,scale_factor,sp3r_generators
       );
   }
-
-  void 
-  ReadLSU3ShellRMEs(
-      const std::string& filename,
-      const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
-      const u3shell::OperatorLabelsU3ST& operator_labels,
-      const u3shell::SectorsU3SPN& sectors,
-      lsu3shell::OperatorBlocks& blocks,
-      double scale_factor
-    )
-  {
-    LSU3ShellBasisTable lsu3_basis_table_bra=lsu3_basis_table;
-    LSU3ShellBasisTable lsu3_basis_table_ket=lsu3_basis_table;
-    u3shell::SpaceU3SPN space_bra=space;
-    u3shell::SpaceU3SPN space_ket=space;
-
-    bool sp3r_generators=false;
-    lsu3shell::ReadLSU3ShellRMEs(
-      sp3r_generators,filename,lsu3_basis_table,space, 
-      operator_labels, sectors,blocks,scale_factor
-    );
-
-  }
-
-  void
-    ReadLSU3ShellSymplecticOperatorRMEs(
-        const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
-        const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, lsu3shell::OperatorBlocks& Bintr_matrices,
-        const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, lsu3shell::OperatorBlocks& Nintr_matrices,
-        int A
-      )
-  {
-    // read Brel => Bintr
-    u3shell::OperatorLabelsU3ST Brel_labels(-2,u3::SU3(0,2),0,0,0);
-    Bintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Brel_labels,true);
-    bool sp3r_generators=true;
-    lsu3shell::ReadLSU3ShellRMEs(
-      sp3r_generators,
-        Brel_filename,
-        lsu3shell_basis_table,lsu3shell_space,
-        Brel_labels,Bintr_sectors,Bintr_matrices,
-        2./A
-      );
-    
-    // read Nrel => Nintr
-    u3shell::OperatorLabelsU3ST Nrel_labels(0,u3::SU3(0,0),0,0,0);
-    Nintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Nrel_labels,true);
-    lsu3shell::ReadLSU3ShellRMEs(
-        sp3r_generators,
-        Nrel_filename,
-        lsu3shell_basis_table,lsu3shell_space,
-        Nrel_labels,Nintr_sectors,Nintr_matrices,
-        2./A
-      );
-  }
-
 
   void
     ReadLSU3ShellSymplecticRaisingOperatorRMEs(
@@ -396,11 +344,10 @@ namespace lsu3shell
     Aintr_sectors = u3shell::SectorsU3SPN(lsu3shell_space,Arel_labels,true);
     bool sp3r_generators=true;
     lsu3shell::ReadLSU3ShellRMEs(
-        sp3r_generators,
         Arel_filename,
         lsu3shell_basis_table,lsu3shell_space,
         Arel_labels,Aintr_sectors,Aintr_matrices,
-        2./A
+        2./A,sp3r_generators
       );
   }
 
@@ -509,11 +456,7 @@ namespace lsu3shell
     for(int sector_index=0; sector_index<Nrel_sectors.size(); ++sector_index)
       {
         // define alias for subspace
-        //
-        // Note: Sectors here are diagonal and in 1-1 correspondence
-        // with subspaces.  We do not actually need the space as an
-        // argument, but keep it for uniformity.
-        assert(Nrel_sectors.GetSector(sector_index).IsDiagonal());
+        // assert(Nrel_sectors.GetSector(sector_index).IsDiagonal());
         const auto& subspace = Nrel_sectors.GetSector(sector_index).ket_subspace();
 
         // calculate Ncm

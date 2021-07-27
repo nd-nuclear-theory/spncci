@@ -47,6 +47,7 @@
 
   3/30/19 (aem): Recreated. 
   10/10/19 (aem): Added option to write lgi expansion to separate files 
+  7/26/21 (aem): Updated to allow for different bra and ket bases.
 ****************************************************************/
 #include <fstream>  
 #include "fmt/format.h"
@@ -76,7 +77,8 @@ int main(int argc, char **argv)
       <<"Requires directory named lsu3shell_rme in cwd which containing files:"<<std::endl
       <<"   Brel.rme"<<std::endl
       <<"   Nrel.rme"<<std::endl
-      <<"   lsu3shell_basis.dat"<<std::endl;
+      <<"   lsu3shell_basis_bra.dat"<<std::endl
+      <<"   lsu3shell_basis_ket.dat"<<std::endl;
 
     std::exit(EXIT_FAILURE);
   }
@@ -93,7 +95,6 @@ int main(int argc, char **argv)
   if(argc==5)
     file_partition=argv[4];
 
-  std::cout<<"argc "<<argc<<"  file partition "<<file_partition<<std::endl;
   if(file_partition!="single" and file_partition!="individual" and  file_partition!="individual-text")
     {
       std::cout<<"invalid value for optional parameter <file_partition>.  Options are:"<<std::endl;
@@ -118,15 +119,16 @@ int main(int argc, char **argv)
 
   // su3rme output files
   std::string su3rme_filename_base="lsu3shell_rme";
-  std::string lsu3shell_basis_filename=su3rme_filename_base+"/lsu3shell_basis.dat"; // Will need to include path to file
+  std::string lsu3shell_basis_filename_bra=su3rme_filename_base+"/lsu3shell_basis_bra.dat"; 
+  std::string lsu3shell_basis_filename_ket=su3rme_filename_base+"/lsu3shell_basis_ket.dat"; 
+
+  // Operator parameters
+  std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
+  std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
 
   // Generate Nsigma0 and N1v from nuclei and type 
   HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
   int N1v=spncci::ValenceShellForNuclide(nuclide);
-  
-  // Operator parameters
-  std::string Brel_filename=su3rme_filename_base+"/Brel.rme";
-  std::string Nrel_filename=su3rme_filename_base+"/Nrel.rme";
 
   // Unit tensor parameters
   int J0=-1;
@@ -136,13 +138,22 @@ int main(int argc, char **argv)
   // read lsu3shell basis
   ////////////////////////////////////////////////////////////////
   std::cout << "Read lsu3shell basis..." << std::endl;
-  // read lsu3shell basis (regroup into U3SPN subspaces)
-  lsu3shell::LSU3ShellBasisTable lsu3shell_basis_table;
-  lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance;
-  u3shell::SpaceU3SPN lsu3shell_space;
+
+  // read lsu3shell basis files (regroup into U3SPN subspaces)
+  lsu3shell::LSU3ShellBasisTable lsu3shell_basis_table_bra;
+  lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance_bra;
+  u3shell::SpaceU3SPN lsu3shell_space_bra;
   lsu3shell::ReadLSU3ShellBasis(
-      Nsigma0, lsu3shell_basis_filename,lsu3shell_basis_table,
-      lsu3shell_basis_provenance,lsu3shell_space
+      Nsigma0, lsu3shell_basis_filename_bra,lsu3shell_basis_table_bra,
+      lsu3shell_basis_provenance_bra,lsu3shell_space_bra
+    );
+
+  lsu3shell::LSU3ShellBasisTable lsu3shell_basis_table_ket;
+  lsu3shell::U3SPNBasisLSU3Labels lsu3shell_basis_provenance_ket;
+  u3shell::SpaceU3SPN lsu3shell_space_ket;
+  lsu3shell::ReadLSU3ShellBasis(
+      Nsigma0, lsu3shell_basis_filename_ket,lsu3shell_basis_table_ket,
+      lsu3shell_basis_provenance_ket,lsu3shell_space_ket
     );
 
   ////////////////////////////////////////////////////////////////
@@ -151,13 +162,13 @@ int main(int argc, char **argv)
   std::cout << "Solve for LGIs..." << std::endl;
   lgi::MultiplicityTaggedLGIVector lgi_families;
   lsu3shell::OperatorBlocks lgi_expansions;
-  std::vector<int> lsu3shell_index_lookup_table;
+  // std::vector<int> lsu3shell_index_lookup_table;
 
   lgi::GetLGIExpansion(
-      lsu3shell_space,lsu3shell_basis_table,
+      lsu3shell_space_bra,lsu3shell_space_ket,
+      lsu3shell_basis_table_bra,lsu3shell_basis_table_ket,
       Brel_filename,Nrel_filename,Z+N, Nsigma0,
-      lgi_families, lgi_expansions,
-      lsu3shell_index_lookup_table
+      lgi_families, lgi_expansions
     );
 
   if(file_partition=="single")

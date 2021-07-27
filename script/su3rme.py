@@ -1,4 +1,4 @@
-"""su3rme.py -- define scripting for lsu3shell generation of su3rmes
+"""su3rme.py -- define scripting for running lsu3shell/SU3RME_MPI
 
     Environment variables:
 
@@ -83,12 +83,16 @@
   SPDX-License-Identifier: MIT
 
   2/16/18 (aem): Created with code extracted from spncci.py.
-
+  7/26/21 (aem): 
+        + Factored lsu3shell operator control code into lsu3shell_operator.py
+        + Added lsu3shell model space file generator
+        + Updated script to handle different bra and ket model spaces
 """
 import glob
-import mcscript
 import os
-
+from contextlib import redirect_stdout
+import subprocess
+import mcscript
 import lsu3shell_operator as lsu3
 ################################################################
 # global configuration
@@ -96,7 +100,7 @@ import lsu3shell_operator as lsu3
 
 # environment configuration variables
 project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
-operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
+# operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
 operator_subdirectory_list = []
 su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
 su3rme_subdirectory_list = []
@@ -105,79 +109,126 @@ su3rme_subdirectory_list = []
 # ... from lsu3shell
 su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
 su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
-
+u3su3list2modelspace_executable = os.path.join(project_root,"lsu3shell","programs","tools","U3xSU2List2ModelSpace")
 # ... from spncci
-generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
-u3s_subspace_lister_executable=os.path.join(project_root,"spncci","programs","lgi","get_u3s_subspaces")
-
+u3s_subspace_lister_executable = os.path.join(project_root,"spncci","programs","lgi","get_u3s_subspaces")
+BrelNcm_subspace_lister = os.path.join(project_root,"spncci","programs","lgi","Brel_subspace_lister")
 
 
 ################################################################
 # LSU3Shell basis setup
 ################################################################
-def generate_model_space_files(task):
+def generate_default_lsu3shell_model_space(model_space_filename,task):
+    """
+    Generate model space file for all irreps up to given Nmax
+    """
+    (Z,N) = task["nuclide"]
+    Nmax = task["Nsigma_max"]
+    Nstep = task["Nstep"]
+    lines=[f"{Z} {N} -1\n"]
+    for Nex in range(Nmax%Nstep,Nmax+1,Nstep):
+        lines.append(f"{Nex} -1\n")
+    file=open(model_space_filename,"w")
+    file.writelines(lines)
+    file.close()
+
+
+def get_model_space_file_from_u3su2list(nuclide,lgi_list_filename,model_space_filename):
+
+    file=open(model_space_filename,"w")
+    subprocess.run([u3su3list2modelspace_executable, lgi_list_filename],stdout=file)    
+    file.close()
+
+    header=f"{nuclide[0]}  {nuclide[1]}  -1"
+    with open(model_space_filename, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(header.rstrip('\r\n') + '\n' + content)
+
+
+def generate_model_space_files_lgi(task):
+    """
+    Create LSU3shell model space files for SU3RME for Brel+Ncm:
+        model_space_bra.dat
+        model_space_ket.dat
+    
+    If no model space file is given (for bra or ket) in task, 
+    then generate model space for full space.
+
+    Otherwise, copy truncated model space to model space input files: 
+        task["model_space_file_bra"] -> model_space_bra.dat
+        task["model_space_file_ket"] -> model_space_ket.dat
+    """
+
+    
+    if task["lgi_labels"]==None:
+        generate_default_lsu3shell_model_space("lgi_model_space_bra.dat",task)
+        generate_default_lsu3shell_model_space("lgi_model_space_ket.dat",task)
+
+    else:
+        nuclide=task["nuclide"]
+
+        ## Generate ket model space
+        ket_filename="lgi_model_space_ket.dat"
+        get_model_space_file_from_u3su2list(nuclide,task["lgi_labels"],ket_filename)
+        
+
+
+        ## Generate bra model space 
+        bra_filename="lgi_model_space_bra.dat"
+        mcscript.call([BrelNcm_subspace_lister,f"{nuclide[0]}",f"{nuclide[1]}",task["lgi_labels"],"lgi_labels_bra.dat"])
+        
+        get_model_space_file_from_u3su2list(nuclide,"lgi_labels_bra.dat",bra_filename)
+
+
+
+def generate_model_space_files_unittensors(task):
     """
     Create LSU3shell model space files for SU3RME:
         model_space_bra.dat
         model_space_ket.dat
     
-    If no model space file is given (for bra or ket) in task, then generate 
-    model space for full space using generate_lsu3shell_model_space_executable.
+    If no model space file is given (for bra or ket) in task, 
+    then generate model space for full space.
 
     Otherwise, copy truncated model space to model space input files: 
-        model_space_bra.dat
-        model_space_ket.dat
+        task["model_space_file_bra"] -> model_space_bra.dat
+        task["model_space_file_ket"] -> model_space_ket.dat
     """
-    model_space_executable_command_line=[
-        generate_lsu3shell_model_space_executable,
-        "{nuclide[0]:d}".format(**task),
-        "{nuclide[1]:d}".format(**task),
-        "{Nsigma_max:d}".format(**task),
-        "{Nstep:d}".format(**task)
-    ]
 
     if task["model_space_file_bra"]==None:
         print("generating model_space.dat")
-        
-        mcscript.call(command_line,mode=mcscript.CallMode.kSerial)
-        mcscript.call(["cp","model_space.dat","model_space_bra.dat"])
+        generate_default_lsu3shell_model_space("model_space_bra.dat",task)
 
     else:
         mcscript.call(["cp",task["model_space_file_bra"], "model_space_bra.dat"])
 
     if task["model_space_file_ket"]==None:
-        mcscript.call(command_line,mode=mcscript.CallMode.kSerial)
-        mcscript.call(["cp","model_space.dat","model_space_ket.dat"])
+        generate_default_lsu3shell_model_space("model_space_ket.dat",task)
 
     else:
         mcscript.call(["cp",task["model_space_file_ket"], "model_space_ket.dat"])
 
 
-
-def generate_basis_table(task):
+def generate_basis_table(model_space_file,basis_file,task):
     """Create SU(3)-NCSM basis table for bra and ket modle spaces.
 
     Invokes ncsmSU3xSU2IrrepsTabular.
-
     """
-    model_space_filename = "model_space_ket.dat".format(**task)
-    basis_listing_filename = "lsu3shell_basis_ket.dat"
-
-    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
+    command_line=[su3basis_executable,model_space_file,basis_file]
+    mcscript.call(command_line,mode=mcscript.CallMode.kSerial)
 
 
-    model_space_filename = "model_space_bra.dat".format(**task)
-    basis_listing_filename = "lsu3shell_basis_bra.dat"
+def generate_basis_tables_unittensors(task):
+    generate_model_space_files_unittensors(task)
+    generate_basis_table("model_space_bra.dat","lsu3shell_basis_bra.dat",task)
+    generate_basis_table("model_space_ket.dat","lsu3shell_basis_ket.dat",task)
 
-    command_line=[su3basis_executable,model_space_filename,basis_listing_filename]
-    mcscript.call(
-        command_line,
-        mode=mcscript.CallMode.kSerial
-    )
+
+def do_generate_basis_tables(task):
+    generate_basis_tables_unittensors(task)
+    generate_model_space_files_lgi(task)
+
 
 ################################################################
 # relative operator SU(3) RME construction
@@ -346,6 +397,8 @@ def generate_lsu3shell_rmes(task):
     # generate operators rmes
     calculate_rmes(task)    
 
+
+
 def do_generate_lsu3shell_generator_rmes(task,save=True):
     """
     Control code for generating RMEs in the SU(3)-NCSM basis, for relative
@@ -425,6 +478,43 @@ def do_generate_lsu3shell_rmes(task):
     # clean up working directory
     mcscript.call(["du","-hs","."])  # log working directory disk usage
     delete_filenames=glob.glob('*')
+    mcscript.call(["rm"] + delete_filenames)
+
+
+
+def su3rme_cleanup(task):
+    """Create archive of SU(3) RMEs of relative operators.
+    Some auxiliary files (e.g., the list of operators) are saved as well.
+    Manual follow-up: The rme files are bundled into tgz files and saved to
+    the current run's results directory.  They should then be moved
+    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
+    subsequent use.
+    """
+    # select files to save
+    # keep_file_list = [
+    #     "model_space_ket.dat",
+    #     "model_space_bra.dat",
+    #     "relative_operators.dat",
+    #     "lsu3shell_basis_bra.dat",
+    #     "lsu3shell_basis_ket.dat",
+    #     "relative_unit_tensor_labels.dat"
+    #     ]
+    keep_file_list = glob.glob('*.rme')
+    keep_file_list += glob.glob('*.dat')
+
+    # generate archive
+    # archive_filename = "su3rme-{}.tgz".format(su3rme_descriptor)
+    
+    ## If directory doesn't exist
+    if not os.path.exists("lsu3shell_rme"):
+        mcscript.call(["mkdir","lsu3shell_rme"])
+
+    mcscript.call(
+        ["mv"] + keep_file_list + ["lsu3shell_rme/"]
+    )
+
+    delete_filenames=glob.glob('*.PN')
+    delete_filenames+=glob.glob('*.PPNN')
     mcscript.call(["rm"] + delete_filenames)
     
 

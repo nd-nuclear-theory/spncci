@@ -18,7 +18,7 @@
   9/6/16 (mac): Created, based on a subset of u3st_scheme and u3::U3S.
   9/8/16 (mac): Add default constructors.
   2/17/16 (mac): Rename SubspaceU3SPN method Str to LabelStr.
-
+  7/21/21 (aem): Updated SectorsU3SPN to remove deprecated sector construction
 ****************************************************************/
 
 #ifndef U3SPN_SCHEME_H_

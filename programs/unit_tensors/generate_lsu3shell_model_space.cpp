@@ -17,6 +17,7 @@
 
   5/29/17 (mac): Extracted from generate_lsu3shell_relative_tensors.cpp.
 
+Deprecated in favor of using python script to generate model space file
 ****************************************************************/
 
 #include <fstream>

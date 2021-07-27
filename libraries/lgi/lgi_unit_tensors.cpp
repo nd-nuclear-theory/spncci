@@ -270,10 +270,10 @@ namespace lgi
 
             // std::cout<<"Read in lsu3shell rmes of unit tensor"<<std::endl;
             basis::OperatorBlocks<double> unit_tensor_lsu3shell_matrices;
-            bool include_sp3r_generators=false;
+            // bool include_sp3r_generators=false;
             double scale_factor=1.0;
             lsu3shell::ReadLSU3ShellRMEs(
-                include_sp3r_generators,filename,
+                filename,
                 lsu3shell_basis_table_bra,lsu3shell_space_bra,
                 lsu3shell_basis_table_ket,lsu3shell_space_ket,
                 unit_tensor_labels,unit_tensor_sectors,

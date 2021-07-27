@@ -24,6 +24,9 @@
   10/11/17 (aem) : Extract GetLGIExpansion from spncci/computation_control
   2/8/18 (aem) : removed lgi_families with gamma_max=0
   6/24/19 (aem) : Moved TransformOperatorTpSpBasis to lgi_unit_tensor
+  7/26/21 (aem) : 
+    + Removed dependency on lsu3shell_to_lgi conversion table
+    + Updated lgi solver to take different bra and ket spaces
 ****************************************************************/
 
 #ifndef LGI_PROB_H_
@@ -47,17 +50,17 @@ namespace lgi
 
 
   void 
-    GenerateLGIExpansion(
-        const u3shell::SpaceU3SPN& space, 
-        const u3shell::SectorsU3SPN& Brel_sectors,
-        const basis::OperatorBlocks<double>& Brel_matrices,
-        const u3shell::SectorsU3SPN& Ncm_sectors,
-        const basis::OperatorBlocks<double>& Ncm_matrices,
-        HalfInt Nsigma_0,
-        lgi::MultiplicityTaggedLGIVector& lgi_families,
-        basis::OperatorBlocks<double>& lgi_expansions,
-        std::vector<int>& lsu3shell_index_lookup_table
-      );
+  GenerateLGIExpansion(
+    const u3shell::SpaceU3SPN& space_bra,
+    const u3shell::SpaceU3SPN& space_ket, 
+    const u3shell::SectorsU3SPN& Brel_sectors,
+    const basis::OperatorBlocks<double>& Brel_matrices,
+    const u3shell::SectorsU3SPN& Ncm_sectors,
+    const basis::OperatorBlocks<double>& Ncm_matrices,
+    HalfInt Nsigma_0,
+    lgi::MultiplicityTaggedLGIVector& lgi_families,
+    basis::OperatorBlocks<double>& lgi_expansions
+  );
   // Generate the LGI Expansion in terms of lsu3shell SU(3)xSU(2)
   // reduced basis states by solving for the null space of the
   // Brel+Ncm matrix.
@@ -69,24 +72,22 @@ namespace lgi
   // Columns of kernel are expansion coefficients for each lgi.
   //
   //  Arguments:  (TODO update me!)
-  //    A (input) : atomic mass number of nucleus
-  //    lsu3_basis_table (input) : lookup table of LSU3Shell basis states between
-  //                                LSU3Shell basis and U3SPN space. 
   //    space (input) : space on which Brel and Nrel rme's are calculated
   //    Brel_filename (input) : file containing lsu3shell rme's of Brel
   //    Nrel_filename (input) : file containing lsu3shell rme's of Nrel
   //
   // lsu3hsell_index_lookup_table: look up take relating lsu3shell subspace index to lgi family index
 
-void GetLGIExpansion(
-    const u3shell::SpaceU3SPN& lsu3shell_space, 
-    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+  void GetLGIExpansion(
+    const u3shell::SpaceU3SPN& lsu3shell_space_bra,
+    const u3shell::SpaceU3SPN& lsu3shell_space_ket, 
+    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_bra,
+    const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_ket,
     const std::string& Brel_filename,
     const std::string& Nrel_filename,
     int A, HalfInt Nsigma_0,
     lgi::MultiplicityTaggedLGIVector& lgi_families,
-    lsu3shell::OperatorBlocks& lgi_expansions,
-    std::vector<int>& lsu3shell_index_lookup_table
+    lsu3shell::OperatorBlocks& lgi_expansions
   );
   // Get list of LGI labels and multiplicities and lgi expansions in lsu3shell basis
   //
@@ -99,14 +100,6 @@ void GetLGIExpansion(
   //   lsu3hsell_index_lookup_table: look up table relating 
   //    lsu3shell subspace index to lgi family index needed
   //    when there are lsu3shell subspaces with no lgi
-
-void WriteLSU3ShellToLGIConversionTable(const std::vector<int>& lsu3shell_index_lookup_table);
-  // Write out table that converts lsu3shell subspace index to lgi index 
-
-void ReadLSU3ShellToLGIConversionTable(std::vector<int>& lsu3shell_index_lookup_table);
-  // Read in table that converts lsu3shell subspace index to lgi index
-
-
 
 void WriteLGIExpansions(
     const std::string& filename, 

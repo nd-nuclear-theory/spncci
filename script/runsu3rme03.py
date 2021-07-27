@@ -23,6 +23,7 @@
   Department of Physics, University of Notre Dame
 
   - 5/14/19 (aem): Created.
+  -7/26/21 (aem): Updated to separate out lgi construction and seed calculation
 """
 
 import glob
@@ -30,7 +31,9 @@ import os
 import sys
 
 import mcscript
+import lsu3shell_operator as lsu3
 import su3rme
+import seeds
 import spncci
 
 mcscript.init()
@@ -38,8 +41,7 @@ mcscript.init()
 ##################################################################
 # data file search paths
 ##################################################################
-
-su3rme.operator_subdirectory_list += ["rununittensor01"]
+lsu3.operator_subdirectory_list += ["rununittensor01"]
 
 ##################################################################
 # build task list
@@ -58,6 +60,8 @@ task_list = [
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "su3rme_descriptor_template" : su3rme.su3rme_descriptor_template_Nsigmamax,
         "su3rme_mode" : "binary",
+        # "lgi_labels" : "/global/homes/a/amccoy/codes/spncci/script/6Li_lgi_list_Nmax12.dat",
+        "lgi_labels" : "/global/homes/a/amccoy/codes/spncci/data/lgi_set/lgi_list.dat",
         "model_space_file_bra" : None,
         "model_space_file_ket" : None
     }
@@ -85,11 +89,11 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        # su3rme.do_generate_lsu3shell_generator_rmes
+        seeds.get_lgi_expansion,
         su3rme.do_generate_lsu3shell_unittensor_rmes
-        ],
+        ]#,
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
-    archive_phase_handler_list=[mcscript.task.archive_handler_generic]
+    # archive_phase_handler_list=[mcscript.task.archive_handler_generic]
     )
 
 ################################################################

@@ -15,6 +15,7 @@
   10/11/17 (aem) : Extract Nsigma0ForNuclide from spncci_basis
   1/15/18 (aem) : Updated Read LGI to be consistant with write functions
   1/28/21 (aem) : Removed deprecated WriteLGIExpansion function.
+  7/26/21 (aem) :Added labels accessor to LGI class
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
@@ -101,6 +102,7 @@ namespace lgi
 
     int Nex() const {return Nex_;}
     u3::U3 sigma() const {return U3();}
+    u3shell::U3SPN labels() const {u3shell::U3SPN(U3S(),Sp(),Sn());}
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
