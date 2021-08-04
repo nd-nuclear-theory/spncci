@@ -14,7 +14,7 @@
   03/11/16 (aem,mac): Implement basis irrep construction and traversal.
   03/17/16 (aem,mac): Remove superfluous data members from LGI.
   09/08/16  (aem): Rename LGI to SpIrrep and moved LGI read function to lgi.h
-  12/05/16 (aem): Change SpIrrepVector from vector of SpIrreps to vector of 
+  12/05/16 (aem): Change SpIrrepVector from vector of SpIrreps to vector of
                   MultiplicityTagged SpIrreps where tag is gamma_max.
   01/26/17 (mac): Change SigmaIrrepMap from map to unordered_map.
   01/31/17 (mac):
@@ -463,6 +463,9 @@ namespace spncci
   //
   ////////////////////////////////////////////////////////////////
 
+  class BabySpNCCISubspace;
+  class BabySpNCCISpace;
+
   // labels
 
   typedef std::tuple<u3::U3,HalfInt,HalfInt,HalfInt,u3::U3> BabySpNCCISubspaceLabels;
@@ -470,7 +473,7 @@ namespace spncci
   // subspace
 
   class BabySpNCCISubspace
-    : public basis::BaseSubspace<spncci::BabySpNCCISubspaceLabels,int>
+    : public basis::BaseDegenerateSubspace<BabySpNCCISubspace,spncci::BabySpNCCISubspaceLabels,basis::BaseState<BabySpNCCISubspace>,int>
   // SubspaceLabelsType (u3shell::U3SPN): (omega,S)
   // StateLabelsType (int): 1 (just a place holder)
   {
@@ -495,11 +498,11 @@ namespace spncci
 
     // accessors
 
-    u3::U3 sigma() const {return std::get<0>(labels_);}
-    HalfInt Sp() const {return std::get<1>(labels_);}
-    HalfInt Sn() const {return std::get<2>(labels_);}
-    HalfInt S() const {return std::get<3>(labels_);}
-    u3::U3 omega() const {return std::get<4>(labels_);}
+    u3::U3 sigma() const {return std::get<0>(labels());}
+    HalfInt Sp() const {return std::get<1>(labels());}
+    HalfInt Sn() const {return std::get<2>(labels());}
+    HalfInt S() const {return std::get<3>(labels());}
+    u3::U3 omega() const {return std::get<4>(labels());}
     int Nn() const {return int(omega().N()-sigma().N());}
 
     u3::U3S sigmaS() const {return u3::U3S(sigma(),S());}
@@ -645,9 +648,9 @@ namespace spncci
       //      restrict hypersectors to include baby spncci subspaces for a given
       //      irrep family pair.  If irrep_family_index=-1, then there is no
       //      restriction by irrep family.
-      //    Nn0_conjugate_hypersectors : Generate hypersectors for special case that 
-      //      Nn=0 and Nnp!=0.  irrep_family_index_bra and irrep_family_index_ket are 
-      //      passed as flipped, so hypersectors enumerate for Nnp'=0 and Nn'!=0. 
+      //    Nn0_conjugate_hypersectors : Generate hypersectors for special case that
+      //      Nn=0 and Nnp!=0.  irrep_family_index_bra and irrep_family_index_ket are
+      //      passed as flipped, so hypersectors enumerate for Nnp'=0 and Nn'!=0.
 
       BabySpNCCIHypersectors(
         const lgi::MultiplicityTaggedLGIVector& lgi_families,
@@ -658,7 +661,7 @@ namespace spncci
         int irrep_family_index_1, int irrep_family_index_2
       );
       // Constructor for setting up hypersectors for only the LGI of each irrep family
-      // for use in storing seed RMEs for unit tensor recurrence. 
+      // for use in storing seed RMEs for unit tensor recurrence.
 
   };
 
@@ -687,7 +690,7 @@ namespace spncci
         int irrep_family_index_1=-1, int irrep_family_index_2=-1, bool restrict_lower_triangle=false
       );
       // Enumerate hypersectors between baby spncci subsaces for a set of operators in observables space
-      // 
+      //
       // Arguments:
       //    baby_spncci_space : Sp3rU3S subspaces
       //    observable_space : operator space [U(1)xSU(3)xSU(2) tensors]
@@ -709,9 +712,9 @@ namespace spncci
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Branched symplectic basis 
+  // Branched symplectic basis
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   // convenience typedef for (L,S)
   typedef std::pair<u3::U3,int> omegaLLabels;
 
@@ -760,12 +763,16 @@ namespace spncci
 
   ////////////////////////////////////////////////////////////////
 
+  class SubspaceSpBasis;
+  class StateSpBasis;
+  class SpaceSpBasis;
+
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
 
   class SubspaceSpBasis
-    : public basis::BaseDegenerateSubspace<int,omegaLLabels>
+    : public basis::BaseDegenerateSubspace<SubspaceSpBasis,int,StateSpBasis,omegaLLabels>
     // SubspaceLabelsType (int) : irrep_family_index
     //     Formerly   SubspaceLabelsType (u3::U3SPN): (sigma,Sp,Sn,S)
     // StateLabelsType (omegaLLabels): (omega,L)
@@ -774,7 +781,7 @@ namespace spncci
 
       // constructors
 
-      SubspaceSpBasis() {};
+      SubspaceSpBasis() = default;
       // default constructor -- provided since required for certain
       // purposes by STL container classes (e.g., std::vector::resize)
 
@@ -786,7 +793,7 @@ namespace spncci
       );
 
       // subspace label accessors
-      // u3shell::U3SPN sigmaSPN() const {return labels_;}
+      // u3shell::U3SPN sigmaSPN() const {return labels();}
       u3shell::U3SPN sigmaSPN() const {return sigmaSPN_;}
 
       HalfInt N() const {return sigmaSPN().U3().N();}
@@ -794,9 +801,8 @@ namespace spncci
       HalfInt S() const {return sigmaSPN().S();}
 
       // int irrep_family_index() const {return irrep_family_index_;}
-      int irrep_family_index() const {return labels_;}
+      int irrep_family_index() const {return labels();}
       int gamma_max() const {return gamma_max_;}
-      int dimension() const {return dimension_;}
 
       // state auxiliary data accessors
       const std::vector<int>& state_kappa_max() const {return state_kappa_max_;}
@@ -811,7 +817,6 @@ namespace spncci
 
       int gamma_max_;
       int irrep_family_index_;
-      int dimension_;
       u3shell::U3SPN sigmaSPN_;
 
       // state auxiliary data

@@ -17,9 +17,8 @@
 namespace u3shell {
 
   RelativeSubspaceU3ST::RelativeSubspaceU3ST(int N, int S, int T, int g)
+    : BaseSubspace{SubspaceLabelsType(N,S,T,g)}
   {
-    // set values
-    labels_ = SubspaceLabelsType(N,S,T,g);
     // validate subspace labels
     assert(ValidLabels());
     PushStateLabels(1);
@@ -151,10 +150,8 @@ namespace u3shell {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
   RelativeCMSubspaceU3ST::RelativeCMSubspaceU3ST(u3::U3 omega, int S, int T, int g)
+    : BaseSubspace{SubspaceLabelsType(omega,S,T,g)}
   {
-
-    // set values
-    labels_ = SubspaceLabelsType(omega,S,T,g);
 
     // validate subspace labels
     assert(ValidLabels());
@@ -316,10 +313,8 @@ namespace u3shell {
 
 
   TwoBodySubspaceU3ST::TwoBodySubspaceU3ST(u3::U3 omega, int S, int T, int g)
+    : BaseSubspace{SubspaceLabelsType(omega,S,T,g)}
   {
-
-    // set values
-    labels_ = SubspaceLabelsType(omega,S,T,g);
 
     // validate subspace labels
     assert(ValidLabels());

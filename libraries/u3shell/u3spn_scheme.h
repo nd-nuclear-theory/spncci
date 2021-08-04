@@ -27,6 +27,7 @@
 #include <string>
 
 #include "basis/basis.h"
+#include "basis/degenerate.h"
 #include "sp3rlib/u3.h"
 #include "u3shell/tensor_labels.h"
 
@@ -188,7 +189,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class SubspaceU3SPN
-    : public basis::BaseSubspace<u3shell::U3SPN,int>
+    : public basis::BaseDegenerateSubspace<SubspaceU3SPN,u3shell::U3SPN,basis::BaseState<SubspaceU3SPN>,int>
   // Subspace class for two-body states of given U(3)xS.
   //
   // SubspaceLabelsType (u3shell::U3SPN): (omega,S)
@@ -198,14 +199,14 @@ namespace u3shell {
 
     // constructor
 
-    SubspaceU3SPN() {};
+    SubspaceU3SPN() = default;
     // default constructor -- provided since required for certain
     // purposes by STL container classes (e.g., std::vector::resize)
 
     SubspaceU3SPN (const u3shell::U3SPN& omegaSPN, int dimension);
 
     // accessors
-    u3shell::U3SPN U3SPN() const {return labels_;}
+    u3shell::U3SPN U3SPN() const {return labels();}
     u3::U3S U3S() const {return U3SPN().U3S();}
     u3::U3 U3() const {return U3SPN().U3();}
     u3::SU3 SU3() const {return U3SPN().SU3();}
@@ -280,7 +281,7 @@ namespace u3shell {
     //     Sp0=0 and Sn0=0 (in which case it is assumed S0=0)
 
     SectorsU3SPN(
-      const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket, 
+      const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket,
       const OperatorLabelsU3S& operator_labels,bool spin_scalar
     );
     // See above for description.  Allows for possibility of different bra and ket spaces

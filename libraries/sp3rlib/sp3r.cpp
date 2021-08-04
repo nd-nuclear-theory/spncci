@@ -49,11 +49,8 @@
   ////////////////////////////////////////////////////////////////
 
        U3Subspace::U3Subspace(const u3::U3& omega, int upsilon_max)
-       {
-    // set subspace labels
-        labels_ = omega;
-        upsilon_max_=upsilon_max;
-      }
+        : BaseSubspace{{omega}}, upsilon_max_{upsilon_max}
+       {}
 
       void U3Subspace::Init(const SpanakopitaRangeType& state_range)
       {

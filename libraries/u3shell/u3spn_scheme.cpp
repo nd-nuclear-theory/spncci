@@ -27,12 +27,10 @@ namespace u3shell {
   }
 
   SubspaceU3SPN::SubspaceU3SPN (const u3shell::U3SPN& omegaSPN, int dimension)
+    : BaseDegenerateSubspace{omegaSPN}
   {
-    // set labels
-    labels_ = omegaSPN;
-
     // save dimension
-    dimension_ = dimension;
+    PushStateLabels(0, dimension);
   }
 
   std::string SubspaceU3SPN::LabelStr() const
@@ -103,7 +101,7 @@ namespace u3shell {
   }
 
   SectorsU3SPN::SectorsU3SPN(
-    const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket, 
+    const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket,
     const OperatorLabelsU3S& operator_labels,bool spin_scalar
   )
   {

@@ -5,7 +5,7 @@
   coupling scheme.
 
   Language: C++11
-                                 
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -36,7 +36,7 @@ namespace u3shell {
   // relative states in U3ST scheme
   ////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
@@ -50,33 +50,33 @@ namespace u3shell {
   // Subspaces
   //
   // Within the full space, subspaces are ordered by:
-  //    -- increasing N 
+  //    -- increasing N
   //    -- increasing S (S=0,1)
   //    -- increasing T (T=0,1)
   //    -- [g is implied by omega (N~g)] note this is the relative g
   // and subject to:
   //   -- N~g
-  // 
+  //
   // Subspaces are pruned to those of nonzero dimension.
   // Since spaces of interest are those which transform to two-body operators,
   // we restrict the basis to states which satisfy
   //    -- N+S+T odd
   //
   ////////////////////////////////////////////////////////////////
-  
+
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
 
   class RelativeSubspaceU3ST
-    : public basis::BaseSubspace<std::tuple<int,int,int,int>,int>
+    : public basis::BaseSubspace<RelativeSubspaceU3ST,std::tuple<int,int,int,int>,basis::BaseState<RelativeSubspaceU3ST>,int>
     // Subspace class for two-body states of given U(3)xSxT.
     //
     // SubspaceLabelsType (std::tuple): <N, S, T>
     //   N (int) :  U(3) label
     //   S (int) : spin
     //   T (int) : isospin
-    //   g (int) : grade (parity % 2) 
+    //   g (int) : grade (parity % 2)
     // StateLabelsType (int): 1 (just a place holder)
     {
   public:
@@ -85,13 +85,13 @@ namespace u3shell {
     RelativeSubspaceU3ST (int N, int S, int T, int g);
 
     // accessors
-    u3::U3 omega() const {return u3::U3(std::get<0>(labels_),0,0);}
-    u3::SU3 SU3() const {return u3::SU3(std::get<0>(labels_),0);}
-    int N() const {return std::get<0>(labels_);}
-    int S() const {return std::get<1>(labels_);}
-    int T() const {return std::get<2>(labels_);}
-    int g() const {return std::get<3>(labels_);}
-    std::tuple<int,int,int,int> Key() const {return labels_;}
+    u3::U3 omega() const {return u3::U3(std::get<0>(labels()),0,0);}
+    u3::SU3 SU3() const {return u3::SU3(std::get<0>(labels()),0);}
+    int N() const {return std::get<0>(labels());}
+    int S() const {return std::get<1>(labels());}
+    int T() const {return std::get<2>(labels());}
+    int g() const {return std::get<3>(labels());}
+    std::tuple<int,int,int,int> Key() const {return labels();}
     // diagnostic output
     std::string Str() const;
 
@@ -110,7 +110,7 @@ namespace u3shell {
   //   : public basis::BaseState<TwoBodySubspaceU3ST>
   // // State class for two-body states of given U(3)xSxT.
   // {
-    
+
   // public:
 
   //   // pass-through constructors
@@ -145,7 +145,7 @@ namespace u3shell {
     : public basis::BaseSpace<RelativeSubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
-    
+
   public:
 
     // constructor
@@ -197,7 +197,7 @@ namespace u3shell {
   // Relative-CM states in U3ST scheme
   ////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
@@ -211,16 +211,16 @@ namespace u3shell {
   // Subspaces
   //
   // Within the full space, subspaces are ordered by:
-  //    -- increasing omega 
+  //    -- increasing omega
   //    -- increasing S (S=0,1)
   //    -- increasing T (T=0,1)
   //    -- [g is implied by omega (N~g)]
   // and subject to:
   //   -- N~g
-  // 
+  //
   // Subspaces are pruned to those of nonzero dimension.
   //
-  // See documentation for TwoBodySubspaceU3ST below. 
+  // See documentation for TwoBodySubspaceU3ST below.
   ////////////////////////////////////////////////////////////////
   //
   // States
@@ -235,21 +235,24 @@ namespace u3shell {
   // This basis is for *identical* particle states, as enforced by the
   // antisymmetry constraint on Nr.
   //
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
+  class RelativeCMSubspaceU3ST;
+  class RelativeCMStateU3ST;
+  class RelativeCMSpaceU3ST;
 
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
 
   class RelativeCMSubspaceU3ST
-    : public basis::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int,int>>
+    : public basis::BaseSubspace<RelativeCMSubspaceU3ST,std::tuple<u3::U3,int,int,int>,RelativeCMStateU3ST,std::tuple<int,int>>
     // Subspace class for two-body states of given U(3)xSxT.
     //
     // SubspaceLabelsType (std::tuple): <omega, S, T, g>
     //   omega (u3::U3) :  U(3) label
     //   S (int) : spin
     //   T (int) : isospin
-    //   g (int) : grade (parity % 2) 
+    //   g (int) : grade (parity % 2)
     // StateLabelsType (std::tuple): <Nr,Ncm>
     //   Nr (int) : Nr
     //   Ncm (int) : Ncm (=N-Nr, with N determined by omega) -- redundant label
@@ -260,10 +263,10 @@ namespace u3shell {
     RelativeCMSubspaceU3ST (u3::U3 omega, int S, int T, int g);
 
     // accessors
-    u3::U3 omega() const {return std::get<0>(labels_);}
-    int S() const {return std::get<1>(labels_);}
-    int T() const {return std::get<2>(labels_);}
-    int g() const {return std::get<3>(labels_);}
+    u3::U3 omega() const {return std::get<0>(labels());}
+    int S() const {return std::get<1>(labels());}
+    int T() const {return std::get<2>(labels());}
+    int g() const {return std::get<3>(labels());}
     int N() const {return int(omega().N());}
 
     // diagnostic output
@@ -284,7 +287,7 @@ namespace u3shell {
     : public basis::BaseState<RelativeCMSubspaceU3ST>
   // State class for two-body states of given U(3)xSxT.
   {
-    
+
   public:
 
     // pass-through constructors
@@ -319,7 +322,7 @@ namespace u3shell {
     : public basis::BaseSpace<RelativeCMSubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
-    
+
   public:
 
     // constructor
@@ -384,7 +387,7 @@ namespace u3shell {
   // two-body states in U3ST scheme
   ////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
@@ -398,13 +401,13 @@ namespace u3shell {
   // Subspaces
   //
   // Within the full space, subspaces are ordered by:
-  //    -- increasing omega 
+  //    -- increasing omega
   //    -- increasing S (S=0,1)
   //    -- increasing T (T=0,1)
   //    -- [g is implied by omega (N~g)]
   // and subject to:
   //   -- N~g
-  // 
+  //
   // Subspaces are pruned to those of nonzero dimension.
   //
   // How do we generate the omega list under a given Nmax truncation?
@@ -422,7 +425,7 @@ namespace u3shell {
   //     for each N in 0..Nmax
   //       for lambda in 0..N
   //         for mu in 0..floor(N/2)
-  //     attempt to build subspace, but prune to 
+  //     attempt to build subspace, but prune to
   //     subspaces of nonzero dimension
   //
   ////////////////////////////////////////////////////////////////
@@ -441,30 +444,34 @@ namespace u3shell {
   // This basis is for *identical* particle states:
   //   -- The labels are subject to the antisymmetry constraint (omega+S+T~1)
   //      if N1==N2.
-  //   -- A canonical (lexicographic) ordering constraint is applied to the 
+  //   -- A canonical (lexicographic) ordering constraint is applied to the
   //      single-particle quantum numbers.  That is, when
   //      enumerating the basis, the states
-  //    
+  //
   //        |(N1,N2)...>  and  |(N2,N1)...>
   //
   //      would be redundant, and only the first (for N1<=N2) is
   //      retained.
   //
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
+
+  class TwoBodySubspaceU3ST;
+  class TwoBodyStateU3ST;
+  class TwoBodySpaceU3ST;
 
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySubspaceU3ST
-    : public basis::BaseSubspace<std::tuple<u3::U3,int,int,int>,std::tuple<int,int>>
+    : public basis::BaseSubspace<TwoBodySubspaceU3ST,std::tuple<u3::U3,int,int,int>,TwoBodyStateU3ST,std::tuple<int,int>>
     // Subspace class for two-body states of given U(3)xSxT.
     //
     // SubspaceLabelsType (std::tuple): <omega, S, T, g>
     //   omega (u3::U3) :  U(3) label
     //   S (int) : spin
     //   T (int) : isospin
-    //   g (int) : grade (parity % 2) 
+    //   g (int) : grade (parity % 2)
     // StateLabelsType (std::tuple): <N1,N2>
     //   N1 (int) : N1
     //   N2 (int) : N2 (=N-N1, with N determined by omega) -- redundant label
@@ -475,10 +482,10 @@ namespace u3shell {
     TwoBodySubspaceU3ST (u3::U3 omega, int S, int T, int g);
 
     // accessors
-    u3::U3 omega() const {return std::get<0>(labels_);}
-    int S() const {return std::get<1>(labels_);}
-    int T() const {return std::get<2>(labels_);}
-    int g() const {return std::get<3>(labels_);}
+    u3::U3 omega() const {return std::get<0>(labels());}
+    int S() const {return std::get<1>(labels());}
+    int T() const {return std::get<2>(labels());}
+    int g() const {return std::get<3>(labels());}
     int N() const {return int(omega().N());}
 
     // diagnostic output
@@ -499,7 +506,7 @@ namespace u3shell {
     : public basis::BaseState<TwoBodySubspaceU3ST>
   // State class for two-body states of given U(3)xSxT.
   {
-    
+
   public:
 
     // pass-through constructors
@@ -534,7 +541,7 @@ namespace u3shell {
     : public basis::BaseSpace<TwoBodySubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
-    
+
   public:
 
     // constructor

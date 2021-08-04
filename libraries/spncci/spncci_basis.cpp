@@ -386,23 +386,20 @@ namespace spncci
       int irrep_family_index,
       const sp3r::U3Subspace& u3_subspace
     )
-  {
-
-    // set labels
-    labels_ = BabySpNCCISubspaceLabels(
+    : BaseDegenerateSubspace{{
         spncci_irrep_family.sigma(),
         spncci_irrep_family.Sp(),
         spncci_irrep_family.Sn(),
         spncci_irrep_family.S(),
-        u3_subspace.U3()  // omega
-      );
-
+        u3_subspace.U3()
+      }}
+  {
     // save dimension info
     gamma_max_ = spncci_irrep_family.gamma_max();
     upsilon_max_ = u3_subspace.size();
     upsilon_max_ = u3_subspace.upsilon_max();
     irrep_family_index_=irrep_family_index;
-    dimension_ = gamma_max_*upsilon_max_;
+    PushStateLabels({0},gamma_max_*upsilon_max_);
   }
 
   std::string BabySpNCCISubspace::LabelStr() const
@@ -651,23 +648,23 @@ namespace spncci
   )
   {
     // Baby spncci hyperspector constructor for LGI only (Nn=Nnp=0)
-    //  needed for creating seed hypersectors 
+    //  needed for creating seed hypersectors
     //
     // hypersectors are restricted based on angular momentum adddition and SU(3) coupling
     // unit_tensor_hypersector_subsets.resize(Nmax+1);
     //TODO: redo so that there is a single look up of the appropriate baby spncci index
-    
-    // Get LGI labels 
+
+    // Get LGI labels
     u3::U3 sigma1, sigma2;
     HalfInt Sp1,Sn1,S1,Sp2,Sn2,S2;
-    
+
     const lgi::LGI& lgi_1=lgi_families[irrep_family_index_1].irrep;
     std::tie(std::ignore,sigma1,Sp1,Sn1,S1)=lgi_1.Key();
-    
+
 
     const lgi::LGI& lgi_2=lgi_families[irrep_family_index_2].irrep;
     std::tie(std::ignore,sigma2,Sp2,Sn2,S2)=lgi_2.Key();
-    
+
     // Get baby spncci subspace indices for lgi
     int bra_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma1,Sp1,Sn1,S1,sigma1));
     int ket_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma2,Sp2,Sn2,S2,sigma2));
@@ -689,7 +686,7 @@ namespace spncci
 
         // U(1) constraint
         allowed_subspace &= (ket_subspace.omega().N() + operator_subspace.N0() - bra_subspace.omega().N() == 0);
-        
+
         // spin constraints
         //
         // Note: Basic two-body constaints can be placed on Sp
@@ -784,7 +781,7 @@ namespace spncci
                 }
 
               allowed_subspace&=(irrep_family_index_bra>=irrep_family_index_ket);
-              
+
             }
           else
             {
@@ -890,22 +887,19 @@ namespace spncci
 
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Branched spncci basis 
+  // Branched spncci basis
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   SubspaceSpBasis::SubspaceSpBasis(
     const HalfInt& J,
     const u3shell::U3SPN& sigmaSPN,
     int irrep_family_index,
     const BabySpNCCISpace& baby_spncci_space
   )
+    : BaseDegenerateSubspace{irrep_family_index}
   {
 
-    // save labels
-    // labels_ = sigmaSPN;
-    labels_ = irrep_family_index;
     sigmaSPN_=sigmaSPN;
-    dimension_=0;
     // scan BabySpNCCISpace for states to accumulate
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
@@ -940,9 +934,6 @@ namespace spncci
                 state_kappa_max_.push_back(kappa_max);
                 state_upsilon_max_.push_back(upsilon_max);
                 state_baby_spncci_subspace_index_.push_back(baby_spncci_subspace_index);
-
-                // increment dimension of subspace 
-                dimension_+=degeneracy;
               }
           }
       }
@@ -1000,14 +991,14 @@ namespace spncci
 
     for(int baby_spncci_subspace_index=0; baby_spncci_subspace_index<baby_spncci_space.size(); ++baby_spncci_subspace_index)
       {
-  
+
         // set up alias
         const BabySpNCCISubspace& baby_spncci_subspace=baby_spncci_space.GetSubspace(baby_spncci_subspace_index);
-  
+
         // create new subspace -- only if not already constructed for this (omega,S)
         const u3shell::U3SPN& sigmaSPN = baby_spncci_subspace.sigmaSPN();
         int irrep_family_index = baby_spncci_subspace.irrep_family_index();
-        
+
         if(not irrep_family_subset.count(irrep_family_index))
           continue;
 
@@ -1052,7 +1043,7 @@ namespace spncci
   {
     // Iterate through J-branched basis and identify starting position
     // of each irrep family in the basis listing.  Starting index stored
-    // in offsets indexed by subspace index. 
+    // in offsets indexed by subspace index.
     offsets.resize(spbasis.size());
     int offset=0;
     for(int subspace_index=0; subspace_index<spbasis.size(); ++subspace_index)

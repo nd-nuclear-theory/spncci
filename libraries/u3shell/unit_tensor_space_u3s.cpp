@@ -24,9 +24,8 @@ namespace u3shell {
     u3::SU3 x0, HalfInt S0, int etap, int eta,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
     )
+      : BaseSubspace{SubspaceLabelsType(x0,S0,etap,eta)}
   {
-    // set values
-    labels_ = SubspaceLabelsType(x0,S0,etap,eta);
     // std::cout<<fmt::format("{} {} {} {}",x0.Str(),S0,etap,eta)<<std::endl;
     for(auto& tensor : unit_tensor_labels)
       {
@@ -159,11 +158,10 @@ namespace u3shell {
    ObservableSubspaceU3S::ObservableSubspaceU3S(
     int N0, u3::SU3 x0, HalfInt S0, int kappa0, int L0
     )
+      : BaseSubspace{SubspaceLabelsType(N0,x0,S0,kappa0,L0)}
   {
     // set values
-    labels_ = SubspaceLabelsType(N0,x0,S0,kappa0,L0);
     PushStateLabels(1);
-
   }
 
 

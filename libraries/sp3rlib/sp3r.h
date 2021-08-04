@@ -73,13 +73,18 @@ namespace sp3r
   // Returns:
   //   Raising polynomial labels
 
+  class U3Subspace;
+  class Sp3RSpace;
 
   ////////////////////////////////////////////////////////////////
   // U(3) subspace
   ////////////////////////////////////////////////////////////////
 
   class U3Subspace
-    : public basis::BaseSubspace< u3::U3 , MultiplicityTagged<u3::U3> >
+    : public basis::BaseSubspace<
+        U3Subspace, u3::U3,
+        basis::BaseState<U3Subspace>, MultiplicityTagged<u3::U3>
+      >
     // subspace label type: u3::U3
     // state label type: MultiplicityTagged<u3::U3>
   {
@@ -137,7 +142,7 @@ namespace sp3r
     // accessors
     const u3::U3& U3() const
     {
-      return labels_;
+      return labels();
     }
 
     int upsilon_max() const {return upsilon_max_;}
@@ -173,7 +178,7 @@ namespace sp3r
     // constructor
     Sp3RSpace(const u3::U3& sigma, int Nn_max, bool restrict_sp3r_to_u3_branching=false);
     // Constructs all U3 subspaces up to given Nn_max.
-    // Note, restrict_sp3r_to_u3_branching = true not currently implemented. 
+    // Note, restrict_sp3r_to_u3_branching = true not currently implemented.
 
     Sp3RSpace(
       const u3::U3& sigma, int Nn_max,

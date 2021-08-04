@@ -4,7 +4,7 @@
   Defines unit tensor subspaces grouped by u3s operator labels
 
   Language: C++11
-                                 
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame and TRIUMF
 
@@ -36,7 +36,7 @@ namespace u3shell {
   // relative unit tensors subspaces in U3S scheme
   ////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
@@ -50,28 +50,35 @@ namespace u3shell {
   //
   // Within the full space, subspaces are ordered by:
   //    -- increasing N0
-  //    -- increasing etap 
+  //    -- increasing etap
   //    -- increasing x0
   //    -- increasing S0 (S0=0,2)
   //    -- [g is implied by omega (N~g)] note this is the relative g
   // and subject to:
   //   -- N~g
-  // 
+  //
   ////////////////////////////////////////////////////////////////
-  
+
+  class RelativeUnitTensorSubspaceU3S;
+  class RelativeUnitTensorStateU3S;
+  class RelativeUnitTensorSpaceU3S;
+
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
   typedef std::tuple<int,int,int,int,int> RelativeUnitTensorStateLabelsU3S;
 
   class RelativeUnitTensorSubspaceU3S
-    : public basis::BaseSubspace<std::tuple<u3::SU3,HalfInt,int,int>,std::tuple<int,int,int,int,int>>
+    : public basis::BaseSubspace<RelativeUnitTensorSubspaceU3S,
+        std::tuple<u3::SU3,HalfInt,int,int>,
+        RelativeUnitTensorStateU3S,
+        std::tuple<int,int,int,int,int>>
     // Subspace class for two-body states of given S(3)xS.
     //
     // SubspaceLabelsType (std::tuple): <x0, S0,etap,eta>
     //   x0   (SU3) : SU(3) label
     //   S0   (HalfInt) : spin
-    //   etap (int) : oscillator quanta in bra 
+    //   etap (int) : oscillator quanta in bra
     //   eta  (int) : oscillator quanta in ket
 
     // StateLabelsType (std::tuple): <T0,Sp,Tp,S,T>
@@ -85,13 +92,13 @@ namespace u3shell {
      );
 
     // accessors
-    u3::SU3 x0() const {return std::get<0>(labels_);}
-    HalfInt S0() const {return std::get<1>(labels_);}
-    int etap() const {return std::get<2>(labels_);}
-    int eta() const {return std::get<3>(labels_);}
+    u3::SU3 x0() const {return std::get<0>(labels());}
+    HalfInt S0() const {return std::get<1>(labels());}
+    int etap() const {return std::get<2>(labels());}
+    int eta() const {return std::get<3>(labels());}
     int N0() const {return etap()-eta();}
 
-    std::tuple<u3::SU3,HalfInt,int,int> Key() const {return labels_;}
+    std::tuple<u3::SU3,HalfInt,int,int> Key() const {return labels();}
     // diagnostic output
     std::string Str() const;
     std::string LabelStr() const;
@@ -108,7 +115,7 @@ namespace u3shell {
     : public basis::BaseState<RelativeUnitTensorSubspaceU3S>
   // State class for relative unit tensor states of given U(3)xS subspaces.
   {
-    
+
   public:
 
     // pass-through constructors
@@ -145,22 +152,22 @@ namespace u3shell {
     : public basis::BaseSpace<RelativeUnitTensorSubspaceU3S>
   // Space class for relative unit tensor states of given U(3)xS.
   {
-    
+
   public:
 
     // constructor
     RelativeUnitTensorSpaceU3S(
-      int Nmax, int N1v, 
+      int Nmax, int N1v,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
     );
-    
+
     RelativeUnitTensorSpaceU3S(
       int Nmax, int N1v,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
-      const std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>& 
+      const std::map< std::pair<int,int>, UnitTensorSubspaceLabelsSet>&
         NnpNn_organized_unit_tensor_subspaces
     );
-    
+
     // accessors
     int Nmax() const {return Nmax_;}
 
@@ -183,7 +190,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
   typedef std::tuple<int,u3::SU3,HalfInt,int,int> ObservableSubspaceLabels;
 
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   //
   // Labeling
   //
@@ -196,7 +203,7 @@ namespace u3shell {
   // Subspaces
   //
   // Within the full space, subspaces are ordered by:
-  //    -- increasing N0 
+  //    -- increasing N0
   //    -- increasing x0
   //    -- increasing S0 (S0=0,2)
   //    -- increasing k0
@@ -204,14 +211,17 @@ namespace u3shell {
   //    -- [g is implied by omega (N~g)] note this is the relative g
   // and subject to:
   //   -- N~g
-  // 
+  //
   ////////////////////////////////////////////////////////////////
-  
+
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
   class ObservableSubspaceU3S
-    : public basis::BaseSubspace<std::tuple<int,u3::SU3,HalfInt,int,int>,int>
+    : public basis::BaseSubspace<ObservableSubspaceU3S,
+    std::tuple<int,u3::SU3,HalfInt,int,int>,
+    basis::BaseState<ObservableSubspaceU3S>,
+    int>
     // Subspace class for two-body states of given S(3)xS.
     //
     // SubspaceLabelsType (std::tuple): <x0, S0,etap,eta>
@@ -231,13 +241,13 @@ namespace u3shell {
      );
 
     // accessors
-    int N0() const {return std::get<0>(labels_);}
-    u3::SU3 x0() const {return std::get<1>(labels_);}
-    HalfInt S0() const {return std::get<2>(labels_);}
-    int kappa0() const {return std::get<3>(labels_);}
-    int L0() const {return std::get<4>(labels_);}
+    int N0() const {return std::get<0>(labels());}
+    u3::SU3 x0() const {return std::get<1>(labels());}
+    HalfInt S0() const {return std::get<2>(labels());}
+    int kappa0() const {return std::get<3>(labels());}
+    int L0() const {return std::get<4>(labels());}
 
-    std::tuple<int, u3::SU3,HalfInt,int,int> Key() const {return labels_;}
+    std::tuple<int, u3::SU3,HalfInt,int,int> Key() const {return labels();}
     // diagnostic output
     std::string Str() const;
     std::string LabelStr() const;
@@ -255,7 +265,7 @@ namespace u3shell {
     : public basis::BaseSpace<ObservableSubspaceU3S>
   // Space class for relative unit tensor states of given U(3)xS.
   {
-    
+
   public:
 
     // constructor
@@ -266,13 +276,13 @@ namespace u3shell {
     ObservableSpaceU3S(
       const std::vector<u3shell::IndexedOperatorLabelsU3S>& observable_labels
     );
-        
-  
+
+
     // diagnostic output
     std::string Str() const;
 
   private:
-  
+
   };
 
 
