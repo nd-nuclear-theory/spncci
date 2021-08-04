@@ -215,11 +215,15 @@ namespace lgi
        #pragma omp critical(regroup)
           { 
             std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
+            std::cout<<"size "<<lgi_grouped_seed_labels_temp.size()<<std::endl;
             for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
               {
                 auto& seed_labels=it->second;
+                std::cout<<"here"<<std::endl;
                 auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+                std::cout<<"there"<<std::endl;
                 accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+                std::cout<<"thar"<<std::endl;
               }
           }
       }

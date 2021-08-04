@@ -60,10 +60,11 @@ task_list = [
         "J0" : -1,  # -1 for no restriction (needed for spncci); 0 for only Hamiltonian like operators
         "su3rme_descriptor_template" : su3rme.su3rme_descriptor_template_Nsigmamax,
         "su3rme_mode" : "binary",
-        # "lgi_labels" : "/global/homes/a/amccoy/codes/spncci/script/6Li_lgi_list_Nmax12.dat",
-        "lgi_labels" : "/global/homes/a/amccoy/codes/spncci/data/lgi_set/lgi_list.dat",
-        "model_space_file_bra" : None,
-        "model_space_file_ket" : None
+        # "lgi_list" : "/global/homes/a/amccoy/codes/spncci/script/6Li_lgi_list_Nmax12.dat",
+        "lgi_list" : "/global/homes/a/amccoy/codes/spncci/data/lgi_set/lgi_list.dat",
+        # "model_space_file_bra" : "/global/homes/a/amccoy/codes/spncci/data/lgi_set/lgi_list.dat",
+        # "model_space_file_ket" : "/global/homes/a/amccoy/codes/spncci/data/lgi_set/lgi_list.dat",
+        "seed_descriptor_template" : seeds.seed_descriptor_template_Nsigmamax
     }
     for Nsigma_max in Nsigma_max_list
 ]
@@ -90,7 +91,7 @@ mcscript.task.init(
     task_pool=task_pool,
     phase_handler_list=[
         seeds.get_lgi_expansion,
-        su3rme.do_generate_lsu3shell_unittensor_rmes
+        seeds.get_spncci_seeds
         ]#,
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     # archive_phase_handler_list=[mcscript.task.archive_handler_generic]

@@ -17,11 +17,6 @@
         SU3SHELL_DATA -- directory needed for running lsu3shell.  
             within directory there must be a subdirectory rme.
 
-        Ex (personal workstation):
-            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
-            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme
-
         Ex (NDCRC nuclthy):
             setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
             setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/afs/crc.nd.edu/group/nuclthy/data/spncci/operator
@@ -77,8 +72,10 @@
           
   Language: Python 3
 
-  A. E. McCoy and M. A. Caprio
-  University of Notre Dame and TRIUMF
+  A. E. McCoy[1,2,3] and M. A. Caprio[1]
+  [1] University of Notre Dame
+  [2] TRIUMF
+  [3] Institute for Nuclear Theory
 
   SPDX-License-Identifier: MIT
 
@@ -159,9 +156,7 @@ def generate_model_space_files_lgi(task):
         task["model_space_file_bra"] -> model_space_bra.dat
         task["model_space_file_ket"] -> model_space_ket.dat
     """
-
-    
-    if task["lgi_labels"]==None:
+    if task["lgi_list"]==None:
         generate_default_lsu3shell_model_space("lgi_model_space_bra.dat",task)
         generate_default_lsu3shell_model_space("lgi_model_space_ket.dat",task)
 
@@ -170,13 +165,13 @@ def generate_model_space_files_lgi(task):
 
         ## Generate ket model space
         ket_filename="lgi_model_space_ket.dat"
-        get_model_space_file_from_u3su2list(nuclide,task["lgi_labels"],ket_filename)
+        get_model_space_file_from_u3su2list(nuclide,task["lgi_list"],ket_filename)
         
 
 
         ## Generate bra model space 
         bra_filename="lgi_model_space_bra.dat"
-        mcscript.call([BrelNcm_subspace_lister,f"{nuclide[0]}",f"{nuclide[1]}",task["lgi_labels"],"lgi_labels_bra.dat"])
+        mcscript.call([BrelNcm_subspace_lister,f"{nuclide[0]}",f"{nuclide[1]}",task["lgi_list"],"lgi_labels_bra.dat"])
         
         get_model_space_file_from_u3su2list(nuclide,"lgi_labels_bra.dat",bra_filename)
 
@@ -196,18 +191,17 @@ def generate_model_space_files_unittensors(task):
         task["model_space_file_ket"] -> model_space_ket.dat
     """
 
-    if task["model_space_file_bra"]==None:
-        print("generating model_space.dat")
+    if task["lgi_list"]==None:
         generate_default_lsu3shell_model_space("model_space_bra.dat",task)
-
-    else:
-        mcscript.call(["cp",task["model_space_file_bra"], "model_space_bra.dat"])
-
-    if task["model_space_file_ket"]==None:
         generate_default_lsu3shell_model_space("model_space_ket.dat",task)
 
     else:
-        mcscript.call(["cp",task["model_space_file_ket"], "model_space_ket.dat"])
+        nuclide=task["nuclide"]
+
+        ## Generate ket model space
+        ket_filename="model_space_ket.dat"
+        get_model_space_file_from_u3su2list(nuclide,task["lgi_list"],ket_filename)
+        mcscript.call(["cp","model_space_ket.dat", "model_space_bra.dat"])
 
 
 def generate_basis_table(model_space_file,basis_file,task):
@@ -271,214 +265,214 @@ def calculate_rmes(task):
     )
 
 
-def save_su3rme_files(task):
-    """Create archive of SU(3) RMEs of relative operators.
+# def save_su3rme_files(task):
+#     """Create archive of SU(3) RMEs of relative operators.
 
-    Some auxiliary files (e.g., the list of operators) are saved as well.
+#     Some auxiliary files (e.g., the list of operators) are saved as well.
 
-    Manual follow-up: The rme files are bundled into tgz files and saved to
-    the current run's results directory.  They should then be moved
-    (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
-    subsequent use.
+#     Manual follow-up: The rme files are bundled into tgz files and saved to
+#     the current run's results directory.  They should then be moved
+#     (manually) to the directory specified in SPNCCI_LSU3SHELL_DIR, for
+#     subsequent use.
 
-    """
+#     """
 
-    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+#     su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
 
-    # select files to save
-    archive_file_list = [
-        "model_space_ket.dat",
-        "model_space_bra.dat",
-        "relative_operators.dat",
-        "lsu3shell_basis.dat",
-        "relative_unit_tensor_labels.dat"
-    ]
-    archive_file_list += glob.glob('*.rme')
+#     # select files to save
+#     archive_file_list = [
+#         "model_space_ket.dat",
+#         "model_space_bra.dat",
+#         "relative_operators.dat",
+#         "lsu3shell_basis.dat",
+#         "relative_unit_tensor_labels.dat"
+#     ]
+#     archive_file_list += glob.glob('*.rme')
 
-    # generate archive
-    archive_filename = f"su3rme-{su3rme_descriptor}.tgz"
-    mcscript.call(["tar", "-zcvf", archive_filename] + archive_file_list)
+#     # generate archive
+#     archive_filename = f"su3rme-{su3rme_descriptor}.tgz"
+#     mcscript.call(["tar", "-zcvf", archive_filename] + archive_file_list)
 
-    # save independent copy of basis listing outside tarball for easy inspection
-    basis_filename = f"lsu3shell_basis_{su3rme_descriptor}.dat"
-    mcscript.call(["cp", "lsu3shell_basis.dat", basis_filename])
+#     # save independent copy of basis listing outside tarball for easy inspection
+#     basis_filename = f"lsu3shell_basis_{su3rme_descriptor}.dat"
+#     mcscript.call(["cp", "lsu3shell_basis.dat", basis_filename])
 
-    # move archive to results directory (if in multi-task run)
-    if (mcscript.task.results_dir is not None):
-        mcscript.call(
-            [
-                "mv",
-                "--verbose",
-                basis_filename,archive_filename,
-                f"--target-directory={mcscript.task.results_dir}"
-            ]
-        )
-
-
-def retrieve_su3rme_files(task):
-    """ Retrieve archive of relative operator SU(3) RME files.
-
-    (1) Directory is symlinked as a subdirectory named lsu3shell_rme, or...
-    (2) Files are retrieved into a subdirectory named lsu3shell_rme.
-    """
-    # identify su3rme data directory
-    su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
-    directory_name = mcscript.utils.search_in_subdirectories(
-        su3rme_directory_list,
-        su3rme_subdirectory_list,
-        f"su3rme-{su3rme_descriptor}",
-        error_message="Data directory for SU(3) RMEs not found",
-        fail_on_not_found=False
-    )
-    archive_filename = mcscript.utils.search_in_subdirectories(
-        su3rme_directory_list,
-        su3rme_subdirectory_list,
-        f"su3rme-{su3rme_descriptor}.tgz",
-        error_message="Archive file for SU(3) RMEs not found",
-        fail_on_not_found=False
-    )
-
-    if (directory_name is not None):
-
-        # remove any existing symlink or data directory
-        #
-        # Notes: On a symlink to a directory: rmdir fails; rm or "rm -r"
-        # removes symlink.  But "rm -r" will also work if tar file had
-        # been directly expanded before and needs to be replaced by a
-        # symlink.
-        if (os.path.exists("lsu3shell_rme")):
-            mcscript.call(["rm","-r","lsu3shell_rme"])
-
-        # link to data su3rme directory
-        mcscript.call(
-            [
-                "ln",
-                "-s",
-                directory_name,
-                "lsu3shell_rme"
-            ]
-        )
-
-    elif (archive_filename is not None):
-
-        # set up data directory
-        if (not os.path.exists("lsu3shell_rme")):
-            mcscript.utils.mkdir("lsu3shell_rme")
-
-        # extract archive contents
-        mcscript.call(
-            [
-                "tar",
-                "-xvf",
-                archive_filename,
-                "--directory=lsu3shell_rme"
-            ]
-        )
-
-    else:
-        raise(mcscript.exception.ScriptError("Cannot find SU(3) RME data"))
+#     # move archive to results directory (if in multi-task run)
+#     if (mcscript.task.results_dir is not None):
+#         mcscript.call(
+#             [
+#                 "mv",
+#                 "--verbose",
+#                 basis_filename,archive_filename,
+#                 f"--target-directory={mcscript.task.results_dir}"
+#             ]
+#         )
 
 
-def generate_lsu3shell_rmes(task):
-    """
-    Generates LSU3Shell rmes for operators given in relative_operators.dat
-    and saves them to file
+# def retrieve_su3rme_files(task):
+#     """ Retrieve archive of relative operator SU(3) RME files.
 
-    """
-    # set up necessary directories for lsu3shell
-    setup_su3shell_directories(task)
+#     (1) Directory is symlinked as a subdirectory named lsu3shell_rme, or...
+#     (2) Files are retrieved into a subdirectory named lsu3shell_rme.
+#     """
+#     # identify su3rme data directory
+#     su3rme_descriptor = task["su3rme_descriptor_template"].format(**task)
+#     directory_name = mcscript.utils.search_in_subdirectories(
+#         su3rme_directory_list,
+#         su3rme_subdirectory_list,
+#         f"su3rme-{su3rme_descriptor}",
+#         error_message="Data directory for SU(3) RMEs not found",
+#         fail_on_not_found=False
+#     )
+#     archive_filename = mcscript.utils.search_in_subdirectories(
+#         su3rme_directory_list,
+#         su3rme_subdirectory_list,
+#         f"su3rme-{su3rme_descriptor}.tgz",
+#         error_message="Archive file for SU(3) RMEs not found",
+#         fail_on_not_found=False
+#     )
 
-    # generate model space files for bra and ket
-    generate_model_space_files(task)
+#     if (directory_name is not None):
 
-    # generate basis listing for basis defined by bra and ket model space
-    generate_basis_table(task)
+#         # remove any existing symlink or data directory
+#         #
+#         # Notes: On a symlink to a directory: rmdir fails; rm or "rm -r"
+#         # removes symlink.  But "rm -r" will also work if tar file had
+#         # been directly expanded before and needs to be replaced by a
+#         # symlink.
+#         if (os.path.exists("lsu3shell_rme")):
+#             mcscript.call(["rm","-r","lsu3shell_rme"])
 
-    # generate operators rmes
-    calculate_rmes(task)    
+#         # link to data su3rme directory
+#         mcscript.call(
+#             [
+#                 "ln",
+#                 "-s",
+#                 directory_name,
+#                 "lsu3shell_rme"
+#             ]
+#         )
+
+#     elif (archive_filename is not None):
+
+#         # set up data directory
+#         if (not os.path.exists("lsu3shell_rme")):
+#             mcscript.utils.mkdir("lsu3shell_rme")
+
+#         # extract archive contents
+#         mcscript.call(
+#             [
+#                 "tar",
+#                 "-xvf",
+#                 archive_filename,
+#                 "--directory=lsu3shell_rme"
+#             ]
+#         )
+
+#     else:
+#         raise(mcscript.exception.ScriptError("Cannot find SU(3) RME data"))
+
+
+# def generate_lsu3shell_rmes(task):
+#     """
+#     Generates LSU3Shell rmes for operators given in relative_operators.dat
+#     and saves them to file
+
+#     """
+#     # set up necessary directories for lsu3shell
+#     setup_su3shell_directories(task)
+
+#     # generate model space files for bra and ket
+#     generate_model_space_files(task)
+
+#     # generate basis listing for basis defined by bra and ket model space
+#     generate_basis_table(task)
+
+#     # generate operators rmes
+#     calculate_rmes(task)    
 
 
 
-def do_generate_lsu3shell_generator_rmes(task,save=True):
-    """
-    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
-    unit tensors and symplectic raising/lowering/N operators.
+# def do_generate_lsu3shell_generator_rmes(task,save=True):
+#     """
+#     Control code for generating RMEs in the SU(3)-NCSM basis, for relative
+#     unit tensors and symplectic raising/lowering/N operators.
 
-    input:
-        task : task dictionary for specific task
-        save (optional, bool) : if save is True, then save files and do cleanup
-            su3rmes saved to "su3rme-{descriptor}.tgz", where descriptor
-            is defined by task["su3rme_descriptor_template"]
-    """
+#     input:
+#         task : task dictionary for specific task
+#         save (optional, bool) : if save is True, then save files and do cleanup
+#             su3rmes saved to "su3rme-{descriptor}.tgz", where descriptor
+#             is defined by task["su3rme_descriptor_template"]
+#     """
 
-    # retrieve relevant operator files
-    retrieve_generator_operator_files(task)
-    mcscript.call(["ln","-sf","relative_generators.dat","relative_operators.dat"])
-    generate_lsu3shell_rmes(task)
+#     # retrieve relevant operator files
+#     retrieve_generator_operator_files(task)
+#     mcscript.call(["ln","-sf","relative_generators.dat","relative_operators.dat"])
+#     generate_lsu3shell_rmes(task)
 
-    if save:
-        # save results
-        save_su3rme_files(task)
+#     if save:
+#         # save results
+#         save_su3rme_files(task)
 
-        # clean up working directory
-        mcscript.call(["du","-hs","."])  # log working directory disk usage
-        delete_filenames=glob.glob('*')
-        mcscript.call(["rm"] + delete_filenames)
+#         # clean up working directory
+#         mcscript.call(["du","-hs","."])  # log working directory disk usage
+#         delete_filenames=glob.glob('*')
+#         mcscript.call(["rm"] + delete_filenames)
 
 
-def do_generate_lsu3shell_unittensor_rmes(task,save=True):
-    """
-    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
-    unit tensors and symplectic raising/lowering/N operators.
+# def do_generate_lsu3shell_unittensor_rmes(task,save=True):
+#     """
+#     Control code for generating RMEs in the SU(3)-NCSM basis, for relative
+#     unit tensors and symplectic raising/lowering/N operators.
 
-    input:
-        task : task dictionary for specific task
-        save (optional, bool) : if save is True, then save files and do cleanup
-            su3rmes saved to "su3rme-{descriptor}.tgz", where descriptor
-            is defined by task["su3rme_descriptor_template"]
-    """
+#     input:
+#         task : task dictionary for specific task
+#         save (optional, bool) : if save is True, then save files and do cleanup
+#             su3rmes saved to "su3rme-{descriptor}.tgz", where descriptor
+#             is defined by task["su3rme_descriptor_template"]
+#     """
 
-    # retrieve relevant operator files
-    retrieve_unit_operator_files(task)
-    split_relative_operator_file(task)
-    mcscript.call(["ln","-sf","relative_unittensors.dat","relative_operators.dat"])
-    generate_lsu3shell_rmes(task)
+#     # retrieve relevant operator files
+#     retrieve_unit_operator_files(task)
+#     split_relative_operator_file(task)
+#     mcscript.call(["ln","-sf","relative_unittensors.dat","relative_operators.dat"])
+#     generate_lsu3shell_rmes(task)
     
-    if save:
-        # save results
-        save_su3rme_files(task)
+#     if save:
+#         # save results
+#         save_su3rme_files(task)
 
-        # clean up working directory
-        mcscript.call(["du","-hs","."])  # log working directory disk usage
-        delete_filenames=glob.glob('*')
-        mcscript.call(["rm"] + delete_filenames)
+#         # clean up working directory
+#         mcscript.call(["du","-hs","."])  # log working directory disk usage
+#         delete_filenames=glob.glob('*')
+#         mcscript.call(["rm"] + delete_filenames)
 
 
-def do_generate_lsu3shell_rmes(task):
-    ## TODO: Test updated scripting.  Use runsu3rme03
-    """
-    Control code for generating RMEs in the SU(3)-NCSM basis, for relative
-    unit tensors and symplectic raising/lowering/N operators.
+# def do_generate_lsu3shell_rmes(task):
+#     ## TODO: Test updated scripting.  Use runsu3rme03
+#     """
+#     Control code for generating RMEs in the SU(3)-NCSM basis, for relative
+#     unit tensors and symplectic raising/lowering/N operators.
 
-    su3rme files saved to "su3rme-{descriptor}.tgz", where descriptor
-    is defined by task["su3rme_descriptor_template"]
-    """
-    ## retrieve relevant operator files
-    retrieve_operator_files(task)
+#     su3rme files saved to "su3rme-{descriptor}.tgz", where descriptor
+#     is defined by task["su3rme_descriptor_template"]
+#     """
+#     ## retrieve relevant operator files
+#     retrieve_operator_files(task)
     
-    ## Compute su3rmes for generators 
-    do_generate_lsu3shell_generator_rmes(task,save=False)
+#     ## Compute su3rmes for generators 
+#     do_generate_lsu3shell_generator_rmes(task,save=False)
 
-    ## Comput su3rmes for unit operators 
-    do_generate_lsu3shell_unittensor_rmes(task,save=False)
+#     ## Comput su3rmes for unit operators 
+#     do_generate_lsu3shell_unittensor_rmes(task,save=False)
 
-    # save results
-    save_su3rme_files(task)
+#     # save results
+#     save_su3rme_files(task)
 
-    # clean up working directory
-    mcscript.call(["du","-hs","."])  # log working directory disk usage
-    delete_filenames=glob.glob('*')
-    mcscript.call(["rm"] + delete_filenames)
+#     # clean up working directory
+#     mcscript.call(["du","-hs","."])  # log working directory disk usage
+#     delete_filenames=glob.glob('*')
+#     mcscript.call(["rm"] + delete_filenames)
 
 
 

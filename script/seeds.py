@@ -156,13 +156,17 @@ def generate_spncci_seed_files(task):
 
     mcscript.utils.mkdir("seeds")
 
+    mcscript.call(["cp","lsu3shell_rme/lgi_expansions.dat", "lgi_expansions.dat"])
+    mcscript.call(["cp","lsu3shell_rme/lgi_families.dat", "lgi_families.dat"])
 
     # generate seed rmes
     command_line = [
         generate_spncci_seed_files_executable,
         "{nuclide[0]:d}".format(**task),
         " {nuclide[1]:d}".format(**task),
-        " {Nsigma_max:d}".format(**task)
+        " {Nsigma_max:d}".format(**task),
+        "lgi_families.dat",
+        "lgi_expansions.dat"
     ]
     mcscript.call(
         command_line,
@@ -201,7 +205,7 @@ def save_seed_files(task):
 
     mcscript.call(
         [
-            "tar", "-zcvf", archive_filename, "--format=posix", directory
+            "tar", "-zcf", archive_filename, "--format=posix", directory
         ] 
     )
 
@@ -369,44 +373,44 @@ def generate_lgi_lookup_table(task):
 
 
 
-def do_seed_run(task):
-    """ Generate seed files from lsu3shell files.
-    """
-    # retrieve relevant operator files
-    su3rme.retrieve_operator_files(task)
+# def do_seed_run(task):
+#     """ Generate seed files from lsu3shell files.
+#     """
+#     # retrieve relevant operator files
+#     su3rme.retrieve_operator_files(task)
 
-    # generate model space file needed by lsu3shell codes
-    su3rme.generate_model_space_files(task)
+#     # generate model space file needed by lsu3shell codes
+#     su3rme.generate_model_space_files_unittensors(task)
 
-    # generate basis listing for basis in which rmes are calculated
-    su3rme.generate_basis_table(task)
+#     # generate basis listing for basis in which rmes are calculated
+#     su3rme.generate_basis_table(task)
 
-    # generate operators rmes
-    su3rme.calculate_rmes(task)
-    print("cleaning up")
-    su3rme_cleanup(task)
-    generate_spncci_seed_files(task)
-    save_seed_files(task)
+#     # generate operators rmes
+#     su3rme.calculate_rmes(task)
+#     print("cleaning up")
+#     su3rme_cleanup(task)
+#     generate_spncci_seed_files(task)
+#     save_seed_files(task)
 
-################################################################################
-def do_seed_run_new(task):
-    """ Generate seed files for spncci
-    """
-    # retrieve relevant operator files
-    su3rme.retrieve_operator_files(task)
+# ################################################################################
+# def do_seed_run_new(task):
+#     """ Generate seed files for spncci
+#     """
+#     # retrieve relevant operator files
+#     su3rme.retrieve_operator_files(task)
 
-    # generate model space file needed by lsu3shell codes
-    su3rme.generate_model_space_files(task)
+#     # generate model space file needed by lsu3shell codes
+#     su3rme.generate_model_space_files(task)
 
-    # generate basis listing for basis in which rmes are calculated
-    su3rme.generate_basis_table(task)
+#     # generate basis listing for basis in which rmes are calculated
+#     su3rme.generate_basis_table(task)
 
-    # generate operators rmes
-    su3rme.calculate_rmes(task)
-    print("cleaning up")
-    su3rme_cleanup(task)
-    generate_spncci_seed_files(task)
-    save_seed_files(task)
+#     # generate operators rmes
+#     su3rme.calculate_rmes(task)
+#     print("cleaning up")
+#     su3rme_cleanup(task)
+#     generate_spncci_seed_files(task)
+#     save_seed_files(task)
 
 
 
@@ -438,18 +442,45 @@ def get_lgi_expansion(task):
     ## Moves *.rme files to lsu3shell_rme directory for subsequent use and removes unneeded files
     su3rme.su3rme_cleanup(task)
 
-
+    ## Generate LGI expansion files 
     (Z,N)=task["nuclide"]
     Nmax=task["Nsigma_max"]
-    ## Generate LGI expansion files 
-    print("start generating lgi expansion")
     mcscript.call([
         generate_lgi_expansion_executable,
         f"{Z}",f"{N}",f"{Nmax}",
         "single"
         ])
 
-    print("finished generating lgi expansion")
+
+####################################################################################
+def get_spncci_seeds(task):
+    """
+    Generate the lgi expansion for calculating seed RMEs from su3shell RMEs
+    """
+    # retrieve relevant operator files
+    lsu3.retrieve_unit_operator_files(task)
+    mcscript.call(["ln","-sf","relative_unit_operators.dat","relative_operators.dat"])
+
+    # Do any necessary set up for temporary su3shell files  
+    su3rme.setup_su3shell_directories(task)
+    
+    ## Get model space files for bra and ket
+    su3rme.generate_model_space_files_unittensors(task)
+    
+    ## Calculate the unit tensor rmes
+    su3rme.calculate_rmes(task)
+    
+    ## Generate basis listing 
+    ## TODO: update generate_spncci_seed_files to allow for different bra and ket model spaces 
+    su3rme.generate_basis_table("model_space_ket.dat","lsu3shell_basis.dat",task)
+    mcscript.call(["ln","-sf","relative_unit_operators.dat","relative_operators.dat"])
+
+    ## Moves *.rme files to lsu3shell_rme directory for subsequent use and removes unneeded files
+    su3rme.su3rme_cleanup(task)
+
+    generate_spncci_seed_files(task)
+    save_seed_files(task)
+    
 
 if (__name__ == "__MAIN__"):
     pass

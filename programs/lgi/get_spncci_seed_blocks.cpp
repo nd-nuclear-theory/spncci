@@ -54,7 +54,7 @@ namespace lgi{}//namespace
 
 int main(int argc, char **argv)
 {
-  if(argc<3)
+  if(argc<5)
   {
     std::cout<<"Syntax: Z N Nmax lgi_filename lgi_expansion_filename"<<std::endl;
     std::exit(EXIT_FAILURE);
@@ -157,6 +157,8 @@ int main(int argc, char **argv)
       lsu3shell_index_lookup_table[lsu3shell_index]=lgi_index;
     }
 
+  for(int i=0; i< lsu3shell_index_lookup_table.size(); ++i)
+    std::cout<<"lsu3shell: "<<i<<"  lgi: "<<lsu3shell_index_lookup_table[i]<<std::endl;
   ////////////////////////////////////////////////////////////////
   // Generate Seed blocks 
   ////////////////////////////////////////////////////////////////
@@ -181,7 +183,7 @@ int main(int argc, char **argv)
       lsu3shell_index_lookup_table,restrict_seeds
     );
 
-  // std::cout<<"write seeds to file"<<std::endl;
+  std::cout<<"write seeds to file"<<std::endl;
   lgi::WriteSeedsToFile(lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Test code
