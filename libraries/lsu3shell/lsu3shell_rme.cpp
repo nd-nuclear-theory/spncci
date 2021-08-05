@@ -437,8 +437,8 @@ namespace lsu3shell
                 sector_index,
                 sector.bra_subspace().LabelStr(),
                 sector.ket_subspace().LabelStr(),
-                sector.bra_subspace().size(),
-                sector.ket_subspace().size()
+                sector.bra_subspace().dimension(),
+                sector.ket_subspace().dimension()
               )
             << std::endl;
 
@@ -523,7 +523,7 @@ namespace lsu3shell
         // energy 3A/2.
         
         HalfInt N = subspace.N()-HalfInt(3*A,2);
-        int dim = subspace.size();
+        int dim = subspace.dimension();
         Ncm_matrices[sector_index]
           = Eigen::MatrixXd::Identity(dim,dim)*double(N)-Nrel_matrices[sector_index];
       }

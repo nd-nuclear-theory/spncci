@@ -16,6 +16,8 @@
 
 import mcscript
 import os
+import su3rme
+import seeds
 import spncci
 
 # initialize mcscript
@@ -25,10 +27,13 @@ mcscript.init()
 # data file search paths
 ##################################################################
 
-spncci.su3rme_subdirectory_list += ["runsu3rme01","runsu3rme02"]
+spncci.seed_subdirectory_list += [
+     "runaem0031"  # 6Li -- binary
+    ]
 
-spncci.interaction_subdirectory_list += ["JISP16_Nmax20"]
+spncci.interaction_subdirectory_list += ["","JISP16_Nmax20"]
 
+spncci.truncation_subdirectory = "6Li"
 ##################################################################
 # build task list
 ##################################################################
@@ -49,7 +54,10 @@ task_list = [
 
         # su3rme parameters
         # "J0" : 0,
-        "su3rme_descriptor_template" : spncci.su3rme_descriptor_template_Nsigmamax,
+        "su3rme_descriptor_template" : su3rme.su3rme_descriptor_template_Nsigmamax,
+        "seed_descriptor_template" : seeds.seed_descriptor_template_Nsigmamax,
+        # "hyperblocks_dir" examples : "/tmp","/scratch/hyperblocks", None
+        "hyperblocks_dir" : None,
 
         # spncci parameters
         "J_range" : (1,3,2), #min, max, step
@@ -59,7 +67,9 @@ task_list = [
         "use_coulomb" : False,
         "observables" : [("r2intr",0),("Qintr",2)],
         "num_eigenvalues" : 10,
-        "coulomb_filename" : "coulomb_Nmax20_rel.dat",
+        "coulomb_filename" : "coulomb_Nmax20_steps500_rel.dat",
+        "truncation_filename": None,
+        "transformation_filename": None,
 
         # eigensolver convergence parameters
         "eigensolver_num_convergence" : 2*10,  # docs for Spectra SymEigsSolver say to take "ncv>=2*nev"

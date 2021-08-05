@@ -45,7 +45,7 @@ namespace lgi
     std::map<int,std::vector<int>> subspace_sectors;
     for(int j=0; j<space.size(); ++j)
       {
-        int sub_dim=space.GetSubspace(j).size();
+        int sub_dim=space.GetSubspace(j).dimension();
         subspace_sectors[j].push_back(sub_dim);
       }
     // Filling out subspace_sectors for Brel
@@ -56,7 +56,7 @@ namespace lgi
         int j=Brel_sectors.GetSector(s).ket_subspace_index();
         subspace_sectors[j].push_back(i);
         //increment size of matrix 
-        int sub_dim=space.GetSubspace(i).size();
+        int sub_dim=space.GetSubspace(i).dimension();
         subspace_sectors[j][0]+=sub_dim;
       }
 
@@ -67,7 +67,7 @@ namespace lgi
         // total number of rows in matrix
         int rows_total=subspace_sectors[j][0];
         auto subspace=space.GetSubspace(j);
-        int columns=subspace.size();
+        int columns=subspace.dimension();
         // std::cout<<"BrelNcm initialized"<<std::endl;
         BrelNcm_matrices[j]=Eigen::MatrixXd::Zero(rows_total,columns);
         // std::cout<<BrelNcm_matrices[j]<<std::endl<<std::endl;
@@ -87,7 +87,7 @@ namespace lgi
             // subspace index for bra
             int i=subspace_sectors[j][k];
             // number of rows in sector
-            rows=space.GetSubspace(i).size();
+            rows=space.GetSubspace(i).dimension();
             // index of sector in vector
             int sector_index=Brel_sectors.LookUpSectorIndex(i,j,1);
             // filling in sector

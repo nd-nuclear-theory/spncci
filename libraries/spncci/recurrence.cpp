@@ -754,12 +754,12 @@ ComputeUnitTensorHyperblocks(
               =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
           // Extract ket dimensions and mulitplicities 
-          int dim=baby_spncci_subspace_ket.size();
+          int dim=baby_spncci_subspace_ket.dimension();
           int gamma_max=baby_spncci_subspace_ket.gamma_max();
           int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
 
           // Extract bra dimensions and mulitplicities 
-          int dimp=baby_spncci_subspace_bra.size();
+          int dimp=baby_spncci_subspace_bra.dimension();
           int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
           int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
           

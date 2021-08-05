@@ -519,8 +519,8 @@ int main(int argc, char **argv)
 
             const u3shell::ObservableSpaceU3S& observable_space=observable_spaces[observable_index];
 
-            std::cout<<"J = "<<J<<std::endl;
-            std::cout<<spbasis_bra.DebugStr()<<std::endl;
+            // std::cout<<"J = "<<J<<std::endl;
+            // std::cout<<spbasis_bra.DebugStr()<<std::endl;
             if(false)
               {
                 // Write basis information to file
@@ -685,7 +685,7 @@ int main(int argc, char **argv)
                   observable_block
                 );
 
-              std::cout<<mcutils::FormatMatrix(observable_block,"9.4f")<<std::endl<<std::endl;
+              // std::cout<<mcutils::FormatMatrix(observable_block,"9.4f")<<std::endl<<std::endl;
               
               Eigen::MatrixXd& observable_results_matrix = observable_results_matrices[observable_index][sector_index];
 

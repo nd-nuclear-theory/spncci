@@ -277,6 +277,8 @@ def retrieve_seed_files(task):
 	)
 
 	# remove any existing symlink or data directory
+	print(directory_filename)
+	print(archive_filename)
 	if (os.path.exists("seeds")):
 		mcscript.call(["rm","-r","seeds"])
 		# print("hi")
