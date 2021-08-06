@@ -9,7 +9,7 @@
   SPDX-License-Identifier: MIT
 ****************************************************************/
 
-#include "spncci/recurrence_indexing.h"
+#include "spncci/recurrence_indexing_spatial.h"
 
 #include <algorithm>
 #include <fstream>
@@ -24,72 +24,32 @@
 
 namespace spncci
 {
-namespace spin
-{
-SpinSubspace::SpinSubspace(
-    const HalfInt& S, const MultiplicityTagged<SpSn>::vector& spin_vector
-  )
-{
-  labels_ = {S};
-  for (const auto& [SpSn, gamma_max] : spin_vector)
-    PushStateLabels(SpSn, gamma_max);
-}
-
-LGISpace::LGISpace(
-    const u3::U3& sigma,
-    const std::map<HalfInt, MultiplicityTagged<SpSn>::vector>& spin_map
-  )
-{
-  labels_ = {sigma};
-  for (const auto& [S, spin_vector] : spin_map)
-    PushSubspace(SpinSubspace(S, spin_vector));
-}
-
-Space::Space(const lgi::MultiplicityTaggedLGIVector& lgi_vector, int Nmax)
-{
-  std::map<u3::U3, std::map<HalfInt, MultiplicityTagged<SpSn>::vector>> sigma_spins_map;
-  for (const auto& [lgi, gamma_max] : lgi_vector)
-  {
-    const auto& [Nex, sigma, Sp, Sn, S] = lgi.Key();
-    if (Nex > Nmax)
-      continue;
-
-    if (Nex == 0)
-      Nsigma0_ = sigma.N();
-
-    sigma_spins_map[sigma][S].emplace_back(SpSn{Sp, Sn}, gamma_max);
-  }
-
-  for (const auto& [sigma, spin_map] : sigma_spins_map)
-    PushSubspace(LGISpace(sigma, spin_map));
-}
-}  // namespace spin
-//////////////////////////////////////////////////////////////////////////////////////////
 namespace spatial
 {
 U3Subspace::U3Subspace(const sp3r::U3Subspace& u3subspace)
+    : BaseSubspace{u3subspace.labels()}
 {
   const u3::U3& omega = u3subspace.labels();
   for (int i = 0; i < u3subspace.size(); ++i)
   {
-    labels_ = omega;
     const auto& n_rho = u3subspace.GetStateLabels(i);
     PushStateLabels(n_rho);
   }
 }
 
 LGISpace::LGISpace(const u3::U3& sigma, const int Nn_max)
+    : BaseSpace{sigma}
 {
   sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);
   for (int i = 0; i < sp3r_space.size(); i++)
   {
-    labels_ = sigma;
     const auto& u3subspace = sp3r_space.GetSubspace(i);
     PushSubspace(U3Subspace(u3subspace));
   }
 }
 
 Space::Space(const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, const int Nmax)
+    : BaseSpace{}
 {
   for (const auto& sigma : sigma_vector)
   {
@@ -97,17 +57,6 @@ Space::Space(const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, co
     int Nn_max = Nmax - int(sigma.N() - Nsigma0);
     if (Nn_max >= 0)
       PushSubspace(LGISpace(sigma, Nn_max));
-  }
-}
-
-Space::Space(const spin::Space& spin_space, const int& Nmax, const HalfInt& Nsigma0)
-{
-  // Nsigma0_=spin_space.Nsigma0();
-  for (int i = 0; i < spin_space.size(); ++i)
-  {
-    const u3::U3& sigma = spin_space.GetSubspace(i).sigma();
-    int Nn_max = Nmax - int(sigma.N() - Nsigma0);
-    PushSubspace(LGISpace(sigma, Nn_max));
   }
 }
 
@@ -119,32 +68,32 @@ Space::Space(const spin::Space& spin_space, const int& Nmax, const HalfInt& Nsig
 RecurrenceOperatorSubspace::RecurrenceOperatorSubspace(
     const u3::SU3& x0, const std::vector<std::tuple<int, int>>& Nbar_pairs
   )
+    : BaseSubspace{x0}
 {
-  labels_ = x0;
   for (const auto& Nbar_pair : Nbar_pairs) PushStateLabels(Nbar_pair);
 }
 
 RecurrenceU3Space::RecurrenceU3Space(
     const std::tuple<u3::U3, u3::U3>& omega_pair,
-    const UnitTensorParameters& unit_tensor_parameters
+    const UnitTensorConstraintParameters& unit_tensor_constraints
   )
+    : BaseDegenerateSpace{omega_pair}
 {
-  labels_ = omega_pair;
   const auto& [omega, omega_p] = omega_pair;
   std::map<u3::SU3, std::vector<std::tuple<int, int>>> x0_Nbar_pairs;
 
   ////////////////////////////////////////////////////////////////////////////////
   // Create list of spatial unit tensors to pass through to operator subspace
   int Nbar_max{
-      2 * unit_tensor_parameters.N1v + omega.N() - unit_tensor_parameters.Nsigma0
+      2 * unit_tensor_constraints.N1v + omega.N() - unit_tensor_constraints.Nsigma0
     };
 
   int Nbar_p_max{
-      2 * unit_tensor_parameters.N1v + omega_p.N() - unit_tensor_parameters.Nsigma0
+      2 * unit_tensor_constraints.N1v + omega_p.N() - unit_tensor_constraints.Nsigma0
     };
 
   int N0{omega_p.N() - omega.N()};
-  int Nbar_min = unit_tensor_parameters.state_parity;
+  int Nbar_min = unit_tensor_constraints.parity_bar;
   for (int Nbar = Nbar_min; Nbar <= Nbar_max; Nbar += 2)
   {
     int Nbar_p = N0 + Nbar;
@@ -175,11 +124,11 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     const std::vector<std::tuple<int, int>> u3subspace_index_pairs,
     const LGISpace& lgi_space_ket,
     const LGISpace& lgi_space_bra,
-    const UnitTensorParameters& unit_tensor_parameters
+    const UnitTensorConstraintParameters& unit_tensor_constraints
   )
+    : BaseDegenerateSpace{Nnsum}
 {
-  labels_ = Nnsum;
-  unit_tensor_state_parity_ = unit_tensor_parameters.state_parity;
+  parity_bar_ = unit_tensor_constraints.parity_bar;
 
   for (const auto& [i_ket, i_bra] : u3subspace_index_pairs)
   {
@@ -194,7 +143,7 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     upsilon_pairs_.push_back({upsilon_max_ket, upsilon_max_bra});
 
     PushSubspace(
-        RecurrenceU3Space({omega_ket, omega_bra}, unit_tensor_parameters),
+        RecurrenceU3Space({omega_ket, omega_bra}, unit_tensor_constraints),
         upsilon_max_bra * upsilon_max_ket
       );
   }
@@ -204,14 +153,15 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
 RecurrenceLGISpace::RecurrenceLGISpace(
     const LGISpace& lgi_space_ket,
     const LGISpace& lgi_space_bra,
-    const int& N1v,
-    const HalfInt& Nsigma0
+    const UnitTensorConstraintParameters& unit_tensor_constraints
   )
+    : BaseSpace{
+        {lgi_space_ket.sigma(), lgi_space_bra.sigma(), unit_tensor_constraints.parity_bar}
+      }
 {
   const u3::U3& sigma_ket = lgi_space_ket.sigma();
   const u3::U3& sigma_bra = lgi_space_bra.sigma();
   // std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<std::endl;
-  labels_ = {sigma_ket, sigma_bra};
 
   // Partition pairs of omega',omega by Nnsum
   std::map<int, std::vector<std::tuple<int, int>>> Nnsum_partition;
@@ -227,17 +177,10 @@ RecurrenceLGISpace::RecurrenceLGISpace(
     }
 
   // Create RecurrenceNnsumSpaces.  On for each unit tensor state parity
-  for (int unit_tensor_state_parity = 0; unit_tensor_state_parity <= 1;
-       ++unit_tensor_state_parity)
-  {
-    UnitTensorParameters unit_tensor_parameters(
-        N1v, Nsigma0, unit_tensor_state_parity
-      );
-    for (const auto& [Nnsum, partition] : Nnsum_partition)
-      PushSubspace(RecurrenceNnsumSpace(
-          Nnsum, partition, lgi_space_ket, lgi_space_bra, unit_tensor_parameters
-        ));
-  }
+  for (const auto& [Nnsum, partition] : Nnsum_partition)
+    PushSubspace(RecurrenceNnsumSpace(
+        Nnsum, partition, lgi_space_ket, lgi_space_bra, unit_tensor_constraints
+      ));
 }
 
 RecurrenceSpace::RecurrenceSpace(
@@ -246,13 +189,17 @@ RecurrenceSpace::RecurrenceSpace(
     const int& N1v,
     const HalfInt& Nsigma0
   )
+    : BaseSpace{}
 {
   for (int i_ket = 0; i_ket < space_ket.size(); ++i_ket)
     for (int i_bra = 0; i_bra < space_bra.size(); ++i_bra)
     {
-      const LGISpace& lgi_space_ket = space_ket.GetSubspace(i_ket);
-      const LGISpace& lgi_space_bra = space_bra.GetSubspace(i_bra);
-      PushSubspace(RecurrenceLGISpace(lgi_space_ket, lgi_space_bra, N1v, Nsigma0));
+      const auto& lgi_space_ket = space_ket.GetSubspace(i_ket);
+      const auto& lgi_space_bra = space_bra.GetSubspace(i_bra);
+      for (uint8_t parity_bar : {0, 1})
+        PushSubspace(RecurrenceLGISpace(
+            lgi_space_ket, lgi_space_bra, {N1v, Nsigma0, parity_bar}
+          ));
     }
 }
 
