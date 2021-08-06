@@ -2,26 +2,33 @@
   lgi.h
 
   Interface for lsu3shell basis.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame and TRIUMF
 
   SPDX-License-Identifier: MIT
 
-  9/8/16 (aem,mac): Created.
-  1/31/17 (mac): Rename LGIVector to MultiplicityTaggedLGIVector.
-  2/17/17 (mac): Extract WriteLGILabels from lgi_solver and change
+  09/08/16 (aem,mac): Created.
+  01/31/17 (mac): Rename LGIVector to MultiplicityTaggedLGIVector.
+  02/17/17 (mac): Extract WriteLGILabels from lgi_solver and change
     to accept std::ostream for output and extract to lgi.
   10/11/17 (aem) : Extract Nsigma0ForNuclide from spncci_basis
-  1/15/18 (aem) : Updated Read LGI to be consistant with write functions
-  1/28/21 (aem) : Removed deprecated WriteLGIExpansion function.
+  01/15/18 (aem) : Updated Read LGI to be consistant with write functions
+  01/28/21 (aem) : Removed deprecated WriteLGIExpansion function.
+  08/06/21 (pjf): Add UpstreamLabelsType for use with new recurrence indexing.
 ****************************************************************/
 #ifndef LGI_SOLVER_H_
 #define LGI_SOLVER_H_
 
-#include "am/am.h"  
+#include <tuple>
+
+#ifdef BASIS_HASH
+#include <boost/functional/hash.hpp>
+#endif  // BASIS_HASH
+
+#include "am/am.h"
 #include "sp3rlib/sp3r.h"
-#include "u3shell/u3spn_scheme.h"  
+#include "u3shell/u3spn_scheme.h"
 #include "lsu3shell/lsu3shell_rme.h"
 namespace lgi
 {
@@ -80,6 +87,9 @@ namespace lgi
     : public u3shell::U3SPN
   {
     public:
+
+    struct UpstreamLabelsType { HalfInt Sp; HalfInt Sn; };
+
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
@@ -87,7 +97,7 @@ namespace lgi
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
     // null constructor
-    
+
     inline LGI():Nex_(-999){};
     inline
       LGI(const u3shell::U3SPN& sigmaSPN, int Nex)
@@ -101,10 +111,13 @@ namespace lgi
 
     int Nex() const {return Nex_;}
     u3::U3 sigma() const {return U3();}
+
+    UpstreamLabelsType upstream_labels() const { return {Sp(),Sn()}; }
+
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
     //////////////////////////////////////////////////////////////
     //key tuple, comparisons and hashing
@@ -121,7 +134,7 @@ namespace lgi
 
     inline KeyType Key() const
     {
-      return KeyType(Nex(),sigma(),Sp(),Sn(),S());
+      return {Nex(),sigma(),Sp(),Sn(),S()};
     }
 
 
@@ -135,6 +148,37 @@ namespace lgi
     // quick-reference information
     int Nex_;
   };
+
+  #ifdef BASIS_HASH
+  inline std::size_t hash_value(const LGI::UpstreamLabelsType& l)
+  {
+    return boost::hash<std::tuple<HalfInt,HalfInt>>{}({l.Sp,l.Sn});
+  }
+  #endif  // BASIS_HASH
+
+  inline bool operator<(const LGI::UpstreamLabelsType& lhs, const LGI::UpstreamLabelsType& rhs)
+  {
+    return std::tie(lhs.Sp,lhs.Sn) < std::tie(rhs.Sp,rhs.Sn);
+  }
+  inline bool operator==(const LGI::UpstreamLabelsType& lhs, const LGI::UpstreamLabelsType& rhs)
+  {
+    return std::tie(lhs.Sp,lhs.Sn) == std::tie(rhs.Sp,rhs.Sn);
+  }
+  inline bool operator>(const LGI::UpstreamLabelsType& lhs, const LGI::UpstreamLabelsType& rhs)
+  {
+    return std::tie(lhs.Sp,lhs.Sn) > std::tie(rhs.Sp,rhs.Sn);
+  }
+  inline bool UpstreamLabelsAllowed(
+      const lgi::LGI::UpstreamLabelsType& ket_labels,
+      const lgi::LGI::UpstreamLabelsType& bra_labels
+    )
+  {
+    return (
+        am::AllowedTriangle(ket_labels.Sp, 2, bra_labels.Sp)
+        && am::AllowedTriangle(ket_labels.Sn, 2, bra_labels.Sn)
+      );
+  }
+
 
   ////////////////////////////////////////////////////////////////
   // enumeration of LGI set based on input table
@@ -161,26 +205,39 @@ namespace lgi
   void
     WriteLGILabels(const lgi::MultiplicityTaggedLGIVector& lgi_families, const std::string& filename);
 
-  void 
+  void
   ReadLGISet(
-    const std::string& lgi_filename, 
+    const std::string& lgi_filename,
     const HalfInt& Nsigma0,
     MultiplicityTaggedLGIVector& lgi_vector
   );
-  // Read in LGI from file and create vector of LGIs tagged by 
+  // Read in LGI from file and create vector of LGIs tagged by
   // gamma_max from tabulation in file .
   //
   // Arguments:
   //   filename (string) : filename for LGI table file
   //   Nsigma0 : minimum number of oscillator quanta for the given system of nucleons.
-  //    Can be obtained from lgi::Nsigma0ForNuclide. 
-  //   lgi_families (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)  
+  //    Can be obtained from lgi::Nsigma0ForNuclide.
+  //   lgi_families (MultiplicityTaggedLGIVector) : container for LGI list (OUTPUT)
 
  void ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families);
-  // Reading in and filling out table of lgi indices in basis and lgi indices in full space by 
-  // which the seed files are labeled. 
+  // Reading in and filling out table of lgi indices in basis and lgi indices in full space by
+  // which the seed files are labeled.
 
 
-}
+}  // namespace lgi
+
+#ifdef BASIS_HASH
+namespace std
+{
+  template<> struct hash<typename lgi::LGI::UpstreamLabelsType>
+  {
+    inline std::size_t operator()(const lgi::LGI::UpstreamLabelsType& h) const noexcept
+    {
+      return boost::hash<lgi::LGI::UpstreamLabelsType>{}(h);
+    }
+  };
+}  // namespace std
+# endif // BASIS_HASH
 
 #endif
