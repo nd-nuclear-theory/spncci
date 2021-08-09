@@ -31,17 +31,23 @@ int main(int argc, char** argv)
   int N1v = 1;
   lgi::ReadLGISet(filename, Nsigma0, lgi_vector);
 
-  if (true)
+  constexpr bool check_lgi = true;
+  constexpr bool check_spin = true;
+  constexpr bool check_spin_recurrence = true;
+  constexpr bool check_spatial = true;
+  constexpr bool check_spatial_recurrence = true;
+
+  if constexpr (check_lgi)
   {
     std::cout << "LGI set" << std::endl;
-    for (int i = 0; i < lgi_vector.size(); ++i)
+    for (std::size_t i = 0; i < lgi_vector.size(); ++i)
       std::cout << i << " " << lgi_vector[i].Str() << std::endl;
 
     std::cout << "********************************" << std::endl;
   }
 
   // Checking spncci::spin::Space indexing
-  if (true)
+  if constexpr (check_spin)
   {
     // diagnostic -- inspect LGI listing
     int Nmax = 2;
@@ -50,7 +56,7 @@ int main(int argc, char** argv)
     int num_lgi_spaces = spin_space.size();
     std::cout << fmt::format("spin::Space dimension: {}", spin_space.dimension())
               << std::endl;
-    for (int i = 0; i < num_lgi_spaces; ++i)
+    for (std::size_t i = 0; i < num_lgi_spaces; ++i)
     {
       const auto& spin_lgi_space = spin_space.GetSubspace(i);
       int num_subspaces = spin_lgi_space.size();
@@ -62,7 +68,7 @@ int main(int argc, char** argv)
           spin_lgi_space.dimension()
         ) << std::endl;
 
-      for (int j = 0; j < num_subspaces; ++j)
+      for (std::size_t j = 0; j < num_subspaces; ++j)
       {
         const auto& spin_subspace = spin_lgi_space.GetSubspace(j);
         const HalfInt& S = spin_subspace.S();
@@ -96,7 +102,7 @@ int main(int argc, char** argv)
   }
 
   // Checking spncci::spin::RecurrenceSpace indexing
-  if (true)
+  if constexpr (check_spin_recurrence)
   {
     std::cout << "___________________________________________________" << std::endl;
     int Nmax = 2;
@@ -105,51 +111,65 @@ int main(int argc, char** argv)
     std::vector<std::tuple<u3::SU3, int, int>> spatial_unit_tensors;
     spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST>
         recurrence_space(spin_space, spin_space);
+    std::cout << fmt::format("spin::Space dimension: {}", spin_space.dimension())
+              << std::endl;
+
+    std::size_t total_dimension = 0;
     std::cout << fmt::format(
-        "spin::Space dimension: {}", spin_space.dimension()
+        "spin::RecurrenceSpace dimension: {}", recurrence_space.dimension()
       ) << std::endl;
 
-    for (int i = 0; i < recurrence_space.size(); ++i)
+    for (std::size_t i = 0; i < recurrence_space.size(); ++i)
     {
       const auto& recurrence_lgi_space = recurrence_space.GetSubspace(i);
 
       const u3::U3& sigma_ket = recurrence_lgi_space.sigma_ket();
       const u3::U3& sigma_bra = recurrence_lgi_space.sigma_bra();
       std::cout << fmt::format(
-          "  spatial::RecurrenceLGISpace {} {}  size: {:4d}  dimension: {:4d}",
+          "  spin::RecurrenceLGISpace {} {} {}  size: {:4d}  dimension: {:4d}",
           sigma_ket.Str(),
           sigma_bra.Str(),
+          std::get<2>(recurrence_lgi_space.labels()),
           recurrence_lgi_space.size(),
           recurrence_lgi_space.dimension()
         ) << std::endl;
 
-      for (int j = 0; j < recurrence_lgi_space.size(); ++j)
+      for (std::size_t j = 0; j < recurrence_lgi_space.size(); ++j)
       {
         const auto& recurrence_spin_space = recurrence_lgi_space.GetSubspace(j);
-        const auto& [S_ket,S_bra] = recurrence_spin_space.labels();
+        const auto& [S_ket, S_bra] = recurrence_spin_space.labels();
 
         std::cout << fmt::format(
-            "    spatial::RecurrenceSpinSpace {} {}  size:  {:4d}  dimension:  "
+            "    spin::RecurrenceSpinSpace {} {}  size:  {:4d}  dimension:  "
             "{:4d}",
-            S_ket, S_bra,
+            S_ket,
+            S_bra,
             recurrence_spin_space.size(),
             recurrence_spin_space.dimension()
           ) << std::endl;
 
-        for (int k = 0; k < recurrence_spin_space.size(); ++k)
+        for (std::size_t k = 0; k < recurrence_spin_space.size(); ++k)
         {
-          const auto& recurrence_spin_subspace = recurrence_spin_space.GetSubspace(k);
+          const auto& recurrence_spin_subspace =
+              recurrence_spin_space.GetSubspace(k);
           const int degeneracy = recurrence_spin_space.GetSubspaceDegeneracy(k);
-          const int ket_degeneracy = recurrence_spin_space.GetKetSubspaceDegeneracy(k);
-          const int bra_degeneracy = recurrence_spin_space.GetBraSubspaceDegeneracy(k);
+          const int ket_degeneracy =
+              recurrence_spin_space.GetKetSubspaceDegeneracy(k);
+          const int bra_degeneracy =
+              recurrence_spin_space.GetBraSubspaceDegeneracy(k);
 
-          const auto [Sp_ket, Sn_ket] = recurrence_spin_subspace.ket_upstream_labels();
-          const auto [Sp_bra, Sn_bra] = recurrence_spin_subspace.bra_upstream_labels();
+          const auto [Sp_ket, Sn_ket] =
+              recurrence_spin_subspace.ket_upstream_labels();
+          const auto [Sp_bra, Sn_bra] =
+              recurrence_spin_subspace.bra_upstream_labels();
           std::cout << fmt::format(
-              "      spin:: RecurrenceSpinSubspace ({},{})  ({},{})   bra_subspace_degeneracy: "
+              "      spin::RecurrenceSpinSubspace ({},{})  ({},{})   "
+              "bra_subspace_degeneracy: "
               "{:3d} ket_subspace_degeneracy: {:3d}   degeneracy: {:4d}",
-              Sp_ket, Sn_ket,
-              Sp_bra, Sn_bra,
+              Sp_ket,
+              Sn_ket,
+              Sp_bra,
+              Sn_bra,
               ket_degeneracy,
               bra_degeneracy,
               degeneracy
@@ -160,13 +180,31 @@ int main(int argc, char** argv)
               recurrence_spin_subspace.dimension(),
               recurrence_spin_space.GetSubspaceOffset(k, degeneracy)
             ) << std::endl;
+          for (std::size_t l = 0; l < recurrence_spin_subspace.size(); ++l)
+          {
+            const auto& recurrence_operator_state =
+                recurrence_spin_subspace.GetState(l);
+            std::cout << fmt::format(
+                "        spin::RecurrenceOperatorState {:02x}   "
+                "S0: {}  T0:{}  Sbar: {}  Sbarp: {}  Tbar: {}  Tbarp: {}\n",
+                recurrence_operator_state.labels().id(),
+                recurrence_operator_state.labels().S0(),
+                recurrence_operator_state.labels().T0(),
+                recurrence_operator_state.labels().Sbar(),
+                recurrence_operator_state.labels().Sbarp(),
+                recurrence_operator_state.labels().Tbar(),
+                recurrence_operator_state.labels().Tbarp()
+              );
+          }
+          total_dimension += degeneracy * recurrence_spin_subspace.dimension();
         }
       }
     }
+    std::cout << fmt::format("total_dimension: {}", total_dimension) << std::endl;
   }
 
   // Checking spncci::spatial::Space indexing
-  if (true)
+  if constexpr (check_spatial)
   {
     int Nmax = 2;
     auto spin_space = spncci::spin::Space<lgi::LGI>(lgi_vector, Nmax);
@@ -217,7 +255,7 @@ int main(int argc, char** argv)
   }
 
   // Checking spncci::spatial::RecurrenceSpace indexing
-  if (true)
+  if constexpr (check_spatial_recurrence)
   {
     std::cout << "___________________________________________________" << std::endl;
     int Nmax = 2;
@@ -232,16 +270,22 @@ int main(int argc, char** argv)
         "spatial::Space dimension: {}", spatial_space.dimension()
       ) << std::endl;
 
+    std::cout << fmt::format(
+        "spin::RecurrenceSpace dimension: {}", recurrence_space.dimension()
+      ) << std::endl;
+
     for (std::size_t i = 0; i < recurrence_space.size(); ++i)
     {
       const auto& recurrence_lgi_space = recurrence_space.GetSubspace(i);
 
       const u3::U3& sigma_ket = recurrence_lgi_space.sigma_ket();
       const u3::U3& sigma_bra = recurrence_lgi_space.sigma_bra();
+      const uint8_t& parity_bar = recurrence_lgi_space.parity_bar();
       std::cout << fmt::format(
-          "  spatial::RecurrenceLGISpace {} {}  size: {:4d}  dimension: {:4d}",
+          "  spatial::RecurrenceLGISpace {} {} {}  size: {:4d}  dimension: {:4d}",
           sigma_ket.Str(),
           sigma_bra.Str(),
+          parity_bar,
           recurrence_lgi_space.size(),
           recurrence_lgi_space.dimension()
         ) << std::endl;
@@ -269,7 +313,7 @@ int main(int argc, char** argv)
           const int& upsilon_max_bra = recurrence_Nnsum_space.upsilon_max_bra(k);
           const int& degeneracy = recurrence_Nnsum_space.GetSubspaceDegeneracy(k);
           std::cout << fmt::format(
-              "      spatial:: RecurrenceU3Space {} {}   upsilon_max_ket: "
+              "      spatial::RecurrenceU3Space {} {}   upsilon_max_ket: "
               "{:3d} upsilon_max_bra: {:3d}   degeneracy: {:4d}",
               omega_ket.Str(),
               omega_bra.Str(),
@@ -283,6 +327,24 @@ int main(int argc, char** argv)
               recurrence_u3space.dimension(),
               recurrence_Nnsum_space.GetSubspaceOffset(k, degeneracy)
             ) << std::endl;
+          for (std::size_t l = 0; l < recurrence_u3space.size(); ++l)
+          {
+            const auto& operator_subspace = recurrence_u3space.GetSubspace(l);
+            std::cout << fmt::format(
+                "        spatial::RecurrenceOperatorSubspace {}   degeneracy: {:4d}",
+                operator_subspace.x0().Str(),
+                recurrence_u3space.GetSubspaceDegeneracy(l)
+              ) << std::endl;
+            for (std::size_t m = 0; m < operator_subspace.size(); ++m)
+            {
+              const auto operator_state = operator_subspace.GetState(m);
+              std::cout << fmt::format(
+                  "          spatial::RecurrenceOperatorState Nbar: {}  Nbarp: {}",
+                  operator_state.Nbar(),
+                  operator_state.Nbar_p()
+                ) << std::endl;
+            }
+          }
         }
       }
     }

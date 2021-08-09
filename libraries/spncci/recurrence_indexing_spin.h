@@ -565,6 +565,8 @@ class UnitTensorLabelsST
   friend struct std::hash<UnitTensorLabelsST>;
 
  public:
+  unsigned long id() const { return bitrep_.to_ulong(); }
+
   constexpr UnitTensorLabelsST(int S0, int T0, int Sbar, int Sbarp, int Tbar, int Tbarp)
       : bitrep_{static_cast<uint>(
           64 * S0 + 16 * T0 + 8 * Sbar + 4 * Sbarp + 2 * Tbar + Tbarp
