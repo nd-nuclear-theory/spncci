@@ -174,8 +174,8 @@ namespace lgi
     )
   {
     return (
-        am::AllowedTriangle(ket_labels.Sp, 2, bra_labels.Sp)
-        && am::AllowedTriangle(ket_labels.Sn, 2, bra_labels.Sn)
+        abs(ket_labels.Sp - bra_labels.Sp) <= 2
+        && abs(ket_labels.Sn - bra_labels.Sn) <= 2
       );
   }
 

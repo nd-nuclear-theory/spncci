@@ -180,7 +180,7 @@ class RecurrenceOperatorSubspace
       const u3::SU3& x0, const std::vector<std::tuple<int, int>>& Nbar_pairs
     );
 
-  u3::SU3 X0() const { return std::get<0>(labels()); }
+  u3::SU3 x0() const { return std::get<0>(labels()); }
 };
 
 class RecurrenceOperatorState

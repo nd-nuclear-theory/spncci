@@ -270,7 +270,8 @@ class RecurrenceSpinSubspace
       HalfInt S_ket,
       const SpinState<tLGIType>& spin_state_bra,
       HalfInt S_bra,
-      uint8_t parity_bar
+      uint8_t parity_bar,
+      uint8_t parity_barp
     );
 
   UpstreamLabelsType ket_upstream_labels() const
@@ -289,7 +290,8 @@ RecurrenceSpinSubspace<tLGIType, tUnitTensorLabelsType>::RecurrenceSpinSubspace(
     HalfInt S_ket,
     const SpinState<tLGIType>& spin_state_bra,
     HalfInt S_bra,
-    uint8_t parity_bar
+    uint8_t parity_bar,
+    uint8_t parity_barp
   )
     : BaseSubspaceType{{spin_state_ket.labels(), spin_state_bra.labels()}}
 {
@@ -297,7 +299,7 @@ RecurrenceSpinSubspace<tLGIType, tUnitTensorLabelsType>::RecurrenceSpinSubspace(
   {
     if (!am::AllowedTriangle(S_ket, tensor_labels.S0(), S_bra))
       continue;
-    if (tensor_labels.parity_bar() != parity_bar)
+    if ((tensor_labels.parity_bar() != parity_bar) || (tensor_labels.parity_barp() != parity_barp))
       continue;
     if (!UnitTensorAllowed(
             spin_state_ket.labels(), tensor_labels, spin_state_bra.labels()
@@ -364,7 +366,8 @@ class RecurrenceSpinSpace
   RecurrenceSpinSpace(
       const SpinSubspace<tLGIType>& spin_subspace_ket,
       const SpinSubspace<tLGIType>& spin_subspace_bra,
-      uint8_t parity_bar
+      uint8_t parity_bar,
+      uint8_t parity_barp
     );
 
   HalfInt S_ket() const
@@ -393,7 +396,8 @@ template<typename tLGIType, typename tUnitTensorLabelsType>
 RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>::RecurrenceSpinSpace(
     const SpinSubspace<tLGIType>& spin_subspace_ket,
     const SpinSubspace<tLGIType>& spin_subspace_bra,
-    uint8_t parity_bar
+    uint8_t parity_bar,
+    uint8_t parity_barp
   )
     : BaseDegenerateSpaceType{{spin_subspace_ket.S(), spin_subspace_bra.S()}}
 {
@@ -411,7 +415,8 @@ RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>::RecurrenceSpinSpace(
           spin_subspace_ket.S(),
           spin_state_bra,
           spin_subspace_bra.S(),
-          parity_bar
+          parity_bar,
+          parity_barp
         );
       if (subspace.dimension() > 0)
       {
@@ -453,6 +458,11 @@ class RecurrenceLGISpace
 
   u3::U3 sigma_ket() const { return std::get<0>(BaseSpaceType::labels()); }
   u3::U3 sigma_bra() const { return std::get<1>(BaseSpaceType::labels()); }
+  uint8_t parity_bar() const { return std::get<2>(BaseSpaceType::labels()); }
+  uint8_t parity_barp() const
+  {
+    return uint8_t(parity_bar() + abs(sigma_bra().N() - sigma_ket().N())) % 2;
+  }
 };
 
 template<typename tLGIType, typename tUnitTensorLabelsType>
@@ -475,7 +485,7 @@ RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>::RecurrenceLGISpace(
         continue;
 
       typename BaseSpaceType::SubspaceType subspace(
-          spin_subspace_ket, spin_subspace_bra, parity_bar
+          spin_subspace_ket, spin_subspace_bra, parity_bar, parity_barp()
         );
 
       if (subspace.dimension() > 0)
@@ -669,7 +679,7 @@ inline bool UnitTensorAllowed(
     const lgi::LGI::UpstreamLabelsType& bra_labels
   )
 {
-  if (tensor_labels.T0() == 0)
+  if ((tensor_labels.S0() == 0) && (tensor_labels.T0() == 0))
   {
     if ((ket_labels.Sp != bra_labels.Sp) || (ket_labels.Sn != bra_labels.Sn))
       return false;
