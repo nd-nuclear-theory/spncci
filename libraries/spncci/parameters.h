@@ -2,7 +2,7 @@
   parameters.h
 
   Code run parameters.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -17,20 +17,22 @@
 #ifndef SPNCCI_SPNCCI_PARAMETERS_H_
 #define SPNCCI_SPNCCI_PARAMETERS_H_
 
+#include <array>
 #include <string>
+#include <vector>
 
 #include "am/halfint.h"
 
 namespace spncci
 {
-  //TODO extract out lsu3shell file information.  Only used in explicit construction. 
+  //TODO extract out lsu3shell file information.  Only used in explicit construction.
 
   struct RunParameters
   // Structure to store input parameters for run.
   {
 
     // constructor
-    RunParameters(); 
+    RunParameters();
 
     // basis parameters
     int A;
