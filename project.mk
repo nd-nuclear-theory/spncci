@@ -94,6 +94,16 @@ FFLAGS += -DSU3DBL
 FFLAGS += -DSU3LM82
 
 ################################################################
+# cppitertools -- external template library
+################################################################
+
+# % cd ${home}/code
+# % git clone https://github.com/ryanhaining/cppitertools.git
+# % setenv CPPITERTOOLS_DIR ${home}/code/cppitertools
+
+search_dirs_include += $(abspath $(dir $(CPPITERTOOLS_DIR))/..)
+
+################################################################
 # spectra -- external template library
 #
 # This should arguably go in config.mk, but it is being placed
