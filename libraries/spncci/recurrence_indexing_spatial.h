@@ -106,7 +106,7 @@ class U3State
 };
 
 class LGISpace
-    : public basis::BaseSpace<U3Subspace, std::tuple<u3::U3>>
+    : public basis::BaseSpace<LGISpace, U3Subspace, std::tuple<u3::U3>>
 {
  public:
   LGISpace() = default;
@@ -116,7 +116,7 @@ class LGISpace
 };
 
 class Space
-    : public basis::BaseSpace<LGISpace>
+    : public basis::BaseSpace<Space, LGISpace>
 {
  public:
   Space() = default;
@@ -207,7 +207,7 @@ class RecurrenceOperatorState
 
 // spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
 class RecurrenceU3Space
-    : public basis::BaseDegenerateSpace<RecurrenceOperatorSubspace, std::tuple<u3::U3, u3::U3>>
+    : public basis::BaseDegenerateSpace<RecurrenceU3Space, RecurrenceOperatorSubspace, std::tuple<u3::U3, u3::U3>>
 {
  public:
   RecurrenceU3Space() = default;
@@ -225,7 +225,7 @@ class RecurrenceU3Space
 
 // spatial::RecurrenceNnsumSpace() [Nsum]
 class RecurrenceNnsumSpace
-    : public basis::BaseDegenerateSpace<RecurrenceU3Space, std::tuple<int>>
+    : public basis::BaseDegenerateSpace<RecurrenceNnsumSpace, RecurrenceU3Space, std::tuple<int>>
 {
  public:
   RecurrenceNnsumSpace() = default;
@@ -259,7 +259,7 @@ class RecurrenceNnsumSpace
 
 // spatial::RecurrenceLGISpace() [sigma,sigma',parity_bar]
 class RecurrenceLGISpace
-    : public basis::BaseSpace<RecurrenceNnsumSpace, std::tuple<u3::U3, u3::U3, uint8_t>>
+    : public basis::BaseSpace<RecurrenceLGISpace, RecurrenceNnsumSpace, std::tuple<u3::U3, u3::U3, uint8_t>>
 {
  public:
   RecurrenceLGISpace() = default;
@@ -278,7 +278,7 @@ class RecurrenceLGISpace
 
 // spatial::RecurrenceSpace() []
 class RecurrenceSpace
-    : public basis::BaseSpace<RecurrenceLGISpace>
+    : public basis::BaseSpace<RecurrenceSpace, RecurrenceLGISpace>
 {
  public:
   RecurrenceSpace() = default;

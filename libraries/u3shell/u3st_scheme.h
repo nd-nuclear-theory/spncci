@@ -142,7 +142,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class RelativeSpaceU3ST
-    : public basis::BaseSpace<RelativeSubspaceU3ST>
+    : public basis::BaseSpace<RelativeSpaceU3ST,RelativeSubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
 
@@ -319,7 +319,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class RelativeCMSpaceU3ST
-    : public basis::BaseSpace<RelativeCMSubspaceU3ST>
+    : public basis::BaseSpace<RelativeCMSpaceU3ST,RelativeCMSubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
 
@@ -538,7 +538,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class TwoBodySpaceU3ST
-    : public basis::BaseSpace<TwoBodySubspaceU3ST>
+    : public basis::BaseSpace<TwoBodySpaceU3ST,TwoBodySubspaceU3ST>
   // Space class for two-body states of given U(3)xSxT.
   {
 

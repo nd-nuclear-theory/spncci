@@ -160,7 +160,7 @@ namespace sp3r
   ////////////////////////////////////////////////////////////////
 
   class Sp3RSpace
-    : public basis::BaseSpace<U3Subspace>
+    : public basis::BaseSpace<Sp3RSpace, U3Subspace>
     // subspace type: U3Subspace
   {
 

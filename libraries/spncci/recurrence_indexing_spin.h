@@ -15,7 +15,7 @@ recurrence_indexing_spin.h
     spin::RecurrenceSpace() []
       spin::RecurrenceLGISpace() [sigma,sigma',parity_bar]
       ->spin::RecurrenceSpinSpace() [S,S']
-        -> spin::RecurrenceS[PN/T]Subspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+        -> spin::RecurrenceSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
           ->spin::RecurrenceOperatorState() [operator_index]
 
     operator_index -> (S0,T0,Sbar,Sbar',Tbar,Tbar') bit representation
@@ -145,13 +145,14 @@ class SpinState
 template<typename tLGIType>
 class LGISpace
     : public basis::BaseSpace<
+          /* derived type */ LGISpace<tLGIType>,
           /* subspace type */ SpinSubspace<tLGIType>,
           /* space labels */ std::tuple<u3::U3>
         >
 {
  private:
   using BaseSpaceType =
-      basis::BaseSpace<SpinSubspace<tLGIType>, std::tuple<u3::U3>>;
+      basis::BaseSpace<LGISpace<tLGIType>, SpinSubspace<tLGIType>, std::tuple<u3::U3>>;
   using UpstreamLabelsType = typename tLGIType::UpstreamLabelsType;
 
  public:
@@ -179,10 +180,13 @@ class LGISpace
 
 template<typename tLGIType>
 class Space
-    : public basis::BaseSpace</* subspace type */ LGISpace<tLGIType>>
+    : public basis::BaseSpace<
+          /* derived type */ Space<tLGIType>,
+          /* subspace type */ LGISpace<tLGIType>
+        >
 {
  private:
-  using BaseSpaceType = basis::BaseSpace<LGISpace<tLGIType>>;
+  using BaseSpaceType = basis::BaseSpace<Space<tLGIType>, LGISpace<tLGIType>>;
   using UpstreamLabelsType = typename tLGIType::UpstreamLabelsType;
 
  public:
@@ -223,7 +227,7 @@ class Space
 // spin::RecurrenceSpace() []
 //   spin::RecurrenceLGISpace() [sigma,sigma']
 //   ->spin::RecurrenceSpinSpace() [S,S']
-//     -> spin::RecurrenceS[PN/T]Subspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+//     -> spin::RecurrenceSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
 //       ->spin::RecurrenceOperatorState() [S0,T0,Sbar,Sbar',Tbar,Tbar']
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -347,12 +351,14 @@ class RecurrenceOperatorState
 template<typename tLGIType, typename tUnitTensorLabelsType>
 class RecurrenceSpinSpace
     : public basis::BaseDegenerateSpace<
+          RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>,
           RecurrenceSpinSubspace<tLGIType, tUnitTensorLabelsType>,
           std::tuple<HalfInt, HalfInt>
         >
 {
  private:
   using BaseDegenerateSpaceType = basis::BaseDegenerateSpace<
+      RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>,
       RecurrenceSpinSubspace<tLGIType, tUnitTensorLabelsType>,
       std::tuple<HalfInt, HalfInt>
     >;
@@ -434,12 +440,14 @@ RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>::RecurrenceSpinSpace(
 template<typename tLGIType, typename tUnitTensorLabelsType>
 class RecurrenceLGISpace
     : public basis::BaseSpace<
+          RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>,
           RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>,
           std::tuple<u3::U3, u3::U3, uint8_t>
         >
 {
  private:
   using BaseSpaceType = basis::BaseSpace<
+      RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>,
       RecurrenceSpinSpace<tLGIType, tUnitTensorLabelsType>,
       std::tuple<u3::U3, u3::U3, uint8_t>
     >;
@@ -497,11 +505,16 @@ RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>::RecurrenceLGISpace(
 // spin::RecurrenceSpace() []
 template<typename tLGIType, typename tUnitTensorLabelsType>
 class RecurrenceSpace
-    : public basis::BaseSpace<RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>>
+    : public basis::BaseSpace<
+          RecurrenceSpace<tLGIType, tUnitTensorLabelsType>,
+          RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>
+        >
 {
  private:
-  using BaseSpaceType =
-      basis::BaseSpace<RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>>;
+  using BaseSpaceType = basis::BaseSpace<
+      RecurrenceSpace<tLGIType, tUnitTensorLabelsType>,
+      RecurrenceLGISpace<tLGIType, tUnitTensorLabelsType>
+    >;
   using UpstreamLabelsType = typename tLGIType::UpstreamLabelsType;
 
  public:

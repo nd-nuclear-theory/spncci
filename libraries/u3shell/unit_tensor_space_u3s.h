@@ -149,7 +149,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class RelativeUnitTensorSpaceU3S
-    : public basis::BaseSpace<RelativeUnitTensorSubspaceU3S>
+    : public basis::BaseSpace<RelativeUnitTensorSpaceU3S,RelativeUnitTensorSubspaceU3S>
   // Space class for relative unit tensor states of given U(3)xS.
   {
 
@@ -262,7 +262,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class ObservableSpaceU3S
-    : public basis::BaseSpace<ObservableSubspaceU3S>
+    : public basis::BaseSpace<ObservableSpaceU3S,ObservableSubspaceU3S>
   // Space class for relative unit tensor states of given U(3)xS.
   {
 

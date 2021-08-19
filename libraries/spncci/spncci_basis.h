@@ -531,7 +531,7 @@ namespace spncci
 
   // space
   class BabySpNCCISpace
-    : public basis::BaseSpace<BabySpNCCISubspace>
+    : public basis::BaseSpace<BabySpNCCISpace,BabySpNCCISubspace>
   {
 
   public:
@@ -892,7 +892,7 @@ namespace spncci
   // ////////////////////////////////////////////////////////////////
 
   class SpaceSpBasis
-    : public basis::BaseSpace<SubspaceSpBasis>
+    : public basis::BaseSpace<SpaceSpBasis,SubspaceSpBasis>
   {
 
     public:

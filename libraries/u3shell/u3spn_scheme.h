@@ -228,7 +228,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class SpaceU3SPN
-    : public basis::BaseSpace<SubspaceU3SPN>
+    : public basis::BaseSpace<SpaceU3SPN, SubspaceU3SPN>
   // Space class for two-body states of given U(3)xS.
   {
 
