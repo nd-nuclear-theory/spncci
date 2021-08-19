@@ -17,3 +17,6 @@
 	path = libraries/cppitertools
 	url = ../cppitertools.git
 	branch = submodule
+[submodule "config/ndmakefile"]
+	path = config/ndmakefile
+	url = ../ndmakefile.git
