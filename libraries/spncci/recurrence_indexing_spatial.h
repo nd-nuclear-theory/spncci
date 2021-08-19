@@ -67,7 +67,7 @@ class LGISpace;
 class Space;
 
 class U3Subspace
-    : public basis::BaseSubspace<U3Subspace, std::tuple<u3::U3>, U3State, MultiplicityTagged<u3::U3>>
+    : public basis::BaseDegenerateSubspace<U3Subspace, std::tuple<u3::U3>, U3State, std::tuple<u3::U3>>
 {
  public:
   U3Subspace() = default;
@@ -77,17 +77,18 @@ class U3Subspace
   U3Subspace(const sp3r::U3Subspace& u3subspace);
 
   u3::U3 omega() const { return std::get<0>(labels()); }
+  inline int upsilon_max() const { return dimension(); }
 };
 
 class U3State
-    : public basis::BaseState<U3Subspace>
+    : public basis::BaseDegenerateState<U3Subspace>
 {
  public:
   // pass-through constructors
 
   U3State(const SubspaceType& subspace, std::size_t index)
   // Construct state by index.
-      : basis::BaseState<U3Subspace>(subspace, index)
+      : basis::BaseDegenerateState<U3Subspace>(subspace, index)
   {}
 
   U3State(
@@ -95,12 +96,12 @@ class U3State
       const typename SubspaceType::StateLabelsType& state_labels
     )
   // Construct state by reverse lookup on labels.
-      : basis::BaseState<U3Subspace>(subspace, state_labels)
+      : basis::BaseDegenerateState<U3Subspace>(subspace, state_labels)
   {}
 
   // pass-through accessors for subspace labels
-  u3::U3 n() const { return labels().irrep; }
-  int rho() const { return labels().tag; }
+  u3::U3 n() const { return std::get<0>(labels()); }
+  int rho_max() const { return subspace().GetStateDegeneracy(index()); }
 
   // private:
 };
@@ -126,7 +127,7 @@ class Space
 
   // Construct from spin::Space
   template<typename tLGIType>
-  Space(const spin::Space<tLGIType>& spin_space, const int& Nmax, const HalfInt& Nsigma0)
+  Space(const spin::Space<tLGIType>& spin_space, const HalfInt& Nsigma0, const int& Nmax)
   {
     // Nsigma0_=spin_space.Nsigma0();
     for (int i = 0; i < spin_space.size(); ++i)

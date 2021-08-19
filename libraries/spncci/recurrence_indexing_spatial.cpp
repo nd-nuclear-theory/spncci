@@ -27,14 +27,19 @@ namespace spncci
 namespace spatial
 {
 U3Subspace::U3Subspace(const sp3r::U3Subspace& u3subspace)
-    : BaseSubspace{u3subspace.labels()}
+    : BaseDegenerateSubspace{u3subspace.labels()}
 {
   const u3::U3& omega = u3subspace.labels();
+  std::map<u3::U3, std::size_t> n_map;
   for (int i = 0; i < u3subspace.size(); ++i)
   {
     const auto& n_rho = u3subspace.GetStateLabels(i);
-    PushStateLabels(n_rho);
+    if (n_map.count(n_rho.irrep) == 0)
+      n_map[n_rho.irrep] = 0;
+    n_map[n_rho.irrep] += n_rho.tag;
   }
+  for (const auto& [n, rho_max] : n_map)
+    PushStateLabels(n, rho_max);
 }
 
 LGISpace::LGISpace(const u3::U3& sigma, const int Nn_max)
@@ -70,6 +75,7 @@ RecurrenceOperatorSubspace::RecurrenceOperatorSubspace(
   )
     : BaseSubspace{x0}
 {
+  reserve(Nbar_pairs.size());
   for (const auto& Nbar_pair : Nbar_pairs) PushStateLabels(Nbar_pair);
 }
 
@@ -80,7 +86,7 @@ RecurrenceU3Space::RecurrenceU3Space(
     : BaseDegenerateSpace{omega_pair}
 {
   const auto& [omega, omega_p] = omega_pair;
-  std::map<u3::SU3, std::vector<std::tuple<int, int>>> x0_Nbar_pairs;
+  std::unordered_map<u3::SU3, std::vector<std::tuple<int, int>>, boost::hash<u3::SU3>> x0_Nbar_pairs;
 
   ////////////////////////////////////////////////////////////////////////////////
   // Create list of spatial unit tensors to pass through to operator subspace
@@ -110,6 +116,7 @@ RecurrenceU3Space::RecurrenceU3Space(
   ////////////////////////////////////////////////////////////////////////////////
   // Construct operator subspaces
   ////////////////////////////////////////////////////////////////////////////////
+  reserve(x0_Nbar_pairs.size());
   for (const auto& [x0, Nbar_pairs] : x0_Nbar_pairs)
   {
     int rho0_max = u3::OuterMultiplicity(omega_ket().SU3(), x0, omega_bra().SU3());
@@ -129,6 +136,9 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     : BaseDegenerateSpace{Nnsum}
 {
   parity_bar_ = unit_tensor_constraints.parity_bar;
+
+  reserve(u3subspace_index_pairs.size());
+  upsilon_pairs_.reserve(u3subspace_index_pairs.size());
 
   for (const auto& [i_ket, i_bra] : u3subspace_index_pairs)
   {
@@ -177,6 +187,7 @@ RecurrenceLGISpace::RecurrenceLGISpace(
     }
 
   // Create RecurrenceNnsumSpaces.  On for each unit tensor state parity
+  reserve(Nnsum_partition.size());
   for (const auto& [Nnsum, partition] : Nnsum_partition)
     PushSubspace(RecurrenceNnsumSpace(
         Nnsum, partition, lgi_space_ket, lgi_space_bra, unit_tensor_constraints
@@ -191,6 +202,7 @@ RecurrenceSpace::RecurrenceSpace(
   )
     : BaseSpace{}
 {
+  reserve(2*space_ket.size()*space_bra.size());
   for (int i_ket = 0; i_ket < space_ket.size(); ++i_ket)
     for (int i_bra = 0; i_bra < space_bra.size(); ++i_bra)
     {
