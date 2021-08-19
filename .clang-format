@@ -1,6 +1,5 @@
 ---
 Language:        Cpp
-# BasedOnStyle:  Google
 AccessModifierOffset: -1
 AlignAfterOpenBracket: AlwaysBreakAndCloseOnNextLine
 AlignConsecutiveMacros: false
@@ -43,10 +42,8 @@ BraceWrapping:
   SplitEmptyFunction: true
   SplitEmptyRecord: false
   SplitEmptyNamespace: true
-# BreakBeforeBinaryOperators: None
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
-# BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
@@ -109,8 +106,7 @@ PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyIndentedWhitespace: 1
-#PenaltyExcessCharacter: 1000000
-PenaltyExcessCharacter: 6
+PenaltyExcessCharacter: 10
 PenaltyReturnTypeOnItsOwnLine: 200
 PointerAlignment: Left
 RawStringFormats:
