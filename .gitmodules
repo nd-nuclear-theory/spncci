@@ -19,3 +19,7 @@
 	url = ../fmt
         shallow = true
 
+[submodule "libraries/cppitertools"]
+	path = libraries/cppitertools
+	url = ../cppitertools.git
+	branch = submodule

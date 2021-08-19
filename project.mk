@@ -24,7 +24,7 @@ modules += libraries/moshinsky libraries/u3shell libraries/sp3rlib  # ordering n
 modules += libraries/utilities libraries/su3lib  # ordering note: "low-level" operations, called by many other libraries
 
 # additional libraries -- imported
-modules += libraries/fmt
+modules += libraries/fmt libraries/cppitertools
 
 # additional libraries -- cloned as submodules
 modules += libraries/basis libraries/am libraries/mcutils  # ordering note: mcutils is called by basis
@@ -92,16 +92,6 @@ FFLAGS += -DSU3DBL
 #
 #   SU3LM82: lambda+mu<82 instead of <42
 FFLAGS += -DSU3LM82
-
-################################################################
-# cppitertools -- external template library
-################################################################
-
-# % cd ${home}/code
-# % git clone https://github.com/ryanhaining/cppitertools.git
-# % setenv CPPITERTOOLS_DIR ${home}/code/cppitertools
-
-search_dirs_include += $(abspath $(dir $(CPPITERTOOLS_DIR))/..)
 
 ################################################################
 # spectra -- external template library
