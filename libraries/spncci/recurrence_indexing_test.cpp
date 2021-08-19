@@ -13,6 +13,7 @@
 #include "am/halfint_fmt.h"
 #include "fmt/format.h"
 #include "lgi/lgi.h"
+#include "cppitertools/imap.hpp"
 
 
 int main(int argc, char** argv)
@@ -29,6 +30,7 @@ int main(int argc, char** argv)
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   HalfInt Nsigma0 = lgi::Nsigma0ForNuclide({3, 3});
   int N1v = 1;
+  int Nmax = 6;
   lgi::ReadLGISet(filename, Nsigma0, lgi_vector);
 
   constexpr bool check_lgi = true;
@@ -50,7 +52,6 @@ int main(int argc, char** argv)
   if constexpr (check_spin)
   {
     // diagnostic -- inspect LGI listing
-    int Nmax = 2;
     auto spin_space = spncci::spin::Space<lgi::LGI>(lgi_vector, Nmax);
 
     int num_lgi_spaces = spin_space.size();
@@ -105,7 +106,6 @@ int main(int argc, char** argv)
   if constexpr (check_spin_recurrence)
   {
     std::cout << "___________________________________________________" << std::endl;
-    int Nmax = 2;
 
     spncci::spin::Space<lgi::LGI> spin_space(lgi_vector, Nmax);
     std::vector<std::tuple<u3::SU3, int, int>> spatial_unit_tensors;
@@ -206,10 +206,9 @@ int main(int argc, char** argv)
   // Checking spncci::spatial::Space indexing
   if constexpr (check_spatial)
   {
-    int Nmax = 2;
-    auto spin_space = spncci::spin::Space<lgi::LGI>(lgi_vector, Nmax);
     std::cout << "Nmax = " << Nmax << std::endl;
-    spncci::spatial::Space spatial_space(spin_space, Nmax, Nsigma0);
+    auto it = iter::imap([](MultiplicityTagged<lgi::LGI> l){return l.irrep.U3();}, lgi_vector);
+    spncci::spatial::Space spatial_space(std::vector<u3::U3>(it.begin(), it.end()), Nsigma0, Nmax);
     std::cout << fmt::format(
         "spatial::Space dimension: {}", spatial_space.dimension()
       ) << std::endl;
@@ -228,19 +227,20 @@ int main(int argc, char** argv)
       {
         const auto& u3subspace = spatial_lgi_space.GetSubspace(j);
         const u3::U3& omega = u3subspace.omega();
-        const int& upsilon_max = u3subspace.size();
+        const int& upsilon_max = u3subspace.upsilon_max();
         std::cout << fmt::format(
-            "    U3Subspace : {}   upsilon_max : {:4d}   Dimension: {:4d}",
+            "    U3Subspace : {}   size: {:4d}   upsilon_max : {:4d}   dimension: {:4d}",
             omega.Str(),
+            u3subspace.size(),
             upsilon_max,
             u3subspace.dimension()
           ) << std::endl;
-        for (std::size_t k = 0; k < upsilon_max; ++k)
+        for (std::size_t k = 0; k < u3subspace.size(); ++k)
         {
           const auto u3state = u3subspace.GetState(k);
           const u3::U3& n = u3state.n();
-          const int& rho = u3state.rho();
-          std::cout << fmt::format("       U3State : {} {} ", n.Str(), rho)
+          const int& rho_max = u3state.rho_max();
+          std::cout << fmt::format("       U3State : {} {} ", n.Str(), rho_max)
                     << std::endl;
 
           int state_index =
@@ -258,10 +258,9 @@ int main(int argc, char** argv)
   if constexpr (check_spatial_recurrence)
   {
     std::cout << "___________________________________________________" << std::endl;
-    int Nmax = 2;
 
-    spncci::spin::Space<lgi::LGI> spin_space(lgi_vector, Nmax);
-    spncci::spatial::Space spatial_space(spin_space, Nmax, Nsigma0);
+    auto it = iter::imap([](MultiplicityTagged<lgi::LGI> l){return l.irrep.U3();}, lgi_vector);
+    spncci::spatial::Space spatial_space(std::vector<u3::U3>(it.begin(), it.end()), Nsigma0, Nmax);
     std::vector<std::tuple<u3::SU3, int, int>> spatial_unit_tensors;
     spncci::spatial::RecurrenceSpace recurrence_space(
         spatial_space, spatial_space, N1v, Nsigma0
