@@ -3,6 +3,7 @@
 	url = ../am.git
 [submodule "libraries/basis"]
 	path = libraries/basis
+        branch = feature/shared_ptr
 	url = ../basis
 [submodule "libraries/mcutils"]
 	path = libraries/mcutils
@@ -12,7 +13,6 @@
 	branch = submodule
 	url = ../fmt
         shallow = true
-
 [submodule "libraries/cppitertools"]
 	path = libraries/cppitertools
 	url = ../cppitertools.git
