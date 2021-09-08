@@ -23,7 +23,7 @@
 #include <tuple>
 
 #ifdef BASIS_HASH
-#include <boost/functional/hash.hpp>
+#include <boost/container_hash/hash.hpp>
 #endif  // BASIS_HASH
 
 #include "am/am.h"

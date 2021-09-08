@@ -2,7 +2,7 @@
   lsu3shell_rme.h
 
   Input of RMEs in lsu3shell basis.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame and TRIUMF
 
@@ -22,7 +22,7 @@
     g_rme_binary_format.
   - 6/17/19 (mac): Update binary mode output: add header, shorten indexing
     integer type, make storage single/double switchable.
-  - 10/11/17 (aem): 
+  - 10/11/17 (aem):
       + Add MatrixFloatType and switched MatrixVector to OperatorBlocks
       + Extracted i/o for symplectic generator su3rmes from spncci_io
 ****************************************************************/
@@ -30,10 +30,9 @@
 #ifndef LSU3SHELL_RME_H_
 #define LSU3SHELL_RME_H_
 
-#include "boost/functional/hash_fwd.hpp"
-#include "eigen3/Eigen/Dense"
+#include <Eigen/Dense>
 
-#include "am/am.h"  
+#include "am/am.h"
 #include "basis/operator.h"
 #include "u3shell/u3spn_scheme.h"
 
@@ -45,21 +44,21 @@ namespace lsu3shell
   // global configuration
   extern bool g_rme_binary_format;
   typedef unsigned int RMEIndexType;
-  
+
   // matrix precision
   typedef double MatrixFloatType;
   typedef basis::OperatorBlock<MatrixFloatType> OperatorBlock;
   typedef basis::OperatorBlocks<MatrixFloatType> OperatorBlocks;
 
 
-  void 
+  void
   ReadLSU3ShellRMEs(
       bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table_bra,
-      const u3shell::SpaceU3SPN& space_bra, 
+      const u3shell::SpaceU3SPN& space_bra,
       const LSU3ShellBasisTable& lsu3_basis_table_ket,
-      const u3shell::SpaceU3SPN& space_ket, 
+      const u3shell::SpaceU3SPN& space_ket,
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
@@ -72,7 +71,7 @@ namespace lsu3shell
   //   g_rme_binary_format: false = ascii format; true = binary format
   //
   // Arguments:
-  //   sp3r_generators (input) : tempory fix for error arising when generator rmes are not 
+  //   sp3r_generators (input) : tempory fix for error arising when generator rmes are not
   //      truncated as a string.  If true, then string truncation applied, else, read in normally
   //   filename (input): name of binary rme file
   //   lsu3_basis_table_bra,lsu3_basis_table_ket (input): information on LSU3shell basis states
@@ -84,12 +83,12 @@ namespace lsu3shell
   //     e.g., for conversion from relative to intrinsic operator
 
 
-  void 
+  void
   ReadLSU3ShellRMEs(
       bool sp3r_generators,
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
+      const u3shell::SpaceU3SPN& space,
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& blocks,
@@ -99,44 +98,44 @@ namespace lsu3shell
   //Wrapper function for when bra space and ket space are the same.
 
 
-  void 
+  void
   ReadLSU3ShellRMEs(
       const std::string& filename,
       const LSU3ShellBasisTable& lsu3_basis_table,
-      const u3shell::SpaceU3SPN& space, 
+      const u3shell::SpaceU3SPN& space,
       const u3shell::OperatorLabelsU3ST& operator_labels,
       const u3shell::SectorsU3SPN& sectors,
       lsu3shell::OperatorBlocks& matrix_vector,
       double scale_factor = 1.
     );
-  // Wraper function for when sp3r_generators not specified. 
+  // Wraper function for when sp3r_generators not specified.
 
 
   void
     ReadLSU3ShellSymplecticOperatorRMEs(
         const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
+        const u3shell::SpaceU3SPN& lsu3shell_space,
         const std::string& Brel_filename, u3shell::SectorsU3SPN& Bintr_sectors, lsu3shell::OperatorBlocks& Bintr_matrices,
         const std::string& Nrel_filename, u3shell::SectorsU3SPN& Nintr_sectors, lsu3shell::OperatorBlocks& Nintr_matrices,
         int A
       );
     // Reads in Brel and Nrel su3rme files and applies appropriate scaling to convert to intrinsic operators using
-    // mechanics convention. 
+    // mechanics convention.
 
   void
     ReadLSU3ShellSymplecticRaisingOperatorRMEs(
         const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
-        const u3shell::SpaceU3SPN& lsu3shell_space, 
+        const u3shell::SpaceU3SPN& lsu3shell_space,
         const std::string& Arel_filename, u3shell::SectorsU3SPN& Aintr_sectors, lsu3shell::OperatorBlocks& Aintr_matrices,
         int A
       );
     // Reads in Arel su3rme files and applies appropriate scaling to convert to Aintr under mechanics convention.
 
-  bool 
+  bool
   CompareLSU3ShellRMEs(
       std::ostream& log_stream,
       const U3SPNBasisLSU3Labels& basis_provenance,
-      const u3shell::SpaceU3SPN& space, 
+      const u3shell::SpaceU3SPN& space,
       const u3shell::SectorsU3SPN& sectors,
       const lsu3shell::OperatorBlocks& matrices1,
       const lsu3shell::OperatorBlocks& matrices2,
@@ -178,11 +177,11 @@ namespace lsu3shell
   // For reference, here is the old syntax:
   //
   // void GenerateNcmMatrixVector(
-  //   int A,      
+  //   int A,
   //   std::ifstream& is_Nrel,
   //   const lsu3shell::LSU3ShellBasisTable& lsu3_basis_table,
-  //   const u3shell::SpaceU3SPN& space, 
-  //   lsu3shell::OperatorBlocks& matrix_vector 
+  //   const u3shell::SpaceU3SPN& space,
+  //   lsu3shell::OperatorBlocks& matrix_vector
   // );
 
 }

@@ -10,11 +10,11 @@
 ****************************************************************/
 #include "lsu3shell/lsu3shell_rme.h"
 #include <fstream>
-#include <ostream>  
+#include <ostream>
 #include "fmt/format.h"
 #include "sp3rlib/u3coef.h"
 #include "lgi/lgi_solver.h"
-#include <eigen3/Eigen/LU>
+#include <Eigen/LU>
 
 extern double zero_threshold;
 int main(int argc, char **argv)
@@ -31,12 +31,12 @@ int main(int argc, char **argv)
   lsu3shell::LSU3ShellBasisTable basis_table;
   lsu3shell::U3SPNBasisLSU3Labels basis_provenance;
   u3shell::SpaceU3SPN space;
-  // Populate, basis_table, basis_provenance and space. 
+  // Populate, basis_table, basis_provenance and space.
   lsu3shell::ReadLSU3ShellBasis(Nsigma_0,lsu3_filename, basis_table, basis_provenance, space);
   std::cout<<"Read Basis complete"<<std::endl;
   // Generate sectors
   u3shell::SectorsU3SPN sectors(space,op_labels,scalar_op);
-  
+
   // reading in operator rme's obtained form SU3RME
   basis::OperatorBlocks<double> matrices;
   lsu3shell::ReadLSU3ShellRMEs(op_filename,basis_table,space,op_labels,sectors,matrices);
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
       // std::cout<<"eigenvalues"<<std::endl<<std::endl;
 
       // Eigen::VectorXcd eigs=matrices[i].eigenvalues();
-      // for(int j=0; j<eigs.size(); ++j)  
+      // for(int j=0; j<eigs.size(); ++j)
       //   std::cout<<eigs(j).real()<<std::endl;
   }
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   //
   // WARNING: OLD version of GenerateNcmOperatorBlocks<double>with stream
   // arguments -- no longer supported
-  
+
   // basis::OperatorBlocks<double> ncm_matrices;
   // std::ifstream is_nrel(op_filename.c_str());
   // lsu3shell::GenerateNcmOperatorBlocks<double>(A,is_nrel,basis_table,space,ncm_matrices);
@@ -69,11 +69,11 @@ int main(int argc, char **argv)
   //     std::cout<<fmt::format("Matrix {}",i) << std::endl;
   //     std::cout<<matrices[i]<<std::endl;
   //     std::cout<<"eigenvalues"<<std::endl;
-  // 
+  //
   //     Eigen::VectorXcd eigs=ncm_matrices[i].eigenvalues();
-  //     for(int j=0; j<eigs.size(); ++j)  
+  //     for(int j=0; j<eigs.size(); ++j)
   //       std::cout<<eigs(j).real()<<std::endl;
-  // 
+  //
   //     std::cout<<"Doing decomp..." << std::endl;
   //     Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(ncm_matrices[i]);
   //     lu_decomp.setThreshold(1e-6);
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
   // }
 
   // test matrix comparison
-  
+
   // This is just a self-comparison, with one entry skewed...
   basis::OperatorBlocks<double> matrices_mod = matrices;
   matrices_mod[0](0,0) += 3.14159;
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   CompareLSU3ShellRMEs(
       std::cout,
       basis_provenance,
-      space, 
+      space,
       sectors,
       matrices,
       matrices_mod,

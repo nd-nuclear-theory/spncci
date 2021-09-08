@@ -218,7 +218,7 @@ namespace u3shell {
     // diagnostic output
     std::string LabelStr() const;
     // std::string Str() const {return LabelStr();};  // DEPRECATED
-    [[deprecated]] std::size_t size() const { return BaseDegenerateSubspace::size(); }
+    std::size_t size() const { return BaseDegenerateSubspace::size(); }
 
     private:
   };

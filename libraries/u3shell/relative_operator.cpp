@@ -13,7 +13,7 @@
 #include "sp3rlib/vcs.h"
 #include "u3shell/u3st_scheme.h"
 #include "u3shell/two_body_operator.h"
-#include "moshinsky/moshinsky_xform.h"
+
 namespace u3shell {
 
   bool J0Allowed(const u3::SU3& x0, int S0, int J0)
@@ -27,18 +27,18 @@ namespace u3shell {
     }
 
   void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
+        int Nmax,
         int N1v,
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
         int J0,
         int T00,
         bool restrict_positive_N0
         )
-  {   
+  {
     #ifdef VERBOSE
     std::cout<<"Entering GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
     #endif
-    
+
     bool restrict_J0 = (J0!=-1);
     int N0_min=restrict_positive_N0?0:-1*Nmax;
     int eta_max=Nmax+2*N1v;
@@ -60,10 +60,10 @@ namespace u3shell {
                   for (int T=0; T<=1; T++)
                     for (int S0=abs(S-Sp); S0<=(S+Sp); S0++)
                       {
-                        //antisymmeterization constraint on ket 
+                        //antisymmeterization constraint on ket
                         if ( (etap+Sp+Tp)%2!=1 )
-                          continue;  
-                        //antisymmeterization constraint on bra 
+                          continue;
+                        //antisymmeterization constraint on bra
                         if ( (eta+S+T)%2!=1)
                           continue;
 
@@ -85,20 +85,20 @@ namespace u3shell {
                               // If restrict on J0 and J0 allowed or not restricted
                               if((restrict_J0 && J0Allowed(x0,S0,J0)) || (not restrict_J0))
                                   relative_unit_tensor_labels.emplace_back(x0,S0,T0,bra,ket);
-                              
+
                               //std::cout<<"unit tensors  "<<spncci::UnitTensor(omega0,S0,T0,rp,Sp,Tp,r,S,T).Str()<<std::endl;
                             }
                         }
-                      } 
-          }      
+                      }
+          }
       }
   #ifdef VERBOSE
   std::cout<<"Exiting GenerateRelativeUnitTensorLabelsU3ST"<<std::endl;
   #endif
-  } //end function 
+  } //end function
 
   void GenerateRelativeUnitTensorLabelsU3ST(
-        int Nmax, 
+        int Nmax,
         int N1v,
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels,
         int J0,
@@ -141,7 +141,7 @@ namespace u3shell {
     if(
         (bra.S()==ket.S())    // delta on spin
         && (bra.T()==bra.T()) // delta on isospin
-        && ((etap-eta)==2)      //only connect states with eta+2=etap 
+        && ((etap-eta)==2)      //only connect states with eta+2=etap
       )
         rme=std::sqrt((eta+2)*(eta+1)/2);
 
@@ -157,14 +157,14 @@ namespace u3shell {
     int etap=bra.eta();
     if((eta==0)||(eta==1))
       return rme;
-    
+
     if(
         (bra.S()==ket.S())    // delta on spin
         && (bra.T()==bra.T()) // delta on isospin
-        && ((eta-etap)==2)      //only connect states with eta+2=etap 
+        && ((eta-etap)==2)      //only connect states with eta+2=etap
       )
         rme=std::sqrt((eta+2)*(eta+1)/2);
-    
+
     return rme;
   }
 
@@ -176,14 +176,14 @@ namespace u3shell {
       int etap=bra.eta();
       if((eta==0)||(eta==1))
         return rme;
-      
+
       if(
           (bra.S()==ket.S())    // delta on spin
           && (bra.T()==bra.T()) // delta on isospin
-          && (eta==etap)      //only connect states with eta+2=etap 
+          && (eta==etap)      //only connect states with eta+2=etap
         )
           rme=std::sqrt(4.*(eta*eta+3*eta)/3);
-      
+
       return rme;
 
     }

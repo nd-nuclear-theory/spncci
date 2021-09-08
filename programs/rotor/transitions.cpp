@@ -1,6 +1,6 @@
 /****************************************************************
   Calculate B(E2) transitions in SU(3) model analytically
-  
+
   Anna E. McCoy
   TRIUMF
 
@@ -12,9 +12,9 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
 #include "boost/math/constants/constants.hpp"
-#include "eigen3/Eigen/Dense"
+#include <Eigen/Dense>
 #include "fmt/format.h"
 #include "am/wigner_gsl.h"
 #include "am/am.h"
@@ -27,7 +27,7 @@
 #include "sp3rlib/vcs.h"
 #include "sp3rlib/sp3r_operator.h"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Eigen>
 
 
 const double pi=boost::math::constants::pi<double>();
@@ -41,20 +41,20 @@ namespace u3{
   void Q(const u3::SU3& x, const HalfInt& S, const HalfInt& J0, const HalfInt& J1,double hw)
   {
     double hbarc=197.327; //MeVfm
-    double mc2=938.92; //MeV 
+    double mc2=938.92; //MeV
     double b2=hbarc*hbarc/mc2/hw;
 
     double Qrme=sqrt(15./(16*pi))*b2*sqrt(2*u3::Casimir2(x));
     int sign=u3::wigner_sign(u3::W(x,1,x.lambda()+x.mu(),u3::SU3(1,1),1,1,x,1,x.lambda()+x.mu(),1));
-    
-    // Construct the basis   
+
+    // Construct the basis
     MultiplicityTagged<int>::vector so3_branched_labels = BranchingSO3(x);
     MultiplicityTagged<int>::vector basis0, basis1;
     for(auto L_kappa : so3_branched_labels)
       {
         int L=L_kappa.irrep;
         int kappa_max=L_kappa.tag;
-        assert(kappa_max==1); //Currently assume kappa_max=1 for all cases considered. 
+        assert(kappa_max==1); //Currently assume kappa_max=1 for all cases considered.
         if(am::AllowedTriangle(L,S,J0))
           for(int kappa=1; kappa<=kappa_max; ++kappa)
             basis0.emplace_back(L,kappa);
@@ -74,27 +74,27 @@ namespace u3{
           int kappa1=basis1[i].tag;
           Q(i,j)=sign*u3::W(x,kappa1,L1,u3::SU3(1,1),1,2,x,kappa0,L0,1)*am::Unitary9J(L1,S,J1,2,0,2,L0,S,J0)*Qrme;
         }
-    
+
     std::cout<<J1.Str()<<"->"<<J0.Str()<<std::endl;
     std::cout<<mcutils::FormatMatrix(Q,"9.4f")<<std::endl<<std::endl;
 
   }
 
     void Qp(
-      const u3::SU3& xp,const u3::SU3& xn,const u3::SU3& x, 
+      const u3::SU3& xp,const u3::SU3& xn,const u3::SU3& x,
       int rho, const HalfInt& S, const HalfInt& J0, const HalfInt& J1,double hw,
       Eigen::ArrayXXf& Q
       )
   {
     double hbarc=197.327; //MeVfm
-    double mc2=938.92; //MeV 
+    double mc2=938.92; //MeV
     double b2=hbarc*hbarc/mc2/hw;
 
     double Qrme=sqrt(15./(16*pi))*b2*sqrt(2*u3::Casimir2(xp));
     int sign=u3::wigner_sign(u3::W(xp,1,xp.lambda()+xp.mu(),u3::SU3(1,1),1,1,xp,1,xp.lambda()+xp.mu(),1));
     int rho1_max=u3::OuterMultiplicity(x,u3::SU3(1,1),x);
 
-    // Construct the basis   
+    // Construct the basis
     MultiplicityTagged<int>::vector so3_branched_labels = BranchingSO3(x);
     MultiplicityTagged<int>::vector basis0, basis1;
     for(auto L_kappa : so3_branched_labels)
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
       int lambda_Z, mu_Z, lambda_N, mu_N, rho, lambda, mu, SS, JJi, JJf;
       line_stream >>lambda_Z>> mu_Z>> lambda_N>> mu_N>> rho>> lambda>> mu>> SS>> JJi>> JJf >>hw;
       mcutils::ParsingCheck(line_stream, line_count, line);
-    
+
       u3::SU3 x(lambda,mu),xp(lambda_Z,mu_Z), xn(lambda_N,mu_N);
       HalfInt S(SS,2), Ji(JJi,2), Jf(JJf,2);
 
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
   // double hw;
   for(auto& labels : rme_labels)
     {
-      const auto& [xp,xn,x,rho,S,Ji,Jf,hw]=labels;   
+      const auto& [xp,xn,x,rho,S,Ji,Jf,hw]=labels;
       std::cout<<xp.Str()<<"  "<<xn.Str()<<"  "<<x.Str()<<"  "
       <<rho<<"  "<<S<<"  "<<Ji<<"  "<<Jf<<"  "<<hw<<std::endl;
       Eigen::ArrayXXf Qp,Qn;
@@ -210,21 +210,21 @@ int main(int argc, char **argv)
 
     }
 
-    
-  
+
+
 
 
   ////////////////////////////////////////////////////////////////
   // initialization
   ////////////////////////////////////////////////////////////////
   // SU(3) caching
-  
+
 
   if(false)
   {
     // // 8Li
     // u3::SU3 x(2,1), xp(3,0), xn(1,0);
-    
+
     // HalfInt S(1), J0(2),J1(2);
     // u3::Q(x,S,J0,J1,hw);
     // u3::Qp(xp,xn,x,1, S, J0, J1,hw);
@@ -247,10 +247,10 @@ int main(int argc, char **argv)
     // HalfInt S=HalfInt(1,2), J0=HalfInt(3,2), J1=HalfInt(1,2);
     // u3::Q(x,S,J0,J1,hw);
     // u3::Qp(xp,xn,x,1, S, J0, J1,hw);
-    
+
     J0=HalfInt(3,2), J1=HalfInt(3,2);
     u3::Q(x,S,J0,J1,hw);
-    
+
     Eigen::ArrayXXf Qp,Qn;
     u3::Qp(xp,xn,x,1, S, J0, J1,hw,Qp);
     u3::Qp(xn,xp,x,1, S, J0, J1,hw,Qn);
@@ -267,10 +267,10 @@ int main(int argc, char **argv)
     // HalfInt S=HalfInt(1,2), J0=HalfInt(3,2), J1=HalfInt(1,2);
     // u3::Q(x,S,J0,J1,hw);
     // u3::Qp(xp,xn,x,1, S, J0, J1,hw);
-    
+
     J0=HalfInt(3,2), J1=HalfInt(3,2);
     u3::Q(x,S,J0,J1,hw);
-    
+
     Eigen::ArrayXXf Qp,Qn;
     u3::Qp(xp,xn,x,1, S, J0, J1,hw,Qp);
     u3::Qp(xn,xp,x,1, S, J0, J1,hw,Qn);

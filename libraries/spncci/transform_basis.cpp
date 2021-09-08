@@ -9,7 +9,6 @@
 #include "spncci/transform_basis.h"
 
 #include <fstream>
-#include <omp.h>  
 
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/eigen.h"
@@ -43,10 +42,10 @@ void RegroupIntoIrrepFamilies(
         // subspaces for a given J?
         auto& irrep_family_subspacesJ=irrep_family_subspaces[spj_space_index];
         irrep_family_subspacesJ.resize(num_irrep_families);
-        
+
         for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
           {
-            const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);           
+            const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
             int gamma_max=spj_subspace.gamma_max();
             int irrep_family_index = spj_subspace.irrep_family_index();
 
@@ -57,12 +56,12 @@ void RegroupIntoIrrepFamilies(
                 int kappa_max=spj_state.kappa_max();
                 int upsilon_max=spj_state.upsilon_max();
                 // int degeneracy = spj_state.degeneracy();
-                
+
                 int irrep_degeneracy=upsilon_max*kappa_max;
 
                 auto& dimensions=irrep_family_subspacesJ[irrep_family_index];
 
-                // increment count of number of states by upsilon max 
+                // increment count of number of states by upsilon max
                 irrep_family_subspacesJ[irrep_family_index]
                   =std::pair<int,int>(gamma_max,dimensions.second+irrep_degeneracy);
               }
@@ -71,7 +70,7 @@ void RegroupIntoIrrepFamilies(
 
     // std::cout<<"initialize irrep family subspace blocks "<<std::endl;
     irrep_family_blocks.resize(spaces_spbasis.size());
-    
+
     for(int spj_space_index=0; spj_space_index<spaces_spbasis.size(); ++spj_space_index)
       {
         auto& irrep_family_subspacesJ=irrep_family_subspaces[spj_space_index];
@@ -88,23 +87,23 @@ void RegroupIntoIrrepFamilies(
               {
                 int gamma_max,num_states;
                 std::tie(gamma_max,num_states)=irrep_family_subspacesJ[irrep_family_index];
-                
+
                 // std::cout<<"for irrep family "<<irrep_family_index<<"  "<<gamma_max<<"  "<<num_states<<std::endl;
                 //  irrep may not branch to given J, especially for low Nmax
                 if(gamma_max>0)
                   blocks[irrep_family_index]=Eigen::MatrixXd::Zero(num_states,gamma_max);
-              }        
+              }
           }
       }
-    
+
     // std::cout<<"populating blocks"<<std::endl;
     for(int spj_space_index=0; spj_space_index<spaces_spbasis.size(); ++spj_space_index)
       {
         const spncci::SpaceSpBasis& spj_space=spaces_spbasis[spj_space_index];
         auto& irrep_family_subspacesJ=irrep_family_subspaces[spj_space_index];
         const spncci::Matrix& eigenvectors_J = eigenvectors[spj_space_index];
-        const int num_eigenvectors = eigenvectors_J.cols();        
-        
+        const int num_eigenvectors = eigenvectors_J.cols();
+
         std::vector<std::vector<int>> eigen_offsets;
         spncci::GetSpBasisOffsets(spj_space,eigen_offsets);
 
@@ -113,7 +112,7 @@ void RegroupIntoIrrepFamilies(
 
         for(int n=0; n<num_eigenvalues; ++n)
           {
-            
+
             // In some low Nex cases, there will be fewer eigenvalues the num_eigenvalues.  In this case,
             // skip and regrouped block is be zero padded.
             if(n>=num_eigenvectors)
@@ -126,35 +125,35 @@ void RegroupIntoIrrepFamilies(
             spncci::OperatorBlocks& blocks=irrep_family_blocks[spj_space_index][n];
 
             for (int spj_subspace_index=0; spj_subspace_index<spj_space.size(); ++spj_subspace_index)
-              {     
+              {
                 const SubspaceSpBasis& spj_subspace = spj_space.GetSubspace(spj_subspace_index);
                 int gamma_max=spj_subspace.gamma_max();
                 int irrep_family_index = spj_subspace.irrep_family_index();
 
                 // std::cout<<"  irrep family "<<irrep_family_index<<"  "<<gamma_max<<std::endl;
 
-                // skip irreps that don't contribute to given J space 
+                // skip irreps that don't contribute to given J space
                 if(gamma_max==0)
                   continue;
-                
+
                 for (int spj_state_index=0; spj_state_index<spj_subspace.size(); ++spj_state_index)
                   {
                     // retrieve basis state information
                     StateSpBasis spj_state(spj_subspace,spj_state_index);
                     int kappa_max = spj_state.kappa_max();
                     int upsilon_max=spj_state.upsilon_max();
-                    
+
                     int eigen_offset=eigen_offsets[spj_subspace_index][spj_state_index];
-                    
-                    // For kappa, for gamma, insert into matrix 
+
+                    // For kappa, for gamma, insert into matrix
                     for(int kappa=1; kappa<=kappa_max; ++kappa)
                     {
                       // std::cout<<"offsets "<<spj_state_index<<"  "<<kappa<<"  "<<offsets[irrep_family_index]<<std::endl;
                       //Add in cols corresponding to gamma
-                      for(int gamma=1; gamma<=gamma_max; ++gamma)      
+                      for(int gamma=1; gamma<=gamma_max; ++gamma)
                         {
                           int offset=offsets[irrep_family_index];
-                          // Get upsilon_max sub-vector from eigenvector for given n and 
+                          // Get upsilon_max sub-vector from eigenvector for given n and
                           // add it to block for given irrep family
                           // std::cout<<offset<<"  "<<gamma-1<<"  "<<upsilon_max<<"  "<<blocks[irrep_family_index].rows()<<"  "
                           // <<blocks[irrep_family_index].cols()<<std::endl;
@@ -165,24 +164,24 @@ void RegroupIntoIrrepFamilies(
                           // Increment offset in eigenvector
                           eigen_offset+=upsilon_max;
                         }
-  
+
                       // Increment offset for next upsilon_max sub-vector
                       offsets[irrep_family_index]+=upsilon_max;
                     }
 
 
-                  }// end spj_state_index 
+                  }// end spj_state_index
                 // std::cout<<" block "<<n<<"  "<<irrep_family_index<<std::endl;
-                // std::cout<<blocks[irrep_family_index]<<std::endl<<std::endl;   
+                // std::cout<<blocks[irrep_family_index]<<std::endl<<std::endl;
               } //end spj_subspace_index
-          
+
           } //end n
       } //end spj_space_index
   }
 
 
     void WriteIrrepFamilyBlocks(
-    std::vector<HalfInt> J_values,  
+    std::vector<HalfInt> J_values,
     int num_irrep_families,
     int num_eigenvalues,
     const std::vector<int>& lgi_full_space_index_lookup,
@@ -202,7 +201,7 @@ void RegroupIntoIrrepFamilies(
         return;
       }
 
-    // Number of J values, num of eigenstates with given J eigenvalue 
+    // Number of J values, num of eigenstates with given J eigenvalue
     // and num irrep families in full space
     mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
     mcutils::WriteBinary<int>(out_file,J_values.size());
@@ -212,16 +211,16 @@ void RegroupIntoIrrepFamilies(
     //for each irrep family
     for(int irrep_family_index=0; irrep_family_index<num_irrep_families; ++irrep_family_index)
       {
-        // Write irrep family index in full space 
+        // Write irrep family index in full space
         int full_space_irrep_family_index=lgi_full_space_index_lookup[irrep_family_index];
         mcutils::WriteBinary<int>(out_file,full_space_irrep_family_index);
-        
+
         //for reach J eigenvalue
         for( int j_index=0; j_index<J_values.size(); ++j_index)
           {
             // get J
             HalfInt J = J_values[j_index];
-            
+
             // get number of rows and columns
             const spncci::OperatorBlock& block=irrep_family_blocks[j_index][0][irrep_family_index];
             // mcutils::ChopMatrix(block,1e-10);
@@ -251,9 +250,9 @@ void RegroupIntoIrrepFamilies(
                   {
                     Eigen::MatrixXf buffer_matrix=block.transpose().cast<float>();
                     out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
-                    
-                  }  
-                  
+
+                  }
+
                 else if (lgi::binary_float_precision==8)
                   {
                     Eigen::MatrixXd buffer_matrix=block.transpose();
@@ -263,7 +262,7 @@ void RegroupIntoIrrepFamilies(
               }
           }
       }
-    out_file.close();    
+    out_file.close();
   }
 
 
@@ -282,11 +281,11 @@ void ReadIrrepFamilyBlocks(
       std::cout<<filename+" not found."<<std::endl;
 
   int num_J_values,num_irrep_families,num_eigenvalues, binary_float_precision;
-  mcutils::ReadBinary<int>(in_stream,binary_float_precision);  
-  mcutils::ReadBinary<int>(in_stream,num_J_values);  
+  mcutils::ReadBinary<int>(in_stream,binary_float_precision);
+  mcutils::ReadBinary<int>(in_stream,num_J_values);
   mcutils::ReadBinary<int>(in_stream,num_eigenvalues);
   mcutils::ReadBinary<int>(in_stream,num_irrep_families);
-	
+
   // irrep_family_blocks.resize(num_irrep_families);
 
 	//for each irrep family
@@ -295,12 +294,12 @@ void ReadIrrepFamilyBlocks(
 			// std::cout<<"Read irrep_family index (corresponds to full space)"<<std::endl;
 			int irrep_family_index;
   		mcutils::ReadBinary<int>(in_stream,irrep_family_index);
-		
+
       // std::cout<<"irrep family index "<<irrep_family_index<<std::endl;
 
 			std::vector<spncci::OperatorBlocks>& blocks=irrep_family_blocks[irrep_family_index];
 			blocks.resize(num_J_values);
-		  
+
 		  for( int j_index=0; j_index<num_J_values; ++j_index)
 		  	{
 					int twice_J, rows, cols;
@@ -311,10 +310,10 @@ void ReadIrrepFamilyBlocks(
           // std::cout<<"irrep family index "<<irrep_family_index<<"  "
           // <<j_index<<"  "<<rows<<"  "<<cols<<"  "<<twice_J<<std::endl;
 
-          // irrep did not contribute to J space 
+          // irrep did not contribute to J space
 					if(rows==0)
             continue;
-					
+
 					blocks[j_index].resize(num_eigenvalues);
 					J_index_lookup_table[irrep_family_index][twice_J]=j_index;
 
@@ -348,11 +347,11 @@ void  RegroupBlocks(
   spncci::OperatorBlock& irrep_family_block
 )
 //
-//Regroup different Jn blocks for a given irrep family into a single block 
+//Regroup different Jn blocks for a given irrep family into a single block
 //which is gamma_max x sum(Jn_subspaces)
 {
   // std::cout<<"Regrouping irrep family blocks "<<blocks[0].size()<<std::endl;
-	
+
 	// std::cout<<"Counting pass to get num columns of composite Jn block"<<std::endl;
 	int total_num_cols=0;
   int total_num_rows=0;
@@ -389,11 +388,11 @@ void  RegroupBlocks(
 			std::tie(twice_J,n)=Jn;
 			int j_index=J_index_table[twice_J];
 			int num_cols=blocks[j_index][n].cols();
-      
+
       // if irrep did not contribute to given Jn space, continue to next irrep
       if(num_cols==0)
         continue;
-			
+
       irrep_family_block.block(0,offset,total_num_rows,num_cols)=blocks[j_index][n];
 			offset+=num_cols;
 		}
@@ -401,7 +400,7 @@ void  RegroupBlocks(
 
 
 void GetUnitaryTransformation(
-  spncci::OperatorBlock& block, 
+  spncci::OperatorBlock& block,
   spncci::OperatorBlock& transformation_matrix,
   const std::pair<std::string,double>& truncation_mode
   )
@@ -414,7 +413,7 @@ void GetUnitaryTransformation(
   double max_probability=block.rowwise().squaredNorm().maxCoeff();
   std::cout<<"gamma_max:  "<<gamma_max<<"  norm:  "<<norm<<std::endl;
   std::cout<<"initial max probability "<<max_probability<<std::endl;
-  std::cout<<block.rowwise().squaredNorm()<<std::endl;    
+  std::cout<<block.rowwise().squaredNorm()<<std::endl;
   //SVD decomposition
 
   // Eigen::JacobiSVD<spncci::OperatorBlock> svd(block,ComputeThinV);
@@ -428,7 +427,7 @@ void GetUnitaryTransformation(
   int rows;
 
   // If truncation mode is None, then use default zero threshold and keep
-  // all irreps in irrep family (full unitary matrix) 
+  // all irreps in irrep family (full unitary matrix)
   if(truncation_mode.first=="None")
     rows=gamma_max;
 
@@ -464,7 +463,7 @@ void GetUnitaryTransformation(
     transformation_matrix=Umatrix.transpose().block(0,0,rows,gamma_max);
     std::cout<<"got transformation matrix"<<std::endl;
   }
-  
+
   // Temporary
   if(rows>0)
     {
@@ -481,7 +480,7 @@ void GetUnitaryTransformation(
 
 
 
-// TODO: Switch from vector of blocks to map of blocks. 
+// TODO: Switch from vector of blocks to map of blocks.
 
 
 void  DefineIrrepFamilyTransformations(
@@ -506,19 +505,19 @@ void  DefineIrrepFamilyTransformations(
       std::cout<<irrep_family_index<<"  "<<blocks.size()<<std::endl;
       if(blocks.size()==0)
         continue;
-      
+
       spncci::OperatorBlock block;
 			std::map<int,int>& J_index_table=J_index_lookup_table[irrep_family_index];
-      
+
       std::cout<<"regrouping"<<std::endl;
 			spncci::RegroupBlocks(Jn_set, blocks,J_index_table, block);
-  		
+
   		int gamma_max=block.rows();
       int irrep_dim=block.cols();
       if(gamma_max==0)
         continue;
 
-      // std::cout<<"get transformation index "<<std::endl; 
+      // std::cout<<"get transformation index "<<std::endl;
 			spncci::OperatorBlock& transformation_matrix=transformations[irrep_family_index];
 
       std::cout<<"transforming"<<std::endl;
@@ -529,7 +528,7 @@ void  DefineIrrepFamilyTransformations(
 }
 
 void WriteTransformationMatrices(
-  const spncci::OperatorBlocks& transformations,  
+  const spncci::OperatorBlocks& transformations,
   const std::string& filename
 )
 {
@@ -542,7 +541,7 @@ void WriteTransformationMatrices(
       std::cerr << "Could not open file '" << filename << "'!" << std::endl;
       return;
     }
-	
+
   int num_irrep_families=transformations.size();
   mcutils::WriteBinary<int>(out_file,lgi::binary_float_precision);
   mcutils::WriteBinary<int>(out_file,num_irrep_families);
@@ -574,8 +573,8 @@ void WriteTransformationMatrices(
         {
           Eigen::MatrixXf buffer_matrix=transformation_matrix.cast<float>();
           out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*lgi::binary_float_precision);
-        }  
-        
+        }
+
       else if (lgi::binary_float_precision==8)
         {
           Eigen::MatrixXd buffer_matrix=transformation_matrix;
@@ -584,7 +583,7 @@ void WriteTransformationMatrices(
         }
 		}
 
-  out_file.close();    
+  out_file.close();
 }
 
 
@@ -596,15 +595,15 @@ void WriteTruncatedLGIs(
   )
   {
     // std::cout<<"read lgi families"<<std::endl;
-    
+
     // Reading in original lgi families list
-    bool intrinsic=true; 
+    bool intrinsic=true;
     std::string lgi_filename="lgi_families.dat";
     lgi::MultiplicityTaggedLGIVector lgi_families;
     HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
     lgi::ReadLGISet(lgi_filename, Nsigma0,lgi_families);
 
-    //  Getting new LGI family list after transformation and truncation 
+    //  Getting new LGI family list after transformation and truncation
     int num_irrep_families=transformations.size();
     lgi::MultiplicityTaggedLGIVector lgi_families_truncated;
     for(int irrep_family_index=0; irrep_family_index<num_irrep_families; irrep_family_index++)
@@ -616,13 +615,13 @@ void WriteTruncatedLGIs(
 
         if(gamma_max==0)
           continue;
-        
+
         // MultiplicityTagged<lgi::LGI> new_lgi_family(lgi_family.irrep,gamma_max);
         lgi_families_truncated.emplace_back(lgi_family.irrep,gamma_max);
         std::cout<<lgi_family.Str()<<std::endl;
       }
 
-    // write truncated lgi family labels to file  
+    // write truncated lgi family labels to file
 
 
     lgi::WriteLGILabels(lgi_families_truncated, truncated_lgi_filename);
@@ -630,7 +629,7 @@ void WriteTruncatedLGIs(
   }
 
 
-void ReadTransformationMatrices(  
+void ReadTransformationMatrices(
   	const std::string& filename,
     spncci::OperatorBlocks& transformations
   )
@@ -706,7 +705,7 @@ void TransformSeeds(
     // // std::cout<<"          ------------------------------          "<<std::endl;
 
     for(int i=0; i<unit_tensor_seed_blocks.size(); ++i)
-      { 
+      {
         spncci::OperatorBlock& block=unit_tensor_seed_blocks[i];
         spncci::OperatorBlock block2=unit_tensor_seed_blocks[i];
         // std::cout<<"block "<<i<<std::endl;

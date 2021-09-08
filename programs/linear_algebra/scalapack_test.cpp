@@ -29,7 +29,7 @@
 #include <fstream>
 #include <vector>
 
-#include "eigen3/Eigen/Dense"
+#include <Eigen/Dense>
 #include "fmt/format.h"
 
 

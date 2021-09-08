@@ -1,7 +1,7 @@
 
 /****************************************************************
   Calculate triaxial rotor spectrum in SU(3) basis
-  
+
   Anna E. McCoy
   TRIUMF
 
@@ -13,8 +13,8 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <math.h>
-#include "eigen3/Eigen/Dense"
+#include <cmath>
+#include <Eigen/Dense>
 #include "fmt/format.h"
 #include "am/wigner_gsl.h"
 #include "am/am.h"
@@ -43,7 +43,7 @@ namespace rotor
   void GetLambda(const u3::SU3& x, std::vector<double>& lambda)
   // Based on eq4.5 in zpa-329-1988-33-Castanos
     {
-       
+
       lambda.resize(3);
       lambda[0]=-(x.lambda()-x.mu())/3;
       lambda[1]=-(x.lambda()+2*x.mu()+3)/3;
@@ -51,8 +51,8 @@ namespace rotor
     }
 
   void GetD(const u3::SU3& x, const std::vector<double>& lambda, std::vector<double>& D)
-  // Based on eq5.5 in zpa-329-1988-33-Castanos 
-    {     
+  // Based on eq5.5 in zpa-329-1988-33-Castanos
+    {
       D.resize(3);
       for(int i=0; i<3; ++i)
         D[i]=2*lambda[i]*lambda[i]*lambda[i]+lambda[0]*lambda[1]*lambda[2];
@@ -70,12 +70,12 @@ namespace rotor
       std::vector<double> D;
       GetD(x,lambda,D);
 
-      //First coefficient      
+      //First coefficient
       coefs[0]=lambda[1]*lambda[2]/(2*mcutils::sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
       coefs[0]=coefs[0]+lambda[0]*lambda[2]/(2*mcutils::sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
       coefs[0]=coefs[0]+lambda[0]*lambda[1]/(2*mcutils::sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
-      
-      //Second coefficient 
+
+      //Second coefficient
       coefs[1]=lambda[0]/(2*mcutils::sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
       coefs[1]=coefs[1]+lambda[1]/(2*mcutils::sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
       coefs[1]=coefs[1]+lambda[2]/(2*mcutils::sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
@@ -83,7 +83,7 @@ namespace rotor
       coefs[2]=1/(2*mcutils::sqr(lambda[0])+lambda[1]*lambda[2])*A[0];
       coefs[2]=coefs[2]+1/(2*mcutils::sqr(lambda[1])+lambda[0]*lambda[2])*A[1];
       coefs[2]=coefs[2]+1/(2*mcutils::sqr(lambda[2])+lambda[0]*lambda[1])*A[2];
-      
+
 
     }
 
@@ -98,7 +98,7 @@ namespace rotor
     double X3RME(const u3::SU3& x, int L, int kappap, int kappa)
     // [LxQ].L
       {
-        
+
         // std::cout<<"       "<<L<<"  "<<kappa<<"  "<<kappap<<"    "<<am::Unitary6J(L,2,L,1,L,1)<<"  "
         //             <<u3::W(x,kappa,L,u3::SU3(1,1),1,2,x,kappap,L,1)<<"  "
         //             <<CRME(x)<<std::endl;
@@ -121,13 +121,13 @@ namespace rotor
         for(auto L_tagged : Lvalues)
           {
             int Lbar=L_tagged.irrep;
-            int kappa_bar_max=L_tagged.tag; 
+            int kappa_bar_max=L_tagged.tag;
             for(int kappa_bar=1; kappa_bar<=kappa_bar_max; ++kappa_bar)
               {
-                
+
                 for(int m=1; m<=1; ++m)
                 {
-                
+
                 // // std::cout<<"Lbar "<<Lbar<<"  "<<kappa_bar<<std::endl;
                 // std::cout<<"    "
                 // <<am::Unitary6J(L,m,Lbar,m,L,0)<<"  "
@@ -181,12 +181,12 @@ namespace rotor
             }
         }
     }
- 
+
   //Fit parameter
-  // double alpha=.108; (split=1) 
-// No spliting over irreps 
+  // double alpha=.108; (split=1)
+// No spliting over irreps
 void GetSU3RotorEnergies(const u3::SU3& x, double alpha)
-{ 
+{
   //Construct basis for irrep by branching to SO(3)
   MultiplicityTagged<int>::vector Lvalues=BranchingSO3(x);
   MultiplicityTagged<int>::vector basis;
@@ -204,7 +204,7 @@ void GetSU3RotorEnergies(const u3::SU3& x, double alpha)
   //Get angle based on SU(3) labels
   double gamma=rotor::GetGamma(x);
   std::cout<<"gamma is: "<<gamma/PI<<"Pi "<<std::endl;
-  
+
   // Calculate coefficients
   std::vector<double> A(3);
 
@@ -214,7 +214,7 @@ void GetSU3RotorEnergies(const u3::SU3& x, double alpha)
   // for(auto a : A)
   //   std::cout<<a<<std::endl;
 
-  //Compute coefficients for terms in the Hamiltonian  
+  //Compute coefficients for terms in the Hamiltonian
   std::vector<double> coefs;
   rotor::GetCoefs(x,A,coefs);
 
@@ -226,7 +226,7 @@ void GetSU3RotorEnergies(const u3::SU3& x, double alpha)
   // Construct matrix of Hrot_su3
   Eigen::MatrixXd Hrot;
   rotor::GetHamiltonianMatrix(x,basis,Hrot,coefs);
-  
+
 
   // std::cout<<Hrot1<<std::endl<<std::endl;
 
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
   // {
   //   std::cout<<"Syntax: Z N <inputfile> <outputfile> \n <inputfile> contains list of subspace labels Nex 2Sp 2Sn 2S lambda mu"<<std::endl;
   // }
-  
+
 
   ////////////////////////////////////////////////////////////////
   // initialization
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 //   double alpha2=alpha*(1-split);
 //   double gamma2=rotor::GetGamma(x2);
 //   std::cout<<"gamma is: "<<gamma2/PI<<"Pi "<<std::endl;
-  
+
 //   std::vector<double> A2(3);
 //   rotor::GetA(alpha2,gamma2,A2);
 //   std::cout<<"A coefs"<<std::endl;
@@ -309,7 +309,7 @@ int main(int argc, char **argv)
 //     // Construct matrix of Hrot_su3
 //   Eigen::MatrixXd Hrot2;
 //   rotor::GetHamiltonianMatrix(x,basis,Hrot2,coefs2);
-  
+
 
 //   std::cout<<Hrot2<<std::endl<<std::endl;
 
@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 
 //   std::cout<<"-------------------------------------------------------------------------"<<std::endl;
 
-  
+
 //   Eigen::MatrixXd Hrot=Hrot1+Hrot2;
 
 //   std::cout<<Hrot<<std::endl<<std::endl;

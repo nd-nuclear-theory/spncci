@@ -10,7 +10,6 @@
 
 // #include <experimental/random> //For DefineIrrepFamilyRotation
 #include <fstream>
-#include <omp.h>  
 
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/eigen.h"
@@ -223,8 +222,8 @@ void WriteEigenvectors(
       {
         Eigen::MatrixXf buffer_matrix=eigenvectors.cast<float>();
         out_file.write(reinterpret_cast<char*>(buffer_matrix.data()),size*binary_float_precision);
-      }  
-      
+      }
+
     else if (binary_float_precision==8)
       {
         Eigen::MatrixXd buffer_matrix=eigenvectors;
@@ -289,7 +288,7 @@ void WriteDecompositions(
     }
 }
 
-void ReadEigenvectors(  
+void ReadEigenvectors(
     const std::string& filename,
     spncci::OperatorBlock& eigenvectors
   )
@@ -303,17 +302,17 @@ void ReadEigenvectors(
         std::cerr << "Could not open file '" << filename << "'!" << std::endl;
         return;
       }
-    
+
 
     int twice_J,binary_float_precision, rows, cols;
     mcutils::ReadBinary<int>(in_stream,twice_J);
-    mcutils::ReadBinary<int>(in_stream,binary_float_precision);    
+    mcutils::ReadBinary<int>(in_stream,binary_float_precision);
     mcutils::ReadBinary<int>(in_stream,rows);
     mcutils::ReadBinary<int>(in_stream,cols);
-    
+
     HalfInt J=HalfInt(twice_J,2);
 
-    
+
     // Read matrix.  Order is column major (Eigen default)
     if(lgi::binary_float_precision==4)
       {
@@ -345,7 +344,7 @@ void WriteObservables(
     out_stream << "# observable_index sector_index J_bra gex_bra J_ket gex_ket rows cols" << std::endl;
     for (int observable_index=0; observable_index<observable_results_matrices.size(); ++observable_index)
       {
-        
+
         // retrieve sectors
         // const spncci::SectorsSpJ& sectors = observable_sectors[observable_index];
         const std::vector<std::pair<int,int>>& sectors = observable_sectors[observable_index];
@@ -353,7 +352,7 @@ void WriteObservables(
         // tabulate observable on each sector
         for (int sector_index=0; sector_index<sectors.size(); ++sector_index)
           {
-            
+
             int bra_index,ket_index;
             std::tie(bra_index,ket_index)=sectors[sector_index];
             // retrieve sector information

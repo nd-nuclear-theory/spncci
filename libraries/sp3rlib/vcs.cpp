@@ -8,10 +8,9 @@
 ****************************************************************/
 #include "sp3rlib/vcs.h"
 
-#include <omp.h>
 #include "fmt/format.h"
-#include <eigen3/Eigen/Eigenvalues>  
-#include "sp3rlib/u3coef.h"   
+#include <Eigen/Eigenvalues>
+#include "sp3rlib/u3coef.h"
 #include "mcutils/eigen.h"
 
 namespace vcs{

@@ -1,5 +1,5 @@
 /****************************************************************
-  utilities.h                       
+  utilities.h
 
   Define arithmetic shorthands.
 
@@ -8,7 +8,7 @@
 
   SPDX-License-Identifier: MIT
 
-  Created by Mark A. Caprio on 2/17/11.   
+  Created by Mark A. Caprio on 2/17/11.
   Drawing upon libmc/mcutils C code.
   2/23/11 (mac): Renamed from mc_arithmetic to arithmetic.
   3/9/16 (mac): Imported into spncci project as utilities.h.
@@ -31,8 +31,8 @@
 #define UTILITIES_H_
 
 #include <unistd.h>
-#include "gsl/gsl_sf.h"
-#include "eigen3/Eigen/Eigen"
+#include "gsl/gsl_sf_gamma.h"
+#include <Eigen/Eigen>
 #include "basis/operator.h"
 
 // extern double zero_threshold;
@@ -41,20 +41,20 @@
 inline bool FileExists(std::string filename, bool verbose)
   {
     int res = access(filename.c_str(), R_OK);
-    if (res < 0) 
+    if (res < 0)
       {
-        if (errno == ENOENT) 
+        if (errno == ENOENT)
           {
             if(verbose)
               std::cout<<filename<<" does not exit"<<std::endl;
           }
-        else if (errno == EACCES) 
+        else if (errno == EACCES)
           {
             if(verbose)
               std::cout<<filename<<" not readible"<<std::endl;
             exit(EXIT_FAILURE);
-          } 
-        else 
+          }
+        else
           {
             if(verbose)
               std::cout<<"unknown error associated with "<<filename<<std::endl;
@@ -69,7 +69,7 @@ inline bool FileExists(std::string filename, bool verbose)
 
 
 // ONLYIF(cond,x) evaluates and returns x only if cond is true
-#define ONLYIF(cond,x) ( (cond) ? (x) : 0)    
+#define ONLYIF(cond,x) ( (cond) ? (x) : 0)
 
 // sqr(x) returns the arithmetic square of x by self-multiplication
 //   Note: Use of inline template avoids double evaluation of x which
@@ -77,7 +77,7 @@ inline bool FileExists(std::string filename, bool verbose)
 
 template <typename T>
 inline
-T sqr(const T& x) 
+T sqr(const T& x)
 {
   return x*x;
 }
@@ -143,16 +143,16 @@ inline void ZeroOutMatrix(basis::OperatorBlocks<double>& matrix_vector,double th
               matrix(i,j)=0;
           }
   }
-  
+
 inline void NormalizeMatrix(Eigen::MatrixXd& matrix, std::string type)
   {
-    int rows=matrix.rows(); 
+    int rows=matrix.rows();
     int cols=matrix.cols();
     if(type=="column")
       {
         for(int j=0; j<cols; ++j)
           {
-            int sum=0; 
+            int sum=0;
             for(int i=0; i<rows; ++i)
                 sum+=matrix(i,j)*matrix(i,j);
             matrix.block(0,j,rows,1)*=std::sqrt(sum);

@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "eigen3/Eigen/Core"
+#include <Eigen/Core>
 
 #include "basis/hypersector.h"
 #include "basis/operator.h"

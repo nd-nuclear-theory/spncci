@@ -2,7 +2,7 @@
   null_solver.h
 
   Null solver for LGI extraction.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame and TRIUMF
 
@@ -15,7 +15,7 @@
 #ifndef NULL_SOLVER_H_
 #define NULL_SOLVER_H_
 
-#include "eigen3/Eigen/Dense"
+#include <Eigen/Dense>
 
 #include "mcutils/eigen.h"
 

@@ -2,7 +2,7 @@
   eigen_test.cpp
 
   Simple testbed program for Eigen.
- 
+
   Compilation and linkage:
     g++ -o eigen_test eigen_test.cpp -I${HOME}/local/opt/eigen-3.0.3/include
 
@@ -16,8 +16,8 @@
 
 
 
-#include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Eigenvalues>
+#include <Eigen/Eigen>
+#include <Eigen/Eigenvalues>
 #include <iostream>
 
 

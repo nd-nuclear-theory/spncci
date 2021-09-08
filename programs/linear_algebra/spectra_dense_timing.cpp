@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include "eigen3/Eigen/Dense"
+#include <Eigen/Dense>
 #include "Spectra/SymEigsSolver.h"  // from spectra
 
 #include "mcutils/profiling.h"
