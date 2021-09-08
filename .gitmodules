@@ -10,13 +10,11 @@
 	url = ../mcutils
 [submodule "libraries/fmt"]
 	path = libraries/fmt
-	branch = submodule
 	url = ../fmt
         shallow = true
 [submodule "libraries/cppitertools"]
 	path = libraries/cppitertools
 	url = ../cppitertools.git
-	branch = submodule
 [submodule "config/ndmakefile"]
 	path = config/ndmakefile
 	url = ../ndmakefile.git

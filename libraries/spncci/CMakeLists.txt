@@ -1,0 +1,92 @@
+cmake_minimum_required(VERSION 3.20)
+
+# add headers and sources
+set(spncci_headers
+    recurrence_indexing.h
+    recurrence_indexing_spin.h
+    spncci_common.h
+    spncci_basis.h
+    vcs_cache.h
+    eigenproblem.h
+    computation_control.h
+    explicit_construction.h
+    recurrence.h
+    parameters.h
+    io_control.h
+    results_output.h
+    decomposition.h
+    transform_basis.h
+    hyperblocks_u3s.h
+    variance.h
+    recurrence_indexing_spatial.h
+)
+set(spncci_sources
+    spncci_common.cpp
+    spncci_basis.cpp
+    vcs_cache.cpp
+    eigenproblem.cpp
+    computation_control.cpp
+    explicit_construction.cpp
+    recurrence.cpp
+    parameters.cpp
+    io_control.cpp
+    results_output.cpp
+    decomposition.cpp
+    transform_basis.cpp
+    hyperblocks_u3s.cpp
+    variance.cpp
+    recurrence_indexing_spatial.cpp
+)
+
+# define spncci library and add source files
+add_library(spncci ${spncci_sources})
+add_library(spncci::spncci ALIAS spncci)
+
+# ##############################################################################
+# link dependencies
+# ##############################################################################
+
+target_link_libraries(
+  spncci
+  PUBLIC am::am
+         basis::basis
+         mcutils::mcutils
+         Eigen3::Eigen
+         fmt::fmt
+         spncci::sp3rlib
+         spncci::u3shell
+         spncci::lgi
+         Spectra::Spectra
+         OpenMP::OpenMP_CXX
+)
+
+# ##############################################################################
+# define include directory
+# ##############################################################################
+cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH spncci_PARENT_DIR)
+target_include_directories(
+  spncci INTERFACE $<BUILD_INTERFACE:${spncci_PARENT_DIR}>
+                   $<INSTALL_INTERFACE:include/spncci>
+)
+
+# ##############################################################################
+# define installed targets
+#
+# actual installation is performed by top-level CMakeLists.txt
+# ##############################################################################
+install(
+  TARGETS spncci
+  DESTINATION lib
+  EXPORT spncciTargets
+)
+install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
+
+# ##############################################################################
+# tests
+# ##############################################################################
+
+add_executable(recurrence_indexing_test recurrence_indexing_test.cpp)
+target_link_libraries(
+  recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
+                                   cppitertools::cppitertools spncci::spncci
+)
