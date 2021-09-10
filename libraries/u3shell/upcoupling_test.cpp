@@ -7,7 +7,7 @@
   SPDX-License-Identifier: MIT
 
   6/15/16 (aem,mac): Created.
-  5/14/19 (aem): Updated basis::OperatorLabelsJT to 
+  5/14/19 (aem): Updated basis::OperatorLabelsJT to
     basis::RelativeOperatorParametersLSJT for reading in operators
 ****************************************************************/
 #include <fstream>
@@ -16,7 +16,6 @@
 #include "am/am.h"
 #include "mcutils/eigen.h"
 #include "u3shell/two_body_operator.h"
-#include "moshinsky/relative_cm_xform.h" 
 #include "u3shell/tensor_labels.h"
 #include "u3shell/upcoupling.h"
 #include "u3shell/u3st_scheme.h"
@@ -40,12 +39,12 @@ void IdentityTest(
 
   basis::RelativeSpaceLSJT relative_space(Nmax, Jmax);
   // basis::RelativeSectorsLSJT relative_sectors(relative_space, J0,T0, g0);
-  std::vector<Eigen::MatrixXd> sector_vector; 
+  std::vector<Eigen::MatrixXd> sector_vector;
 
   std::string interaction_file="../moshinsky/test/identity_Nmax04_rel.dat";
   // basis::RelativeSectorsLSJT relative_sectors_lsjt;
   basis::RelativeSpaceLSJT relative_space_lsjt(Nmax, Jmax);
-  
+
   std::array<basis::RelativeSectorsLSJT,3> isospin_component_sectors_lsjt;
   std::array<basis::OperatorBlocks<double>,3> isospin_component_matrices_lsjt;
   basis::RelativeOperatorParametersLSJT operator_labels;
@@ -96,7 +95,7 @@ void IdentityTest(
 void
 KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
 // Checking upcoupling using kinetic energy (k^2) using function in import_interaction
-// Function given analytically 
+// Function given analytically
 {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // int Nmax=20;
@@ -108,7 +107,7 @@ KineticCheck(u3shell::RelativeRMEsU3ST& rme_map)
   std::cout<<"Ksqr check"<<std::endl;
   std::string interaction_file="../moshinsky/test/ksqr_Nmax16_rel.dat";
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
-  
+
   std::array<basis::RelativeSectorsLSJT,3> T0_sector_labels_lsjt;
   std::array<basis::OperatorBlocks<double>,3> T0_sectors_lsjt;
   basis::RelativeOperatorParametersLSJT operator_labels;
@@ -186,13 +185,13 @@ ReadWriteCheck(
             std::tie(tensor,kappa0,L0)=it->first;
             std::cout<<fmt::format("[{} {} {}] {} not in read map", tensor.Str(),kappa0,L0,it->second)<<std::endl;
           }
-        
+
       }
   }
 
 void UpcoupleQmass(int Nmax, int Jmax)
   {
-    
+
     u3shell::RelativeRMEsU3ST rme_map;
     basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
     // std::vector<std::string> file_end={"pp","nn"};
@@ -208,8 +207,8 @@ void UpcoupleQmass(int Nmax, int Jmax)
         filename,relative_lsjt_space,operator_labels,
         T0_sector_labels_lsjt, T0_sectors_lsjt, true
         );
- 
-      Upcoupling(    
+
+      Upcoupling(
         relative_lsjt_space,
         T0_sector_labels_lsjt,
         T0_sectors_lsjt,
@@ -217,14 +216,14 @@ void UpcoupleQmass(int Nmax, int Jmax)
         rme_map
       );
     }
-  
+
     for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
       {
         u3shell::RelativeUnitTensorLabelsU3ST op_labels;
         int kappa0,L0;
         std::tie(op_labels, kappa0,L0)=it->first;
         double rme=it->second;
-        double check=u3shell::Qrel(op_labels.bra(), op_labels.ket());        
+        double check=u3shell::Qrel(op_labels.bra(), op_labels.ket());
         if(fabs(rme)>zero_threshold)
           std::cout<<fmt::format("{} {} {}   {}  {}  {}",op_labels.Str(), kappa0,L0,rme,check, check/rme)<<std::endl;
       }
@@ -234,7 +233,7 @@ void UpcoupleQmass(int Nmax, int Jmax)
 
 void UpcoupleQisovector(int Nmax, int Jmax)
   {
-    
+
     u3shell::RelativeRMEsU3ST rme_map;
     basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
     // std::vector<std::string> file_end={"pp","nn"};
@@ -251,8 +250,8 @@ void UpcoupleQisovector(int Nmax, int Jmax)
         filename,relative_lsjt_space,operator_labels,
         T0_sector_labels_lsjt, T0_sectors_lsjt, true
         );
- 
-      Upcoupling(    
+
+      Upcoupling(
         relative_lsjt_space,
         T0_sector_labels_lsjt,
         T0_sectors_lsjt,
@@ -260,14 +259,14 @@ void UpcoupleQisovector(int Nmax, int Jmax)
         rme_map
       );
     }
-  
+
     for(auto it=rme_map.begin(); it!=rme_map.end(); ++it)
       {
         u3shell::RelativeUnitTensorLabelsU3ST op_labels;
         int kappa0,L0;
         std::tie(op_labels, kappa0,L0)=it->first;
         double rme=it->second;
-        double check=u3shell::Qrel(op_labels.bra(), op_labels.ket());        
+        double check=u3shell::Qrel(op_labels.bra(), op_labels.ket());
         if(fabs(rme)>zero_threshold)
           std::cout<<fmt::format("{} {} {}   {}  {}  {}",op_labels.Str(), kappa0,L0,rme,check, check/rme)<<std::endl;
       }
@@ -280,7 +279,7 @@ void UpcoupleQisovector(int Nmax, int Jmax)
 void
 QCheck()
 // Checking upcoupling using kinetic energy (k^2) using function in import_interaction
-// Function given analytically 
+// Function given analytically
 {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // int Nmax=20;
@@ -288,7 +287,7 @@ QCheck()
   int Jmax=2;
   int J0=2;
   int g0=0;
-  
+
   u3shell::RelativeRMEsU3ST rme_map;
   basis::RelativeSpaceLSJT relative_lsjt_space(Nmax, Jmax);
   // std::vector<std::string> file_end={"pp","nn","pn"};
@@ -394,7 +393,7 @@ int main(int argc, char **argv)
   // u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax, 1,unit_tensor_labels,J0,T0,false);
   // u3shell::RelativeUnitTensorSpaceU3S unit_tensor_space(Nmax,1,unit_tensor_labels);
 
-  
+
   // for(auto& tensor : unit_tensor_labels)
   //   std::cout<<tensor.Str()<<std::endl;
 
@@ -402,10 +401,10 @@ int main(int argc, char **argv)
   // for(int i=0; i<unit_tensor_space.size(); ++i)
   //   {
   //     std::cout<<unit_tensor_space.GetSubspace(i).Str()<<std::endl;
-  //   }  
+  //   }
 
 
-  // // will throw errors unless you change Nmax in Kinetic check to match Nmax above. 
+  // // will throw errors unless you change Nmax in Kinetic check to match Nmax above.
   // u3shell::RelativeRMEsU3SSubspaces relative_rmes;
   // ReadRelativeOperatorU3ST(Nmax, N1v,filename, unit_tensor_space,relative_rmes);
   // for(auto it=relative_rmes.begin(); it!=relative_rmes.end(); ++it)

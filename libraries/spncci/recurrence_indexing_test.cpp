@@ -8,6 +8,7 @@
 
  6/25/21 (aem): Created.
 ****************************************************************/
+#include <string>
 #include "spncci/recurrence_indexing.h"
 
 #include "am/halfint_fmt.h"

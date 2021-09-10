@@ -3,7 +3,7 @@
 
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
-  
+
   SPDX-License-Identifier: MIT
 ****************************************************************/
 
@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <omp.h>
 
 #include "fmt/format.h"
 #include "moshinsky/moshinsky_xform.h"
@@ -36,13 +35,13 @@ namespace lsu3shell
     // Get full space up to Nmax in steps of Nex=2
     for(int Nex=Nmin; Nex<=Nmax; Nex+=Nstep)
       model_stream<<Nex<<"  "<<-1<<std::endl;
-    
+
     model_stream.close();
   }
 
-  void 
+  void
   GenerateLSU3ShellOperator(
-      int Nmax, 
+      int Nmax,
       const u3shell::RelativeUnitTensorCoefficientsU3ST& relative_tensor_expansion,
       std::string filename,
       bool un_u3_restrict
@@ -59,7 +58,7 @@ namespace lsu3shell
         relative_tensor_expansion,
         twobody_space,
         two_body_unit_tensor_coefficients,
-        "NAS"   
+        "NAS"
       );
     // std::cout<<"TransformRelativeTensorToTwobodyTensor"<<std::endl;
     // for(auto it=two_body_unit_tensor_coefficients.begin(); it!=two_body_unit_tensor_coefficients.end(); ++it)
@@ -70,7 +69,7 @@ namespace lsu3shell
     u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
     // convert to pn scheme
     u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn,un_u3_restrict);
-    
+
     std::ofstream operator_stream(filename);
     WriteTwoBodyOperatorRecoupler(operator_stream,biquad_coefficients_pn);
     operator_stream.close();
@@ -78,7 +77,7 @@ namespace lsu3shell
 
   void
   GenerateLSU3ShellOperator(
-      int Nmax, 
+      int Nmax,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& relative_tensor_labels,
       bool un_u3_restrict
     )
@@ -86,11 +85,11 @@ namespace lsu3shell
     u3shell::TwoBodySpaceU3ST  twobody_space(Nmax);
     int i=0;
 
-    // container for computed biquad expansion of unit tensor 
-    std::vector<u3shell::TwoBodyUnitTensorCoefficientsU3SPN> 
+    // container for computed biquad expansion of unit tensor
+    std::vector<u3shell::TwoBodyUnitTensorCoefficientsU3SPN>
       biquad_coefficients_pn_list(relative_tensor_labels.size());
 
-    #pragma omp parallel for schedule(runtime)  
+    #pragma omp parallel for schedule(runtime)
     for(int i=0; i<relative_tensor_labels.size(); ++i)
       {
         const u3shell::RelativeUnitTensorLabelsU3ST& tensor=relative_tensor_labels[i];
@@ -98,19 +97,19 @@ namespace lsu3shell
         u3shell::TwoBodyUnitTensorCoefficientsU3ST two_body_unit_tensor_coefficients;
         u3shell::TwoBodyUnitTensorCoefficientsU3ST biquad_coefficients;
         u3shell::TwoBodyUnitTensorCoefficientsU3SPN biquad_coefficients_pn;
-        
-        // Moshinsky transform unit tensors to two-body operators 
-        MoshinskyTransformTensor(tensor, twobody_space, 
+
+        // Moshinsky transform unit tensors to two-body operators
+        MoshinskyTransformTensor(tensor, twobody_space,
           two_body_unit_tensor_coefficients, "NAS");
-        
+
         // convert to biquads
         u3shell::TransformTwoBodyUnitTensorToBiquad(two_body_unit_tensor_coefficients,biquad_coefficients);
         // convert biquads to pn scheme
         u3shell::TransformBiquadToPNScheme(biquad_coefficients,biquad_coefficients_pn,un_u3_restrict);
-        
+
         biquad_coefficients_pn_list[i]=biquad_coefficients_pn;
       }
-      
+
     // writing out recoupler files
       for(int i=0; i<relative_tensor_labels.size(); ++i)
       {
@@ -123,7 +122,7 @@ namespace lsu3shell
   }
 
   void GenerateLSU3ShellOperator(
-      int Nmax, 
+      int Nmax,
       const u3shell::TwoBodyUnitTensorCoefficientsU3ST& twobody_tensor_expansion,
       int operator_index,
       bool un_u3_restrict

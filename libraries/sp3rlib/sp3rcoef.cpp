@@ -13,20 +13,20 @@
 #include <sstream>
 #include <utility>
 
-#include "gsl/gsl_sf.h"  
+// #include "gsl/gsl_sf.h"
 
 #include "sp3rlib/sp3rcoef.h"
 #include "sp3rlib/u3coef.h"
 #include "sp3rlib/vcs.h"
- 
+
 namespace sp3r
   {
-	
+
   // CCoef(u3::U3& n, int q, u3:: U3& np)
-  // //Don't need at present.  Will come back and finish later (aem). 
+  // //Don't need at present.  Will come back and finish later (aem).
 
   // // Coefficient of fractional parentage for expanding the raising polynomial into a
-  // // polynomial of a single Jacobi coordinate and a polynomial of all other coordinates 
+  // // polynomial of a single Jacobi coordinate and a polynomial of all other coordinates
   // {
   //   double coef=0;
   //   int N=int(n.N());
@@ -43,13 +43,13 @@ namespace sp3r
   //       u3::U3 nb(n.f1,n.f2-2,n.f3);
   //     else if ((n.f3-2)>=0)
   //       u3::U3 nb(n.f1,n.f2,n.f3-2);
-  //     // if none of the above returns true, coef is zero. 
+  //     // if none of the above returns true, coef is zero.
   //     else
   //       return coef;
   //     // otherwise, calculate coef
   //  }
-  // 
-  
+  //
+
   void GenerateBCoefCache(BCoefCache& cache, int Nmax)
     {
       // TODO: Finish debugging
@@ -65,7 +65,7 @@ namespace sp3r
             {
               n1p=u3::U3(N1p,n1p_set[i].irrep);
               if((n1p.Valid())&&(n1p.SU3().lambda()%2==0)&&(n1p.SU3().mu()%2==0))
-                {    
+                {
                   continue_flag=false;
                   break;
                 }
@@ -133,6 +133,6 @@ namespace sp3r
             }
         }
     }
-   
+
 
 	}

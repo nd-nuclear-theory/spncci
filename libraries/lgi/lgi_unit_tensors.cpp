@@ -3,14 +3,13 @@
 
   Anna E. McCoy
   TRIUMF
-  
+
   SPDX-License-Identifier: MIT
 ****************************************************************/
 #include "lgi/lgi_unit_tensors.h"
 #include <omp.h>
 #include <iostream>
 #include <fstream>
-#include <omp.h>  
 
 #include "fmt/format.h"
 // #include "lsu3shell/lsu3shell_rme.h"
@@ -25,9 +24,9 @@ namespace lgi
 {
 
 
-  // zero tolerance 
+  // zero tolerance
   double zero_tolerance=1e-6;
-  
+
   // output mode
   int binary_format_code = 1;
   int binary_float_precision=8;
@@ -41,9 +40,9 @@ namespace lgi
       basis::OperatorBlocks<double>& spncci_operator_matrices
     )
   {
-    // for each sector, look up bra and ket subspaces 
+    // for each sector, look up bra and ket subspaces
     spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
-    
+
     // #pragma omp parallel for schedule(runtime)
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
@@ -58,11 +57,11 @@ namespace lgi
         spncci_operator_matrices[s]=bra*lsu3shell_operator_matrices[s]*ket;
       }
   }
-  
+
   void
   TransformOperatorToSpBasis(
-    const u3shell::SpaceU3SPN& space_bra, 
-    const u3shell::SpaceU3SPN& space_ket, 
+    const u3shell::SpaceU3SPN& space_bra,
+    const u3shell::SpaceU3SPN& space_ket,
     const u3shell::SectorsU3SPN& sectors,
     const basis::OperatorBlocks<double>& basis_transformation_matrices,
     const basis::OperatorBlocks<double>& lsu3shell_operator_matrices,
@@ -70,9 +69,9 @@ namespace lgi
     basis::OperatorBlocks<double>& spncci_operator_matrices
   )
   {
-    // for each sector, look up bra and ket subspaces 
+    // for each sector, look up bra and ket subspaces
     spncci_operator_matrices.resize(lsu3shell_operator_matrices.size());
-    
+
     // #pragma omp parallel for schedule(runtime)
     for(int s=0; s<lsu3shell_operator_matrices.size(); ++s)
       {
@@ -104,13 +103,13 @@ namespace lgi
       std::vector<int>& lsu3shell_index_lookup_table,
       bool restrict_seeds
     )
-  {    
+  {
     for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
       {
         // Check that the sector has non-zero rmes as defined by the zero_tolerance
         if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],lgi::zero_tolerance))
           continue;
-            
+
         // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
         const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
         int bra_subspace_index = sector.bra_subspace_index();
@@ -128,24 +127,24 @@ namespace lgi
 
         // Regroup by lgi pair, then by unit tensor
         std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
-            
+
         // Labels for looking up correct block to write to file
         lgi::SeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
 
-        // Accumulating list 
+        // Accumulating list
         lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
-          
+
       }// sector index
   }
 
 
 
-//TODO: allow for different bra and ket spaces 
+//TODO: allow for different bra and ket spaces
 
   void ComputeUnitTensorSeedBlocks(
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
       const std::string& relative_unit_tensor_filename_template,
-      const u3shell::SpaceU3SPN& lsu3shell_space, 
+      const u3shell::SpaceU3SPN& lsu3shell_space,
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
       const basis::OperatorBlocks<double>& lgi_expansions,
       lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels,
@@ -154,7 +153,7 @@ namespace lgi
       bool restrict_seeds
     )
   {
-    // Compute unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion 
+    // Compute unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion
     // and write blocks to file in binary format
     //
     // Container for seed labels and indices for lookup when writing to file
@@ -165,16 +164,16 @@ namespace lgi
     #pragma omp parallel
       {
         lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
-       
-        // For each unit tensor 
+
+        // For each unit tensor
         #pragma omp for schedule(dynamic) nowait
         for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
           {
-            // Get labels of corresponding unit tensor 
+            // Get labels of corresponding unit tensor
             basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
             const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
 
-            // Get file name containing lsu3shell rmes of unit tensor 
+            // Get file name containing lsu3shell rmes of unit tensor
             std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
 
             // generate unit tensor sectors in lsu3shell basis
@@ -213,7 +212,7 @@ namespace lgi
           }
 
        #pragma omp critical(regroup)
-          { 
+          {
             std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
             for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
               {
@@ -229,9 +228,9 @@ namespace lgi
   void ComputeUnitTensorSeedBlocks(
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
       const std::string& relative_unit_tensor_filename_template,
-      const u3shell::SpaceU3SPN& lsu3shell_space_bra, 
+      const u3shell::SpaceU3SPN& lsu3shell_space_bra,
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_bra,
-      const u3shell::SpaceU3SPN& lsu3shell_space_ket, 
+      const u3shell::SpaceU3SPN& lsu3shell_space_ket,
       const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table_ket,
       const MultiplicityTaggedLGIVector& lgi_vector,
       const basis::OperatorBlocks<double>& lgi_expansions,
@@ -241,7 +240,7 @@ namespace lgi
       bool restrict_seeds
     )
   {
-    // Compute unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion 
+    // Compute unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion
     // and write blocks to file in binary format
     //
     // Container for seed labels and indices for lookup when writing to file
@@ -252,16 +251,16 @@ namespace lgi
     #pragma omp parallel
       {
         lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
-       
-        // For each unit tensor 
+
+        // For each unit tensor
         #pragma omp for schedule(dynamic) nowait
         for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
           {
-            // Get labels of corresponding unit tensor 
+            // Get labels of corresponding unit tensor
             basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
             const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
 
-            // Get file name containing lsu3shell rmes of unit tensor 
+            // Get file name containing lsu3shell rmes of unit tensor
             std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
 
             // generate unit tensor sectors in lsu3shell basis
@@ -280,7 +279,7 @@ namespace lgi
                 unit_tensor_lsu3shell_matrices,scale_factor
               );
 
-            //Create lookup table to be able to identify which lgi the lsu3shell subspace correspond to 
+            //Create lookup table to be able to identify which lgi the lsu3shell subspace correspond to
             std::unordered_map<u3shell::U3SPN,int,boost::hash<u3shell::U3SPN>> lgi_lookup_table;
             int i=0;
             for(auto lgi_tagged : lgi_vector)
@@ -314,7 +313,7 @@ namespace lgi
           }
 
        #pragma omp critical(regroup)
-          { 
+          {
             std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
             for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
               {
@@ -343,8 +342,8 @@ namespace lgi
     std::ostream& out_file
     )
   {
-    // Extract unit tensor labels 
-    u3::SU3 x0; 
+    // Extract unit tensor labels
+    u3::SU3 x0;
     HalfInt S0,T0,Sp,Tp,S,T;
     int etap,eta;
     std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor_labels_tagged.first.FlatKey();
@@ -355,7 +354,7 @@ namespace lgi
       <<etap<<"  "<<TwiceValue(Sp)<<"  "<<TwiceValue(Tp)<<"  "
       <<eta<<"  "<<TwiceValue(S)<<"  "<<TwiceValue(T)<<"  "<<rho0
       <<std::endl;
-      
+
   }
 
   void WriteMatrix(const basis::OperatorBlock<double>& block, std::ostream& out_file)
@@ -371,7 +370,7 @@ namespace lgi
     assert(num_cols==static_cast<lgi::RMEIndexType>(num_cols));
     mcutils::WriteBinary<lgi::RMEIndexType>(out_file,num_cols);
 
-    
+
     for(int j=0; j<num_cols; ++j)
       for(int i=0; i<num_rows; ++i)
         {
@@ -391,7 +390,7 @@ namespace lgi
       const std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array
     )
   {
-    std::vector<std::pair<int,int>> irrep_pairs; 
+    std::vector<std::pair<int,int>> irrep_pairs;
     for(auto it=lgi_grouped_seed_labels.begin(); it!=lgi_grouped_seed_labels.end(); ++it)
       irrep_pairs.push_back(it->first);
 
@@ -408,11 +407,11 @@ namespace lgi
 
         // output filename
         std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
-                
+
         // open output file
         // std::cout << "opening " << seed_filename << std::endl;
 
-        // output in binary mode 
+        // output in binary mode
         std::ios_base::openmode mode_argument = std::ios_base::out;
         mode_argument |= std::ios_base::binary;
         std::ofstream seed_file;
@@ -432,30 +431,30 @@ namespace lgi
         for(const SeedLabels& seed_labels : seed_labels_list)
           {
             u3shell::RelativeUnitTensorLabelsU3ST unit_tensor_labels;
-            int rho0, index1,index2; 
+            int rho0, index1,index2;
             std::tie(unit_tensor_labels,rho0,index1,index2)=seed_labels;
 
-            // add unit tensor to list 
+            // add unit tensor to list
             unit_tensor_sector_labels.emplace_back(unit_tensor_labels,rho0);
-                
+
             // get block
             const basis::OperatorBlock<double>& block=unit_tensor_spncci_matrices_array[index1][index2];
 
             // write block
             // #pragma omp critical (write_seeds)
-              lgi::WriteMatrix(block, seed_file);                
-            
+              lgi::WriteMatrix(block, seed_file);
+
           }
 
         seed_file.close();
 
-        // Write unit tensor labels to file 
+        // Write unit tensor labels to file
         std::string operator_filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index);
-                
+
         // open output file
         // std::cout << "opening " << operator_filename << std::endl;
 
-        // output in binary mode 
+        // output in binary mode
         std::ios_base::openmode mode_argument_op = std::ios_base::out;
         std::ofstream operator_file;
         operator_file.open(operator_filename,mode_argument_op);
@@ -483,7 +482,7 @@ namespace lgi
     // output filename
     std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
     std::cout<<"writing to "<<seed_filename<<std::endl;
-    // output in binary mode 
+    // output in binary mode
     std::ios_base::openmode mode_argument = std::ios_base::out;
     mode_argument |= std::ios_base::binary;
     std::ofstream seed_file;
@@ -500,7 +499,7 @@ namespace lgi
 
     // for each unit tensor, write non-zero sectors to file
     for(const auto& block : unit_tensor_seed_blocks)
-        lgi::WriteMatrix(block, seed_file);                
+        lgi::WriteMatrix(block, seed_file);
 
     seed_file.close();
   }
@@ -516,7 +515,7 @@ namespace lgi
     {
       // open output file
       bool file_found=false;
-      // std::cout << "opening " << filename << std::endl;      
+      // std::cout << "opening " << filename << std::endl;
       std::ifstream in_stream(filename,std::ios_base::in);
       if(not bool(in_stream))
         {
@@ -546,7 +545,7 @@ namespace lgi
               >>eta>>twice_S>>twice_T>>rho0;
 
           mcutils::ParsingCheck(line_stream, line_count, line);
-          
+
           // conversions
           HalfInt T0 = HalfInt(twice_T0,2);
           HalfInt S0 = HalfInt(twice_S0,2);
@@ -568,13 +567,13 @@ namespace lgi
 
   void ReadBlock(std::istream& in_stream, Eigen::MatrixXd& block, int float_precision)
     {
-      
+
       //Read in number of rows and columns
       lgi::RMEIndexType rows,cols;
       mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,rows);
       mcutils::ReadBinary<lgi::RMEIndexType>(in_stream,cols);
 
-      // Read in RMEs and case to double matrix 
+      // Read in RMEs and case to double matrix
       //TODO Change to MatrixFloatType for spncci
       if(float_precision==4)
         {
@@ -591,12 +590,12 @@ namespace lgi
     }
 
   bool ReadBlocks(
-      const std::string& filename, 
+      const std::string& filename,
       int num_blocks,
       basis::OperatorBlocks<double>& blocks
     )
     {
-      // std::cout << "opening " << filename << std::endl;      
+      // std::cout << "opening " << filename << std::endl;
       bool file_found=false;
       std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
       if(not bool(in_stream))
@@ -609,7 +608,7 @@ namespace lgi
         file_found=true;
 
       // mcutils::StreamCheck(bool(in_stream),filename,"Failure opening "+filename);
-      
+
       // read file header
       int format_code;
       mcutils::ReadBinary<int>(in_stream,format_code);
@@ -618,13 +617,13 @@ namespace lgi
       mcutils::ReadBinary<int>(in_stream,float_precision);
       assert((float_precision==4)||(float_precision==8));
 
-      // Read in seed blocks 
+      // Read in seed blocks
       blocks.resize(num_blocks);
       for(int i=0; i<num_blocks; ++i)
         {
           // Read in seeds to matrix in vector
           Eigen::MatrixXd& block=blocks[i];
-          ReadBlock(in_stream,block, float_precision);  
+          ReadBlock(in_stream,block, float_precision);
         }
       return file_found;
     }

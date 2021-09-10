@@ -38,7 +38,6 @@ recurrence_indexing_spatial.h
 #include <unordered_map>
 
 
-// #include "basis/hypersector.h"
 #include "am/halfint.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
@@ -46,11 +45,9 @@ recurrence_indexing_spatial.h
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/u3.h"
 #include "spncci/recurrence_indexing_spin.h"
-// #include "spncci/spncci_common.h"
 #include "u3shell/tensor_labels.h"
 #include "u3shell/u3spn_scheme.h"
 #include "u3shell/unit_tensor_space_u3s.h"
-// #include "u3shell/upcoupling.h"
 
 namespace spncci::spatial
 {
