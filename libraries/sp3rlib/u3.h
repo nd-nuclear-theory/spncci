@@ -2,10 +2,10 @@
   u3.h
 
   U(3) and SU(3) labeling, branching, and Kronecker product.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
-  
+
   SPDX-License-Identifier: MIT
 
   3/7/16 (aem,mac): Created based on prototype u3states.py, u3.py, and so3.py.
@@ -31,7 +31,7 @@
 #include "mcutils/arithmetic.h"
 // #include "utilities/utilities.h"
 
-namespace u3 
+namespace u3
 {
 
   ////////////////////////////////////////////////////////////////
@@ -52,13 +52,13 @@ namespace u3
     // member needs copying
 
     // default constructor
-    inline SU3() 
+    inline SU3()
       : lambda_(0), mu_(0) {}
-    
+
     // construction from (lambda,mu)
     //
     // underscore on arguments avoids name clash with accessors
-    inline SU3(int lambda, int mu) 
+    inline SU3(int lambda, int mu)
       : lambda_(lambda), mu_(mu) {}
 
     ////////////////////////////////////////////////////////////////
@@ -112,13 +112,13 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
-   
+
     private:
 
     // Elliott labels
@@ -155,17 +155,17 @@ namespace u3
   }
 
   inline double Casimir2( const u3::SU3& x)
-  //Second order Casimir 
+  //Second order Casimir
   {
     return 2./3*(mcutils::sqr(x.lambda())+x.lambda()*x.mu()+mcutils::sqr(x.mu())+3*x.lambda()+3*x.mu());
-  } 
+  }
 
   inline double Casimir3(const u3::SU3& x)
   //Third order Casimir
   {
     return 1./9*(x.lambda()-x.mu())*(x.lambda()+2*x.mu()+3)*(2*x.lambda()+x.mu()+3);
   }
-  
+
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
   // U(3) irrep
@@ -184,7 +184,7 @@ namespace u3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    inline U3() 
+    inline U3()
       : f1_(0), f2_(0), f3_(0)
       // default constructor
       {}
@@ -260,7 +260,7 @@ namespace u3
     }
 
     // access N and SU(3) parts
-    
+
     // Note: Meed to use explicit reference to u3::SU3 since name is
     // masked here by u3::U3::SU3.
 
@@ -306,7 +306,7 @@ namespace u3
     //       (TwiceValue(omega.f1_) << 2*label_width)
     //       | (TwiceValue(omega.f2_) << label_width)
     //       | (TwiceValue(omega.f3_) << 0);
-    //   
+    //
     //     boost::hash<int> hasher;
     //     return hasher(packed_labels);
     //   }
@@ -321,7 +321,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -342,13 +342,13 @@ namespace u3
   {
 
     assert(ValidLabels(N_,x_));
-      
+
     // recover f3 first
     // N - 2mu - lambda = (f1+f2+f3)-2*(f2-f3)-(f1-f2) = 3*f3
     // but since division is not defined for HalfInt, work with twice value for division purposes
     int twice_f3 = TwiceValue(N_-2*x_.mu()-x_.lambda()) / 3;
     f3_ = HalfInt(twice_f3,2);
-      
+
     // recover f2 and f1
     f2_ = f3_ + x_.mu();
     f1_ = f2_ + x_.lambda();
@@ -398,11 +398,11 @@ namespace u3
     // member needs copying
 
     // default constructor
-    inline U3S() 
+    inline U3S()
       : S_(0) {}
 
     // construction from (omega,S)
-    inline U3S(const u3::U3& omega, const HalfInt& S) 
+    inline U3S(const u3::U3& omega, const HalfInt& S)
       : omega_(omega), S_(S) {}
 
     ////////////////////////////////////////////////////////////////
@@ -454,13 +454,13 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
-    
+
     private:
 
     u3::U3 omega_;
@@ -498,7 +498,7 @@ namespace u3
     // member needs copying
 
     // default constructor
-    inline U3ST() 
+    inline U3ST()
       : S_(0), T_(0) {}
 
     // construction from (omega,S,T)
@@ -559,13 +559,13 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-    
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
     // labels
     ////////////////////////////////////////////////////////////////
-    
+
     private:
 
     u3::U3 omega_;
@@ -605,7 +605,7 @@ namespace u3
   //   x1, x2, x3 (u3::SU3): irreps
   //
   // Returns:
-  //   (int) : multiplicity 
+  //   (int) : multiplicity
 
   MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2);
   // Generate multiplicity-tagged vector of SU(3) irreps in SU(3) Kronecker product.
@@ -644,7 +644,7 @@ namespace u3
   //   L (int) : angular momentum
   //
   // Returns:
-  //   (int) : multiplicity 
+  //   (int) : multiplicity
   //
   // EX:
   //   BranchingMultiplicity(u3::SU3(4,3),3)
@@ -657,9 +657,9 @@ namespace u3
   //
   //   mubar=min(lambda,mu)
   //   lambdabar=max(lambda,mu)
-  //   K=mubar,mubar-2,...,1 or 0 
+  //   K=mubar,mubar-2,...,1 or 0
   //   L =
-  //      K, K+1,...,lambdabar          if K!=0         
+  //      K, K+1,...,lambdabar          if K!=0
   //      lambdabar, lambdabar-2,...,1 or 0      if K=0
   //
   // The list of L values with multiplicities is, however, generated
@@ -671,7 +671,7 @@ namespace u3
   //
   // Returns:
   //   (MultiplicityTagged<int>::vector) : vector with each L
-  //   (of nonzero multiplicity) tagged by its multiplicity 
+  //   (of nonzero multiplicity) tagged by its multiplicity
   //   kappa_max
 
   MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r);
@@ -684,17 +684,28 @@ namespace u3
   //
   // Args:
   //   x (u3::SU3) : SU(3) irrep
-  //   r (HalfInt::pair) : allowed angular momentum range 
-  // 
+  //   r (HalfInt::pair) : allowed angular momentum range
+  //
   // Although range is taken as HalfInt::pair, since it could come from
   // result of coupling J and S using am::ProductAngularMomentumRange, the actual values should be
   // integral.
   //
   // Returns:
   //   (MultiplicityTagged<int>::vector) : vector with each L
-  //   (of nonzero multiplicity) tagged by its multiplicity 
+  //   (of nonzero multiplicity) tagged by its multiplicity
   //   kappa_max
 
 }  // namespace
+
+namespace std
+{
+  template<> struct hash<u3::U3>
+  {
+    inline std::size_t operator()(const u3::U3& h) const
+    {
+      return hash_value(h);
+    }
+  };
+}
 
 #endif
