@@ -121,7 +121,12 @@ RecurrenceU3Space::RecurrenceU3Space(
   {
     int rho0_max = u3::OuterMultiplicity(omega_ket().SU3(), x0, omega_bra().SU3());
     if (rho0_max > 0)
-      PushSubspace(RecurrenceOperatorSubspace(x0, Nbar_pairs), rho0_max);
+    {
+      auto subspace = RecurrenceOperatorSubspace(x0, Nbar_pairs);
+      if (subspace.dimension() == 0)
+        continue;
+      PushSubspace(std::move(subspace), rho0_max);
+    }
   }
 }
 
@@ -150,12 +155,12 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     const int& upsilon_max_ket = u3subspace_ket.size();
     const int& upsilon_max_bra = u3subspace_bra.size();
 
-    upsilon_pairs_.push_back({upsilon_max_ket, upsilon_max_bra});
+    auto subspace = RecurrenceU3Space({omega_ket, omega_bra}, unit_tensor_constraints);
+    if (subspace.dimension() == 0)
+      continue;
 
-    PushSubspace(
-        RecurrenceU3Space({omega_ket, omega_bra}, unit_tensor_constraints),
-        upsilon_max_bra * upsilon_max_ket
-      );
+    upsilon_pairs_.push_back({upsilon_max_ket, upsilon_max_bra});
+    PushSubspace(std::move(subspace), upsilon_max_bra * upsilon_max_ket);
   }
 }
 
@@ -189,9 +194,16 @@ RecurrenceLGISpace::RecurrenceLGISpace(
   // Create RecurrenceNnsumSpaces.  On for each unit tensor state parity
   reserve(Nnsum_partition.size());
   for (const auto& [Nnsum, partition] : Nnsum_partition)
-    PushSubspace(RecurrenceNnsumSpace(
+  {
+    auto subspace = RecurrenceNnsumSpace(
         Nnsum, partition, lgi_space_ket, lgi_space_bra, unit_tensor_constraints
-      ));
+      );
+    if ((Nnsum == 0) && (subspace.dimension() == 0))
+      return;  // TODO: is the Nnsum constraint necessary, or is this more general?
+    if (subspace.dimension() == 0)
+      continue;
+    PushSubspace(std::move(subspace));
+  }
 }
 
 RecurrenceSpace::RecurrenceSpace(
@@ -209,9 +221,13 @@ RecurrenceSpace::RecurrenceSpace(
       const auto& lgi_space_ket = space_ket.GetSubspace(i_ket);
       const auto& lgi_space_bra = space_bra.GetSubspace(i_bra);
       for (uint8_t parity_bar : {0, 1})
-        PushSubspace(RecurrenceLGISpace(
+      {
+        auto subspace = RecurrenceLGISpace(
             lgi_space_ket, lgi_space_bra, {N1v, Nsigma0, parity_bar}
-          ));
+          );
+        if (subspace.dimension() == 0) continue;
+        PushSubspace(std::move(subspace));
+     }
     }
 }
 
