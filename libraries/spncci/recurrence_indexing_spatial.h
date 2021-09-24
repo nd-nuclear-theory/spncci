@@ -305,6 +305,26 @@ class RecurrenceSpace
   // private:
 };
 
+
+////////////////////////////////////////////////////////////////
+// recurrence sectors
+////////////////////////////////////////////////////////////////
+
+class RecurrenceU3Sectors
+    : public basis::BaseSectors<RecurrenceNnsumSpace>
+{
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+
+  RecurrenceU3Sectors() = default;
+
+  RecurrenceU3Sectors(
+      const RecurrenceSp3RSpace& sp3r_space, int target_Nnsum, int source_Nnsum
+    );
+};
+
 }  // namespace spncci::spatial
 
 #endif  // RECURRENCE_INDEXING_H_

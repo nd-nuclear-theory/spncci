@@ -12,6 +12,7 @@
 #include "spncci/recurrence_indexing_spatial.h"
 
 #include <algorithm>
+#include <cppitertools/enumerate.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -234,6 +235,78 @@ RecurrenceSpace::RecurrenceSpace(
         PushSubspace(std::move(subspace));
       }
     }
+}
+
+RecurrenceU3Sectors::RecurrenceU3Sectors(
+    const RecurrenceSp3RSpace& sp3r_space, int target_Nnsum, int source_Nnsum
+  )
+    : BaseSectors{
+        sp3r_space.LookUpSubspace({target_Nnsum}),
+        sp3r_space.LookUpSubspace({source_Nnsum})
+      }
+{
+  int delta_Nnsum = target_Nnsum - source_Nnsum;
+  assert((delta_Nnsum == 2) || (delta_Nnsum == 4));
+  const auto& target_Nnsum_space = bra_space();
+  const auto& source_Nnsum_space = ket_space();
+
+  if (delta_Nnsum == 2)
+  {
+    for (const auto&& [target_u3_index, target_u3_space] :
+         iter::enumerate(target_Nnsum_space))
+    {
+      for (const auto&& [source_u3_index, source_u3_space] :
+           iter::enumerate(source_Nnsum_space))
+      {
+        if (source_u3_space.omega_bra() != target_u3_space.omega_bra())
+          continue;
+        if (
+            u3::OuterMultiplicity(
+                u3::U3{2, {2, 0}},
+                source_u3_space.omega_ket(),
+                target_u3_space.omega_ket()
+              )
+            == 0
+          )
+          continue;
+        EmplaceSector(
+            target_u3_index, source_u3_index, target_u3_space, source_u3_space
+          );
+      }
+    }
+  }
+  else  // if (delta_Nnsum == 4)
+  {
+    for (const auto&& [target_u3_index, target_u3_space] :
+         iter::enumerate(target_Nnsum_space))
+    {
+      for (const auto&& [source_u3_index, source_u3_space] :
+           iter::enumerate(source_Nnsum_space))
+      {
+        if (
+            u3::OuterMultiplicity(
+                u3::U3{2, {2, 0}},
+                source_u3_space.omega_bra(),
+                target_u3_space.omega_bra()
+              )
+            == 0
+          )
+          continue;
+        if (
+            u3::OuterMultiplicity(
+                u3::U3{2, {2, 0}},
+                source_u3_space.omega_ket(),
+                target_u3_space.omega_ket()
+              )
+            == 0
+          )
+          continue;
+        EmplaceSector(
+            target_u3_index, source_u3_index, target_u3_space, source_u3_space
+          );
+      }
+    }
+  }
 }
 
 }  // namespace spncci::spatial
