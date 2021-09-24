@@ -8,12 +8,12 @@ recurrence_indexing_spatial.h
         -> omega (states (n,rho) -> upsilon)
 
     spncci::spatial::Space() []
-    ->spncci::spatial::LGISpace() [sigma]
+    ->spncci::spatial::Sp3RSpace() [sigma]
         ->spncci::spatial::U3Subspace() [omega]
           ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 
     spatial::RecurrenceSpace() []
-    ->spatial::RecurrenceLGISpace() [sigma,sigma',parity_bar]
+    ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
       ->spatial::RecurrenceNnsumSpace() [Nsum]
         ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
           ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
@@ -37,7 +37,6 @@ recurrence_indexing_spatial.h
 #include <functional>  // for std::hash
 #include <unordered_map>
 
-
 #include "am/halfint.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
@@ -53,23 +52,26 @@ namespace spncci::spatial
 {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // spncci::spatial::Space() []
-// ->spncci::spatial::LGISpace() [sigma]
+// ->spncci::spatial::Sp3RSpace() [sigma]
 //     ->spncci::spatial::U3Subspace() [omega]
 //       ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class U3Subspace;
 class U3State;
-class LGISpace;
+class Sp3RSpace;
 class Space;
 
 class U3Subspace
-    : public basis::BaseDegenerateSubspace<U3Subspace, std::tuple<u3::U3>, U3State, std::tuple<u3::U3>>
+    : public basis::
+          BaseDegenerateSubspace<U3Subspace, std::tuple<u3::U3>, U3State, std::tuple<u3::U3>>
 {
  public:
   U3Subspace() = default;
 
-  U3Subspace(const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector);
+  U3Subspace(
+      const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector
+    );
 
   U3Subspace(const sp3r::U3Subspace& u3subspace);
 
@@ -103,24 +105,26 @@ class U3State
   // private:
 };
 
-class LGISpace
-    : public basis::BaseSpace<LGISpace, U3Subspace, std::tuple<u3::U3>>
+class Sp3RSpace
+    : public basis::BaseSpace<Sp3RSpace, U3Subspace, std::tuple<u3::U3>>
 {
  public:
-  LGISpace() = default;
-  LGISpace(const u3::U3& sigma, const int Nn_max);
+  Sp3RSpace() = default;
+  Sp3RSpace(const u3::U3& sigma, const int Nn_max);
 
   u3::U3 sigma() const { return std::get<0>(labels()); }
 };
 
 class Space
-    : public basis::BaseSpace<Space, LGISpace>
+    : public basis::BaseSpace<Space, Sp3RSpace>
 {
  public:
   Space() = default;
 
   // Construct from list of sigma
-  Space(const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, const int Nmax);
+  Space(
+      const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, const int Nmax
+    );
 
   // Construct from spin::Space
   template<typename tLGIType>
@@ -131,21 +135,21 @@ class Space
     {
       const u3::U3& sigma = spin_space.GetSubspace(i).sigma();
       int Nn_max = Nmax - int(sigma.N() - Nsigma0);
-      PushSubspace(LGISpace(sigma, Nn_max));
+      PushSubspace(Sp3RSpace(sigma, Nn_max));
     }
   }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // spatial::RecurrenceSpace() []
-// ->spatial::RecurrenceLGISpace() [sigma,sigma']
+// ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
 //   ->spatial::RecurrenceNnsumSpace() [Nsum]
 //     ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
 //       ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
 //         ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 class RecurrenceSpace;
-class RecurrenceLGISpace;
+class RecurrenceSp3RSpace;
 class RecurrenceNnsumSpace;
 class RecurrenceU3Space;
 class RecurrenceOperatorSubspace;
@@ -205,7 +209,11 @@ class RecurrenceOperatorState
 
 // spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
 class RecurrenceU3Space
-    : public basis::BaseDegenerateSpace<RecurrenceU3Space, RecurrenceOperatorSubspace, std::tuple<u3::U3, u3::U3>>
+    : public basis::BaseDegenerateSpace<
+          RecurrenceU3Space,
+          RecurrenceOperatorSubspace,
+          std::tuple<u3::U3, u3::U3>
+        >
 {
  public:
   RecurrenceU3Space() = default;
@@ -223,7 +231,8 @@ class RecurrenceU3Space
 
 // spatial::RecurrenceNnsumSpace() [Nsum]
 class RecurrenceNnsumSpace
-    : public basis::BaseDegenerateSpace<RecurrenceNnsumSpace, RecurrenceU3Space, std::tuple<int>>
+    : public basis::
+          BaseDegenerateSpace<RecurrenceNnsumSpace, RecurrenceU3Space, std::tuple<int>>
 {
  public:
   RecurrenceNnsumSpace() = default;
@@ -232,8 +241,8 @@ class RecurrenceNnsumSpace
   RecurrenceNnsumSpace(
       int Nnsum,
       const std::vector<std::tuple<int, int>> u3subspace_index_pairs,
-      const LGISpace& lgi_space_ket,
-      const LGISpace& lgi_space_bra,
+      const Sp3RSpace& sp3r_space_ket,
+      const Sp3RSpace& sp3r_space_bra,
       const UnitTensorConstraintParameters& unit_tensor_parameters
     );
 
@@ -255,17 +264,21 @@ class RecurrenceNnsumSpace
 };
 
 
-// spatial::RecurrenceLGISpace() [sigma,sigma',parity_bar]
-class RecurrenceLGISpace
-    : public basis::BaseSpace<RecurrenceLGISpace, RecurrenceNnsumSpace, std::tuple<u3::U3, u3::U3, uint8_t>>
+// spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
+class RecurrenceSp3RSpace
+    : public basis::BaseSpace<
+          RecurrenceSp3RSpace,
+          RecurrenceNnsumSpace,
+          std::tuple<u3::U3, u3::U3, uint8_t>
+        >
 {
  public:
-  RecurrenceLGISpace() = default;
+  RecurrenceSp3RSpace() = default;
 
   // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
-  RecurrenceLGISpace(
-      const LGISpace& lgi_space_ket,
-      const LGISpace& lgi_space_bra,
+  RecurrenceSp3RSpace(
+      const Sp3RSpace& sp3r_space_ket,
+      const Sp3RSpace& sp3r_space_bra,
       const UnitTensorConstraintParameters& unit_tensor_constraints
     );
 
@@ -276,7 +289,7 @@ class RecurrenceLGISpace
 
 // spatial::RecurrenceSpace() []
 class RecurrenceSpace
-    : public basis::BaseSpace<RecurrenceSpace, RecurrenceLGISpace>
+    : public basis::BaseSpace<RecurrenceSpace, RecurrenceSp3RSpace>
 {
  public:
   RecurrenceSpace() = default;

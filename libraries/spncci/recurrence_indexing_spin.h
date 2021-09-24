@@ -225,7 +225,7 @@ class Space
 
 ////////////////////////////////////////////////////////////////////////////////
 // spin::RecurrenceSpace() []
-//   spin::RecurrenceLGISpace() [sigma,sigma']
+//   spin::RecurrenceLGISpace() [sigma,sigma',parity_bar]
 //   ->spin::RecurrenceSpinSpace() [S,S']
 //     -> spin::RecurrenceSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
 //       ->spin::RecurrenceOperatorState() [S0,T0,Sbar,Sbar',Tbar,Tbar']
@@ -334,7 +334,9 @@ class RecurrenceOperatorState
       : BaseStateType{subspace, index}
   {}
 
-  RecurrenceOperatorState(const SubspaceType& subspace, const StateLabelsType& state_labels)
+  RecurrenceOperatorState(
+      const SubspaceType& subspace, const StateLabelsType& state_labels
+    )
   // Construct state by reverse lookup on labels.
       : BaseStateType{subspace, state_labels}
   {}

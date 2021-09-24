@@ -22,9 +22,7 @@
 
 // #include "sp3rlib/vcs.h"
 
-namespace spncci
-{
-namespace spatial
+namespace spncci::spatial
 {
 U3Subspace::U3Subspace(const sp3r::U3Subspace& u3subspace)
     : BaseDegenerateSubspace{u3subspace.labels()}
@@ -38,11 +36,10 @@ U3Subspace::U3Subspace(const sp3r::U3Subspace& u3subspace)
       n_map[n_rho.irrep] = 0;
     n_map[n_rho.irrep] += n_rho.tag;
   }
-  for (const auto& [n, rho_max] : n_map)
-    PushStateLabels(n, rho_max);
+  for (const auto& [n, rho_max] : n_map) PushStateLabels(n, rho_max);
 }
 
-LGISpace::LGISpace(const u3::U3& sigma, const int Nn_max)
+Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
     : BaseSpace{sigma}
 {
   sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);
@@ -53,7 +50,9 @@ LGISpace::LGISpace(const u3::U3& sigma, const int Nn_max)
   }
 }
 
-Space::Space(const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, const int Nmax)
+Space::Space(
+    const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, const int Nmax
+  )
     : BaseSpace{}
 {
   for (const auto& sigma : sigma_vector)
@@ -61,7 +60,7 @@ Space::Space(const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, co
     // Nsigma0_=Nsigma0;
     int Nn_max = Nmax - int(sigma.N() - Nsigma0);
     if (Nn_max >= 0)
-      PushSubspace(LGISpace(sigma, Nn_max));
+      PushSubspace(Sp3RSpace(sigma, Nn_max));
   }
 }
 
@@ -86,7 +85,8 @@ RecurrenceU3Space::RecurrenceU3Space(
     : BaseDegenerateSpace{omega_pair}
 {
   const auto& [omega, omega_p] = omega_pair;
-  std::unordered_map<u3::SU3, std::vector<std::tuple<int, int>>, boost::hash<u3::SU3>> x0_Nbar_pairs;
+  std::unordered_map<u3::SU3, std::vector<std::tuple<int, int>>, boost::hash<u3::SU3>>
+      x0_Nbar_pairs;
 
   ////////////////////////////////////////////////////////////////////////////////
   // Create list of spatial unit tensors to pass through to operator subspace
@@ -119,7 +119,8 @@ RecurrenceU3Space::RecurrenceU3Space(
   reserve(x0_Nbar_pairs.size());
   for (const auto& [x0, Nbar_pairs] : x0_Nbar_pairs)
   {
-    int rho0_max = u3::OuterMultiplicity(omega_ket().SU3(), x0, omega_bra().SU3());
+    int rho0_max =
+        u3::OuterMultiplicity(omega_ket().SU3(), x0, omega_bra().SU3());
     if (rho0_max > 0)
     {
       auto subspace = RecurrenceOperatorSubspace(x0, Nbar_pairs);
@@ -134,8 +135,8 @@ RecurrenceU3Space::RecurrenceU3Space(
 RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     int Nnsum,
     const std::vector<std::tuple<int, int>> u3subspace_index_pairs,
-    const LGISpace& lgi_space_ket,
-    const LGISpace& lgi_space_bra,
+    const Sp3RSpace& sp3r_space_ket,
+    const Sp3RSpace& sp3r_space_bra,
     const UnitTensorConstraintParameters& unit_tensor_constraints
   )
     : BaseDegenerateSpace{Nnsum}
@@ -147,15 +148,16 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
 
   for (const auto& [i_ket, i_bra] : u3subspace_index_pairs)
   {
-    const auto& u3subspace_ket = lgi_space_ket.GetSubspace(i_ket);
-    const auto& u3subspace_bra = lgi_space_bra.GetSubspace(i_bra);
+    const auto& u3subspace_ket = sp3r_space_ket.GetSubspace(i_ket);
+    const auto& u3subspace_bra = sp3r_space_bra.GetSubspace(i_bra);
     const u3::U3& omega_ket = u3subspace_ket.omega();
     const u3::U3& omega_bra = u3subspace_bra.omega();
 
     const int& upsilon_max_ket = u3subspace_ket.size();
     const int& upsilon_max_bra = u3subspace_bra.size();
 
-    auto subspace = RecurrenceU3Space({omega_ket, omega_bra}, unit_tensor_constraints);
+    auto subspace =
+        RecurrenceU3Space({omega_ket, omega_bra}, unit_tensor_constraints);
     if (subspace.dimension() == 0)
       continue;
 
@@ -165,26 +167,28 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
 }
 
 
-RecurrenceLGISpace::RecurrenceLGISpace(
-    const LGISpace& lgi_space_ket,
-    const LGISpace& lgi_space_bra,
+RecurrenceSp3RSpace::RecurrenceSp3RSpace(
+    const Sp3RSpace& sp3r_space_ket,
+    const Sp3RSpace& sp3r_space_bra,
     const UnitTensorConstraintParameters& unit_tensor_constraints
   )
     : BaseSpace{
-        {lgi_space_ket.sigma(), lgi_space_bra.sigma(), unit_tensor_constraints.parity_bar}
+        {sp3r_space_ket.sigma(),
+         sp3r_space_bra.sigma(),
+         unit_tensor_constraints.parity_bar}
       }
 {
-  const u3::U3& sigma_ket = lgi_space_ket.sigma();
-  const u3::U3& sigma_bra = lgi_space_bra.sigma();
+  const u3::U3& sigma_ket = sp3r_space_ket.sigma();
+  const u3::U3& sigma_bra = sp3r_space_bra.sigma();
   // std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<std::endl;
 
   // Partition pairs of omega',omega by Nnsum
   std::map<int, std::vector<std::tuple<int, int>>> Nnsum_partition;
-  for (int i_ket = 0; i_ket < lgi_space_ket.size(); ++i_ket)
-    for (int i_bra = 0; i_bra < lgi_space_bra.size(); ++i_bra)
+  for (int i_ket = 0; i_ket < sp3r_space_ket.size(); ++i_ket)
+    for (int i_bra = 0; i_bra < sp3r_space_bra.size(); ++i_bra)
     {
-      const u3::U3& omega_ket = lgi_space_ket.GetSubspace(i_ket).omega();
-      const u3::U3& omega_bra = lgi_space_bra.GetSubspace(i_bra).omega();
+      const u3::U3& omega_ket = sp3r_space_ket.GetSubspace(i_ket).omega();
+      const u3::U3& omega_bra = sp3r_space_bra.GetSubspace(i_bra).omega();
 
       int Nnsum =
           int(omega_ket.N() - sigma_ket.N() + omega_bra.N() - sigma_bra.N());
@@ -196,7 +200,7 @@ RecurrenceLGISpace::RecurrenceLGISpace(
   for (const auto& [Nnsum, partition] : Nnsum_partition)
   {
     auto subspace = RecurrenceNnsumSpace(
-        Nnsum, partition, lgi_space_ket, lgi_space_bra, unit_tensor_constraints
+        Nnsum, partition, sp3r_space_ket, sp3r_space_bra, unit_tensor_constraints
       );
     if ((Nnsum == 0) && (subspace.dimension() == 0))
       return;  // TODO: is the Nnsum constraint necessary, or is this more general?
@@ -214,25 +218,22 @@ RecurrenceSpace::RecurrenceSpace(
   )
     : BaseSpace{}
 {
-  reserve(2*space_ket.size()*space_bra.size());
+  reserve(2 * space_ket.size() * space_bra.size());
   for (int i_ket = 0; i_ket < space_ket.size(); ++i_ket)
     for (int i_bra = 0; i_bra < space_bra.size(); ++i_bra)
     {
-      const auto& lgi_space_ket = space_ket.GetSubspace(i_ket);
-      const auto& lgi_space_bra = space_bra.GetSubspace(i_bra);
+      const auto& sp3r_space_ket = space_ket.GetSubspace(i_ket);
+      const auto& sp3r_space_bra = space_bra.GetSubspace(i_bra);
       for (uint8_t parity_bar : {0, 1})
       {
-        auto subspace = RecurrenceLGISpace(
-            lgi_space_ket, lgi_space_bra, {N1v, Nsigma0, parity_bar}
+        auto subspace = RecurrenceSp3RSpace(
+            sp3r_space_ket, sp3r_space_bra, {N1v, Nsigma0, parity_bar}
           );
-        if (subspace.dimension() == 0) continue;
+        if (subspace.dimension() == 0)
+          continue;
         PushSubspace(std::move(subspace));
-     }
+      }
     }
 }
 
-
-}  // namespace spatial
-
-
-}  // namespace spncci
+}  // namespace spncci::spatial
