@@ -25,11 +25,12 @@
 
 namespace spncci::spatial
 {
-U3Subspace::U3Subspace(const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector)
+U3Subspace::U3Subspace(
+    const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector
+  )
     : BaseDegenerateSubspace{omega}
 {
-  for (const auto& [n, rho_max] : nrho_vector)
-    PushStateLabels(n, rho_max);
+  for (const auto& [n, rho_max] : nrho_vector) PushStateLabels(n, rho_max);
 }
 
 Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
@@ -38,21 +39,22 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
   // find all raising polynomials
   std::vector<u3::U3> n_vector = sp3r::RaisingPolynomialLabels(Nn_max);
 
-  // temporary container 
-  std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> states;
+  // temporary container
+  std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
 
-  // For each raising polynomial n obtain all allowed couplings 
+  // For each raising polynomial n obtain all allowed couplings
   // omega (sigma x n -> omega) with outer multiplicities rho_max.
   for (const auto& n : n_vector)
   {
-    MultiplicityTagged<u3::U3>::vector omega_rhomax_vector = u3::KroneckerProduct(sigma,n);
-    for(const auto&[omega,rho_max]: omega_rhomax_vector)
-      states[omega].emplace_back(n,rho_max);
+    MultiplicityTagged<u3::U3>::vector omega_rhomax_vector =
+        u3::KroneckerProduct(sigma, n);
+    for (const auto& [omega, rho_max] : omega_rhomax_vector)
+      states[omega].emplace_back(n, rho_max);
   }
 
   // Push subpaces
-  for(const auto&[omega,n_rho_vector] : states)
-    PushSubspace(U3Subspace(omega,n_rho_vector));
+  for (const auto& [omega, n_rho_vector] : states)
+    PushSubspace(U3Subspace(omega, n_rho_vector));
 }
 
 Space::Space(
