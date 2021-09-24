@@ -10,14 +10,13 @@
 ****************************************************************/
 #include "spncci/recurrence_indexing.h"
 
+#include <cppitertools/itertools.hpp>
 #include <string>
 
 #include "am/halfint_fmt.h"
-#include "cppitertools/imap.hpp"
-#include "cppitertools/unique_everseen.hpp"
-#include "mcutils/profiling.h"
 #include "fmt/format.h"
 #include "lgi/lgi.h"
+#include "mcutils/profiling.h"
 
 
 int main(int argc, char** argv)
@@ -134,22 +133,22 @@ int main(int argc, char** argv)
 
     for (std::size_t i = 0; i < recurrence_space.size(); ++i)
     {
-      const auto& recurrence_lgi_space = recurrence_space.GetSubspace(i);
+      const auto& recurrence_sp3r_space = recurrence_space.GetSubspace(i);
 
-      const u3::U3& sigma_ket = recurrence_lgi_space.sigma_ket();
-      const u3::U3& sigma_bra = recurrence_lgi_space.sigma_bra();
+      const u3::U3& sigma_ket = recurrence_sp3r_space.sigma_ket();
+      const u3::U3& sigma_bra = recurrence_sp3r_space.sigma_bra();
       std::cout << fmt::format(
           "  spin::RecurrenceLGISpace {} {} {}  size: {:4d}  dimension: {:4d}",
           sigma_ket.Str(),
           sigma_bra.Str(),
-          std::get<2>(recurrence_lgi_space.labels()),
-          recurrence_lgi_space.size(),
-          recurrence_lgi_space.dimension()
+          std::get<2>(recurrence_sp3r_space.labels()),
+          recurrence_sp3r_space.size(),
+          recurrence_sp3r_space.dimension()
         ) << std::endl;
 
-      for (std::size_t j = 0; j < recurrence_lgi_space.size(); ++j)
+      for (std::size_t j = 0; j < recurrence_sp3r_space.size(); ++j)
       {
-        const auto& recurrence_spin_space = recurrence_lgi_space.GetSubspace(j);
+        const auto& recurrence_spin_space = recurrence_sp3r_space.GetSubspace(j);
         const auto& [S_ket, S_bra] = recurrence_spin_space.labels();
 
         std::cout << fmt::format(
@@ -233,18 +232,18 @@ int main(int argc, char** argv)
       ) << std::endl;
     for (std::size_t i = 0; i < spatial_space.size(); ++i)
     {
-      const auto& spatial_lgi_space = spatial_space.GetSubspace(i);
-      const u3::U3& sigma = spatial_lgi_space.sigma();
-      int num_spatial_lgi_subspace = spatial_lgi_space.size();
+      const auto& spatial_sp3r_space = spatial_space.GetSubspace(i);
+      const u3::U3& sigma = spatial_sp3r_space.sigma();
+      int num_spatial_lgi_subspace = spatial_sp3r_space.size();
       std::cout << fmt::format(
-          "spatial::LGISpace : {}    Size: {:4d}   Dimension: {:4d}",
+          "spatial::Sp3RSpace : {}    Size: {:4d}   Dimension: {:4d}",
           sigma.Str(),
           num_spatial_lgi_subspace,
-          spatial_lgi_space.dimension()
+          spatial_sp3r_space.dimension()
         ) << std::endl;
       for (std::size_t j = 0; j < num_spatial_lgi_subspace; ++j)
       {
-        const auto& u3subspace = spatial_lgi_space.GetSubspace(j);
+        const auto& u3subspace = spatial_sp3r_space.GetSubspace(j);
         const u3::U3& omega = u3subspace.omega();
         const int& upsilon_max = u3subspace.upsilon_max();
         std::cout << fmt::format(
@@ -313,136 +312,190 @@ int main(int argc, char** argv)
 
     // for (std::size_t i = 0; i < recurrence_space.size(); ++i)
     // {
-    //   const auto& recurrence_lgi_space = recurrence_space.GetSubspace(i);
+    //   const auto& recurrence_sp3r_space = recurrence_space.GetSubspace(i);
     std::size_t recurrence_space_size = 0;
 
-    #pragma omp parallel for collapse(3) default(none) schedule(dynamic) \
+#pragma omp parallel default(none) \
+            firstprivate(iter::enumerate) \
             shared(spatial_space, Nsigma0, N1v, std::cout) \
             reduction(+: recurrence_space_size, u3_count, \
                 lgi_size_acc, lgi_size2_acc, lgi_dim_acc, lgi_dim2_acc, \
                 u3_size_acc, u3_size2_acc, u3_dim_acc, u3_dim2_acc \
               ) \
             reduction(max: lgi_size_max, lgi_dim_max, u3_size_max, u3_dim_max)
-    for (const auto parity_bar : {0, 1})
-    for (std::size_t lgi_space_ket_index = 0; lgi_space_ket_index < spatial_space.size(); ++ lgi_space_ket_index)
-    for (std::size_t lgi_space_bra_index = 0; lgi_space_bra_index < spatial_space.size(); ++ lgi_space_bra_index)
+#pragma omp single
     {
-      std::ostringstream buffer{};
-      const auto& lgi_space_ket = spatial_space.GetSubspace(lgi_space_ket_index);
-      const auto& lgi_space_bra = spatial_space.GetSubspace(lgi_space_bra_index);
-      mcutils::SteadyTimer timer{};
-      timer.Start();
-      const spncci::spatial::RecurrenceLGISpace recurrence_lgi_space(lgi_space_ket, lgi_space_bra, spncci::spatial::UnitTensorConstraintParameters(N1v, Nsigma0, parity_bar));
-      timer.Stop();
-      if (recurrence_lgi_space.dimension() == 0) continue;
-      ++recurrence_space_size;
+      for (const auto parity_bar : {0, 1})
+        for (auto&& [lgi_space_ket_index, lgi_space_ket] :
+             iter::enumerate(spatial_space))
+          for (auto&& [lgi_space_bra_index, lgi_space_bra] :
+               iter::enumerate(spatial_space))
+          {
+#pragma omp task
+            {
+              std::ostringstream buffer{};
+              // const auto& lgi_space_ket =
+              // spatial_space.GetSubspace(lgi_space_ket_index); const auto&
+              // lgi_space_bra = spatial_space.GetSubspace(lgi_space_bra_index);
+              mcutils::SteadyTimer timer{};
+              timer.Start();
+              const spncci::spatial::RecurrenceSp3RSpace recurrence_sp3r_space(
+                  lgi_space_ket,
+                  lgi_space_bra,
+                  spncci::spatial::UnitTensorConstraintParameters(
+                      N1v, Nsigma0, parity_bar
+                    )
+                );
+              timer.Stop();
+              if (recurrence_sp3r_space.dimension() > 0)
+              {
+                ++recurrence_space_size;
 
-      // collect statistics
-      const auto lgi_size = recurrence_lgi_space.size();
-      lgi_size_acc += static_cast<double>(lgi_size);
-      lgi_size2_acc += static_cast<double>(lgi_size) * lgi_size;
-      lgi_size_max = std::max(lgi_size_max, lgi_size);
-      const auto lgi_dim = recurrence_lgi_space.dimension();
-      lgi_dim_acc += static_cast<double>(lgi_dim);
-      lgi_dim2_acc += static_cast<double>(lgi_dim) * lgi_dim;
-      lgi_dim_max = std::max(lgi_dim_max, lgi_dim);
+                // collect statistics
+                const auto lgi_size = recurrence_sp3r_space.size();
+                lgi_size_acc += static_cast<double>(lgi_size);
+                lgi_size2_acc += static_cast<double>(lgi_size) * lgi_size;
+                lgi_size_max = std::max(lgi_size_max, lgi_size);
+                const auto lgi_dim = recurrence_sp3r_space.dimension();
+                lgi_dim_acc += static_cast<double>(lgi_dim);
+                lgi_dim2_acc += static_cast<double>(lgi_dim) * lgi_dim;
+                lgi_dim_max = std::max(lgi_dim_max, lgi_dim);
 
-      const u3::U3& sigma_ket = recurrence_lgi_space.sigma_ket();
-      const u3::U3& sigma_bra = recurrence_lgi_space.sigma_bra();
-      const uint8_t& parity_bar = recurrence_lgi_space.parity_bar();
-      buffer << fmt::format(
-          "  spatial::RecurrenceLGISpace {:>10s} {:>10s} {}  size: {:4d}  "
-          "dimension: {:8d}  recurrence size:  {:10d}  time: {}",
-          sigma_ket.Str(),
-          sigma_bra.Str(),
-          (parity_bar == 0 ? '+' : '-'),
-          recurrence_lgi_space.size(),
-          recurrence_lgi_space.dimension(),
-          (recurrence_lgi_space.dimension()
-           - recurrence_lgi_space.GetSubspace(0).dimension())
-              * recurrence_lgi_space.GetSubspace(0).dimension(),
-          timer.ElapsedTime()
-        ) << std::endl;
+                const u3::U3& sigma_ket = recurrence_sp3r_space.sigma_ket();
+                const u3::U3& sigma_bra = recurrence_sp3r_space.sigma_bra();
+                const uint8_t& parity_bar = recurrence_sp3r_space.parity_bar();
+                buffer << fmt::format(
+                    "  spatial::RecurrenceSp3RSpace {:>10s} {:>10s} {}  size: "
+                    "{:4d}  "
+                    "dimension: {:8d}  recurrence size:  {:10d}  time: {}\n",
+                    sigma_ket.Str(),
+                    sigma_bra.Str(),
+                    (parity_bar == 0 ? '+' : '-'),
+                    recurrence_sp3r_space.size(),
+                    recurrence_sp3r_space.dimension(),
+                    (recurrence_sp3r_space.dimension()
+                     - recurrence_sp3r_space.GetSubspace(0).dimension())
+                        * recurrence_sp3r_space.GetSubspace(0).dimension(),
+                    timer.ElapsedTime()
+                  );
 
-      for (std::size_t j = 0; j < recurrence_lgi_space.size(); ++j)
-      {
-        const auto& recurrence_Nnsum_space = recurrence_lgi_space.GetSubspace(j);
-        const int& Nnsum = recurrence_Nnsum_space.Nnsum();
+                for (std::size_t j = 0; j < recurrence_sp3r_space.size(); ++j)
+                {
+                  const auto& recurrence_Nnsum_space =
+                      recurrence_sp3r_space.GetSubspace(j);
+                  const int& Nnsum = recurrence_Nnsum_space.Nnsum();
 
-        buffer << fmt::format(
-            "    spatial::RecurrenceNnsumSpace {:2d}   size:  {:4d}  "
-            "dimension:  "
-            "{:4d}  final block size:  {:6d}",
-            Nnsum,
-            recurrence_Nnsum_space.size(),
-            recurrence_Nnsum_space.dimension(),
-            recurrence_Nnsum_space.dimension()
-                * recurrence_lgi_space.LookUpSubspace({0}).dimension()
-          ) << std::endl;
+                  buffer << fmt::format(
+                      "    spatial::RecurrenceNnsumSpace {:2d}   size:  {:4d}  "
+                      "dimension:  "
+                      "{:4d}  final block size:  {:6d}\n",
+                      Nnsum,
+                      recurrence_Nnsum_space.size(),
+                      recurrence_Nnsum_space.dimension(),
+                      recurrence_Nnsum_space.dimension()
+                          * recurrence_sp3r_space.LookUpSubspace({0}).dimension()
+                    );
 
-        for (std::size_t k = 0; k < recurrence_Nnsum_space.size(); ++k)
-        {
-          const auto& recurrence_u3space = recurrence_Nnsum_space.GetSubspace(k);
+                  if (recurrence_Nnsum_space.Nnsum() >= 2)
+                  {
+                    auto recurrence_u3_sectors =
+                        spncci::spatial::RecurrenceU3Sectors{
+                            recurrence_sp3r_space, Nnsum, Nnsum - 2
+                          };
+                    buffer << fmt::format(
+                        "      spatial::RecurrenceU3Sectors {:2d} {:2d}   "
+                        "size: {:4d}\n",
+                        Nnsum,
+                        Nnsum - 2,
+                        recurrence_u3_sectors.size()
+                      );
+                  }
+                  if (recurrence_Nnsum_space.Nnsum() >= 4)
+                  {
+                    auto recurrence_u3_sectors =
+                        spncci::spatial::RecurrenceU3Sectors{
+                            recurrence_sp3r_space, Nnsum, Nnsum - 4
+                          };
+                    buffer << fmt::format(
+                        "      spatial::RecurrenceU3Sectors {:2d} {:2d}   "
+                        "size: {:4d}\n",
+                        Nnsum,
+                        Nnsum - 4,
+                        recurrence_u3_sectors.size()
+                      );
+                  }
+                  // for (std::size_t k = 0; k < recurrence_Nnsum_space.size(); ++k)
+                  // {
+                  //   const auto& recurrence_u3space =
+                  //       recurrence_Nnsum_space.GetSubspace(k);
 
-          // collect statistics
-          u3_count += 1;
-          const auto u3_size = recurrence_u3space.size();
-          u3_size_acc += static_cast<double>(u3_size);
-          u3_size2_acc += static_cast<double>(u3_size) * u3_size;
-          u3_size_max = std::max(u3_size_max, u3_size);
-          const auto u3_dim = recurrence_u3space.dimension();
-          u3_dim_acc += static_cast<double>(u3_dim);
-          u3_dim2_acc += static_cast<double>(u3_dim) * u3_dim;
-          u3_dim_max = std::max(u3_dim_max, u3_dim);
-          continue;
+                  //   // collect statistics
+                  //   u3_count += 1;
+                  //   const auto u3_size = recurrence_u3space.size();
+                  //   u3_size_acc += static_cast<double>(u3_size);
+                  //   u3_size2_acc += static_cast<double>(u3_size) * u3_size;
+                  //   u3_size_max = std::max(u3_size_max, u3_size);
+                  //   const auto u3_dim = recurrence_u3space.dimension();
+                  //   u3_dim_acc += static_cast<double>(u3_dim);
+                  //   u3_dim2_acc += static_cast<double>(u3_dim) * u3_dim;
+                  //   u3_dim_max = std::max(u3_dim_max, u3_dim);
+                  //   continue;
 
-          const u3::U3& omega_ket = recurrence_u3space.omega_ket();
-          const u3::U3& omega_bra = recurrence_u3space.omega_bra();
-          const int& upsilon_max_ket = recurrence_Nnsum_space.upsilon_max_ket(k);
-          const int& upsilon_max_bra = recurrence_Nnsum_space.upsilon_max_bra(k);
-          const int& degeneracy = recurrence_Nnsum_space.GetSubspaceDegeneracy(k);
-          buffer << fmt::format(
-              "      spatial::RecurrenceU3Space {:>10s} {:>10s}   size:  {:2d} "
-              " "
-              "dimension:  {:3d}  offset: {:5d}   upsilon_max_ket: {:2d} "
-              "upsilon_max_bra: {:2d}   degeneracy: {:4d}",
-              omega_ket.Str(),
-              omega_bra.Str(),
-              recurrence_u3space.size(),
-              recurrence_u3space.dimension(),
-              recurrence_Nnsum_space.GetSubspaceOffset(k, 1),
-              upsilon_max_ket,
-              upsilon_max_bra,
-              degeneracy
-            ) << std::endl;
-          // for (std::size_t l = 0; l < recurrence_u3space.size(); ++l)
-          // {
-          //   const auto& operator_subspace = recurrence_u3space.GetSubspace(l);
-          //   buffer << fmt::format(
-          //       "        spatial::RecurrenceOperatorSubspace {}   degeneracy: "
-          //       "{:4d}",
-          //       operator_subspace.x0().Str(),
-          //       recurrence_u3space.GetSubspaceDegeneracy(l)
-          //     ) << std::endl;
-          //   for (std::size_t m = 0; m < operator_subspace.size(); ++m)
-          //   {
-          //     const auto operator_state = operator_subspace.GetState(m);
-          //     buffer << fmt::format(
-          //         "          spatial::RecurrenceOperatorState Nbar: {} Nbarp: "
-          //         "{}",
-          //         operator_state.Nbar(),
-          //         operator_state.Nbar_p()
-          //       ) << std::endl;
-          //   }
-          // }
-        }
-      }
-      #pragma omp critical
-      std::cout << buffer.str() << std::flush;
+                  //   const u3::U3& omega_ket = recurrence_u3space.omega_ket();
+                  //   const u3::U3& omega_bra = recurrence_u3space.omega_bra();
+                  //   const int& upsilon_max_ket =
+                  //       recurrence_Nnsum_space.upsilon_max_ket(k);
+                  //   const int& upsilon_max_bra =
+                  //       recurrence_Nnsum_space.upsilon_max_bra(k);
+                  //   const int& degeneracy =
+                  //       recurrence_Nnsum_space.GetSubspaceDegeneracy(k);
+                  //   buffer << fmt::format(
+                  //       "      spatial::RecurrenceU3Space {:>10s} {:>10s}   "
+                  //       "size:  {:2d} "
+                  //       " "
+                  //       "dimension:  {:3d}  offset: {:5d}   upsilon_max_ket: "
+                  //       "{:2d} "
+                  //       "upsilon_max_bra: {:2d}   degeneracy: {:4d}\n",
+                  //       omega_ket.Str(),
+                  //       omega_bra.Str(),
+                  //       recurrence_u3space.size(),
+                  //       recurrence_u3space.dimension(),
+                  //       recurrence_Nnsum_space.GetSubspaceOffset(k, 1),
+                  //       upsilon_max_ket,
+                  //       upsilon_max_bra,
+                  //       degeneracy
+                  //     );
+                  //   // for (std::size_t l = 0; l < recurrence_u3space.size(); ++l)
+                  //   // {
+                  //   //   const auto& operator_subspace = recurrence_u3space.GetSubspace(l);
+                  //   //   buffer << fmt::format(
+                  //   //       "        spatial::RecurrenceOperatorSubspace {} degeneracy: "
+                  //   //       "{:4d}",
+                  //   //       operator_subspace.x0().Str(),
+                  //   //       recurrence_u3space.GetSubspaceDegeneracy(l)
+                  //   //     ) << std::endl;
+                  //   //   for (std::size_t m = 0; m < operator_subspace.size(); ++m)
+                  //   //   {
+                  //   //     const auto operator_state = operator_subspace.GetState(m);
+                  //   //     buffer << fmt::format(
+                  //   //         "          spatial::RecurrenceOperatorState Nbar: {} Nbarp: "
+                  //   //         "{}",
+                  //   //         operator_state.Nbar(),
+                  //   //         operator_state.Nbar_p()
+                  //   //       ) << std::endl;
+                  //   //   }
+                  //   // }
+                  // }
+                }
+#pragma omp critical
+                std::cout << buffer.str() << std::flush;
+              }
+            }
+          }
     }
     const auto size = recurrence_space_size;
     std::cout << fmt::format(
-        "spatial::RecurrenceLGISpace size: {} (avg) {} (std) {} (max)",
+        "spatial::RecurrenceSp3RSpace size: {} (avg) {} (std) {} (max)",
         lgi_size_acc / size,
         std::sqrt(
             lgi_size2_acc / size - lgi_size_acc * lgi_size_acc / (size * size)
@@ -450,7 +503,7 @@ int main(int argc, char** argv)
         lgi_size_max
       ) << std::endl;
     std::cout << fmt::format(
-        "spatial::RecurrenceLGISpace dimension: {} (avg) {} (std) {} (max)",
+        "spatial::RecurrenceSp3RSpace dimension: {} (avg) {} (std) {} (max)",
         lgi_dim_acc / size,
         std::sqrt(lgi_dim2_acc / size - lgi_dim_acc * lgi_dim_acc / (size * size)),
         lgi_dim_max
@@ -459,14 +512,17 @@ int main(int argc, char** argv)
         "spatial::RecurrenceU3Space size: {} (avg) {} (std) {} (max)",
         u3_size_acc / u3_count,
         std::sqrt(
-            u3_size2_acc / u3_count - u3_size_acc * u3_size_acc / (u3_count * u3_count)
+            u3_size2_acc / u3_count
+            - u3_size_acc * u3_size_acc / (u3_count * u3_count)
           ),
         u3_size_max
       ) << std::endl;
     std::cout << fmt::format(
         "spatial::RecurrenceU3Space dimension: {} (avg) {} (std) {} (max)",
         u3_dim_acc / u3_count,
-        std::sqrt(u3_dim2_acc / u3_count - u3_dim_acc * u3_dim_acc / (u3_count * u3_count)),
+        std::sqrt(
+            u3_dim2_acc / u3_count - u3_dim_acc * u3_dim_acc / (u3_count * u3_count)
+          ),
         u3_dim_max
       ) << std::endl;
   }
