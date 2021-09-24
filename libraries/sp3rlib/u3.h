@@ -16,7 +16,7 @@
   09/24/21 (pjf):
     - Add constexpr to SU3 and U3 where applicable.
     - Fill in missing comparison operators for SU3 and U3.
-
+    - Add U3 overload for OuterMultiplicity.
 ****************************************************************/
 
 #ifndef U3_H_
@@ -649,6 +649,14 @@ namespace u3
   //
   // Returns:
   //   (int) : multiplicity
+
+  inline int OuterMultiplicity(const u3::U3& omega1, const u3::U3& omega2, const u3::U3& omega3)
+  // Overloaded for U3.
+  {
+    if (omega1.N() + omega2.N() != omega3.N())
+      return 0;
+    return OuterMultiplicity(omega1.SU3(), omega2.SU3(), omega3.SU3());
+  }
 
   MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2);
   // Generate multiplicity-tagged vector of SU(3) irreps in SU(3) Kronecker product.
