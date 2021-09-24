@@ -13,6 +13,9 @@
   3/9/16 (aem,mac): Add KeyType typedefs.  Extract MultiplicityTagged.
   3/16/16 (aem): Add validity check to U(3) Kronecker product.
   9/6/16 (mac): Upgrade U3S and U3ST from struct to class with hash function, etc.
+  09/24/21 (pjf):
+    - Add constexpr to SU3 and U3 where applicable.
+    - Fill in missing comparison operators for SU3 and U3.
 
 ****************************************************************/
 
@@ -52,25 +55,25 @@ namespace u3
     // member needs copying
 
     // default constructor
-    inline SU3()
+    constexpr inline SU3()
       : lambda_(0), mu_(0) {}
 
     // construction from (lambda,mu)
     //
     // underscore on arguments avoids name clash with accessors
-    inline SU3(int lambda, int mu)
+    constexpr inline SU3(int lambda, int mu)
       : lambda_(lambda), mu_(mu) {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    inline int lambda() const
+    constexpr inline int lambda() const
     {
       return lambda_;
     }
 
-    inline int mu() const
+    constexpr inline int mu() const
     {
       return mu_;
     }
@@ -81,19 +84,39 @@ namespace u3
 
     typedef std::pair<int,int> KeyType;
 
-    inline KeyType Key() const
+    constexpr inline KeyType Key() const
     {
       return KeyType(lambda(),mu());
     }
 
-    inline friend bool operator == (const SU3& x1, const SU3& x2)
+    constexpr inline friend bool operator==(const SU3& x1, const SU3& x2)
     {
       return x1.Key() == x2.Key();
     }
 
-    inline friend bool operator < (const SU3& x1, const SU3& x2)
+    constexpr inline friend bool operator!=(const SU3& x1, const SU3& x2)
+    {
+      return !(x1 == x2);
+    }
+
+    constexpr inline friend bool operator<(const SU3& x1, const SU3& x2)
     {
       return x1.Key() < x2.Key();
+    }
+
+    constexpr inline friend bool operator>(const SU3& x1, const SU3& x2)
+    {
+      return x2 < x1;
+    }
+
+    constexpr inline friend bool operator<=(const SU3& x1, const SU3& x2)
+    {
+      return !(x1 > x2);
+    }
+
+    constexpr inline friend bool operator>=(const SU3& x1, const SU3& x2)
+    {
+      return !(x1 < x2);
     }
 
     // alternative: if find need to avoid hash combination functions...
@@ -103,7 +126,7 @@ namespace u3
     //   boost::hash<int> hasher;
     //   return hasher(packed_labels);
 
-   inline friend std::size_t hash_value(const SU3& v)
+    inline friend std::size_t hash_value(const SU3& v)
     {
       boost::hash<SU3::KeyType> hasher;
       return hasher(v.Key());
@@ -134,7 +157,7 @@ namespace u3
   // group theory functions
   ////////////////////////////////////////////////////////////////
 
-  inline int dim(const u3::SU3& x)
+  constexpr inline int dim(const u3::SU3& x)
   // Calculate dimension of irrep.
   //
   // Note: Use lowercase abbreviated form "dim" to match mathematical notation.
@@ -142,26 +165,26 @@ namespace u3
     return (x.lambda()+1)*(x.mu()+1)*(x.lambda()+x.mu()+2)/2;
   }
 
-  inline u3::SU3 Conjugate(const u3::SU3& x)
+  constexpr inline u3::SU3 Conjugate(const u3::SU3& x)
   // Conjugate irrep.
   {
     return u3::SU3(x.mu(),x.lambda());
   }
 
-  inline int ConjugationGrade(const u3::SU3& x)
+  constexpr inline int ConjugationGrade(const u3::SU3& x)
   // Integer contribution to phase on conjugation.
   {
     return x.mu() + x.lambda();
   }
 
-  inline double Casimir2( const u3::SU3& x)
-  //Second order Casimir
+  constexpr inline double Casimir2( const u3::SU3& x)
+  // Second order Casimir
   {
-    return 2./3*(mcutils::sqr(x.lambda())+x.lambda()*x.mu()+mcutils::sqr(x.mu())+3*x.lambda()+3*x.mu());
+    return 2./3*((x.lambda()*x.lambda())+x.lambda()*x.mu()+(x.mu()*x.mu())+3*x.lambda()+3*x.mu());
   }
 
-  inline double Casimir3(const u3::SU3& x)
-  //Third order Casimir
+  constexpr inline double Casimir3(const u3::SU3& x)
+  // Third order Casimir
   {
     return 1./9*(x.lambda()-x.mu())*(x.lambda()+2*x.mu()+3)*(2*x.lambda()+x.mu()+3);
   }
@@ -184,20 +207,20 @@ namespace u3
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
 
-    inline U3()
+    constexpr inline U3()
       : f1_(0), f2_(0), f3_(0)
       // default constructor
       {}
 
 
-    inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
+    constexpr inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
       : f1_(f1), f2_(f2), f3_(f3)
     // Construct from Cartesian labels [f1,f2,f3].
     {
       // assert(ValidLabels(f1_,f2_,f3_));
     }
 
-    inline U3(const HalfInt& N_, const u3::SU3& x_);
+    constexpr inline U3(const HalfInt& N_, const u3::SU3& x_);
     // Construct from N(lambda,mu) labels.
     //
     // Precondition: The N(lambda,mu) are assumed to be a valid U(3)
@@ -207,7 +230,7 @@ namespace u3
     // validation
     ////////////////////////////////////////////////////////////////
 
-    inline bool Valid() const
+    constexpr inline bool Valid() const
     // Checks validity of U3 labels.
     //
     // Normally there is requirement all labels nonnegative (f3>=0),
@@ -218,7 +241,7 @@ namespace u3
       return ValidLabels(f1_,f2_,f3_);
     }
 
-    inline static
+    constexpr inline static
       bool ValidLabels(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
     // Check validity of U3 labels in Cartesian form.
     //
@@ -229,7 +252,7 @@ namespace u3
       return (f1 >= f2) && (f2 >= f3) && ((f3 >=0 ) || (f1 <= 0));
     }
 
-    inline static
+    constexpr inline static
       bool ValidLabels(const HalfInt& N, const u3::SU3& x)
     // Check validity of U3 labels in N(lambda,mu) form.
     {
@@ -244,17 +267,17 @@ namespace u3
 
     // access Cartesian labels
 
-    inline HalfInt f1() const
+    constexpr inline HalfInt f1() const
     {
       return f1_;
     }
 
-    inline HalfInt f2() const
+    constexpr inline HalfInt f2() const
     {
       return f2_;
     }
 
-    inline HalfInt f3() const
+    constexpr inline HalfInt f3() const
     {
       return f3_;
     }
@@ -264,15 +287,15 @@ namespace u3
     // Note: Meed to use explicit reference to u3::SU3 since name is
     // masked here by u3::U3::SU3.
 
-    inline HalfInt N() const
+    constexpr inline HalfInt N() const
     {
       return f1_+f2_+f3_;
     }
 
-    inline u3::SU3 SU3() const
+    constexpr inline u3::SU3 SU3() const
     {
-      int lambda = int(f1_-f2_);
-      int mu = int(f2_-f3_);
+      int lambda = static_cast<int>(f1_-f2_);
+      int mu = static_cast<int>(f2_-f3_);
       return u3::SU3(lambda,mu);
     }
 
@@ -282,19 +305,39 @@ namespace u3
 
     typedef std::pair<HalfInt,u3::SU3> KeyType;
 
-    inline KeyType Key() const
+    constexpr inline KeyType Key() const
     {
       return KeyType(N(),SU3());
     }
 
-    inline friend bool operator == (const U3& omega1, const U3& omega2)
+    constexpr inline friend bool operator==(const U3& omega1, const U3& omega2)
     {
       return omega1.Key() == omega2.Key();
     }
 
-    inline friend bool operator < (const U3& omega1, const U3& omega2)
+    constexpr inline friend bool operator!=(const U3& omega1, const U3& omega2)
+    {
+      return !(omega1 == omega2);
+    }
+
+    constexpr inline friend bool operator<(const U3& omega1, const U3& omega2)
     {
       return omega1.Key() < omega2.Key();
+    }
+
+    constexpr inline friend bool operator>(const U3& omega1, const U3& omega2)
+    {
+      return omega2 < omega1;
+    }
+
+    constexpr inline friend bool operator<=(const U3& omega1, const U3& omega2)
+    {
+      return !(omega1 > omega2);
+    }
+
+    constexpr inline friend bool operator>=(const U3& omega1, const U3& omega2)
+    {
+      return !(omega1 < omega2);
     }
 
     // Alternative old "manual" combination...
@@ -338,7 +381,7 @@ namespace u3
   // constructors
   ////////////////////////////////////////////////////////////////
 
-  inline U3::U3(const HalfInt& N_, const u3::SU3& x_)
+  constexpr inline U3::U3(const HalfInt& N_, const u3::SU3& x_)
   {
 
     assert(ValidLabels(N_,x_));
