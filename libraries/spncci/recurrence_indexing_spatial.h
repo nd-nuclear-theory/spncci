@@ -73,7 +73,7 @@ class U3Subspace
       const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector
     );
 
-  U3Subspace(const sp3r::U3Subspace& u3subspace);
+  // U3Subspace(const sp3r::U3Subspace& u3subspace);
 
   u3::U3 omega() const { return std::get<0>(labels()); }
   inline int upsilon_max() const { return dimension(); }
