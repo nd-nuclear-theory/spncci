@@ -66,120 +66,120 @@ int main(int argc, char** argv)
   const spncci::spatial::Space spatial_space(std::vector<u3::U3>(it.begin(), it.end()), Nsigma0, Nmax);
   const spncci::spatial::RecurrenceSpace spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
   
-  // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // // Dump spatial basis 
-  // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // if(false)
-  // {
-  //   for(const auto& sp3r_space : spatial_recurrence_space)
-  //     {
-  //       std::cout<<sp3r_space.LabelStr()<<std::endl;
-  //       for(const auto & Nsum_space : sp3r_space)
-  //         {
-  //           std::cout<<".."<<Nsum_space.LabelStr()<<std::endl;
-  //           for(int u3_space_index=0; u3_space_index<Nsum_space.size(); ++u3_space_index)
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Dump spatial basis 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  if(false)
+  {
+    for(const auto& sp3r_space : spatial_recurrence_space)
+      {
+        std::cout<<sp3r_space.LabelStr()<<std::endl;
+        for(const auto & Nsum_space : sp3r_space)
+          {
+            std::cout<<".."<<Nsum_space.LabelStr()<<std::endl;
+            for(int u3_space_index=0; u3_space_index<Nsum_space.size(); ++u3_space_index)
             
-  //             {
-  //               const auto& u3_space=Nsum_space.GetSubspace(u3_space_index);
-  //               std::cout<<fmt::format("....{}  [{}]",u3_space.LabelStr(),
-  //                 Nsum_space.GetSubspaceDegeneracy(u3_space_index)
-  //                 )<<std::endl;
-  //               for(int operator_subspace_index=0; operator_subspace_index<u3_space.size(); ++operator_subspace_index)
-  //                 { 
-  //                   const auto& operator_subspace=u3_space.GetSubspace(operator_subspace_index);
-  //                   std::cout<<fmt::format("......{}  [{}]",
-  //                     operator_subspace.LabelStr(),u3_space.GetSubspaceDegeneracy(operator_subspace_index)
-  //                     )<<std::endl;
-  //                   for(const auto& operator_state : operator_subspace)
-  //                     std::cout<<fmt::format("........{}",operator_state.LabelStr())<<std::endl;
-  //                 }
-  //             }
-  //         }
-  //     }
+              {
+                const auto& u3_space=Nsum_space.GetSubspace(u3_space_index);
+                std::cout<<fmt::format("....{}  [{}]",u3_space.LabelStr(),
+                  Nsum_space.GetSubspaceDegeneracy(u3_space_index)
+                  )<<std::endl;
+                for(int operator_subspace_index=0; operator_subspace_index<u3_space.size(); ++operator_subspace_index)
+                  { 
+                    const auto& operator_subspace=u3_space.GetSubspace(operator_subspace_index);
+                    std::cout<<fmt::format("......{}  [{}]",
+                      operator_subspace.LabelStr(),u3_space.GetSubspaceDegeneracy(operator_subspace_index)
+                      )<<std::endl;
+                    for(const auto& operator_state : operator_subspace)
+                      std::cout<<fmt::format("........{}",operator_state.LabelStr())<<std::endl;
+                  }
+              }
+          }
+      }
   
-  //   std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
-  // }
-  // if(false)
-  // {
+    std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
+  }
+  if(false)
+  {
   
-  // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // // Dump spin basis 
-  // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // for(const auto& lgi_space : spin_recurrence_space)
-  //   {
-  //     std::cout<<lgi_space.LabelStr()<<std::endl;
-  //     for(const auto& recurrence_spin_space : lgi_space)
-  //       {
-  //         std::cout<<fmt::format("..{}",recurrence_spin_space.LabelStr())<<std::endl;
-  //         for(int subspace_index=0; subspace_index<recurrence_spin_space.size(); ++subspace_index)
-  //           {
-  //             const auto& spin_subspace=recurrence_spin_space.GetSubspace(subspace_index);
-  //             const auto& [Sp_bra,Sn_bra]=spin_subspace.ket_upstream_labels();
-  //             const auto& [Sp_ket,Sn_ket]=spin_subspace.bra_upstream_labels();
-  //             std::cout<<fmt::format("....({} {}) ({} {}) [{}]",
-  //               Sp_ket,Sn_ket,Sp_bra,Sn_bra,recurrence_spin_space.GetSubspaceDegeneracy(subspace_index)
-  //               )<<std::endl;
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Dump spin basis 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  for(const auto& lgi_space : spin_recurrence_space)
+    {
+      std::cout<<lgi_space.LabelStr()<<std::endl;
+      for(const auto& recurrence_spin_space : lgi_space)
+        {
+          std::cout<<fmt::format("..{}",recurrence_spin_space.LabelStr())<<std::endl;
+          for(int subspace_index=0; subspace_index<recurrence_spin_space.size(); ++subspace_index)
+            {
+              const auto& spin_subspace=recurrence_spin_space.GetSubspace(subspace_index);
+              const auto& [Sp_bra,Sn_bra]=spin_subspace.ket_upstream_labels();
+              const auto& [Sp_ket,Sn_ket]=spin_subspace.bra_upstream_labels();
+              std::cout<<fmt::format("....({} {}) ({} {}) [{}]",
+                Sp_ket,Sn_ket,Sp_bra,Sn_bra,recurrence_spin_space.GetSubspaceDegeneracy(subspace_index)
+                )<<std::endl;
 
-  //             for(const auto& state : spin_subspace)
-  //               {
-  //                 std::cout<<fmt::format("......{}",state.labels().LabelStr())<<std::endl;
-  //               }
-  //           }    
-  //       }
+              for(const auto& state : spin_subspace)
+                {
+                  std::cout<<fmt::format("......{}",state.labels().LabelStr())<<std::endl;
+                }
+            }    
+        }
       
-  //   }
-  //   std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
-  // }
-  // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // // Dump unit tensor rme info
-  // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    }
+    std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Dump unit tensor rme info
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // if(false)
-  // {
+  if(false)
+  {
   
-  // for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_vector.size(); ++irrep_family_index_bra)
-  //   for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_vector.size(); ++irrep_family_index_ket)
-  //     {
-  //       std::cout<<fmt::format("{}  {}",
-  //         lgi_vector[irrep_family_index_ket].Str(),lgi_vector[irrep_family_index_bra].Str()
-  //         )<<std::endl;
+  for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_vector.size(); ++irrep_family_index_bra)
+    for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_vector.size(); ++irrep_family_index_ket)
+      {
+        std::cout<<fmt::format("{}  {}",
+          lgi_vector[irrep_family_index_ket].Str(),lgi_vector[irrep_family_index_bra].Str()
+          )<<std::endl;
 
-  //       int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
-  //       int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
+        int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
+        int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
 
-  //       // Read in operators 
+        // Read in operators 
 
-  //       std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
-  //       std::vector<int> rho0_values;
-  //       std::string lgi_unit_tensor_filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
-  //       lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
+        std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
+        std::vector<int> rho0_values;
+        std::string lgi_unit_tensor_filename=fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
+        lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
 
-  //       // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
-  //       // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
-  //       basis::OperatorBlocks<double> unit_tensor_seed_blocks;
-  //       std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
-  //       lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
+        // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
+        // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
+        basis::OperatorBlocks<double> unit_tensor_seed_blocks;
+        std::string seed_filename=fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
+        lgi::ReadBlocks(seed_filename, lgi_unit_tensors.size(), unit_tensor_seed_blocks);
 
-  //       for(int t=0; t<lgi_unit_tensors.size(); ++t)
-  //         { 
-  //           std::cout<<fmt::format("{}  [{}]",lgi_unit_tensors[t].Str(),rho0_values[t])<<std::endl;
+        for(int t=0; t<lgi_unit_tensors.size(); ++t)
+          { 
+            std::cout<<fmt::format("{}  [{}]",lgi_unit_tensors[t].Str(),rho0_values[t])<<std::endl;
 
-  //           //Select source block 
-  //           const auto& block = unit_tensor_seed_blocks[t];
-  //           std::cout<<block<<std::endl<<std::endl;
-  //         }
-  //       std::cout<<"******"<<std::endl<<std::endl;
-  //     }
-  // std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
-  // }
-  // if(false)
-  // {
-  //   std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
-  //   u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1v,relative_unit_tensor_labels);
-  //   for(const auto& tensor : relative_unit_tensor_labels)
-  //     std::cout<<tensor.Str()<<std::endl;
-  //   std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
-  // }
+            //Select source block 
+            const auto& block = unit_tensor_seed_blocks[t];
+            std::cout<<block<<std::endl<<std::endl;
+          }
+        std::cout<<"******"<<std::endl<<std::endl;
+      }
+  std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
+  }
+  if(false)
+  {
+    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1v,relative_unit_tensor_labels);
+    for(const auto& tensor : relative_unit_tensor_labels)
+      std::cout<<tensor.Str()<<std::endl;
+    std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
+  }
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
   // std::cout<<"Get the seeds "<<std::endl;
