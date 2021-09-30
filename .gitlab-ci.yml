@@ -23,12 +23,14 @@ configure:
       - dep
   cache:
     paths:
-    
+      - /var/cache/apt    
 
 build:
   stage: build
   needs:
     - "configure"
+  before_script:
+    - apt update && apt -y install libgsl-dev libboost-dev
   script:
     - cmake --build build -j
   artifacts:
