@@ -1,0 +1,45 @@
+image: gcc
+
+stages:
+  - configure
+  - build
+  - test
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+configure:
+  stage: configure
+  before_script:
+    - apt update && apt -y install make cmake libgsl-dev libboost-dev
+    - git clone --depth 1 --branch 3.4.0 https://gitlab.com/libeigen/eigen.git && cd eigen && cmake -DCMAKE_INSTALL_PREFIX=../dep -Bbuild && cmake --install build && cd ..
+    - git clone --depth 1 --branch v0.9.0 https://github.com/yixuan/spectra.git && cd spectra && cmake -DCMAKE_INSTALL_PREFIX=../dep -Bbuild && cmake --install build && cd ..
+    - git clone --depth 1 --branch cmake https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.fasanowood.com/pjfasano/su3lib.git && cd su3lib && cmake -DCMAKE_INSTALL_PREFIX=../dep -Bbuild && cmake --build build && cmake --install build && cd ..
+  script:
+    - cmake -DCMAKE_PREFIX_PATH=dep -B build
+  artifacts:
+    paths:
+      - build
+      - dep
+  cache:
+    paths:
+    
+
+build:
+  stage: build
+  needs:
+    - "configure"
+  script:
+    - cmake --build build -j
+  artifacts:
+    paths:
+      - build
+  cache:
+    paths:
+      - "*.o"
+
+# run tests using the binary built before
+# test:
+#   stage: test
+#   script:
+#     - ./runmytests.sh
