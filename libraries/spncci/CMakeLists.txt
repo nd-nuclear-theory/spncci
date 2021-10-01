@@ -19,6 +19,7 @@ set(spncci_headers
     hyperblocks_u3s.h
     variance.h
     recurrence_indexing_spatial.h
+    recurrence_seeds.h
 )
 set(spncci_sources
     spncci_common.cpp
@@ -36,6 +37,7 @@ set(spncci_sources
     hyperblocks_u3s.cpp
     variance.cpp
     recurrence_indexing_spatial.cpp
+    recurrence_seeds.cpp
 )
 
 # define spncci library and add source files
@@ -88,5 +90,10 @@ install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
 add_executable(recurrence_indexing_test recurrence_indexing_test.cpp)
 target_link_libraries(
   recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
+                                   cppitertools::cppitertools spncci::spncci
+)
+add_executable(recurrence_seeds_test recurrence_seeds_test.cpp)
+target_link_libraries(
+  recurrence_seeds_test PRIVATE fmt::fmt am::am spncci::lgi
                                    cppitertools::cppitertools spncci::spncci
 )

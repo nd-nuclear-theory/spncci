@@ -40,6 +40,7 @@ recurrence_indexing_spatial.h
 #include "am/halfint.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
+#include "fmt/format.h"
 #include "lgi/lgi.h"
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/u3.h"
@@ -183,6 +184,7 @@ class RecurrenceOperatorSubspace
     );
 
   u3::SU3 x0() const { return std::get<0>(labels()); }
+  std::string LabelStr() const {return x0().Str();}
 };
 
 class RecurrenceOperatorState
@@ -204,7 +206,8 @@ class RecurrenceOperatorState
 
   // // pass-through accessors for subspace labels
   int Nbar() const { return std::get<0>(labels()); }
-  int Nbar_p() const { return std::get<1>(labels()); }
+  int Nbarp() const { return std::get<1>(labels()); }
+  std::string LabelStr() const {return fmt::format("{} {}",Nbar(),Nbarp());}
 };
 
 // spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
@@ -226,6 +229,8 @@ class RecurrenceU3Space
 
   u3::U3 omega_ket() const { return std::get<0>(labels()); }
   u3::U3 omega_bra() const { return std::get<1>(labels()); }
+  std::string LabelStr() const {return fmt::format("{} {}",omega_ket().Str(),omega_bra().Str());}
+
 };
 
 
@@ -270,6 +275,9 @@ class RecurrenceNnsumSpace
 
   uint8_t parity_bar() const { return parity_bar_; }
 
+  std::string LabelStr() const 
+  {return fmt::format("{}",Nnsum());}
+
  private:
   uint8_t parity_bar_;
   std::vector<std::tuple<int, int>> upsilon_pairs_;
@@ -297,6 +305,10 @@ class RecurrenceSp3RSpace
   u3::U3 sigma_ket() const { return std::get<0>(labels()); }
   u3::U3 sigma_bra() const { return std::get<1>(labels()); }
   uint8_t parity_bar() const { return std::get<2>(labels()); }
+
+  std::string LabelStr() const 
+  {return fmt::format("{} {}  {}",sigma_ket().Str(),sigma_bra().Str(),parity_bar());}
+
 };
 
 // spatial::RecurrenceSpace() []

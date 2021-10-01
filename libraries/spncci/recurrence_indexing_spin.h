@@ -43,6 +43,7 @@ recurrence_indexing_spin.h
 #include "am/halfint.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
+#include "fmt/format.h"
 #include "lgi/lgi.h"
 #include "sp3rlib/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
@@ -100,10 +101,9 @@ class SpinSubspace
       BaseDegenerateSubspaceType::PushStateLabels(upstreams, gamma_max);
   }
 
-  HalfInt S() const
-  {
-    return std::get<0>(BaseDegenerateSubspaceType::labels());
-  }
+  HalfInt S() const{return std::get<0>(BaseDegenerateSubspaceType::labels());}
+
+  std::string LabelStr() const {return S().Str();}
 
  private:
 };
@@ -176,6 +176,9 @@ class LGISpace
   }
 
   u3::U3 sigma() const { return std::get<0>(BaseSpaceType::labels()); }
+
+  std::string LabelStr() const {return sigma().Str();}
+
 };
 
 template<typename tLGIType>
@@ -403,6 +406,8 @@ class RecurrenceSpinSpace
     return BaseDegenerateSpaceType::GetSubspaceOffset(i, degeneracy_index);
   }
 
+  std::string LabelStr() const {return fmt::format("{} {}",S_ket(),S_bra());}
+
  private:
   std::vector<std::tuple<int, int>> degeneracy_tuples_;
 };
@@ -479,6 +484,11 @@ class RecurrenceLGISpace
   uint8_t exchange_symm_barp() const
   {
     return uint8_t(exchange_symm_bar() + abs(sigma_bra().N() - sigma_ket().N())) % 2;
+  }
+
+  std::string LabelStr() const 
+  {
+    return fmt::format("{} {} {}",sigma_ket().Str(),sigma_bra().Str(),exchange_symm_bar());
   }
 };
 
@@ -653,6 +663,11 @@ class UnitTensorLabelsST
     return std::bitset<8>(*this) == std::bitset<8>(rhs);
   }
 
+  std::string LabelStr() const 
+  {
+    return fmt::format("U[{} {}]({} {}, {} {})",S0(),T0(),Sbarp(),Tbarp(),Sbar(),Tbar());
+  }
+
  private:
   std::bitset<8> bitrep_;
 };
@@ -710,6 +725,7 @@ inline bool UnitTensorAllowed(
 // all the relevant triangle constraints for coupling to good $S_{p,0} \times
 // S_{n,0} \rightarrow S_0$.
 {
+  
   const HalfInt& bra_Sp=bra_labels.Sp, bra_Sn=bra_labels.Sn;
   const int S0=tensor_labels.S0();
   const HalfInt& ket_Sp=ket_labels.Sp, ket_Sn=ket_labels.Sn;
