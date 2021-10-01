@@ -190,7 +190,7 @@ int main(int argc, char** argv)
               "         size: {:3d} dimension: {:3d}   offset: {:4d}",
               recurrence_spin_subspace.size(),
               recurrence_spin_subspace.dimension(),
-              recurrence_spin_space.GetSubspaceOffset(k, degeneracy)
+              recurrence_spin_space.GetSubspaceOffset(k, ket_degeneracy,bra_degeneracy)
             ) << std::endl;
           for (std::size_t l = 0; l < recurrence_spin_subspace.size(); ++l)
           {
