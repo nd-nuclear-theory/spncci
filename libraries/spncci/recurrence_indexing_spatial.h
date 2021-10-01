@@ -145,7 +145,7 @@ class Space
 // ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
 //   ->spatial::RecurrenceNnsumSpace() [Nsum]
 //     ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
-//       ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
+//       ->spatial::RecurrenceOperatorSubspace() [x0] -> rho0
 //         ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 class RecurrenceSpace;
@@ -234,6 +234,10 @@ class RecurrenceNnsumSpace
     : public basis::
           BaseDegenerateSpace<RecurrenceNnsumSpace, RecurrenceU3Space, std::tuple<int>>
 {
+ private:
+  using BaseDegenerateSpaceType =
+      basis::BaseDegenerateSpace<RecurrenceNnsumSpace, RecurrenceU3Space, std::tuple<int>>;
+
  public:
   RecurrenceNnsumSpace() = default;
 
@@ -256,6 +260,14 @@ class RecurrenceNnsumSpace
   {
     return std::get<1>(upsilon_pairs_[i]);
   }
+
+  std::size_t GetSubspaceOffset(std::size_t i, int upsilon_ket, int upsilon_bra) const
+  {
+    const std::size_t degeneracy_index =
+        (upsilon_ket - 1) * upsilon_max_bra(i) + (upsilon_bra - 1);
+    return BaseDegenerateSpaceType::GetSubspaceOffset(i, degeneracy_index);
+  }
+
   uint8_t parity_bar() const { return parity_bar_; }
 
  private:

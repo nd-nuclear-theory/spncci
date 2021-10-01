@@ -396,6 +396,13 @@ class RecurrenceSpinSpace
     return std::get<1>(degeneracy_tuples_[i]);
   }
 
+  std::size_t GetSubspaceOffset(std::size_t i, int gamma_ket, int gamma_bra) const
+  {
+    const std::size_t degeneracy_index =
+        (gamma_ket - 1) * GetBraSubspaceDegeneracy(i) + (gamma_bra - 1);
+    return BaseDegenerateSpaceType::GetSubspaceOffset(i, degeneracy_index);
+  }
+
  private:
   std::vector<std::tuple<int, int>> degeneracy_tuples_;
 };
