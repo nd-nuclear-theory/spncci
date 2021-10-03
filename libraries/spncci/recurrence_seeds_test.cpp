@@ -69,7 +69,7 @@ int main(int argc, char** argv)
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Dump spatial basis 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if(false)
+  if(true)
   {
     for(const auto& sp3r_space : spatial_recurrence_space)
       {
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
   
     std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
   }
-  if(false)
+  if(true)
   {
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,8 +114,8 @@ int main(int argc, char** argv)
           for(int subspace_index=0; subspace_index<recurrence_spin_space.size(); ++subspace_index)
             {
               const auto& spin_subspace=recurrence_spin_space.GetSubspace(subspace_index);
-              const auto& [Sp_bra,Sn_bra]=spin_subspace.ket_upstream_labels();
-              const auto& [Sp_ket,Sn_ket]=spin_subspace.bra_upstream_labels();
+              const auto& [Sp_bra,Sn_bra]=spin_subspace.bra_upstream_labels();
+              const auto& [Sp_ket,Sn_ket]=spin_subspace.ket_upstream_labels();
               std::cout<<fmt::format("....({} {}) ({} {}) [{}]",
                 Sp_ket,Sn_ket,Sp_bra,Sn_bra,recurrence_spin_space.GetSubspaceDegeneracy(subspace_index)
                 )<<std::endl;
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
   // Dump unit tensor rme info
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if(false)
+  if(true)
   {
   
   for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_vector.size(); ++irrep_family_index_bra)

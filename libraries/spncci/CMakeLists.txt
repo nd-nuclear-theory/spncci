@@ -97,3 +97,10 @@ target_link_libraries(
   recurrence_seeds_test PRIVATE fmt::fmt am::am spncci::lgi
                                    cppitertools::cppitertools spncci::spncci
 )
+
+add_executable(recurrence_spatial_test recurrence_spatial_test.cpp)
+target_link_libraries(
+  recurrence_spatial_test PRIVATE fmt::fmt am::am spncci::lgi
+                                   cppitertools::cppitertools spncci::spncci
+)
+
