@@ -60,7 +60,7 @@ struct RunParameters
   std::string input_filename;
   std::string output_filename;
   // mode
-  lgi::NuclideType nuclide;
+  nuclide::NuclideType nuclide;
   int Nmax;
 };
 
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 {
   auto run_parameters = ProcessArguments(argc, argv);
   //  int Nmax=0, N_sigma_max=0; // N=N_ex+N0+(3/2)*A (lab frame considered)
-  HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(run_parameters.nuclide,true);
+  HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(run_parameters.nuclide,true);
   int A = run_parameters.nuclide[0] + run_parameters.nuclide[1];
   int N0 = int(Nsigma0 - HalfInt(3, 2) * (A - 1));// CMF N0
   int Nmax=run_parameters.Nmax;

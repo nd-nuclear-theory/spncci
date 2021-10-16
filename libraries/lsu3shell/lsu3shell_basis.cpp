@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include "fmt/format.h"
+#include "LSU3/ncsmSU3xSU2Basis.h"
 
 namespace lsu3shell
 {
@@ -115,3 +116,64 @@ namespace lsu3shell
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 }// end namespace
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// namespace spncci
+// {
+  namespace lsu3shell 
+  {
+
+    void generate_lsu3shell_basis_dimensions(
+      const nuclide::NuclideType& nuclide, 
+      const HalfInt& Nsigma0,
+      const int& Nmax, 
+      std::map<u3shell::U3SPN, Dimensions>& u3spn_dimensions
+    )
+    // For a given Nucleus, determine number of U(3)SpSnS irreps in an Nmax truncated basis
+    //
+    // Return 
+    {
+      const auto&[Z,N]=nuclide;
+
+      //SU3ME/proton_neutron_ncsmSU3Basis.h
+      proton_neutron::ModelSpace lsu3shell_model_space(Z,N,Nmax);
+      
+      //LSU3/ncsmSU3xSU2Basis.cpp
+      int idiag=0; int ndiag=1;
+      lsu3::CncsmSU3xSU2Basis lsu3shell_basis(lsu3shell_model_space, idiag, ndiag);
+
+      // Iterate over basis and regroup by Nex,lambda,mu,Sp,Sn,S
+      //  loop over (ip, in) pairs
+      for (int ipin_block = 0; ipin_block < lsu3shell_basis.NumberOfBlocks(); ipin_block++) 
+      {
+        // If block is empty, continue
+        if (!lsu3shell_basis.NumberOfStatesInBlock(ipin_block)) {continue;}
+        
+        int ip = lsu3shell_basis.getProtonIrrepId(ipin_block);
+        int in = lsu3shell_basis.getNeutronIrrepId(ipin_block);
+        int Nex = lsu3shell_basis.nhw_p(ip) + lsu3shell_basis.nhw_n(in);
+
+        int alpha_p_max = lsu3shell_basis.getMult_p(ip);
+        int alpha_n_max = lsu3shell_basis.getMult_n(in);
+
+        HalfInt Sp(lsu3shell_basis.getProtonSU3xSU2(ip).S2,2);
+        HalfInt Sn(lsu3shell_basis.getNeutronSU3xSU2(in).S2,2);
+        // HalfInt Sp(irrep_p(lsu3shell_basis.getProtonSU3xSU2(ip)).S2,2);
+        // HalfInt Sn(irrep_n(lsu3shell_basis.getNeutronSU3xSU2(in)).S2,2);
+
+        for (int iwpn = lsu3shell_basis.blockBegin(ipin_block); iwpn < lsu3shell_basis.blockEnd(ipin_block); ++iwpn) 
+        {
+          const auto& omega_pn = lsu3shell_basis.getOmega_pn(ip, in, iwpn);
+          HalfInt S(omega_pn.S2,2);
+          u3::U3 omega(Nex+Nsigma0, {omega_pn.lm,omega_pn.mu});
+          int dim=alpha_n_max*alpha_p_max*omega_pn.rho;
+          u3shell::U3SPN omegaSPN({omega,S},Sp,Sn);
+          u3spn_dimensions[omegaSPN]=Dimensions(dim,dim,dim);
+        
+        }
+      }
+    }
+
+  }
+// }

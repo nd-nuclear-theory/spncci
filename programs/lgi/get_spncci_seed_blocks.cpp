@@ -77,7 +77,7 @@ int main(int argc, char **argv)
   lgi::binary_format_code = 1;
   lgi::binary_float_precision=8;
 
-  std::array<int,2> nuclide; // proton and neutron numbers
+  nuclide::NuclideType nuclide; // proton and neutron numbers
   nuclide[0]=Z;
   nuclide[1]=N; 
 
@@ -88,14 +88,14 @@ int main(int argc, char **argv)
   std::string lsu3shell_basis_filename=su3rme_filename_base+"/lsu3shell_basis.dat"; // Will need to include path to file
 
   // Generate Nsigma0 from nuclei and type 
-  HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
+  HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide,intrinsic);
 
 
   // Unit tensor parameters
   int J0=-1;
   int T0=-1;
 
-  int N1v=spncci::ValenceShellForNuclide(nuclide);
+  int N1v=nuclide::ValenceShellForNuclide(nuclide);
 
   //TODO
   std::string relative_unit_tensor_filename_template = su3rme_filename_base + "/relative_unit_{:06d}.rme";

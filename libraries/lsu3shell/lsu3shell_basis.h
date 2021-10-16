@@ -18,6 +18,7 @@
 #define LSU3SHELL_BASIS_H_
 
 #include "u3shell/u3spn_scheme.h"
+#include "utilities/nuclide.h"
 
 namespace lsu3shell
 {
@@ -96,4 +97,29 @@ namespace lsu3shell
   //   basis_provenance (output) : look up table between 
 
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Interface for directly calling lsu3shell in spncci
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// namespace spncci{
+  namespace lsu3shell {
+
+    struct Dimensions
+    {
+      int total, cmf, LGI;
+      Dimensions()
+          : total(0), cmf(0), LGI(0) {}  // default constructor (if omitted, compiler complains)
+      Dimensions(int total_, int cmf_, int LGI_) : total(total_), cmf(cmf_), LGI(LGI_) {}
+    };
+
+    void generate_lsu3shell_basis_dimensions(
+      const nuclide::NuclideType& nuclide, 
+      const HalfInt& Nsigma0,
+      const int& Nmax, 
+      std::map<u3shell::U3SPN, Dimensions>& u3spn_dimensions
+    );
+
+  }
+// }
+
 #endif

@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
+
+## find Tomas' lsu3shell libraries
+find_package(lsu3shell REQUIRED)
+
 # ##############################################################################
 # define executables
 # ##############################################################################
@@ -10,6 +14,7 @@ add_executable(get_lgi_expansion get_lgi_expansion.cpp)
 add_executable(get_spncci_seed_blocks get_spncci_seed_blocks.cpp)
 add_executable(get_u3s_subspaces get_u3s_subspaces.cpp)
 add_executable(transform_seed_blocks transform_seed_blocks.cpp)
+add_executable(u3s_to_sp3rs_basis u3s_to_sp3rs_basis.cpp)
 
 # ##############################################################################
 # link dependencies
@@ -26,6 +31,20 @@ target_link_libraries(
           spncci::spncci
           spncci::u3shell
 )
+
+target_link_libraries(
+  u3s_to_sp3rs_basis
+  PRIVATE fmt::fmt
+          lsu3shell::libraries
+          mcutils::mcutils
+          spncci::lgi
+          spncci::lsu3shell
+          spncci::sp3rlib
+          spncci::spncci
+          spncci::u3shell
+
+)
+
 target_link_libraries(
   get_lgi_expansion PRIVATE fmt::fmt mcutils::mcutils spncci::lgi
                             spncci::sp3rlib spncci::spncci spncci::u3shell

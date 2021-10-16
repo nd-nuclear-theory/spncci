@@ -19,30 +19,30 @@
 namespace lgi
 {
 
-  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic)
-  {
-    // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
-    HalfInt Nsigma0 = 0;
-    for (int species_index : {0,1})
-      {
-        int num_particles = nuclide[species_index];
-        for (int eta=0; num_particles>0; ++eta)
-          {
-            // add contribution from particles in shell
-            int shell_degeneracy = (eta+1)*(eta+2);
-            int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
-            // want num_particles_in_shell*(eta+HalfInt(3,2)), but HalfInt does not provide multiplication
-            Nsigma0 += HalfInt(num_particles_in_shell*(2*eta+3),2);
+  // HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic)
+  // {
+  //   // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
+  //   HalfInt Nsigma0 = 0;
+  //   for (int species_index : {0,1})
+  //     {
+  //       int num_particles = nuclide[species_index];
+  //       for (int eta=0; num_particles>0; ++eta)
+  //         {
+  //           // add contribution from particles in shell
+  //           int shell_degeneracy = (eta+1)*(eta+2);
+  //           int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
+  //           // want num_particles_in_shell*(eta+HalfInt(3,2)), but HalfInt does not provide multiplication
+  //           Nsigma0 += HalfInt(num_particles_in_shell*(2*eta+3),2);
 
-            // discard particles in shell
-            num_particles -= num_particles_in_shell;
-          }
-      }
-    // If intrinsic remove cm zero point energy 3/2
-    if(intrinsic)
-      Nsigma0=Nsigma0-HalfInt(3,2);
-    return Nsigma0;
-  }
+  //           // discard particles in shell
+  //           num_particles -= num_particles_in_shell;
+  //         }
+  //     }
+  //   // If intrinsic remove cm zero point energy 3/2
+  //   if(intrinsic)
+  //     Nsigma0=Nsigma0-HalfInt(3,2);
+  //   return Nsigma0;
+  // }
 
 
   std::string LGI::Str() const

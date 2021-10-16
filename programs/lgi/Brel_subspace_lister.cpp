@@ -17,8 +17,7 @@
 #include "fmt/format.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
-#include "lgi/lgi.h"
-
+#include "utilities/nuclide.h"
 
 
 typedef std::tuple<int,int,int,int,u3::SU3> U3SubspaceLabel;
@@ -43,7 +42,7 @@ int main(int argc, char **argv)
   std::string subspace_filename_ket=argv[3];
   std::string subspace_filename_bra=argv[4];
   
-  HalfInt N0 = lgi::Nsigma0ForNuclide(nuclide);
+  HalfInt N0 = nuclide::Nsigma0ForNuclide(nuclide);
   // Read in labels 
   std::string line;
   std::ifstream stream_in;

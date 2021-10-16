@@ -158,7 +158,7 @@ int main(int argc, char **argv)
         std::exit(EXIT_FAILURE);
       }
   
-    lgi::NuclideType nuclide;
+    nuclide::NuclideType nuclide;
     nuclide[0] = std::stoi(argv[1]);
     nuclide[1] = std::stoi(argv[2]);
     int Nsmax = std::stoi(argv[3]);
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
     //Read in list of RMEs and figure out how many 
     
     bool intrinsic=true;
-    HalfInt N0=lgi::Nsigma0ForNuclide(nuclide, intrinsic);
+    HalfInt N0=nuclide::Nsigma0ForNuclide(nuclide, intrinsic);
     
     lgi::MultiplicityTaggedLGIVector lgi_vector;
     lgi::ReadLGISet(lgi_filename, N0,lgi_vector);

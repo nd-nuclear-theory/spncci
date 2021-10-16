@@ -22,29 +22,29 @@
 
 namespace spncci
 {
-  int ValenceShellForNuclide(const lgi::NuclideType& nuclide)
-  {
-    // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
-    int N1v = 0;
-    for (int species_index : {0,1})
-      {
-        int num_particles = nuclide[species_index];
-        for (int eta=0; num_particles>0; ++eta)
-          {
-            // add contribution from particles in shell
-            int shell_degeneracy = (eta+1)*(eta+2);
-            int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
+  // int ValenceShellForNuclide(const lgi::NuclideType& nuclide)
+  // {
+  //   // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
+  //   int N1v = 0;
+  //   for (int species_index : {0,1})
+  //     {
+  //       int num_particles = nuclide[species_index];
+  //       for (int eta=0; num_particles>0; ++eta)
+  //         {
+  //           // add contribution from particles in shell
+  //           int shell_degeneracy = (eta+1)*(eta+2);
+  //           int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
 
-            // register this shell as occupied
-            N1v = std::max(N1v,eta);
+  //           // register this shell as occupied
+  //           N1v = std::max(N1v,eta);
 
-            // discard particles in shell
-            num_particles -= num_particles_in_shell;
-          }
-      }
+  //           // discard particles in shell
+  //           num_particles -= num_particles_in_shell;
+  //         }
+  //     }
 
-    return N1v;
-  }
+  //   return N1v;
+  // }
 
 
   std::string SpNCCIIrrepFamily::Str() const

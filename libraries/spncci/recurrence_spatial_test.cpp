@@ -214,12 +214,12 @@ int main(int argc, char** argv)
   int Nmax=std::stoi(argv[3]);
   // int N1v=std::stoi(argv[4]);
 
-  const lgi::NuclideType nuclide({Z,N});
-  int N1v = spncci::ValenceShellForNuclide(nuclide);
+  const nuclide::NuclideType nuclide({Z,N});
+  int N1v = nuclide::ValenceShellForNuclide(nuclide);
 
   const std::string lgi_filename="lgi_families.dat";
   
-  HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,true);
+  HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide,true);
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   lgi::ReadLGISet(lgi_filename,Nsigma0,lgi_vector);
 

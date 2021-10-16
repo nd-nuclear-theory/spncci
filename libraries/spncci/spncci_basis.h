@@ -65,7 +65,7 @@ namespace spncci
   typedef std::pair<int,int> NnPair;
   typedef std::pair<int,int> LGIPair;
 
-  int ValenceShellForNuclide(const lgi::NuclideType& nuclide);
+  // int ValenceShellForNuclide(const NuclideType& nuclide);
   // Calculate valence shell for nuclide.
   //
   // This is the highest oscillator shell occupied in the lowest
