@@ -89,119 +89,6 @@ typedef std::tuple<SpinTuple,SpinTuple,SpinTuple,SpinTuple> CompoundSpinTuple;
 
 
 
-void read_lsu3shell_basis_dimensions(
-  const std::string& input_filename,
-  const HalfInt& Nsigma0, const int Nmax,
-  std::map<u3shell::U3SPN, lsu3shell::Dimensions>& u3spn_dimensions
-  )
-  {
-    // input from a file
-    std::ifstream file(input_filename);
-    //  int N_ex_max=0;
-    std::string line;
-    int line_count = 0;
-    int input_Nmax = 0;
-    while (mcutils::GetLine(file, line, line_count))
-      {
-        std::istringstream line_stream(line);
-        int N_ex, twice_Sp, twice_Sn, twice_S, lambda, mu, dim_tot;
-        line_stream >> N_ex >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S >> dim_tot;
-        mcutils::ParsingCheck(line_stream,line_count,line);
-        input_Nmax = std::max(input_Nmax, N_ex);
-
-        if (N_ex>Nmax)
-          continue;
-
-        HalfInt Sp(twice_Sp, 2), Sn(twice_Sn, 2), S(twice_S, 2);
-        u3shell::U3SPN irrep({N_ex + Nsigma0, {lambda,mu}}, Sp, Sn, S);
-        lsu3shell::Dimensions irrep_dimensions(dim_tot, dim_tot, dim_tot);
-        u3spn_dimensions[irrep] = irrep_dimensions;
-      }
-    if (input_Nmax<Nmax)
-      std::cout<<fmt::format("Warning:\n Nmax of input: {}\n Nmax requested: {}",input_Nmax,Nmax)<<std::endl;
-    file.close();
-
-
-  // Sanity check
-  for (std::map<u3shell::U3SPN, lsu3shell::Dimensions>::iterator it = u3spn_dimensions.begin();
-       it != u3spn_dimensions.end(); ++it)
-    {
-      bool valid_dimensions=true;
-      const lsu3shell::Dimensions& dimensions=it->second;
-      valid_dimensions &= (dimensions.total > 0);
-      valid_dimensions &= (dimensions.cmf > 0);
-      valid_dimensions &= (dimensions.LGI > 0);
-
-      if(not valid_dimensions)
-        std::cout<<fmt::format("Sanity check failed for {}\n Dimensions are: {}  {}  {}",it->first.Str(),dimensions.total,dimensions.cmf,dimensions.LGI)<<std::endl;
-      assert(valid_dimensions);
-    }
-  }
-
-
-void generate_cmf_lgi(
-  const int Nmax,
-  const HalfInt Nsigma0,
-  std::map<u3shell::U3SPN, lsu3shell::Dimensions>& u3spn_dimensions,
-  lgi::MultiplicityTaggedLGIVector& lgi_vector
-  )
-  {
-    // Iterate through the lsu3shell basis and remove CM contaminated states
-    for(int Nex=0; Nex<=Nmax; ++Nex)
-      for(const auto& irrep_dimensions : u3spn_dimensions)
-        {
-          const u3shell::U3SPN& irrep=irrep_dimensions.first;
-          const auto& dimensions=irrep_dimensions.second;
-          const auto& [omega,Sp,Sn,S] = irrep.FlatKey();
-
-          int Ncm_max=Nmax-Nex;
-          if( (irrep.N()-Nsigma0) == Nex)
-            for(int Ncm=1; Ncm<=Ncm_max; Ncm++)
-              {
-                u3::U3 wcm(Ncm,u3::SU3(Ncm,0));
-                MultiplicityTagged<u3::U3>::vector cm_omegas_tagged = u3::KroneckerProduct(omega,wcm);
-                for(const auto& omega_cm_tagged : cm_omegas_tagged)
-                  u3spn_dimensions[{omega_cm_tagged.irrep,Sp,Sn,S}].cmf -= dimensions.cmf * omega_cm_tagged.tag;
-              }
-        }
-
-    // Copy cmf dimensions to lgi dimensions
-    for(auto& irrep_dimension: u3spn_dimensions)
-      irrep_dimension.second.LGI=irrep_dimension.second.cmf;
-
-    // Iterate through basis and identify LGI dimension by substracting
-    // U(3) irreps obtained by laddering from lower grade LGI.
-    for(const auto& [lgi,dimensions] : u3spn_dimensions)
-      {
-        HalfInt Sp(lgi.Sp()),Sn(lgi.Sn()), S(lgi.S());
-        int Nn_max = Nmax - int(lgi.N() - Nsigma0);
-        std::vector<u3::U3> raising_polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
-
-        for(const u3::U3& n : raising_polynomial_labels)
-          {
-            if (n.N()==0)
-              continue;
-
-            MultiplicityTagged<u3::U3>::vector omegas_tagged = u3::KroneckerProduct(lgi.U3(), n);
-            for(const auto& [omega,rho_max] : omegas_tagged)
-              {
-                u3shell::U3SPN omegaSpSnS(omega,Sp,Sn,S);
-                u3spn_dimensions[omegaSpSnS].LGI -= rho_max*dimensions.LGI;
-              }
-          }
-      }
-
-    //Create LGI vector used in SpNCCI basis construction
-    for(const auto& [lgi_u3spn,lgi_dims] : u3spn_dimensions)
-      {
-        int Nsex=int(lgi_u3spn.N()-Nsigma0);
-        lgi::LGI lgi(lgi_u3spn,Nsex);
-        lgi_vector.emplace_back(lgi,lgi_dims.LGI);
-      }
-
-  }
-
-
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 template <typename tDataType>
@@ -646,14 +533,21 @@ int main(int argc, char **argv)
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   //Generate LGI vector by finding possible cmf LGI by counting arguments 
-  std::map<u3shell::U3SPN, lsu3shell::Dimensions> u3spn_dimensions;
-  if(run_parameters.input_filename != "None")
-    read_lsu3shell_basis_dimensions(run_parameters.input_filename,Nsigma0,run_parameters.Nmax, u3spn_dimensions);
-  else
-    generate_lsu3shell_basis_dimensions(run_parameters.nuclide,Nsigma0,run_parameters.Nmax,u3spn_dimensions);
+  lgi::MultiplicityTaggedLGIVector lgi_vector = lgi::get_lgi_vector(run_parameters.nuclide,Nsigma0,run_parameters.Nmax);
 
-  lgi::MultiplicityTaggedLGIVector lgi_vector;
-  generate_cmf_lgi(run_parameters.Nmax,Nsigma0,u3spn_dimensions,lgi_vector);
+  // std::map<u3shell::U3SPN, lsu3shell::Dimensions> u3spn_dimensions;
+  // if(run_parameters.input_filename != "None")
+  //   lsu3shell::read_lsu3shell_basis_dimensions(run_parameters.input_filename,Nsigma0,run_parameters.Nmax, u3spn_dimensions);
+  // else
+  // {
+  //   auto basis_dimension = lsu3shell::generate_lsu3shell_basis_dimensions(run_parameters.nuclide,Nsigma0,run_parameters.Nmax);
+  //   for(const auto& u3spn : basis_dimension)
+  //     u3spn_dimensions[u3spn.first]=lsu3shell::Dimensions(u3spn.second,u3spn.second,u3spn.second);
+
+  // }
+
+  // lgi::MultiplicityTaggedLGIVector lgi_vector;
+  // generate_cmf_lgi(run_parameters.Nmax,Nsigma0,u3spn_dimensions,lgi_vector);
 
 
   std::string operator_base_name = "Brel";

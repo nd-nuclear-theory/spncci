@@ -96,28 +96,64 @@ namespace lsu3shell
   //   space (output) : lsu3shell basis space 
   //   basis_provenance (output) : look up table between 
 
-}
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interface for directly calling lsu3shell in spncci
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// namespace spncci{
-  namespace lsu3shell {
+// // namespace spncci{
+//   namespace lsu3shell {
 
-    struct Dimensions
-    {
-      int total, cmf, LGI;
-      Dimensions()
-          : total(0), cmf(0), LGI(0) {}  // default constructor (if omitted, compiler complains)
-      Dimensions(int total_, int cmf_, int LGI_) : total(total_), cmf(cmf_), LGI(LGI_) {}
-    };
+  struct Dimensions
+  {
+    int total, cmf, LGI;
+    Dimensions()
+        : total(0), cmf(0), LGI(0) {}  // default constructor (if omitted, compiler complains)
+    Dimensions(int total_, int cmf_, int LGI_) : total(total_), cmf(cmf_), LGI(LGI_) {}
+  };
 
-    void generate_lsu3shell_basis_dimensions(
-      const nuclide::NuclideType& nuclide, 
-      const HalfInt& Nsigma0,
-      const int& Nmax, 
-      std::map<u3shell::U3SPN, Dimensions>& u3spn_dimensions
+
+  void read_lsu3shell_basis_dimensions(
+    const std::string& input_filename,
+    const HalfInt& Nsigma0, const int Nmax,
+    std::map<u3shell::U3SPN, lsu3shell::Dimensions>& u3spn_dimensions
+  );
+
+
+  std::map<u3shell::U3SPN,unsigned int> 
+  lsu3shell_basis_dimensions(
+    const nuclide::NuclideType& nuclide, 
+    const HalfInt& Nsigma0,
+    const int& Nmax
+  );
+
+  ////TEMP
+  inline std::map<u3shell::U3SPN,unsigned int> 
+  generate_lsu3shell_basis_dimensions(
+    const nuclide::NuclideType& nuclide, 
+    const HalfInt& Nsigma0,
+    const int& Nmax
+  )
+  {
+    return lsu3shell_basis_dimensions(nuclide, Nsigma0,Nmax);
+  }
+
+
+  std::map<u3shell::U3SPN, unsigned int>
+  lsu3shell_cmf_basis_dimensions(
+    const HalfInt& Nsigma0,
+    const int& Nmax, 
+    const std::map<u3shell::U3SPN, unsigned int>& u3spn_dimensions
     );
+
+
+  std::map<u3shell::U3SPN, unsigned int>
+  lsu3shell_cmf_basis_dimensions(
+    const nuclide::NuclideType& nuclide, 
+    const HalfInt& Nsigma0,
+    const int& Nmax
+  );
+  // Overload which generates u3spn_dimensions before getting cmf dimensions.
 
   }
 // }

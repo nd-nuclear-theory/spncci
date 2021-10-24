@@ -24,6 +24,7 @@ target_link_libraries(
          mcutils::mcutils
          Eigen3::Eigen
          fmt::fmt
+         spncci::utilities
          spncci::sp3rlib
          spncci::u3shell
          spncci::moshinsky
@@ -51,3 +52,20 @@ install(
   EXPORT spncciTargets
 )
 install(FILES ${lsu3shell_headers} DESTINATION include/spncci/lsu3shell)
+
+# ##############################################################################
+# tests
+# ##############################################################################
+
+add_executable(lsu3shell_basis_test lsu3shell_basis_test.cpp)
+target_link_libraries(
+  lsu3shell_basis_test PRIVATE 
+	lsu3shell::libraries
+	fmt::fmt
+	am::am
+	spncci::utilities
+	spncci::sp3rlib
+	spncci::u3shell
+	spncci::lsu3shell
+)
+

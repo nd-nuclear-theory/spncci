@@ -224,6 +224,12 @@ namespace lgi
   // Reading in and filling out table of lgi indices in basis and lgi indices in full space by
   // which the seed files are labeled.
 
+  MultiplicityTaggedLGIVector get_lgi_vector(
+      const nuclide::NuclideType& nuclide, 
+      const HalfInt& Nsigma0,
+      const int& Nmax
+    );
+
 
 }  // namespace lgi
 

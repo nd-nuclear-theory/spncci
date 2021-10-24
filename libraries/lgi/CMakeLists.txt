@@ -45,3 +45,21 @@ install(
   EXPORT spncciTargets
 )
 install(FILES ${lgi_headers} DESTINATION include/spncci/lgi)
+
+
+# ##############################################################################
+# tests
+# ##############################################################################
+
+add_executable(lgi_test lgi_test.cpp)
+target_link_libraries(
+  lgi_test PRIVATE 
+  # lsu3shell::libraries
+  fmt::fmt
+  am::am
+  spncci::utilities
+  spncci::sp3rlib
+  spncci::u3shell
+  spncci::lsu3shell
+  spncci::lgi
+)
