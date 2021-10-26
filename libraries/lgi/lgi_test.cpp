@@ -8,16 +8,21 @@
 
   3/7/16 (aem,mac): Created.
   2/15/18 (aem): Update tests for Nsigma0ForNuclide and ReadLGISet
+  10/24/21 (aem): Add test for lgi vector construction using lsu3shell
 ****************************************************************/
 #include "lgi/lgi.h"
+
+#include <cstdlib>
 
 #include "am/halfint.h"
 #include "am/halfint_fmt.h"
 #include "fmt/format.h"
 #include "utilities/nuclide.h"
+#include "utilities/utilities.h"
 
 int main(int argc, char **argv)
 {
+	
 	u3::U3 omega(16,u3::SU3(4,0));
 	HalfInt S=0, Sp=0, Sn=0;
 	u3::U3S u3s(omega,S);
@@ -25,22 +30,21 @@ int main(int argc, char **argv)
 	u3shell::U3SPN u3spn2(omega,S,Sp,Sn);
 	lgi::LGI lgi(u3spn,0);
 	std::cout<<lgi.Str()<<std::endl;
-	std::string filename="data/lgi_set/lgi_test_full.dat";
+
+	// Read in lgi vector from file
+	std::string spncci_root_dir=get_spncci_project_root_dir();
+	std::string filename=fmt::format("{}/spncci/data/lgi_set/lgi_test_full.dat",spncci_root_dir);
 	lgi::MultiplicityTaggedLGIVector lgi_vector;
 	std::cout<<"lgi's from lgi_test.dat"<<std::endl;
 	HalfInt Nsigma0=nuclide::Nsigma0ForNuclide({3,3});
 	std::cout<<"Nsigma0 "<<Nsigma0<<std::endl;
 	lgi::ReadLGISet(filename, Nsigma0,lgi_vector);
-	// for(auto lgi : lgi_vector)
-	// 	std::cout<<lgi.irrep.Str()<<"  "<<lgi.tag<<std::endl;
 
-	//// Testing construction from lsu3shell
+	//// Construct lgi vector directly from lsu3shell basis using counting arguments
 	std::cout<<"List of lgi's generated using lsu3shell basis constructors 6Li"<<std::endl;
 	nuclide::NuclideType nuclide({3,3});
 	int Nmax=2;
 	lgi::MultiplicityTaggedLGIVector lgi_vector2 = lgi::get_lgi_vector(nuclide, Nsigma0,Nmax);
-	// for(const auto& lgi_tagged : lgi_vector2)
-	// 	std::cout<<lgi_tagged.irrep.Str()<<"  "<<lgi_tagged.tag<<std::endl;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//To compare lgi input file generated with old ordering, need to change ordering, 

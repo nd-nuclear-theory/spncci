@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
 set(utilities_headers utilities.h nuclide.h)
+#set(utilities_headers nuclide.h)
 # set(utilities_sources "")  # no sources -- INTERFACE library
 
 # define am library and add source files

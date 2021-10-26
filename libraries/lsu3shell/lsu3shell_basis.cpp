@@ -131,7 +131,7 @@ void read_lsu3shell_basis_dimensions(
     std::string line;
     int line_count = 0;
     int input_Nmax = 0;
-    while (mcutils::GetLine(file, line, line_count))
+    while (mcutils::GetLine(file,line, line_count))
       {
         std::istringstream line_stream(line);
         int N_ex, twice_Sp, twice_Sn, twice_S, lambda, mu, dim_tot;

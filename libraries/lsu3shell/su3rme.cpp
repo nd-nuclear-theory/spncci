@@ -11,34 +11,21 @@
 
 namespace lsu3shell
 {
+  unsigned int get_num_ncsmsU3xSU3Basis_irreps(const lsu3::CncsmSU3xSU2Basis& basis)
+    {
+      const uint32_t number_ipin_blocks = basis.NumberOfBlocks();
 
-  InteractionTerms 
-  GetOperatorFromFile(
-    const nuclide::NuclideType& nuclide,
-    const int Nmax,
-    const std::string& operator_filename
-  )
-  {  
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Load operators for Brel and Nrel 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    const auto&[Z,N]=nuclide;
-    CBaseSU3Irreps baseSU3Irreps(Z, N, Nmax);
-    std::ofstream interaction_log_file("/dev/null");
-    bool log_is_on = false;
-
-    CInteractionPPNN interactionPPNN(baseSU3Irreps, log_is_on, interaction_log_file);
-
-    bool generate_missing_rme = true;
-    CInteractionPN interactionPN(baseSU3Irreps, generate_missing_rme, log_is_on, interaction_log_file);
-
-    std::string ppnn_file_name(operator_filename+".PPNN");
-    std::string pn_file_name(operator_filename+".PN");
-    interactionPPNN.LoadTwoBodyOperator(ppnn_file_name);
-    interactionPN.AddOperator(pn_file_name);
-
-    interactionPPNN.TransformTensorStrengthsIntoPP_NN_structure();
-
-    return InteractionTerms(interactionPPNN,interactionPN);
-  }
+      unsigned int num_irreps=0; 
+      for (unsigned int ipin_block = 0; ipin_block < number_ipin_blocks; ipin_block++)
+        {
+          int32_t ibegin = basis.blockBegin(ipin_block);
+          int32_t iend = basis.blockEnd(ipin_block);
+          for (int32_t iwpn = ibegin; iwpn < iend; ++iwpn) 
+            {
+              num_irreps++;
+            }
+        }
+      
+      return num_irreps;
+    }
 }// end namespace

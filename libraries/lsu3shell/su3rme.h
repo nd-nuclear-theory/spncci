@@ -14,24 +14,15 @@
 #ifndef SU3RME_H_
 #define SU3RME_H_
 
-#include "lgi/lgi.h"
-#include "SU3ME/CInteractionPN.h"
-#include "SU3ME/InteractionPPNN.h"
-#include "utilities/nuclide.h"
-
+// #include "SU3ME/proton_neutron_ncsmSU3Basis.h"
+#include "LSU3/ncsmSU3xSU2Basis.h"
+#include "lsu3shell/lsu3shell_basis.h"
 
 namespace lsu3shell
 {
 
 
-  using InteractionTerms = std::tuple<CInteractionPPNN,CInteractionPN>;
-
-  InteractionTerms GetOperatorFromFile(
-    const nuclide::NuclideType& nuclide,
-    const int Nmax,
-    const std::string& operator_filename
-  );
-
+unsigned int get_num_ncsmsU3xSU3Basis_irreps(const lsu3::CncsmSU3xSU2Basis& basis);
 
 }// end namespace 
 

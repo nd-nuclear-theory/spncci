@@ -58,6 +58,14 @@ target_link_libraries(
   transform_seed_blocks PRIVATE fmt::fmt spncci::lgi spncci::spncci
 )
 
+add_executable(su3rme_test su3rme_test.cpp)
+target_link_libraries(
+  su3rme_test PRIVATE 
+  lsu3shell::libraries
+  spncci::lsu3shell
+)
+
+
 # ##############################################################################
 # define installed targets
 #
