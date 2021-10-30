@@ -456,8 +456,10 @@ namespace u3
   extern bool g_u_cache_enabled;
   double WCached(
                  WCoefCache& cache,
-                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2,
-                 const u3::SU3& x3, int kappa3, int L3, int rho
+                 const u3::SU3& x1, const int kappa1, const int L1, 
+                 const u3::SU3& x2, const int kappa2, const int L2,
+                 const u3::SU3& x3, const int kappa3, const int L3, 
+                 const int rho
                  );
   // Cached SU(3) Wigner coupling coefficient for coupling from (1x2)->3.
   //
@@ -474,7 +476,7 @@ namespace u3
   // Returns;
   //   (double): single coefficient value
 
-  void WBlockCached(WCoefCache& cache, const u3::WCoefLabels& labels);
+  // void WBlockCached(WCoefCache& cache, const u3::WCoefLabels& labels);
 
 
 
