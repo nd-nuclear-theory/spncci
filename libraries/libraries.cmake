@@ -11,6 +11,7 @@ find_package(Boost REQUIRED COMPONENTS headers)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(GSL REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(MPI REQUIRED)
 find_package(Spectra REQUIRED)
 find_package(su3lib REQUIRED)
 

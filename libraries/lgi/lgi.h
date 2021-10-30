@@ -111,6 +111,8 @@ namespace lgi
 
     int Nex() const {return Nex_;}
     u3::U3 sigma() const {return U3();}
+    //U3SPN could conflict with u3shell::U3SPN
+    u3shell::U3SPN u3spn() const {return {U3S(),Sp(),Sn()}; }
 
     UpstreamLabelsType upstream_labels() const { return {Sp(),Sn()}; }
 

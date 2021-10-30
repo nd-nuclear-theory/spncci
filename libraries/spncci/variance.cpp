@@ -193,7 +193,7 @@ void GetEigensystemH(
 
         // std::cout<<"Solve Hamiltonian"<<std::endl;
         bool verbose=false;
-        spncci::SolveHamiltonian(
+        spncci::SolveEigenproblem(
             hamiltonian_matrix,
             run_parameters.num_eigenvalues,
             run_parameters.eigensolver_num_convergence,

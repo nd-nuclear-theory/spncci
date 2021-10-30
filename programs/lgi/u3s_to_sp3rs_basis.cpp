@@ -7,7 +7,7 @@
 #include "mcutils/parsing.h"
 #include "lgi/lgi.h"
 #include "lsu3shell/lsu3shell_basis.h"
-// #include "lsu3shell/su3rme.h"
+#include "lsu3shell/su3rme.h"
 #include "sp3rlib/sp3r.h"
 #include "spncci/spncci_basis.h"
 #include "u3shell/u3spn_scheme.h"
@@ -21,18 +21,7 @@
 #include "SU3ME/CInteractionPN.h"
 #include "SU3ME/ComputeOperatorMatrix.h"
 #include "SU3ME/InteractionPPNN.h"
-
-
 #include "su3.h"
-
-#include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <regex>
-#include <stack>
-#include <stdexcept>
-#include <vector>
-
 
 
 typedef std::tuple<int,int,int> SpinTuple;
@@ -172,9 +161,103 @@ std::vector<double> ComputeRME(std::vector<MECalculatorData>& rmeCoeffsPNPN)
 }
 
 
+
+
+void test(
+  const lsu3::CncsmSU3xSU2Basis& bra,
+  const lsu3::CncsmSU3xSU2Basis& ket,
+  const SU3xSU2::LABELS& omega_pn_I,
+  const SU3xSU2::LABELS& omega_pn_J,
+  const int ipin_block,
+  const int jpjn_block,
+  const std::vector<RmeCoeffsSU3SO3CGTablePointers>& rmeCoeffsPP,
+  const std::vector<RmeCoeffsSU3SO3CGTablePointers>& rmeCoeffsNN,
+  const std::vector<std::pair<SU3xSU2::RME*, unsigned int> >& rme_index_p_pn,
+  const std::vector<std::pair<SU3xSU2::RME*, unsigned int> >& rme_index_n_pn,
+  const CInteractionPN& interactionPN,
+  std::vector<double>& rmes
+  )
+{
+
+  uint32_t ip = bra.getProtonIrrepId(ipin_block);
+  uint32_t in = bra.getNeutronIrrepId(ipin_block);
+  SU3xSU2::LABELS w_ip(bra.getProtonSU3xSU2(ip));
+  SU3xSU2::LABELS w_in(bra.getNeutronSU3xSU2(in));
+
+  uint32_t jp = ket.getProtonIrrepId(jpjn_block);
+  uint32_t jn = ket.getNeutronIrrepId(jpjn_block);
+
+  SU3xSU2::LABELS w_jp(ket.getProtonSU3xSU2(jp));
+  SU3xSU2::LABELS w_jn(ket.getNeutronSU3xSU2(jn));
+  uint16_t ajp_max = ket.getMult_p(jp);
+  uint16_t ajn_max = ket.getMult_n(jn);
+
+  std::vector<MECalculatorData> rmeCoeffsPNPN;
+
+  if (in == jn && !rmeCoeffsPP.empty()) 
+    {
+      // Initialize neutron identity operator
+      SU3xSU2::RME identityOperatorRMENN;
+      InitializeIdenticalOperatorRME(identityOperatorRMENN, ajn_max*ajn_max);
+      // create structure with < an (lmn mun)Sn ||| 1 ||| an' (lmn mun) Sn> r.m.e.
+      CreateIdentityOperatorRME(w_in, w_jn, ajn_max, identityOperatorRMENN);
+      // calculate < {(lmp mup)Sp x (lmn mun)Sn} wf Sf ||| [I_{nn} x T_{pp}]
+      //|||{(lmp' mup')Sp' x (lmn' mun')Sn'} wi Si >_{rhot}
+      Calculate_Proton_x_Identity_MeData(
+        omega_pn_I, omega_pn_J, rmeCoeffsPP,
+        identityOperatorRMENN, rmeCoeffsPNPN
+      );
+    }
+
+  if (ip == jp && !rmeCoeffsNN.empty()) 
+    {
+      // Initialize proton identity operator 
+      SU3xSU2::RME identityOperatorRMEPP;
+      InitializeIdenticalOperatorRME(identityOperatorRMEPP, ajp_max*ajp_max);
+      
+      // create structure with < ap (lmp mup)Sp ||| 1 ||| ap' (lmp mup) Sp> r.m.e.
+      CreateIdentityOperatorRME(w_ip, w_jp, ajp_max, identityOperatorRMEPP);
+       // calculate < {(lmp mup)Sp x (lmn mun)Sn} wf Sf ||| [T_{nn} x I_{pp}]
+       //|||{(lmp' mup')Sp' x (lmn' mun')Sn'} wi Si >_{rhot}
+       Calculate_Identity_x_Neutron_MeData(
+           omega_pn_I, omega_pn_J, identityOperatorRMEPP, rmeCoeffsNN, rmeCoeffsPNPN);
+    }
+
+  if (!rme_index_p_pn.empty() && !rme_index_n_pn.empty()) 
+    {
+       // This function assumes coefficients depend on rho0 only.
+       // It also disregard SU(3) clebsch gordan coefficients as
+       // we do not use the Wigner-Eckhart theorem.
+      CalculatePNOperatorRMECoeffs(
+        interactionPN, omega_pn_I, omega_pn_J,
+        rme_index_p_pn, rme_index_n_pn, rmeCoeffsPNPN
+      );
+    }
+
+  if (!rmeCoeffsPNPN.empty()) 
+    {
+      rmes = ComputeRME(rmeCoeffsPNPN);
+
+      // int row_index = row_irrep + i;
+      // int col_index = col_irrep + j;
+
+      //TEMP
+      // Brel_matrix(row_index,col_index)=rmes[0];
+    }
+  
+  // For deallocation?
+  Reset_rmeCoeffs(rmeCoeffsPNPN);
+ 
+}
+
+
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////
-
-
 void CalculateRME(
   const std::string& rme_file_name, 
   const CInteractionPPNN& interactionPPNN,
@@ -191,28 +274,12 @@ void CalculateRME(
 //
 // Calls: ComputeRME
 {
+  // Should probably return matrix or vector of matrices...
+  int rows = lsu3shell::get_num_U3PNSPN_irreps(bra);
+  int cols = lsu3shell::get_num_U3PNSPN_irreps(ket);
+  Eigen::MatrixXd Brel_matrix = Eigen::MatrixXd::Zero(rows,cols);
+
   //////////////////////////////////////////////////////////////////
-  /// Previously global
-  // note: unsigned short int overflows, leading to multiplicity errors
-  typedef unsigned int RMEIndexType;  
-
-  // statistics accumulators
-  bool g_zero_threshold = 1e-8;  // for output diagnostics
-  //////////////////////////////////////////////////////////////////
-
-  // set up statistics for this tensor
-  int num_groups_allowed = 0;
-  int num_rmes_allowed = 0;
-  int num_groups_nonzero = 0;
-  int num_rmes_nonzero = 0;
-  double mpi_tensor_start_time = MPI_Wtime();
-
-  // open output file
-  std::ofstream out_file;
-  std::ios_base::openmode mode_argument = std::ios_base::out;
-  mode_argument |= std::ios_base::binary;
-  out_file.open(rme_file_name, mode_argument);
-
 
    std::vector<unsigned char> hoShells_n, hoShells_p;
    std::vector<CTensorGroup*> tensorGroupsPP, tensorGroupsNN;
@@ -222,27 +289,19 @@ void CalculateRME(
 
    unsigned char num_vacuums_J_distr_p;
    unsigned char num_vacuums_J_distr_n;
-   std::vector<std::pair<CRMECalculator*, CTensorGroup::COEFF_DOUBLE*> > selected_tensorsPP,
-       selected_tensorsNN;
-   std::vector<std::pair<CRMECalculator*, unsigned int> > selected_tensors_p_pn,
-       selected_tensors_n_pn;
-
+   std::vector<std::pair<CRMECalculator*, CTensorGroup::COEFF_DOUBLE*> > selected_tensorsPP,selected_tensorsNN;
+   std::vector<std::pair<CRMECalculator*, unsigned int> > selected_tensors_p_pn,selected_tensors_n_pn;
    std::vector<RmeCoeffsSU3SO3CGTablePointers> rmeCoeffsPP, rmeCoeffsNN;
    std::vector<std::pair<SU3xSU2::RME*, unsigned int> > rme_index_p_pn, rme_index_n_pn;
-
    std::vector<MECalculatorData> rmeCoeffsPNPN;
-
    SU3xSU2::RME identityOperatorRMEPP, identityOperatorRMENN;
 
    uint16_t max_mult_p = bra.getMaximalMultiplicity_p();
    uint16_t max_mult_n = bra.getMaximalMultiplicity_n();
-
    InitializeIdenticalOperatorRME(identityOperatorRMEPP, max_mult_p*max_mult_p);
    InitializeIdenticalOperatorRME(identityOperatorRMENN, max_mult_n*max_mult_n);
 
-   double mpi_tensor_end_setup_time = MPI_Wtime();
-
-   // main block-by-block calculation
+   
    SingleDistributionSmallVector distr_ip, distr_in, distr_jp, distr_jn;
    UN::SU3xSU2_VEC gamma_ip, gamma_in, gamma_jp, gamma_jn;
    SU3xSU2_SMALL_VEC vW_ip, vW_in, vW_jp, vW_jn;
@@ -255,13 +314,10 @@ void CalculateRME(
    int32_t icurrentDistr_p, icurrentDistr_n;
    int32_t icurrentGamma_p, icurrentGamma_n;
 
+  // main block-by-block calculation
    int32_t row_irrep = 0;
-   
    for (unsigned int ipin_block = 0; ipin_block < number_ipin_blocks; ipin_block++) 
    {
-      //    We don't have to check whether bra.NumberOfStatesInBlock(ipin_block) > 0
-      // since we are interested
-      //    in reduced matrix elements. The value of J is irrelevant.
       uint32_t ip = bra.getProtonIrrepId(ipin_block);
       uint32_t in = bra.getNeutronIrrepId(ipin_block);
       int32_t Nhw_bra = bra.nhw_p(ip) + bra.nhw_n(in);
@@ -279,26 +335,21 @@ void CalculateRME(
       uint32_t last_jp(std::numeric_limits<uint32_t>::max());
       uint32_t last_jn(std::numeric_limits<uint32_t>::max());
 
-      //  Generally, ket space can be different from bra space. For this reason we loop over
-      // all ket jpjn blocks.
       int32_t col_irrep = 0;
-      // std::cout<<"num jpjn_blocks "<<number_jpjn_blocks<<std::endl;
       for (unsigned int jpjn_block = 0; jpjn_block < number_jpjn_blocks; jpjn_block++) 
       {
-         uint32_t jp = ket.getProtonIrrepId(jpjn_block);
-         uint32_t jn = ket.getNeutronIrrepId(jpjn_block);
-         int32_t Nhw_ket = ket.nhw_p(jp) + ket.nhw_n(jn);
-         uint16_t ncol_irreps = ket.NumberPNIrrepsInBlock(jpjn_block);
-         // std::cout<<"Ns "<<Nhw_bra<<" "<<dN0<<"  "<<Nhw_ket<<std::endl;
-         if ((Nhw_ket + dN0) != Nhw_bra) 
-         {
+        uint32_t jp = ket.getProtonIrrepId(jpjn_block);
+        uint32_t jn = ket.getNeutronIrrepId(jpjn_block);
+        int32_t Nhw_ket = ket.nhw_p(jp) + ket.nhw_n(jn);
+        uint16_t ncol_irreps = ket.NumberPNIrrepsInBlock(jpjn_block);
+        if ((Nhw_ket + dN0) != Nhw_bra) 
+          {
             col_irrep = col_irrep + ncol_irreps;
             continue;
-         }
+          }
 
          SU3xSU2::LABELS w_jp(ket.getProtonSU3xSU2(jp));
          SU3xSU2::LABELS w_jn(ket.getNeutronSU3xSU2(jn));
-
          uint16_t ajp_max = ket.getMult_p(jp);
          uint16_t ajn_max = ket.getMult_n(jn);
 
@@ -306,114 +357,113 @@ void CalculateRME(
          {
             icurrentDistr_p = ket.getIndex_p<lsu3::CncsmSU3xSU2Basis::kDistr>(jp);
             icurrentGamma_p = ket.getIndex_p<lsu3::CncsmSU3xSU2Basis::kGamma>(jp);
-
+            
             if (ilastDistr_p != icurrentDistr_p) 
-            {
-               distr_ip.resize(0);
-               bra.getDistr_p(ip, distr_ip);
-               gamma_ip.resize(0);
-               bra.getGamma_p(ip, gamma_ip);
-               vW_ip.resize(0);
-               bra.getOmega_p(ip, vW_ip);
-
-               distr_jp.resize(0);
-               ket.getDistr_p(jp, distr_jp);
-               hoShells_p.resize(0);
-               deltaP = TransformDistributions_SelectByDistribution(
-                   interactionPPNN, interactionPN, distr_ip, gamma_ip, vW_ip, distr_jp, hoShells_p,
-                   num_vacuums_J_distr_p, phasePP, tensorGroupsPP, phase_p_pn, tensorGroups_p_pn);
-            }
+              {
+                distr_ip.resize(0);
+                bra.getDistr_p(ip, distr_ip);
+                gamma_ip.resize(0);
+                bra.getGamma_p(ip, gamma_ip);
+                vW_ip.resize(0);
+                bra.getOmega_p(ip, vW_ip);
+                distr_jp.resize(0);
+                ket.getDistr_p(jp, distr_jp);
+                hoShells_p.resize(0);
+                deltaP = TransformDistributions_SelectByDistribution(
+                     interactionPPNN, interactionPN, distr_ip, gamma_ip, vW_ip, distr_jp, hoShells_p,
+                     num_vacuums_J_distr_p, phasePP, tensorGroupsPP, phase_p_pn, tensorGroups_p_pn);
+              }
 
             if (ilastGamma_p != icurrentGamma_p || ilastDistr_p != icurrentDistr_p) 
-            {
-               if (deltaP <= 4) {
-                  if (!selected_tensorsPP.empty()) 
-                  {
-                     std::for_each(selected_tensorsPP.begin(), selected_tensorsPP.end(),
-                                   CTensorGroup::DeleteCRMECalculatorPtrs());
-                  }
-                  selected_tensorsPP.resize(0);
+              {
+                 if (deltaP <= 4) {
+                    if (!selected_tensorsPP.empty()) 
+                      {
+                         std::for_each(selected_tensorsPP.begin(), selected_tensorsPP.end(),
+                                       CTensorGroup::DeleteCRMECalculatorPtrs());
+                      }
+                    selected_tensorsPP.resize(0);
 
-                  if (!selected_tensors_p_pn.empty()) 
-                  {
-                     std::for_each(selected_tensors_p_pn.begin(), selected_tensors_p_pn.end(),
-                                   CTensorGroup_ada::DeleteCRMECalculatorPtrs());
-                  }
-                  selected_tensors_p_pn.resize(0);
+                    if (!selected_tensors_p_pn.empty()) 
+                      {
+                        std::for_each(selected_tensors_p_pn.begin(), selected_tensors_p_pn.end(),
+                                       CTensorGroup_ada::DeleteCRMECalculatorPtrs());
+                      }
+                    selected_tensors_p_pn.resize(0);
 
-                  gamma_jp.resize(0);
-                  ket.getGamma_p(jp, gamma_jp);
-                  TransformGammaKet_SelectByGammas(
-                      hoShells_p, distr_jp, num_vacuums_J_distr_p, nucleon::PROTON, phasePP,
-                      tensorGroupsPP, phase_p_pn, tensorGroups_p_pn, gamma_ip, gamma_jp,
-                      selected_tensorsPP, selected_tensors_p_pn);
-               }
-            }
+                    gamma_jp.resize(0);
+                    ket.getGamma_p(jp, gamma_jp);
+                    TransformGammaKet_SelectByGammas(
+                        hoShells_p, distr_jp, num_vacuums_J_distr_p, nucleon::PROTON, phasePP,
+                        tensorGroupsPP, phase_p_pn, tensorGroups_p_pn, gamma_ip, gamma_jp,
+                        selected_tensorsPP, selected_tensors_p_pn);
+                 }
+              }
 
             if (deltaP <= 4) 
-            {
-               Reset_rmeCoeffs(rmeCoeffsPP);
-               Reset_rmeIndex(rme_index_p_pn);
+              {
+                Reset_rmeCoeffs(rmeCoeffsPP);
+                Reset_rmeIndex(rme_index_p_pn);
 
-               vW_jp.resize(0);
-               ket.getOmega_p(jp, vW_jp);
-               TransformOmegaKet_CalculateRME(
-                   distr_jp, gamma_ip, vW_ip, gamma_jp, num_vacuums_J_distr_p, selected_tensorsPP,
-                   selected_tensors_p_pn, vW_jp, rmeCoeffsPP, rme_index_p_pn);
-            }
+                vW_jp.resize(0);
+                ket.getOmega_p(jp, vW_jp);
+                TransformOmegaKet_CalculateRME(
+                  distr_jp, gamma_ip, vW_ip, gamma_jp, num_vacuums_J_distr_p, selected_tensorsPP,
+                  selected_tensors_p_pn, vW_jp, rmeCoeffsPP, rme_index_p_pn);
+              }
+
             ilastDistr_p = icurrentDistr_p;
             ilastGamma_p = icurrentGamma_p;
          }
 
-         // std::cout<<"here"<<std::endl;
          if (jn != last_jn) 
-         {
-            icurrentDistr_n = ket.getIndex_n<lsu3::CncsmSU3xSU2Basis::kDistr>(jn);
-            icurrentGamma_n = ket.getIndex_n<lsu3::CncsmSU3xSU2Basis::kGamma>(jn);
+           {
+              icurrentDistr_n = ket.getIndex_n<lsu3::CncsmSU3xSU2Basis::kDistr>(jn);
+              icurrentGamma_n = ket.getIndex_n<lsu3::CncsmSU3xSU2Basis::kGamma>(jn);
 
-            if (ilastDistr_n != icurrentDistr_n) 
-            {
-               distr_in.resize(0);
-               bra.getDistr_n(in, distr_in);
-               gamma_in.resize(0);
-               bra.getGamma_n(in, gamma_in);
-               vW_in.resize(0);
-               bra.getOmega_n(in, vW_in);
+              if (ilastDistr_n != icurrentDistr_n) 
+              {
+                 distr_in.resize(0);
+                 bra.getDistr_n(in, distr_in);
+                 gamma_in.resize(0);
+                 bra.getGamma_n(in, gamma_in);
+                 vW_in.resize(0);
+                 bra.getOmega_n(in, vW_in);
 
-               distr_jn.resize(0);
-               ket.getDistr_n(jn, distr_jn);
-               hoShells_n.resize(0);
-               deltaN = TransformDistributions_SelectByDistribution(
-                   interactionPPNN, interactionPN, distr_in, gamma_in, vW_in, distr_jn, hoShells_n,
-                   num_vacuums_J_distr_n, phaseNN, tensorGroupsNN, phase_n_pn, tensorGroups_n_pn);
-            }
+                 distr_jn.resize(0);
+                 ket.getDistr_n(jn, distr_jn);
+                 hoShells_n.resize(0);
+                 deltaN = TransformDistributions_SelectByDistribution(
+                     interactionPPNN, interactionPN, distr_in, gamma_in, vW_in, distr_jn, hoShells_n,
+                     num_vacuums_J_distr_n, phaseNN, tensorGroupsNN, phase_n_pn, tensorGroups_n_pn);
+              }
 
-            if (ilastGamma_n != icurrentGamma_n || ilastDistr_n != icurrentDistr_n) 
-            {
-               if (deltaN <= 4) 
-               {
-                  if (!selected_tensorsNN.empty()) 
-                  {
-                     std::for_each(selected_tensorsNN.begin(), selected_tensorsNN.end(),
-                                   CTensorGroup::DeleteCRMECalculatorPtrs());
-                  }
-                  selected_tensorsNN.resize(0);
+              if (ilastGamma_n != icurrentGamma_n || ilastDistr_n != icurrentDistr_n) 
+              {
+                 if (deltaN <= 4) 
+                 {
+                    if (!selected_tensorsNN.empty()) 
+                    {
+                       std::for_each(selected_tensorsNN.begin(), selected_tensorsNN.end(),
+                                     CTensorGroup::DeleteCRMECalculatorPtrs());
+                    }
+                    selected_tensorsNN.resize(0);
 
-                  if (!selected_tensors_n_pn.empty()) 
-                  {
-                     std::for_each(selected_tensors_n_pn.begin(), selected_tensors_n_pn.end(),
-                                   CTensorGroup_ada::DeleteCRMECalculatorPtrs());
-                  }
-                  selected_tensors_n_pn.resize(0);
+                    if (!selected_tensors_n_pn.empty()) 
+                    {
+                       std::for_each(selected_tensors_n_pn.begin(), selected_tensors_n_pn.end(),
+                                     CTensorGroup_ada::DeleteCRMECalculatorPtrs());
+                    }
+                    selected_tensors_n_pn.resize(0);
 
-                  gamma_jn.resize(0);
-                  ket.getGamma_n(jn, gamma_jn);
-                  TransformGammaKet_SelectByGammas(
-                      hoShells_n, distr_jn, num_vacuums_J_distr_n, nucleon::NEUTRON, phaseNN,
-                      tensorGroupsNN, phase_n_pn, tensorGroups_n_pn, gamma_in, gamma_jn,
-                      selected_tensorsNN, selected_tensors_n_pn);
-               }
-            }
+                    gamma_jn.resize(0);
+                    ket.getGamma_n(jn, gamma_jn);
+                    TransformGammaKet_SelectByGammas(
+                        hoShells_n, distr_jn, num_vacuums_J_distr_n, nucleon::NEUTRON, phaseNN,
+                        tensorGroupsNN, phase_n_pn, tensorGroups_n_pn, gamma_in, gamma_jn,
+                        selected_tensorsNN, selected_tensors_n_pn);
+                 }
+              }
 
             if (deltaN <= 4) 
             {
@@ -430,7 +480,9 @@ void CalculateRME(
             ilastDistr_n = icurrentDistr_n;
             ilastGamma_n = icurrentGamma_n;
          }
-
+         //////////////////////////////////////////////////////////////////////////////////////////
+         // Iterating over omega S
+         //////////////////////////////////////////////////////////////////////////////////////////
          // loop over wpn that result from coupling ip x in
          int32_t ibegin = bra.blockBegin(ipin_block);
          int32_t iend = bra.blockEnd(ipin_block);
@@ -446,15 +498,7 @@ void CalculateRME(
             {
                SU3xSU2::LABELS omega_pn_J(ket.getOmega_pn(jp, jn, jwpn));
 
-              // std::cout<<fmt::format("({} {})  ({} {})",
-              //   omega_pn_J.lm,omega_pn_J.mu,omega_pn_I.lm,omega_pn_I.mu
-              //   )<<std::endl;
-              // std::cout<<fmt::format("({} {})",w0.lm,w0.mu)<<std::endl;
-              // std::cout<<"mult "<<SU3::mult(omega_pn_J, w0, omega_pn_I)<<std::endl;
-              // std::cout<<fmt::format("spins: {} x {} -> {}",
-              //   omega_pn_J.S2,w0.S2,omega_pn_I.S2)<<std::endl;
-              // std::cout<<"su2 mult "<<SU2::mult(omega_pn_J.S2, w0.S2, omega_pn_I.S2)<<std::endl;
-               if (!SU2::mult(omega_pn_J.S2, w0.S2, omega_pn_I.S2) ||
+                if (!SU2::mult(omega_pn_J.S2, w0.S2, omega_pn_I.S2) ||
                    !SU3::mult(omega_pn_J, w0, omega_pn_I)) 
                {
                   continue;
@@ -502,42 +546,24 @@ void CalculateRME(
                     {
                       std::vector<double> rmes = ComputeRME(rmeCoeffsPNPN);
 
-                      // check if any rmes are above zero threshold
-                      bool nonzero = false;
-                      for (auto rme : rmes) 
-                       {
-                          // Caution: Important to use std::abs() rather than integer abs().
-                          nonzero |= (std::abs(rme) > g_zero_threshold);
-                       }
-
-                      // count rmes
-                      num_rmes_allowed += rmes.size();
-
-                      if (nonzero) 
-                       {
-                          num_groups_nonzero += 1;
-                          num_rmes_nonzero += rmes.size();
-                       }
-
                       int row_index = row_irrep + i;
-                      assert(row_index == static_cast<RMEIndexType>(row_index));
-                      WriteBinary<RMEIndexType>(out_file, row_index);
                       int col_index = col_irrep + j;
-                      assert(col_index == static_cast<RMEIndexType>(col_index));
-                      WriteBinary<RMEIndexType>(out_file, col_index);
-                      assert(rmes.size() == static_cast<RMEIndexType>(rmes.size()));
-                      WriteBinary<RMEIndexType>(out_file, rmes.size());
+
+                      //TEMP
+                      Brel_matrix(row_index,col_index)=rmes[0];
                     }
                }
-            }
-         }
+            } //end ket omega S
+         } //end bra omega S
          col_irrep = col_irrep + ncol_irreps;
          last_jp = jp;
          last_jn = jn;
       }
       row_irrep = row_irrep + nrow_irreps;
+      
    }
-
+   std::cout<<"print B"<<std::endl;
+   std::cout<<Brel_matrix<<std::endl;
    double mpi_tensor_end_iteration_time = MPI_Wtime();
 
    Reset_rmeCoeffs(rmeCoeffsPP);
@@ -547,8 +573,6 @@ void CalculateRME(
    delete[] identityOperatorRMEPP.m_rme;
    delete[] identityOperatorRMENN.m_rme;
  
-    out_file.close();
-
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -571,7 +595,7 @@ int main(int argc, char **argv)
   std::cout<<operator_base_name<<std::endl;
   
   //////////////////////////////////////////////////////////////////////////////////////////
-  // For some reason this cannot be part of a function
+  // CInteraction
   //////////////////////////////////////////////////////////////////////////////////////////
   MPI_Init(&argc, &argv);
 
@@ -622,9 +646,11 @@ int main(int argc, char **argv)
       
       // bra model space consists of U(3)SpSnS subspace corresponding to LGI plus subspaces connected by B[-2(0,2)]. 
       // Iterate over lgi_vector and add connected subspaces to map
+      std::cout<<"LGI: "<<lgi.Str()<<std::endl;
       std::map<int,std::map<std::pair<int,int>,std::map<int,SU3_VEC>>> model_space_map_bra;
       for(const auto&[lgi_p,dim_p] : lgi_vector)
         {
+          // std::cout<<"lgi: "<<lgi.Str()<<" lgi_p "<<lgi_p.Str()<<std::endl;
           const auto&[Nex_p,sigma_p,Sp_p,Sn_p,S_p]=lgi_p.Key();
           
           // Apply selection rule 
@@ -635,17 +661,18 @@ int main(int argc, char **argv)
           if(u3::OuterMultiplicity(sigma.SU3(),u3::SU3(0,2),sigma_p.SU3())==0) {continue;}
           
           //If passed all selection rules, add to bra spaces 
+          std::cout<<sigma.Str()<<std::endl;
           SU3::LABELS w(1,sigma_p.SU3().lambda(),sigma_p.SU3().mu());
           model_space_map_bra[Nex_p][{TwiceValue(Sp_p),TwiceValue(Sn_p)}][TwiceValue(S_p)].push_back(w);
         }
-      std::cout<<"bra model space "<<std::endl;
-      for(const auto& [N,temp1] : model_space_map_bra)
-        for(const auto& [SPN,temp2] : temp1)
-          for(const auto& [S,su3_vec] : temp2)
-            for(const auto& [rho,lm,mu] : su3_vec)
-            {
-              std::cout<<fmt::format("    {} ({} {}) {}",N,lm,mu,S)<<std::endl;
-            }
+      // std::cout<<"bra model space "<<std::endl;
+      // for(const auto& [N,temp1] : model_space_map_bra)
+      //   for(const auto& [SPN,temp2] : temp1)
+      //     for(const auto& [S,su3_vec] : temp2)
+      //       for(const auto& [rho,lm,mu] : su3_vec)
+      //       {
+      //         std::cout<<fmt::format("    {} ({} {}) {}",N,lm,mu,S)<<std::endl;
+      //       }
 
       // Generate bra model space with augment model_space_map
       proton_neutron::ModelSpace bra_ncsmModelSpace(Z,N,model_space_map_bra);
@@ -658,10 +685,9 @@ int main(int argc, char **argv)
       ket.ConstructBasis(ket_ncsmModelSpace, jdiag, ndiag);
 
       // Construct bra basis from model space
-      // int jdiag=0; ndiag=1;
-      // std::cout<<"construct bra"<<std::endl;
       lsu3::CncsmSU3xSU2Basis bra;
       bra.ConstructBasis(bra_ncsmModelSpace, jdiag, ndiag);
+
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Actual calculation
       ////////////////////////////////////////////////////////////////////////////////////////////////

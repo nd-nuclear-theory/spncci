@@ -587,7 +587,7 @@ int main(int argc, char **argv)
             std::cout<<"num eigenvalues :"<<run_parameters.num_eigenvalues<<std::endl;
             std::cout<<"num convergence :"<<run_parameters.eigensolver_num_convergence<<std::endl;
             std::cout<<"basis dimension :"<<hamiltonian_matrix.rows()<<std::endl;
-            spncci::SolveHamiltonian(
+            spncci::SolveEigenproblem(
                 hamiltonian_matrix,
                 run_parameters.num_eigenvalues,
                 run_parameters.eigensolver_num_convergence,  // whatever exactly this is...

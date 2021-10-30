@@ -19,8 +19,8 @@
 namespace spncci
 {
   void
-  SolveHamiltonian(
-      const spncci::OperatorBlock& hamiltonian_matrix,
+  SolveEigenproblem(
+      const spncci::OperatorBlock& matrix,
       int num_eigenvalues,
       int eigensolver_num_convergence,
       int eigensolver_max_iterations,
@@ -42,7 +42,7 @@ namespace spncci
     // than or equal to the matrix dimension ("ncv must satisfy nev <
     // ncv <= n, n is the size of matrix")
 
-    int hamiltonian_dimension = hamiltonian_matrix.rows();
+    int hamiltonian_dimension = matrix.rows();
     int actual_num_eigenvalues = std::min(num_eigenvalues,hamiltonian_dimension);
     if (hamiltonian_dimension==0)
       {
@@ -62,7 +62,7 @@ namespace spncci
           std::cout << "  Using solver: Eigen::SelfAdjointEigenSolver" << std::endl;
 
         // define eigensolver and compute
-        Eigen::SelfAdjointEigenSolver<spncci::OperatorBlock> eigensolver(hamiltonian_matrix);
+        Eigen::SelfAdjointEigenSolver<spncci::OperatorBlock> eigensolver(matrix);
 
         // verify status
         //
@@ -87,8 +87,8 @@ namespace spncci
         assert(eigensolver_status==Eigen::Success);
 
         // save eigenresults
-        eigenvalues = eigensolver.eigenvalues();
-        eigenvectors = eigensolver.eigenvectors();
+        eigenvalues = eigensolver.eigenvalues().block(0,0,actual_num_eigenvalues,1);
+        eigenvectors = eigensolver.eigenvectors().block(0,0,matrix.rows(),actual_num_eigenvalues);
       }
     else
       // use Spectra::SymEigsSolver
@@ -97,7 +97,7 @@ namespace spncci
           std::cout << "  Using solver: Spectra::SymEigsSolver" << std::endl;
 
         // define eigensolver and compute
-        Spectra::DenseSymMatProd<spncci::MatrixFloatType> matvec(hamiltonian_matrix);
+        Spectra::DenseSymMatProd<spncci::MatrixFloatType> matvec(matrix);
         Spectra::SymEigsSolver<spncci::MatrixFloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<spncci::MatrixFloatType>>
           eigensolver(
               &matvec,
@@ -162,18 +162,18 @@ namespace spncci
   }
 
 
- void WriteMatrixToFile(spncci::OperatorBlock& hamiltonian_matrix, double hw)
+ void WriteMatrixToFile(spncci::OperatorBlock& matrix, double hw)
     {
-      std::string filename=fmt::format("hamiltonian_matrix{:0.1f}.out",hw);
+      std::string filename=fmt::format("matrix{:0.1f}.out",hw);
       std::ofstream stream(filename);
-      int rows=hamiltonian_matrix.rows();
+      int rows=matrix.rows();
       stream<<rows<<std::endl;
-      stream<<hamiltonian_matrix<<std::endl;
+      stream<<matrix<<std::endl;
 
       // for(int row=0; row<rows; ++row)
       //   for(int col=0; col<rows; ++col)
       //     {
-      //       stream<<hamiltonian_matrix(row,col);
+      //       stream<<matrix(row,col);
       //     }
 
       // stream.close();

@@ -160,7 +160,7 @@ MultiplicityTaggedLGIVector get_lgi_vector(
   // Initialize lgi_dimension with cmf U3SPN dimensions from lsu3shell basis
   std::map<u3shell::U3SPN, unsigned int>
   lgi_dimensions = lsu3shell::lsu3shell_cmf_basis_dimensions(nuclide,Nsigma0,Nmax);
-
+  std::cout<<"lgi_dimensions "<<lgi_dimensions.size()<<std::endl;
 
   // Iterate through basis and identify LGI dimension by substracting
   // U(3) irreps obtained by laddering from lower grade LGI.

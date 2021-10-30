@@ -128,9 +128,7 @@ void test_lsu3shell_basis_generated_within_spncci()
       
       lsu3::CncsmSU3xSU2Basis basis;
       basis.ConstructBasis(model_space,0,1);
-
-      const uint32_t number_ipin_blocks = basis.NumberOfBlocks();
-      unsigned int num_irreps = lsu3shell::get_num_ncsmsU3xSU3Basis_irreps(basis); 
+      unsigned int num_irreps = lsu3shell::get_num_U3PNSPN_irreps(basis); 
       
       std::cout<<"total num irreps "<<num_irreps<<std::endl;
     }

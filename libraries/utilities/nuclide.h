@@ -23,6 +23,38 @@ namespace nuclide
 {
 using NuclideType = std::array<int,2>;
 
+
+inline unsigned int N0ForNuclide(const NuclideType& nuclide)
+// Calculate N0 for nuclide.
+//
+// Arguments:
+//   nuclide (input): (N,Z) for nucleus
+//
+// Returns:
+//   N0
+
+{
+  // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
+  unsigned int N0 = 0;
+  for (int species_index : {0,1})
+    {
+      int num_particles = nuclide[species_index];
+      for (int eta=0; num_particles>0; ++eta)
+        {
+          // add contribution from particles in shell
+          int shell_degeneracy = (eta+1)*(eta+2);
+          int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
+          N0 += num_particles_in_shell*eta;
+
+          // discard particles in shell
+          num_particles -= num_particles_in_shell;
+        }
+    }
+  // If intrinsic remove cm zero point energy 3/2
+  return N0;
+}
+
+
 inline HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false)
 // Calculate Nsigma0 for nuclide.
 //
@@ -50,26 +82,8 @@ inline HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=fals
 //   Nsigma0
 
 {
-  // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
-  HalfInt Nsigma0 = 0;
-  for (int species_index : {0,1})
-    {
-      int num_particles = nuclide[species_index];
-      for (int eta=0; num_particles>0; ++eta)
-        {
-          // add contribution from particles in shell
-          int shell_degeneracy = (eta+1)*(eta+2);
-          int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
-          // want num_particles_in_shell*(eta+HalfInt(3,2)), but HalfInt does not provide multiplication
-          Nsigma0 += HalfInt(num_particles_in_shell*(2*eta+3),2);
-
-          // discard particles in shell
-          num_particles -= num_particles_in_shell;
-        }
-    }
-  // If intrinsic remove cm zero point energy 3/2
-  if(intrinsic)
-    Nsigma0=Nsigma0-HalfInt(3,2);
+  const auto&[Z,N] = nuclide;
+  HalfInt Nsigma0 = N0ForNuclide(nuclide)+HalfInt(3*(N+Z),2);
   return Nsigma0;
 }
 

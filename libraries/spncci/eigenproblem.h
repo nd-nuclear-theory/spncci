@@ -22,8 +22,8 @@
 namespace spncci
 {
  void 
-  SolveHamiltonian(
-      const spncci::OperatorBlock& hamiltonian_matrix,
+  SolveEigenproblem(
+      const spncci::OperatorBlock& matrix,
       int num_eigenvalues,
       int eigensolver_num_convergence,
       int eigensolver_max_iterations,
