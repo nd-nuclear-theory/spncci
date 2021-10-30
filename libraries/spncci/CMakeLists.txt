@@ -90,6 +90,7 @@ install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
 set(spncci_UNITS_TEST
     recurrence_indexing_test
     recurrence_seeds_test
+    recurrence_spatial_test
 )
 
 add_custom_target(spncci_tests)
@@ -106,6 +107,10 @@ target_link_libraries(
 target_link_libraries(
   recurrence_seeds_test PRIVATE fmt::fmt am::am spncci::lgi
                                 cppitertools::cppitertools spncci::spncci
+)
+target_link_libraries(
+  recurrence_spatial_test PRIVATE fmt::fmt am::am spncci::lgi
+                                   cppitertools::cppitertools spncci::spncci
 )
 
 if(SPNCCI_MASTER_PROJECT)

@@ -13,7 +13,8 @@
 #include "mcutils/profiling.h"
 
 #include "spncci/results_output.h"
-
+// #include "lsu3shell/lsu3shell_basis.h"
+#include "lsu3shell/lsu3shell_rme.h"
 
 namespace spncci
 {

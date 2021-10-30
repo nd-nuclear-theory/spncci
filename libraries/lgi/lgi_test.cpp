@@ -8,15 +8,21 @@
 
   3/7/16 (aem,mac): Created.
   2/15/18 (aem): Update tests for Nsigma0ForNuclide and ReadLGISet
+  10/24/21 (aem): Add test for lgi vector construction using lsu3shell
 ****************************************************************/
 #include "lgi/lgi.h"
+
+#include <cstdlib>
 
 #include "am/halfint.h"
 #include "am/halfint_fmt.h"
 #include "fmt/format.h"
+#include "utilities/nuclide.h"
+#include "utilities/utilities.h"
 
 int main(int argc, char **argv)
 {
+	
 	u3::U3 omega(16,u3::SU3(4,0));
 	HalfInt S=0, Sp=0, Sn=0;
 	u3::U3S u3s(omega,S);
@@ -24,24 +30,41 @@ int main(int argc, char **argv)
 	u3shell::U3SPN u3spn2(omega,S,Sp,Sn);
 	lgi::LGI lgi(u3spn,0);
 	std::cout<<lgi.Str()<<std::endl;
-	std::string filename="../../data/lgi_set/lgi_test.dat";
+
+	// Read in lgi vector from file
+	std::string spncci_root_dir=get_spncci_project_root_dir();
+	std::string filename=fmt::format("{}/spncci/data/lgi_set/lgi_test_full.dat",spncci_root_dir);
 	lgi::MultiplicityTaggedLGIVector lgi_vector;
 	std::cout<<"lgi's from lgi_test.dat"<<std::endl;
-	HalfInt Nsigma0=lgi::Nsigma0ForNuclide({3,3});
+	HalfInt Nsigma0=nuclide::Nsigma0ForNuclide({3,3});
 	std::cout<<"Nsigma0 "<<Nsigma0<<std::endl;
-	ReadLGISet(filename, Nsigma0,lgi_vector);
-	for(auto lgi : lgi_vector)
-		std::cout<<lgi.irrep.Str()<<"  "<<lgi.tag<<std::endl;
+	lgi::ReadLGISet(filename, Nsigma0,lgi_vector);
 
+	//// Construct lgi vector directly from lsu3shell basis using counting arguments
+	std::cout<<"List of lgi's generated using lsu3shell basis constructors 6Li"<<std::endl;
+	nuclide::NuclideType nuclide({3,3});
+	int Nmax=2;
+	lgi::MultiplicityTaggedLGIVector lgi_vector2 = lgi::get_lgi_vector(nuclide, Nsigma0,Nmax);
 
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//To compare lgi input file generated with old ordering, need to change ordering, 
+	// so turn lgi_vector into map which does sorting and then write back to vector in new order.
+	std::map<lgi::LGI,int> temp_map;
+	for(const auto& lgi : lgi_vector)
+		temp_map[lgi.irrep]=lgi.tag;
 
-  std::cout << "Nsigma0ForNuclide" << std::endl;
-  std::cout
-    << fmt::format(
-        "3He {} 6Li {}",
-        lgi::Nsigma0ForNuclide({2,1}),
-        lgi::Nsigma0ForNuclide({3,3})
-      )
-    << std::endl;
+	lgi_vector.resize(0);
+	for(auto lgi : temp_map)
+		lgi_vector.emplace_back(lgi.first,lgi.second);
 
+	for(int i=0; i<lgi_vector.size(); ++i)
+		{
+			if (not ((lgi_vector[i].irrep==lgi_vector2[i].irrep)&(lgi_vector[i].tag==lgi_vector2[i].tag)))
+				std::cout<<"ERROR"<<std::endl;
+			std::cout<<fmt::format("{}  {:6d}   {}  {:6d}", 
+				lgi_vector[i].irrep.Str(),lgi_vector[i].tag,
+				lgi_vector2[i].irrep.Str(),lgi_vector2[i].tag
+			)<<std::endl;
+		}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

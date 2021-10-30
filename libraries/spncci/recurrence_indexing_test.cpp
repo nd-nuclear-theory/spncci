@@ -36,7 +36,7 @@ int main(int argc, char** argv)
   std::string filename = argv[1];
   // "../../data/lgi_set/lgi_test.dat";  // test file in data/lgi_set/lgi_test.dat
   lgi::MultiplicityTaggedLGIVector lgi_vector;
-  HalfInt Nsigma0 = lgi::Nsigma0ForNuclide({3, 3});
+  HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide({3, 3});
   int N1v = 1;
   int Nmax = std::stoi(argv[2]);
   lgi::ReadLGISet(filename, Nsigma0, lgi_vector);

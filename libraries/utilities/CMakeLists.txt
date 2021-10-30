@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
-set(utilities_headers utilities.h)
+set(utilities_headers utilities.h nuclide.h)
+#set(utilities_headers nuclide.h)
 # set(utilities_sources "")  # no sources -- INTERFACE library
 
 # define am library and add source files
@@ -12,7 +13,7 @@ add_library(spncci::utilities ALIAS utilities)
 # link dependencies
 # ##############################################################################
 
-target_link_libraries(utilities INTERFACE basis::basis Eigen3::Eigen GSL::gsl)
+target_link_libraries(utilities INTERFACE basis::basis Eigen3::Eigen GSL::gsl am::am)
 
 # ##############################################################################
 # define include directory

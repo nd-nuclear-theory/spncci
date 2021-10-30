@@ -33,37 +33,37 @@
 namespace lgi
 {
 
-  ////////////////////////////////////////////////////////////////
-  // Calculation of Nsigma0
-  ////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////
+  // // Calculation of Nsigma0
+  // ////////////////////////////////////////////////////////////////
 
-  typedef std::array<int,2> NuclideType;
+  // typedef std::array<int,2> NuclideType;
 
-  HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false);
-  // Calculate Nsigma0 for nuclide.
-  //
-  // This may be thought of as the dimensionless "oscillator energy in
-  // the lowest Pauli-allowed configuration", including zero-point
-  // energy.
-  //
-  // Example:
-  //
-  //   spncci::Nsigma0ForNuclide({3,3});
-  //
-  //      => returns 11
-  //
-  // Note that this is shorthand for
-  //
-  //   spncci::Nsigma0ForNuclide(spncci::NuclideType({3,3}))
-  //
-  // made possible by automatic conversion from initializer list to
-  // array.
-  //
-  // Arguments:
-  //   nuclide (input): (N,Z) for nucleus
-  //
-  // Returns:
-  //   Nsigma0
+  // inline HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false);
+  // // Calculate Nsigma0 for nuclide.
+  // //
+  // // This may be thought of as the dimensionless "oscillator energy in
+  // // the lowest Pauli-allowed configuration", including zero-point
+  // // energy.
+  // //
+  // // Example:
+  // //
+  // //   spncci::Nsigma0ForNuclide({3,3});
+  // //
+  // //      => returns 11
+  // //
+  // // Note that this is shorthand for
+  // //
+  // //   spncci::Nsigma0ForNuclide(spncci::NuclideType({3,3}))
+  // //
+  // // made possible by automatic conversion from initializer list to
+  // // array.
+  // //
+  // // Arguments:
+  // //   nuclide (input): (N,Z) for nucleus
+  // //
+  // // Returns:
+  // //   Nsigma0
 
 
   ////////////////////////////////////////////////////////////////
@@ -223,6 +223,12 @@ namespace lgi
  void ReadLGILookUpTable(std::vector<int>& lgi_full_space_lookup_table, int num_irrep_families);
   // Reading in and filling out table of lgi indices in basis and lgi indices in full space by
   // which the seed files are labeled.
+
+  MultiplicityTaggedLGIVector get_lgi_vector(
+      const nuclide::NuclideType& nuclide, 
+      const HalfInt& Nsigma0,
+      const int& Nmax
+    );
 
 
 }  // namespace lgi

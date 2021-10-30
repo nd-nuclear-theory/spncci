@@ -115,6 +115,12 @@ namespace u3shell {
       return KeyType(omegaS_,Sp_,Sn_);
     }
 
+    inline std::tuple<u3::U3,HalfInt,HalfInt,HalfInt> FlatKey() const
+    {
+      return {U3(),Sp_,Sn_,S()};
+    }
+
+
     inline friend bool operator == (const U3SPN& omegaS1, const U3SPN& omegaS2)
     {
       return omegaS1.Key() == omegaS2.Key();

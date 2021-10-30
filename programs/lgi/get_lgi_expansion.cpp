@@ -121,8 +121,8 @@ int main(int argc, char **argv)
   std::string lsu3shell_basis_filename=su3rme_filename_base+"/lsu3shell_basis.dat"; // Will need to include path to file
 
   // Generate Nsigma0 and N1v from nuclei and type 
-  HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
-  int N1v=spncci::ValenceShellForNuclide(nuclide);
+  HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide,intrinsic);
+  int N1v=nuclide::ValenceShellForNuclide(nuclide);
   
   // Operator parameters
   std::string Brel_filename=su3rme_filename_base+"/Brel.rme";

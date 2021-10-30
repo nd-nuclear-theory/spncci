@@ -15,6 +15,8 @@
 #include <algorithm>
 
 #include "fmt/format.h"
+#include "LSU3/ncsmSU3xSU2Basis.h"
+#include "mcutils/parsing.h"
 
 namespace lsu3shell
 {
@@ -112,6 +114,189 @@ namespace lsu3shell
 
   }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-}// end namespace
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Functions calling lsu3shell directly
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void read_lsu3shell_basis_dimensions(
+  const std::string& input_filename,
+  const HalfInt& Nsigma0, const int Nmax,
+  std::map<u3shell::U3SPN, lsu3shell::Dimensions>& u3spn_dimensions
+  )
+  {
+    // input from a file
+    std::ifstream file(input_filename);
+    //  int N_ex_max=0;
+    std::string line;
+    int line_count = 0;
+    int input_Nmax = 0;
+    while (mcutils::GetLine(file,line, line_count))
+      {
+        std::istringstream line_stream(line);
+        int N_ex, twice_Sp, twice_Sn, twice_S, lambda, mu, dim_tot;
+        line_stream >> N_ex >> lambda >> mu >> twice_Sp >> twice_Sn >> twice_S >> dim_tot;
+        mcutils::ParsingCheck(line_stream,line_count,line);
+        input_Nmax = std::max(input_Nmax, N_ex);
+
+        if (N_ex>Nmax)
+          continue;
+
+        HalfInt Sp(twice_Sp, 2), Sn(twice_Sn, 2), S(twice_S, 2);
+        u3shell::U3SPN irrep({N_ex + Nsigma0, {lambda,mu}}, Sp, Sn, S);
+        lsu3shell::Dimensions irrep_dimensions(dim_tot, dim_tot, dim_tot);
+        u3spn_dimensions[irrep] = irrep_dimensions;
+      }
+    if (input_Nmax<Nmax)
+      std::cout<<fmt::format("Warning:\n Nmax of input: {}\n Nmax requested: {}",input_Nmax,Nmax)<<std::endl;
+    file.close();
+
+
+  // Sanity check
+  for (std::map<u3shell::U3SPN, lsu3shell::Dimensions>::iterator it = u3spn_dimensions.begin();
+       it != u3spn_dimensions.end(); ++it)
+    {
+      bool valid_dimensions=true;
+      const lsu3shell::Dimensions& dimensions=it->second;
+      valid_dimensions &= (dimensions.total > 0);
+      valid_dimensions &= (dimensions.cmf > 0);
+      valid_dimensions &= (dimensions.LGI > 0);
+
+      if(not valid_dimensions)
+        std::cout<<fmt::format("Sanity check failed for {}\n Dimensions are: {}  {}  {}",it->first.Str(),dimensions.total,dimensions.cmf,dimensions.LGI)<<std::endl;
+      assert(valid_dimensions);
+    }
+  }
+
+
+
+  std::map<u3shell::U3SPN,unsigned int> lsu3shell_basis_dimensions(
+    const nuclide::NuclideType& nuclide, 
+    const HalfInt& Nsigma0,
+    const int& Nmax
+  )
+  // For a given Nucleus, determine number of U(3)SpSnS irreps in an Nmax truncated basis
+  {
+    const auto&[Z,N]=nuclide;
+    std::map<u3shell::U3SPN,unsigned int> basis_dimensions;
+    for(int Nex=0; Nex<=Nmax; ++Nex)
+    {
+      //SU3ME/proton_neutron_ncsmSU3Basis.h
+      proton_neutron::ModelSpace lsu3shell_model_space(Z,N,Nex);
+      
+      //LSU3/ncsmSU3xSU2Basis.cpp
+      int idiag=0; int ndiag=1;
+      lsu3::CncsmSU3xSU2Basis lsu3shell_basis(lsu3shell_model_space, idiag, ndiag);
+
+      // Iterate over basis and regroup by Nex,lambda,mu,Sp,Sn,S
+      //  loop over (ip, in) pairs
+      for (int ipin_block = 0; ipin_block < lsu3shell_basis.NumberOfBlocks(); ipin_block++) 
+        {
+          // If block is empty, continue
+          if (!lsu3shell_basis.NumberOfStatesInBlock(ipin_block)) {continue;}
+          
+          unsigned int ip = lsu3shell_basis.getProtonIrrepId(ipin_block);
+          unsigned int in = lsu3shell_basis.getNeutronIrrepId(ipin_block);
+          unsigned int Nex = lsu3shell_basis.nhw_p(ip) + lsu3shell_basis.nhw_n(in);
+
+          unsigned int alpha_p_max = lsu3shell_basis.getMult_p(ip);
+          unsigned int alpha_n_max = lsu3shell_basis.getMult_n(in);
+
+          HalfInt Sp(lsu3shell_basis.getProtonSU3xSU2(ip).S2,2);
+          HalfInt Sn(lsu3shell_basis.getNeutronSU3xSU2(in).S2,2);
+
+          for (int iwpn = lsu3shell_basis.blockBegin(ipin_block); iwpn < lsu3shell_basis.blockEnd(ipin_block); ++iwpn) 
+            {
+              const auto& omega_pn = lsu3shell_basis.getOmega_pn(ip, in, iwpn);
+              HalfInt S(omega_pn.S2,2);
+              u3::U3 omega(Nex+Nsigma0, {omega_pn.lm,omega_pn.mu});
+              unsigned int dim=alpha_n_max*alpha_p_max*omega_pn.rho;
+              u3shell::U3SPN omegaSPN({omega,S},Sp,Sn);
+              basis_dimensions[omegaSPN]+=dim;
+            }
+        }
+    }
+    return basis_dimensions;
+  }
+
+
+  std::map<u3shell::U3SPN, unsigned int>
+  lsu3shell_cmf_basis_dimensions(
+    const HalfInt& Nsigma0,
+    const int& Nmax, 
+    const std::map<u3shell::U3SPN, unsigned int>& u3spn_dimensions
+    )
+  {
+    std::map<u3shell::U3SPN, unsigned int> u3spn_cmf_dimensions;
+    // Populate cmf dimensions map with cm contaiminated u3spn dimensions
+    for(const auto& pair : u3spn_dimensions)
+      u3spn_cmf_dimensions[pair.first]=pair.second;
+
+    // Iterate through the lsu3shell basis and remove CM contaminated states
+    for(int Nex=0; Nex<=Nmax; ++Nex)
+      for(const auto& irrep_dimensions : u3spn_cmf_dimensions)
+        {
+          const auto& [omega,Sp,Sn,S] = irrep_dimensions.first.FlatKey();
+          const auto& dimension=irrep_dimensions.second;
+
+          int Ncm_max=Nmax-Nex;
+          if( (omega.N()-Nsigma0) == Nex)
+            for(int Ncm=1; Ncm<=Ncm_max; Ncm++)
+              {
+                u3::U3 wcm(Ncm,u3::SU3(Ncm,0));
+                MultiplicityTagged<u3::U3>::vector cm_omegas_tagged = u3::KroneckerProduct(omega,wcm);
+                for(const auto& omega_cm_tagged : cm_omegas_tagged)
+                  {
+                    u3shell::U3SPN u3spn_cm(omega_cm_tagged.irrep,Sp,Sn,S);
+                    if(u3spn_dimensions.count(u3spn_cm)>0)
+                      {
+                        u3spn_cmf_dimensions[u3spn_cm] -= dimension * omega_cm_tagged.tag;
+                        // std::cout<<u3spn_cm.Str()<<"  "<<u3spn_cmf_dimensions[u3spn_cm]<<std::endl;
+                      }
+                  }
+              }
+        }
+
+    return u3spn_cmf_dimensions;
+  }
+
+
+  std::map<u3shell::U3SPN, unsigned int>
+  lsu3shell_cmf_basis_dimensions(
+    const nuclide::NuclideType& nuclide, 
+    const HalfInt& Nsigma0,
+    const int& Nmax
+  )
+  {
+    // initial with all lsu3shell dimensions
+     std::map<u3shell::U3SPN,unsigned int> u3spn_cmf_dimensions
+      =lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
+
+    // Iterate through the lsu3shell basis and remove CM contaminated states
+    for(int Nex=0; Nex<=Nmax; ++Nex)
+      for(const auto& irrep_dimensions : u3spn_cmf_dimensions)
+        {
+          const auto& [omega,Sp,Sn,S] = irrep_dimensions.first.FlatKey();
+          const auto& dimension=irrep_dimensions.second;
+
+          int Ncm_max=Nmax-Nex;
+          if( (omega.N()-Nsigma0) == Nex)
+            for(int Ncm=1; Ncm<=Ncm_max; Ncm++)
+              {
+                u3::U3 wcm(Ncm,u3::SU3(Ncm,0));
+                MultiplicityTagged<u3::U3>::vector cm_omegas_tagged = u3::KroneckerProduct(omega,wcm);
+                for(const auto& omega_cm_tagged : cm_omegas_tagged)
+                  {
+                    u3shell::U3SPN u3spn_cm(omega_cm_tagged.irrep,Sp,Sn,S);
+                    u3spn_cmf_dimensions[u3spn_cm] -= dimension * omega_cm_tagged.tag;
+                  }
+              }
+        }
+
+    return u3spn_cmf_dimensions;
+  }
+
+
+
+}// end namespace 
+

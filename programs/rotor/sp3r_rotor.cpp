@@ -89,10 +89,10 @@ int main(int argc, char **argv)
   // coef=sqrt(15.0/16/pi)*b2;
 
   //7Be ground state band
-  lgi::NuclideType nuclei;
+  nuclide::NuclideType nuclei;
   nuclei[0]=4;
   nuclei[1]=3;
-  HalfInt N0=lgi::Nsigma0ForNuclide(nuclei,true);
+  HalfInt N0=nuclide::Nsigma0ForNuclide(nuclei,true);
   std::cout<<"N0 "<<N0<<std::endl;
 
   u3::U3 sigma(N0,u3::SU3(3,0));

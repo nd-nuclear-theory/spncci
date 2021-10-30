@@ -600,7 +600,7 @@ void WriteTruncatedLGIs(
     bool intrinsic=true;
     std::string lgi_filename="lgi_families.dat";
     lgi::MultiplicityTaggedLGIVector lgi_families;
-    HalfInt Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
+    HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide,intrinsic);
     lgi::ReadLGISet(lgi_filename, Nsigma0,lgi_families);
 
     //  Getting new LGI family list after transformation and truncation

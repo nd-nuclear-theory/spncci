@@ -56,6 +56,7 @@
 #include "mcutils/profiling.h"
 #include "mcutils/eigen.h"
 #include "spncci/explicit_construction.h"
+#include "utilities/nuclide.h"
 
 ////////////////////////////////////////////////////////////////
 // explicit construction checks
@@ -151,13 +152,13 @@ RunParameters::RunParameters()
 {
   // basis parameters
   
-  std::array<int,2> nuclide;
+  nuclide::NuclideType nuclide;
   nuclide[0]=2;
   nuclide[1]=1;
   A =nuclide[0]+nuclide[1];
 
   bool intrinsic=true;
-  Nsigma0 = lgi::Nsigma0ForNuclide(nuclide,intrinsic);
+  Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide,intrinsic);
   std::cout<<"nuclide ("<<nuclide[0]<<","<<nuclide[1]<<")  Nsigma0 "<<Nsigma0<<std::endl;
 
   // Nsigma0_ex_max = 2;
