@@ -20,7 +20,10 @@ elseif(SPNCCI_SU3_LIBRARY STREQUAL "ndsu3lib")
 elseif(SPNCCI_SU3_LIBRARY STREQUAL "SU3lib")
   find_package(SU3lib REQUIRED)
   add_library(spncci::su3_library ALIAS SU3lib::SU3lib)
+else()
+  message(FATAL_ERROR "unknown SU(3) coefficient library ${SPNCCI_SU3_LIBRARY}")
 endif()
+message(STATUS "Found SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
 
 
 # ##############################################################################
