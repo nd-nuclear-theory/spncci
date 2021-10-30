@@ -2,7 +2,7 @@
   u3coef.cpp
 
   SU(3) coupling coefficient wrappers for Akiyama and Draayer su3lib.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -19,7 +19,28 @@
 
 namespace u3
 {
-  
+
+  ////////////////////////////////////////////////////////////////
+  // direct access to su3lib FORTRAN subroutines
+  ////////////////////////////////////////////////////////////////
+
+  namespace su3lib
+  {
+
+    const size_t MAX_K = 9;
+
+    // Subroutines of original Fortran SU(3) library
+    extern "C"
+    {
+      extern void wu3r3w_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[MAX_K][MAX_K][MAX_K][MAX_K]);
+      extern void wru3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
+      extern void wzu3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
+      extern void wu39lm_(const int&, const int& , const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, double[], const int&);
+      extern void blocks_(void);
+    }
+
+  } //namespace
+
   void U3CoefInit()
   {
     su3lib::blocks_();
@@ -32,7 +53,7 @@ namespace u3
     memset(w_array,0,sizeof(w_array));
     //su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, r0,1,1,1, w_array);
     // arguements in positions 10-13 are dummy variables which are set in code; Will return max value if variable is passed.
-    // that is 
+    // that is
     //   r0=1;
     //   su3lib::wu3r3w_(x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x3.lambda(), x3.mu(), L1 , L2, L3, rho_max,1,1,1, w_array);
     //   now r0=rho_max;
@@ -49,7 +70,7 @@ namespace u3
     int r12_3_max = u3::OuterMultiplicity(x12,x3,x);
     int r23_max = u3::OuterMultiplicity(x2,x3,x23);
     int r1_23_max = u3::OuterMultiplicity(x1,x23,x);
-      
+
     return UMultiplicityTuple(r12_max,r12_3_max,r23_max,r1_23_max);
 
   }
@@ -69,7 +90,7 @@ namespace u3
   // Arguments:
   //   x1, x2,x3 (u3::SU3): SU3 labels for coupling coefficient
   //   L1,L2, L3 (int): SO(3) labels for coupling coefficient
-  //  
+  //
   // Returns:
   //   (WMultiplicityTuple): tuple of multiplicities (rho_max,kappa1_max,kappa2_max,kappa3_max)
 
@@ -88,7 +109,7 @@ namespace u3
     int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
     // std::cout<<fmt::format("{} {} {} {}",r12_max,r12_3_max,r23_max,r1_23_max)<<std::endl;
     assert(r_max > 0);
- 
+
     // compute block of coefficients
     std::vector<double> u_array(r_max);
     if (mode == UZMode::kU)
@@ -96,7 +117,7 @@ namespace u3
         //        su3lib::wru3optimized_(
         WRU3_FUNCTION(
                       x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                      r12_max, r12_3_max, r23_max, r1_23_max, 
+                      r12_max, r12_3_max, r23_max, r1_23_max,
                       &u_array[0], r_max
                       );
       }
@@ -105,7 +126,7 @@ namespace u3
         // calculate Z
         su3lib::wzu3optimized_(
                                x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                               r12_max, r12_3_max, r23_max, r1_23_max, 
+                               r12_max, r12_3_max, r23_max, r1_23_max,
                                &u_array[0], r_max
                                );
       }
@@ -133,9 +154,9 @@ namespace u3
     double value = u_array[index];
     return value;
   }
-   
+
   double Phi(const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x3, int r, int rp)
-  // Phi phase factor that arrises in chainging the coupling order of SU(3) irreps 
+  // Phi phase factor that arrises in chainging the coupling order of SU(3) irreps
   {
     return Z(x1,u3::SU3(0,0),x3,x2,x1,1,r,x2,1,rp);
   }
@@ -146,7 +167,7 @@ namespace u3
                           const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x12, int r12,
                           const u3::SU3& x3,  const u3::SU3& x4,  const u3::SU3& x34, int r34,
                           const u3::SU3& x13, const u3::SU3& x24, const u3::SU3& x,   int r13_24,
-                          int r13,     int r24,     int r12_34)    
+                          int r13,     int r24,     int r12_34)
   {
     int r12_max=u3::OuterMultiplicity(x1,x2,x12);
     int r34_max=u3::OuterMultiplicity(x3,x4,x34);
@@ -171,7 +192,7 @@ namespace u3
                     x3.lambda(), x3.mu(), x4.lambda(), x4.mu(), x34.lambda(), x34.mu(),
                     x13.lambda(), x13.mu(), x24.lambda(), x24.mu(), x.lambda(), x.mu(),
                     &NLM_array[0],r_max
-                    );    
+                    );
     return NLM_array[index];
   }
 
@@ -185,7 +206,7 @@ namespace u3
        << x12_.Str() << x23_.Str() << "]";
     return ss.str();
   }
-  
+
   UCoefBlock::UCoefBlock(const u3::UCoefLabels& labels)
   {
     // calculate multiplicities
@@ -201,9 +222,9 @@ namespace u3
     // populate vector
     WRU3_FUNCTION(
                   x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                  r12_max_, r12_3_max_, r23_max_, r1_23_max_, 
+                  r12_max_, r12_3_max_, r23_max_, r1_23_max_,
                   &coefs_[0], r_max
-                  ); 
+                  );
   }
 
 
@@ -216,7 +237,7 @@ namespace u3
            &&(r23 <= r23_max_)
            &&(r1_23 <= r1_23_max_)
            );
-    
+
     // calculate index into block
     //
     // build up index, dimension by dimension
@@ -235,7 +256,7 @@ namespace u3
   bool g_u_cache_enabled = true;
 
   double UCached(
-                 u3::UCoefCache& cache, 
+                 u3::UCoefCache& cache,
                  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
                  )
@@ -274,7 +295,7 @@ namespace u3
        << x3_.Str() << L3_ << "]";
     return ss.str();
   }
-  
+
   WCoefBlock::WCoefBlock(const u3::WCoefLabels& labels)
   {
     // calculate multiplicities
@@ -309,7 +330,7 @@ namespace u3
            &&(kappa2 <= kappa2_max_)
            &&(kappa3 <= kappa3_max_)
            );
-    
+
     // calculate index into block
     // equivalent to looking up w_array[k3-1][k2-1][k1-1][r0-1]
     // build up index, dimension by dimension
@@ -327,9 +348,9 @@ namespace u3
   bool g_w_cache_enabled = true;
 
   double WCached(
-                 u3::WCoefCache& cache, 
-                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2, 
-                 const u3::SU3& x3, int kappa3, int L3, int rho 
+                 u3::WCoefCache& cache,
+                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2,
+                 const u3::SU3& x3, int kappa3, int L3, int rho
                  )
   {
     double value;
@@ -341,7 +362,7 @@ namespace u3
         // #pragma omp critical (wcoef)
         {
           if (cache.count(labels)==0)
-            cache[labels]=u3::WCoefBlock(labels);          
+            cache[labels]=u3::WCoefBlock(labels);
         }
         const u3::WCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(kappa1, kappa2, kappa3, rho);
@@ -384,8 +405,8 @@ namespace u3
     int dim=rho_max_*rho_max_;
     cache_.resize(dim);
     su3lib::wzu3optimized_(
-     x1.lambda(), x1.mu(), 0, 0, x3.lambda(), x3.mu(), x2.lambda(), x2.mu(), 
-     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(),rho_dummy, rho_max_, rho_dummy, rho_max_, 
+     x1.lambda(), x1.mu(), 0, 0, x3.lambda(), x3.mu(), x2.lambda(), x2.mu(),
+     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(),rho_dummy, rho_max_, rho_dummy, rho_max_,
      &cache_[0], dim
      );
   }
@@ -394,7 +415,7 @@ namespace u3
   {
     // validate multiplicity indices
     assert((rho1 <= rho_max_)&&(rho2<=rho_max_));
-    
+
     int index = (rho2-1);
     index = index * rho_max_ + (rho1-1);
     // retrieve entry
@@ -404,8 +425,8 @@ namespace u3
   }
 
   double PhiCached(
-         u3::PhiCoefCache& cache, 
-         const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho1, int rho2 
+         u3::PhiCoefCache& cache,
+         const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho1, int rho2
         )
   {
     double value;
@@ -415,10 +436,10 @@ namespace u3
         const u3::PhiCoefLabels labels(x1,x2,x3);
         // #pragma omp critical (phi)
         {
-          if (cache.count(labels)==0)            
+          if (cache.count(labels)==0)
             cache[labels]=u3::PhiCoefBlock(labels);
         }
-        
+
         const u3::PhiCoefBlock& block = cache.at(labels);  // throws exception if entry missing from cache
         value = block.GetCoef(rho1, rho2);
       }
@@ -434,4 +455,4 @@ namespace u3
 
 
 
-} // namespace 
+} // namespace

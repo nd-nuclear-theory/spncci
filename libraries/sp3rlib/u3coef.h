@@ -7,7 +7,7 @@
   calling the function u3::U3CoefInit(), before any su3lib functions
   can be called.  If you get out "nan" values for U(3) coefficients,
   you probably forgot to do this.
-                                  
+
   Anna E. McCoy and Mark A. Caprio
   University of Notre Dame
 
@@ -33,34 +33,13 @@ namespace u3
 {
 
   ////////////////////////////////////////////////////////////////
-  // direct access to su3lib FORTRAN subroutines
-  ////////////////////////////////////////////////////////////////
-
-  namespace su3lib
-  {
-
-    const size_t MAX_K = 9;
-
-    // Subroutines of original Fortran SU(3) library
-    extern "C" 
-    { 
-      extern void wu3r3w_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[MAX_K][MAX_K][MAX_K][MAX_K]);
-      extern void wru3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
-      extern void wzu3optimized_(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, double[], const int&);
-      extern void wu39lm_(const int&, const int& , const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, const int&, const int&, const int& , const int& , const int& , const int&, const int&, const int&, double[], const int&);
-      extern void blocks_(void);
-    }
-
-  } //namespace
-
-  ////////////////////////////////////////////////////////////////
   // wrapper functions for single-coefficient access
   ////////////////////////////////////////////////////////////////
 
   void U3CoefInit();
 
   double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int r0);
-  // Compute SU(3) reduced coupling coefficient, referred to as Wigner coefficient 
+  // Compute SU(3) reduced coupling coefficient, referred to as Wigner coefficient
   //
   // Provides wrapper for su3lib function wu3r3w_
   //
@@ -93,7 +72,7 @@ namespace u3
   // Arguments:
   //   x1, x2,x3 (u3::SU3): SU3 labels for coupling coefficient
   //   L1,L2, L3 (int): SO(3) labels for coupling coefficient
-  //  
+  //
   // Returns:
   //   (WMultiplicityTuple): tuple of multiplicities (kappa1_max,kappa2_max,kappa3_max,rho_max)
 
@@ -137,7 +116,7 @@ namespace u3
   }
 
   double Phi(const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x3, int r, int rp);
-  // Compute Phi phase factor that arrises in chainging the coupling order of SU(3) irreps 
+  // Compute Phi phase factor that arrises in chainging the coupling order of SU(3) irreps
 
   double Unitary9LambdaMu(
                           const u3::SU3& x1,  const u3::SU3& x2,  const u3::SU3& x12, int r12,
@@ -177,7 +156,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
- 
+
     inline KeyType Key() const
     {
       return KeyType(x1_, x2_, x_, x3_, x12_, x23_);
@@ -186,7 +165,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // validation
     ////////////////////////////////////////////////////////////////
-    
+
     inline bool Allowed() const
     // Checks if labels satisfy coupling constraints.
     {
@@ -218,7 +197,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-  
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -266,7 +245,7 @@ namespace u3
     {
       return KeyType(r12_max_,r12_3_max_,r23_max_,r1_23_max_);
     }
- 
+
     ////////////////////////////////////////////////////////////////
     // entry lookup
     ////////////////////////////////////////////////////////////////
@@ -276,7 +255,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-  
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -302,11 +281,11 @@ namespace u3
 
   extern bool g_u_cache_enabled;
   double UCached(
-                 UCoefCache& cache, 
+                 UCoefCache& cache,
                  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
                  );
-  // Cached SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 1x(2x3). 
+  // Cached SU(3) Racah recoupling coefficient for recoupling from (1x2)x3 to 1x(2x3).
   //
   // Global:
   //
@@ -345,7 +324,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
- 
+
     inline KeyType Key() const
     {
       return KeyType(x1_, L1_, x2_, L2_, x3_,  L3_);
@@ -354,7 +333,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // validation
     ////////////////////////////////////////////////////////////////
-    
+
     // inline bool Allowed() const
     // // Checks if labels satisfy coupling constraints.
     // {
@@ -385,7 +364,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-  
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -433,7 +412,7 @@ namespace u3
     {
       return KeyType(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_);
     }
- 
+
     ////////////////////////////////////////////////////////////////
     // entry lookup
     ////////////////////////////////////////////////////////////////
@@ -448,7 +427,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-  
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -458,7 +437,7 @@ namespace u3
   private:
     // multiplicities
     int kappa1_max_,kappa2_max_,kappa3_max_,rho_max_;
-   
+
 
     // coefficient values
     std::vector<double> coefs_;// May need to be changed...
@@ -476,11 +455,11 @@ namespace u3
 
   extern bool g_u_cache_enabled;
   double WCached(
-                 WCoefCache& cache, 
-                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2, 
+                 WCoefCache& cache,
+                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2,
                  const u3::SU3& x3, int kappa3, int L3, int rho
                  );
-  // Cached SU(3) Wigner coupling coefficient for coupling from (1x2)->3. 
+  // Cached SU(3) Wigner coupling coefficient for coupling from (1x2)->3.
   //
   // Global:
   //
@@ -523,7 +502,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
- 
+
     inline KeyType Key() const
     {
       return KeyType(x1_, x2_, x3_);
@@ -550,7 +529,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-  
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -579,7 +558,7 @@ namespace u3
     // Construct and store multiplicites and coefficient values
 
     PhiCoefBlock(const u3::PhiCoefLabels& labels);
- 
+
     ////////////////////////////////////////////////////////////////
     // entry lookup
     ////////////////////////////////////////////////////////////////
@@ -594,7 +573,7 @@ namespace u3
     ////////////////////////////////////////////////////////////////
     // string conversion
     ////////////////////////////////////////////////////////////////
-  
+
     std::string Str() const;
 
     ////////////////////////////////////////////////////////////////
@@ -604,7 +583,7 @@ namespace u3
   private:
     // multiplicities
     int rho_max_;
-   
+
     // coefficient values
     std::vector<double> cache_;
   };
@@ -612,14 +591,14 @@ namespace u3
   typedef std::unordered_map<
     u3::PhiCoefLabels,
     u3::PhiCoefBlock,
-    boost::hash<u3::PhiCoefLabels> 
+    boost::hash<u3::PhiCoefLabels>
     > PhiCoefCache;
 
   double PhiCached(
-                 PhiCoefCache& cache, 
-                 const u3::SU3& x1, const u3::SU3& x2, 
+                 PhiCoefCache& cache,
+                 const u3::SU3& x1, const u3::SU3& x2,
                  const u3::SU3& x3, int rho1, int rho2);
-  // Cached Phi coefficient. 
+  // Cached Phi coefficient.
   //
   // Global:
   //
@@ -636,7 +615,7 @@ namespace u3
 
 
 
-} //namespace 
+} //namespace
 
 
 
