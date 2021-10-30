@@ -6,6 +6,13 @@ set(sp3rlib_headers multiplicity_tagged.h u3.h vcs.h sp3r.h u3coef.h
 )
 set(sp3rlib_sources u3.cpp vcs.cpp sp3r.cpp u3coef.cpp sp3r_operator.cpp)
 
+if(SPNCCI_SU3_LIBRARY IN_LIST SPNCCI_SU3_LIBRARY_OPTIONS)
+  message(STATUS "Using SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
+  list(APPEND sp3rlib_sources u3coef_${SPNCCI_SU3_LIBRARY}.cpp)
+else()
+  message(FATAL_ERROR "unknown SU(3) coefficient library ${SPNCCI_SU3_LIBRARY}")
+endif()
+
 # define am library and add source files
 add_library(sp3rlib ${sp3rlib_sources})
 add_library(spncci::sp3rlib ALIAS sp3rlib)
@@ -23,7 +30,7 @@ target_link_libraries(
          Eigen3::Eigen
          fmt::fmt
          GSL::gsl
-         su3lib::su3lib
+         spncci::su3_library
 )
 
 # ##############################################################################
