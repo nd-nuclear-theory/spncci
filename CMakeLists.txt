@@ -50,6 +50,18 @@ execute_process(
 )
 add_compile_definitions(VCS_REVISION=${PACKAGE_GIT_VERSION})
 
+################################################################################
+# tests
+################################################################################
+
+if(SPNCCI_MASTER_PROJECT)
+  add_custom_target(tests)
+endif()
+
+################################################################################
+# include library and program setup
+################################################################################
+
 # include libraries
 include(libraries/libraries.cmake)
 
