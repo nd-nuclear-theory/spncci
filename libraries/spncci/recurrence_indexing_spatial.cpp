@@ -264,17 +264,34 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
       for (const auto&& [source_u3_index, source_u3_space] :
            iter::enumerate(source_Nnsum_space))
       {
-        if (source_u3_space.omega_bra() != target_u3_space.omega_bra())
-          continue;
-        if (
-            u3::OuterMultiplicity(
-                u3::U3{2, {2, 0}},
-                source_u3_space.omega_ket(),
-                target_u3_space.omega_ket()
-              )
-            == 0
-          )
-          continue;
+        if (source_u3_space.omega_ket() == sp3r_space.sigma_ket())
+        {
+          if (target_u3_space.omega_ket() != source_u3_space.omega_ket())
+            continue;
+          if (
+              u3::OuterMultiplicity(
+                  u3::U3{2, {2, 0}},
+                  source_u3_space.omega_bra(),
+                  target_u3_space.omega_bra()
+                )
+              == 0
+            )
+            continue;
+        }
+        else
+        {
+          if (target_u3_space.omega_bra() != source_u3_space.omega_bra())
+            continue;
+          if (
+              u3::OuterMultiplicity(
+                  u3::U3{2, {2, 0}},
+                  source_u3_space.omega_ket(),
+                  target_u3_space.omega_ket()
+                )
+              == 0
+            )
+            continue;
+        }
         EmplaceSector(
             target_u3_index, source_u3_index, target_u3_space, source_u3_space
           );

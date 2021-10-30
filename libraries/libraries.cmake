@@ -69,14 +69,13 @@ add_library(libraries INTERFACE)
 add_library(spncci::libraries ALIAS libraries)
 target_link_libraries(
   libraries
-  INTERFACE libraries/su3lib
-            libraries/utilities
-            libraries/sp3rlib
-            libraries/u3shell
-            libraries/moshinsky
-            libraries/lsu3shell
-            libraries/lgi
-            libraries/spncci
+  INTERFACE spncci::utilities
+            spncci::sp3rlib
+            spncci::u3shell
+            spncci::moshinsky
+            spncci::lsu3shell
+            spncci::lgi
+            spncci::spncci
 )
 
 install(

@@ -46,3 +46,27 @@ install(
   EXPORT spncciTargets
 )
 install(FILES ${sp3rlib_headers} DESTINATION include/spncci/sp3rlib)
+
+# ##############################################################################
+# define tests
+# ##############################################################################
+
+set(sp3rlib_UNITS_TEST
+    sp3r_test
+    u3_test
+    u3coef_test
+    vcs_test
+)
+
+add_custom_target(sp3rlib_tests)
+foreach(test_name IN LISTS sp3rlib_UNITS_TEST)
+  add_executable(${test_name} EXCLUDE_FROM_ALL ${test_name}.cpp)
+  target_link_libraries(${test_name} spncci::sp3rlib)
+  add_dependencies(sp3rlib_tests ${test_name})
+endforeach()
+
+target_link_libraries(u3coef_test OpenMP::OpenMP_CXX)
+
+if(SPNCCI_MASTER_PROJECT)
+  add_dependencies(tests sp3rlib_tests)
+endif()

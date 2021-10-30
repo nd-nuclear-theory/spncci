@@ -87,29 +87,41 @@ install(
 install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
 
 # ##############################################################################
-# tests
+# define tests
 # ##############################################################################
 
-add_executable(recurrence_indexing_test recurrence_indexing_test.cpp)
+set(spncci_UNITS_TEST
+    recurrence_indexing_test
+    recurrence_seeds_test
+    recurrence_spatial_test
+    spncci_seeds_test
+)
+
+add_custom_target(spncci_tests)
+foreach(test_name IN LISTS spncci_UNITS_TEST)
+  add_executable(${test_name} EXCLUDE_FROM_ALL ${test_name}.cpp)
+  target_link_libraries(${test_name} PRIVATE spncci::spncci)
+  add_dependencies(spncci_tests ${test_name})
+endforeach()
+
 target_link_libraries(
   recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
                                    cppitertools::cppitertools spncci::spncci
 )
-add_executable(recurrence_seeds_test recurrence_seeds_test.cpp)
 target_link_libraries(
   recurrence_seeds_test PRIVATE fmt::fmt am::am spncci::lgi
-                                   cppitertools::cppitertools spncci::spncci
+                                cppitertools::cppitertools spncci::spncci
 )
-
-add_executable(recurrence_spatial_test recurrence_spatial_test.cpp)
 target_link_libraries(
   recurrence_spatial_test PRIVATE fmt::fmt am::am spncci::lgi
                                    cppitertools::cppitertools spncci::spncci
 )
 
-add_executable(spncci_seeds_test spncci_seeds_test.cpp)
 target_link_libraries(
   spncci_seeds_test PRIVATE fmt::fmt am::am spncci::lgi spncci::lsu3shell
                                    cppitertools::cppitertools spncci::spncci basis::basis
 )
 
+if(SPNCCI_MASTER_PROJECT)
+  add_dependencies(tests spncci_tests)
+endif()
