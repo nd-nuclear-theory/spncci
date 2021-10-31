@@ -22,7 +22,7 @@ namespace spncci
   {
     // SU(3) caching
     u3::U3CoefInit();
-    u3::g_u_cache_enabled = true;
+    // u3::g_u_cache_enabled = true;
 
     // parameters for certain calculations
     spncci::g_zero_tolerance = 1e-6;

@@ -189,7 +189,7 @@ int main(int argc, char **argv)
   u3::U3CoefInit();
   u3::UCoefCache u_coef_cache;
   u3::PhiCoefCache phi_coef_cache;
-  u3::g_u_cache_enabled = true;
+  // u3::g_u_cache_enabled = true;
 
   // numerical parameter for certain calculations
   double tolerance=1e-6;

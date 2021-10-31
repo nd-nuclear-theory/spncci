@@ -38,7 +38,7 @@ void basic_test()
   // U(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23);
   std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
   std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
-  std::cout << Z(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
+  // std::cout << Z(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
 
   std::cout << W(x1,1,2,x2,1,2,x12,1,4,1) << std::endl;
   std::cout << W(x1,1,2,x2,1,2,x12,1,2,1) << std::endl;
@@ -587,10 +587,13 @@ int main(int argc, char **argv)
   u3::SU3 x1(4,2);
   u3::SU3 x2(4,1);
   u3::SU3 x(9,1);
-  int kappa1=2, kappa2=2, kappa=1;
-  int L1=5, L2=5, L=10;
+  int kappa1=2, kappa2=1, kappa=1;
+  int L1=2, L2=5, L=7;
   int rho=1;
   std::cout<<"W test "<<std::endl;
+  std::cout<<"kappa1_max "<<u3::BranchingMultiplicitySO3(x1,L1)<<std::endl;
+  std::cout<<"kappa2_max "<<u3::BranchingMultiplicitySO3(x2,L2)<<std::endl;
+  std::cout<<"kappa3_max "<<u3::BranchingMultiplicitySO3(x,L)<<std::endl;
   std::cout<<"coef= "<<u3::W(x1,kappa1,L1,x2,kappa2,L2,x,kappa,L,rho)<<std::endl;
   // // basic tests
   // basic_test();

@@ -19,19 +19,7 @@
 namespace u3
 {
   
-  int WCoefIndex(const int k1, const int k2, const int k3, const int rho, const WMultiplicity& multiplicities)
-  {
-    const auto&[k1max,k2max,k3max,rhomax] = multiplicities;
-    // int index = rho-1+(k1-1)*rhomax+(k2-1)*k1max*rhomax+(k3-1)*k2max*k1max*rhomax;
-    // SU3lib convention is mulitplicity index is 0<=index<multiplicity
-    index = (k3-1);
-    index = index*k2max +(k2-1);
-    index = index*k1max +(k1-1);
-    index = index*rhomax+(rho-1);
-    return index;
 
-  }
-  
   // double W(const u3::SU3& x1, int k1, int L1, const u3::SU3& x2, int k2, int L2, const u3::SU3& x3, int k3, int L3, int rho)
   //   {
       
@@ -51,6 +39,18 @@ namespace u3
   // {
   //   return fmt::format("[{} {}; {} {}| {} {}]",x1_.Str(),L1_,x2.Str(),L2_,x3_.Str(),L3_);
   // }
+
+  int WCoefBlock::CoefIndex(
+    const int kappa1, const int kappa2, const int kappa3, const int rho)
+  {
+    // SU3lib convention is mulitplicity index is 0<=index<multiplicity
+    index = (kappa3-1);
+    index = index*kappa2_max_ +(kappa2-1);
+    index = index*kappa1_max_ +(kappa1-1);
+    index = index*rho_max_+(rho-1);
+    return index;
+  }
+  
 
   WCoefBlock::WCoefBlock(const u3::WCoefLabels& labels)
   {
