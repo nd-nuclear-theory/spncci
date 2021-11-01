@@ -4,14 +4,9 @@ cmake_minimum_required(VERSION 3.20)
 set(sp3rlib_headers multiplicity_tagged.h u3.h vcs.h sp3r.h u3coef.h
                     sp3r_operator.h
 )
-set(sp3rlib_sources u3.cpp vcs.cpp sp3r.cpp u3coef.cpp sp3r_operator.cpp)
-
-if(SPNCCI_SU3_LIBRARY IN_LIST SPNCCI_SU3_LIBRARY_OPTIONS)
-  message(STATUS "Using SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
-  list(APPEND sp3rlib_sources u3coef_${SPNCCI_SU3_LIBRARY}.cpp)
-else()
-  message(FATAL_ERROR "unknown SU(3) coefficient library ${SPNCCI_SU3_LIBRARY}")
-endif()
+set(sp3rlib_sources u3.cpp vcs.cpp sp3r.cpp sp3r_operator.cpp u3coef.cpp
+                    u3coef_${SPNCCI_SU3_LIBRARY}.cpp
+)
 
 # define am library and add source files
 add_library(sp3rlib ${sp3rlib_sources})
@@ -58,12 +53,7 @@ install(FILES ${sp3rlib_headers} DESTINATION include/spncci/sp3rlib)
 # define tests
 # ##############################################################################
 
-set(sp3rlib_UNITS_TEST
-    sp3r_test
-    u3_test
-    u3coef_test
-    vcs_test
-)
+set(sp3rlib_UNITS_TEST sp3r_test u3_test u3coef_test vcs_test)
 
 add_custom_target(sp3rlib_tests)
 foreach(test_name IN LISTS sp3rlib_UNITS_TEST)
