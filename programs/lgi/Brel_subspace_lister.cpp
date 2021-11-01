@@ -34,7 +34,8 @@ int main(int argc, char **argv)
   // initialization
   ////////////////////////////////////////////////////////////////
   // SU(3) caching
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
 
   std::array<int,2> nuclide;
   nuclide[0]=std::stoi(argv[1]);

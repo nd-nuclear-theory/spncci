@@ -27,8 +27,9 @@ int main(int argc, char **argv)
 {
   if(argc<5)
     std::cout<<"Syntax: Z  N  Nmax  N1B"<<std::endl;
-  u3::U3CoefInit();
-
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
+  
   int Z=std::stoi(argv[1]);
   int N=std::stoi(argv[2]);
   int Nmax=std::stoi(argv[3]);

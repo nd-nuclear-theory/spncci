@@ -38,18 +38,18 @@ void basic_test()
   // U(x1,x2,x,x3,x12,r12,r12_3,x23,r23,r1_23);
   std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
   std::cout << U(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
-  // std::cout << Z(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
+  std::cout << Z(x1, x2, x, x3, x12,1, 1, x23, 1, 1) << std::endl;
 
   std::cout << W(x1,1,2,x2,1,2,x12,1,4,1) << std::endl;
   std::cout << W(x1,1,2,x2,1,2,x12,1,2,1) << std::endl;
   std::cout << W(x1,1,2,x2,1,2,x12,1,0,1) << std::endl;
 
-  std::cout << Unitary9LambdaMu(
-                                x1,  x2,  x12, 1,
-                                x3,  x4,  x34, 1,
-                                x13, x24, xx,  1,
-                                1,    1,   1
-                                )<<std::endl;
+  // std::cout << Unitary9LambdaMu(
+  //                               x1,  x2,  x12, 1,
+  //                               x3,  x4,  x34, 1,
+  //                               x13, x24, xx,  1,
+  //                               1,    1,   1
+  //                               )<<std::endl;
 
 }
 
@@ -66,7 +66,7 @@ void block_test()
   // block access
   std::cout << "U block test" << std::endl;
   u3::UCoefLabels labels(x1, x2, x, x3, x12, x23);
-  u3::UCoefBlock block(labels);
+  u3::RecouplingCoefBlock block(labels,u3::RecouplingMode::kU);
   int r12_max, r12_3_max, r23_max, r1_23_max;
   std::tie(r12_max, r12_3_max, r23_max, r1_23_max) = block.Key();
   std::cout << "multiplicities " << r12_max << " " << r12_3_max << " " << r23_max << " " << r1_23_max << std::endl;
@@ -167,7 +167,7 @@ void caching_test()
       //  std::cout << "  duplicate " << labels.Str() << std::endl;
       if ((u_coef_cache.size()%100)==0)
         std::cout << "  cache size " << u_coef_cache.size() << "..." << std::endl;
-      u_coef_cache[labels] = u3::UCoefBlock(labels);
+      u_coef_cache[labels] = u3::RecouplingCoefBlock(labels,u3::RecouplingMode::kU);
     }
   std::cout << "  cached " << u_coef_cache.size() << std::endl;
 
@@ -180,7 +180,7 @@ void caching_test()
       std::tie(x1,x2,x,x3,x12,x23) = labels.Key();
 
       // retrieve coefficient block
-      const u3::UCoefBlock& block = u_coef_cache[labels];
+      const auto& block = u_coef_cache[labels];
 
       // retrieve multiplicities
       int r12_max, r12_3_max, r23_max, r1_23_max;
@@ -571,7 +571,7 @@ void phi_caching_test()
 int main(int argc, char **argv)
 {
   // initialize su3lib
-  u3::U3CoefInit();
+  u3::U3CoefInit(39);
 
   // // U coefficient test--comparison with escher formula for U in terms of SU(3)\supset SO(3) coupling coefficients
   // u3::SU3 x1(2,2);
@@ -595,8 +595,8 @@ int main(int argc, char **argv)
   std::cout<<"kappa2_max "<<u3::BranchingMultiplicitySO3(x2,L2)<<std::endl;
   std::cout<<"kappa3_max "<<u3::BranchingMultiplicitySO3(x,L)<<std::endl;
   std::cout<<"coef= "<<u3::W(x1,kappa1,L1,x2,kappa2,L2,x,kappa,L,rho)<<std::endl;
-  // // basic tests
-  // basic_test();
+  // basic tests
+  basic_test();
 
   // // test of block storage
   // block_test();

@@ -41,8 +41,11 @@ namespace u3
 
   } //namespace
   
-  void U3CoefInit()
+  void U3CoefInit(int max_lambda_plus_mu)
   {
+    if(max_lambda_plus_mu>=40)
+      throw std::runtime_error("max (lambda + mu) must be < 40");
+
     su3lib::blocks_();
   }
 
@@ -81,8 +84,10 @@ namespace u3
             coefs_.push_back(w_array[kappa3-1][kappa2-1][kappa1-1][rho-1]);
   }
 
-  ////////////////////////////////////////////////////////////////
-  int UCoefBlock::CoefIndex(int r12, int r12_3, int r23, int r1_23) const
+  // ////////////////////////////////////////////////////////////////
+
+  // Same for U and Z
+  int RecouplingCoefBlock::CoefIndex(int r12, int r12_3, int r23, int r1_23) const
   {
     int index = (r1_23-1);
     index = index * r23_max_ + (r23-1);
@@ -91,58 +96,41 @@ namespace u3
     return index;
   }
 
-  UCoefBlock::UCoefBlock(const u3::UCoefLabels& labels)
+ RecouplingCoefBlock::RecouplingCoefBlock(const u3::UCoefLabels& labels, const u3::RecouplingMode mode)
   {
     // calculate multiplicities
-    // u3::SU3 x1,x2,x,x3,x12,x23;
     const auto& [x1,x2,x,x3,x12,x23] = labels.Key();
     std::tie(r12_max_,r12_3_max_,r23_max_,r1_23_max_) = UMultiplicity(x1,x2,x,x3,x12,x23);
 
-    // pre-size vector
-    int r_max = r12_max_*r12_3_max_*r23_max_*r1_23_max_;
-    assert(r_max > 0);
-    coefs_.resize(r_max);
-
-    // populate vector
-    WRU3_FUNCTION(
-                  x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), 
-                  x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                  r12_max_, r12_3_max_, r23_max_, r1_23_max_,
-                  coefs_.data(), r_max
-                  );
-  }
-
-////////////////////////////////////////////////////////////////
-  int ZCoefBlock::CoefIndex(int r12, int r12_3, int r23, int r1_23) const
-  {
-    int index = (r1_23-1);
-    index = index * r23_max_ + (r23-1);
-    index = index * r12_3_max_ + (r12_3-1);
-    index = index * r12_max_ + (r12-1);
-    return index;
-  }
-
-  ZCoefBlock::ZCoefBlock(const u3::ZCoefLabels& labels)
-  {
-    // calculate multiplicities
-    // u3::SU3 x1,x2,x,x3,x12,x23;
-    const auto& [x1,x2,x,x3,x12,x23] = labels.Key();
-    std::tie(r12_max_,r12_3_max_,r23_max_,r1_23_max_) = ZMultiplicity(x1,x2,x,x3,x12,x23);
+    mode_=mode;
 
     // pre-size vector
     int r_max = r12_max_*r12_3_max_*r23_max_*r1_23_max_;
     assert(r_max > 0);
     coefs_.resize(r_max);
-
+    
     // populate vector
-    su3lib::wzu3optimized_(
-                  x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), 
-                  x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
-                  r12_max_, r12_3_max_, r23_max_, r1_23_max_,
-                  coefs_.data(), r_max
-                  );
+    if (mode ==RecouplingMode::kZ)
+    {
+      // populate vector
+      su3lib::wzu3optimized_(
+        x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), 
+        x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+        r12_max_, r12_3_max_, r23_max_, r1_23_max_,
+        coefs_.data(), r_max
+      );
+    }
+    // mode is kU
+    else
+    {
+      WRU3_FUNCTION(
+        x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x.lambda(), x.mu(), 
+        x3.lambda(), x3.mu(), x12.lambda(), x12.mu(), x23.lambda(), x23.mu(),
+        r12_max_, r12_3_max_, r23_max_, r1_23_max_,
+        coefs_.data(), r_max
+      );
+    }
   }
-
 
   PhiCoefBlock::PhiCoefBlock(const u3::PhiCoefLabels& labels)
   {
@@ -153,14 +141,13 @@ namespace u3
     // zero initialize array
     int rho_dummy=1;
     int dim=rho_max_*rho_max_;
-    cache_.resize(dim);
+    coefs_.resize(dim);
     su3lib::wzu3optimized_(
      x1.lambda(), x1.mu(), 0, 0, x3.lambda(), x3.mu(), x2.lambda(), x2.mu(),
      x1.lambda(), x1.mu(), x2.lambda(), x2.mu(),rho_dummy, rho_max_, rho_dummy, rho_max_,
-     &cache_[0], dim
+     coefs_.data(), dim
      );
   }
-
 
 ////////////////////////////////////////////////////////////////
   double Unitary9LambdaMu(
@@ -191,7 +178,7 @@ namespace u3
                     x1.lambda(), x1.mu(), x2.lambda(), x2.mu(), x12.lambda(), x12.mu(),
                     x3.lambda(), x3.mu(), x4.lambda(), x4.mu(), x34.lambda(), x34.mu(),
                     x13.lambda(), x13.mu(), x24.lambda(), x24.mu(), x.lambda(), x.mu(),
-                    &NLM_array[0],r_max
+                    NLM_array.data(),r_max
                     );
     return NLM_array[index];
   }

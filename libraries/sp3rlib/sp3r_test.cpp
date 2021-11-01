@@ -16,7 +16,7 @@
 #include "sp3rlib/u3coef.h"
 int main(int argc, char **argv)
 {
-  u3::U3CoefInit();
+  u3::U3CoefInit(39);
 
   ////////////////////////////////////////////////////////////////
   // Sp(3,R) irrep construction test

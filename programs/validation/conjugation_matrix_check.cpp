@@ -135,7 +135,8 @@ void CheckReversalSymmetry(const u3::SU3& x1, const u3::SU3& x2)
 int main(int argc, char **argv)
 {
   // initialize su3lib
-  u3::U3CoefInit();  //test symmetries of W coefficients 
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
 
   if(argc<4)
   {

@@ -155,7 +155,8 @@ int main(int argc, char **argv)
 {
 
   // initialize su3lib
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
 
   // initial output
   std::cout << "su3calc" << std::endl;

@@ -21,8 +21,8 @@ namespace spncci
   void InitializeSpNCCI()
   {
     // SU(3) caching
-    u3::U3CoefInit();
-    // u3::g_u_cache_enabled = true;
+    int max_lambda_plus_mu=39;
+    u3::U3CoefInit(max_lambda_plus_mu);
 
     // parameters for certain calculations
     spncci::g_zero_tolerance = 1e-6;

@@ -186,7 +186,8 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   
   // SU(3) caching
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
   u3::UCoefCache u_coef_cache;
   u3::PhiCoefCache phi_coef_cache;
   // u3::g_u_cache_enabled = true;

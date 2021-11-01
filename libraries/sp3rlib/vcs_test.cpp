@@ -59,7 +59,7 @@ void CreateOmegaMatrix(const u3::U3& omegap, const u3::U3& omega,
 
 int main(int argc, char **argv)
 {
-	u3::U3CoefInit();
+	u3::U3CoefInit(39);
 
 if(false)
 {
