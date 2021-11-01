@@ -53,7 +53,13 @@ install(FILES ${sp3rlib_headers} DESTINATION include/spncci/sp3rlib)
 # define tests
 # ##############################################################################
 
-set(sp3rlib_UNITS_TEST sp3r_test u3_test u3coef_test vcs_test)
+set(sp3rlib_UNITS_TEST
+    sp3r_test
+    u3_test
+    u3coef_test
+    vcs_test
+    su3coupling_gtest
+)
 
 add_custom_target(sp3rlib_tests)
 foreach(test_name IN LISTS sp3rlib_UNITS_TEST)
@@ -63,6 +69,7 @@ foreach(test_name IN LISTS sp3rlib_UNITS_TEST)
 endforeach()
 
 target_link_libraries(u3coef_test OpenMP::OpenMP_CXX)
+target_link_libraries(su3coupling_gtest GTest::gtest_main)
 
 if(SPNCCI_MASTER_PROJECT)
   add_dependencies(tests sp3rlib_tests)
