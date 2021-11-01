@@ -7,16 +7,16 @@ option(USE_SYSTEM_FMT "Use system-provided fmtlib" FALSE)
 # SU(3) coefficient library selection
 # ##############################################################################
 
-set(SPNCCI_SU3_LIBRARY_OPTIONS "su3lib" "ndsu3lib" "SU3lib")
-set(SPNCCI_SU3_LIBRARY "su3lib" CACHE STRING "SU(3) coefficient library to use")
+set(SPNCCI_SU3_LIBRARY_OPTIONS "su3wrc" "ndsu3lib" "SU3lib")
+set(SPNCCI_SU3_LIBRARY "su3wrc" CACHE STRING "SU(3) coefficient library to use")
 set_property(CACHE SPNCCI_SU3_LIBRARY PROPERTY STRINGS ${SPNCCI_SU3_LIBRARY_OPTIONS})
 
-if(SPNCCI_SU3_LIBRARY STREQUAL "su3lib")
-  find_package(su3lib REQUIRED)
-  add_library(spncci::su3_library ALIAS su3lib::su3lib)
+if(SPNCCI_SU3_LIBRARY STREQUAL "su3wrc")
+  find_package(su3wrc REQUIRED)
+  add_library(spncci::su3_library ALIAS su3wrc::su3wrc)
 elseif(SPNCCI_SU3_LIBRARY STREQUAL "ndsu3lib")
   find_package(ndsu3lib REQUIRED)
-  add_library(spncci::su3_library ALIAS ndsu3lib::su3lib)
+  add_library(spncci::su3_library ALIAS ndsu3lib::ndsu3lib)
 elseif(SPNCCI_SU3_LIBRARY STREQUAL "SU3lib")
   find_package(SU3lib REQUIRED)
   add_library(spncci::su3_library ALIAS SU3lib::SU3lib)
