@@ -15,47 +15,31 @@
 
 namespace u3 
 {
-  
   std::string SU3::Str() const
   {
-    std::ostringstream ss;
-
-    ss << "(" << lambda() << "," << mu() << ")";
-    return ss.str();
+    return fmt::format("({},{})",lambda(),mu());
   }
 
   std::string U3::Str() const
   {
-    std::ostringstream ss;
-
-    ss << N() << SU3().Str();
-
-    // ss << "[" << f1 << "," << f2 << "," << f3 << "]";
-
-    return ss.str();
+    // return fmt::format("{}({},{})",N(),SU3().lambda(),SU3().mu());
+    std::string string = fmt::format("{}{}",N(),SU3());
+    return string;
   }
 
   std::string U3S::Str() const
   {
-    std::ostringstream ss;
-
-    ss << omega_.Str() << "x" << S_;
-
-    return ss.str();
+    return fmt::format("{}x{}",U3(),S());
   }
 
   std::string U3ST::Str() const
   {
-    std::ostringstream ss;
-
-    ss << omega_.Str() << "x" << S_ << "x" << T_;
-
-    return ss.str();
+    return fmt::format("{}x{}x{}",U3(),S(),T());
   }
 
-  int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
+  unsigned int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
   {
-    int multiplicity = 0;
+    unsigned int multiplicity = 0;
     int Nx = (x1.lambda()-x1.mu()) + (x2.lambda()-x2.mu()) - (x3.lambda()-x3.mu());
 
     // short circuit
@@ -68,17 +52,17 @@ namespace u3
     u3::SU3 y1, y2, y3;
     if (Nx>=0)
       {
-	y1 = x1; 
-	y2 = x2; 
-	y3 = x3;
-	Mx = Nx/3;
+      	y1 = x1; 
+      	y2 = x2; 
+      	y3 = x3;
+      	Mx = Nx/3;
       }
     else
       {
-	y1 = Conjugate(x1);
-	y2 = Conjugate(x2);
-	y3 = Conjugate(x3);
-	Mx = -Nx/3;
+      	y1 = Conjugate(x1);
+      	y2 = Conjugate(x2);
+      	y3 = Conjugate(x3);
+      	Mx = -Nx/3;
       }
     
     // main calculation
@@ -86,9 +70,9 @@ namespace u3
     int Mu = std::min(y1.lambda()-Mx,y2.mu());
     if (Mu>=0)
       {
-	int Nu = std::min(y2.lambda()-Mx,y1.mu());
-	if (Nu>=0)
-	  multiplicity = std::max(std::min(Nx,Nu)-std::max(Nx-Mu,0)+1,0);
+      	int Nu = std::min(y2.lambda()-Mx,y1.mu());
+      	if (Nu>=0)
+      	  multiplicity = std::max(std::min(Nx,Nu)-std::max(Nx-Mu,0)+1,0);
       }
 
     return multiplicity;
@@ -97,37 +81,26 @@ namespace u3
   MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2)
   {
     // calculate bounds on (lambda3,mu3)
-    int lambda3_min = 0;  // could be further constrained
-    int mu3_min = 0;  // could be further constrained
-    int lambda3_max = x1.lambda()+x2.lambda()+std::min(x2.mu(),x1.lambda()+x1.mu());  // asymmetric expression, may be further constrained
-    int mu3_max = x1.mu()+x2.mu()+std::min(x1.lambda(),x2.lambda());
+    unsigned int lambda3_min = 0;  // could be further constrained
+    unsigned int mu3_min = 0;  // could be further constrained
+    unsigned int lambda3_max = x1.lambda()+x2.lambda()+std::min(x2.mu(),x1.lambda()+x1.mu());
+    unsigned int mu3_max = x1.mu()+x2.mu()+std::min(x1.lambda(),x2.lambda());
 
     // allocate container for product
-
-    // Is this max_entries too big?
-    //
-    // SU3::Couple just reserves x1.lambda()+x2.lambda()+x1.mu()+x2.mu().
-    //
-    // TESTING: compare final size() with final capacity()
-    //
-    // Note: could trim container for product with shrink_to_fit() at end if
-    // storage will be persistent enough to make this worthwhile
-    // (nonbinding request in C++11)
-
     MultiplicityTagged<u3::SU3>::vector product;
     int max_entries = (lambda3_max - lambda3_min + 1) * (mu3_max - mu3_min + 1);
     product.reserve(max_entries);
     // generate product
-    for (int lambda3 = lambda3_min; lambda3 <= lambda3_max; ++lambda3)
-      for (int mu3 = mu3_min; mu3 <= mu3_max; ++mu3)
-	{
-	  u3::SU3 x3(lambda3,mu3);
-	  int multiplicity = OuterMultiplicity(x1,x2,x3);
-	  if (multiplicity>0)
-      {
- 	      product.push_back(MultiplicityTagged<u3::SU3>(x3,multiplicity));
-      }
-	}
+    for (unsigned int lambda3 = lambda3_min; lambda3 <= lambda3_max; ++lambda3)
+      for (unsigned int mu3 = mu3_min; mu3 <= mu3_max; ++mu3)
+      	{
+      	  u3::SU3 x3(lambda3,mu3);
+      	  unsigned int multiplicity = OuterMultiplicity(x1,x2,x3);
+      	  if (multiplicity>0)
+            {
+       	      product.push_back(MultiplicityTagged<u3::SU3>(x3,multiplicity));
+            }
+      	}
 
     return product;
   }
@@ -143,70 +116,68 @@ namespace u3
     // augment SU(3) entries with U(1) number
     MultiplicityTagged<u3::U3>::vector u3_product;
     u3_product.reserve(su3_product.size());
-    for (auto x_tagged_iter = su3_product.begin(); x_tagged_iter !=su3_product.end(); ++x_tagged_iter)
+    for (const auto& x_tagged : su3_product)
       {
-        MultiplicityTagged<u3::SU3> x_tagged = *x_tagged_iter;
-        // AEM
-        if (u3::U3(N,x_tagged.irrep).Valid())
-        {
-          MultiplicityTagged<u3::U3> omega_tagged(u3::U3(N,x_tagged.irrep),x_tagged.tag);
-          u3_product.push_back(omega_tagged);
-        }
+        if (u3::U3::ValidLabels(N,x_tagged.irrep))
+          {
+            u3_product.push_back({{N,x_tagged.irrep},x_tagged.tag});
+          }
       }
 
     return u3_product;
   }
 
-  int BranchingMultiplicitySO3(const u3::SU3& x, int L)
+  unsigned int BranchingMultiplicitySO3(const u3::SU3& x, unsigned int L)
   {
-    int multiplicity 
-      = std::max(0,(x.lambda()+x.mu()+2-L)/2)
-      - std::max(0,(x.lambda()+1-L)/2)
-      - std::max(0,(x.mu()+1-L)/2);
+    // std:: max cannot compare int and unsigned int
+    unsigned int multiplicity 
+      = std::max(0,int(x.lambda()+x.mu()+2-L)/2)
+      - std::max(0,int(x.lambda()+1-L)/2)
+      - std::max(0,int(x.mu()+1-L)/2);
     return multiplicity;
   }
 
-  MultiplicityTagged<int>::vector BranchingSO3(const u3::SU3& x)
+  MultiplicityTagged<unsigned int>::vector BranchingSO3(const u3::SU3& x)
   {
 
     // calculate bound on L
-    int L_min = std::min(x.lambda(),x.mu())%2;
-    int L_max = x.lambda()+x.mu();
+    unsigned int L_min = std::min(x.lambda(),x.mu())%2;
+    unsigned int L_max = x.lambda()+x.mu();
 
     // allocate container for product
-    MultiplicityTagged<int>::vector branching;
+    MultiplicityTagged<unsigned int>::vector branching;
     int max_entries = L_max-L_min+1;
     branching.reserve(max_entries);
 
     // generate branching
-    for (int L=L_min; L<=L_max; ++L)
+    for (unsigned int L=L_min; L<=L_max; ++L)
       {
-	int multiplicity = BranchingMultiplicitySO3(x,L);
-	if (multiplicity>0)
-	  branching.push_back(MultiplicityTagged<int>(L,multiplicity));
+      	unsigned int multiplicity = BranchingMultiplicitySO3(x,L);
+        if (multiplicity>0)
+      	  branching.push_back(MultiplicityTagged<unsigned int>(L,multiplicity));
       }
 
     return branching;
   }
 
-  MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r)
+  MultiplicityTagged<unsigned int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r)
   {
 
     // calculate bound on L
-    int L_min = std::max(std::min(x.lambda(),x.mu())%2,int(r.first));
-    int L_max = std::min(x.lambda()+x.mu(),int(r.second));
+    unsigned int L_min = std::max(std::min(int(x.lambda()),int(x.mu()))%2,int(r.first));
+    unsigned int L_max = std::min(int(x.lambda()+x.mu()),int(r.second));
 
     // allocate container for product
-    MultiplicityTagged<int>::vector branching;
-    int max_entries = std::max(L_max-L_min+1,0);  // expression might be negative so impose floor of 0
+    MultiplicityTagged<unsigned int>::vector branching;
+    int max_entries = std::max(int(L_max-L_min+1),0);  // expression might be negative so impose floor of 0
     branching.reserve(max_entries);
 
     // generate branching
-    for (int L=L_min; L<=L_max; ++L)
+    for (unsigned int L=L_min; L<=L_max; ++L)
       {
-	int multiplicity = BranchingMultiplicitySO3(x,L);
-	if (multiplicity>0)
-	  branching.push_back(MultiplicityTagged<int>(L,multiplicity));
+      	unsigned int multiplicity = BranchingMultiplicitySO3(x,L);
+      	if (multiplicity>0)
+      	  branching.push_back(MultiplicityTagged<unsigned int>(L,multiplicity));
       }
 
     return branching;

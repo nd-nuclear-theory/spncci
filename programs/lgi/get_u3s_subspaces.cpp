@@ -115,7 +115,7 @@ void WriteU3SBranchedLabels(std::string filename, const std::map<std::tuple<int,
         int Nex,lambda,mu,twice_Sp,twice_Sn,twice_S;
         std::tie(Nex,lambda,mu,twice_Sp,twice_Sn,twice_S)=it->first;
         int dim=it->second;
-        MultiplicityTagged<int>::vector branched_states=u3::BranchingSO3(u3::SU3(lambda,mu));
+        MultiplicityTagged<unsigned int>::vector branched_states=u3::BranchingSO3(u3::SU3(lambda,mu));
         for(auto tagged_L : branched_states)
           {
             int L=tagged_L.irrep;

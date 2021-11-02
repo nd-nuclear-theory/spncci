@@ -24,27 +24,22 @@ namespace u3shell
     std::cout<<"branching "<<std::endl;
     u3::WCoefCache w_cache;
  
-    for(auto it=interaction_u3st.begin(); it!=interaction_u3st.end(); ++it)
+    for(const auto& [labels,rme] : interaction_u3st)
       {
-      // extract lables
-        u3shell::RelativeUnitTensorLabelsU3ST tensor;
-        int kappa0, L0, N, Np;
-        HalfInt S0, T0, Sp,Tp,S,T;
-        u3::SU3 x0;
-        std::tie(tensor,kappa0,L0)=it->first;
-        std::tie(x0,S0,T0,Np,Sp,Tp,N,S,T)=tensor.FlatKey();
-        double rme=it->second;
+        // extract lables
+        const auto&[tensor,kappa0,L0] = labels;
+        const auto&[x0,S0,T0,Np,Sp,Tp,N,S,T]=tensor.FlatKey();
 
         // branch to L and sum over SU(3) labels
-        MultiplicityTagged<int>::vector L0_branch=BranchingSO3(x0);
-        for(int Lp=Np%2; Lp<=Np; Lp+=2)
-          for(int L=N%2; L<=N; L+=2)
+        MultiplicityTagged<unsigned int>::vector L0_branch=BranchingSO3(x0);
+        for(unsigned int Lp=Np%2; Lp<=Np; Lp+=2)
+          for(unsigned int L=N%2; L<=N; L+=2)
             {
               if(not am::AllowedTriangle(Lp,L0,L))
                 continue;
 
-              int n((N-L)/2);
-              int np((Np-Lp)/2);
+              unsigned int n((N-L)/2);
+              unsigned int np((Np-Lp)/2);
               u3shell::RelativeStateLabelsNLST bra_nlst(Np,Lp,Sp,Tp);              
               u3shell::RelativeStateLabelsNLST ket_nlst(N,L,S,T);
               u3shell::RelativeStateSectorNLST sector(L0,S0,T0,bra_nlst,ket_nlst);

@@ -48,8 +48,8 @@ namespace u3{
     int sign=u3::wigner_sign(u3::W(x,1,x.lambda()+x.mu(),u3::SU3(1,1),1,1,x,1,x.lambda()+x.mu(),1));
 
     // Construct the basis
-    MultiplicityTagged<int>::vector so3_branched_labels = BranchingSO3(x);
-    MultiplicityTagged<int>::vector basis0, basis1;
+    MultiplicityTagged<unsigned int>::vector so3_branched_labels = BranchingSO3(x);
+    MultiplicityTagged<unsigned int>::vector basis0, basis1;
     for(auto L_kappa : so3_branched_labels)
       {
         int L=L_kappa.irrep;
@@ -95,8 +95,8 @@ namespace u3{
     int rho1_max=u3::OuterMultiplicity(x,u3::SU3(1,1),x);
 
     // Construct the basis
-    MultiplicityTagged<int>::vector so3_branched_labels = BranchingSO3(x);
-    MultiplicityTagged<int>::vector basis0, basis1;
+    MultiplicityTagged<unsigned int>::vector so3_branched_labels = BranchingSO3(x);
+    MultiplicityTagged<unsigned int>::vector basis0, basis1;
     for(auto L_kappa : so3_branched_labels)
       {
         int L=L_kappa.irrep;

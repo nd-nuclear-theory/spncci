@@ -129,5 +129,16 @@ std::string MultiplicityTagged<int>::Str() const
   return ss.str();
 }
 
+template <>
+inline
+std::string MultiplicityTagged<unsigned int>::Str() const
+// Template specialization for tIrrep->unisgned int.
+{
+  std::ostringstream ss;
+  
+  ss << "(" << irrep << "," << tag << ")";
+  return ss.str();
+}
+
 
 #endif

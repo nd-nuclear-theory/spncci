@@ -56,8 +56,6 @@ namespace un
       std::map<u3::U3,int>& u3_un_multiplicity_map
     )
   {
-    int f1,f2,f3;
-
     int N=un_labels.size()-1;
     
     int sum_galfand_parent_row=0;
@@ -112,9 +110,12 @@ namespace un
             if(N==1)
               weights[0]=sum_gelfand_row;
             U3Weights u3_weights=UNWeightToU3Labels(weights,single_particle_states);
-            std::tie(f1,f2,f3)=u3_weights;
-            u3::U3 w(f1,f2,f3);
-            u3_un_multiplicity_map[w]+=1;
+            const auto& [f1,f2,f3]=u3_weights;
+            if (u3::U3::ValidLabels(f1,f2,f3))
+              {
+                u3_un_multiplicity_map[{f1,f2,f3}]+=1;
+              }
+            
           }
 
       }
@@ -199,16 +200,11 @@ namespace un
         //  iterate over all [N_{z}, N_{x}, N_{y}] labels spanning U(N) irrep 
         for(auto it=u3_un_multiplicity_map.begin(); it!=u3_un_multiplicity_map.end(); it++)
           {
-            u3::U3 w(it->first);
-            if (w.Valid()) // this could be U(3) irrep ... let's check it
-              {
-                branching_multiplicity = UNBranchingMultiplicity(w, u3_un_multiplicity_map);
-                //  Calculate multiplicity alpha in irrep of U(N)
-                if (branching_multiplicity) 
-                  allowed_irreps[u3::U3S(w,S)]=branching_multiplicity; 
-                  // allowed_irreps.push_back(MultiplicityTagged<u3::U3S>(u3::U3S(w,S),branching_multiplicity)); 
-
-              }
+            const u3::U3& w =it->first;
+            branching_multiplicity = UNBranchingMultiplicity(w, u3_un_multiplicity_map);
+            //  Calculate multiplicity alpha in irrep of U(N)
+            if (branching_multiplicity) 
+              allowed_irreps[u3::U3S(w,S)]=branching_multiplicity; 
           }
       }
   }
@@ -255,14 +251,12 @@ namespace un
           //  iterate over all [N_{z}, N_{x}, N_{y}] labels spanning U(N) irrep 
           for(auto it=u3_un_multiplicity_map.begin(); it!=u3_un_multiplicity_map.end(); it++)
             {
-              u3::U3 w(it->first);
-              if (w.Valid()) // this could be U(3) irrep ... let's check it
-                {
-                  branching_multiplicity = UNBranchingMultiplicity(w, u3_un_multiplicity_map);
-                  //  Calculate multiplicity alpha in irrep of U(N)
-                  if (branching_multiplicity) 
-                    allowed_irreps.push_back(MultiplicityTagged<u3::U3ST>(u3::U3ST(w,S,T),branching_multiplicity)); 
-                }
+              const u3::U3& w =it->first;
+              branching_multiplicity = UNBranchingMultiplicity(w, u3_un_multiplicity_map);
+              //  Calculate multiplicity alpha in irrep of U(N)
+              if (branching_multiplicity) 
+                allowed_irreps.push_back(MultiplicityTagged<u3::U3ST>(u3::U3ST(w,S,T),branching_multiplicity)); 
+
             }
         }
   }

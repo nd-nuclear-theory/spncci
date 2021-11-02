@@ -33,18 +33,13 @@ namespace u3shell
     std::map<RelativeBraketNLST,double>& branched_rel_unit_tensors
     )
   {
-    int N0, etap,eta,eta_cm;
-    HalfInt S0,T0,Sp,Tp,S,T;
-    u3::SU3 x0;
-    std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=relative_unit_tensor.FlatKey();
-    MultiplicityTagged<int>::vector L0_set=u3::BranchingSO3(x0);
-    for(auto Lk0 : L0_set)
+    const auto& [x0,S0,T0,etap,Sp,Tp,eta,S,T]=relative_unit_tensor.FlatKey();
+    MultiplicityTagged<unsigned int>::vector L0_set=u3::BranchingSO3(x0);
+    for(const auto& [L0,kappa0_max] : L0_set)
       {
-        int L0=Lk0.irrep;
-        int kappa0_max=Lk0.tag;
-        for(int kappa0=1; kappa0<=kappa0_max; ++kappa0)
-          for(int Lp=etap%2; Lp<=etap; Lp+=2)
-            for(int L=eta%2; L<=eta; L+=2)
+        for(unsigned int kappa0=1; kappa0<=kappa0_max; ++kappa0)
+          for(unsigned int Lp=etap%2; Lp<=etap; Lp+=2)
+            for(unsigned int L=eta%2; L<=eta; L+=2)
               {
                 if(not am::AllowedTriangle(L,L0,Lp))
                   continue;
@@ -64,21 +59,18 @@ namespace u3shell
     std::map<u3shell::RelativeCMBraketNLST,double>& rel_cm_lst_map)
   // Coupling on center of mass as SO(3) level
   {
-    for(auto it=branched_rel_unit_tensors.begin(); it!=branched_rel_unit_tensors.end(); ++it)
+    for(const auto& [rel_tensor,rme_rel] : branched_rel_unit_tensors)
+    // for(auto it=branched_rel_unit_tensors.begin(); it!=branched_rel_unit_tensors.end(); ++it)
       {
-        int L0,Lr,Lrp,N,Np;
-        HalfInt S,T,Sp,Tp,S0,T0;
-        RelativeStateLabelsNLST ket_rel,bra_rel;
-        RelativeBraketNLST rel_tensor=it->first;
-        double rme_rel=it->second;
-        std::tie(L0,S0,T0,bra_rel,ket_rel)=rel_tensor;
-        std::tie(Np,Lrp,Sp,Tp)=bra_rel;
-        std::tie(N,Lr,S,T)=ket_rel;
+        const auto&[L0,S0,T0,bra_rel,ket_rel] = rel_tensor;
+        const auto&[Np,Lrp,Sp,Tp] = bra_rel;
+        const auto&[N,Lr,S,T] = ket_rel;
+        
         int Ncm_max=Nmax-std::max(Np,N);
-        for(int Ncm=0; Ncm<=Ncm_max; ++Ncm)
-          for(int Lcm=Ncm%2; Lcm<=Ncm; Lcm+=2)
-            for(int Lp=abs(Lrp-Lcm); Lp<=(Lrp+Lcm); ++Lp)
-              for(int L=abs(Lr-Lcm); L<=(Lr+Lcm); ++L)
+        for(unsigned int Ncm=0; Ncm<=Ncm_max; ++Ncm)
+          for(unsigned int Lcm=Ncm%2; Lcm<=Ncm; Lcm+=2)
+            for(unsigned int Lp=abs(Lrp-Lcm); Lp<=(Lrp+Lcm); ++Lp)
+              for(unsigned int L=abs(Lr-Lcm); L<=(Lr+Lcm); ++L)
                   {
                     u3shell::RelativeCMStateLabelsNLST bra_rel_cm(Np,Lrp,Ncm,Lcm,Lp,Sp,Tp);
                     u3shell::RelativeCMStateLabelsNLST ket_rel_cm(N,Lr,Ncm,Lcm,L,S,T);

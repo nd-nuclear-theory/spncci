@@ -121,18 +121,18 @@ int main(int argc, char **argv)
     for(u3::U3 omegap : u3_irreps)
       {
 
-        MultiplicityTagged<int>::vector L_kappa_values=u3::BranchingSO3(omega.SU3());
-        MultiplicityTagged<int>::vector Lp_kappap_values=u3::BranchingSO3(omegap.SU3());
+        MultiplicityTagged<unsigned int>::vector L_kappa_values=u3::BranchingSO3(omega.SU3());
+        MultiplicityTagged<unsigned int>::vector Lp_kappap_values=u3::BranchingSO3(omegap.SU3());
         for( auto L_kappa : L_kappa_values)
           for(auto Lp_kappap : Lp_kappap_values)
             {
-              int Lp=Lp_kappap.irrep;
-              int kappap_max=Lp_kappap.tag;
-              int L=L_kappa.irrep;
-              int kappa_max=L_kappa.tag;
+              unsigned int Lp=Lp_kappap.irrep;
+              unsigned int kappap_max=Lp_kappap.tag;
+              unsigned int L=L_kappa.irrep;
+              unsigned int kappa_max=L_kappa.tag;
 
-              for(int kappa=1; kappa<=kappa_max; ++kappa)
-                for(int kappap=1; kappap<=kappap_max; ++kappap)
+              for(unsigned int kappa=1; kappa<=kappa_max; ++kappa)
+                for(unsigned int kappap=1; kappap<=kappap_max; ++kappap)
                   {
                     HalfInt::vector J_values = am::ProductAngularMomenta(L, S);
                     HalfInt::vector Jp_values = am::ProductAngularMomenta(Lp, S);

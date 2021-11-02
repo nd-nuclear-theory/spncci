@@ -26,8 +26,8 @@
   6/24/19 (aem) : Moved TransformOperatorTpSpBasis to lgi_unit_tensor
 ****************************************************************/
 
-#ifndef LGI_PROB_H_
-#define LGI_PROB_H_
+#ifndef LGI_SOLVER_H_
+#define LGI_SOLVER_H_
 
 #include <vector>
 #include <Eigen/Eigen>

@@ -17,8 +17,8 @@
   01/28/21 (aem) : Removed deprecated WriteLGIExpansion function.
   08/06/21 (pjf): Add UpstreamLabelsType for use with new recurrence indexing.
 ****************************************************************/
-#ifndef LGI_SOLVER_H_
-#define LGI_SOLVER_H_
+#ifndef LGI_H_
+#define LGI_H_
 
 #include <tuple>
 
@@ -32,46 +32,6 @@
 #include "lsu3shell/lsu3shell_rme.h"
 namespace lgi
 {
-
-  // ////////////////////////////////////////////////////////////////
-  // // Calculation of Nsigma0
-  // ////////////////////////////////////////////////////////////////
-
-  // typedef std::array<int,2> NuclideType;
-
-  // inline HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=false);
-  // // Calculate Nsigma0 for nuclide.
-  // //
-  // // This may be thought of as the dimensionless "oscillator energy in
-  // // the lowest Pauli-allowed configuration", including zero-point
-  // // energy.
-  // //
-  // // Example:
-  // //
-  // //   spncci::Nsigma0ForNuclide({3,3});
-  // //
-  // //      => returns 11
-  // //
-  // // Note that this is shorthand for
-  // //
-  // //   spncci::Nsigma0ForNuclide(spncci::NuclideType({3,3}))
-  // //
-  // // made possible by automatic conversion from initializer list to
-  // // array.
-  // //
-  // // Arguments:
-  // //   nuclide (input): (N,Z) for nucleus
-  // //
-  // // Returns:
-  // //   Nsigma0
-
-
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  // Sp(3,R) LGI enumeration
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-
   ////////////////////////////////////////////////////////////////
   // LGI labels
   ////////////////////////////////////////////////////////////////
@@ -81,7 +41,6 @@ namespace lgi
   // U3SPN labels "dressed" with easy access to the Nex quantum number
   //
   // U3SPN (parent): omega x Sp x Sn x S labels
-  // Nex (int): N relative to Nsigma0 for nucleus
 
   class LGI
     : public u3shell::U3SPN

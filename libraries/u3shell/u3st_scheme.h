@@ -69,7 +69,7 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
 
   class RelativeSubspaceU3ST
-    : public basis::BaseSubspace<RelativeSubspaceU3ST,std::tuple<int,int,int,int>,basis::BaseState<RelativeSubspaceU3ST>,int>
+    : public basis::BaseSubspace<RelativeSubspaceU3ST,std::tuple<unsigned int,unsigned int,unsigned int,unsigned int>,basis::BaseState<RelativeSubspaceU3ST>,int>
     // Subspace class for two-body states of given U(3)xSxT.
     //
     // SubspaceLabelsType (std::tuple): <N, S, T>
@@ -82,16 +82,16 @@ namespace u3shell {
   public:
 
     // constructor
-    RelativeSubspaceU3ST (int N, int S, int T, int g);
+    RelativeSubspaceU3ST (unsigned int N, unsigned int S, unsigned int T, unsigned int g);
 
     // accessors
-    u3::U3 omega() const {return u3::U3(std::get<0>(labels()),0,0);}
-    u3::SU3 SU3() const {return u3::SU3(std::get<0>(labels()),0);}
-    int N() const {return std::get<0>(labels());}
-    int S() const {return std::get<1>(labels());}
-    int T() const {return std::get<2>(labels());}
-    int g() const {return std::get<3>(labels());}
-    std::tuple<int,int,int,int> Key() const {return labels();}
+    u3::U3 omega() const {return u3::U3(std::get<0>(labels()),0u,0u);}
+    u3::SU3 SU3() const {return u3::SU3(std::get<0>(labels()),0u);}
+    unsigned int N() const {return std::get<0>(labels());}
+    unsigned int S() const {return std::get<1>(labels());}
+    unsigned int T() const {return std::get<2>(labels());}
+    unsigned int g() const {return std::get<3>(labels());}
+    std::tuple<unsigned int,unsigned int,unsigned int,unsigned int> Key() const {return labels();}
     // diagnostic output
     std::string Str() const;
 

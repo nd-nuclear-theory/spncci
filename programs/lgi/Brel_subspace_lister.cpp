@@ -75,8 +75,11 @@ int main(int argc, char **argv)
           for(auto xp_tagged : bra_su3_labels)
             {
               const u3::SU3& xp=xp_tagged.irrep;
+              if(not u3::U3::ValidLabels(N0+Nex-2,xp))
+                continue;
+
               u3::U3 wp=u3::U3(N0+Nex-2, xp);
-              if(wp.Valid() && wp.f3()>A/2)
+              if(wp.f3()>A/2)
               {
                 U3SubspaceLabel labelp(Nex-2,twice_Sp,twice_Sn,twice_S,xp);
                 subspace_labels_bra.insert(labelp);

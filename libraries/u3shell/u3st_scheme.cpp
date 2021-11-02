@@ -16,7 +16,7 @@
 
 namespace u3shell {
 
-  RelativeSubspaceU3ST::RelativeSubspaceU3ST(int N, int S, int T, int g)
+  RelativeSubspaceU3ST::RelativeSubspaceU3ST(unsigned int N, unsigned int S, unsigned int T, unsigned int g)
     : BaseSubspace{SubspaceLabelsType(N,S,T,g)}
   {
     // validate subspace labels
@@ -48,14 +48,14 @@ namespace u3shell {
     Nmax_ = Nmax;
 
     // for each N in 0..Nmax
-    for (int N=0; N<=Nmax; ++N)
+    for (unsigned int N=0; N<=Nmax; ++N)
       // for each S in 0..1
-      for (int S=0; S<=1; ++S)
+      for (unsigned int S=0; S<=1; ++S)
         // for each T in 0..1
-        for (int T=0; T<=1; ++T)
+        for (unsigned int T=0; T<=1; ++T)
           {
             // g is fixed by g~N
-            int g = N%2;
+            unsigned int g = N%2;
             if((N+S+T)%2==1)
               {
                 // construct subspace
@@ -218,12 +218,12 @@ namespace u3shell {
                 // create U(3) label
                 u3::SU3 x(lambda,mu);
 
-                // check validity of U(3) before attempting construction
-                if (!u3::U3::ValidLabels(N,x))
-                  continue;
-
                 // construct subspace
+                if(!u3::U3::ValidLabels(N,x))
+                  continue;
+                
                 u3::U3 omega(N,x);
+
                 RelativeCMSubspaceU3ST subspace(omega,S,T,g);
 
                 // push subspace if nonempty
@@ -385,12 +385,12 @@ namespace u3shell {
                 // create U(3) label
                 u3::SU3 x(lambda,mu);
 
-                // check validity of U(3) before attempting construction
-                if (!u3::U3::ValidLabels(N,x))
+                // check validity of U(3)
+                if(!u3::U3::ValidLabels(N,x))
                   continue;
+                u3::U3 omega(N,x);
 
                 // construct subspace
-                u3::U3 omega(N,x);
                 TwoBodySubspaceU3ST subspace(omega,S,T,g);
 
                 // push subspace if nonempty

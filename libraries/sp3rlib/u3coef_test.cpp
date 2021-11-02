@@ -207,8 +207,8 @@ void caching_test()
 void OrthogonalitySum1(const u3::SU3& x1, const u3::SU3& x2)
 {
   MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
-  MultiplicityTagged<int>::vector branch1=BranchingSO3(x1);
-  MultiplicityTagged<int>::vector branch2=BranchingSO3(x2);
+  MultiplicityTagged<unsigned int>::vector branch1=BranchingSO3(x1);
+  MultiplicityTagged<unsigned int>::vector branch2=BranchingSO3(x2);
   // std::cout<<fmt::format("{} {}",x1.Str(),x2.Str())<<std::endl;
   for(int l1=0; l1<branch1.size(); ++l1)
     {
@@ -250,9 +250,9 @@ void OrthogonalitySum1(const u3::SU3& x1, const u3::SU3& x2)
 
 void OrthogonalitySum2(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, int rho)
   {
-    MultiplicityTagged<int>::vector branch1=BranchingSO3(x1);
-    MultiplicityTagged<int>::vector branch2=BranchingSO3(x2);
-    MultiplicityTagged<int>::vector branch=BranchingSO3(x);
+    MultiplicityTagged<unsigned int>::vector branch1=BranchingSO3(x1);
+    MultiplicityTagged<unsigned int>::vector branch2=BranchingSO3(x2);
+    MultiplicityTagged<unsigned int>::vector branch=BranchingSO3(x);
     for(int l=0; l<branch.size(); ++l)
       {
         int L=branch[l].irrep;
@@ -291,12 +291,12 @@ void OrthogonalitySum2(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, i
 void TestOrthogonalityW(int lm_min, int lm_max, int mu_min, int mu_max)
   {
 
-    for(int l1=lm_min; l1<=lm_max; l1++)
-      for(int m1=mu_min; m1<=mu_max; m1++)
+    for(unsigned int l1=lm_min; l1<=lm_max; l1++)
+      for(unsigned int m1=mu_min; m1<=mu_max; m1++)
         {
           u3::SU3 x1(l1,m1);
-          for(int l2=lm_min; l2<=lm_max; l2++)
-            for(int m2=mu_min; m2<=mu_max; m2++)
+          for(unsigned int l2=lm_min; l2<=lm_max; l2++)
+            for(unsigned int m2=mu_min; m2<=mu_max; m2++)
               {
                 u3::SU3 x2(l2,m2);
                 MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
@@ -305,9 +305,9 @@ void TestOrthogonalityW(int lm_min, int lm_max, int mu_min, int mu_max)
                 for(int i=0; i<product.size(); ++i)
                   {
                     u3::SU3 x(product[i].irrep);
-                    int rho_max=product[i].tag;
+                    unsigned int rho_max=product[i].tag;
                     // std::cout<<"Testing Orthogonality sum over (lambda,mu)rho kappa"<<std::endl;
-                    for(int rho=1; rho<=rho_max; ++rho)
+                    for(unsigned int rho=1; rho<=rho_max; ++rho)
                       OrthogonalitySum2(x1, x2, x, rho);
                   }
               }
@@ -316,28 +316,28 @@ void TestOrthogonalityW(int lm_min, int lm_max, int mu_min, int mu_max)
 
 void TestWSymmetries13(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho)
   {
-    MultiplicityTagged<int>::vector branch1=BranchingSO3(x1);
-    MultiplicityTagged<int>::vector branch2=BranchingSO3(x2);
-    MultiplicityTagged<int>::vector branch3=BranchingSO3(x3);
+    MultiplicityTagged<unsigned int>::vector branch1=BranchingSO3(x1);
+    MultiplicityTagged<unsigned int>::vector branch2=BranchingSO3(x2);
+    MultiplicityTagged<unsigned int>::vector branch3=BranchingSO3(x3);
     for(int l1=0; l1<branch1.size(); ++l1)
       {
-        int L1=branch1[l1].irrep;
-        int kappa1_max=branch1[l1].tag;
-        for(int l2=0; l2<branch2.size(); ++l2)
+        unsigned int L1=branch1[l1].irrep;
+        unsigned int kappa1_max=branch1[l1].tag;
+        for(unsigned int l2=0; l2<branch2.size(); ++l2)
           {
-            int L2=branch2[l2].irrep;
-            int kappa2_max=branch2[l2].tag;
-            for(int l3=0; l3<branch3.size(); ++l3)
+            unsigned int L2=branch2[l2].irrep;
+            unsigned int kappa2_max=branch2[l2].tag;
+            for(unsigned int l3=0; l3<branch3.size(); ++l3)
               {
-                int L3=branch3[l3].irrep;
-                int kappa3_max=branch3[l3].tag;
-                for(int kappa1=1; kappa1<=kappa1_max; ++kappa1)
-                  for(int kappa2=1; kappa2<=kappa2_max; ++kappa2)
-                    for(int kappa3=1; kappa3<=kappa3_max; ++kappa3)
+                unsigned int L3=branch3[l3].irrep;
+                unsigned int kappa3_max=branch3[l3].tag;
+                for(unsigned int kappa1=1; kappa1<=kappa1_max; ++kappa1)
+                  for(unsigned int kappa2=1; kappa2<=kappa2_max; ++kappa2)
+                    for(unsigned int kappa3=1; kappa3<=kappa3_max; ++kappa3)
                       {
                         double coef1=u3::W(x1,kappa1,L1,x2,kappa2,L2,x3,kappa3,L3,rho);
                         double coef12=u3::W(x3,kappa3,L3,Conjugate(x2),kappa2,L2,x1,kappa1,L1,rho);
-                        double coef2=parity(x1.lambda()+x1.mu()-x3.lambda()-x3.mu()+L1+L2-L3)
+                        double coef2=ParitySign(x1.lambda()+x1.mu()-x3.lambda()-x3.mu()+L1+L2-L3)
                                       *std::sqrt(u3::dim(x3)*(2*L1+1.)/(u3::dim(x1)*(2*L3+1.)))
                                       *u3::W(x3,kappa3,L3,Conjugate(x2),kappa2,L2,x1,kappa1,L1,rho);
                         
@@ -354,20 +354,20 @@ void TestWSymmetries13(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, 
 
 void TestWSymmetries(int lm_max)
 {
-for(int l1=0; l1<=lm_max; l1++)
-    for(int m1=0; m1<=lm_max; m1++)
+for(unsigned int l1=0; l1<=lm_max; l1++)
+    for(unsigned int m1=0; m1<=lm_max; m1++)
       {
         u3::SU3 x1(l1,m1);
-        for(int l2=0; l2<=lm_max; l2++)
-          for(int m2=0; m2<=lm_max; m2++)
+        for(unsigned int l2=0; l2<=lm_max; l2++)
+          for(unsigned int m2=0; m2<=lm_max; m2++)
             {
               u3::SU3 x2(l2,m2);
               MultiplicityTagged<u3::SU3>::vector product=KroneckerProduct(x1,x2);
-              for(int i=0; i<product.size(); ++i)
+              for(unsigned int i=0; i<product.size(); ++i)
                 {
                   u3::SU3 x3(product[i].irrep);
-                  int rho_max=product[i].tag;
-                  for(int rho=1; rho<=rho_max; ++rho)
+                  unsigned int rho_max=product[i].tag;
+                  for(unsigned int rho=1; rho<=rho_max; ++rho)
                     TestWSymmetries13(x1, x2, x3, rho);
                 }
             }
@@ -388,20 +388,20 @@ void caching_W_test()
   for(auto it=x3_values.begin(); it!=x3_values.end(); ++it)
     {
       u3::SU3 x3(it->irrep);
-      MultiplicityTagged<int>::vector L1_kappa1_values=u3::BranchingSO3(x1);
-      MultiplicityTagged<int>::vector L2_kappa2_values=u3::BranchingSO3(x2);
-      MultiplicityTagged<int>::vector L3_kappa3_values=u3::BranchingSO3(x3);
+      MultiplicityTagged<unsigned int>::vector L1_kappa1_values=u3::BranchingSO3(x1);
+      MultiplicityTagged<unsigned int>::vector L2_kappa2_values=u3::BranchingSO3(x2);
+      MultiplicityTagged<unsigned int>::vector L3_kappa3_values=u3::BranchingSO3(x3);
       
       for (auto it1 = L1_kappa1_values.begin(); it1!= L1_kappa1_values.end(); ++it1)
         for (auto it2 = L2_kappa2_values.begin(); it2!= L2_kappa2_values.end(); ++it2)
           for (auto it3 = L3_kappa3_values.begin(); it3!= L3_kappa3_values.end(); ++it3)
             {
-              int L1=it1->irrep;
-              int kappa1_max=it1->tag;
-              int L2=it2->irrep;
-              int kappa2_max=it2->tag;
-              int L3=it3->irrep;
-              int kappa3_max=it3->tag;
+              unsigned int L1=it1->irrep;
+              unsigned int kappa1_max=it1->tag;
+              unsigned int L2=it2->irrep;
+              unsigned int kappa2_max=it2->tag;
+              unsigned int L3=it3->irrep;
+              unsigned int kappa3_max=it3->tag;
               u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
               label_set.push_back(labels);
              }
@@ -432,13 +432,13 @@ void caching_W_test()
       const u3::WCoefBlock& block = w_coef_cache[labels];
 
       // retrieve multiplicities
-      int rho_max, kappa1_max, kappa2_max, kappa3_max;
+      unsigned int rho_max, kappa1_max, kappa2_max, kappa3_max;
       std::tie(kappa1_max, kappa2_max, kappa3_max, rho_max) = block.Key();
       // loop over multiplicity indices
-      for(int kappa1=1; kappa1<=kappa1_max; ++kappa1)
-        for(int kappa2=1; kappa2<=kappa2_max; ++kappa2)
-          for(int kappa3=1; kappa3<=kappa3_max; ++kappa3)
-            for(int rho=1; rho<=rho_max; ++rho)
+      for(unsigned int kappa1=1; kappa1<=kappa1_max; ++kappa1)
+        for(unsigned int kappa2=1; kappa2<=kappa2_max; ++kappa2)
+          for(unsigned int kappa3=1; kappa3<=kappa3_max; ++kappa3)
+            for(unsigned int rho=1; rho<=rho_max; ++rho)
               {
                 
                 double coef_direct = u3::W(x1,kappa1,L1,x2,kappa2,L2,x3,kappa3,L3,rho);
@@ -461,12 +461,12 @@ UTest(
   )
 {
   double sum=0;
-  MultiplicityTagged<int>::vector L1_set=u3::BranchingSO3(x1);
-  MultiplicityTagged<int>::vector L2_set=u3::BranchingSO3(x2);
-  MultiplicityTagged<int>::vector L3_set=u3::BranchingSO3(x3);
-  MultiplicityTagged<int>::vector L12_set=u3::BranchingSO3(x12);
-  MultiplicityTagged<int>::vector L23_set=u3::BranchingSO3(x23);
-  MultiplicityTagged<int>::vector L_set=u3::BranchingSO3(x);
+  MultiplicityTagged<unsigned int>::vector L1_set=u3::BranchingSO3(x1);
+  MultiplicityTagged<unsigned int>::vector L2_set=u3::BranchingSO3(x2);
+  MultiplicityTagged<unsigned int>::vector L3_set=u3::BranchingSO3(x3);
+  MultiplicityTagged<unsigned int>::vector L12_set=u3::BranchingSO3(x12);
+  MultiplicityTagged<unsigned int>::vector L23_set=u3::BranchingSO3(x23);
+  MultiplicityTagged<unsigned int>::vector L_set=u3::BranchingSO3(x);
   for(int i1=0; i1<L1_set.size(); ++i1)
     for(int i2=0; i2<L2_set.size(); ++i2)
       for(int i3=0; i3<L3_set.size(); ++i3)
@@ -474,17 +474,17 @@ UTest(
           for(int i23=0; i23<L23_set.size(); ++i23)
             // for(int i=0; i<L_set.size(); ++i)
               {
-                int L1=L1_set[i1].irrep;
-                int kappa1_max=L1_set[i1].tag;
-                int L2=L2_set[i2].irrep;
-                int kappa2_max=L2_set[i2].tag;
-                int L3=L3_set[i3].irrep;
-                int kappa3_max=L3_set[i3].tag;
-                int L12=L12_set[i12].irrep;
-                int kappa12_max=L12_set[i12].tag;
-                int L23=L23_set[i23].irrep;
-                int kappa23_max=L23_set[i23].tag;
-                int L=L_set[0].irrep;
+                unsigned int L1=L1_set[i1].irrep;
+                unsigned int kappa1_max=L1_set[i1].tag;
+                unsigned int L2=L2_set[i2].irrep;
+                unsigned int kappa2_max=L2_set[i2].tag;
+                unsigned int L3=L3_set[i3].irrep;
+                unsigned int kappa3_max=L3_set[i3].tag;
+                unsigned int L12=L12_set[i12].irrep;
+                unsigned int kappa12_max=L12_set[i12].tag;
+                unsigned int L23=L23_set[i23].irrep;
+                unsigned int kappa23_max=L23_set[i23].tag;
+                unsigned int L=L_set[0].irrep;
                 for(int kappa1=1; kappa1<=kappa1_max; ++kappa1)
                   for(int kappa2=1; kappa2<=kappa2_max; ++kappa2)
                     for(int kappa3=1; kappa3<=kappa3_max; ++kappa3)

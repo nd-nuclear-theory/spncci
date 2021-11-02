@@ -21,7 +21,7 @@
 namespace u3shell {
 
   RelativeUnitTensorSubspaceU3S::RelativeUnitTensorSubspaceU3S(
-    u3::SU3 x0, HalfInt S0, int etap, int eta,
+    u3::SU3 x0, HalfInt S0, unsigned int etap, unsigned int eta,
     const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
     )
       : BaseSubspace{SubspaceLabelsType(x0,S0,etap,eta)}

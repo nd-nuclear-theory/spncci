@@ -22,7 +22,6 @@
 #include "u3shell/two_body_operator.h"
 #include "u3shell/u3st_scheme.h"
 #include "u3shell/tensor_labels.h"
-// #include "u3shell/moshinsky.h"
 
 namespace u3shell
 {

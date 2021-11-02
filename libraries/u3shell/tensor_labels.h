@@ -58,7 +58,7 @@ namespace u3shell
       // Default constructor.
       {}
     
-    inline RelativeStateLabelsU3ST(int eta, HalfInt S, HalfInt T)
+    inline RelativeStateLabelsU3ST(unsigned int eta, HalfInt S, HalfInt T)
       : eta_(eta), S_(S), T_(T)
     // Construct from labels.
     {}
@@ -67,14 +67,14 @@ namespace u3shell
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    inline int eta() const
+    inline unsigned int eta() const
     {
       return eta_;
     }
 
     inline u3::SU3 x() const
     {
-      return u3::SU3(eta(),0);
+      return u3::SU3(eta(),0u);
     }
 
     inline HalfInt S() const
@@ -87,7 +87,7 @@ namespace u3shell
       return T_;
     }
 
-    inline int g() const
+    inline unsigned int g() const
     {
       return eta()%2;
     }
@@ -96,7 +96,7 @@ namespace u3shell
     // key tuple, comparisons, and hashing
     ////////////////////////////////////////////////////////////////
 
-    typedef std::tuple<int,HalfInt,HalfInt> KeyType;
+    typedef std::tuple<unsigned int,HalfInt,HalfInt> KeyType;
     // eta, S, T
 
     inline KeyType Key() const
@@ -131,7 +131,7 @@ namespace u3shell
     ////////////////////////////////////////////////////////////////
 
     private:
-    int eta_;
+    unsigned int eta_;
     HalfInt S_, T_;
   };
 

@@ -255,7 +255,7 @@ namespace spncci
     int dimension = 0;
     for (const spncci::SpNCCIIrrepFamily& spncci_irrep_family : spncci_space)
       {
-        const int gamma_max = spncci_irrep_family.gamma_max();
+        const unsigned int gamma_max = spncci_irrep_family.gamma_max();
         const sp3r::Sp3RSpace& irrep_space = spncci_irrep_family.Sp3RSpace();
         for (int subspace_index=0; subspace_index < irrep_space.size(); ++subspace_index)
           {
@@ -266,7 +266,7 @@ namespace spncci
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-            MultiplicityTagged<int>::vector branching_vector = BranchingSO3(omega.SU3());
+            MultiplicityTagged<unsigned int>::vector branching_vector = BranchingSO3(omega.SU3());
             int L_dimension = 0;
             for (int L_index=0; L_index<branching_vector.size(); ++L_index)
               L_dimension += branching_vector[L_index].tag;
@@ -301,7 +301,7 @@ namespace spncci
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-            MultiplicityTagged<int>::vector branching_vector = BranchingSO3Constrained(omega.SU3(),am::ProductAngularMomentumRange(S,J));
+            MultiplicityTagged<unsigned int>::vector branching_vector = BranchingSO3Constrained(omega.SU3(),am::ProductAngularMomentumRange(S,J));
             // std::cout << " omega " << omega.Str() << " S " << S << " J " << J << std::endl;
             int L_dimension = 0;
             for (int L_index=0; L_index<branching_vector.size(); ++L_index)
@@ -337,7 +337,7 @@ namespace spncci
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-            MultiplicityTagged<int>::vector branching_vector = BranchingSO3(omega.SU3());
+            MultiplicityTagged<unsigned int>::vector branching_vector = BranchingSO3(omega.SU3());
             for (int L_index=0; L_index<branching_vector.size(); ++L_index)
               {
                 int L = branching_vector[L_index].irrep;
@@ -919,7 +919,7 @@ namespace spncci
         //Should be the same for all states with same irrep_family_index
         gamma_max_=gamma_max;
 
-        MultiplicityTagged<int>::vector so3_irreps=u3::BranchingSO3(omega.SU3());
+        MultiplicityTagged<unsigned int>::vector so3_irreps=u3::BranchingSO3(omega.SU3());
         for(auto& tagged_L : so3_irreps)
           {
             int L=tagged_L.irrep;

@@ -116,7 +116,7 @@ namespace rotor
       {
         // std::cout<<std::endl<<"Calculating X4"<<std::endl;
         // std::cout<<kappap<<"  "<<kappa<<std::endl;
-        MultiplicityTagged<int>::vector Lvalues=BranchingSO3(x);
+        MultiplicityTagged<unsigned int>::vector Lvalues=BranchingSO3(x);
         double rme=0.0;
         for(auto L_tagged : Lvalues)
           {
@@ -153,7 +153,7 @@ namespace rotor
 
 
   void GetHamiltonianMatrix(
-    const u3::SU3& x, const MultiplicityTagged<int>::vector& basis,
+    const u3::SU3& x, const MultiplicityTagged<unsigned int>::vector& basis,
     Eigen::MatrixXd& Hrot, std::vector<double>coefs
   )
     {
@@ -188,8 +188,8 @@ namespace rotor
 void GetSU3RotorEnergies(const u3::SU3& x, double alpha)
 {
   //Construct basis for irrep by branching to SO(3)
-  MultiplicityTagged<int>::vector Lvalues=BranchingSO3(x);
-  MultiplicityTagged<int>::vector basis;
+  MultiplicityTagged<unsigned int>::vector Lvalues=BranchingSO3(x);
+  MultiplicityTagged<unsigned int>::vector basis;
   for(auto L_tagged : Lvalues)
     {
       int L=L_tagged.irrep;

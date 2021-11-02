@@ -89,14 +89,14 @@ void DoKroneckerProduct(int lambda1, int mu1, int lambda2, int mu2)
     std::cout << "  " << product[i].Str() << std::endl;
 }
 
-void DoBranchingSO3(int lambda, int mu)
+void DoBranchingSO3(const unsigned int lambda, const unsigned int mu)
 {
   // label
   u3::SU3 x(lambda,mu); 
   std::cout << fmt::format("{}:",x.Str()) << std::endl;
 
   // calculate
-  MultiplicityTagged<int>::vector branching = u3::BranchingSO3(x);
+  MultiplicityTagged<unsigned int>::vector branching = u3::BranchingSO3(x);
   for(int i=0; i<branching.size(); ++i)  
     std::cout << "  " << branching[i].Str() << std::endl;
 }

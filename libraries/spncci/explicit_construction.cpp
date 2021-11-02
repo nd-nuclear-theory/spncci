@@ -55,10 +55,10 @@ namespace spncci
             for(int w_bar=0; w_bar<omegapp_list.size(); ++w_bar)
               {
 
-                u3::U3 omega_bar(omega.N()-2,omegapp_list[w_bar].irrep);
-                // check if omega_bar is a valid U3 state and in irrep
-                if(not omega_bar.Valid())
+                if(not u3::U3::ValidLabels(omega.N()-2,omegapp_list[w_bar].irrep))
                   continue;
+                
+                u3::U3 omega_bar(omega.N()-2,omegapp_list[w_bar].irrep);
 
                 int omega_bar_index=u3_subspaces.LookUpSubspaceIndex(omega_bar);
 

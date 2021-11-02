@@ -29,7 +29,7 @@
 
 namespace u3shell {
 
-  typedef std::tuple<u3::SU3,HalfInt,int,int> UnitTensorSubspaceLabels;
+  typedef std::tuple<u3::SU3,HalfInt,unsigned int, unsigned int> UnitTensorSubspaceLabels;
   typedef std::set<UnitTensorSubspaceLabels> UnitTensorSubspaceLabelsSet;
 
   ////////////////////////////////////////////////////////////////
@@ -66,11 +66,11 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
   // subspace
   ////////////////////////////////////////////////////////////////
-  typedef std::tuple<int,int,int,int,int> RelativeUnitTensorStateLabelsU3S;
+  using RelativeUnitTensorStateLabelsU3S = std::tuple<int,int,int,int,int>;
 
   class RelativeUnitTensorSubspaceU3S
     : public basis::BaseSubspace<RelativeUnitTensorSubspaceU3S,
-        std::tuple<u3::SU3,HalfInt,int,int>,
+        std::tuple<u3::SU3,HalfInt,unsigned int,unsigned int>,
         RelativeUnitTensorStateU3S,
         std::tuple<int,int,int,int,int>>
     // Subspace class for two-body states of given S(3)xS.
@@ -87,18 +87,18 @@ namespace u3shell {
 
     // constructor
     RelativeUnitTensorSubspaceU3S (
-      u3::SU3 x0, HalfInt S0, int etap, int eta,
+      u3::SU3 x0, HalfInt S0, unsigned int etap, unsigned int eta,
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
      );
 
     // accessors
     u3::SU3 x0() const {return std::get<0>(labels());}
     HalfInt S0() const {return std::get<1>(labels());}
-    int etap() const {return std::get<2>(labels());}
-    int eta() const {return std::get<3>(labels());}
+    unsigned int etap() const {return std::get<2>(labels());}
+    unsigned int eta() const {return std::get<3>(labels());}
     int N0() const {return etap()-eta();}
 
-    std::tuple<u3::SU3,HalfInt,int,int> Key() const {return labels();}
+    std::tuple<u3::SU3,HalfInt,unsigned int,unsigned int> Key() const {return labels();}
     // diagnostic output
     std::string Str() const;
     std::string LabelStr() const;
@@ -131,8 +131,8 @@ namespace u3shell {
     // pass-through accessors
     u3::SU3 x0() const {return subspace().x0();}
     HalfInt S0() const {return subspace().S0();}
-    int etap() const {return subspace().etap();}
-    int eta() const {return subspace().eta();}
+    unsigned int etap() const {return subspace().etap();}
+    unsigned int eta() const {return subspace().eta();}
     int N0() const {return etap()-eta();}
 
     // state label accessors

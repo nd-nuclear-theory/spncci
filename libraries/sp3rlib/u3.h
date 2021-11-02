@@ -17,6 +17,11 @@
     - Add constexpr to SU3 and U3 where applicable.
     - Fill in missing comparison operators for SU3 and U3.
     - Add U3 overload for OuterMultiplicity.
+  11/1/21 (aem): 
+    - Changed switched U3 to storing N,lambda,mu instead of f1,f2,f3
+    - Changed SU3 lambda,mu type to unsigned int
+    - Changed multiplicity type to unsigned int
+    - Defined fmt formats for SU3, U3 and U3S
 ****************************************************************/
 
 #ifndef U3_H_
@@ -27,12 +32,13 @@
 #include <vector>
 
 #include "boost/functional/hash.hpp"
-
+#include "fmt/format.h"
 #include "am/halfint.h"
+#include "am/halfint_fmt.h"
 #include "am/am.h"
 #include "sp3rlib/multiplicity_tagged.h"
 #include "mcutils/arithmetic.h"
-// #include "utilities/utilities.h"
+#include "mcutils/deprecated.h"
 
 namespace u3
 {
@@ -61,19 +67,24 @@ namespace u3
     // construction from (lambda,mu)
     //
     // underscore on arguments avoids name clash with accessors
-    constexpr inline SU3(int lambda, int mu)
+    constexpr inline SU3(unsigned int lambda, unsigned int mu)
       : lambda_(lambda), mu_(mu) {}
+
+    DEPRECATED("use unsigned int for lambda and mu")
+    constexpr inline SU3(int lambda, int mu)
+      : SU3((unsigned int)lambda, (unsigned int)mu)
+    {}
 
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    constexpr inline int lambda() const
+    constexpr inline unsigned int lambda() const
     {
       return lambda_;
     }
 
-    constexpr inline int mu() const
+    constexpr inline unsigned int mu() const
     {
       return mu_;
     }
@@ -82,7 +93,7 @@ namespace u3
     // key tuple, comparisons, and hashing
     ////////////////////////////////////////////////////////////////
 
-    typedef std::pair<int,int> KeyType;
+    typedef std::pair<unsigned int,unsigned int> KeyType;
 
     constexpr inline KeyType Key() const
     {
@@ -145,11 +156,7 @@ namespace u3
     private:
 
     // Elliott labels
-    int lambda_, mu_;
-
-    // Could save memory by packing labels into a uint16_t:
-    // uint16_t packed_labels_;
-    // packed_labels_ = (lambda << label_width) | (mu << 0);
+    unsigned int lambda_, mu_;
 
   };
 
@@ -171,7 +178,7 @@ namespace u3
     return u3::SU3(x.mu(),x.lambda());
   }
 
-  constexpr inline int ConjugationGrade(const u3::SU3& x)
+  constexpr inline unsigned int ConjugationGrade(const u3::SU3& x)
   // Integer contribution to phase on conjugation.
   {
     return x.mu() + x.lambda();
@@ -208,95 +215,71 @@ namespace u3
     // member needs copying
 
     constexpr inline U3()
-      : f1_(0), f2_(0), f3_(0)
+      : N_{0},x_{}
       // default constructor
       {}
 
 
     constexpr inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
-      : f1_(f1), f2_(f2), f3_(f3)
+      : N_{f1+f2+f3}, x_{(unsigned int)(f1-f2), (unsigned int)(f2-f3)}
     // Construct from Cartesian labels [f1,f2,f3].
     {
-      // assert(ValidLabels(f1_,f2_,f3_));
+      
+      assert(ValidLabels(f1,f2,f3));
     }
 
-    constexpr inline U3(const HalfInt& N_, const u3::SU3& x_);
+    constexpr inline U3(const HalfInt& N, const u3::SU3& x)
+      : N_(N),x_(x)
     // Construct from N(lambda,mu) labels.
-    //
-    // Precondition: The N(lambda,mu) are assumed to be a valid U(3)
-    // combination.
+    {
+      assert(ValidLabels(N,x));
+    }
 
     ////////////////////////////////////////////////////////////////
     // validation
     ////////////////////////////////////////////////////////////////
-
-    constexpr inline bool Valid() const
-    // Checks validity of U3 labels.
-    //
-    // Normally there is requirement all labels nonnegative (f3>=0),
-    // but we also allow conjugate representations with all labels
-    // nonpositive (f1<=0).
-    {
-      // return (f1_ >= f2_) && (f2_ >= f3_) && ((f3_ >=0 ) || (f1_ <= 0));
-      return ValidLabels(f1_,f2_,f3_);
-    }
-
     constexpr inline static
       bool ValidLabels(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)
     // Check validity of U3 labels in Cartesian form.
-    //
-    // Normally there is requirement all labels nonnegative (f3>=0),
-    // but we also allow conjugate representations with all labels
-    // nonpositive (f1<=0).
     {
-      return (f1 >= f2) && (f2 >= f3) && ((f3 >=0 ) || (f1 <= 0));
+
+      return ((f1 >= f2) && (f2 >= f3) && ((f3 >=0 )||(f1<=0))) && IsInteger(f1-f2) && IsInteger(f2-f3);
     }
+
 
     constexpr inline static
       bool ValidLabels(const HalfInt& N, const u3::SU3& x)
     // Check validity of U3 labels in N(lambda,mu) form.
     {
-      int thrice_twice_f3 = TwiceValue(N-2*x.mu()-x.lambda());
-      bool valid = (thrice_twice_f3%3==0);
+      bool valid = TwiceValue(N+2*x.lambda()+x.mu())%3==0;
+      valid &= TwiceValue(N-x.lambda()+x.mu())%3==0;
+      valid &= TwiceValue(N-x.lambda()-2*x.mu())%3 ==0;
       return valid;
     }
+
 
     ////////////////////////////////////////////////////////////////
     // accessors
     ////////////////////////////////////////////////////////////////
 
     // access Cartesian labels
-
+    constexpr inline HalfInt N() const {return N_;}
+    constexpr inline u3::SU3 SU3() const{return x_;}
+   
+   // but since division is not defined for HalfInt, work with twice value for division purposes
     constexpr inline HalfInt f1() const
     {
-      return f1_;
+      return HalfInt(TwiceValue(N_+2*x_.lambda()+x_.mu())/3,2);
     }
 
     constexpr inline HalfInt f2() const
     {
-      return f2_;
+      return HalfInt(TwiceValue(N_-x_.lambda()+x_.mu())/3,2);
     }
 
     constexpr inline HalfInt f3() const
     {
-      return f3_;
-    }
-
-    // access N and SU(3) parts
-
-    // Note: Meed to use explicit reference to u3::SU3 since name is
-    // masked here by u3::U3::SU3.
-
-    constexpr inline HalfInt N() const
-    {
-      return f1_+f2_+f3_;
-    }
-
-    constexpr inline u3::SU3 SU3() const
-    {
-      int lambda = static_cast<int>(f1_-f2_);
-      int mu = static_cast<int>(f2_-f3_);
-      return u3::SU3(lambda,mu);
+      return HalfInt(TwiceValue(N_-x_.lambda()-2*x_.mu())/3,2);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -307,7 +290,7 @@ namespace u3
 
     constexpr inline KeyType Key() const
     {
-      return KeyType(N(),SU3());
+      return KeyType(N_,x_);
     }
 
     constexpr inline friend bool operator==(const U3& omega1, const U3& omega2)
@@ -340,20 +323,6 @@ namespace u3
       return !(omega1 < omega2);
     }
 
-    // Alternative old "manual" combination...
-    //
-    //   static const int label_width = 12;
-    //   inline friend std::size_t hash_value(const U3& omega)
-    //   {
-    //     int packed_labels =
-    //       (TwiceValue(omega.f1_) << 2*label_width)
-    //       | (TwiceValue(omega.f2_) << label_width)
-    //       | (TwiceValue(omega.f3_) << 0);
-    //
-    //     boost::hash<int> hasher;
-    //     return hasher(packed_labels);
-    //   }
-
     inline friend std::size_t hash_value(const U3& v)
     {
       boost::hash<U3::KeyType> hasher;
@@ -373,30 +342,11 @@ namespace u3
 
     private:
     // Cartesian labels
-    HalfInt f1_, f2_, f3_;
+    // HalfInt f1_, f2_, f3_;
+    HalfInt N_;
+    u3::SU3 x_;
 
   };
-
-  ////////////////////////////////////////////////////////////////
-  // constructors
-  ////////////////////////////////////////////////////////////////
-
-  constexpr inline U3::U3(const HalfInt& N_, const u3::SU3& x_)
-  {
-
-    assert(ValidLabels(N_,x_));
-
-    // recover f3 first
-    // N - 2mu - lambda = (f1+f2+f3)-2*(f2-f3)-(f1-f2) = 3*f3
-    // but since division is not defined for HalfInt, work with twice value for division purposes
-    int twice_f3 = TwiceValue(N_-2*x_.mu()-x_.lambda()) / 3;
-    f3_ = HalfInt(twice_f3,2);
-
-    // recover f2 and f1
-    f2_ = f3_ + x_.mu();
-    f1_ = f2_ + x_.lambda();
-
-  }
 
 
   ////////////////////////////////////////////////////////////////
@@ -636,7 +586,7 @@ namespace u3
 
   // outer multiplicity
 
-  int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3);
+  unsigned int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3);
   // Calculate outer multiplicity of SU(3) irrep of SU(3) Kronecker product.
   //
   // Calculates multiplicity of x3 in product x1 x x2.
@@ -650,7 +600,7 @@ namespace u3
   // Returns:
   //   (int) : multiplicity
 
-  inline int OuterMultiplicity(const u3::U3& omega1, const u3::U3& omega2, const u3::U3& omega3)
+  inline unsigned int OuterMultiplicity(const u3::U3& omega1, const u3::U3& omega2, const u3::U3& omega3)
   // Overloaded for U3.
   {
     if (omega1.N() + omega2.N() != omega3.N())
@@ -685,7 +635,7 @@ namespace u3
 
   // branching multiplicity
 
-  int BranchingMultiplicitySO3(const u3::SU3& x, int L);
+  unsigned int BranchingMultiplicitySO3(const u3::SU3& x, unsigned int L);
   // Calculate branching multiplicity of angular momentum in SU(3) irrep.
   //
   // Ref: e.g., Harvey, ANP 1, 67 (1968).
@@ -701,7 +651,7 @@ namespace u3
   //   BranchingMultiplicity(u3::SU3(4,3),3)
   //   returns 2
 
-  MultiplicityTagged<int>::vector BranchingSO3(const u3::SU3& x);
+  MultiplicityTagged<unsigned int>::vector BranchingSO3(const u3::SU3& x);
   // Generate multiplicity-tagged vector of SO(3) irreps in SU(3) irrep.
   //
   // The general branching rule is:
@@ -725,7 +675,7 @@ namespace u3
   //   (of nonzero multiplicity) tagged by its multiplicity
   //   kappa_max
 
-  MultiplicityTagged<int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r);
+  MultiplicityTagged<unsigned int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r);
   // Generate multiplicity-tagged vector of SO(3) irreps in SU(3)
   // irrep, constrained to lie within a constrained angular momentum
   // range.
@@ -758,5 +708,96 @@ namespace std
     }
   };
 }
+
+
+namespace fmt {
+
+template <>
+struct formatter<u3::SU3> 
+{
+  char presentation = 'g';
+
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  {
+    auto it = ctx.begin(), end = ctx.end();
+    if (it != end && (*it == 'd' || *it == 'g')) presentation = *it++;
+
+    // Check if reached the end of the range:
+    if (it != end && *it != '}')
+      throw format_error("invalid format");
+
+    // Return an iterator past the end of the parsed range:
+    return it;
+  }
+
+  template <typename FormatContext>
+  FMT_CONSTEXPR auto format(const u3::SU3& x, FormatContext& ctx) -> decltype(ctx.out()) 
+  {
+    return format_to(ctx.out(), "({:d},{:d})", x.lambda(),x.mu());
+  }
+};
+
+template <>
+struct formatter<u3::U3> 
+{
+  char presentation = 'g';
+
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  {
+    auto it = ctx.begin(), end = ctx.end();
+    if (it != end && (*it == 'd' || *it == 'g' || *it == 'f')) presentation = *it++;
+
+    // Check if reached the end of the range:
+    if (it != end && *it != '}')
+      throw format_error("invalid format");
+
+    // Return an iterator past the end of the parsed range:
+    return it;
+  }
+
+  template <typename FormatContext>
+  FMT_CONSTEXPR auto format(const u3::U3& w, FormatContext& ctx) -> decltype(ctx.out()) 
+  {
+    if(presentation == 'f')
+      return format_to(ctx.out(), "{:f}{:d}",w.N(),w.SU3());
+    else
+    return format_to(ctx.out(), "{:d}{:d}", w.N(),w.SU3());
+  }
+};
+
+
+template <>
+struct formatter<u3::U3S> 
+{
+  char presentation = 'g';
+
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  {
+    auto it = ctx.begin(), end = ctx.end();
+    if (it != end && (*it == 'd' || *it == 'g' || *it == 'f')) presentation = *it++;
+
+    // Check if reached the end of the range:
+    if (it != end && *it != '}')
+      throw format_error("invalid format");
+
+    // Return an iterator past the end of the parsed range:
+    return it;
+  }
+
+  template <typename FormatContext>
+  FMT_CONSTEXPR auto format(const u3::U3S& wS, FormatContext& ctx) -> decltype(ctx.out()) 
+  {
+    if(presentation == 'f')
+      return format_to(ctx.out(), "{:f}{:f}",wS.U3(),wS.S());
+    else
+    return format_to(ctx.out(), "{:d}{:d}", ws.U3(),wS.S());
+  }
+};
+
+
+}  // namespace fmt
 
 #endif

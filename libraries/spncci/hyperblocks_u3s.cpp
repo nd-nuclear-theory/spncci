@@ -606,11 +606,11 @@ void GetOperatorTile(
         // std::cout<<"Get subspace labels for branching"<<std::endl;
         const u3::U3& omegap=baby_spncci_subspace_bra.omega();
         HalfInt Sp=baby_spncci_subspace_bra.S();
-        MultiplicityTagged<int>::vector Lp_list=u3::BranchingSO3(omegap.SU3());
+        MultiplicityTagged<unsigned int>::vector Lp_list=u3::BranchingSO3(omegap.SU3());
         
         const u3::U3& omega=baby_spncci_subspace_ket.omega();
         HalfInt S=baby_spncci_subspace_ket.S();
-        MultiplicityTagged<int>::vector L_list=u3::BranchingSO3(omega.SU3());
+        MultiplicityTagged<unsigned int>::vector L_list=u3::BranchingSO3(omega.SU3());
 
         //Operator information
         const u3shell::ObservableSubspaceU3S& observable_subspace=observable_space.GetSubspace(operator_subspace_index);
