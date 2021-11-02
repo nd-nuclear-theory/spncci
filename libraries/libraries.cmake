@@ -4,6 +4,29 @@ cmake_minimum_required(VERSION 3.18)
 option(USE_SYSTEM_FMT "Use system-provided fmtlib" FALSE)
 
 # ##############################################################################
+# SU(3) coefficient library selection
+# ##############################################################################
+
+set(SPNCCI_SU3_LIBRARY_OPTIONS "su3wrc" "ndsu3lib" "SU3lib")
+set(SPNCCI_SU3_LIBRARY "su3wrc" CACHE STRING "SU(3) coefficient library to use")
+set_property(CACHE SPNCCI_SU3_LIBRARY PROPERTY STRINGS ${SPNCCI_SU3_LIBRARY_OPTIONS})
+
+if(SPNCCI_SU3_LIBRARY STREQUAL "su3wrc")
+  find_package(su3wrc REQUIRED)
+  add_library(spncci::su3_library ALIAS su3wrc::su3wrc)
+elseif(SPNCCI_SU3_LIBRARY STREQUAL "ndsu3lib")
+  find_package(ndsu3lib REQUIRED)
+  add_library(spncci::su3_library ALIAS ndsu3lib::ndsu3lib)
+elseif(SPNCCI_SU3_LIBRARY STREQUAL "SU3lib")
+  find_package(SU3lib REQUIRED)
+  add_library(spncci::su3_library ALIAS SU3lib::SU3lib)
+else()
+  message(FATAL_ERROR "unknown SU(3) coefficient library ${SPNCCI_SU3_LIBRARY}")
+endif()
+message(STATUS "Found SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
+
+
+# ##############################################################################
 # external dependencies
 # ##############################################################################
 
@@ -14,8 +37,17 @@ find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
 find_package(Spectra REQUIRED)
 find_package(su3lib REQUIRED)
+##find_package(GTest REQUIRED)
+include(FetchContent)
+FetchContent_Declare(
+  GTest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        e2239ee6043f73722e7aa812a459f54a28552929 # v1.11.0
+  GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(GTest)
 
-find_package(MKL)
+#find_package(MKL) # disabled 21/10/31, broken on Mac (cvc)
 if(TARGET MKL::MKL)
   target_link_libraries(Eigen3::Eigen INTERFACE MKL::MKL)
   target_compile_definitions(Eigen3::Eigen INTERFACE EIGEN_USE_MKL_ALL)
