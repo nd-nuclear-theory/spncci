@@ -83,7 +83,8 @@ inline HalfInt Nsigma0ForNuclide(const NuclideType& nuclide, bool intrinsic=fals
 
 {
   const auto&[Z,N] = nuclide;
-  HalfInt Nsigma0 = N0ForNuclide(nuclide)+HalfInt(3*(N+Z),2);
+  HalfInt cm_term=intrinsic?HalfInt(3,2):0;
+  HalfInt Nsigma0 = N0ForNuclide(nuclide)+HalfInt(3*(N+Z),2)-cm_term;
   return Nsigma0;
 }
 
