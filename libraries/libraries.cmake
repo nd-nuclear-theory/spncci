@@ -14,6 +14,8 @@ find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
 find_package(Spectra REQUIRED)
 find_package(su3lib REQUIRED)
+## find Tomas' lsu3shell libraries
+find_package(lsu3shell)
 
 find_package(MKL)
 if(TARGET MKL::MKL)

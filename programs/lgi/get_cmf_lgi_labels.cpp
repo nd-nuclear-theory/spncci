@@ -176,21 +176,22 @@ void generate_cmf_lgi(int Nmax,HalfInt Nsigma0,std::map<u3shell::U3SPN, Dimensio
     for(int Nex=0; Nex<=Nmax; ++Nex)
       for(const auto& irrep_dimensions : dimensions_by_irrep)
         {
-          const u3shell::U3SPN& irrep=irrep_dimensions.first;
-          const auto& dimensions=irrep_dimensions.second;
-
+          const auto&[irrep,dimensions]=irrep_dimensions.first;
+          if((irrep.N()-Nsigma0) != Nex)
+            continue;
+          
           int Ncm_max=Nmax-Nex;
-          if( (irrep.N()-Nsigma0) == Nex)
-            for(int Ncm=1; Ncm<=Ncm_max; Ncm++)
-              {
-                u3::U3 wcm(Ncm,u3::SU3(Ncm,0));
-                MultiplicityTagged<u3shell::U3SPN>::vector cm_irreps=KroneckerProduct(irrep, wcm);
-                for(const auto& cm_irrep_tagged : cm_irreps)
-                  {
-                    assert(cm_irrep_tagged.tag==1);
-                    dimensions_by_irrep[cm_irrep_tagged.irrep].cmf -= dimensions.cmf * cm_irrep_tagged.tag;
-                  }
-              }
+          
+          for(int Ncm=1; Ncm<=Ncm_max; Ncm++)
+            {
+              u3::U3 wcm(Ncm,u3::SU3(Ncm,0));
+              MultiplicityTagged<u3shell::U3SPN>::vector cm_irreps=KroneckerProduct(irrep, wcm);
+              for(const auto& cm_irrep_tagged : cm_irreps)
+                {
+                  assert(cm_irrep_tagged.tag==1);
+                  dimensions_by_irrep[cm_irrep_tagged.irrep].cmf -= dimensions.cmf * cm_irrep_tagged.tag;
+                }
+            }
         }
 
     // Copy cmf dimensions to lgi dimensions
@@ -237,12 +238,17 @@ int main(int argc, char **argv)
   int A = run_parameters.nuclide[0] + run_parameters.nuclide[1];
   int N0 = int(Nsigma0 - HalfInt(3, 2) * (A - 1));// CMF N0
   int Nmax=run_parameters.Nmax;
-  // std::cerr << A << " " << N0 << " " << Nsigma0 << std::endl;
+  std::cout << A << " " << N0 << " " << Nsigma0 << std::endl;
 
   std::map<u3shell::U3SPN, Dimensions> dimensions_by_irrep;
   read_lsu3shell_basis_dimensions(run_parameters.input_filename, N0,A, run_parameters.Nmax, dimensions_by_irrep);
+  
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   generate_cmf_lgi(Nmax,Nsigma0,dimensions_by_irrep,lgi_vector);
+
+  std::cout<<"Inspecting lgi vector "<<std::endl;
+  for(const auto& [lgi,gamma] : lgi_vector)
+    std::cout<<fmt::format("{}  {}",lgi.Str(),gamma)<<std::endl;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /// Get big block dimensions

@@ -11,8 +11,9 @@
 #include <mpi.h>
 #include "fmt/format.h"
 #include "basis/operator.h"
-#include "lsu3shell/su3rme.h"
+#include "lgi/su3rme.h"
 #include "lgi/lgi.h"
+#include "lgi/dimensions.h"
 #include "spncci/eigenproblem.h"
 
 #include "LSU3/ncsmSU3xSU2Basis.h"

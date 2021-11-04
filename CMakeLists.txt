@@ -28,6 +28,7 @@ set(CMAKE_CXX_EXTENSIONS False)
 add_compile_options(
   $<$<CONFIG:Release>:-O3>
   $<$<CONFIG:Debug>:-Wall>
+  $<$<CONFIG:Debug>:-Wsign-conversion>
   $<$<CONFIG:Debug>:-Wextra>
   $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-ggdb>
 )

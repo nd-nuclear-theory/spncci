@@ -185,14 +185,44 @@ namespace lgi
   // Reading in and filling out table of lgi indices in basis and lgi indices in full space by
   // which the seed files are labeled.
 
-  MultiplicityTaggedLGIVector get_lgi_vector(
-      const nuclide::NuclideType& nuclide, 
-      const HalfInt& Nsigma0,
-      const int& Nmax
-    );
 
 
 }  // namespace lgi
+
+namespace fmt
+{
+template <>
+struct formatter<lgi::LGI> 
+{
+  char presentation = 'g';
+
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  {
+    auto it = ctx.begin(), end = ctx.end();
+    if (it != end && (*it == 'd' || *it == 'g' || *it == 'f')) presentation = *it++;
+
+    // Check if reached the end of the range:
+    if (it != end && *it != '}')
+      throw format_error("invalid format");
+
+    // Return an iterator past the end of the parsed range:
+    return it;
+  }
+
+  template <typename FormatContext>
+  FMT_CONSTEXPR auto format(const lgi::LGI& lgi, FormatContext& ctx) -> decltype(ctx.out()) 
+  {
+    if(presentation == 'f')
+      return format_to(ctx.out(), "{:d}{:d}[{:f},{:f},{:f}]",lgi.Nex(),lgi.SU3(),lgi.Sp(),lgi.Sn(),lgi.S());
+    else
+    return format_to(ctx.out(), "{:d}{:d}[{:d},{:d},{:d}]",lgi.Nex(),lgi.SU3(),lgi.Sp(),lgi.Sn(),lgi.S());
+  }
+};
+
+
+}// namespace fmt
+
 
 #ifdef BASIS_HASH
 namespace std

@@ -20,6 +20,7 @@
 #include "utilities/nuclide.h"
 #include "utilities/utilities.h"
 
+
 int main(int argc, char **argv)
 {
 	
@@ -29,6 +30,7 @@ int main(int argc, char **argv)
 	u3shell::U3SPN u3spn(u3s,Sp,Sn);
 	u3shell::U3SPN u3spn2(omega,S,Sp,Sn);
 	lgi::LGI lgi(u3spn,0);
+	std::cout<<fmt::format("{}",lgi)<<std::endl;
 	std::cout<<lgi.Str()<<std::endl;
 
 	// Read in lgi vector from file
@@ -39,32 +41,7 @@ int main(int argc, char **argv)
 	HalfInt Nsigma0=nuclide::Nsigma0ForNuclide({3,3});
 	std::cout<<"Nsigma0 "<<Nsigma0<<std::endl;
 	lgi::ReadLGISet(filename, Nsigma0,lgi_vector);
-
-	//// Construct lgi vector directly from lsu3shell basis using counting arguments
-	std::cout<<"List of lgi's generated using lsu3shell basis constructors 6Li"<<std::endl;
-	nuclide::NuclideType nuclide({3,3});
-	int Nmax=2;
-	lgi::MultiplicityTaggedLGIVector lgi_vector2 = lgi::get_lgi_vector(nuclide, Nsigma0,Nmax);
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//To compare lgi input file generated with old ordering, need to change ordering, 
-	// so turn lgi_vector into map which does sorting and then write back to vector in new order.
-	std::map<lgi::LGI,int> temp_map;
-	for(const auto& lgi : lgi_vector)
-		temp_map[lgi.irrep]=lgi.tag;
-
-	lgi_vector.resize(0);
-	for(auto lgi : temp_map)
-		lgi_vector.emplace_back(lgi.first,lgi.second);
-
-	for(int i=0; i<lgi_vector.size(); ++i)
-		{
-			if (not ((lgi_vector[i].irrep==lgi_vector2[i].irrep)&(lgi_vector[i].tag==lgi_vector2[i].tag)))
-				std::cout<<"ERROR"<<std::endl;
-			std::cout<<fmt::format("{}  {:6d}   {}  {:6d}", 
-				lgi_vector[i].irrep.Str(),lgi_vector[i].tag,
-				lgi_vector2[i].irrep.Str(),lgi_vector2[i].tag
-			)<<std::endl;
-		}
+	for(const auto& [lgi,multiplicity] : lgi_vector)
+		std::cout<<fmt::format("{}  {}",lgi,multiplicity)<<std::endl;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
