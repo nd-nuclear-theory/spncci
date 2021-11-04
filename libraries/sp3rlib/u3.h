@@ -79,15 +79,26 @@ namespace u3
     // accessors
     ////////////////////////////////////////////////////////////////
 
-    constexpr inline unsigned int lambda() const
+    constexpr inline int lambda() const
+    {
+      return int(lambda_);
+    }
+
+    constexpr inline int mu() const
+    {
+      return int(mu_);
+    }
+
+    constexpr inline unsigned int lambda_u() const
     {
       return lambda_;
     }
 
-    constexpr inline unsigned int mu() const
+    constexpr inline unsigned int mu_u() const
     {
       return mu_;
     }
+
 
     ////////////////////////////////////////////////////////////////
     // key tuple, comparisons, and hashing
@@ -175,10 +186,10 @@ namespace u3
   constexpr inline u3::SU3 Conjugate(const u3::SU3& x)
   // Conjugate irrep.
   {
-    return u3::SU3(x.mu(),x.lambda());
+    return u3::SU3(x.mu_u(),x.lambda_u());
   }
 
-  constexpr inline unsigned int ConjugationGrade(const u3::SU3& x)
+  constexpr inline int ConjugationGrade(const u3::SU3& x)
   // Integer contribution to phase on conjugation.
   {
     return x.mu() + x.lambda();
@@ -251,9 +262,9 @@ namespace u3
       bool ValidLabels(const HalfInt& N, const u3::SU3& x)
     // Check validity of U3 labels in N(lambda,mu) form.
     {
-      bool valid = TwiceValue(N+2*x.lambda()+x.mu())%3==0;
-      valid &= TwiceValue(N-x.lambda()+x.mu())%3==0;
-      valid &= TwiceValue(N-x.lambda()-2*x.mu())%3 ==0;
+      bool valid = TwiceValue(N-int(x.lambda()+2*x.mu()))%3==0;
+      // valid &= TwiceValue(N-x.lambda()+x.mu())%3==0;
+      // valid &= TwiceValue(N-x.lambda()-2*x.mu())%3 ==0;
       return valid;
     }
 
@@ -635,7 +646,7 @@ namespace u3
 
   // branching multiplicity
 
-  unsigned int BranchingMultiplicitySO3(const u3::SU3& x, unsigned int L);
+  unsigned int BranchingMultiplicitySO3(const u3::SU3& x, int L);
   // Calculate branching multiplicity of angular momentum in SU(3) irrep.
   //
   // Ref: e.g., Harvey, ANP 1, 67 (1968).
@@ -676,6 +687,7 @@ namespace u3
   //   kappa_max
 
   MultiplicityTagged<unsigned int>::vector BranchingSO3Constrained(const u3::SU3& x, const HalfInt::pair& r);
+  // DEPRECATED
   // Generate multiplicity-tagged vector of SO(3) irreps in SU(3)
   // irrep, constrained to lie within a constrained angular momentum
   // range.
@@ -763,7 +775,7 @@ struct formatter<u3::U3>
     if(presentation == 'f')
       return format_to(ctx.out(), "{:f}{:d}",w.N(),w.SU3());
     else
-    return format_to(ctx.out(), "{:d}{:d}", w.N(),w.SU3());
+    return format_to(ctx.out(), "{:g}{:d}", w.N(),w.SU3());
   }
 };
 
@@ -793,7 +805,7 @@ struct formatter<u3::U3S>
     if(presentation == 'f')
       return format_to(ctx.out(), "{:f}{:f}",wS.U3(),wS.S());
     else
-    return format_to(ctx.out(), "{:d}{:d}", ws.U3(),wS.S());
+    return format_to(ctx.out(), "{:d}{:g}", ws.U3(),wS.S());
   }
 };
 
