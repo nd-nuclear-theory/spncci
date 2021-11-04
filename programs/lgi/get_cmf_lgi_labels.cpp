@@ -176,7 +176,7 @@ void generate_cmf_lgi(int Nmax,HalfInt Nsigma0,std::map<u3shell::U3SPN, Dimensio
     for(int Nex=0; Nex<=Nmax; ++Nex)
       for(const auto& irrep_dimensions : dimensions_by_irrep)
         {
-          const auto&[irrep,dimensions]=irrep_dimensions.first;
+          const auto&[irrep,dimensions]=irrep_dimensions;
           if((irrep.N()-Nsigma0) != Nex)
             continue;
           
