@@ -6,7 +6,7 @@
 
   SPDX-License-Identifier: MIT
 ****************************************************************/
-#include "lsu3shell/su3rme.h"
+#include "lgi/su3rme.h"
 
 
 #include "fmt/format.h"

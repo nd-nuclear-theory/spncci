@@ -61,10 +61,9 @@ target_link_libraries(
 add_executable(su3rme_test su3rme_test.cpp)
 target_link_libraries(
   su3rme_test PRIVATE 
-  lsu3shell::libraries
+  lsu3shell::SU3ME
   spncci::lsu3shell
 )
-
 
 # ##############################################################################
 # define installed targets

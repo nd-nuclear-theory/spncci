@@ -21,32 +21,13 @@ namespace lgi
 
   std::string LGI::Str() const
   {
-    std::ostringstream ss;
-
-    ss << "[" 
-       << " " << Nex()
-       << " " << U3().Str()
-       << " (" << Sp()
-       << "," << Sn()
-       << "," << S()
-       << ") " << "]";
-    return ss.str();
+    return fmt::format("{}{}[{},{},{}]",Nex(),SU3(),Sp(),Sn(),S());
   }
 
   std::string LGIFamilyStr(const MultiplicityTagged<lgi::LGI>& lgi_family)
     {
-      int Nex;
-      u3::U3 sigma;
-      HalfInt Sp,Sn,S;
-
-      std::tie(Nex,sigma,Sp,Sn,S)=lgi_family.irrep.Key();
-      int gamma_max=lgi_family.tag;
-
-      std::ostringstream ss;
-      ss<<fmt::format("{}  {}  {}  {}  {}  {}  {}",
-          Nex,sigma.SU3().lambda(), sigma.SU3().mu(),
-          TwiceValue(Sp),TwiceValue(Sn),TwiceValue(S),gamma_max);
-      return ss.str();
+      const auto&[lgi,gamma_max]=lgi_family;
+      return fmt::format("{} {}",lgi,gamma_max);
     }
 
   void 
@@ -151,53 +132,6 @@ namespace lgi
     }
 
 
-MultiplicityTaggedLGIVector get_lgi_vector(
-    const nuclide::NuclideType& nuclide, 
-    const HalfInt& Nsigma0,
-    const int& Nmax
-  )
-{
-  // Initialize lgi_dimension with cmf U3SPN dimensions from lsu3shell basis
-  std::map<u3shell::U3SPN, unsigned int>
-  lgi_dimensions = lsu3shell::lsu3shell_cmf_basis_dimensions(nuclide,Nsigma0,Nmax);
-  std::cout<<"lgi_dimensions "<<lgi_dimensions.size()<<std::endl;
 
-  // Iterate through basis and identify LGI dimension by substracting
-  // U(3) irreps obtained by laddering from lower grade LGI.
-  for(const auto& [lgi,dimension] : lgi_dimensions)
-    {
-      HalfInt Sp(lgi.Sp()),Sn(lgi.Sn()), S(lgi.S());
-      int Nn_max = Nmax - int(lgi.N() - Nsigma0);
-      std::vector<u3::U3> raising_polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
-
-      for(const u3::U3& n : raising_polynomial_labels)
-        {
-          if (n.N()==0)
-            continue;
-
-          MultiplicityTagged<u3::U3>::vector omegas_tagged = u3::KroneckerProduct(lgi.U3(), n);
-          for(const auto& [omega,rho_max] : omegas_tagged)
-            {
-              u3shell::U3SPN omegaSpSnS(omega,Sp,Sn,S);
-              lgi_dimensions[omegaSpSnS] -= rho_max*dimension;
-            }
-        }
-    }
-
-  //Create LGI vector used in SpNCCI basis construction
-  MultiplicityTaggedLGIVector lgi_vector;
-  for(const auto& [lgi_u3spn,dim] : lgi_dimensions)
-    {
-      int Nsex=int(lgi_u3spn.N()-Nsigma0);
-      if(Nsex%2==Nmax%2)
-      {
-        lgi::LGI lgi(lgi_u3spn,Nsex);
-        lgi_vector.emplace_back(lgi,dim);
-
-      }
-    }
-
-  return lgi_vector;
-}
 
 }

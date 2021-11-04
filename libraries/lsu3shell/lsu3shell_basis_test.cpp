@@ -13,15 +13,8 @@
 #include <ostream>  
 
 #include "fmt/format.h"
-#include "sp3rlib/u3coef.h"
-#include "moshinsky/moshinsky_xform.h"
-#include "u3shell/two_body_operator.h"
-#include "u3shell/unit_tensor_expansion.h"
-#include "utilities/utilities.h"
 #include "lsu3shell/lsu3shell_basis.h"
-#include "lsu3shell/su3rme.h"
-#include "SU3ME/proton_neutron_ncsmSU3Basis.h"
-#include "LSU3/ncsmSU3xSU2Basis.h"
+// #include "lg/su3rme.h"
 
 
 void test_lsu3shell_basis_from_ncsmSU3xSU2BasisLSU3Tablar()
@@ -78,68 +71,12 @@ void test_lsu3shell_basis_from_ncsmSU3xSU2BasisLSU3Tablar()
   }
 
 
-void test_lsu3shell_basis_generated_within_spncci()
-  {
-    nuclide::NuclideType nuclide={3,3};
-    bool intrinsic=false;
-    HalfInt Nsigma0=nuclide::Nsigma0ForNuclide(nuclide,intrinsic);
-    int Nmax=1;
-
-    std::map<u3shell::U3SPN, unsigned int> u3spn_dimensions
-      =lsu3shell::generate_lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
-
-    // std::map<u3shell::U3SPN, lsu3shell::Dimensions> u3spn_dimensions;
-
-    std::map<u3shell::U3SPN, unsigned int> u3spn_cmf_dimensions 
-      =lsu3shell::lsu3shell_cmf_basis_dimensions(Nsigma0,Nmax,u3spn_dimensions);
-
-    std::string spncci_root_dir=get_spncci_project_root_dir();
-
-    const std::string input_filename=fmt::format("{}/spncci/data/Z03-N03-Nmax14_u3s-dim.dat",spncci_root_dir);
-    std::cout<<input_filename<<std::endl;
-    std::map<u3shell::U3SPN, lsu3shell::Dimensions> u3spn_dimensions_test;
-    lsu3shell::read_lsu3shell_basis_dimensions(
-        input_filename,Nsigma0,Nmax,u3spn_dimensions_test
-      );
-
-    for(const auto& pair : u3spn_dimensions)
-      {
-        if(pair.second !=u3spn_dimensions_test[pair.first].total)
-          {
-            std::cout<<pair.first.Str()<<"  "<<pair.second
-            <<"  "<<u3spn_dimensions_test[pair.first].total<<std::endl;
-            exit(EXIT_FAILURE);
-          }
-      }
-
-    for(const auto& pair : u3spn_dimensions)
-      {
-        std::cout<<fmt::format("{}:  {:6d}  {:6d}",
-          pair.first.Str(),pair.second,u3spn_cmf_dimensions[pair.first]
-        )<<std::endl;
-      }
-  }
-
-  void test_lsu3shell_functions()
-    {
-      nuclide::NuclideType nuclide={3,3};
-      int Nmax=2;
-      proton_neutron::ModelSpace model_space(nuclide[0],nuclide[1],Nmax);
-      
-      lsu3::CncsmSU3xSU2Basis basis;
-      basis.ConstructBasis(model_space,0,1);
-      unsigned int num_irreps = lsu3shell::get_num_U3PNSPN_irreps(basis); 
-      
-      std::cout<<"total num irreps "<<num_irreps<<std::endl;
-    }
-
 
 int main(int argc, char **argv)
 {
-  u3::U3CoefInit();
-  // test_lsu3shell_basis_from_ncsmSU3xSU2BasisLSU3Tablar();
-  test_lsu3shell_basis_generated_within_spncci();
-  test_lsu3shell_functions();
+  // u3::U3CoefInit();
+  test_lsu3shell_basis_from_ncsmSU3xSU2BasisLSU3Tablar();
+  
 
 
 }//end main

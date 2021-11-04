@@ -40,7 +40,8 @@ namespace u3
   unsigned int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
   {
     unsigned int multiplicity = 0;
-    int Nx = (x1.lambda()-x1.mu()) + (x2.lambda()-x2.mu()) - (x3.lambda()-x3.mu());
+    // int Nx = (x1.lambda()-x1.mu()) + (x2.lambda()-x2.mu()) - (x3.lambda()-x3.mu());
+    int Nx = int(x1.lambda_u()+x2.lambda_u()+x3.mu_u()) - int(x1.mu_u()+x2.mu_u()+x3.lambda_u());
 
     // short circuit
     if ((Nx%3)!=0)
@@ -81,10 +82,10 @@ namespace u3
   MultiplicityTagged<u3::SU3>::vector KroneckerProduct(const u3::SU3& x1, const u3::SU3& x2)
   {
     // calculate bounds on (lambda3,mu3)
-    unsigned int lambda3_min = 0;  // could be further constrained
-    unsigned int mu3_min = 0;  // could be further constrained
-    unsigned int lambda3_max = x1.lambda()+x2.lambda()+std::min(x2.mu(),x1.lambda()+x1.mu());
-    unsigned int mu3_max = x1.mu()+x2.mu()+std::min(x1.lambda(),x2.lambda());
+    int lambda3_min = 0;  // could be further constrained
+    int mu3_min = 0;  // could be further constrained
+    int lambda3_max = x1.lambda()+x2.lambda()+std::min(x2.mu(),x1.lambda()+x1.mu());
+    int mu3_max = x1.mu()+x2.mu()+std::min(x1.lambda(),x2.lambda());
 
     // allocate container for product
     MultiplicityTagged<u3::SU3>::vector product;
@@ -127,13 +128,13 @@ namespace u3
     return u3_product;
   }
 
-  unsigned int BranchingMultiplicitySO3(const u3::SU3& x, unsigned int L)
+  unsigned int BranchingMultiplicitySO3(const u3::SU3& x, int L)
   {
     // std:: max cannot compare int and unsigned int
     unsigned int multiplicity 
-      = std::max(0,int(x.lambda()+x.mu()+2-L)/2)
-      - std::max(0,int(x.lambda()+1-L)/2)
-      - std::max(0,int(x.mu()+1-L)/2);
+      = std::max(0,(x.lambda()+x.mu()+2-L)/2)
+      - std::max(0,(x.lambda()+1-L)/2)
+      - std::max(0,(x.mu()+1-L)/2);
     return multiplicity;
   }
 
@@ -141,8 +142,8 @@ namespace u3
   {
 
     // calculate bound on L
-    unsigned int L_min = std::min(x.lambda(),x.mu())%2;
-    unsigned int L_max = x.lambda()+x.mu();
+    int L_min = std::min(x.lambda(),x.mu())%2;
+    int L_max = x.lambda()+x.mu();
 
     // allocate container for product
     MultiplicityTagged<unsigned int>::vector branching;
@@ -164,12 +165,12 @@ namespace u3
   {
 
     // calculate bound on L
-    unsigned int L_min = std::max(std::min(int(x.lambda()),int(x.mu()))%2,int(r.first));
-    unsigned int L_max = std::min(int(x.lambda()+x.mu()),int(r.second));
+    int L_min = std::max(std::min(x.lambda(),x.mu())%2,int(r.first));
+    int L_max = std::min(x.lambda()+x.mu(),int(r.second));
 
     // allocate container for product
     MultiplicityTagged<unsigned int>::vector branching;
-    int max_entries = std::max(int(L_max-L_min+1),0);  // expression might be negative so impose floor of 0
+    int max_entries = std::max(L_max-L_min+1,0);  // expression might be negative so impose floor of 0
     branching.reserve(max_entries);
 
     // generate branching

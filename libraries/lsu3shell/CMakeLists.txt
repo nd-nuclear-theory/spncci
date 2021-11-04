@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
-set(lsu3shell_headers lsu3shell_operator.h lsu3shell_basis.h lsu3shell_rme.h su3rme.h)
+set(lsu3shell_headers lsu3shell_operator.h lsu3shell_basis.h lsu3shell_rme.h)
 set(lsu3shell_sources lsu3shell_operator.cpp lsu3shell_basis.cpp
-                      lsu3shell_rme.cpp su3rme.cpp
+                      lsu3shell_rme.cpp
 )
 
 # define am library and add source files
@@ -29,7 +29,7 @@ target_link_libraries(
          spncci::u3shell
          spncci::moshinsky
          OpenMP::OpenMP_CXX
-         lsu3shell::libraries
+         # lsu3shell::libraries
 )
 
 # ##############################################################################

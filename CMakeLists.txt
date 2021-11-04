@@ -29,6 +29,7 @@ add_compile_options(
   $<$<CONFIG:Release>:-O3>
   $<$<CONFIG:Debug>:-O0>
   $<$<CONFIG:Debug>:-Wall>
+  $<$<CONFIG:Debug>:-Wsign-conversion>
   $<$<CONFIG:Debug>:-Wextra>
   $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-ggdb>
 )
