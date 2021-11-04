@@ -15,6 +15,7 @@
 #include <cppitertools/enumerate.hpp>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 
 #include "basis/basis.h"
 // #include "mcutils/parsing.h"
@@ -25,14 +26,6 @@
 
 namespace spncci::spatial
 {
-U3Subspace::U3Subspace(
-    const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector
-  )
-    : BaseDegenerateSubspace{omega}
-{
-  for (const auto& [n, rho_max] : nrho_vector) PushStateLabels(n, rho_max);
-}
-
 Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
     : BaseSpace{sigma}
 {
@@ -40,7 +33,8 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
   std::vector<u3::U3> n_vector = sp3r::RaisingPolynomialLabels(Nn_max);
 
   // temporary container
-  std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
+  std::unordered_map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
+  std::unordered_map<u3::U3, std::array<basis::OperatorBlock<double>, 2>> K_matrices;
 
   // For each raising polynomial n obtain all allowed couplings
   // omega (sigma x n -> omega) with outer multiplicities rho_max.
@@ -52,9 +46,30 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
       states[omega].emplace_back(n, rho_max);
   }
 
+  // TODO(aem): populate K and Kinv
+  for (const auto& [omega, n_rho_vector] : states)
+  {
+    std::size_t dim = std::accumulate(
+        n_rho_vector.begin(), n_rho_vector.end(), 0,
+        [](const int& s, const MultiplicityTagged<u3::U3>& n_rho)
+        {
+          const auto& [n,rho] = n_rho; return s+rho;
+        }
+        );
+    K_matrices[omega] = {
+        basis::OperatorBlock<double>::Identity(dim, dim),
+        basis::OperatorBlock<double>::Identity(dim, dim)
+      };
+  }
+
   // Push subpaces
   for (const auto& [omega, n_rho_vector] : states)
-    PushSubspace(U3Subspace(omega, n_rho_vector));
+    PushSubspace(U3Subspace(
+        omega,
+        n_rho_vector,
+        std::move(K_matrices[omega][0]),
+        std::move(K_matrices[omega][1])
+      ));
 }
 
 Space::Space(
@@ -71,9 +86,9 @@ Space::Space(
   }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Recurrence indexing (spatial)
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 RecurrenceOperatorSubspace::RecurrenceOperatorSubspace(
@@ -95,7 +110,7 @@ RecurrenceU3Space::RecurrenceU3Space(
   std::unordered_map<u3::SU3, std::vector<std::tuple<int, int>>, boost::hash<u3::SU3>>
       x0_Nbar_pairs;
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // Create list of spatial unit tensors to pass through to operator subspace
   int Nbar_max{
       2 * unit_tensor_constraints.N1v + omega.N() - unit_tensor_constraints.Nsigma0
@@ -120,9 +135,9 @@ RecurrenceU3Space::RecurrenceU3Space(
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // Construct operator subspaces
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   reserve(x0_Nbar_pairs.size());
   for (const auto& [x0, Nbar_pairs] : x0_Nbar_pairs)
   {
@@ -151,7 +166,7 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
   parity_bar_ = unit_tensor_constraints.parity_bar;
 
   reserve(u3subspace_index_pairs.size());
-  upsilon_pairs_.reserve(u3subspace_index_pairs.size());
+  upsilon_max_pairs_.reserve(u3subspace_index_pairs.size());
 
   for (const auto& [i_ket, i_bra] : u3subspace_index_pairs)
   {
@@ -168,7 +183,7 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     if (subspace.dimension() == 0)
       continue;
 
-    upsilon_pairs_.push_back({upsilon_max_ket, upsilon_max_bra});
+    upsilon_max_pairs_.push_back({upsilon_max_ket, upsilon_max_bra});
     PushSubspace(std::move(subspace), upsilon_max_bra * upsilon_max_ket);
   }
 }
@@ -258,10 +273,10 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
 
   if (delta_Nnsum == 2)
   {
-    for (const auto&& [target_u3_index, target_u3_space] :
+    for (auto&& [target_u3_index, target_u3_space] :
          iter::enumerate(target_Nnsum_space))
     {
-      for (const auto&& [source_u3_index, source_u3_space] :
+      for (auto&& [source_u3_index, source_u3_space] :
            iter::enumerate(source_Nnsum_space))
       {
         if (source_u3_space.omega_ket() == sp3r_space.sigma_ket())
@@ -300,10 +315,10 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
   }
   else  // if (delta_Nnsum == 4)
   {
-    for (const auto&& [target_u3_index, target_u3_space] :
+    for (auto&& [target_u3_index, target_u3_space] :
          iter::enumerate(target_Nnsum_space))
     {
-      for (const auto&& [source_u3_index, source_u3_space] :
+      for (auto&& [source_u3_index, source_u3_space] :
            iter::enumerate(source_Nnsum_space))
       {
         if (

@@ -36,6 +36,7 @@ recurrence_indexing_spatial.h
 #include <array>
 #include <functional>  // for std::hash
 #include <unordered_map>
+#include <utility>  // for std::forward
 
 #include "am/halfint.h"
 #include "basis/basis.h"
@@ -70,14 +71,47 @@ class U3Subspace
  public:
   U3Subspace() = default;
 
+  template<typename K1, typename K2>
   U3Subspace(
-      const u3::U3& omega, const MultiplicityTagged<u3::U3>::vector& nrho_vector
-    );
+      const u3::U3& omega,
+      const MultiplicityTagged<u3::U3>::vector& nrho_vector,
+      K1&& K_matrix,
+      K2&& Kinv_matrix
+    )
+      : BaseDegenerateSubspace{omega},
+        K_matrix_{std::forward<K1>(K_matrix)},
+        Kinv_matrix_{std::forward<K2>(Kinv_matrix)}
+  {
+    for (const auto& [n, rho_max] : nrho_vector) PushStateLabels(n, rho_max);
+    assert(K_matrix().rows() == Kinv_matrix().cols());
+    assert(
+        (nonorthogonal_basis_size() == K_matrix().cols())
+        && (nonorthogonal_basis_size() == Kinv_matrix().rows())
+      );
+  }
 
   // U3Subspace(const sp3r::U3Subspace& u3subspace);
 
   u3::U3 omega() const { return std::get<0>(labels()); }
   inline int upsilon_max() const { return dimension(); }
+
+  inline const basis::OperatorBlock<double>& K_matrix() const
+  {
+    return K_matrix_;
+  }
+  inline const basis::OperatorBlock<double>& Kinv_matrix() const
+  {
+    return Kinv_matrix_;
+  }
+
+  inline std::size_t dimension() const { return K_matrix().rows(); }
+  inline std::size_t nonorthogonal_basis_size() const
+  {
+    return BaseDegenerateSubspace::dimension();
+  }
+
+ private:
+  basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;
 };
 
 class U3State
@@ -184,7 +218,7 @@ class RecurrenceOperatorSubspace
     );
 
   u3::SU3 x0() const { return std::get<0>(labels()); }
-  std::string LabelStr() const {return x0().Str();}
+  std::string LabelStr() const { return x0().Str(); }
 };
 
 class RecurrenceOperatorState
@@ -207,7 +241,7 @@ class RecurrenceOperatorState
   // // pass-through accessors for subspace labels
   int Nbar() const { return std::get<0>(labels()); }
   int Nbarp() const { return std::get<1>(labels()); }
-  std::string LabelStr() const {return fmt::format("{} {}",Nbar(),Nbarp());}
+  std::string LabelStr() const { return fmt::format("{} {}", Nbar(), Nbarp()); }
 };
 
 // spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
@@ -229,8 +263,10 @@ class RecurrenceU3Space
 
   u3::U3 omega_ket() const { return std::get<0>(labels()); }
   u3::U3 omega_bra() const { return std::get<1>(labels()); }
-  std::string LabelStr() const {return fmt::format("{} {}",omega_ket().Str(),omega_bra().Str());}
-
+  std::string LabelStr() const
+  {
+    return fmt::format("{} {}", omega_ket().Str(), omega_bra().Str());
+  }
 };
 
 
@@ -259,14 +295,16 @@ class RecurrenceNnsumSpace
 
   int upsilon_max_ket(const int i) const
   {
-    return std::get<0>(upsilon_pairs_[i]);
+    return std::get<0>(upsilon_max_pairs_[i]);
   }
   int upsilon_max_bra(const int i) const
   {
-    return std::get<1>(upsilon_pairs_[i]);
+    return std::get<1>(upsilon_max_pairs_[i]);
   }
 
-  std::size_t GetSubspaceOffset(std::size_t i, int upsilon_ket, int upsilon_bra) const
+  std::size_t GetSubspaceOffset(
+      std::size_t i, int upsilon_ket = 1, int upsilon_bra = 1
+    ) const
   {
     const std::size_t degeneracy_index =
         (upsilon_ket - 1) * upsilon_max_bra(i) + (upsilon_bra - 1);
@@ -275,12 +313,11 @@ class RecurrenceNnsumSpace
 
   uint8_t parity_bar() const { return parity_bar_; }
 
-  std::string LabelStr() const 
-  {return fmt::format("{}",Nnsum());}
+  inline std::string LabelStr() const { return fmt::format("{}", Nnsum()); }
 
  private:
   uint8_t parity_bar_;
-  std::vector<std::tuple<int, int>> upsilon_pairs_;
+  std::vector<std::tuple<int, int>> upsilon_max_pairs_;
 };
 
 
@@ -306,8 +343,12 @@ class RecurrenceSp3RSpace
   u3::U3 sigma_bra() const { return std::get<1>(labels()); }
   uint8_t parity_bar() const { return std::get<2>(labels()); }
 
-  std::string LabelStr() const 
-  {return fmt::format("{} {}  {}",sigma_ket().Str(),sigma_bra().Str(),parity_bar());}
+  inline std::string LabelStr() const
+  {
+    return fmt::format(
+        "{} {}  {}", sigma_ket().Str(), sigma_bra().Str(), parity_bar()
+      );
+  }
 
 };
 
