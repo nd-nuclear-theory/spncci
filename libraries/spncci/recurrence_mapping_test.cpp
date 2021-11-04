@@ -31,15 +31,15 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Mapping from output of recurrence to unit tensor hypersectors 
+// Mapping from output of recurrence to unit tensor hypersectors
 //
-// Within Recurrence matrix (for fixed sigma,sigma',parity_bar), rows are indexed by 
+// Within Recurrence matrix (for fixed sigma,sigma',parity_bar), rows are indexed by
 // -> omega, omega'
 //    -> upsilon, upsilon'
 //      -> x0
 //        -> rho0
 //          -> Nbar,Nbar'
-// while columns are 
+// while columns are
 // -> S,S'
 //    -> Sp,Sn,Sp',Sn'
 //      -> gamma,gamma'
@@ -47,7 +47,7 @@
 //
 // Hyperblocks are for fixed lgi pair, i.e., fixed sigma' Sp' Sn' S' and sigma Sp Sn S
 // Each hyperblock corresponds to omega',omega, rho0
-// Within each block, rmes are index by (gamma',upsilon')x(gamma,upsilon)   
+// Within each block, rmes are index by (gamma',upsilon')x(gamma,upsilon)
 //
 basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
   const spncci::spatial::RecurrenceSpace& spatial_recurrence_space,
@@ -65,7 +65,7 @@ basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
   for(int hypersector_index=0; hypersector_index<unit_tensor_hypersectors.size(); ++hypersector_index)
     {
       const auto& hypersector=unit_tensor_hypersectors.GetHypersector(hypersector_index);
-      const auto& [baby_spncci_index_bra,baby_spncci_index_ket,unit_tensor_subspace_index,rho0] 
+      const auto& [baby_spncci_index_bra,baby_spncci_index_ket,unit_tensor_subspace_index,rho0]
               = hypersector.Key();
       const auto& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
       const auto& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
@@ -104,21 +104,21 @@ basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
 
       // omega, omega'
       int u3_recurrence_space_index = Nnsum_space.LookUpSubspaceIndex({omega_ket,omega_bra});
-      const auto& u3_recurrence_space = Nnsum_space.GetSubspace(u3_recurrence_space_index); 
+      const auto& u3_recurrence_space = Nnsum_space.GetSubspace(u3_recurrence_space_index);
       // std::cout<<"hi"<<std::endl;
-      // TODO: reinstate. Removing temporarily since only checking seeds 
+      // TODO: reinstate. Removing temporarily since only checking seeds
       // [omega,omega']x[sigma,sigma',parity_bar] block
       // const basis::OperatorBlock<double>& recurrence_omega_block
       //   = spatial_recurrence_matrix.GetRecurrenceBlock(Nnsum)[u3_recurrence_space_index];
 
       // Calculate unit tensor rmes from recurrence matrix and seeds
       // Product matrix is spncci::spatial::RecurrenceU3Space x spncci::spin::RecurrenceLGISpace
-      
-      // TODO: reinstate calculation once recurrence implemented 
+
+      // TODO: reinstate calculation once recurrence implemented
       // basis::OperatorBlock<double> unit_tensor_omega_block = recurrence_omega_block*seed_block;
       basis::OperatorBlock<double> unit_tensor_omega_block = seed_block;
 
-      ////////////////////////////////////////////////////////////////////////////////      
+      ////////////////////////////////////////////////////////////////////////////////
       // Reorganize unit_tensor_omega_block into hyperblocks
       ////////////////////////////////////////////////////////////////////////////////
       // Get index and offset information for spatial operators
@@ -128,7 +128,7 @@ basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
       const auto& spatial_operator_subspace = u3_recurrence_space.GetSubspace(spatial_operator_index);
       int spatial_operator_state_index = spatial_operator_subspace.LookUpStateIndex({Nbar,Nbarp});
       // std::cout<<"got everything"<<std::endl;
-      // Get index and offset information for spins and spin operators 
+      // Get index and offset information for spins and spin operators
       ////////////////////////////////////////////////////////////////////////////////
       // spin::RecurrenceSpace() []
       //   spin::RecurrenceLGISpace() [sigma,sigma',exchange_symm_bar]
@@ -162,13 +162,13 @@ basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
                 {
                   // std::cout<<"upsilons "<<upsilon_ket<<" "<<upsilon_bra<<std::endl;
                   int u3_recurrence_space_offset = Nnsum_space.GetSubspaceOffset(u3_recurrence_space_index,upsilon_ket,upsilon_bra);
-                  
+
                   // Want tile for fixed omega',omega, upsilon',upsilon, x0, rho0 and fixed S,S', SpSn, Sp'Sn', gamma,gamma'
                   const auto& operator_tile = unit_tensor_omega_block.block(
                       spatial_operator_subspace_offset, spin_space_offset+spin_subspace_offset,
                       spatial_operator_subspace.dimension(), spin_subspace.dimension()
                       );
-          
+
                   // std::cout<<fmt::format(" operator tile {}  {}  {}  {}",spatial_operator_subspace_offset, spin_space_offset+spin_subspace_offset,
                   //     spatial_operator_subspace.dimension(), spin_subspace.dimension())<<std::endl;
                   // // std::cout<<operator_tile<<std::endl<<std::endl;;
@@ -193,7 +193,7 @@ basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
                       // std::cout<<spatial_operator_state_index<<" x "<<spin_operator_state_index<<std::endl;
                       hyperblock(row,col)=operator_tile(spatial_operator_state_index,spin_operator_state_index);
                       // std::cout<<hyperblock(row,col)<<std::endl<<std::endl;
-                    } 
+                    }
               }
         }
     }
@@ -218,16 +218,16 @@ int main(int argc, char** argv)
   int N1v = nuclide::ValenceShellForNuclide(nuclide);
 
   const std::string lgi_filename="lgi_families.dat";
-  
+
   HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide,true);
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   lgi::ReadLGISet(lgi_filename,Nsigma0,lgi_vector);
 
   std::vector<int> lgi_full_space_index_lookup;
   lgi::ReadLGILookUpTable(lgi_full_space_index_lookup, lgi_vector.size());
-  
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // Set up recurrence spin and spatial indexing 
+  // Set up recurrence spin and spatial indexing
   // Read seeds from file.  Seeds for each sigma,sigma',parity_bar are stored in a single block
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"setting up recurrence indexing "<<std::endl;
@@ -237,9 +237,9 @@ int main(int argc, char** argv)
   auto it =iter::imap([](MultiplicityTagged<lgi::LGI> l) { return l.irrep.U3(); }, lgi_vector)| iter::unique_everseen;
   const spncci::spatial::Space spatial_space(std::vector<u3::U3>(it.begin(), it.end()), Nsigma0, Nmax);
   const spncci::spatial::RecurrenceSpace spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
-  
+
   std::cout<<"Read seeds from file "<<std::endl;
-  basis::OperatorBlocks<double> 
+  basis::OperatorBlocks<double>
   seed_blocks=spncci::recurrence::GetRecurrenceSeedsFromFile(
         lgi_vector,lgi_full_space_index_lookup,
         spatial_recurrence_space,spin_recurrence_space
@@ -260,18 +260,18 @@ int main(int argc, char** argv)
   );
   // generate unit tensor space
   u3shell::RelativeUnitTensorSpaceU3S unit_tensor_space(Nmax,N1v,unit_tensor_labels);
-  
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   // Set up baby spncci hypersectors
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"set up baby spncci space"<<std::endl;
-  spncci::NmaxTruncator truncator(Nsigma0,Nmax);  
+  spncci::NmaxTruncator truncator(Nsigma0,Nmax);
   spncci::SpNCCISpace spncci_space;
   spncci::SigmaIrrepMap sigma_irrep_map;
   bool restrict_sp3r_to_u3_branching=false;
   spncci::GenerateSpNCCISpace(lgi_vector,truncator,spncci_space,sigma_irrep_map,restrict_sp3r_to_u3_branching);
   spncci::BabySpNCCISpace baby_spncci_space=spncci::BabySpNCCISpace(spncci_space);
-  
+
   std::vector<spncci::LGIPair> lgi_pair_vector;
   for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_vector.size(); irrep_family_index_ket++)
     for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_vector.size(); irrep_family_index_bra++)
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
   spncci::OperatorBlocks lgi_transformations; // Initalized but never populated or used
   bool transform_lgi_families = false;
   //Populated in DoRecurrenceInitialization
-  std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets; 
+  std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
   spncci::BabySpNCCIHypersectors baby_spncci_hypersector_seeds;
   spncci::BabySpNCCIHypersectors baby_spncci_hypersector_seeds_conj;
   basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds;
@@ -290,7 +290,7 @@ int main(int argc, char** argv)
 
   std::cout<<"for each lgi pair -- compare"<<std::endl;
   for(const spncci::LGIPair& lgi_pair : lgi_pair_vector)
-    { 
+    {
       const auto& [irrep_family_index_bra,irrep_family_index_ket] = lgi_pair;
       // if ((irrep_family_index_bra!=4) || (irrep_family_index_ket!=5))
       //   continue;
@@ -308,7 +308,7 @@ int main(int argc, char** argv)
       );
 
       // std::cout<<"map to hyperblocks"<<std::endl;
-      basis::OperatorHyperblocks<double> 
+      basis::OperatorHyperblocks<double>
       unit_tensor_hyperblocks_comparison
         =MapRecurrenceBlockToHypersectors(
           spatial_recurrence_space,spin_recurrence_space,

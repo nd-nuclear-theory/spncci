@@ -92,8 +92,8 @@ install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
 
 set(spncci_UNITS_TEST
     recurrence_indexing_test
+    recurrence_mapping_test
     recurrence_seeds_test
-    recurrence_spatial_test
     spncci_seeds_test
 )
 
@@ -109,17 +109,23 @@ target_link_libraries(
                                    cppitertools::cppitertools spncci::spncci
 )
 target_link_libraries(
+  recurrence_mapping_test PRIVATE fmt::fmt am::am spncci::lgi
+                                  cppitertools::cppitertools spncci::spncci
+)
+target_link_libraries(
   recurrence_seeds_test PRIVATE fmt::fmt am::am spncci::lgi
                                 cppitertools::cppitertools spncci::spncci
 )
-target_link_libraries(
-  recurrence_spatial_test PRIVATE fmt::fmt am::am spncci::lgi
-                                   cppitertools::cppitertools spncci::spncci
-)
 
 target_link_libraries(
-  spncci_seeds_test PRIVATE fmt::fmt am::am spncci::lgi spncci::lsu3shell
-                                   cppitertools::cppitertools spncci::spncci basis::basis
+  spncci_seeds_test
+  PRIVATE fmt::fmt
+          am::am
+          spncci::lgi
+          spncci::lsu3shell
+          cppitertools::cppitertools
+          spncci::spncci
+          basis::basis
 )
 
 if(SPNCCI_MASTER_PROJECT)
