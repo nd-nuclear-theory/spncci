@@ -69,8 +69,8 @@ namespace u3shell
         int Ncm_max=Nmax-std::max(Np,N);
         for(unsigned int Ncm=0; Ncm<=Ncm_max; ++Ncm)
           for(unsigned int Lcm=Ncm%2; Lcm<=Ncm; Lcm+=2)
-            for(unsigned int Lp=abs(Lrp-Lcm); Lp<=(Lrp+Lcm); ++Lp)
-              for(unsigned int L=abs(Lr-Lcm); L<=(Lr+Lcm); ++L)
+            for(unsigned int Lp=std::abs(int(Lrp)-int(Lcm)); Lp<=(Lrp+Lcm); ++Lp)
+              for(unsigned int L=std::abs(int(Lr)-int(Lcm)); L<=(Lr+Lcm); ++L)
                   {
                     u3shell::RelativeCMStateLabelsNLST bra_rel_cm(Np,Lrp,Ncm,Lcm,Lp,Sp,Tp);
                     u3shell::RelativeCMStateLabelsNLST ket_rel_cm(N,Lr,Ncm,Lcm,L,S,T);
