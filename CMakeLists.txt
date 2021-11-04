@@ -27,11 +27,17 @@ set(CMAKE_CXX_EXTENSIONS False)
 # compiler options
 add_compile_options(
   $<$<CONFIG:Release>:-O3>
+  $<$<CONFIG:Debug>:-O0>
   $<$<CONFIG:Debug>:-Wall>
   $<$<CONFIG:Debug>:-Wsign-conversion>
   $<$<CONFIG:Debug>:-Wextra>
   $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-ggdb>
 )
+
+add_compile_definitions(
+  EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+  )
+
 if(SPNCCI_U_COEFF_CACHE)
   add_compile_definitions(USE_U_COEF_CACHE)
 endif()

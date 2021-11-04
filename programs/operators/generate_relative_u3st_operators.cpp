@@ -341,7 +341,8 @@ int main(int argc, char **argv)
     }
 
   
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
   int A,N,Z,Nmax,N1B;
   std::string operator_filename_base;
   // std::cout<<"argc "<<argc<<std::endl;

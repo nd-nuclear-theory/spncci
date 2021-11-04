@@ -4,7 +4,9 @@ cmake_minimum_required(VERSION 3.20)
 set(sp3rlib_headers multiplicity_tagged.h u3.h vcs.h sp3r.h u3coef.h
                     sp3r_operator.h
 )
-set(sp3rlib_sources u3.cpp vcs.cpp sp3r.cpp u3coef.cpp sp3r_operator.cpp)
+set(sp3rlib_sources u3.cpp vcs.cpp sp3r.cpp sp3r_operator.cpp u3coef.cpp
+                    u3coef_${SPNCCI_SU3_LIBRARY}.cpp
+)
 
 # define am library and add source files
 add_library(sp3rlib ${sp3rlib_sources})
@@ -23,7 +25,7 @@ target_link_libraries(
          Eigen3::Eigen
          fmt::fmt
          GSL::gsl
-         su3lib::su3lib
+         spncci::su3_library
 )
 
 # ##############################################################################
@@ -56,6 +58,7 @@ set(sp3rlib_UNITS_TEST
     u3_test
     u3coef_test
     vcs_test
+    su3coupling_gtest
 )
 
 add_custom_target(sp3rlib_tests)
@@ -66,6 +69,7 @@ foreach(test_name IN LISTS sp3rlib_UNITS_TEST)
 endforeach()
 
 target_link_libraries(u3coef_test OpenMP::OpenMP_CXX)
+target_link_libraries(su3coupling_gtest GTest::gtest_main)
 
 if(SPNCCI_MASTER_PROJECT)
   add_dependencies(tests sp3rlib_tests)

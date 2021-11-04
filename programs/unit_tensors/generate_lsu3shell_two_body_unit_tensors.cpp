@@ -36,7 +36,8 @@ int main(int argc, char **argv)
 // Given a Nmax truncation
 // Generate a list of two_body unit tensors
 {
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
 
   // process arguments
   if(argc<7)

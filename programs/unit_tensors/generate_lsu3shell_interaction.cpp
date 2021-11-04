@@ -73,7 +73,8 @@ int main(int argc, char **argv)
   // initialization
   ////////////////////////////////////////////////////////////////
 
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
 
   // process arguments
   if(argc<4+1)
