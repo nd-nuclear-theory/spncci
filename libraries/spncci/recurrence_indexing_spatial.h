@@ -75,12 +75,12 @@ class U3Subspace
   U3Subspace(
       const u3::U3& omega,
       const MultiplicityTagged<u3::U3>::vector& nrho_vector,
-      K1&& K_matrix,
-      K2&& Kinv_matrix
+      K1&& K_matrix__,
+      K2&& Kinv_matrix__
     )
       : BaseDegenerateSubspace{omega},
-        K_matrix_{std::forward<K1>(K_matrix)},
-        Kinv_matrix_{std::forward<K2>(Kinv_matrix)}
+        K_matrix_{std::forward<K1>(K_matrix__)},
+        Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
   {
     for (const auto& [n, rho_max] : nrho_vector) PushStateLabels(n, rho_max);
     assert(K_matrix().rows() == Kinv_matrix().cols());
