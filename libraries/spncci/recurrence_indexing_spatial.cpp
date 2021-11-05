@@ -33,7 +33,7 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
   std::vector<u3::U3> n_vector = sp3r::RaisingPolynomialLabels(Nn_max);
 
   // temporary container
-  std::unordered_map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
+  std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
   std::unordered_map<u3::U3, std::array<basis::OperatorBlock<double>, 2>> K_matrices;
 
   // For each raising polynomial n obtain all allowed couplings
