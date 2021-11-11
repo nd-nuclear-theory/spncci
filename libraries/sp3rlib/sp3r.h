@@ -3,8 +3,10 @@
 
   Sp(3,R) labeling and branching.
 
-  Anna E. McCoy and Mark A. Caprio
-  University of Notre Dame and TRIUMF
+  Anna E. McCoy [1,2,3] and Mark A. Caprio[1]
+  [1] University of Notre Dame
+  [2] TRIUMF
+  [3] Institute for Nuclear Theory
 
   SPDX-License-Identifier: MIT
 
@@ -18,7 +20,8 @@
       U3Subspace size still gives number of (n,rho) pairs in
       corresponding U3boson space
     + Broke off sp3r coefficients into separate module
-
+  11/4/21 (aem): Add new functions checking if Sp(3,R)->U(3) branching
+      must be restricted.
 ****************************************************************/
 
 #ifndef SP3R_H_
@@ -32,6 +35,27 @@
 
 namespace sp3r
 {
+  std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
+  // Generate full set of raising polynomial U3 labels up to given Nn_max.
+  //
+  // Labels are generated in "canonical" order, defined as
+  // lexicographic by N(lambda,mu).
+  //
+  // Arguments:
+  //   Nn_max : maximum excitation quanta of raising polynomial
+  //     labels
+  //
+  // Returns:
+  //   Raising polynomial labels
+
+
+  bool IsUnitary(const u3::U3& sigma);
+  // Check if sigma is label of unitary Sp(3,R) irrep
+  // based on the criteria given in jpa-18-1985-939-Rowe.
+
+  bool RestrictSp3RBranching(const u3::U3& sigma);
+  // Returns true if Sp(3,R)->U(3) branching obtained by coupling
+  // Sp(3,R) raising polynomials onto sigma must be restricted.
 
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
@@ -57,21 +81,6 @@ namespace sp3r
   typedef std::multimap< u3::U3, MultiplicityTagged<u3::U3> > SpanakopitaType;
   typedef std::pair< SpanakopitaType::iterator, SpanakopitaType::iterator > SpanakopitaRangeType;
   typedef std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> RestrictedSpanakopitaType;
-
-  // raising polynomial enumeration
-  std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
-  //
-  // Generate full set of raising polynomial U3 labels up to given Nn_max.
-  //
-  // Labels are generated in "canonical" order, defined as
-  // lexicographic by N(lambda,mu).
-  //
-  // Arguments:
-  //   Nn_max : maximum excitation quanta of raising polynomial
-  //     labels
-  //
-  // Returns:
-  //   Raising polynomial labels
 
   class U3Subspace;
   class Sp3RSpace;

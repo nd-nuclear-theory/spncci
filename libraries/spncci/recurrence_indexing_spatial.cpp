@@ -18,11 +18,8 @@
 #include <numeric>
 
 #include "basis/basis.h"
-// #include "mcutils/parsing.h"
 #include "fmt/format.h"
-// #include "am/halfint_fmt.h"
-
-// #include "sp3rlib/vcs.h"
+#include "sp3rlib/vcs.h"
 
 namespace spncci::spatial
 {
@@ -34,7 +31,7 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
 
   // temporary container
   std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
-  std::unordered_map<u3::U3, std::array<basis::OperatorBlock<double>, 2>> K_matrices;
+  
 
   // For each raising polynomial n obtain all allowed couplings
   // omega (sigma x n -> omega) with outer multiplicities rho_max.
@@ -46,23 +43,9 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
       states[omega].emplace_back(n, rho_max);
   }
 
-  // TODO(aem): populate K and Kinv
-  for (const auto& [omega, n_rho_vector] : states)
-  {
-    std::size_t dim = std::accumulate(
-        n_rho_vector.begin(), n_rho_vector.end(), 0,
-        [](const int& s, const MultiplicityTagged<u3::U3>& n_rho)
-        {
-          const auto& [n,rho] = n_rho; return s+rho;
-        }
-        );
-    K_matrices[omega] = {
-        basis::OperatorBlock<double>::Identity(dim, dim),
-        basis::OperatorBlock<double>::Identity(dim, dim)
-      };
-  }
-
-  // Push subpaces
+  // Calculate K matrices
+  vcs::KmatrixMap K_matrices = vcs::GenerateKMatrices(sigma,states);
+   // Push subpaces
   for (const auto& [omega, n_rho_vector] : states)
     PushSubspace(U3Subspace(
         omega,
@@ -89,8 +72,6 @@ Space::Space(
 ////////////////////////////////////////////////////////////////////////////////
 // Recurrence indexing (spatial)
 ////////////////////////////////////////////////////////////////////////////////
-
-
 RecurrenceOperatorSubspace::RecurrenceOperatorSubspace(
     const u3::SU3& x0, const std::vector<std::tuple<int, int>>& Nbar_pairs
   )

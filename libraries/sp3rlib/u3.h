@@ -293,6 +293,10 @@ namespace u3
       return HalfInt(TwiceValue(N_-x_.lambda()-2*x_.mu())/3,2);
     }
 
+    constexpr inline std::tuple<HalfInt,HalfInt,HalfInt> f() const
+      {
+        return {f1(),f2(),f3()};
+      }
     ////////////////////////////////////////////////////////////////
     // key tuple, comparisons, and hashing
     ////////////////////////////////////////////////////////////////

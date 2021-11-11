@@ -12,8 +12,10 @@
   10/4/17 (aem) : Add tests for A<6 Kmatrices
 ****************************************************************/
 #include "sp3rlib/u3coef.h"
+#include "sp3rlib/u3.h"
 #include "sp3rlib/vcs.h"
 #include "mcutils/eigen.h"
+#include "cppitertools/itertools.hpp"
 
 void CreateU3BosonMatrix(
 	const u3::U3& omegap, const u3::U3& omega,
@@ -60,6 +62,93 @@ void CreateOmegaMatrix(const u3::U3& omegap, const u3::U3& omega,
 int main(int argc, char **argv)
 {
 	u3::U3CoefInit(39);
+
+
+if(true)
+{
+std::map<std::tuple<u3::U3,u3::U3>,double> 
+Omega_validation_table ={
+		{{u3::U3(0,0,0),u3::U3(5,4,3)},27},
+		{{u3::U3(2,0,0),u3::U3(5,5,4)},30},
+		{{u3::U3(2,0,0),u3::U3(6,5,3)},34},
+		{{u3::U3(2,0,0),u3::U3(6,4,4)},32},
+		{{u3::U3(2,0,0),u3::U3(7,4,3)},37},
+		{{u3::U3(2,2,0),u3::U3(6,6,4)},39},
+		{{u3::U3(2,2,0),u3::U3(6,5,5)},37},
+		{{u3::U3(2,2,0),u3::U3(7,6,3)},44},
+		{{u3::U3(2,2,0),u3::U3(7,5,4)},41},
+		{{u3::U3(4,0,0),u3::U3(7,5,4)},38},
+		{{u3::U3(4,0,0),u3::U3(8,5,3)},44},
+		{{u3::U3(4,0,0),u3::U3(8,4,4)},42},
+		{{u3::U3(4,0,0),u3::U3(9,4,3)},49},
+		{{u3::U3(0,0,0),u3::U3(4.5_hi,2.5_hi,1.5_hi)},17.375},
+		{{u3::U3(2,0,0),u3::U3(4.5_hi,4.5_hi,1.5_hi)},20.375},
+		{{u3::U3(2,0,0),u3::U3(4.5_hi,3.5_hi,2.5_hi)},17.375},
+		{{u3::U3(2,0,0),u3::U3(5.5_hi,3.5_hi,1.5_hi)},22.375},
+		{{u3::U3(2,0,0),u3::U3(5.5_hi,2.5_hi,2.5_hi)},20.375},
+		{{u3::U3(2,0,0),u3::U3(6.5_hi,2.5_hi,1.5_hi)},26.375},
+		{{u3::U3(2,2,0),u3::U3(4.5_hi,4.5_hi,3.5_hi)},20.375},
+		{{u3::U3(2,2,0),u3::U3(5.5_hi,4.5_hi,2.5_hi)},24.375},
+		{{u3::U3(4,0,0),u3::U3(5.5_hi,4.5_hi,2.5_hi)},21.375},
+		{{u3::U3(2,2,0),u3::U3(5.5_hi,3.5_hi,3.5_hi)},22.375},
+		{{u3::U3(2,2,0),u3::U3(6.5_hi,4.5_hi,1.5_hi)},30.375},
+		{{u3::U3(4,0,0),u3::U3(6.5_hi,4.5_hi,1.5_hi)},27.375},
+		{{u3::U3(2,2,0),u3::U3(6.5_hi,3.5_hi,2.5_hi)},27.375},
+		{{u3::U3(4,0,0),u3::U3(6.5_hi,3.5_hi,2.5_hi)},24.375},
+		{{u3::U3(4,0,0),u3::U3(7.5_hi,3.5_hi,1.5_hi)},31.375},
+		{{u3::U3(4,0,0),u3::U3(7.5_hi,2.5_hi,2.5_hi)},29.375},
+		{{u3::U3(4,0,0),u3::U3(8.5_hi,2.5_hi,1.5_hi)},37.375}
+	};
+
+for(const auto& [u3_pair, value] : Omega_validation_table)
+	{
+		const auto& [n,omega] = u3_pair;
+		assert(Omega_validation_table[u3_pair] == vcs::Omega(n,omega));
+	}
+}
+
+
+/// Compare two functions for calculating Kmatrices
+if(true)
+{
+	std::vector<u3::U3> sigma_vector={u3::U3(7,4,3), u3::U3(HalfInt(13,2),HalfInt(9,2),HalfInt(7,2))};
+	for(const auto& sigma : sigma_vector)
+	{
+		// u3::U3 sigma(7,4,3);
+		sp3r::Sp3RSpace sp3r_irrep(sigma,6);
+		
+		std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> u3_subspace_map;
+		for(const auto& u3_subspace : sp3r_irrep)
+			{
+				std::vector<u3::U3> n_vector;
+				const auto& omega = u3_subspace.labels();
+				for(auto i : iter::range(0,int(u3_subspace.size()),1))
+					{
+						const auto&[n,dummy] = u3_subspace.GetStateLabels(i);
+						n_vector.push_back(n);
+					}
+
+				auto unique_n = iter::unique_everseen(n_vector);
+				for(const auto& n : unique_n)
+					u3_subspace_map[omega].push_back({n,u3::OuterMultiplicity(sigma,n,omega)});
+			}
+
+		vcs::MatrixCache K_matrix_map1;
+		vcs::GenerateKMatrices(sp3r_irrep,K_matrix_map1);
+		vcs::KmatrixMap K_matrix_map2 = vcs::GenerateKMatrices(sigma,u3_subspace_map);
+
+		for(const auto& [omega,K1] : K_matrix_map1)
+			{
+				const auto& K2=K_matrix_map2.at(omega)[0];
+				assert(mcutils::IsZero(K1-K2,1e-6));
+			}
+	}
+}
+
+
+
+
+
 
 if(false)
 {
@@ -154,7 +243,7 @@ if(false)
 if(false)
 {
 	u3::U3 s(20,13,10);
-	sp3r::Sp3RSpace irrep(s,4);
+	sp3r::Sp3RSpace irrep(s,10);
 
 	vcs::MatrixCache K_matrix_map,K_matrix_map2, Kinv_matrix_map;
 	vcs::GenerateKMatrices(irrep,K_matrix_map);
@@ -172,7 +261,7 @@ if(false)
 		}
 }
 
-if(true)
+if(false)
 {
 	u3::U3 s(11,1,1);
 	sp3r::Sp3RSpace irrep(s,20);

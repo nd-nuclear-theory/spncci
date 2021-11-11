@@ -8,10 +8,12 @@
 ****************************************************************/
 #include "sp3rlib/vcs.h"
 
+#include <numeric>
 #include "fmt/format.h"
 #include <Eigen/Eigenvalues>
 #include "sp3rlib/u3coef.h"
 #include "mcutils/eigen.h"
+#include "cppitertools/itertools.hpp"
 
 namespace vcs{
 
@@ -19,48 +21,59 @@ namespace vcs{
   //  SU(3) Reduced matrix element of a^\dagger boson creation operator
   {
     double rme=0;
-    int n1=int(n.f1());
-    int n2=int(n.f2());
-    int n3=int(n.f3());
+    const auto n1=int(n.f1());
+    const auto n2=int(n.f2());
+    const auto n3=int(n.f3());
+    const auto n1p=int(np.f1());
+    const auto n2p=int(np.f2());
+    const auto n3p=int(np.f3());
 
-    if((np.f1()==(n.f1()+2))&&(np.f2()==n.f2())&&(np.f3()==n.f3()))
-      rme=sqrt(
-               (n1+4)*(n1-n2+2)*(n1-n3+3)
-               /(2.*(n1-n2+3)*(n1-n3+4))
-               );
+    if((n1p==(n1+2))&&(n2p==n2)&&(n3p==n3))
+      rme=std::sqrt((n1+4)*(n1-n2+2)*(n1-n3+3)/(2.*(n1-n2+3)*(n1-n3+4)));
 
-    if ((np.f1()==n.f1())&&(np.f2()==(n.f2()+2))&&(np.f3()==n.f3()))
-      rme=sqrt(
-               (n2+3)*(n1-n2)*(n2-n3+2)
-               /(2.*(n1-n2-1)*(n2-n3+3))
-               );
-    if ((np.f1()==n.f1())&&(np.f2()==n.f2())&&(np.f3()==(n.f3()+2)))
-      rme=sqrt(
-               (n3+2)*(n2-n3)*(n1-n3+1)/(2.*(n1-n3)*(n2-n3-1))
-               );
+    else if ((n1p==n1)&&(n2p==(n2+2))&&(n3p==n3))
+      rme=std::sqrt((n2+3)*(n1-n2)*(n2-n3+2)/(2.*(n1-n2-1)*(n2-n3+3)));
+
+    else if ((n1p==n1)&&(n2p==n2)&&(n3p==(n3+2)))
+      rme=std::sqrt((n3+2)*(n2-n3)*(n1-n3+1)/(2.*(n1-n3)*(n2-n3-1)));
+
     return rme;
 
   }
 
   double U3BosonCreationRME(
-          const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
-          const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
-          )
+    const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
+    const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
+  )
   {
-    int rho0_max=u3::OuterMultiplicity(omega.SU3(),u3::SU3(2,0),omegap.SU3());
-    int rhon_max=u3::OuterMultiplicity(n_rho.irrep.SU3(),u3::SU3(2,0),np_rhop.irrep.SU3());
-    if ((sigmap==sigma)&&(rho0_max>0)&&(rhon_max>0))
-      {
+    unsigned int rho0_max=u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
+    unsigned int rhon_max=u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
+    
+    bool allowed = sigma==sigmap;
+    allowed &= u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
+    allowed &= u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
 
-        double rme=ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-                    *u3::U(u3::SU3(2,0),n_rho.irrep.SU3(),omegap.SU3(),sigma.SU3(),np_rhop.irrep.SU3(),1,np_rhop.tag,omega.SU3(),n_rho.tag,1)
-                    // *u3::U(sigma.SU3(), n_rho.irrep.SU3(), omegap.SU3(), u3::SU3(2,0), omega.SU3(),n_rho.tag,1,np_rhop.irrep.SU3(),1,np_rhop.tag)
-                    *BosonCreationRME(np_rhop.irrep,n_rho.irrep);
-        return rme;
+    double rme=0.0;
+    if (allowed)
+      {
+        rme = ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
+          *u3::U(u3::SU3(2,0),n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
+          *BosonCreationRME(np,n); 
       }
-    else
-      return 0.0;
+    
+    return rme;
   }
+
+  double U3BosonCreationRME(
+    const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
+    const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
+    )
+  {
+    const auto& [n,rho] = n_rho;
+    const auto& [np,rhop] = np_rhop;
+    return U3BosonCreationRME(sigmap,np,rhop,omegap,sigma,n,rho,omega);
+  } 
+
 
 
   void GenerateSMatrices(const sp3r::Sp3RSpace& irrep, vcs::SMatrixCache& S_matrix_map, bool sp3r_u3_branch_restricted)
@@ -275,6 +288,186 @@ namespace vcs{
   }
 
 
+// using KmatrixMap = std::unordered_map<u3::U3, std::array<basis::OperatorBlock<double>, 2>>;
+using SmatrixMap = std::unordered_map<u3::U3, basis::OperatorBlock<double>>;
+
+SmatrixMap
+GenerateSmatrices(
+  const u3::U3& sigma,
+  const std::map<u3::U3, MultiplicityTagged<u3::U3>::vector>& u3_subspaces
+  )
+  {
+    SmatrixMap Smatrix_map;
+    Smatrix_map[sigma]=basis::OperatorBlock<double>::Identity(1,1);
+    
+    for(const auto& [omegap,state_vector_p] : u3_subspaces)
+      {
+        if(omegap==sigma)
+          continue;
+
+        auto Nnp = int(omegap.N()-sigma.N());
+        auto omega_set = u3::KroneckerProduct(omegap,{-2,{0,2}});
+        
+        std::vector<MultiplicityTagged<u3::U3>> boson_states_p;
+        for(const auto&[n,rho_max] : state_vector_p)
+          for(int rho : iter::range(1,rho_max+1))
+            boson_states_p.push_back({n,rho});
+
+        // Initialize S matrix 
+        int num_states_p = boson_states_p.size();
+        basis::OperatorBlock<double>& S_target = Smatrix_map[omegap];
+        S_target = Eigen::MatrixXd::Zero(num_states_p,num_states_p);
+
+        for(auto& [omega,dummy] : omega_set)
+          {
+            if (not u3_subspaces.count(omega))
+              continue;
+            
+            const auto& S_source = Smatrix_map.at(omega);
+            const auto& state_vector = u3_subspaces.at(omega);
+
+            std::vector<MultiplicityTagged<u3::U3>> boson_states;
+            for(const auto&[n,rho_max] : state_vector)
+              for(int rho : iter::range(1,rho_max+1))
+                boson_states.push_back({n,rho});
+            
+            int num_states = boson_states.size();            
+            Eigen::MatrixXd coef1_matrix(num_states_p,num_states);
+
+            for(int index1p=0; index1p<num_states_p; index1p++)
+              for(int index1=0; index1<num_states; index1++)
+                {
+                  const auto& [n1p,rho1p] = boson_states_p[index1p];
+                  const auto& [n1,rho1] = boson_states[index1];
+                       
+                  coef1_matrix(index1p,index1)
+                    =(Omega(n1p, omegap)-Omega(n1,omega))
+                      *U3BosonCreationRME(sigma,n1p,rho1p,omegap,sigma,n1,rho1,omega);
+                }
+
+            Eigen::MatrixXd coef2_matrix(num_states,num_states_p);
+            for(int index2p=0; index2p<num_states_p; index2p++)
+              for(int index2=0; index2<num_states; index2++)
+                {
+                  const auto& [n2p,rho2p] = boson_states_p[index2p];
+                  const auto& [n2,rho2] = boson_states[index2];
+                  coef2_matrix(index2,index2p)
+                    =U3BosonCreationRME(sigma,n2p,rho2p,omegap,sigma,n2,rho2,omega);
+                }
+
+            S_target+=2./Nnp*coef1_matrix*S_source*coef2_matrix;
+          }
+      }
+  
+    return Smatrix_map;
+  }
+
+
+KmatrixMap
+ GenerateKMatrices(
+    const u3::U3& sigma,
+    const std::map<u3::U3, MultiplicityTagged<u3::U3>::vector>& u3_subspaces
+  )
+ {
+  
+  KmatrixMap Kmatrix_map;
+  Kmatrix_map[sigma][0]=basis::OperatorBlock<double>::Identity(1,1);
+  Kmatrix_map[sigma][1]=basis::OperatorBlock<double>::Identity(1,1);
+  
+  auto Smatrix_map = GenerateSmatrices(sigma,u3_subspaces);
+  // std::cout<<" Smatrices computed"<<std::endl;
+  if (sp3r::RestrictSp3RBranching(sigma))
+    {
+      fmt::print("Code for hadling A<6 irreps has not been validated.\n DO NOT TRUST");
+      
+      std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> restricted_u3_subspaces;
+      for(const auto& [omega,states] : u3_subspaces)
+        {
+          // For each u3 boson state, check if there's a corresponding state in the Sp(3,R) irrep
+          // using Theorem 2 of jpa-18-1985-939-Rowe.
+          MultiplicityTagged<u3::U3>::vector test_omegas = u3::KroneckerProduct(omega, {-2,{0,2}});
+          for(const auto& [n,rho_max] : states)
+            {
+              bool include_state=false;
+              for(const auto& [omega_test, dummy] : test_omegas)
+                {
+                  const auto& test_u3_subspace = restricted_u3_subspaces[omega_test];
+                  for(const auto& [n_test,rho_max_test] : test_u3_subspace)
+                    {
+                      if(std::fabs(vcs::Omega(n, omega)-vcs::Omega(n_test,omega_test))>1e-6)
+                        {
+                          include_state=true;
+                          break;
+                        }
+                    }
+                  if(include_state)
+                    restricted_u3_subspaces[omega].emplace_back(n,rho_max);
+                }
+            }
+
+          // upsilon_max is sum over all (n,rho) pairs (for n, for rho=1,...,rho_max)          
+          auto rho_vector = iter::imap([](auto n_rho_max) {return n_rho_max.tag;},restricted_u3_subspaces[omega]);
+          int upsilon_max = std::accumulate(rho_vector.begin(),rho_vector.end(),0);
+          
+          // Get Eigenvalues and eigenvectors
+          Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> 
+            eigen_system(Smatrix_map[omega]);
+          
+          const basis::OperatorBlock<double>& eigenvectors=eigen_system.eigenvectors();
+          const basis::OperatorBlock<double>& eigenvalues=eigen_system.eigenvalues();
+
+          // Eigen does not return eigenvalues in any particular order, so we 
+          // have to look for zero eigenvalues
+          std::vector<double>eigenvalue_vector;
+          for(int i=0; i<eigenvalues.cols(); ++i)
+            eigenvalue_vector.push_back(eigenvalues(1,i));
+
+          // Sort so that largest eigenvalues are first 
+          auto sorter = [](const auto& eig1, const auto&eig2){return std::fabs(eig1.second)>std::fabs(eig2.second);};
+          auto sorted_eigs = iter::sorted(iter::enumerate(eigenvalue_vector),sorter);
+          
+          auto& Kmatrix = Kmatrix_map[omega][0];
+          Kmatrix = basis::OperatorBlock<double>::Zero(upsilon_max,states.size());
+          // basis::OperatorBlock<double> Kmatrix(upsilon_max,states.size());
+
+          auto& Kmatrix_inv = Kmatrix_map[omega][1];
+          Kmatrix_inv = basis::OperatorBlock<double>::Zero(states.size(),upsilon_max);
+
+          int i=0; 
+          for(const auto& [index,k_squared] : sorted_eigs)
+            {
+              // If i < upsilon_max, then we expect k_squared to be non-zero
+              // and thus correspond to a valid Sp(3,R) state
+              if(i<upsilon_max)
+                {
+                  double k = std::sqrt(k_squared);
+                  Kmatrix.row(i)=k*eigenvectors.row(index);
+                  Kmatrix_inv.col(i)=1/k*eigenvectors.row(index).transpose();
+                }
+              // If i>=upsilon_max, then we expect k_squared to be zero,
+              // So we check that the eigenvalue is below a threshold. 
+              else
+                {
+                  assert(k_squared<1e-2);
+                }
+              i++;
+            }
+        }
+    }
+  else
+    {
+      for(const auto& [omega,Smatrix] :  Smatrix_map)
+        {
+        
+          //calculate K matrix
+          Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigen_system(Smatrix);
+          Kmatrix_map[omega][0]=eigen_system.operatorSqrt().cast<double>();
+          Kmatrix_map[omega][1]=Kmatrix_map[omega][0].inverse();
+        }
+    }
+
+  return Kmatrix_map;
+ }
 
 
 }  //  namespace

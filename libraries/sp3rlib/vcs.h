@@ -56,12 +56,14 @@ namespace vcs
   // Returns:
   //   (double) : Omega factor
   {
-    double value=0;
-    value += (2*mcutils::sqr(double(omega.f1()))-mcutils::sqr(double(n.f1()))+8*(double(omega.f1())-double(n.f1()))-2*(2*double(omega.f1())-double(n.f1())));
-    value += (2*mcutils::sqr(double(omega.f2()))-mcutils::sqr(double(n.f2()))+8*(double(omega.f2())-double(n.f2()))-4*(2*double(omega.f2())-double(n.f2())));
-    value += (2*mcutils::sqr(double(omega.f3()))-mcutils::sqr(double(n.f3()))+8*(double(omega.f3())-double(n.f3()))-6*(2*double(omega.f3())-double(n.f3())));
-    return value/4.;
+    const auto& [n1,n2,n3] = std::tuple<int,int,int>(n.f());
+    const auto& [w1,w2,w3] = omega.f();
 
+    double value=0;
+    value += double(int(2*w1)*w1-n1*n1+8*(w1-n1)-2*(2*w1-n1));
+    value += double(int(2*w2)*w2-n2*n2+8*(w2-n2)-4*(2*w2-n2));
+    value += double(int(2*w3)*w3-n3*n3+8*(w3-n3)-6*(2*w3-n3));
+    return value/4.;
   }
 
   double BosonCreationRME(const u3::U3& np, const u3::U3& n);
@@ -84,6 +86,17 @@ namespace vcs
   //Calculates the K matrix
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map, vcs::MatrixCache& Kinv_matrix_map);
   // Generates K matrices and Kinv matrices, for A<6
+
+  
+  using KmatrixMap = std::unordered_map<u3::U3, std::array<basis::OperatorBlock<double>, 2>>;
+  
+  KmatrixMap
+  GenerateKMatrices(
+    const u3::U3& sigma,
+    const std::map<u3::U3, MultiplicityTagged<u3::U3>::vector>& u3_subspaces
+  );
+
+
 
 }  //  namespace
 

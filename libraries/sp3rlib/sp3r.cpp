@@ -42,6 +42,68 @@
 
        }
 
+
+    // TauConjugate computes the first two rows of the partition conjugate 
+    // of tau = [f1-f3,f2-f3] = [lambda+mu,mu], defined in 
+    // jpa-18-1985-939-Rowe. Note, in ref., tau is referred to as lambda. 
+    std::array<int,2> TauConjugate(const u3::U3& sigma)
+    {
+      std::array<int,2> tau_tilde ={0};
+      const auto& lambda = sigma.SU3().lambda();
+      const auto& mu = sigma.SU3().mu();
+
+      if((lambda+mu)>=1)
+        tau_tilde[0]++;
+
+      if((lambda+mu)>=1)
+        tau_tilde[1]++;
+
+      if(mu>=1)
+        tau_tilde[0]++;
+
+      if(mu>=2)
+        tau_tilde[1]++;
+
+      return tau_tilde;
+    }
+
+  bool IsUnitary(const u3::U3& sigma)
+  // Based on criterion for unitary irrep in jpa-18-1985-939-Rowe
+  // equations (2.7) and (2.8).  Note, first criterion of 
+  // conjugate{tau}_1<=2 always met for U(3) irrep, so we only check the 
+  // second criterion conjugate{tau}_1+conjugate{tau}_2 <=2*f3.
+  {
+    HalfInt f3=sigma.f3();
+    auto tau_conjugate = TauConjugate(sigma);
+    return (tau_conjugate[0]+tau_conjugate[1])<=2*f3;
+  }
+
+
+  bool RestrictSp3RBranching(const u3::U3& sigma)
+  // Based on criteria given in jpa-18-1985-939-Rowe, 
+  // there are U(3) irreps in the U(3) boson basis
+  // obtained via laddering which have no counter-part
+  // in the Sp(3,R) basis, i.e., the basis constructed 
+  // by laddering is overcomplete. 
+  //
+  // Basis must be restricted if f3<3 and 
+  // conjugate{tau}_2 > (2*f3-3)
+  {
+    const HalfInt& f3 = sigma.f3();
+    if(f3>=3)
+      return false;
+    
+    auto tau_conjugate = TauConjugate(sigma);
+    if(tau_conjugate[1]<=(2*f3-2))
+      return false; 
+    
+    else
+      return true;
+  }
+
+
+
+
   ////////////////////////////////////////////////////////////////
   // space and subspace indexing
   ////////////////////////////////////////////////////////////////
@@ -70,12 +132,6 @@
        }
      }
 
-      // void U3Subspace::Init(const std::vector<MultiplicityTagged<u3::U3>>& state_set)
-      // {
-      //   // for each (n,rho_max) entry belonging to this omega subspace
-      //   for (auto state : state_set)
-      //     PushStateLabels(state);
-      // }
 
       void U3Subspace::Init(const MultiplicityTagged<u3::U3>::vector& multiplicities)
       {

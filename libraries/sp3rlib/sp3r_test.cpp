@@ -11,6 +11,7 @@
 ****************************************************************/
 
 #include "sp3rlib/sp3r.h"
+#include "sp3rlib/u3.h"
 #include "fmt/format.h"
 #include <iostream>
 #include "sp3rlib/u3coef.h"
@@ -32,10 +33,40 @@ int main(int argc, char **argv)
   // We generate and print them here for testing purposes only.
   // Normally sp3r::RaisingPolynomialLabels is called directly by the
   // Sp3RSpace constructor.
-
   std::vector<u3::U3> polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
   for (auto it = polynomial_labels.begin(); it != polynomial_labels.end(); ++it)
     std::cout << " label " << (*it).Str() << std::endl;
+
+  // Check that U(3) is unitary LGI
+  std::map<u3::U3,bool> unitary_test_map=
+  {
+    {{16,{2,1}},true},
+    {{HalfInt(3,2),{0,0}},true},
+    {{6,5,1},false} 
+  };
+  
+  fmt::print("Is Sp(3,R) irrep unitary?\n");
+  for(const auto& [s,check] : unitary_test_map)
+    {
+      fmt::print("{}: {}\n",s,sp3r::IsUnitary(s));
+      assert(sp3r::IsUnitary(s)==check);
+    }
+
+  fmt::print("Does branching need to be restricted?\n");
+    // Check that U(3) is unitary LGI
+  std::map<u3::U3,bool> restrict_basis_test_map =
+  {
+    {{16,{2,1}},false},
+    {{HalfInt(3,2),{0,0}},true},
+    {u3::U3(5,5,1),false}
+  };
+
+  for(const auto& [s,check] : restrict_basis_test_map)
+    {
+      fmt::print("{}: {}\n",s,sp3r::RestrictSp3RBranching(s));
+      // assert(sp3r::RestrictSp3RBranching(s)==check);
+    }
+
     
   // examine Sp3RSpace object
   sp3r::Sp3RSpace irrep(sigma,Nn_max);

@@ -90,7 +90,7 @@ std::vector<L_kappa> get_coupling_labels(u3::SU3& x)
 // get vector of allowed L, kappa values for coupling
 {
   // branching
-  MultiplicityTagged<int>::vector branch = u3::BranchingSO3(x);
+  MultiplicityTagged<unsigned int>::vector branch = u3::BranchingSO3(x);
   // vector containing labels
   std::vector<L_kappa> lk;
   // add L, kappa to vector of labels
