@@ -35,6 +35,9 @@ namespace lgi
   //   null_vectors (matrix, output): matrix with null vectors as columns
   //   threshold (double): threshold for nonzero singular values
 
+
+  Eigen::MatrixXd FindNullSpaceSVD(Eigen::MatrixXd& A,  int nullity, double threshold=1e-10);
+
 }
 
 #endif

@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
-set(lgi_headers lgi.h lgi_solver.h null_solver.h lgi_unit_tensors.h dimensions.h  su3rme.h)
-set(lgi_sources lgi.cpp lgi_solver.cpp null_solver.cpp lgi_unit_tensors.cpp dimensions.cpp su3rme.cpp)
+set(lgi_headers lgi.h lgi_solver.h null_solver.h lgi_unit_tensors.h dimensions.h  su3rme.h lgi_gen.h)
+set(
+  lgi_sources lgi.cpp lgi_solver.cpp null_solver.cpp 
+  lgi_unit_tensors.cpp dimensions.cpp su3rme.cpp lgi_gen.cpp
+  )
 
 # define am library and add source files
 add_library(lgi ${lgi_sources})
@@ -83,6 +86,18 @@ target_link_libraries(
   lsu3shell::SU3ME
 )
 add_dependencies(lgi_tests dimensions_test)
+
+add_executable(generate_lgi_expansions EXCLUDE_FROM_ALL generate_lgi_expansions.cpp)
+target_link_libraries(
+  generate_lgi_expansions PRIVATE 
+  fmt::fmt
+  am::am
+  spncci::utilities  
+  spncci::lgi
+)
+
+add_dependencies(lgi_tests dimensions_test)
+
 
 if(SPNCCI_MASTER_PROJECT)
   add_dependencies(tests lgi_tests)

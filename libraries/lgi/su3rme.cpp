@@ -55,9 +55,6 @@ namespace lsu3shell
       return num_irreps;
     }
 
-
-
-
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
@@ -84,9 +81,6 @@ void WriteBinary(std::ostream& os, tDataType data)
 }
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
-
-
-
 
 std::vector<double> ComputeRME(std::vector<MECalculatorData>& rmeCoeffsPNPN)
 // Compute RMEs for a single pair of bra and ket irrep subspaces (i.e.,
@@ -159,7 +153,7 @@ basis::OperatorBlocks<double> CalculateRME(
   int cols = lsu3shell::get_num_U3PNSPN_irreps(ket);
   // std::cout<<"rows "<<rows<<"  cols "<<cols<<std::endl;
   basis::OperatorBlocks<double> operator_blocks(rhot_max);
-  for(auto& block : operator_blocks)
+  for(basis::OperatorBlock<double>& block : operator_blocks)
     block = Eigen::MatrixXd::Zero(rows,cols);
 
   //////////////////////////////////////////////////////////////////

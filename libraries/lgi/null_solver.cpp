@@ -73,4 +73,36 @@ namespace lgi
 
   }
 
+
+  Eigen::MatrixXd FindNullSpaceSVD(Eigen::MatrixXd& A,  int nullity, double threshold)
+  {
+    assert(A.rows()>=A.cols());
+    int dimension = A.cols();
+
+    if(dimension==nullity)      
+      return Eigen::MatrixXd::Identity(dimension,dimension);
+
+    // for tall A, full and thin V should be identical
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(A,Eigen::ComputeFullV);  
+    Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType w = svd.singularValues();
+    Eigen::MatrixXd V = svd.matrixV();
+
+    // extract nullity
+    svd.setThreshold(threshold);
+    int rank = svd.rank();
+    if(rank!= (dimension-nullity))
+    {
+      std::cout<<"dimenison: "<<dimension<<" rank: "<<rank<<" nullity: "<<nullity<<std::endl;
+      std::cout<<w<<std::endl;
+      assert(rank==(dimension-nullity));
+    }
+    
+    // extract null vectors
+    assert(V.rows()==V.cols());
+    Eigen::MatrixXd null_vectors = V.block(0,rank,dimension,nullity);
+
+    return null_vectors;
+  }
+
+
 }
