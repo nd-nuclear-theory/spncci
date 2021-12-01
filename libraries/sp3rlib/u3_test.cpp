@@ -79,8 +79,17 @@ int main(int argc, char **argv)
   u3::U3 w6(HalfInt(11,2),{2,1});
   u3_vector.push_back(w6);
 
+  
+
+
   for(const auto& w : u3_vector)
-    fmt::print("w = {:10}  <-> f = [{},{},{}]\n",w.Str(),w.f1(),w.f2(),w.f3());
+  {
+    HalfInt f1,f2,f3;
+    std::tie(f1,f2,f3) = w.f(); 
+    fmt::print("w = {:10}  <-> f = [{},{},{}]\n",w.Str(),f1,f2,f3);
+    assert((f1==w.f1()) && (f2==w.f2()) && (f3==w.f3()));
+  }
+
 
   u3::U3 test(2,{2,0});
   assert(test == u3::U3(2,0,0));
