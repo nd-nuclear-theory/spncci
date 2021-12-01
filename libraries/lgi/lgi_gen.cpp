@@ -264,17 +264,20 @@ namespace lgi
 
 
   void ComputeSeeds(
-    const std::tuple<MultiplicityTagged<lgi::LGI>,MultiplicityTagged<lgi::LGI>>& lgi_pair,
+    const nuclide::NuclideType& nuclide,
+    const std::pair<MultiplicityTagged<lgi::LGI>,MultiplicityTagged<lgi::LGI>>& lgi_pair,
     const basis::OperatorBlock<double>& lgi_expansion_bra,
     const basis::OperatorBlock<double>& lgi_expansion_ket,
-    const const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels
+    const const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
+    const MPI_Comm world_comm //set default to be MPI_COMM_WORLD
     )
   {
     //Extract label information
-    const auto&[lgi_bra,gamma_max_bra] = lgi_pair[0];
+    const auto&[Z,N]=nuclide;
+    const auto&[lgi_bra,gamma_max_bra] = lgi_pair.first;
     const auto&[Nex_bra,sigma_bra,Sp_bra,Sn_bra,S_bra]=lgi_bra.Key();
 
-    const auto&[lgi_ket,gamma_max_ket] = lgi_pair[0];
+    const auto&[lgi_ket,gamma_max_ket] = lgi_pair.second;
     const auto&[Nex_ket,sigma_ket,Sp_ket,Sn_ket,S_ket]=lgi_ket.Key();
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
