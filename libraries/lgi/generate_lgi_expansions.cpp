@@ -19,6 +19,7 @@
 #include "utilities/nuclide.h"
 #include "mcutils/eigen.h"
 
+#include "u3shell/relative_operator.h"
 
 // operator_dir = ${SPNCCI_OPERATOR_DIR}/rununittensor01/
 
@@ -52,8 +53,38 @@ int main(int argc, char **argv)
 	MPI_Comm world_comm=MPI_COMM_WORLD;
 
 
-  basis::OperatorBlocks<double> lgi_expansions
-  	=lgi::generate_lgi_expansion(nuclide,Nsigma_max,lgi_vector,operator_dir,world_comm);
+  basis::OperatorBlocks<double> lgi_expansions;
+  	// =lgi::generate_lgi_expansion(nuclide,Nsigma_max,lgi_vector,operator_dir,world_comm);
+
+
+  int J0=-1;
+  int T0=-1;
+  std::vector<u3shell::RelativeUnitTensorLabelsU3ST> unit_tensor_labels;
+  u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nsigma_max,N1v,unit_tensor_labels,J0,T0,false);
+  // 0(0,1)[1/2,1/2,0]
+  int i_bra=0;
+  int i_ket=0;
+  // for(int i_bra=0; i_bra<lgi_vector.size(); ++i_bra)
+  //   for(int i_ket=0; i_ket<lgi_vector.size(); ++i_ket)
+      { 
+        std::pair<MultiplicityTagged<lgi::LGI>,MultiplicityTagged<lgi::LGI>> 
+          lgi_pair(lgi_vector[i_bra],lgi_vector[i_ket]);
+        
+        std::cout<<lgi_vector[i_bra].irrep.Str()<<std::endl;
+        std::cout<<lgi_vector[i_ket].irrep.Str()<<std::endl;
+        const basis::OperatorBlock<double>& lgi_expansion_bra = lgi_expansions[i_bra];
+        const basis::OperatorBlock<double>& lgi_expansion_ket = lgi_expansions[i_ket];
+        lgi::ComputeSeeds(
+          nuclide,Nsigma_max,N1v,
+          lgi_pair,
+          lgi_expansion_bra,
+          lgi_expansion_ket,
+          unit_tensor_labels,
+          operator_dir,
+          world_comm
+          );
+      }
+  
 
  //  std::cout<<"printing everything "<<std::endl;
 	// for(int i=0; i<lgi_vector.size(); ++i)

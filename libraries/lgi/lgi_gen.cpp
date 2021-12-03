@@ -23,6 +23,7 @@
 #include "lgi/dimensions.h"
 #include "su3rme.h"
 #include "lgi/null_solver.h"
+#include "am/am.h"
 
 namespace lgi
 {
@@ -259,19 +260,26 @@ namespace lgi
   }
 
 
-
-  // u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1B,relative_unit_tensor_labels,J0,T0,false);
-
-
   void ComputeSeeds(
     const nuclide::NuclideType& nuclide,
+    const int Nsigma_max,
+    const int N1v,
     const std::pair<MultiplicityTagged<lgi::LGI>,MultiplicityTagged<lgi::LGI>>& lgi_pair,
     const basis::OperatorBlock<double>& lgi_expansion_bra,
     const basis::OperatorBlock<double>& lgi_expansion_ket,
-    const const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
-    const MPI_Comm world_comm //set default to be MPI_COMM_WORLD
+    const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& unit_tensor_labels,
+    const std::string& operator_dir,
+    const MPI_Comm world_comm, //set default to be MPI_COMM_WORLD
+    const bool& restrict_op_J0
     )
   {
+
+    // must be set to false unless considering only Hamiltonian like operators with J0=0
+    // otherwise interactionPN.AddOperator will hang with x0 doesn't branch to S0.
+    k_dependent_tensor_strenghts=restrict_op_J0;
+    su3::init();
+    CWig9lmLookUpTable<RME::DOUBLE>::AllocateMemory(true);
+
     //Extract label information
     const auto&[Z,N]=nuclide;
     const auto&[lgi_bra,gamma_max_bra] = lgi_pair.first;
@@ -303,6 +311,9 @@ namespace lgi
     // num in communicator must be equal to ndiag
     // map used for defining model_space_map organized into {N : {SpSn : {S : <(lambda,mu)>}}} 
     //
+    // 
+    // int Nsmax= std::max(Nex_ket,Nex_bra);
+    CBaseSU3Irreps baseSU3Irreps(Z,N,Nsigma_max);
     // Construct ket basis from model space
     proton_neutron::ModelSpaceMapType model_space_map_ket;
     model_space_map_ket[Nex_ket][{TwiceValue(Sp_ket),TwiceValue(Sn_ket)}][TwiceValue(S_ket)].emplace_back(1,sigma_ket.SU3().lambda(),sigma_ket.SU3().mu());
@@ -310,6 +321,7 @@ namespace lgi
     lsu3::CncsmSU3xSU2Basis ket_ncsm_basis;
     ket_ncsm_basis.ConstructBasis(ket_ncsmModelSpace, jdiag, ndiag, individual_comm);
     int dim_ket = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
+    
     // Construct bra basis from model space
     proton_neutron::ModelSpaceMapType model_space_map_bra;
     model_space_map_bra[Nex_bra][{TwiceValue(Sp_bra),TwiceValue(Sn_bra)}][TwiceValue(S_bra)].emplace_back(1,sigma_bra.SU3().lambda(),sigma_bra.SU3().mu());
@@ -321,12 +333,63 @@ namespace lgi
     for(int i=0; i<unit_tensor_labels.size(); ++i)
       {
         const auto& [operator_labels,relative_bra, relative_ket]=unit_tensor_labels[i].Key();
-        const auto& [Nop,x0,S0,T0,g0] = operator_labels;
+        const auto& [dN0,x0,S0,T0,g0] = operator_labels;
+        const auto& [Nbar,Sbar,Tbar] = relative_ket;
+        const auto& [Nbarp,Sbarp,Tbarp] = relative_bra;
 
+        // w0(rho0,lambda0,mu0,twice_S0)
+        
+        SU3xSU2::LABELS w0(1,x0.lambda(),x0.mu(),TwiceValue(S0));
+        int rhot_max=u3::OuterMultiplicity(sigma_ket.SU3(),x0,sigma_bra.SU3());
 
+        bool allowed_operator = true;
+        allowed_operator &= rhot_max>0;
+        allowed_operator &= am::AllowedTriangle(S_ket,S0,S_bra);
+        allowed_operator &= (Nex_ket+2*N1v)>=Nbar;
+        allowed_operator &= (Nex_bra+2*N1v)>=Nbarp;
+        if(not allowed_operator)
+          {
+            //todo: set operator to zero
+            continue; 
+          }
+
+        // Read operator from file
+        std::cout<<unit_tensor_labels[i].Str()<<std::endl;
+        std::string operator_base_name = fmt::format("{}/relative_unit_tensors/relative_unit_{:06}",operator_dir,i);
+        // std::cout<<"operator "<<operator_base_name<<std::endl;
+        std::ofstream interaction_log_file("/dev/null");
+        bool log_is_on = false;
+        bool generate_missing_rme = true;
+
+        // Apparently the constructor for interactionPPNN must always be called before the constructor for interactionPN
+        // otherwise a global variable doesn't get correctly allocated....
+        CInteractionPPNN interactionPPNN(baseSU3Irreps,log_is_on,interaction_log_file);
+        CInteractionPN interactionPN(baseSU3Irreps,generate_missing_rme,log_is_on,interaction_log_file);
+        
+        interactionPPNN.LoadTwoBodyOperator(operator_base_name+".PPNN");
+        interactionPN.AddOperator(operator_base_name+".PN");
+        interactionPPNN.TransformTensorStrengthsIntoPP_NN_structure();
+
+        // std::cout<<"Calculate RME"<<std::endl;
+        basis::OperatorBlocks<double> unit_tensor_rmes 
+          =lsu3shell::CalculateRME(interactionPPNN,interactionPN,bra_ncsm_basis,ket_ncsm_basis,dN0,w0,rhot_max);
+
+        for(const basis::OperatorBlock<double>& block : unit_tensor_rmes)
+          std::cout<<mcutils::FormatMatrix(block,"3.2f")<<std::endl;
       }
 
 
+    // clears memory allocated for U9, U6, and Z6 coefficients
+    CWig9lmLookUpTable<RME::DOUBLE>::ReleaseMemory();
+    // clear memory allocated for single-shell SU(3) rmes
+    CSSTensorRMELookUpTablesContainer::ReleaseMemory();  
+    // clear memory allocated for SU(3)>SO(3)
+    CWigEckSU3SO3CGTablesLookUpContainer::ReleaseMemory();  
+
+    su3::finalize();
+
+
+    // return 0;
   }
 
 

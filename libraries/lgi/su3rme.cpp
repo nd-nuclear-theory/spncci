@@ -189,6 +189,7 @@ basis::OperatorBlocks<double> CalculateRME(
 
   // main block-by-block calculation
    int32_t row_irrep = 0;
+   // std::cout<<"for blocks"<<std::endl;
    for (unsigned int ipin_block = 0; ipin_block < number_ipin_blocks; ipin_block++) 
    {
       uint32_t ip = bra.getProtonIrrepId(ipin_block);
@@ -212,6 +213,7 @@ basis::OperatorBlocks<double> CalculateRME(
       uint32_t last_jn(std::numeric_limits<uint32_t>::max());
 
       int32_t col_irrep = 0;
+      // std::cout<<"J blocks"<<std::endl;
       for (unsigned int jpjn_block = 0; jpjn_block < number_jpjn_blocks; jpjn_block++) 
       {
         uint32_t jp = ket.getProtonIrrepId(jpjn_block);
@@ -228,7 +230,7 @@ basis::OperatorBlocks<double> CalculateRME(
          SU3xSU2::LABELS w_jn(ket.getNeutronSU3xSU2(jn));
          uint16_t ajp_max = ket.getMult_p(jp);
          uint16_t ajn_max = ket.getMult_n(jn);
-
+         // std::cout<<"jp"<<std::endl;
          if (jp != last_jp) 
          {
             icurrentDistr_p = ket.getIndex_p<lsu3::CncsmSU3xSU2Basis::kDistr>(jp);
@@ -291,7 +293,7 @@ basis::OperatorBlocks<double> CalculateRME(
             ilastDistr_p = icurrentDistr_p;
             ilastGamma_p = icurrentGamma_p;
          }
-
+         // std::cout<<"jn "<<std::endl;
          if (jn != last_jn) 
            {
               icurrentDistr_n = ket.getIndex_n<lsu3::CncsmSU3xSU2Basis::kDistr>(jn);
@@ -360,6 +362,8 @@ basis::OperatorBlocks<double> CalculateRME(
          // Iterating over omega S
          //////////////////////////////////////////////////////////////////////////////////////////
          // loop over wpn that result from coupling ip x in
+
+         // std::cout<<"loop over wpn"<<std::endl;
          int32_t ibegin = bra.blockBegin(ipin_block);
          int32_t iend = bra.blockEnd(ipin_block);
          
