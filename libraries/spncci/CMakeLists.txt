@@ -6,7 +6,6 @@ set(spncci_headers
     recurrence_indexing_spin.h
     spncci_common.h
     spncci_basis.h
-    spncci_seeds.h
     vcs_cache.h
     eigenproblem.h
     computation_control.h
@@ -25,7 +24,6 @@ set(spncci_headers
 set(spncci_sources
     spncci_common.cpp
     spncci_basis.cpp
-    spncci_seeds.cpp
     vcs_cache.cpp
     eigenproblem.cpp
     computation_control.cpp
@@ -94,7 +92,6 @@ set(spncci_UNITS_TEST
     recurrence_indexing_test
     recurrence_mapping_test
     recurrence_seeds_test
-    spncci_seeds_test
 )
 
 add_custom_target(spncci_tests)
@@ -117,16 +114,6 @@ target_link_libraries(
                                 cppitertools::cppitertools spncci::spncci
 )
 
-target_link_libraries(
-  spncci_seeds_test
-  PRIVATE fmt::fmt
-          am::am
-          spncci::lgi
-          spncci::lsu3shell
-          cppitertools::cppitertools
-          spncci::spncci
-          basis::basis
-)
 
 if(SPNCCI_MASTER_PROJECT)
   add_dependencies(tests spncci_tests)

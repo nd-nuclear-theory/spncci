@@ -18,6 +18,7 @@
 #include "lgi/lgi.h"
 #include "utilities/nuclide.h"
 #include "utilities/utilities.h"
+#include "lgi/dimensions.h"
 
 int main(int argc, char** argv)
 {

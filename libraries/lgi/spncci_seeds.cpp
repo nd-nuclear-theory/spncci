@@ -74,6 +74,7 @@ namespace spncci
 
       //Generate LGI vector by finding possible cmf LGI by counting arguments 
       lgi::MultiplicityTaggedLGIVector lgi_vector = lgi::get_lgi_vector(nuclide,Nsigma0,Nsigma_max);
+
       for(const auto& lgi : lgi_vector)
         std::cout<<lgi.Str()<<std::endl;
 
@@ -145,6 +146,7 @@ namespace spncci
           proton_neutron::ModelSpace bra_ncsmModelSpace(Z,N,model_space_map);
           
           // Construct ket basis from model space
+          // num in communicator must be equal to ndiag
           lsu3::CncsmSU3xSU2Basis ket_ncsm_basis;
           ket_ncsm_basis.ConstructBasis(ket_ncsmModelSpace, jdiag, ndiag, individual_comm);
 
@@ -156,24 +158,35 @@ namespace spncci
           int dim = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
           basis::OperatorBlock<double> Ncm_matrix = double(N0+Nex)*Eigen::MatrixXd::Identity(dim,dim); 
           int dN0=0;
+          
           // w0(rho0,lambda0,mu0,twice_S0)
           SU3xSU2::LABELS w0(1,0,0,0);
           int rhot_max=1;        
+          
           // There is only one block in the operator_blocks returned by CalculateRME because rhot_max=1;  
           double A=Z+N;
           Ncm_matrix-=2./A*lsu3shell::CalculateRME(interactionPPNN_Nrel,interactionPN_Nrel,bra_ncsm_basis,ket_ncsm_basis,dN0,w0,rhot_max)[0];
 
-          //Expected number of eigenvectors will eigenvalue 0
+          //Expected number of eigenvectors with eigenvalue 0
           int num_cmf_irreps = cmf_basis_dimensions[lgi.u3spn()];
           
           bool verbose=false;
           spncci::Vector eigenvalues;
           auto& eigenvectors=cmf_basis_transformations[l];
+          
           spncci::SolveEigenproblem(
             Ncm_matrix,num_cmf_irreps,2*num_cmf_irreps,
             eigensolver_max_iterations,eigensolver_tolerance,
             eigenvalues,eigenvectors,verbose
           );
+          
+
+          std::cout<<"NCM "<<std::endl;
+          std::cout<<Ncm_matrix<<std::endl<<std::endl;
+
+          std::cout<<"eigenvectors "<<std::endl;
+          std::cout<<eigenvectors<<std::endl<<std::endl;
+
         }
 
       //////////////////////////////////////////////////////////////////////////////////////////
@@ -187,8 +200,8 @@ namespace spncci
       //////////////////////////////////////////////////////////////////////////////////////////   
       // Calculate Brel matrix and get null vectors 
       /////////////////////////////////////////////////////////////////////////////////////
-      // For each LGI, calculate Brel matrix, apply Nrel eigenvector transformation
-      
+      // For each LGI, calculate Brel matrix.  
+      // TODO: replace Brel with one-body lab frame B or [AxB]^(0,0)
       for(const auto& [lgi,gamma_max] : lgi_vector)
       {
         const auto&[Nex,sigma,Sp,Sn,S]=lgi.Key();
@@ -197,6 +210,8 @@ namespace spncci
         proton_neutron::ModelSpaceMapType model_space_map_ket;
         model_space_map_ket[Nex][{TwiceValue(Sp),TwiceValue(Sn)}][TwiceValue(S)].emplace_back(1,sigma.SU3().lambda(),sigma.SU3().mu());
         proton_neutron::ModelSpaceMapType model_space_map_bra=generate_bra_model_space_Brel(lgi,lgi_vector);
+        
+        // Testing: print out Bra model space for Brel
         std::cout<<lgi.Str()<<std::endl;
         if (model_space_map_bra.size()==0)
           continue;
@@ -207,6 +222,7 @@ namespace spncci
               for(const auto& [r,lam,mu] : temp3)
                 std::cout<<fmt::format("{}({},{}) {} {} {}",Nexp,lam,mu,SpSn.first,SpSn.second,S)<<std::endl;
         std::cout<<"*****************************"<<std::endl;
+        
         proton_neutron::ModelSpace ket_ncsmModelSpace(Z,N,model_space_map_ket);
         proton_neutron::ModelSpace bra_ncsmModelSpace(Z,N,model_space_map_bra);
 
@@ -233,17 +249,16 @@ namespace spncci
         // Construct bra basis from model space
         lsu3::CncsmSU3xSU2Basis bra_ncsm_basis;
         bra_ncsm_basis.ConstructBasis(bra_ncsmModelSpace, jdiag, ndiag, individual_comm);
-
-        
-          // int dim_ket = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
-          // int dim_bra = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
-          // basis::OperatorBlock<double> Ncm_matrix = double(N0+Nex)*Eigen::MatrixXd::Identity(dim,dim); 
+      
+        // Calculate Brel matrix
         int dN0=-2;
         // w0(rho0,lambda0,mu0,twice_S0)
         SU3xSU2::LABELS w0(1,0,2,0);
         int rhot_max=1;  
-        // since rhot_max=1, only one element of OperatorBlocks      
+        // since rhot_max=1, thre is only one element of OperatorBlocks
         auto Brel_matrix=lsu3shell::CalculateRME(interactionPPNN_Brel,interactionPN_Brel,bra_ncsm_basis,ket_ncsm_basis,dN0,w0,rhot_max)[0];
+        
+        //Testing: Print Brel matrix
         std::cout<<Brel_matrix<<std::endl;
       }
       /////////////////////////////////////////////////////////////////////////////////////
