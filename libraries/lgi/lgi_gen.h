@@ -42,7 +42,8 @@ basis::OperatorBlocks<double> generate_lgi_expansion(
   //  Nmax model sapce with Nmax=Nsigma_max.
 
 
-  void ComputeSeeds(
+  std::vector<basis::OperatorBlocks<double>>
+   ComputeSeeds(
     const nuclide::NuclideType& nuclide,
     const int Nsigma_max, const int N1v,
     const std::pair<MultiplicityTagged<lgi::LGI>,MultiplicityTagged<lgi::LGI>>& lgi_pair,

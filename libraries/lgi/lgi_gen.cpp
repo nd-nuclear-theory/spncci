@@ -16,7 +16,6 @@
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "SU3ME/CInteractionPN.h"
 #include "SU3ME/InteractionPPNN.h"
-#include "LSU3/ncsmSU3xSU2Basis.h"
 #include "UNU3SU3/UNU3SU3Basics.h"
 
 #include "lsu3shell/lsu3shell_basis.h"
@@ -140,16 +139,24 @@ namespace lgi
     const MPI_Comm world_comm //set default to be MPI_COMM_WORLD
     )
   {
-
-    unsigned int N0 = nuclide::N0ForNuclide(nuclide);
-    
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Set global variables
+    //
+    // If not false, interactionPN.AddOperator will hang in cases where x0 doesn't branch to S0.
+    k_dependent_tensor_strenghts=false;
+    // If not false, get segmentation fault when calling function Calculate_Proton_x_Identity_MeData
+    // caused by WigEckSU3SO3CG::WigEckSU3SO3CG trying to calculate coupling coefficients for
+    // L0 not in x0.
+    precalculate_WigEckSU3SO3CG_coefficients = false;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Initialization for calculating coupling and recoupling coefficients.
     su3::init();
     CWig9lmLookUpTable<RME::DOUBLE>::AllocateMemory(true);
 
     // Define distributions of partices over shells and do basic basis setup
     const auto&[Z,N]=nuclide;
     CBaseSU3Irreps baseSU3Irreps(Z,N,Nsigma_max);
-
+    unsigned int N0 = nuclide::N0ForNuclide(nuclide);
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Calculate rmes of B and Ncm for each U3SpSnS subspace corresponding to an LGI
     // Then solve for simultaneous null space of B and Ncm
@@ -218,8 +225,7 @@ namespace lgi
         int dim_bra = dim_ket + dim_B_bra;
 
         // Initialize matrix
-        basis::OperatorBlock<double>& BNcm_matrix = lgi_expansions[l];
-        BNcm_matrix = Eigen::MatrixXd::Zero(dim_bra,dim_ket); 
+        basis::OperatorBlock<double> BNcm_matrix = Eigen::MatrixXd::Zero(dim_bra,dim_ket);
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Calculate Ncm matrix 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,10 +245,10 @@ namespace lgi
         //////////////////////////////////////////////////////////////////////////////////////////   
         // Get null vectors 
         /////////////////////////////////////////////////////////////////////////////////////
-        Eigen::MatrixXd null_vectors =lgi::FindNullSpaceSVD(BNcm_matrix,gamma_max,1e-6);
+        lgi_expansions[l] =lgi::FindNullSpaceSVD(BNcm_matrix,gamma_max,1e-6);
 
-        std::cout<<"Null vectors"<<std::endl;
-        std::cout<<null_vectors<<std::endl;
+        // std::cout<<"Null vectors"<<std::endl;
+        // std::cout<<null_vectors<<std::endl;
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -260,7 +266,8 @@ namespace lgi
   }
 
 
-  void ComputeSeeds(
+  std::vector<basis::OperatorBlocks<double>>
+   ComputeSeeds(
     const nuclide::NuclideType& nuclide,
     const int Nsigma_max,
     const int N1v,
@@ -273,10 +280,18 @@ namespace lgi
     const bool& restrict_op_J0
     )
   {
-
-    // must be set to false unless considering only Hamiltonian like operators with J0=0
-    // otherwise interactionPN.AddOperator will hang with x0 doesn't branch to S0.
+    std::vector<basis::OperatorBlocks<double>> lgi_unit_tensor_rmes(unit_tensor_labels.size());
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Set global variables
+    //
+    // If not false, interactionPN.AddOperator will hang in cases where x0 doesn't branch to S0.
     k_dependent_tensor_strenghts=restrict_op_J0;
+    // If not false, get segmentation fault when calling function Calculate_Proton_x_Identity_MeData
+    // caused by WigEckSU3SO3CG::WigEckSU3SO3CG trying to calculate coupling coefficients for
+    // L0 not in x0.
+    precalculate_WigEckSU3SO3CG_coefficients = false;
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Initialization for calculating coupling and recoupling coefficients
     su3::init();
     CWig9lmLookUpTable<RME::DOUBLE>::AllocateMemory(true);
 
@@ -347,6 +362,46 @@ namespace lgi
         allowed_operator &= am::AllowedTriangle(S_ket,S0,S_bra);
         allowed_operator &= (Nex_ket+2*N1v)>=Nbar;
         allowed_operator &= (Nex_bra+2*N1v)>=Nbarp;
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Temporary for testing.  To be replaced by call to UnitTensorAllowed(...) in
+        // recurrence_indexing_spin
+        ////////////////////////////////////////////////////////////////////////////////
+        bool spin_selection_satisfied;
+        if (am::AllowedTriangle(Sp_bra,1,Sp_ket) && am::AllowedTriangle(Sn_bra,1,Sn_ket))
+          spin_selection_satisfied=true;
+
+        if (S0==0)
+        {
+          if (Sp_bra==Sp_ket && Sn_bra==Sn_ket)
+            spin_selection_satisfied=true;
+        }
+        else if (S0==1)
+        {
+          if (Sp_bra==Sp_ket && am::AllowedTriangle(Sn_bra,1,Sn_ket))
+            spin_selection_satisfied=true;
+
+          if (am::AllowedTriangle(Sp_bra,1,Sp_ket) && Sn_bra==Sn_ket)
+            spin_selection_satisfied=true;
+        }
+        else if (S0==2 && Tbarp==1 && Tbar==1)
+        {
+          if (Sp_bra==Sp_ket && am::AllowedTriangle(Sn_bra,2,Sn_ket))
+            spin_selection_satisfied=true;
+
+          if (am::AllowedTriangle(Sp_bra,2,Sp_ket) && Sn_bra==Sn_ket)
+            spin_selection_satisfied=true;
+        }
+        else
+          spin_selection_satisfied=false;
+
+
+        allowed_operator&=spin_selection_satisfied;
+        ////////////////////////////////////////////////////////////////////////////////
+
+
+
         if(not allowed_operator)
           {
             //todo: set operator to zero
@@ -371,11 +426,22 @@ namespace lgi
         interactionPPNN.TransformTensorStrengthsIntoPP_NN_structure();
 
         // std::cout<<"Calculate RME"<<std::endl;
-        basis::OperatorBlocks<double> unit_tensor_rmes 
+        basis::OperatorBlocks<double> su3_unit_tensor_rmes
           =lsu3shell::CalculateRME(interactionPPNN,interactionPN,bra_ncsm_basis,ket_ncsm_basis,dN0,w0,rhot_max);
 
-        for(const basis::OperatorBlock<double>& block : unit_tensor_rmes)
-          std::cout<<mcutils::FormatMatrix(block,"3.2f")<<std::endl;
+        auto& lgi_pair_rmes = lgi_unit_tensor_rmes[i];
+        lgi_pair_rmes.resize(rhot_max);
+        for(int irhot=0; irhot<rhot_max; ++irhot)
+          {
+            // std::cout<<lgi_expansion_bra.transpose().rows()<<" x "<<lgi_expansion_bra.transpose().cols()<<"   "
+            // <<su3_unit_tensor_rmes[irhot].rows()<<" x "<<su3_unit_tensor_rmes[irhot].cols()<<"   "
+            // <<lgi_expansion_ket.rows()<<" x "<<lgi_expansion_ket.cols()<<std::endl;
+            // std::cout<<mcutils::FormatMatrix(lgi_expansion_bra.transpose(),"3.2f")<<std::endl<<std::endl
+            // <<mcutils::FormatMatrix(su3_unit_tensor_rmes[irhot],"3.2f")<<std::endl<<std::endl
+            // <<mcutils::FormatMatrix(lgi_expansion_ket,"3.2f")<<std::endl<<std::endl;
+            
+            lgi_pair_rmes[irhot]=lgi_expansion_bra.transpose()*su3_unit_tensor_rmes[irhot]*lgi_expansion_ket;
+          }
       }
 
 
@@ -388,8 +454,7 @@ namespace lgi
 
     su3::finalize();
 
-
-    // return 0;
+    return lgi_unit_tensor_rmes;
   }
 
 

@@ -50,9 +50,9 @@ int main(int argc, char **argv)
         std::cout<<lgi.Str()<<std::endl;
     }
 
-	MPI_Comm world_comm = MPI_COMM_WORLD;
+	MPI_Comm world_comm=MPI_COMM_WORLD;
 
-  // Note, with current testing, use only Nmax=2
+
   std::string generator_dir = operator_dir+"/relative_generators";
   basis::OperatorBlocks<double> lgi_expansions
   	=lgi::generate_lgi_expansion(nuclide,Nsigma_max,lgi_vector,generator_dir,world_comm);
@@ -68,8 +68,8 @@ int main(int argc, char **argv)
   for(int i_bra=0; i_bra<lgi_vector.size(); ++i_bra)
     for(int i_ket=0; i_ket<lgi_vector.size(); ++i_ket)
       { 
-        if (i_bra!=1 || i_ket!=1)
-          continue;
+        // if (i_bra!=4 || i_ket!=2)
+        //   continue;
         std::pair<MultiplicityTagged<lgi::LGI>,MultiplicityTagged<lgi::LGI>>
           lgi_pair(lgi_vector[i_bra],lgi_vector[i_ket]);
         
@@ -89,9 +89,9 @@ int main(int argc, char **argv)
             world_comm
             );
 
-        // for(const auto& blocks : lgi_unit_tensor_rmes)
-        //   for(const basis::OperatorBlock<double>& block : blocks)
-        //     std::cout<<mcutils::FormatMatrix(block,"3.2f")<<std::endl<<std::endl;
+        for(const auto& blocks : lgi_unit_tensor_rmes)
+          for(const basis::OperatorBlock<double>& block : blocks)
+            std::cout<<mcutils::FormatMatrix(block,"3.2f")<<std::endl<<std::endl;
 
       }
 

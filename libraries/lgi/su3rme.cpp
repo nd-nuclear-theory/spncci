@@ -157,6 +157,7 @@ basis::OperatorBlocks<double> CalculateRME(
     block = Eigen::MatrixXd::Zero(rows,cols);
 
   //////////////////////////////////////////////////////////////////
+  // std::cout<<"checkpoint 1"<<std::endl;
   std::vector<unsigned char> hoShells_n, hoShells_p;
   std::vector<CTensorGroup*> tensorGroupsPP, tensorGroupsNN;
   std::vector<CTensorGroup_ada*> tensorGroups_p_pn, tensorGroups_n_pn;
@@ -175,7 +176,7 @@ basis::OperatorBlocks<double> CalculateRME(
   uint16_t max_mult_n = bra.getMaximalMultiplicity_n();
   InitializeIdenticalOperatorRME(identityOperatorRMEPP, max_mult_p*max_mult_p);
   InitializeIdenticalOperatorRME(identityOperatorRMENN, max_mult_n*max_mult_n);
-
+  // std::cout<<"checkpoint 2"<<std::endl;
   SingleDistributionSmallVector distr_ip, distr_in, distr_jp, distr_jn;
   UN::SU3xSU2_VEC gamma_ip, gamma_in, gamma_jp, gamma_jn;
   SU3xSU2_SMALL_VEC vW_ip, vW_in, vW_jp, vW_jn;
@@ -194,8 +195,8 @@ basis::OperatorBlocks<double> CalculateRME(
    {
       uint32_t ip = bra.getProtonIrrepId(ipin_block);
       uint32_t in = bra.getNeutronIrrepId(ipin_block);
-      uint16_t aip_max = ket.getMult_p(ip);
-      uint16_t ain_max = ket.getMult_n(in);
+      uint16_t aip_max = bra.getMult_p(ip);
+      uint16_t ain_max = bra.getMult_n(in);
 
       int32_t Nhw_bra = bra.nhw_p(ip) + bra.nhw_n(in);
       uint16_t nrow_irreps = bra.NumberPNIrrepsInBlock(ipin_block);
@@ -230,6 +231,7 @@ basis::OperatorBlocks<double> CalculateRME(
          SU3xSU2::LABELS w_jn(ket.getNeutronSU3xSU2(jn));
          uint16_t ajp_max = ket.getMult_p(jp);
          uint16_t ajn_max = ket.getMult_n(jn);
+
          // std::cout<<"jp"<<std::endl;
          if (jp != last_jp) 
          {
@@ -389,18 +391,21 @@ basis::OperatorBlocks<double> CalculateRME(
               if (deltaP + deltaN <= 4) 
                {
                   Reset_rmeCoeffs(rmeCoeffsPNPN);
+                  // std::cout<<"checkpoint 3"<<std::endl;
                   if (in == jn && !rmeCoeffsPP.empty()) 
                     {
                       // create structure with < an (lmn mun)Sn ||| 1 ||| an' (lmn mun) Sn> r.m.e.
                       CreateIdentityOperatorRME(w_in, w_jn, ajn_max, identityOperatorRMENN);
+                      // std::cout<<"checkpoint 3.1"<<std::endl;
                       // calculate < {(lmp mup)Sp x (lmn mun)Sn} wf Sf ||| [I_{nn} x T_{pp}]
                       //|||{(lmp' mup')Sp' x (lmn' mun')Sn'} wi Si >_{rhot}
                       Calculate_Proton_x_Identity_MeData(
                         omega_pn_I, omega_pn_J, rmeCoeffsPP,
                         identityOperatorRMENN, rmeCoeffsPNPN
                       );
+                      // std::cout<<"checkpoint 3.2"<<std::endl;
                     }
-
+                  // std::cout<<"checkpoint 4"<<std::endl;
                   if (ip == jp && !rmeCoeffsNN.empty()) 
                     {
                        // create structure with < ap (lmp mup)Sp ||| 1 ||| ap' (lmp mup) Sp> r.m.e.
@@ -410,7 +415,7 @@ basis::OperatorBlocks<double> CalculateRME(
                        Calculate_Identity_x_Neutron_MeData(
                            omega_pn_I, omega_pn_J, identityOperatorRMEPP, rmeCoeffsNN, rmeCoeffsPNPN);
                     }
-
+                  // std::cout<<"checkpoint 5"<<std::endl;
                   if (!rme_index_p_pn.empty() && !rme_index_n_pn.empty()) 
                     {
                        // This function assumes coefficients depend on rho0 only.
@@ -421,7 +426,7 @@ basis::OperatorBlocks<double> CalculateRME(
                         rme_index_p_pn, rme_index_n_pn, rmeCoeffsPNPN
                       );
                     }
-
+                  // std::cout<<"checkpoint 6"<<std::endl;
                   if (!rmeCoeffsPNPN.empty()) 
                     {
                       std::vector<double> rmes = ComputeRME(rmeCoeffsPNPN);
@@ -438,6 +443,9 @@ basis::OperatorBlocks<double> CalculateRME(
                               operator_blocks[i_rhot](row_index,col_index)=rmes[k];
                               k++;
                             }
+                      // std::cout<<"kk "<<k<<std::endl;
+                      // std::cout<<"k: "<<k<<"  "<<rmes.size()<<"  "<<aip_max*ain_max<<"  "<<ajp_max*ajn_max
+                      // <<"  "<<rhot_max<<std::endl;
                       assert(k==rmes.size());
                       // std::cout<<"num rmes accumulated "<<k<<std::endl;
                     }
