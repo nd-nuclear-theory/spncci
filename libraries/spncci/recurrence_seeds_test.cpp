@@ -190,9 +190,6 @@ int main(int argc, char** argv)
 
         for(int t=0; t<lgi_unit_tensors.size(); ++t)
           { 
-
-
-
             //Select source block
             const basis::OperatorBlock<double>& block = unit_tensor_seed_blocks[t];
             // if(irrep_family_index_ket==irrep_family_index_bra)

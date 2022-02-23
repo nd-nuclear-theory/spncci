@@ -87,24 +87,6 @@ target_link_libraries(
 )
 add_dependencies(lgi_tests dimensions_test)
 
-add_executable(generate_lgi_expansions EXCLUDE_FROM_ALL generate_lgi_expansions.cpp)
-target_link_libraries(
-  generate_lgi_expansions PRIVATE 
-  fmt::fmt
-  am::am
-  spncci::utilities  
-  spncci::lgi
-)
-
-add_executable(su3rme_temp_test EXCLUDE_FROM_ALL su3rme_temp_test.cpp)
-target_link_libraries(
-  su3rme_temp_test PRIVATE 
-  fmt::fmt
-  am::am
-  spncci::utilities  
-  spncci::lgi
-)
-
 
 
 if(SPNCCI_MASTER_PROJECT)

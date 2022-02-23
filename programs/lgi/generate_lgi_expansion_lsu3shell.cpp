@@ -193,7 +193,7 @@ int main(int argc, char **argv)
                 MPI_COMM_SELF
                 );
 
-          std:cout<<lgi_vector[lgi_index].Str()<<std::endl;
+          std::cout<<lgi_vector[lgi_index].Str()<<std::endl;
 
           // Save lgi expansion to file
           std::string lgi_expansion_filename =lgi::lgi_expansion_filename(Z,N,lgi_vector[lgi_index].irrep);

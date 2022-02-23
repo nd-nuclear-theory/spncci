@@ -151,13 +151,12 @@ basis::OperatorBlocks<double> CalculateRME(
   // Should probably return matrix or vector of matrices...
   int rows = lsu3shell::get_num_U3PNSPN_irreps(bra);
   int cols = lsu3shell::get_num_U3PNSPN_irreps(ket);
-  // std::cout<<"rows "<<rows<<"  cols "<<cols<<std::endl;
+
   basis::OperatorBlocks<double> operator_blocks(rhot_max);
   for(basis::OperatorBlock<double>& block : operator_blocks)
     block = Eigen::MatrixXd::Zero(rows,cols);
 
   //////////////////////////////////////////////////////////////////
-  // std::cout<<"checkpoint 1"<<std::endl;
   std::vector<unsigned char> hoShells_n, hoShells_p;
   std::vector<CTensorGroup*> tensorGroupsPP, tensorGroupsNN;
   std::vector<CTensorGroup_ada*> tensorGroups_p_pn, tensorGroups_n_pn;
@@ -176,7 +175,7 @@ basis::OperatorBlocks<double> CalculateRME(
   uint16_t max_mult_n = bra.getMaximalMultiplicity_n();
   InitializeIdenticalOperatorRME(identityOperatorRMEPP, max_mult_p*max_mult_p);
   InitializeIdenticalOperatorRME(identityOperatorRMENN, max_mult_n*max_mult_n);
-  // std::cout<<"checkpoint 2"<<std::endl;
+
   SingleDistributionSmallVector distr_ip, distr_in, distr_jp, distr_jn;
   UN::SU3xSU2_VEC gamma_ip, gamma_in, gamma_jp, gamma_jn;
   SU3xSU2_SMALL_VEC vW_ip, vW_in, vW_jp, vW_jn;
@@ -190,7 +189,7 @@ basis::OperatorBlocks<double> CalculateRME(
 
   // main block-by-block calculation
    int32_t row_irrep = 0;
-   // std::cout<<"for blocks"<<std::endl;
+
    for (unsigned int ipin_block = 0; ipin_block < number_ipin_blocks; ipin_block++) 
    {
       uint32_t ip = bra.getProtonIrrepId(ipin_block);
@@ -214,7 +213,7 @@ basis::OperatorBlocks<double> CalculateRME(
       uint32_t last_jn(std::numeric_limits<uint32_t>::max());
 
       int32_t col_irrep = 0;
-      // std::cout<<"J blocks"<<std::endl;
+
       for (unsigned int jpjn_block = 0; jpjn_block < number_jpjn_blocks; jpjn_block++) 
       {
         uint32_t jp = ket.getProtonIrrepId(jpjn_block);
@@ -232,7 +231,6 @@ basis::OperatorBlocks<double> CalculateRME(
          uint16_t ajp_max = ket.getMult_p(jp);
          uint16_t ajn_max = ket.getMult_n(jn);
 
-         // std::cout<<"jp"<<std::endl;
          if (jp != last_jp) 
          {
             icurrentDistr_p = ket.getIndex_p<lsu3::CncsmSU3xSU2Basis::kDistr>(jp);
@@ -295,7 +293,7 @@ basis::OperatorBlocks<double> CalculateRME(
             ilastDistr_p = icurrentDistr_p;
             ilastGamma_p = icurrentGamma_p;
          }
-         // std::cout<<"jn "<<std::endl;
+
          if (jn != last_jn) 
            {
               icurrentDistr_n = ket.getIndex_n<lsu3::CncsmSU3xSU2Basis::kDistr>(jn);
@@ -363,9 +361,7 @@ basis::OperatorBlocks<double> CalculateRME(
          //////////////////////////////////////////////////////////////////////////////////////////
          // Iterating over omega S
          //////////////////////////////////////////////////////////////////////////////////////////
-         // loop over wpn that result from coupling ip x in
-
-         // std::cout<<"loop over wpn"<<std::endl;
+         // loop over wpn that result from coupling irreps associated with ip and in together
          int32_t ibegin = bra.blockBegin(ipin_block);
          int32_t iend = bra.blockEnd(ipin_block);
          
@@ -391,7 +387,6 @@ basis::OperatorBlocks<double> CalculateRME(
               if (deltaP + deltaN <= 4) 
                {
                   Reset_rmeCoeffs(rmeCoeffsPNPN);
-                  // std::cout<<"checkpoint 3"<<std::endl;
                   if (in == jn && !rmeCoeffsPP.empty()) 
                     {
                       // create structure with < an (lmn mun)Sn ||| 1 ||| an' (lmn mun) Sn> r.m.e.
@@ -403,9 +398,8 @@ basis::OperatorBlocks<double> CalculateRME(
                         omega_pn_I, omega_pn_J, rmeCoeffsPP,
                         identityOperatorRMENN, rmeCoeffsPNPN
                       );
-                      // std::cout<<"checkpoint 3.2"<<std::endl;
                     }
-                  // std::cout<<"checkpoint 4"<<std::endl;
+
                   if (ip == jp && !rmeCoeffsNN.empty()) 
                     {
                        // create structure with < ap (lmp mup)Sp ||| 1 ||| ap' (lmp mup) Sp> r.m.e.
@@ -415,7 +409,7 @@ basis::OperatorBlocks<double> CalculateRME(
                        Calculate_Identity_x_Neutron_MeData(
                            omega_pn_I, omega_pn_J, identityOperatorRMEPP, rmeCoeffsNN, rmeCoeffsPNPN);
                     }
-                  // std::cout<<"checkpoint 5"<<std::endl;
+
                   if (!rme_index_p_pn.empty() && !rme_index_n_pn.empty()) 
                     {
                        // This function assumes coefficients depend on rho0 only.
@@ -426,28 +420,22 @@ basis::OperatorBlocks<double> CalculateRME(
                         rme_index_p_pn, rme_index_n_pn, rmeCoeffsPNPN
                       );
                     }
-                  // std::cout<<"checkpoint 6"<<std::endl;
+
                   if (!rmeCoeffsPNPN.empty()) 
                     {
                       std::vector<double> rmes = ComputeRME(rmeCoeffsPNPN);
 
                       int k=0;
-                      // std::cout<<"num rmes "<<rmes.size()<<std::endl;
                       for(int i_row=0; i_row<aip_max*ain_max; ++i_row)
                         for(int i_col=0; i_col<ajp_max*ajn_max; ++i_col)
                           for(int i_rhot=0; i_rhot<rhot_max; ++i_rhot)
                             {
                               int row_index = row_irrep + i;
                               int col_index = col_irrep + j;
-                              // std::cout<<rmes[k]<<std::endl;
                               operator_blocks[i_rhot](row_index,col_index)=rmes[k];
                               k++;
                             }
-                      // std::cout<<"kk "<<k<<std::endl;
-                      // std::cout<<"k: "<<k<<"  "<<rmes.size()<<"  "<<aip_max*ain_max<<"  "<<ajp_max*ajn_max
-                      // <<"  "<<rhot_max<<std::endl;
                       assert(k==rmes.size());
-                      // std::cout<<"num rmes accumulated "<<k<<std::endl;
                     }
                }
             } //end ket omega S
