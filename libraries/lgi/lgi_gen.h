@@ -34,15 +34,6 @@ namespace lgi
     }
 
 
-basis::OperatorBlocks<double> generate_lgi_expansion(
-  const nuclide::NuclideType& nuclide,
-  const int Nsigma_max,
-  const lgi::MultiplicityTaggedLGIVector& lgi_vector,
-  const std::string& operator_dir,
-  const MPI_Comm world_comm=MPI_COMM_WORLD
-  );
-
-
  basis::OperatorBlock<double> generate_lgi_expansion(
     const nuclide::NuclideType& nuclide,
     const int Nsigma_max,
@@ -55,14 +46,6 @@ basis::OperatorBlocks<double> generate_lgi_expansion(
     double zero_threshold=1e-6
     );
 
-basis::OperatorBlocks<double> generate_lgi_expansion(
-  const nuclide::NuclideType& nuclide,
-  const int Nsigma_max,
-  const std::string& operator_dir,
-  const MPI_Comm world_comm=MPI_COMM_WORLD
-  );
-  // If lgi_vector not given, generate lgi_vector for full
-  //  Nmax model sapce with Nmax=Nsigma_max.
 
 }
 #endif
