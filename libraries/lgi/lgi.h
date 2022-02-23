@@ -115,6 +115,12 @@ namespace lgi
   {
     return boost::hash<std::tuple<HalfInt,HalfInt>>{}({l.Sp,l.Sn});
   }
+
+  inline std::size_t hash_value(const LGI& l)
+  {
+    return boost::hash<std::tuple<u3::U3S,LGI::UpstreamLabelsType>>{}({l.U3S(),l.upstream_labels()});
+  }
+
   #endif  // BASIS_HASH
 
   inline bool operator<(const LGI::UpstreamLabelsType& lhs, const LGI::UpstreamLabelsType& rhs)
@@ -232,6 +238,14 @@ namespace std
     inline std::size_t operator()(const lgi::LGI::UpstreamLabelsType& h) const noexcept
     {
       return boost::hash<lgi::LGI::UpstreamLabelsType>{}(h);
+    }
+  };
+
+  template<> struct hash<typename lgi::LGI>
+  {
+    inline std::size_t operator()(const lgi::LGI& h) const noexcept
+    {
+      return boost::hash<lgi::LGI>{}(h);
     }
   };
 }  // namespace std

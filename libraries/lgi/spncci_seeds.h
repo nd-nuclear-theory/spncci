@@ -20,14 +20,19 @@ namespace spncci
 {
   namespace seeds
   {
-    void generate_lgi_expansion(
-          const nuclide::NuclideType& nuclide,
-          const int Nsigma_max,
-          const std::string& operator_dir,
-          int eigensolver_max_iterations,
-          double eigensolver_tolerance,
-          const MPI_Comm world_comm = MPI_COMM_WORLD
-          );
+
+
+
+
+
+    // void generate_lgi_expansion(
+    //       const nuclide::NuclideType& nuclide,
+    //       const int Nsigma_max,
+    //       const std::string& operator_dir,
+    //       int eigensolver_max_iterations,
+    //       double eigensolver_tolerance,
+    //       const MPI_Comm world_comm = MPI_COMM_WORLD
+    //       );
   }
 }  // namespace
 

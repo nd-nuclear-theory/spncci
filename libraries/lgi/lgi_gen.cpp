@@ -131,6 +131,113 @@ namespace lgi
     }
 
 
+  basis::OperatorBlock<double> generate_lgi_expansion(
+    const nuclide::NuclideType& nuclide,
+    const int Nsigma_max,
+    const unsigned int N0,
+    const CBaseSU3Irreps& baseSU3Irreps,
+    const lgi::MultiplicityTaggedLGIVector& lgi_vector,
+    const int lgi_index,
+    const std::string& operator_dir,
+    const MPI_Comm& individual_comm,
+    double zero_threshold
+    )
+  {
+    // Notes: probably want to pull out operator load into main program and pass in a argument
+    // If so, need to understand how Nop selection rules applied internally.
+    // Nrel and Brel would have to be combined into one operator because of funky pointer modification
+    // barried deep in lsu3shell code but will have two different Nop which may be problematic.
+    // Aslo want to switch to using B+Ncm rather than Bintr+Ncm.
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Calculate rmes of B and Ncm for each U3SpSnS subspace corresponding to an LGI
+    // Then solve for simultaneous null space of B and Ncm
+    //Extract label information
+    const auto&[lgi,gamma_max] = lgi_vector[lgi_index];
+    const auto&[Nex,sigma,Sp,Sn,S]=lgi.Key();
+
+    // If Nex==0, then all of the irreps in the subspace are lgi and the basis
+    // for the null spaces is given by the identity matrix
+    if(Nex==0)
+    {
+      return Eigen::MatrixXd::Identity(gamma_max,gamma_max);
+    }
+
+    // With communicator split, ndiag is always 1
+    int jdiag=0;
+    int ndiag=1;
+    const auto&[Z,N]=nuclide;
+
+    // Model space consists of irreps with quantum numbers Nex (lambda,mu) Sp Sn S
+    // map used for defining model_space_map organized into {N : {SpSn : {S : <(lambda,mu)>}}}
+    proton_neutron::ModelSpaceMapType model_space_map_ket;
+    model_space_map_ket[Nex][{TwiceValue(Sp),TwiceValue(Sn)}][TwiceValue(S)].emplace_back(1,sigma.SU3().lambda(),sigma.SU3().mu());
+    proton_neutron::ModelSpace ket_ncsmModelSpace(Z,N,model_space_map_ket);
+
+    // Construct ket basis from model space
+    // num in communicator must be equal to ndiag
+    lsu3::CncsmSU3xSU2Basis ket_ncsm_basis;
+    ket_ncsm_basis.ConstructBasis(ket_ncsmModelSpace, jdiag, ndiag, individual_comm);
+    int dim_ket = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
+
+    // Nrel has quantum numbers 0(0,0)0 0, so bra and ket model space are the same
+    // But we'll need a different bra model space for Brel
+    proton_neutron::ModelSpaceMapType model_space_map_bra=generate_bra_model_space_Brel(lgi,lgi_vector);
+
+    // If model_space_map_bra is not empty, then construct the basis for calculating B
+    bool compute_B_matrix=false;
+    lsu3::CncsmSU3xSU2Basis bra_ncsm_basis;
+    int dim_B_bra = 0;
+    if (model_space_map_bra.size()!=0)
+      {
+        proton_neutron::ModelSpace bra_ncsmModelSpace(Z,N,model_space_map_bra);
+        bra_ncsm_basis.ConstructBasis(bra_ncsmModelSpace, jdiag, ndiag, individual_comm);
+        dim_B_bra = lsu3shell::get_num_U3PNSPN_irreps(bra_ncsm_basis);
+        compute_B_matrix=true;
+      }
+
+    int dim_bra = dim_ket + dim_B_bra;
+
+    // Initialize matrix
+    basis::OperatorBlock<double> BNcm_matrix = Eigen::MatrixXd::Zero(dim_bra,dim_ket);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Calculate Ncm matrix
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::string nrel_operator_base_name = fmt::format("{}/Nrel",operator_dir);
+    BNcm_matrix.block(0,0,dim_ket,dim_ket)=lgi::NcmMatrix(Z+N,double(N0+Nex),baseSU3Irreps,ket_ncsm_basis,ket_ncsm_basis,nrel_operator_base_name);
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Calculate Brel matrix
+    /////////////////////////////////////////////////////////////////////////////////////
+    if(compute_B_matrix)
+    {
+      std::string brel_operator_base_name = fmt::format("{}/Brel",operator_dir);
+      BNcm_matrix.block(dim_ket,0,dim_B_bra,dim_ket)
+        =BMatrix(baseSU3Irreps,bra_ncsm_basis,ket_ncsm_basis,brel_operator_base_name);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Get null vectors
+    /////////////////////////////////////////////////////////////////////////////////////
+    basis::OperatorBlock<double> lgi_expansion = lgi::FindNullSpaceSVD(BNcm_matrix,gamma_max,zero_threshold);
+
+    //TODO: Make optional
+    if(true)
+      {
+        assert(mcutils::IsZero(BNcm_matrix*lgi_expansion,zero_threshold));
+        assert(mcutils::IsZero(BNcm_matrix.block(dim_ket,0,dim_B_bra,dim_ket)*lgi_expansion));
+        assert(mcutils::IsZero(BNcm_matrix.block(0,0,dim_ket,dim_ket)*lgi_expansion,zero_threshold));
+        assert(not mcutils::IsZero(lgi_expansion,zero_threshold));
+        assert(mcutils::IsZero(
+          lgi_expansion.transpose()*lgi_expansion-Eigen::MatrixXd::Identity(gamma_max,gamma_max),
+          zero_threshold
+          ));
+      }
+
+
+    return lgi_expansion;
+  }
+
+
+
   basis::OperatorBlocks<double> generate_lgi_expansion(
     const nuclide::NuclideType& nuclide,
     const int Nsigma_max,
@@ -153,6 +260,18 @@ namespace lgi
     su3::init();
     CWig9lmLookUpTable<RME::DOUBLE>::AllocateMemory(true);
 
+    // Note: lsu3shell basis construction has internal call to MPI,
+    // so we split ranks into invidual communicators, so that each
+    // MPI rank is constructing only the basis for it's only set of LGI
+    //
+    // Get the rank in the original communicator
+    int my_rank;
+    MPI_Comm_rank(world_comm, &my_rank);
+    // Split the communicators such that each rank
+    // belongs to its own little world
+    MPI_Comm individual_comm;
+    MPI_Comm_split(world_comm, my_rank, my_rank, &individual_comm);
+
     // Define distributions of partices over shells and do basic basis setup
     const auto&[Z,N]=nuclide;
     CBaseSU3Irreps baseSU3Irreps(Z,N,Nsigma_max);
@@ -163,92 +282,15 @@ namespace lgi
     basis::OperatorBlocks<double> lgi_expansions(lgi_vector.size());
     for(int l=0; l<lgi_vector.size(); ++l)
       {  
-        //Extract label information
-        const auto&[lgi,gamma_max] = lgi_vector[l];
-        const auto&[Nex,sigma,Sp,Sn,S]=lgi.Key();
-        
-        // If Nex==0, then all of the irreps in the subspace are lgi and the basis
-        // for the null spaces is given by the identity matrix        
-        if(Nex==0)
-        {
-          lgi_expansions[l]=Eigen::MatrixXd::Identity(gamma_max,gamma_max);
-          continue;
-        }
-   
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Construct the basis 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Note: lsu3shell basis construction has internal call to MPI, 
-        // so we split ranks into invidual communicators, so that each 
-        // MPI rank is constructing only the basis for it's only set of LGI
-        //
-        // Get the rank in the original communicator
-        int my_rank;
-        MPI_Comm_rank(world_comm, &my_rank);
-        // Split the communicators such that each rank
-        // belongs to its own little world
-        MPI_Comm individual_comm;
-        MPI_Comm_split(world_comm, my_rank, my_rank, &individual_comm);
 
-        // With communicator split, ndiag is always 1
-        int jdiag=0; 
-        int ndiag=1;
-
-        // Model space consists of irreps with quantum numbers Nex (lambda,mu) Sp Sn S
-        // map used for defining model_space_map organized into {N : {SpSn : {S : <(lambda,mu)>}}} 
-        proton_neutron::ModelSpaceMapType model_space_map_ket;
-        model_space_map_ket[Nex][{TwiceValue(Sp),TwiceValue(Sn)}][TwiceValue(S)].emplace_back(1,sigma.SU3().lambda(),sigma.SU3().mu());
-        proton_neutron::ModelSpace ket_ncsmModelSpace(Z,N,model_space_map_ket);
-        
-        // Construct ket basis from model space
-        // num in communicator must be equal to ndiag
-        lsu3::CncsmSU3xSU2Basis ket_ncsm_basis;
-        ket_ncsm_basis.ConstructBasis(ket_ncsmModelSpace, jdiag, ndiag, individual_comm);
-        int dim_ket = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
-        
-        // Nrel has quantum numbers 0(0,0)0 0, so bra and ket model space are the same 
-        // But we'll need a different bra model space for Brel
-        proton_neutron::ModelSpaceMapType model_space_map_bra=generate_bra_model_space_Brel(lgi,lgi_vector);
-
-        // If model_space_map_bra is not empty, then construct the basis for calculating B
-        bool compute_B_matrix=false;
-        lsu3::CncsmSU3xSU2Basis bra_ncsm_basis;
-        int dim_B_bra = 0;
-        if (model_space_map_bra.size()!=0)
-          {
-            
-            proton_neutron::ModelSpace bra_ncsmModelSpace(Z,N,model_space_map_bra);
-            bra_ncsm_basis.ConstructBasis(bra_ncsmModelSpace, jdiag, ndiag, individual_comm);
-            dim_B_bra = lsu3shell::get_num_U3PNSPN_irreps(bra_ncsm_basis);
-            compute_B_matrix=true; 
-          } 
-        int dim_bra = dim_ket + dim_B_bra;
-
-        // Initialize matrix
-        basis::OperatorBlock<double> BNcm_matrix = Eigen::MatrixXd::Zero(dim_bra,dim_ket);
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Calculate Ncm matrix 
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        std::string nrel_operator_base_name = fmt::format("{}/Nrel",operator_dir);
-        BNcm_matrix.block(0,0,dim_ket,dim_ket)=lgi::NcmMatrix(Z+N,double(N0+Nex),baseSU3Irreps,ket_ncsm_basis,ket_ncsm_basis,nrel_operator_base_name);
-        //////////////////////////////////////////////////////////////////////////////////////////   
-        // Calculate Brel matrix 
-        /////////////////////////////////////////////////////////////////////////////////////
-        if(compute_B_matrix)
-        {
-
-          std::string brel_operator_base_name = fmt::format("{}/Brel",operator_dir);
-          BNcm_matrix.block(dim_ket,0,dim_B_bra,dim_ket)
-            =BMatrix(baseSU3Irreps,bra_ncsm_basis,ket_ncsm_basis,brel_operator_base_name);         
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////////////   
-        // Get null vectors 
-        /////////////////////////////////////////////////////////////////////////////////////
-        lgi_expansions[l] =lgi::FindNullSpaceSVD(BNcm_matrix,gamma_max,1e-6);
-
-        // std::cout<<"Null vectors"<<std::endl;
-        // std::cout<<null_vectors<<std::endl;
+        lgi_expansions[l] =
+          generate_lgi_expansion(
+            nuclide,Nsigma_max,N0,
+            baseSU3Irreps,
+            lgi_vector,l,
+            operator_dir,
+            individual_comm
+            );
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -410,7 +452,7 @@ namespace lgi
 
         // Read operator from file
         std::cout<<unit_tensor_labels[i].Str()<<std::endl;
-        std::string operator_base_name = fmt::format("{}/relative_unit_tensors/relative_unit_{:06}",operator_dir,i);
+        std::string operator_base_name = fmt::format("{}/relative_unit_{:06}",operator_dir,i);
         // std::cout<<"operator "<<operator_base_name<<std::endl;
         std::ofstream interaction_log_file("/dev/null");
         bool log_is_on = false;

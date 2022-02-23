@@ -21,9 +21,12 @@
 #include "lgi/lgi.h"
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/profiling.h"
+#include "mcutils/eigen.h"
 #include "spncci/recurrence_indexing.h"
 #include "u3shell/relative_operator.h"
+#include "utilities/utilities.h"
 
+#include "Spectra/SymEigsSolver.h"
 
 unsigned long int NumNonZeros(const basis::OperatorBlock<double>& block)
   {
@@ -35,6 +38,23 @@ unsigned long int NumNonZeros(const basis::OperatorBlock<double>& block)
 
     return counter;
   }
+
+
+basis::OperatorBlock<double> get_temp_block(int Z, int N, lgi::LGI& bra, lgi::LGI& ket, int rho0,int operator_index)
+{
+  const auto&[Nex_bra,sigma_bra,Sp_bra,Sn_bra,S_bra]=bra.Key();
+  const auto&[Nex_ket,sigma_ket,Sp_ket,Sn_ket,S_ket]=ket.Key();
+
+  std::string filename
+    = fmt::format("temp/seeds_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_2Sp{:02d}_2Sn{:02d}_2S{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_2Sp{:02d}_2Sn{:02d}_2S{:02d}_rho{}_i{}.dat",
+          Z,N,Nex_bra,sigma_bra.SU3().lambda(),sigma_bra.SU3().mu(),TwiceValue(Sp_bra),TwiceValue(Sn_bra),TwiceValue(S_bra),
+          Nex_ket,sigma_ket.SU3().lambda(),sigma_ket.SU3().mu(),TwiceValue(Sp_ket),TwiceValue(Sn_ket),TwiceValue(S_ket),
+          rho0,operator_index
+        );
+
+  return ReadOperatorBlockBinary(filename);
+
+}
 
 
 int main(int argc, char** argv)
@@ -56,8 +76,12 @@ int main(int argc, char** argv)
   lgi::MultiplicityTaggedLGIVector lgi_vector;
   lgi::ReadLGISet(lgi_filename,Nsigma0,lgi_vector);
 
-  std::vector<int> lgi_full_space_index_lookup;
-  lgi::ReadLGILookUpTable(lgi_full_space_index_lookup, lgi_vector.size());
+  // std::vector<int> lgi_full_space_index_lookup;
+  // lgi::ReadLGILookUpTable(lgi_full_space_index_lookup, lgi_vector.size());
+
+  std::vector<int> lgi_full_space_index_lookup(lgi_vector.size());
+  for(int i=0; i<lgi_vector.size(); ++i)
+    lgi_full_space_index_lookup[i]=i;
   
   spncci::spin::Space<lgi::LGI> spin_space(lgi_vector, Nmax);
   const spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST> spin_recurrence_space(spin_space, spin_space);
@@ -69,7 +93,7 @@ int main(int argc, char** argv)
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Dump spatial basis 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if(true)
+  if(false)
   {
     for(const auto& sp3r_space : spatial_recurrence_space)
       {
@@ -99,7 +123,7 @@ int main(int argc, char** argv)
   
     std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
   }
-  if(true)
+  if(false)
   {
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,6 +160,10 @@ int main(int argc, char** argv)
 
   if(true)
   {
+
+    std::vector<u3shell::RelativeUnitTensorLabelsU3ST> relative_unit_tensor_labels;
+    u3shell::GenerateRelativeUnitTensorLabelsU3ST(Nmax,N1v,relative_unit_tensor_labels);
+
   
   for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_vector.size(); ++irrep_family_index_bra)
     for(int irrep_family_index_ket=0; irrep_family_index_ket<lgi_vector.size(); ++irrep_family_index_ket)
@@ -162,13 +190,62 @@ int main(int argc, char** argv)
 
         for(int t=0; t<lgi_unit_tensors.size(); ++t)
           { 
-            std::cout<<fmt::format("{}  [{}]",lgi_unit_tensors[t].Str(),rho0_values[t])<<std::endl;
 
-            //Select source block 
-            const auto& block = unit_tensor_seed_blocks[t];
-            std::cout<<block<<std::endl<<std::endl;
+
+
+            //Select source block
+            const basis::OperatorBlock<double>& block = unit_tensor_seed_blocks[t];
+            // if(irrep_family_index_ket==irrep_family_index_bra)
+            {
+              int operator_index=-1;
+              for(int ii=0; ii<relative_unit_tensor_labels.size(); ++ii)
+                {
+                  if(relative_unit_tensor_labels[ii]==lgi_unit_tensors[t])
+                    {
+                      operator_index=ii;
+                      break;
+                    }
+                }
+
+              basis::OperatorBlock<double> temp_block = get_temp_block(
+                  Z,N,
+                  lgi_vector[irrep_family_index_bra].irrep,
+                  lgi_vector[irrep_family_index_ket].irrep,
+                  rho0_values[t],operator_index
+                );
+
+              assert(block.cols()==temp_block.cols());
+              assert(block.rows()==temp_block.rows());
+
+              Eigen::JacobiSVD<basis::OperatorBlock<double>> svd1(block,Eigen::ComputeFullU);
+              // svd1.setThreshold(1e-8);
+              auto Svalues1=svd1.singularValues();
+
+              Eigen::JacobiSVD<basis::OperatorBlock<double>> svd2(temp_block,Eigen::ComputeFullU);
+              // svd2.setThreshold(1e-8);
+              auto Svalues2=svd2.singularValues();
+              if(!mcutils::IsZero(Svalues1-Svalues2,1e-6))
+              {
+                std::cout<<fmt::format("{}  [{}]",lgi_unit_tensors[t].Str(),rho0_values[t])<<std::endl;
+                std::cout<<Svalues1<<std::endl<<std::endl<<Svalues2<<std::endl;
+              }
+
+              assert(mcutils::IsZero(Svalues1-Svalues2,1e-5));
+
+              // Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigensolver1(block);
+              // auto eigs1 = eigensolver1.eigenvalues().block(0,0,block.rows(),1);
+              // Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigensolver2(temp_block);
+              // auto eigs2 = eigensolver2.eigenvalues().block(0,0,block.rows(),1);
+
+              // assert(mcutils::IsZero(eigs1-eigs2,1e-6));
+              // std::cout<<eigs1<<std::endl<<std::endl<<eigs2<<std::endl<<std::endl;
+              // std::cout<<"*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*"<<std::endl;
+
+
+            }
+            // std::cout<<block<<std::endl<<std::endl;
           }
-        std::cout<<"******"<<std::endl<<std::endl;
+        // std::cout<<"******"<<std::endl<<std::endl;
       }
   std::cout<<"---------------------------------------------------"<<std::endl<<std::endl;
   }
@@ -243,4 +320,26 @@ int main(int argc, char** argv)
     num_zero_rows,num_rows,num_zero_row_rmes,float(num_zero_row_rmes)/total_rmes)<<std::endl;
 
   outfile.close();
+
+
+  for(int index=0; index<spatial_recurrence_space.size(); ++index)
+    {
+      const auto& spatial_subspace = spatial_recurrence_space.GetSubspace(index);
+      const auto&[sigma_ket,sigma_bra,parity_bar] = spatial_subspace.labels();
+      std::string seed_filename = spncci::seeds::seed_filename(Z,N,Nsigma0,sigma_bra,sigma_ket,parity_bar);
+      basis::OperatorBlock<double> seed_block1 = ReadOperatorBlockBinary(seed_filename);
+      basis::OperatorBlock<double> seed_block2 = seed_blocks[index];
+      std::cout<<"****************************************"<<std::endl;
+      std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<"  "<<parity_bar<<std::endl;
+      if(sigma_bra.N()==Nsigma0 || sigma_ket.N()==Nsigma0)
+        {
+          std::cout<<mcutils::FormatMatrix(seed_block1,"+.2f")<<std::endl<<std::endl;
+          std::cout<<mcutils::FormatMatrix(seed_block2,"+.2f")<<std::endl<<std::endl;
+        }
+      if(mcutils::IsZero(seed_block1-seed_block2,1e-6))
+        std::cout<<"blocks matched"<<std::endl;
+      else
+        std::cout<<"blocks don't match"<<std::endl;
+    }
+
 }

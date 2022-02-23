@@ -723,6 +723,25 @@ namespace std
       return hash_value(h);
     }
   };
+
+  template<> struct hash<u3::U3S>
+  {
+    inline std::size_t operator()(const u3::U3S& h) const noexcept
+    {
+      return hash_value(h);
+    }
+  };
+
+
+// template<> struct hash<typename lgi::LGI::UpstreamLabelsType>
+//   {
+//     inline std::size_t operator()(const lgi::LGI::UpstreamLabelsType& h) const noexcept
+//     {
+//       return boost::hash<lgi::LGI::UpstreamLabelsType>{}(h);
+//     }
+//   };
+
+
 }
 
 

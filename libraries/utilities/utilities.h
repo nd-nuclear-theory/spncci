@@ -20,10 +20,14 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
+#include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include "gsl/gsl_sf_gamma.h"
 #include <Eigen/Eigen>
 #include "basis/operator.h"
+#include "mcutils/io.h"
+#include "mcutils/parsing.h"
 
 // extern double zero_threshold;
 
@@ -67,6 +71,109 @@ inline bool FileExists(std::string filename, bool verbose)
       }
     return spncci_root_dir;
   }
+
+
+  // template <typename tDataType>
+  //   void WriteBinary(std::ostream& os, const tDataType &data)
+
+  inline void WriteOperatorBlockBinary(const basis::OperatorBlock<double>& block, std::ofstream& output)
+    {
+          // write number of rows and columns
+          int num_rows=block.rows();
+          int num_cols=block.cols();
+          mcutils::WriteBinary<int>(output,num_rows);
+          mcutils::WriteBinary<int>(output,num_cols);
+          // dump matrix to file.  Order is column major (Eigen default for .data())
+          mcutils::WriteBinary<double>(output,block.data(),num_rows*num_cols);
+
+    }
+
+
+  inline void WriteOperatorBlockBinary(const basis::OperatorBlock<double>& block, const std::string& filename)
+    {
+          std::ios_base::openmode mode_argument = std::ios_base::out | std::ios::app | std::ios_base::binary;
+          std::ofstream output;
+          output.open(filename,mode_argument);
+          WriteOperatorBlockBinary(block, output);
+          // write number of rows and columns
+          // int num_rows=block.rows();
+          // int num_cols=block.cols();
+          // mcutils::WriteBinary<int>(output,num_rows);
+          // mcutils::WriteBinary<int>(output,num_cols);
+          // // dump matrix to file.  Order is column major (Eigen default for .data())
+          // mcutils::WriteBinary<double>(output,block.data(),num_rows*num_cols);
+          output.close();
+
+    }
+
+  inline basis::OperatorBlock<double> ReadOperatorBlockBinary(const std::string& filename)
+    {
+      int rows,cols;
+      std::ios_base::openmode mode_argument = std::ios_base::in;
+      mode_argument |= std::ios_base::binary;
+      std::ifstream is(filename, mode_argument);
+      mcutils::StreamCheck(bool(is),filename,fmt::format("Failure opening {}",filename));
+      mcutils::ReadBinary<int>(is,rows);
+      mcutils::ReadBinary<int>(is,cols);
+      double buffer[rows*cols];
+
+      mcutils::ReadBinary(is,buffer,rows*cols);
+      basis::OperatorBlock<double> block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+      return block;
+
+    }
+
+
+  //   // num_rows, num_cols, rmes
+  //   // rmes are by column then by row
+  //   // output in binary mode
+  //   std::ios_base::openmode mode_argument = std::ios_base::in;
+  //   mode_argument |= std::ios_base::binary;
+  //   std::ifstream in_stream(filename, mode_argument);
+  //   mcutils::StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+  //   // if (!in_stream)
+  //   //  {
+  //   //     std::cerr << "Could not open file '" << filename << "'!" << std::endl;
+  //   //     return;
+  //   //  }
+
+  //   int binary_format_code;
+  //   int binary_float_precision;
+  //   mcutils::ReadBinary<int>(in_stream,binary_format_code);
+  //   mcutils::ReadBinary<int>(in_stream,binary_float_precision);
+
+
+  //   lgi_expansions.resize(num_lgi_subspaces);
+  //   for(int i=0; i<num_lgi_subspaces; ++i)
+  //     {
+  //       basis::OperatorBlock<double>& block=lgi_expansions[i];
+  //       lgi::LGIIndexType rows, cols;
+  //       // Read in number of rows and cols
+
+  //       /////////////////////////////////////////////////////////////////////////////////
+  //       // Read in RMEs and cast to double matrix
+  //       if(binary_float_precision==4)
+  //         {
+  //           float buffer[rows*cols];
+  //           in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+  //           block=Eigen::Map<Eigen::MatrixXf>(buffer,rows,cols).cast<double>();
+  //         }
+  //       else if (binary_float_precision==8)
+  //         {
+  //           double buffer[rows*cols];
+  //           in_stream.read(reinterpret_cast<char*>(&buffer),sizeof(buffer));
+  //           block=Eigen::Map<Eigen::MatrixXd>(buffer,rows,cols);
+  //         }
+  //     }
+  // }
+
+
+
+
+
+
+
+
 
 
 // // ONLYIF(cond,x) evaluates and returns x only if cond is true
