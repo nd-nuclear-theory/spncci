@@ -51,34 +51,6 @@ target_link_libraries(get_spncci_seed_blocks PRIVATE fmt::fmt mcutils::mcutils s
 add_executable(transform_seed_blocks EXCLUDE_FROM_ALL transform_seed_blocks.cpp)
 target_link_libraries(transform_seed_blocks PRIVATE fmt::fmt spncci::lgi spncci::spncci)
 
-
-
-# add_executable(Brel_subspace_lister EXCLUDE_FROM_ALL Brel_subspace_lister.cpp)
-# target_link_libraries(Brel_subspace_lister fmt::fmt spncci::sp3rlib spncci::lgi)
-# add_executable(get_cmf_lgi_labels EXCLUDE_FROM_ALL get_cmf_lgi_labels.cpp)
-# target_link_libraries(
-#   get_cmf_lgi_labels
-#   PRIVATE fmt::fmt
-#           mcutils::mcutils
-#           spncci::lgi
-#           spncci::lsu3shell
-#           spncci::sp3rlib
-#           spncci::spncci
-#           spncci::u3shell
-# )
-# add_executable(u3s_to_sp3rs_basis EXCLUDE_FROM_ALL u3s_to_sp3rs_basis.cpp)
-# target_link_libraries(
-#   u3s_to_sp3rs_basis
-#   PRIVATE fmt::fmt
-#           lsu3shell::libraries
-#           mcutils::mcutils
-#           spncci::lgi
-#           spncci::lsu3shell
-#           spncci::sp3rlib
-#           spncci::spncci
-#           spncci::u3shell
-# )
-
 # ##############################################################################
 # define installed targets
 #
