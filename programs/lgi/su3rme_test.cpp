@@ -27,7 +27,7 @@ int main(int argc, char **argv)
   nuclide::NuclideType nuclide({3,3});
   int Nmax=2;
 
-  std::string spncci_root_dir=get_spncci_project_root_dir();
+  std::string spncci_root_dir=utils::get_spncci_project_root_dir();
   std::string operator_base_name = fmt::format("{}/spncci/data/relative_operators/Brel",spncci_root_dir);
   std::cout<<operator_base_name<<std::endl;
 

@@ -7,14 +7,14 @@
   SPDX-License-Identifier: MIT
 ****************************************************************/
 
-#include "lgi/null_solver.h"
+#include "null_solver.h"
 
 #include <iostream>
 
 #include "fmt/format.h"
 #include "mcutils/eigen.h"
 
-namespace lgi
+namespace utils
 {
 
   void FindNullSpaceSVD(Eigen::MatrixXd& A, Eigen::MatrixXd& null_vectors, double threshold, bool verbose)

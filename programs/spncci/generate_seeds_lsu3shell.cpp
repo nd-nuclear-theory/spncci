@@ -77,7 +77,7 @@ namespace spncci{
           // TODO: Make construction optional if lgi expansion doesn't exist
           bool exit_on_nonexist=true, warn_on_overwrite=false;
           mcutils::FileExistCheck(filename,exit_on_nonexist,warn_on_overwrite);
-          lgi_expansions[lgi.u3spn()] = ReadOperatorBlockBinary(filename);
+          lgi_expansions[lgi.u3spn()] = utils::ReadOperatorBlockBinary(filename);
         }
 
       return lgi_expansions;
@@ -269,7 +269,7 @@ namespace spncci{
                       //         rho0,operator_index
                       //       );
 
-                      // WriteOperatorBlockBinary(block,temp_filename);
+                      // utils::WriteOperatorBlockBinary(block,temp_filename);
 
                       for(int i=0; i<block.rows(); i++)
                         for(int j=0; j<block.cols(); j++)
@@ -453,7 +453,7 @@ int main(int argc, char **argv)
           // Write seeds to file
           const auto&[sigma_ket,sigma_bra,parity_bar] = spatial_recurrence_space.GetSubspace(lgi_subspace_index).labels();
           std::string seed_filename = spncci::seeds::seed_filename(Z,N,Nsigma0,sigma_bra,sigma_ket,parity_bar);
-          WriteOperatorBlockBinary(recurrence_seed_block, seed_filename);
+          utils::WriteOperatorBlockBinary(recurrence_seed_block, seed_filename);
 
           // Let advisor know seeds for given lgi pair computed
           MPI_Send(&dummy,0,MPI_CHAR,0,tag_finished,MPI_COMM_WORLD);

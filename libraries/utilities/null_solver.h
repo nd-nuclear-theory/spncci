@@ -11,6 +11,7 @@
   1/19/17 (aem,mac): Created.
   10/10/19 (aem): Updated null solver to handel case when matrix
     is zero matrix
+  2/23/22 (aem): Move from lgi library to utilities and changed namespace
 ****************************************************************/
 #ifndef NULL_SOLVER_H_
 #define NULL_SOLVER_H_
@@ -19,7 +20,7 @@
 
 #include "mcutils/eigen.h"
 
-namespace lgi
+namespace utils
 {
 
   void FindNullSpaceSVD(Eigen::MatrixXd& A, Eigen::MatrixXd& V, double threshold, bool verbose=false);

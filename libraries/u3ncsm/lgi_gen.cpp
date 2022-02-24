@@ -21,7 +21,7 @@
 #include "lsu3shell/lsu3shell_basis.h"
 #include "u3ncsm/dimensions.h"
 #include "u3ncsm/su3rme.h"
-#include "lgi/null_solver.h"
+#include "utilities/null_solver.h"
 #include "am/am.h"
 
 namespace lgi
@@ -217,7 +217,7 @@ namespace lgi
     //////////////////////////////////////////////////////////////////////////////////////////
     // Get null vectors
     /////////////////////////////////////////////////////////////////////////////////////
-    basis::OperatorBlock<double> lgi_expansion = lgi::FindNullSpaceSVD(BNcm_matrix,gamma_max,zero_threshold);
+    basis::OperatorBlock<double> lgi_expansion = utils::FindNullSpaceSVD(BNcm_matrix,gamma_max,zero_threshold);
 
     //TODO: Make optional
     if(true)

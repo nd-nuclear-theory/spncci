@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
 set(spncci_headers
-    # recurrence_indexing.h
-    # recurrence_indexing_spin.h
     spncci_common.h
     spncci_basis.h
     vcs_cache.h
@@ -18,7 +16,6 @@ set(spncci_headers
     transform_basis.h
     hyperblocks_u3s.h
     variance.h
-    # recurrence_indexing_spatial.h
     recurrence_seeds.h
 )
 set(spncci_sources
@@ -36,7 +33,6 @@ set(spncci_sources
     transform_basis.cpp
     hyperblocks_u3s.cpp
     variance.cpp
-    # recurrence_indexing_spatial.cpp
     recurrence_seeds.cpp
 )
 

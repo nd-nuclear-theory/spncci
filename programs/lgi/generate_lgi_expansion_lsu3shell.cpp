@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
           // Save lgi expansion to file
           std::string lgi_expansion_filename =lgi::lgi_expansion_filename(Z,N,lgi_vector[lgi_index].irrep);
-          WriteOperatorBlockBinary(lgi_expansion, lgi_expansion_filename);
+          utils::WriteOperatorBlockBinary(lgi_expansion, lgi_expansion_filename);
 
           // Let advisor know expansion computed
           MPI_Send(&dummy,0,MPI_CHAR,0,tag_finished,MPI_COMM_WORLD);

@@ -327,7 +327,7 @@ void AddLGIPairNnSorted(
       =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
 
     bool verbose=false;
-    bool files_found=FileExists(lgi_unit_tensor_filename,verbose);
+    bool files_found=utils::FileExists(lgi_unit_tensor_filename,verbose);
     if(files_found)
       {
         int t=(Nmax-spncci_space[irrep_family_index_bra].Nex())

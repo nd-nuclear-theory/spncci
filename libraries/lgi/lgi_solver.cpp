@@ -13,7 +13,7 @@
 #include "fmt/format.h"
 #include "lsu3shell/lsu3shell_rme.h"
 #include "lgi/lgi_solver.h"
-#include "lgi/null_solver.h"
+#include "utilities/null_solver.h"
 #include "utilities/utilities.h"
 #include "mcutils/io.h"
 #include "mcutils/parsing.h"
@@ -131,7 +131,7 @@ namespace lgi
         // std::cout<<BrelNcm_matrices[i]<<std::endl<<std::endl;
 
         Eigen::MatrixXd null_vectors;
-        lgi::FindNullSpaceSVD(BrelNcm_matrices[i],null_vectors,threshold);
+        utils::FindNullSpaceSVD(BrelNcm_matrices[i],null_vectors,threshold);
         // std::cout<<null_vectors<<std::endl;
         int nullity = null_vectors.cols();
         // std::cout<<nullity<<std::endl;

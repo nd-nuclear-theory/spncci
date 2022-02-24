@@ -5,16 +5,16 @@ set(lgi_headers
     lgi.h
     recurrence_lgi.h
     lgi_solver.h
-    null_solver.h
+    # null_solver.h
     lgi_unit_tensors.h
     # dimensions.h
     # su3rme.h
     # lgi_gen.h
     )
 set(
-  lgi_sources lgi.cpp lgi_solver.cpp null_solver.cpp 
+  lgi_sources lgi.cpp lgi_solver.cpp
   lgi_unit_tensors.cpp 
-  # dimensions.cpp su3rme.cpp lgi_gen.cpp
+  # null_solver.cpp dimensions.cpp su3rme.cpp lgi_gen.cpp
   )
 
 # define am library and add source files

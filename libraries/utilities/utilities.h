@@ -31,7 +31,8 @@
 
 // extern double zero_threshold;
 
-
+namespace utils
+{
 inline bool FileExists(std::string filename, bool verbose)
   {
     int res = access(filename.c_str(), R_OK);
@@ -95,13 +96,6 @@ inline bool FileExists(std::string filename, bool verbose)
           std::ofstream output;
           output.open(filename,mode_argument);
           WriteOperatorBlockBinary(block, output);
-          // write number of rows and columns
-          // int num_rows=block.rows();
-          // int num_cols=block.cols();
-          // mcutils::WriteBinary<int>(output,num_rows);
-          // mcutils::WriteBinary<int>(output,num_cols);
-          // // dump matrix to file.  Order is column major (Eigen default for .data())
-          // mcutils::WriteBinary<double>(output,block.data(),num_rows*num_cols);
           output.close();
 
     }
@@ -122,7 +116,6 @@ inline bool FileExists(std::string filename, bool verbose)
       return block;
 
     }
-
 
   //   // num_rows, num_cols, rmes
   //   // rmes are by column then by row
@@ -277,5 +270,5 @@ inline bool FileExists(std::string filename, bool verbose)
 //           }
 //       }
 //   }
-
+}
 #endif
