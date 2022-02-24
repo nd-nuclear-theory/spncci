@@ -34,8 +34,10 @@
 #include "utilities/utilities.h"
 
 #include "u3shell/relative_operator.h"
-#include "spncci/recurrence_indexing.h"
+#include "spncci_basis/recurrence_indexing.h"
 #include "spncci/recurrence_seeds.h"
+#include "lgi/recurrence_lgi.h"
+
 #include "lgi/su3rme.h"
 
 // operator_dir = ${SPNCCI_OPERATOR_DIR}/rununittensor01/

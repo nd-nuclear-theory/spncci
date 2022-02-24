@@ -8,7 +8,8 @@
 
  6/25/21 (aem): Created.
 ****************************************************************/
-#include "spncci/recurrence_indexing.h"
+#include "spncci_basis/recurrence_indexing.h"
+#include "lgi/recurrence_lgi.h"
 
 #include <cppitertools/itertools.hpp>
 #include <string>
@@ -42,8 +43,8 @@ int main(int argc, char** argv)
   lgi::ReadLGISet(filename, Nsigma0, lgi_vector);
 
   constexpr bool check_lgi = true;
-  constexpr bool check_spin = false;
-  constexpr bool check_spin_recurrence = false;
+  constexpr bool check_spin = true;
+  constexpr bool check_spin_recurrence = true;
   constexpr bool check_spatial = true;
   constexpr bool check_spatial_recurrence = true;
 

@@ -33,11 +33,8 @@ recurrence_indexing_spatial.h
 #ifndef RECURRENCE_INDEXING_SPATIAL_H_
 #define RECURRENCE_INDEXING_SPATIAL_H_
 
-#include <array>
-#include <functional>  // for std::hash
-#include <unordered_map>
+#include <tuple>
 #include <utility>  // for std::forward
-
 #include "am/halfint.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
@@ -45,10 +42,8 @@ recurrence_indexing_spatial.h
 #include "lgi/lgi.h"
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/u3.h"
-#include "spncci/recurrence_indexing_spin.h"
-#include "u3shell/tensor_labels.h"
-#include "u3shell/u3spn_scheme.h"
-#include "u3shell/unit_tensor_space_u3s.h"
+#include "spncci_basis/recurrence_indexing_spin.h"
+
 
 namespace spncci::spatial
 {

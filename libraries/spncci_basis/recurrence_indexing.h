@@ -19,7 +19,7 @@
 #ifndef RECURRENCE_INDEXING_H_
 #define RECURRENCE_INDEXING_H_
 
-#include "spncci/recurrence_indexing_spin.h"
-#include "spncci/recurrence_indexing_spatial.h"
+#include "spncci_basis/recurrence_indexing_spin.h"
+#include "spncci_basis/recurrence_indexing_spatial.h"
 
 #endif  // RECURRENCE_INDEXING_H_

@@ -30,8 +30,8 @@ recurrence_seeds.h
 #include "lgi/lgi.h"
 #include "sp3rlib/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
-#include "recurrence_indexing_spatial.h"
-#include "recurrence_indexing_spin.h"
+#include "spncci_basis/recurrence_indexing.h"
+#include "lgi/recurrence_lgi.h"
 
 namespace spncci
 {

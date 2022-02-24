@@ -19,10 +19,13 @@
 #include "am/halfint_fmt.h"
 #include "fmt/format.h"
 #include "lgi/lgi.h"
+
+#include "spncci_basis/recurrence_indexing.h"
+#include "lgi/recurrence_lgi.h"
+
 #include "lgi/lgi_unit_tensors.h"
 #include "mcutils/profiling.h"
 #include "mcutils/eigen.h"
-#include "spncci/recurrence_indexing.h"
 #include "u3shell/relative_operator.h"
 #include "utilities/utilities.h"
 
@@ -228,14 +231,6 @@ int main(int argc, char** argv)
               }
 
               assert(mcutils::IsZero(Svalues1-Svalues2,1e-5));
-
-              // Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigensolver1(block);
-              // auto eigs1 = eigensolver1.eigenvalues().block(0,0,block.rows(),1);
-              // Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigensolver2(temp_block);
-              // auto eigs2 = eigensolver2.eigenvalues().block(0,0,block.rows(),1);
-
-              // assert(mcutils::IsZero(eigs1-eigs2,1e-6));
-              // std::cout<<eigs1<<std::endl<<std::endl<<eigs2<<std::endl<<std::endl;
               // std::cout<<"*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*"<<std::endl;
 
 

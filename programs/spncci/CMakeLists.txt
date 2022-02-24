@@ -22,6 +22,7 @@ target_link_libraries(
   fmt::fmt
   am::am
   spncci::utilities
+  spncci::spncci_basis
   spncci::lgi
   spncci::spncci
 )

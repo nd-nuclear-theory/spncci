@@ -96,6 +96,7 @@ add_subdirectory(libraries/moshinsky)
 add_subdirectory(libraries/lsu3shell)
 add_subdirectory(libraries/lgi)
 add_subdirectory(libraries/spncci)
+add_subdirectory(libraries/spncci_basis)
 
 # ##############################################################################
 # define meta-library target "spncci::libraries"
@@ -107,6 +108,7 @@ target_link_libraries(
   libraries
   INTERFACE spncci::utilities
             spncci::sp3rlib
+            spncci::spncci_basis
             spncci::u3shell
             spncci::moshinsky
             spncci::lsu3shell

@@ -1,7 +1,16 @@
 cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
-set(lgi_headers lgi.h lgi_solver.h null_solver.h lgi_unit_tensors.h dimensions.h  su3rme.h lgi_gen.h)
+set(lgi_headers
+    lgi.h
+    recurrence_lgi.h
+    lgi_solver.h
+    null_solver.h
+    lgi_unit_tensors.h
+    dimensions.h
+    su3rme.h
+    lgi_gen.h
+    )
 set(
   lgi_sources lgi.cpp lgi_solver.cpp null_solver.cpp 
   lgi_unit_tensors.cpp dimensions.cpp su3rme.cpp lgi_gen.cpp
@@ -25,6 +34,7 @@ target_link_libraries(
          spncci::sp3rlib
          spncci::u3shell
          spncci::lsu3shell
+         spncci::spncci_basis
          OpenMP::OpenMP_CXX
          # lsu3shell::libraries
          lsu3shell::SU3ME

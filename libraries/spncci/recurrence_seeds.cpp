@@ -23,7 +23,7 @@
 #include "fmt/format.h"
 #include "mcutils/eigen.h"
 #include "spncci/spncci_basis.h"
-#include "spncci/recurrence_spatial.h"
+// #include "spncci/recurrence_spatial.h"
 #include "u3shell/unit_tensor_space_u3s.h"
 
 namespace spncci

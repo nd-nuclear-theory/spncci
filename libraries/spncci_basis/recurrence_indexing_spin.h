@@ -44,7 +44,7 @@ recurrence_indexing_spin.h
 #include "basis/basis.h"
 #include "basis/degenerate.h"
 #include "fmt/format.h"
-#include "lgi/lgi.h"
+// #include "lgi/lgi.h"
 #include "sp3rlib/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
 
@@ -712,51 +712,51 @@ inline constexpr std::array<UnitTensorLabelsST, 36> const UnitTensorLabelsST::AL
     UnitTensorLabelsST{0b10101111u}   // (2, 2, 1, 1, 1, 1)
   }};
 
-inline bool UnitTensorAllowed(
-    const lgi::LGI::UpstreamLabelsType& ket_labels,
-    UnitTensorLabelsST tensor_labels,
-    const lgi::LGI::UpstreamLabelsType& bra_labels
-  )
-// Check if bra and ket labels can be connected by a given ST tensor.
-//
-// Note: these checks were derived by brute force enumeration of the possible
-// $\bar{S}_p' \bar{S}_n' \bar{S}_p \bar{S}_n$ for states with given S, T and Tz,
-// followed by checking all possible products and selecting those which satisfy
-// all the relevant triangle constraints for coupling to good $S_{p,0} \times
-// S_{n,0} \rightarrow S_0$.
-{
+// inline bool UnitTensorAllowed(
+//     const lgi::LGI::UpstreamLabelsType& ket_labels,
+//     UnitTensorLabelsST tensor_labels,
+//     const lgi::LGI::UpstreamLabelsType& bra_labels
+//   )
+// // Check if bra and ket labels can be connected by a given ST tensor.
+// //
+// // Note: these checks were derived by brute force enumeration of the possible
+// // $\bar{S}_p' \bar{S}_n' \bar{S}_p \bar{S}_n$ for states with given S, T and Tz,
+// // followed by checking all possible products and selecting those which satisfy
+// // all the relevant triangle constraints for coupling to good $S_{p,0} \times
+// // S_{n,0} \rightarrow S_0$.
+// {
   
-  const HalfInt& bra_Sp=bra_labels.Sp, bra_Sn=bra_labels.Sn;
-  const int S0=tensor_labels.S0();
-  const HalfInt& ket_Sp=ket_labels.Sp, ket_Sn=ket_labels.Sn;
+//   const HalfInt& bra_Sp=bra_labels.Sp, bra_Sn=bra_labels.Sn;
+//   const int S0=tensor_labels.S0();
+//   const HalfInt& ket_Sp=ket_labels.Sp, ket_Sn=ket_labels.Sn;
 
-  if (am::AllowedTriangle(bra_Sp,1,ket_Sp) && am::AllowedTriangle(bra_Sn,1,ket_Sn))
-    return true;
+//   if (am::AllowedTriangle(bra_Sp,1,ket_Sp) && am::AllowedTriangle(bra_Sn,1,ket_Sn))
+//     return true;
 
-  if (S0==0)
-  {
-    if (bra_Sp==ket_Sp && bra_Sn==ket_Sn)
-      return true;
-  }
-  else if (S0==1)
-  {
-    if (bra_Sp==ket_Sp && am::AllowedTriangle(bra_Sn,1,ket_Sn))
-      return true;
+//   if (S0==0)
+//   {
+//     if (bra_Sp==ket_Sp && bra_Sn==ket_Sn)
+//       return true;
+//   }
+//   else if (S0==1)
+//   {
+//     if (bra_Sp==ket_Sp && am::AllowedTriangle(bra_Sn,1,ket_Sn))
+//       return true;
 
-    if (am::AllowedTriangle(bra_Sp,1,ket_Sp) && bra_Sn==ket_Sn)
-      return true;
-  }
-  else if (S0==2 && tensor_labels.Tbarp()==1 && tensor_labels.Tbar()==1)
-  {
-    if (bra_Sp==ket_Sp && am::AllowedTriangle(bra_Sn,2,ket_Sn))
-      return true;
+//     if (am::AllowedTriangle(bra_Sp,1,ket_Sp) && bra_Sn==ket_Sn)
+//       return true;
+//   }
+//   else if (S0==2 && tensor_labels.Tbarp()==1 && tensor_labels.Tbar()==1)
+//   {
+//     if (bra_Sp==ket_Sp && am::AllowedTriangle(bra_Sn,2,ket_Sn))
+//       return true;
 
-    if (am::AllowedTriangle(bra_Sp,2,ket_Sp) && bra_Sn==ket_Sn)
-      return true;
-  }
+//     if (am::AllowedTriangle(bra_Sp,2,ket_Sp) && bra_Sn==ket_Sn)
+//       return true;
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 }  // namespace spncci::spin
 

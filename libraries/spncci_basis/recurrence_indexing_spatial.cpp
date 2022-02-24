@@ -9,13 +9,13 @@
   SPDX-License-Identifier: MIT
 ****************************************************************/
 
-#include "spncci/recurrence_indexing_spatial.h"
+#include "spncci_basis/recurrence_indexing_spatial.h"
 
-#include <algorithm>
+// #include <algorithm>
 #include <cppitertools/enumerate.hpp>
 #include <fstream>
 #include <iostream>
-#include <numeric>
+// #include <numeric>
 
 #include "basis/basis.h"
 #include "fmt/format.h"
