@@ -30,15 +30,59 @@
 #include "lgi/dimensions.h"
 #include "utilities/nuclide.h"
 #include "mcutils/eigen.h"
+#include "mcutils/parsing.h"
 #include "utilities/utilities.h"
 
 #include "u3shell/relative_operator.h"
+#include "spncci/recurrence_indexing.h"
 #include "spncci/recurrence_seeds.h"
 #include "lgi/su3rme.h"
 
 // operator_dir = ${SPNCCI_OPERATOR_DIR}/rununittensor01/
 namespace spncci{
   namespace seeds{
+
+    std::unordered_map<u3shell::U3SPN,basis::OperatorBlock<double>>
+    GetLGIExpansions(
+      const nuclide::NuclideType& nuclide,
+      const spncci::spin::RecurrenceLGISpace<lgi::LGI,spncci::spin::UnitTensorLabelsST>& lgi_space,
+      const HalfInt& Nsigma0
+      )
+    {
+      const auto&[Z,N] = nuclide;
+      std::unordered_map<u3shell::U3SPN,basis::OperatorBlock<double>> lgi_expansions;
+      std::unordered_set<lgi::LGI> temp_list;
+      const auto& [sigma_ket,sigma_bra,exchange_symm_bar] = lgi_space.labels();
+      int Nex_bra = int(sigma_bra.N()-Nsigma0);
+      int Nex_ket = int(sigma_ket.N()-Nsigma0);
+      for(const auto& spin_space : lgi_space)
+        {
+          const auto& [S_ket, S_bra] = spin_space.labels();
+          for(const auto& spin_subspace : spin_space)
+            {
+              const auto& ket_upstream_labels = spin_subspace.ket_upstream_labels();
+              const auto& bra_upstream_labels = spin_subspace.bra_upstream_labels();
+              const auto [Sp_ket, Sn_ket] = ket_upstream_labels;
+              const auto [Sp_bra, Sn_bra] = bra_upstream_labels;
+
+              temp_list.insert({{sigma_bra,Sp_bra,Sn_bra,S_bra},Nex_bra});
+              temp_list.insert({{sigma_ket,Sp_ket,Sn_ket,S_ket},Nex_ket});
+            }
+        }
+      
+      for(const auto& lgi : temp_list)
+        {
+          std::string filename =lgi::lgi_expansion_filename(Z,N,lgi);
+          
+          // TODO: Make construction optional if lgi expansion doesn't exist
+          bool exit_on_nonexist=true, warn_on_overwrite=false;
+          mcutils::FileExistCheck(filename,exit_on_nonexist,warn_on_overwrite);
+          lgi_expansions[lgi.u3spn()] = ReadOperatorBlockBinary(filename);
+        }
+
+      return lgi_expansions;
+    }
+
 
     basis::OperatorBlock<double> GenerateRecurrenceSeedBlock(
       const nuclide::NuclideType& nuclide,
@@ -81,8 +125,6 @@ namespace spncci{
       int spin_recurrence_space_index = spin_recurrence_space.LookUpSubspaceIndex({sigma_ket,sigma_bra,exchange_symm_bar});
       const auto& spin_recurrence_lgi_space = spin_recurrence_space.GetSubspace(spin_recurrence_space_index);
 
-      // const auto&[sigma_ket,sigma_bra,exchange_symm_bar] = spin_recurrence_lgi_space.labels();
-
       // // If there is no corresponding
       if(spin_recurrence_space_index == -1)
         {
@@ -90,21 +132,16 @@ namespace spncci{
           return recurrence_seed_block;
         }
 
-
-
-      // std::cout<<"****************************************"<<std::endl;
-      // std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<"  "<<parity_bar<<std::endl;
-      // std::cout<<"****************************************"<<std::endl;
-
-
-
       // Allocate seed block
       recurrence_seed_block
         = basis::OperatorBlock<double>::Zero(
             spatial_recurrence_u3s_space.dimension(),
             spin_recurrence_lgi_space.dimension()
           );
-      // std::cout<<"recurrence seed block "<<recurrence_seed_block.rows()<<" x "<<recurrence_seed_block.cols()<<std::endl;
+
+      // Get LGI expansions 
+      auto lgi_expansions = spncci::seeds::GetLGIExpansions(nuclide,spin_recurrence_lgi_space,Nsigma0);
+
       // Loop over all unit tensors
       //TODO: openMP parallelize over operator index.
       for(int operator_index=0; operator_index<unit_tensor_labels.size(); ++operator_index)
@@ -186,7 +223,6 @@ namespace spncci{
                   proton_neutron::ModelSpace ket_ncsmModelSpace(Z,N,model_space_map_ket);
                   lsu3::CncsmSU3xSU2Basis ket_ncsm_basis;
                   ket_ncsm_basis.ConstructBasis(ket_ncsmModelSpace, jdiag, ndiag, individual_comm);
-                  // int dim_ket = lsu3shell::get_num_U3PNSPN_irreps(ket_ncsm_basis);
 
                   // Construct bra basis from model space
                   proton_neutron::ModelSpaceMapType model_space_map_bra;
@@ -194,17 +230,22 @@ namespace spncci{
                   proton_neutron::ModelSpace bra_ncsmModelSpace(Z,N,model_space_map_bra);
                   lsu3::CncsmSU3xSU2Basis bra_ncsm_basis;
                   bra_ncsm_basis.ConstructBasis(bra_ncsmModelSpace, jdiag, ndiag, individual_comm);
-                  // int dim_bra = lsu3shell::get_num_U3PNSPN_irreps(bra_ncsm_basis);
 
                   // std::cout<<"Calculate unit tensor RMEs in lsu3shell basis"<<std::endl;
                   basis::OperatorBlocks<double> su3_unit_tensor_rmes
                     =lsu3shell::CalculateRME(interactionPPNN,interactionPN,bra_ncsm_basis,ket_ncsm_basis,dN0,w0,rhot_max);
 
-                  // Read in lgi expansion from file
-                  std::string lgi_expansion_filename_bra =lgi::lgi_expansion_filename(Z,N,{{sigma_bra,Sp_bra,Sn_bra,S_bra},Nex_bra});
-                  std::string lgi_expansion_filename_ket =lgi::lgi_expansion_filename(Z,N,{{sigma_ket,Sp_ket,Sn_ket,S_ket},Nex_ket});
-                  basis::OperatorBlock<double> lgi_expansion_bra = ReadOperatorBlockBinary(lgi_expansion_filename_bra);
-                  basis::OperatorBlock<double> lgi_expansion_ket = ReadOperatorBlockBinary(lgi_expansion_filename_ket);
+                  // // Read in lgi expansion from file
+                  // std::string lgi_expansion_filename_bra =lgi::lgi_expansion_filename(Z,N,{{sigma_bra,Sp_bra,Sn_bra,S_bra},Nex_bra});
+                  // std::string lgi_expansion_filename_ket =lgi::lgi_expansion_filename(Z,N,{{sigma_ket,Sp_ket,Sn_ket,S_ket},Nex_ket});
+                  // basis::OperatorBlock<double> lgi_expansion_bra = ReadOperatorBlockBinary(lgi_expansion_filename_bra);
+                  // basis::OperatorBlock<double> lgi_expansion_ket = ReadOperatorBlockBinary(lgi_expansion_filename_ket);
+
+                  // testing 
+                  basis::OperatorBlock<double> lgi_expansion_bra = lgi_expansions[{sigma_bra,Sp_bra,Sn_bra,S_bra}];
+                  basis::OperatorBlock<double> lgi_expansion_ket = lgi_expansions[{sigma_ket,Sp_ket,Sn_ket,S_ket}];
+                  // assert(mcutils::IsZero(lgi_expansion_ket_test-lgi_expansion_ket,1e-8));
+                  // assert(mcutils::IsZero(lgi_expansion_bra_test-lgi_expansion_bra,1e-8));
 
                   // Loop over outer multiplicity and transform each block from lsu3shell basis to spncci basis.
                   // Save seeds into recurrence seed matrix

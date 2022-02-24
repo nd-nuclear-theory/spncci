@@ -14,7 +14,6 @@
   
 ****************************************************************/
 #include "lgi/lgi.h"
-// #include <cstdlib>
 
 #include "LookUpContainers/CWig9lmLookUpTable.h"
 #include "LSU3/ncsmSU3xSU2Basis.h"
@@ -35,6 +34,19 @@
 
 // operator_dir = ${SPNCCI_OPERATOR_DIR}/rununittensor01/
 //data/lgi_set/lgi_list.dat
+// TODO: From list of allowed LGI, construct spncci spin space
+// spin::Space() []
+//  ->spin::LGISpace() [sigma]
+//    ->spin::SpinSubspace() [S]
+//      ->spin::[Iso]SpinState() [SpSn]/[T] -> gamma_max
+//
+// Spin space can then be used in functions such as
+// generate_bra_model_space_Brel() in place of lgi vector
+//
+// lgi expansions grouped together by sigma in files for easier use
+// in seed calculation
+//
+
 
 
 int main(int argc, char **argv)
@@ -127,6 +139,7 @@ int main(int argc, char **argv)
         }
       else
         {
+          // Create lookup table that includes all lgi in basis
           lgi_indices.resize(lgi_vector.size());
           std::iota(lgi_indices.begin(),lgi_indices.end(),0);
         }

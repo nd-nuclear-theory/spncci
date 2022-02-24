@@ -154,7 +154,6 @@ namespace u3shell {
 
   };
 
-
   ////////////////////////////////////////////////////////////////
   // basis indexing in U3SPN scheme
   ////////////////////////////////////////////////////////////////
@@ -298,5 +297,19 @@ namespace u3shell {
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
 } // namespace
+
+#ifdef BASIS_HASH
+namespace std
+{
+  template<> struct hash<typename u3shell::U3SPN>
+  {
+    inline std::size_t operator()(const u3shell::U3SPN& h) const noexcept
+    {
+      return boost::hash<u3shell::U3SPN>{}(h);
+    }
+  };
+
+}
+# endif // BASIS_HASH
 
 #endif
