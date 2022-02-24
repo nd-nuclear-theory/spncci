@@ -6,7 +6,7 @@
 
   SPDX-License-Identifier: MIT
 ****************************************************************/
-#include "lgi/dimensions.h"
+#include "u3ncsm/dimensions.h"
 
 #include <fstream>
 #include <iostream>

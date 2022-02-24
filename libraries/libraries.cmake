@@ -97,6 +97,7 @@ add_subdirectory(libraries/lsu3shell)
 add_subdirectory(libraries/lgi)
 add_subdirectory(libraries/spncci)
 add_subdirectory(libraries/spncci_basis)
+add_subdirectory(libraries/u3ncsm)
 
 # ##############################################################################
 # define meta-library target "spncci::libraries"
@@ -110,6 +111,7 @@ target_link_libraries(
             spncci::sp3rlib
             spncci::spncci_basis
             spncci::u3shell
+            spncci::u3ncsm
             spncci::moshinsky
             spncci::lsu3shell
             spncci::lgi

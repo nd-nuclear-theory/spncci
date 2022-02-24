@@ -8,7 +8,7 @@
 
   10/24/21 (aem): Created.
 ****************************************************************/
-#include "lgi/su3rme.h"
+#include "u3ncsm/su3rme.h"
 
 #include <fstream>
 #include <iostream>

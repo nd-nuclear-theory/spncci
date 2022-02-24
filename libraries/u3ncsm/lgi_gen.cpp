@@ -6,7 +6,7 @@
 
   SPDX-License-Identifier: MIT
 ****************************************************************/
-#include "lgi/lgi_gen.h"
+#include "u3ncsm/lgi_gen.h"
 
 #include <fstream>
 #include <iostream>
@@ -19,8 +19,8 @@
 #include "UNU3SU3/UNU3SU3Basics.h"
 
 #include "lsu3shell/lsu3shell_basis.h"
-#include "lgi/dimensions.h"
-#include "su3rme.h"
+#include "u3ncsm/dimensions.h"
+#include "u3ncsm/su3rme.h"
 #include "lgi/null_solver.h"
 #include "am/am.h"
 

@@ -13,6 +13,7 @@ target_link_libraries(
   su3rme_test PRIVATE
   lsu3shell::SU3ME
   spncci::lsu3shell
+  spncci::u3ncsm
 )
 
 add_executable(generate_lgi_expansion_lsu3shell generate_lgi_expansion_lsu3shell.cpp)
@@ -22,17 +23,9 @@ target_link_libraries(
   am::am
   spncci::utilities
   spncci::spncci_basis
+  spncci::u3ncsm
   spncci::lgi
 )
-
-# add_executable(generate_seeds_lsu3shell generate_seeds_lsu3shell.cpp)
-# target_link_libraries(
-#   generate_seeds_lsu3shell PRIVATE
-#   fmt::fmt
-#   am::am
-#   spncci::utilities
-#   spncci::lgi
-# )
 
 
 ## For lanczos decompositions

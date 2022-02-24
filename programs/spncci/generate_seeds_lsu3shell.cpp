@@ -18,27 +18,25 @@
 
   2/18/22 (aem): Created.
 ****************************************************************/
-#include "lgi/lgi.h"
-
 #include "LookUpContainers/CWig9lmLookUpTable.h"
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "SU3ME/CInteractionPN.h"
 #include "SU3ME/InteractionPPNN.h"
 #include "UNU3SU3/UNU3SU3Basics.h"
 
-#include "lgi/lgi_gen.h"
-#include "lgi/dimensions.h"
 #include "utilities/nuclide.h"
 #include "mcutils/eigen.h"
 #include "mcutils/parsing.h"
 #include "utilities/utilities.h"
-
 #include "u3shell/relative_operator.h"
+
 #include "spncci_basis/recurrence_indexing.h"
 #include "spncci/recurrence_seeds.h"
+#include "lgi/lgi.h"
 #include "lgi/recurrence_lgi.h"
-
-#include "lgi/su3rme.h"
+#include "u3ncsm/su3rme.h"
+#include "u3ncsm/lgi_gen.h"
+#include "u3ncsm/dimensions.h"
 
 // operator_dir = ${SPNCCI_OPERATOR_DIR}/rununittensor01/
 namespace spncci{

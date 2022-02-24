@@ -15,8 +15,8 @@
 #include "lgi/lgi.h"
 #include "lgi/dimensions.h"
 #include "lsu3shell/lsu3shell_basis.h"
-#include "lgi/su3rme.h"
 #include "utilities/utilities.h"
+#include "utilities/nuclide.h"
 
 void test_lsu3shell_basis_generation()
   {

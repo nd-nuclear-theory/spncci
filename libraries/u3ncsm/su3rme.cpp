@@ -6,15 +6,11 @@
 
   SPDX-License-Identifier: MIT
 ****************************************************************/
-#include "lgi/su3rme.h"
+#include "u3ncsm/su3rme.h"
 
 
 #include "fmt/format.h"
-// #include "lgi/lgi.h"
 #include "lsu3shell/lsu3shell_basis.h"
-
-// #include "sp3rlib/sp3r.h"
-// #include "spncci/spncci_basis.h"
 #include "u3shell/u3spn_scheme.h"
 #include "utilities/utilities.h"
 
@@ -58,27 +54,27 @@ namespace lsu3shell
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-template <typename tDataType>
-void WriteBinary(std::ostream& os, tDataType data)
-// Write binary data item to stream.
-//
-// Note that, if the template parameter is omitted, the data type
-// of the value given for data will determine the output type, but
-// explicitly giving the template parameter casts the data to the
-// given data type tDataType.  Explicitly giving the template
-// parameter is recommended both to document the data format in
-// the output file and to avoid any ambiguity of the output type.
-//
-// Arguments:
-//   os (input): binary stream for output
-//   data (input): data value to output
-//
-// Ex:
-//   mcutils::WriteBinary<float>(out_stream,value);
-{
-   os.write(reinterpret_cast<const char*>(&data), sizeof(data));
-}
+// /////////////////////////////////////////////////////////////////////////////
+// template <typename tDataType>
+// void WriteBinary(std::ostream& os, tDataType data)
+// // Write binary data item to stream.
+// //
+// // Note that, if the template parameter is omitted, the data type
+// // of the value given for data will determine the output type, but
+// // explicitly giving the template parameter casts the data to the
+// // given data type tDataType.  Explicitly giving the template
+// // parameter is recommended both to document the data format in
+// // the output file and to avoid any ambiguity of the output type.
+// //
+// // Arguments:
+// //   os (input): binary stream for output
+// //   data (input): data value to output
+// //
+// // Ex:
+// //   mcutils::WriteBinary<float>(out_stream,value);
+// {
+//    os.write(reinterpret_cast<const char*>(&data), sizeof(data));
+// }
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 

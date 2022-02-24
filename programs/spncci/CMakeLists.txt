@@ -24,6 +24,7 @@ target_link_libraries(
   spncci::utilities
   spncci::spncci_basis
   spncci::lgi
+  spncci::u3ncsm
   spncci::spncci
 )
 

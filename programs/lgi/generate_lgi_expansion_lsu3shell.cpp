@@ -21,8 +21,8 @@
 #include "SU3ME/InteractionPPNN.h"
 #include "UNU3SU3/UNU3SU3Basics.h"
 
-#include "lgi/lgi_gen.h"
-#include "lgi/dimensions.h"
+#include "u3ncsm/lgi_gen.h"
+#include "u3ncsm/dimensions.h"
 #include "utilities/nuclide.h"
 #include "utilities/utilities.h"
 #include "mcutils/eigen.h"
