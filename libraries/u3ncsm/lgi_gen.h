@@ -22,8 +22,8 @@
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "fmt/format.h"
 
-namespace lgi
-{
+namespace lgi{
+
   inline std::string lgi_expansion_filename(const int Z, const int N, const lgi::LGI& lgi)
     {
       const auto&[Nex,sigma,Sp,Sn,S]=lgi.Key();
@@ -32,7 +32,6 @@ namespace lgi
               Z,N,Nex,sigma.SU3().lambda(),sigma.SU3().mu(),TwiceValue(Sp),TwiceValue(Sn),TwiceValue(S));
       return filename;
     }
-
 
  basis::OperatorBlock<double> generate_lgi_expansion(
     const nuclide::NuclideType& nuclide,

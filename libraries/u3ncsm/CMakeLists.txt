@@ -5,13 +5,13 @@ set(u3ncsm_headers
     su3rme.h
     lgi_gen.h
     dimensions.h
-    # seed_gen.h
+    seed_gen.h
 )
 set(u3ncsm_sources
     su3rme.cpp
     lgi_gen.cpp
     dimensions.cpp
-    # seed_gen.cpp
+    seed_gen.cpp
 )
 
 # define spncci library and add source files
@@ -60,21 +60,6 @@ install(FILES ${u3ncsm_headers} DESTINATION include/spncci/u3ncsm)
 # define tests
 # ##############################################################################
 
-set(u3ncsm_UNITS_TEST
-    # dimensions_test
-)
-
-# add_custom_target(u3ncsm_tests)
-# foreach(test_name IN LISTS u3ncsm_UNITS_TEST)
-#   add_executable(${test_name} EXCLUDE_FROM_ALL ${test_name}.cpp)
-#   target_link_libraries(${test_name} PRIVATE spncci::u3ncsm)
-#   add_dependencies(u3ncsm_tests ${test_name})
-# endforeach()
-
-# target_link_libraries(
-#   recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
-#                                    cppitertools::cppitertools spncci::spncci
-# )
 
 add_executable(dimensions_test EXCLUDE_FROM_ALL dimensions_test.cpp)
 target_link_libraries(

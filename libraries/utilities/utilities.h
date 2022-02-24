@@ -23,7 +23,8 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
-#include "gsl/gsl_sf_gamma.h"
+#include "fmt/format.h"
+// #include "gsl/gsl_sf_gamma.h"
 #include <Eigen/Eigen>
 #include "basis/operator.h"
 #include "mcutils/io.h"
