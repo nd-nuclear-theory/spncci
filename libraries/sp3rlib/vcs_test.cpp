@@ -55,17 +55,17 @@ void CreateOmegaMatrix(const u3::U3& omegap, const u3::U3& omega,
     		}
 
 	}
-
-
-
+namespace vcs
+{
+	using Matrix =  basis::OperatorBlock<double>;
+}
 
 int main(int argc, char **argv)
 {
 	u3::U3CoefInit(39);
 
-
-if(true)
-{
+/////////////////////////////////////////////////////////////////////////////
+// Test Omega function
 std::map<std::tuple<u3::U3,u3::U3>,double> 
 Omega_validation_table ={
 		{{u3::U3(0,0,0),u3::U3(5,4,3)},27},
@@ -105,17 +105,41 @@ for(const auto& [u3_pair, value] : Omega_validation_table)
 		const auto& [n,omega] = u3_pair;
 		assert(Omega_validation_table[u3_pair] == vcs::Omega(n,omega));
 	}
-}
 
+/////////////////////////////////////////////////////////////////////////////
+std::map<u3::U3,std::map<u3::U3,vcs::Matrix>> Kmatrix_validation_table = {
+{
+	u3::U3(14,{3,1}),
+	{
+		{u3::U3(14,{3,1}),vcs::Matrix{{ 1.00000000}}},
+		{u3::U3(16,{3,2}),vcs::Matrix{{ 3.00000000}}},
+		{u3::U3(16,{4,0}),vcs::Matrix{{ 2.64575131}}},
+		{u3::U3(18,{2,2}),vcs::Matrix{{ 6.80213819,-0.25347458},{-0.25347458,  4.96008239}}}, 
+		{u3::U3(20,{1,2}),vcs::Matrix{{12.72792206,-0.00000000},{-0.00000000, 12.72792206}}}, 
+		{u3::U3(20,{3,4}),vcs::Matrix{{33.82805696,-0.68011935},{-0.68011935, 25.58783769}}},
+		{u3::U3(20,{2,3}),vcs::Matrix{{19.62822980, 2.16141450,-0.24674332},{ 2.16141450, 19.15191779, -0.72961120},{-0.24674332,-0.72961120, 13.68965979}}}, 
+		{u3::U3(20,{3,1}),vcs::Matrix{{20.33536264,-1.99295318, 0.03411572},{-1.99295318, 16.44081762, -0.63570756},{ 0.03411572,-0.63570756, 15.37589807}}} 
+	}
+},
+{
+	u3::U3(HalfInt(29,2),{2,1}),
+	{
+		{u3::U3(HalfInt(29,2),{2,1}),vcs::Matrix{{ 1.00000000}}},
+		{u3::U3(HalfInt(33,2),{0,3}),vcs::Matrix{{ 2.64575131}}},
+		{u3::U3(HalfInt(37,2),{1,2}),vcs::Matrix{{ 7.39228476,-0.14419682},{-0.14419682,5.68441207}}},
+		{u3::U3(HalfInt(37,2),{3,1}),vcs::Matrix{{ 8.20961975,-0.51846909},{-0.51846909,7.00460728}}},
+		{u3::U3(HalfInt(41,2),{2,1}),vcs::Matrix{{23.07368495,-1.24931673, 0.21040579},{-1.24931673,18.44600494,-0.42907995},{0.21040579,-0.42907995,17.93799375}}}
+	}
+}
+};
 
 /// Compare two functions for calculating Kmatrices
 if(true)
 {
 	std::vector<u3::U3> sigma_vector={u3::U3(7,4,3), u3::U3(HalfInt(13,2),HalfInt(9,2),HalfInt(7,2))};
-	for(const auto& sigma : sigma_vector)
+	for(const auto& [sigma,test_values] : Kmatrix_validation_table)
 	{
-		// u3::U3 sigma(7,4,3);
-		sp3r::Sp3RSpace sp3r_irrep(sigma,6);
+		sp3r::Sp3RSpace sp3r_irrep(sigma,40);
 		
 		std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> u3_subspace_map;
 		for(const auto& u3_subspace : sp3r_irrep)
@@ -133,14 +157,34 @@ if(true)
 					u3_subspace_map[omega].push_back({n,u3::OuterMultiplicity(sigma,n,omega)});
 			}
 
-		vcs::MatrixCache K_matrix_map1;
-		vcs::GenerateKMatrices(sp3r_irrep,K_matrix_map1);
-		vcs::KmatrixMap K_matrix_map2 = vcs::GenerateKMatrices(sigma,u3_subspace_map);
+		vcs::MatrixCache K1_matrix_map;
+		vcs::GenerateKMatrices(sp3r_irrep,K1_matrix_map);
+		vcs::KmatrixMap K2_matrix_map = vcs::GenerateKMatrices(sigma,u3_subspace_map);
 
-		for(const auto& [omega,K1] : K_matrix_map1)
+		for(const auto& [omega,KK] : K1_matrix_map)
+			if(omega.N()-sigma.N()>36)
 			{
-				const auto& K2=K_matrix_map2.at(omega)[0];
-				assert(mcutils::IsZero(K1-K2,1e-6));
+				// std::cout<<omega.Str()<<std::endl;
+				// std::cout<<KK<<std::endl<<std::endl;
+				// vcs::Matrix Kinv = KK.inverse();
+				// std::cout<<Kinv<<std::endl<<std::endl;
+				// std::cout<<KK*Kinv<<std::endl;
+				double factor = pow(2,double(omega.N()-sigma.N()));
+				vcs::Matrix KKf = KK/factor;
+				std::cout<<"factor "<<factor<<std::endl;
+				std::cout<<KK.inverse()*factor<<std::endl<<KKf.inverse()<<std::endl<<std::endl;//<<KKf*KKf.inverse()<<std::endl<<std::endl;
+
+
+			}
+
+
+		for(const auto& [omega,K] : test_values)
+		// for(const auto& [omega,K1] : K_matrix_map1)
+			{
+				const auto& K1=K1_matrix_map.at(omega);
+				const auto& K2=K2_matrix_map.at(omega)[0];
+				assert(mcutils::IsZero(K1-K,1e-6));
+				assert(mcutils::IsZero(K2-K,1e-6));
 			}
 	}
 }
