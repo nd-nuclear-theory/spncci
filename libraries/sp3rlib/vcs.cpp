@@ -140,6 +140,7 @@ namespace vcs{
                                      *(Omega(n1p, omega_p)-Omega(n1,omega))
                                      *U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
                                      );
+
                             else
                               coef1=0.0;
 
@@ -355,7 +356,8 @@ GenerateSmatrices(
                     =U3BosonCreationRME(sigma,n2p,rho2p,omegap,sigma,n2,rho2,omega);
                 }
 
-            S_target+=2./Nnp*coef1_matrix*S_source*coef2_matrix;
+            // S_target+=2./Nnp*coef1_matrix*S_source*coef2_matrix;
+            S_target+=coef1_matrix*S_source*coef2_matrix/(8*Nnp);
           }
       }
   
@@ -452,17 +454,25 @@ KmatrixMap
                 }
               i++;
             }
+          // From pulling out a factor of 16 from the definition of the Smatrix
+          // We now need to add it back it sqrt(16)^(Nn/2)=2^Nn
+          double factor =pow(2,int(omega.N()-sigma.N()));
+          Kmatrix = factor*Kmatrix;
+          Kmatrix_inv=Kmatrix_inv/factor;
         }
     }
   else
     {
       for(const auto& [omega,Smatrix] :  Smatrix_map)
         {
-        
+          // From pulling out a factor of 16 from the definition of the Smatrix
+          // We now need to add it back it sqrt(16)^(Nn/2)=2^Nn
+          double factor =pow(2,int(omega.N()-sigma.N())); 
+          
           //calculate K matrix
           Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigen_system(Smatrix);
-          Kmatrix_map[omega][0]=eigen_system.operatorSqrt().cast<double>();
-          Kmatrix_map[omega][1]=Kmatrix_map[omega][0].inverse();
+          Kmatrix_map[omega][0]=factor*eigen_system.operatorSqrt().cast<double>();
+          Kmatrix_map[omega][1]=Kmatrix_map[omega][0].inverse()/factor;
         }
     }
 
