@@ -106,9 +106,6 @@ namespace lsu3shell
   }
 
 
-
-
-
   std::map<u3shell::U3SPN, unsigned int>
   lsu3shell_cmf_basis_dimensions(
     const HalfInt& Nsigma0,
@@ -133,6 +130,69 @@ namespace lsu3shell
 
     return eliminate_cmf_contributions(Nmax,Nsigma0,u3spn_dimensions);
   }
+
+
+  void print_lsu3shell_basis_info(
+    const nuclide::NuclideType& nuclide,
+    const int Nmax,
+    const int Nstep
+  )
+  // For a given Nucleus, print basis labels including
+  // Nex, x_proton S_proton x_neutron S_neutron rho x S
+  {
+    const auto&[Z,N]=nuclide;
+    std::map<u3shell::U3SPN,unsigned int> basis_dimensions;
+    for(int Nex=0; Nex<=Nmax; Nex+=Nstep)
+    {
+      //SU3ME/proton_neutron_ncsmSU3Basis.h
+      proton_neutron::ModelSpace lsu3shell_model_space(Z,N,Nex);
+
+      //LSU3/ncsmSU3xSU2Basis.cpp
+      int idiag=0; int ndiag=1;
+      lsu3::CncsmSU3xSU2Basis lsu3shell_basis(lsu3shell_model_space, idiag, ndiag);
+
+      //  loop over (ip, in) pairs
+      for (int ipin_block = 0; ipin_block < lsu3shell_basis.NumberOfBlocks(); ipin_block++)
+        {
+          // If block is empty, continue
+          if (!lsu3shell_basis.NumberOfStatesInBlock(ipin_block)) {continue;}
+
+          unsigned int ip = lsu3shell_basis.getProtonIrrepId(ipin_block);
+          unsigned int in = lsu3shell_basis.getNeutronIrrepId(ipin_block);
+          unsigned int Nex_proton = lsu3shell_basis.nhw_p(ip);
+          unsigned int Nex_neutron = lsu3shell_basis.nhw_n(in);
+          unsigned int Nex = Nex_proton+Nex_neutron;
+
+          unsigned int alpha_p_max = lsu3shell_basis.getMult_p(ip);
+          unsigned int alpha_n_max = lsu3shell_basis.getMult_n(in);
+
+          auto irrep_proton = lsu3shell_basis.getProtonSU3xSU2(ip);
+          auto irrep_neutron = lsu3shell_basis.getNeutronSU3xSU2(in);
+          HalfInt S_proton(irrep_proton.S2,2);
+          HalfInt S_neutron(irrep_neutron.S2,2);
+          u3::SU3 x_proton(irrep_proton.lm,irrep_proton.mu);
+          u3::SU3 x_neutron(irrep_neutron.lm,irrep_neutron.mu);
+
+          for (int iwpn = lsu3shell_basis.blockBegin(ipin_block); iwpn < lsu3shell_basis.blockEnd(ipin_block); ++iwpn)
+            {
+              const auto& omega_pn = lsu3shell_basis.getOmega_pn(ip, in, iwpn);
+              HalfInt S(omega_pn.S2,2);
+              u3::SU3 x(omega_pn.lm,omega_pn.mu);
+              unsigned int dim=alpha_n_max*alpha_p_max*omega_pn.rho;
+              std::cout<<fmt::format("{}  {} {} {}  {} {} {}  {} {}  {}",
+                Nex,
+                Nex_proton,x_proton.Str(),S_proton,
+                Nex_neutron,x_neutron.Str(),S_neutron,
+                x.Str(),S,
+                dim
+              )<<std::endl;
+
+            }
+        }
+    }
+
+  }
+
 
 }//lsu3shell
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

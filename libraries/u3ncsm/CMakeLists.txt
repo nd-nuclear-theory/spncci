@@ -67,7 +67,15 @@ target_link_libraries(
   fmt::fmt
   spncci::utilities
   spncci::lsu3shell
-  spncci::lgi
+  spncci::u3ncsm
+)
+
+
+add_executable(print_lsu3shell_basis EXCLUDE_FROM_ALL print_lsu3shell_basis.cpp)
+target_link_libraries(
+  print_lsu3shell_basis PRIVATE
+  fmt::fmt
+  spncci::u3ncsm
 )
 
 

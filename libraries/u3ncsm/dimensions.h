@@ -54,6 +54,15 @@ namespace lsu3shell
   {
     return lsu3shell_basis_dimensions(nuclide, Nsigma0,Nmax);
   }
+
+  void print_lsu3shell_basis_info(
+    const nuclide::NuclideType& nuclide,
+    const int Nmax,
+    const int Nstep
+  );
+  // Function to print out lsu3shell basis.
+  // Nex x_proton S_proton x_neutron S_neutron x S dim
+
 }//namespace lsu3shell
 
 namespace lgi
