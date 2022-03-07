@@ -35,31 +35,6 @@ recurrence_seeds.h
 
 namespace spncci
 {
-namespace seeds
-{
-  // inline std::string seed_filename(
-  //   const int Z, const int N,
-  //   const HalfInt& Nsigma0,
-  //   const u3::U3& sigma_bra,
-  //   const u3::U3& sigma_ket,
-  //   const int parity_bar
-  //   )
-  //   {
-  //     int Nex_bra(sigma_bra.N()-Nsigma0);
-  //     int Nex_ket(sigma_ket.N()-Nsigma0);
-
-  //     std::string filename
-  //       = fmt::format("seeds_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_gbar{:1d}.dat",
-  //             Z,N,Nex_bra,sigma_bra.SU3().lambda(),sigma_bra.SU3().mu(),
-  //             Nex_ket,sigma_ket.SU3().lambda(),sigma_ket.SU3().mu(),parity_bar
-  //           );
-
-  //     return filename;
-  //   }
-
-
-
-}
 
 namespace recurrence
 {

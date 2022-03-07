@@ -24,20 +24,14 @@
 #include "SU3ME/InteractionPPNN.h"
 #include "UNU3SU3/UNU3SU3Basics.h"
 
-#include "utilities/nuclide.h"
-// #include "mcutils/eigen.h"
-// #include "mcutils/parsing.h"
-#include "utilities/utilities.h"
-#include "u3shell/relative_operator.h"
-
-#include "spncci_basis/recurrence_indexing.h"
-// #include "spncci/recurrence_seeds.h"
 #include "lgi/lgi.h"
 #include "lgi/recurrence_lgi.h"
-// #include "u3ncsm/su3rme.h"
-// #include "u3ncsm/lgi_gen.h"
-#include "u3ncsm/seed_gen.h"
+#include "spncci_basis/recurrence_indexing.h"
 #include "u3ncsm/dimensions.h"
+#include "u3ncsm/seed_gen.h"
+#include "u3shell/relative_operator.h"
+#include "utilities/nuclide.h"
+#include "utilities/utilities.h"
 
 // operator_dir = ${SPNCCI_OPERATOR_DIR}/rununittensor01/
 
