@@ -32,6 +32,7 @@
       if (Nn_max>=0)
         poly_labels.push_back(u3::U3(0,0,0));
 
+    // Should't N start with 2?
     // append remaining entries
       for (int N=0; N<=Nn_max; N+=2)
         for (int a=N-2; a>=0; a-=2)
@@ -55,7 +56,7 @@
       if((lambda+mu)>=1)
         tau_tilde[0]++;
 
-      if((lambda+mu)>=1)
+      if((lambda+mu)>=2)
         tau_tilde[1]++;
 
       if(mu>=1)
@@ -79,29 +80,22 @@
   }
 
 
-  bool RestrictSp3RBranching(const u3::U3& sigma)
-  // Based on criteria given in jpa-18-1985-939-Rowe, 
+  bool ModifySp3RBranching(const u3::U3& sigma)
+  // From section 5 of jpa-18-1985-939-Rowe,
   // there are U(3) irreps in the U(3) boson basis
   // obtained via laddering which have no counter-part
-  // in the Sp(3,R) basis, i.e., the basis constructed 
-  // by laddering is overcomplete. 
+  // in the Sp(3,R) basis and thus must be removed.
+  // Such cases occur when f3<3.
   //
   // Basis must be restricted if f3<3 and 
   // conjugate{tau}_2 > (2*f3-3)
   {
     const HalfInt& f3 = sigma.f3();
-    if(f3>=3)
-      return false;
-    
-    auto tau_conjugate = TauConjugate(sigma);
-    if(tau_conjugate[1]<=(2*f3-2))
-      return false; 
-    
-    else
+    if(f3<3)
       return true;
+    else
+      return false;
   }
-
-
 
 
   ////////////////////////////////////////////////////////////////
@@ -160,60 +154,89 @@
     }
 
 
-
-    Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, bool restrict_sp3r_to_u3_branching)
+    double zero_threshold = 1e-6;
+    Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max)
     {
-
-    // set space labels
+      // Make sure sigma is a unitary irrep
+      assert(sp3r::IsUnitary(sigma));
+      // set space labels
       sigma_ = sigma;
       Nn_max_ = Nn_max;
 
-    // set up container for states
+
+      // set up container for states
       std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> states;
 
-    // find all raising polynomials
+      // find all raising polynomials
       std::vector<u3::U3> n_vec = RaisingPolynomialLabels(Nn_max);
 
-    // enumerate states
-    //
-    // for each raising polynomial n
-    //   obtain all allowed couplings omega (sigma x n -> omega)
-    //     (with their multiplicities rho_max)
-    //   for each allowed coupling omega
-    //      store to states multimap as key value pair
-    //        omega -> (n,rho_max)
-      for (auto n_iter = n_vec.begin(); n_iter != n_vec.end(); ++n_iter)
-      {
-       u3::U3 n = (*n_iter);
-       MultiplicityTagged<u3::U3>::vector omega_tagged_vec = KroneckerProduct(sigma,n);
-       for (
-        auto omega_tagged_iter = omega_tagged_vec.begin();
-        omega_tagged_iter != omega_tagged_vec.end();
-        ++omega_tagged_iter
-        )
-       {
-        // convert (omega,rho_max) to omega -> (n,rho_max)
-        MultiplicityTagged<u3::U3> omega_tagged = (*omega_tagged_iter);
-        u3::U3 omega = omega_tagged.irrep;
-        int rho_max = omega_tagged.tag;
-        for(int rho=1; rho<=rho_max; ++rho)
-          states[omega].push_back(MultiplicityTagged<u3::U3>(n,rho));
-       }
-     }
+      // enumerate states
+      //
+      // for each raising polynomial n
+      //   obtain all allowed couplings omega (sigma x n -> omega)
+      //     (with their multiplicities rho_max)
+      //   for each allowed coupling omega
+      //      store to states multimap as key value pair
+      //        omega -> (n,rho_max)
+      for (const auto& n : n_vec)
+        {
+          MultiplicityTagged<u3::U3>::vector omega_tagged_vec = KroneckerProduct(sigma,n);
+          for(const auto& [omega,rho_max] : omega_tagged_vec)
+            for(int rho=1; rho<=rho_max; ++rho)
+              states[omega].push_back({n,rho});
+        }
 
-    // scan through spanakopita for subspaces
-     for(auto it=states.begin(); it!=states.end(); ++it)
-     {
-      // retrieve omega key of this group of states
-      u3::U3 omega = it->first;
+      bool modify_sp3r_to_u3_branching = sp3r::ModifySp3RBranching(sigma);
+      if(modify_sp3r_to_u3_branching)
+        {
+          std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> keep_states;
+          for(const auto&[omega1,n_rho_vec1] : states)
+            {
+              if (omega1==sigma)
+                {
+                  keep_states[omega1].push_back({{0,{0,0}},1});
+                  continue;
+                }
 
-      // retrieve upsilon multiplicity states
-      const MultiplicityTagged<u3::U3>::vector& multiplicities=it->second;
+              for(const auto& [n1,rho1] : n_rho_vec1)
+                {
+                  bool keep_irrep=false;
+                  auto omega2_vec = u3::KroneckerProduct(omega1, u3::U3(-2,{0,2}));
+                  for(const auto& [omega2,dummy] : omega2_vec)
+                    {
+                      assert(dummy==1);
+                      for(const auto& [n2,rho2] : states[omega2])
+                        {
+                          double DeltaOmega = vcs::Omega(n1,omega1)-vcs::Omega(n2,omega2);
+                          // if(DeltaOmega<=0)
+                          // {
+                          //   double u3boson_rme = vcs::U3BosonCreationRME(sigma,n1,rho1,omega1,sigma,n2,rho2,omega2);
+                          //   fmt::print("{} {} {}  {} {} {}\n",omega1,n1,rho1,omega2,n2,rho2);
+                          //   fmt::print("{}  {}\n",DeltaOmega,u3boson_rme);
+                          // }
+                          // assert(DeltaOmega>=0);
+                          if(DeltaOmega>0)
+                            {
+                              double u3boson_rme = vcs::U3BosonCreationRME(sigma,n1,rho1,omega1,sigma,n2,rho2,omega2);
+                              if (u3boson_rme>zero_threshold)
+                                {
+                                  keep_irrep=true;
+                                  break;
+                                }
+                            }
+                        }
+                    }
+                  if(keep_irrep)
+                    keep_states[omega1].emplace_back(n1,rho1);
+                }
+            }
+          // Overwrite list of states
+          states=keep_states;
+        }
 
-      // emplace subspace into space
-      EmplaceSubspace(omega,multiplicities.size(),multiplicities);
-     }
-
+      // scan through spanakopita for subspaces and add subspace
+     for(const auto& [omega,multiplicities] : states)
+        EmplaceSubspace(omega,multiplicities.size(),multiplicities);
    }
 
 

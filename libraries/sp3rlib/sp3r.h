@@ -53,9 +53,9 @@ namespace sp3r
   // Check if sigma is label of unitary Sp(3,R) irrep
   // based on the criteria given in jpa-18-1985-939-Rowe.
 
-  bool RestrictSp3RBranching(const u3::U3& sigma);
+  bool ModifySp3RBranching(const u3::U3& sigma);
   // Returns true if Sp(3,R)->U(3) branching obtained by coupling
-  // Sp(3,R) raising polynomials onto sigma must be restricted.
+  // Sp(3,R) raising polynomials onto sigma must be modified.
 
   ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
@@ -185,7 +185,14 @@ namespace sp3r
     inline Sp3RSpace() : Nn_max_(-999) {}
 
     // constructor
-    Sp3RSpace(const u3::U3& sigma, int Nn_max, bool restrict_sp3r_to_u3_branching=false);
+    Sp3RSpace(const u3::U3& sigma, int Nn_max);
+    inline Sp3RSpace(const u3::U3& sigma, int Nn_max, bool modify_sp3r_to_u3_branching)
+    {
+      // Whether or not branching rule must be modified is determined internally.
+      // Optional bool is being deprecated.
+      assert(modify_sp3r_to_u3_branching==sp3r::ModifySp3RBranching(sigma));
+      Sp3RSpace(sigma,Nn_max);
+    }
     // Constructs all U3 subspaces up to given Nn_max.
     // Note, restrict_sp3r_to_u3_branching = true not currently implemented.
 

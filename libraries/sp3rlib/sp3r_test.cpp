@@ -22,9 +22,6 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////
   // Sp(3,R) irrep construction test
   ////////////////////////////////////////////////////////////////
-
-  // 16(2,1)  Nn_max=6
-
   u3::U3 sigma = u3::U3(16,u3::SU3(2,1));
   int Nn_max = 6;
 
@@ -34,69 +31,79 @@ int main(int argc, char **argv)
   // Normally sp3r::RaisingPolynomialLabels is called directly by the
   // Sp3RSpace constructor.
   std::vector<u3::U3> polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
-  for (auto it = polynomial_labels.begin(); it != polynomial_labels.end(); ++it)
-    std::cout << " label " << (*it).Str() << std::endl;
+  for (const auto&n : polynomial_labels)
+    fmt::print("{}\n",n);
 
   // Check that U(3) is unitary LGI
   std::map<u3::U3,bool> unitary_test_map=
   {
     {{16,{2,1}},true},
-    {{HalfInt(3,2),{0,0}},true},
+    {{3,{0,0}},true},
     {{6,5,1},false} 
   };
   
   fmt::print("Is Sp(3,R) irrep unitary?\n");
   for(const auto& [s,check] : unitary_test_map)
     {
+
       fmt::print("{}: {}\n",s,sp3r::IsUnitary(s));
       assert(sp3r::IsUnitary(s)==check);
     }
 
   fmt::print("Does branching need to be restricted?\n");
     // Check that U(3) is unitary LGI
-  std::map<u3::U3,bool> restrict_basis_test_map =
+  std::map<u3::U3,bool> modify_basis_test_map =
   {
-    {{16,{2,1}},false},
-    {{HalfInt(3,2),{0,0}},true},
-    {u3::U3(5,5,1),false}
+    {{3,{0,0}},true},
+    {{5,{2,0}},true},
+    {{16,{2,1}},false}
   };
 
-  for(const auto& [s,check] : restrict_basis_test_map)
+  for(const auto& [s,check] : modify_basis_test_map)
     {
-      fmt::print("{}: {}\n",s,sp3r::RestrictSp3RBranching(s));
-      // assert(sp3r::RestrictSp3RBranching(s)==check);
+      fmt::print("{}\n",s);
+      fmt::print("Is unitary? {}\n",sp3r::IsUnitary(s));
+      fmt::print("Modify branching? {}\n",sp3r::ModifySp3RBranching(s));
+      assert(sp3r::ModifySp3RBranching(s)==check);
     }
 
-    
-  // examine Sp3RSpace object
-  sp3r::Sp3RSpace irrep(sigma,Nn_max);
-  std::cout << irrep.DebugStr();
-  std::cout<<irrep.size()<<std::endl;
+  for(const auto& [s,dummy] : modify_basis_test_map)
+    {
 
-  std::cout<<"Restricted irrep"<<std::endl;
-  HalfInt Nsigma(9,2);
-  u3::U3 sigma1 = u3::U3(Nsigma,u3::SU3(0,0));
-  bool restrict_sp3r_to_u3_branching=true;
-  sp3r::Sp3RSpace irrep1(sigma1,Nn_max,restrict_sp3r_to_u3_branching);
-  std::cout << irrep1.DebugStr();
-  std::cout<<irrep1.size()<<std::endl;
+      sp3r::Sp3RSpace irrep(s,Nn_max);
+      std::cout << irrep.DebugStr();
+      std::cout<<std::endl;
+    }
 
+  std::map<u3::U3,bool> helium3_set = {
+    {{3,{0,0}},true},
+    {{5,{2,0}},true},
+    {{5,{0,1}},true},
+    {{7,{4,0}},true},
+    {{7,{2,1}},false},
+    {{7,{1,0}},true},
+    {{7,{0,2}},false},
+    {{9,{6,0}},true},
+    {{9,{3,0}},true},
+    {{9,{4,1}},false},
+    {{9,{2,2}},false},
+    {{9,{1,1}},true}
+  };
 
-  // std::cout<<"Bcoef cache check"<<std::endl;
-  // Nn_max=8;
-  // sp3r::BCoefCache cache;
-  // sp3r::GenerateBCoefCache(cache, Nn_max);
-  // u3::U3 n1,n2,n3;
-  // int rho;
-  
-  // for(auto it=cache.begin(); it!=cache.end(); ++it)
-  //   {
-  //     std::tie(n1,n2,n3,rho)=it->first;
-  //     double coef_flip=cache[sp3r::BCoefLabels(n2,n1,n3,rho)];
-  //     double coef=it->second;
-  //     if((fabs(coef_flip-coef)>1e-8)||(fabs(coef)<1e-8))
-  //       std::cout<<fmt::format("B({} {} {} {})  {}  {}  {}",n1.Str(), n2.Str(),n3.Str(),rho,coef,coef_flip,fabs(coef_flip-coef))<<std::endl;
-  //   }
-  
+  for(const auto& [s,is_unitary] : helium3_set)
+    {
+      fmt::print("\n{}\n",s);
+      fmt::print("Is unitary? {}\n",sp3r::IsUnitary(s));
+      assert(sp3r::IsUnitary(s)==is_unitary);
+      fmt::print("Modify branching? {}\n",sp3r::ModifySp3RBranching(s));
+      if(sp3r::IsUnitary(s))
+        {
+          sp3r::Sp3RSpace irrep(s,Nn_max);
+          std::cout << irrep.DebugStr();
+        }
+
+    }
 
 } //main
+
+

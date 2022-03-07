@@ -17,44 +17,6 @@
 #include "mcutils/eigen.h"
 #include "cppitertools/itertools.hpp"
 
-void CreateU3BosonMatrix(
-	const u3::U3& omegap, const u3::U3& omega,
-	const sp3r::Sp3RSpace& irrep,
-	Eigen::MatrixXd& boson_matrix
-	)
-  {
-    const u3::U3& sigma(irrep.sigma());
-    const sp3r::U3Subspace& omegap_subspace=irrep.LookUpSubspace(omegap);
-    const sp3r::U3Subspace& omega_subspace=irrep.LookUpSubspace(omega);
-    
-	  boson_matrix.resize(omegap_subspace.size(),omega_subspace.size());
-    for(int bra_index=0; bra_index<omegap_subspace.size(); ++bra_index)
-    	for(int ket_index=0; ket_index<omega_subspace.size(); ++ket_index)
-    		{
-    			const MultiplicityTagged<u3::U3>& np_rhop(omegap_subspace.GetStateLabels(bra_index));
-    			const MultiplicityTagged<u3::U3>& n_rho(omega_subspace.GetStateLabels(ket_index));
-    			boson_matrix(bra_index,ket_index)=vcs::U3BosonCreationRME(sigma,np_rhop,omegap,sigma,n_rho,omega);
-    		}    
- 	}
-
-void CreateOmegaMatrix(const u3::U3& omegap, const u3::U3& omega,
-	const sp3r::Sp3RSpace& irrep,
-	Eigen::MatrixXd& Omega_matrix
-)
-	{
-    const sp3r::U3Subspace& omegap_subspace=irrep.LookUpSubspace(omegap);
-    const sp3r::U3Subspace& omega_subspace=irrep.LookUpSubspace(omega);
-    
-	  Omega_matrix.resize(omegap_subspace.size(),omega_subspace.size());
-    for(int bra_index=0; bra_index<omegap_subspace.size(); ++bra_index)
-    	for(int ket_index=0; ket_index<omega_subspace.size(); ++ket_index)
-    		{
-    			const u3::U3& np(omegap_subspace.GetStateLabels(bra_index).irrep);
-    			const u3::U3& n(omega_subspace.GetStateLabels(ket_index).irrep);
-    			Omega_matrix(bra_index,ket_index)=vcs::Omega(np,omegap)-vcs::Omega(n,omega);
-    		}
-
-	}
 namespace vcs
 {
 	using Matrix =  basis::OperatorBlock<double>;
@@ -172,9 +134,6 @@ if(true)
 			}
 	}
 }
-
-int a = 1 << 10;
-std::cout<<a<<" or "<<pow(2,10)<<std::endl;
 
 
 } // main 

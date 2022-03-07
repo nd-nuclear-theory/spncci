@@ -12,69 +12,11 @@
 #include "fmt/format.h"
 #include <Eigen/Eigenvalues>
 #include "sp3rlib/u3coef.h"
+#include "sp3rlib/u3boson.h"
 #include "mcutils/eigen.h"
 #include "cppitertools/itertools.hpp"
 
 namespace vcs{
-
-  double BosonCreationRME(const u3::U3& np, const u3::U3& n)
-  //  SU(3) Reduced matrix element of a^\dagger boson creation operator
-  {
-    double rme=0;
-    const auto n1=int(n.f1());
-    const auto n2=int(n.f2());
-    const auto n3=int(n.f3());
-    const auto n1p=int(np.f1());
-    const auto n2p=int(np.f2());
-    const auto n3p=int(np.f3());
-
-    if((n1p==(n1+2))&&(n2p==n2)&&(n3p==n3))
-      rme=std::sqrt((n1+4)*(n1-n2+2)*(n1-n3+3)/(2.*(n1-n2+3)*(n1-n3+4)));
-
-    else if ((n1p==n1)&&(n2p==(n2+2))&&(n3p==n3))
-      rme=std::sqrt((n2+3)*(n1-n2)*(n2-n3+2)/(2.*(n1-n2-1)*(n2-n3+3)));
-
-    else if ((n1p==n1)&&(n2p==n2)&&(n3p==(n3+2)))
-      rme=std::sqrt((n3+2)*(n2-n3)*(n1-n3+1)/(2.*(n1-n3)*(n2-n3-1)));
-
-    return rme;
-
-  }
-
-  double U3BosonCreationRME(
-    const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
-    const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
-  )
-  {
-    unsigned int rho0_max=u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
-    unsigned int rhon_max=u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
-    
-    bool allowed = sigma==sigmap;
-    allowed &= u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
-    allowed &= u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
-
-    double rme=0.0;
-    if (allowed)
-      {
-        rme = ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-          *u3::U(u3::SU3(2,0),n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
-          *BosonCreationRME(np,n); 
-      }
-    
-    return rme;
-  }
-
-  double U3BosonCreationRME(
-    const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
-    const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
-    )
-  {
-    const auto& [n,rho] = n_rho;
-    const auto& [np,rhop] = np_rhop;
-    return U3BosonCreationRME(sigmap,np,rhop,omegap,sigma,n,rho,omega);
-  } 
-
-
 
   void GenerateSMatrices(const sp3r::Sp3RSpace& irrep, vcs::SMatrixCache& S_matrix_map, bool sp3r_u3_branch_restricted)
   {
@@ -353,7 +295,7 @@ GenerateSmatrices(
                   const auto& [n2p,rho2p] = boson_states_p[index2p];
                   const auto& [n2,rho2] = boson_states[index2];
                   coef2_matrix(index2,index2p)
-                    =U3BosonCreationRME(sigma,n2p,rho2p,omegap,sigma,n2,rho2,omega);
+                    =vcs::U3BosonCreationRME(sigma,n2p,rho2p,omegap,sigma,n2,rho2,omega);
                 }
 
             // S_target+=2./Nnp*coef1_matrix*S_source*coef2_matrix;
@@ -378,7 +320,7 @@ KmatrixMap
   
   auto Smatrix_map = GenerateSmatrices(sigma,u3_subspaces);
   // std::cout<<" Smatrices computed"<<std::endl;
-  if (sp3r::RestrictSp3RBranching(sigma))
+  if (sp3r::ModifySp3RBranching(sigma))
     {
       fmt::print("Code for hadling A<6 irreps has not been validated.\n DO NOT TRUST");
       
