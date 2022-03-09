@@ -98,36 +98,36 @@ namespace spncci
 
 
 
-  void ConstructRestrictedSp3RSpace(const u3::U3& sigma, int Nn_max, sp3r::Sp3RSpace& irrep)
-    // Contruct an Sp(3,R) irrep applying necessary restrictions for A<6
-  // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
-    {
-      // create irrep with no restrictions
-      sp3r::Sp3RSpace irrep_temp(sigma,Nn_max);
+  // void ConstructRestrictedSp3RSpace(const u3::U3& sigma, int Nn_max, sp3r::Sp3RSpace& irrep)
+  //   // Contruct an Sp(3,R) irrep applying necessary restrictions for A<6
+  // // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
+  //   {
+  //     // create irrep with no restrictions
+  //     sp3r::Sp3RSpace irrep_temp(sigma,Nn_max);
 
-      // Generate K matrices for irrep
-      vcs::MatrixCache K_matrix_cache;
-      vcs::MatrixCache Kinv_matrix_cache;
-      vcs::GenerateKMatrices(irrep_temp,K_matrix_cache, Kinv_matrix_cache);
+  //     // Generate K matrices for irrep
+  //     vcs::MatrixCache K_matrix_cache;
+  //     vcs::MatrixCache Kinv_matrix_cache;
+  //     vcs::GenerateKMatrices(irrep_temp,K_matrix_cache, Kinv_matrix_cache);
 
-      // set up container for states
-      std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> spanakopita;
-      // Iterate through K matrix identifying omega subspaces which are contained in irrep along with upsilon_max
-      for(auto it=K_matrix_cache.begin(); it!=K_matrix_cache.end(); ++it)
-        {
-          const u3::U3& omega=it->first;
-          auto& Kmatrix=it->second;
-          int upsilon_max=Kmatrix.rows();
-          MultiplicityTagged<u3::U3> omega_tagged(omega,upsilon_max);
-          const auto& subspace=irrep_temp.GetSubspace(irrep_temp.LookUpSubspaceIndex(omega));
-          MultiplicityTagged<u3::U3>::vector& states=spanakopita[omega_tagged];
-          for(int i=0; i<subspace.size(); ++i)
-            states.push_back(subspace.GetStateLabels(i));
-        }
+  //     // set up container for states
+  //     std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> spanakopita;
+  //     // Iterate through K matrix identifying omega subspaces which are contained in irrep along with upsilon_max
+  //     for(auto it=K_matrix_cache.begin(); it!=K_matrix_cache.end(); ++it)
+  //       {
+  //         const u3::U3& omega=it->first;
+  //         auto& Kmatrix=it->second;
+  //         int upsilon_max=Kmatrix.rows();
+  //         MultiplicityTagged<u3::U3> omega_tagged(omega,upsilon_max);
+  //         const auto& subspace=irrep_temp.GetSubspace(irrep_temp.LookUpSubspaceIndex(omega));
+  //         MultiplicityTagged<u3::U3>::vector& states=spanakopita[omega_tagged];
+  //         for(int i=0; i<subspace.size(); ++i)
+  //           states.push_back(subspace.GetStateLabels(i));
+  //       }
 
-      // Create restricted irrep
-      irrep=sp3r::Sp3RSpace(sigma,Nn_max,spanakopita);
-    }
+  //     // Create restricted irrep
+  //     irrep=sp3r::Sp3RSpace(sigma,Nn_max,spanakopita);
+  //   }
 
   void GenerateSpNCCISpace(
       const lgi::MultiplicityTaggedLGIVector& multiplicity_tagged_lgi_vector,
@@ -137,6 +137,7 @@ namespace spncci
       bool restrict_sp3r_to_u3_branching
     )
   {
+    assert(restrict_sp3r_to_u3_branching==false);
 
     // populate SpNCCI space with irrep families if gamma_max>0
     // int num_lgi=multiplicity_tagged_lgi_vector.size();
@@ -166,50 +167,10 @@ namespace spncci
         const u3::U3& sigma = spncci_irrep_family.sigma();
         int Nn_max = truncator.Nn_max(sigma);
 
-        // construct and add Sp3RSpace (if needed)
-
-        // access by [] indexing
-        //
-        // FAILS: since compiler anticipates the case where sigma
-        // is not found as a key and map would (hypothetically)
-        // need to insert an SP3RSpace using the (nonexistent)
-        // default constructor sp3r::Sp3RSpace()
-        //
-        // SOLUTION: add default constructor
-        //
-        // sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);
-
-        // access by map.emplace
-        //
-        // FAILS in g++ 4.5: map.emplace not yet defined?
-        //
-        // FAILS in g++ 5.3.0: weird missing allocator errors
-        //
-        // sigma_irrep_map.emplace(
-        //                sigma,  // key
-        //                sigma,Nn_max  // constructor arguments for value
-        //                );
-
-        // access by pair insertion
-        //
-        // WORKS: but cumbersome
-        // sigma_irrep_map.insert(
-        //                         std::make_pair(sigma,sp3r::Sp3RSpace(sigma,Nn_max))
-        //                         );
-
 
         if (sigma_irrep_map.count(sigma) == 0)
-          {
-            if(restrict_sp3r_to_u3_branching)
-              {
-                sp3r::Sp3RSpace irrep_restricted;
+          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max,restrict_sp3r_to_u3_branching);
 
-                ConstructRestrictedSp3RSpace(sigma,Nn_max,irrep_restricted);
-                sigma_irrep_map[sigma]=irrep_restricted;
-              }
-            else
-              sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max,restrict_sp3r_to_u3_branching);
-          }
         // save info back to SpNCCIIrrepFamily
         const sp3r::Sp3RSpace& irrep_space = sigma_irrep_map[sigma];
         spncci_irrep_family.SaveSpaceReference(irrep_space);

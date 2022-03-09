@@ -98,15 +98,15 @@ std::map<u3::U3,std::map<u3::U3,vcs::Matrix>> Kmatrix_validation_table = {
 /// Compare two functions for calculating Kmatrices
 if(true)
 {
-	std::vector<u3::U3> sigma_vector={u3::U3(7,4,3), u3::U3(HalfInt(13,2),HalfInt(9,2),HalfInt(7,2))};
+	std::vector<u3::U3> sigma_vector={u3::U3(7,4,3), u3::U3({13,2},{9,2},{7,2})};
 	for(const auto& [sigma,test_values] : Kmatrix_validation_table)
 	{
 		sp3r::Sp3RSpace sp3r_irrep(sigma,20);
 		vcs::MatrixCache K1_matrix_map;
 		vcs::GenerateKMatrices(sp3r_irrep,K1_matrix_map);
 
-		vcs::U3BosonSpace u3boson_space(sigma,20);
-		auto K3_matrix_map = vcs::GetKMatrices(sigma,u3boson_space,1e-12);
+		u3boson::U3BosonSpace u3boson_space(sigma,20);
+		auto K3_matrix_map = vcs::GenerateKmatrices(sigma,u3boson_space,1e-12);
 
 		for(const auto& [omega,K] : test_values)
 			{
@@ -120,6 +120,12 @@ if(true)
 	}
 }
 
+{
+  u3::U3 sigma(3,{0,0});
+  u3boson::U3BosonSpace u3boson_space(sigma,6);
+  auto K_matrix_map = vcs::GenerateKmatrices(sigma,u3boson_space,1e-12);
+
+}
 
 } // main 
 

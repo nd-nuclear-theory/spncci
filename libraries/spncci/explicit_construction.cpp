@@ -100,7 +100,7 @@ namespace spncci
                     int rho_bar=omega_bar_subspace.GetStateLabels(j).tag;
 
                     double
-                    coef=2./int(n.N())*vcs::BosonCreationRME(n,n_bar)
+                    coef=2./int(n.N())*u3boson::BosonCreationRME(n,n_bar)
                           *u3::U(sigmaSPN.U3().SU3(),n_bar.SU3(), omega.SU3(),u3::SU3(2,0),
                                   omega_bar.SU3(),rho_bar,1,n.SU3(),1,1);
 

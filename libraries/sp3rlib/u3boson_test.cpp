@@ -27,12 +27,34 @@ int main(int argc, char **argv)
   u3::U3 sigma = u3::U3(16,u3::SU3(2,1));
   int Nn_max = 10;
 
-  std::vector<u3::U3> polynomial_labels = vcs::RaisingPolynomialLabels(Nn_max);
+  std::vector<u3::U3> polynomial_labels = u3boson::RaisingPolynomialLabels(Nn_max);
   for (const auto&n : polynomial_labels)
     fmt::print("{}\n",n);
 
-  vcs::U3BosonSpace u3boson_space(sigma,20);
+
+  fmt::print("sigma: {}\n",sigma);
+  fmt::print("U3BosonSpace\n");
+  u3boson::U3BosonSpace u3boson_space(sigma,20);
   std::cout<<u3boson_space.DebugStr()<<std::endl;
+
+  u3::U3 n(2,0,0), np(4,0,0);
+  fmt::print("BosonCreationRME ({}||a^dagger||{}\n",np,n);
+  fmt::print("{}\n",u3boson::BosonCreationRME(np,n));
+
+  u3::U3 omega(18,{4,1}), omegap(20,{4,2});
+  fmt::print(
+    "U3BosonCreationRME ({}{}{}{}||a^dagger||{}{}{}{})\n",
+    sigma,np,1,omegap,sigma,n,1,omega
+  );
+  // Calculate with two different functions
+  fmt::print(
+    "{}\n{}\n",
+    u3boson::U3BosonCreationRME(sigma,{np,1},omegap,sigma,{n,1},omega),
+    u3boson::U3BosonCreationRME(sigma,np,1,omegap,sigma,n,1,omega)
+  );
+
+
+
 } //main
 
 

@@ -641,7 +641,7 @@ void AddNn0BlocksToHyperblocks(
             u3::U3 n1(n1_rho1.irrep);
             if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
                 BU(u3_state_index1,u3_state_index)
-                  =2./Nn*vcs::BosonCreationRME(n,n1)
+                  =2./Nn*u3boson::BosonCreationRME(n,n1)
                    *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
                       n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1
                     );
@@ -691,7 +691,7 @@ void Amatrix(
           if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
             {
               boson_matrix(vp,vpp)=
-                vcs::BosonCreationRME(np,npp)
+                u3boson::BosonCreationRME(np,npp)
                 *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
                 *u3::UCached(
                     u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),

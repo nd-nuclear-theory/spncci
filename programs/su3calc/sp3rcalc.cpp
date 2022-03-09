@@ -104,6 +104,7 @@
 
 #include "fmt/format.h"
 #include "mcutils/parsing.h"
+#include "sp3rlib/u3boson.h"
 #include "sp3rlib/sp3r.h"
 
 ////////////////////////////////////////////////////////////////
@@ -125,7 +126,7 @@ void DoHelp()
 void DoRaising(int Nnmax)
 {
   std::cout << fmt::format("Nnmax = {}",Nnmax) << std::endl;
-  std::vector<u3::U3> raising_polynomial_labels = sp3r::RaisingPolynomialLabels(Nnmax);
+  std::vector<u3::U3> raising_polynomial_labels = u3boson::RaisingPolynomialLabels(Nnmax);
   for (const u3::U3& n : raising_polynomial_labels)
     {
       std::cout << n.Str() << std::endl;

@@ -27,8 +27,8 @@ Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
     : BaseSpace{sigma}
 {
   // Construct U3 boson irrep and generate K matrices
-  vcs::U3BosonSpace u3boson_space(sigma,Nn_max);
-  auto K_matrices = vcs::GetKMatrices(sigma,u3boson_space);
+  u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
+  auto K_matrices = vcs::GenerateKmatrices(sigma,u3boson_space);
 
   for(const auto& subspace : u3boson_space)
     {

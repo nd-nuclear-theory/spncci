@@ -21,6 +21,7 @@ namespace vcs{
   void GenerateSMatrices(const sp3r::Sp3RSpace& irrep, vcs::SMatrixCache& S_matrix_map, bool sp3r_u3_branch_restricted)
   {
     u3::U3 sigma=irrep.sigma();
+    assert(sp3r_u3_branch_restricted==false);
 
     for(int i=0; i<irrep.size(); i++)
       {
@@ -80,7 +81,7 @@ namespace vcs{
                               coef1=(
                                      2./int(n1p.N())
                                      *(Omega(n1p, omega_p)-Omega(n1,omega))
-                                     *U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
+                                     *u3boson::U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
                                      );
 
                             else
@@ -96,7 +97,7 @@ namespace vcs{
                             MultiplicityTagged<u3::U3> n2_rho2=u3_subspace.GetStateLabels(j2);
                             u3::U3 n2(n2_rho2.irrep);
                             if (u3::OuterMultiplicity(n2.SU3(),u3::SU3(2,0), n2p.SU3())>0)
-                              coef2_matrix(j2,i2)=U3BosonCreationRME(sigma, n2p_rho2p, omega_p, sigma, n2_rho2, omega);
+                              coef2_matrix(j2,i2)=u3boson::U3BosonCreationRME(sigma, n2p_rho2p, omega_p, sigma, n2_rho2, omega);
                             else
                               coef2_matrix(j2,i2)=0.0;
                           }
@@ -109,38 +110,6 @@ namespace vcs{
               }
           }//end else
 
-        if(sp3r_u3_branch_restricted)
-          {
-            // Get Eigenvalues and eigenvectors
-            Eigen::SelfAdjointEigenSolver<vcs::SMatrixType> eigen_system(S_matrix_p);
-            const vcs::SMatrixType& eigenvectors=eigen_system.eigenvectors();
-            const vcs::SMatrixType& eigenvalues=eigen_system.eigenvalues();
-
-            // sqrt(sum(matrix elements)^2)
-            double sum=0;
-            for(int i=0; i<eigenvalues.size(); ++i)
-              sum+=eigenvalues(i);
-
-            double norm_factor=sum/eigenvalues.size();
-
-            vcs::SMatrixType eigenvalues_matrix=vcs::SMatrixType::Zero(eigenvalues.size(),eigenvalues.size());
-            if(norm_factor>1e-2)
-              for(int i=0; i<eigenvalues.size(); ++i)
-                {
-                  double k2=eigenvalues(i);
-                  if(fabs(k2/norm_factor)>1e-6)
-                    eigenvalues_matrix(i,i)=k2;
-                }
-            vcs::SMatrixType S_matrix_p2=eigenvectors*eigenvalues_matrix*eigenvectors.transpose();
-
-            // mcutils::ChopMatrix(S_matrix_p, 1e-4);
-            // if(not mcutils::IsZero(S_matrix_p2-S_matrix_p,1e-6))
-              // std::cout<<"S matrix diff"<<omega_p.Str()<<std::endl<<S_matrix_p2<<std::endl<<S_matrix_p<<std::endl;
-
-            mcutils::ChopMatrix(S_matrix_p, 1e-6);
-            S_matrix_map[omega_p]=S_matrix_p2;
-          }
-        else
           S_matrix_map[omega_p]=S_matrix_p;
 
       } // end for (i)
@@ -221,9 +190,6 @@ namespace vcs{
             Kinv.col(i)=1/k*eigenvectors.row(index).transpose();
           }
 
-        // Eigen::MatrixXd K=K1;
-        // Eigen::MatrixXd Kinv=K1inv;
-
         K_matrix_map[it->first]=K.cast<double>();
         Kinv_matrix_map[it->first]=Kinv.cast<double>();
 
@@ -231,12 +197,19 @@ namespace vcs{
   }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- // Based on U3Boson basis construction
- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Uses U3Boson basis construction.
+// Note: for numerical stability, the Smatrix recurrence used here differs from the recurrence relation given in,
+// e.g.,
+//    D. J. Rowe, A. E. McCoy and M. A. Caprio. Phys. Script. 91 (2016) 033003.
+//    D. J. Rowe, J. Math Phys. 25 (1984) 2662.
+//    D. J. Rowe, B. G. Wybourne and P.H. Butler. J. Phys. A 18 (1985) 939.
+//
+// by a factor of 8, i.e., S_Rowe = 16S_sp3rlib.  Consequently, after taking the squareroot of S to get K,
+// we multiply K by a factor of 2^Nn.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::unordered_map<u3::U3,basis::OperatorBlock<double>>
-GetSMatrics(const u3::U3& sigma, const vcs::U3BosonSpace& space)
+GenerateSmatrices(const u3::U3& sigma, const u3boson::U3BosonSpace& space)
   {
-    // vcs::U3BosonSpace space(sigma,Nn_max);
     std::unordered_map<u3::U3,basis::OperatorBlock<double>> SMatrices;
     SMatrices[sigma] = basis::OperatorBlock<double>::Identity(1,1);
 
@@ -272,16 +245,12 @@ GetSMatrics(const u3::U3& sigma, const vcs::U3BosonSpace& space)
                   const int rho_max_ket = ket_state.rho_max();
                   double DeltaOmega = vcs::Omega(n_bra,omega_bra)-vcs::Omega(n_ket,omega_ket);
 
-                  // //testing
-                  // if(DeltaOmega<0)
-                    // continue;
-
                   for(int rho_bra=1; rho_bra<=rho_max_bra; ++rho_bra)
                     for(int rho_ket=1; rho_ket<=rho_max_ket; ++rho_ket)
                     {
                       int row = bra_subspace.GetStateOffset(bra_state_index,rho_bra);
                       int col = ket_subspace.GetStateOffset(ket_state_index,rho_ket);
-                      double boson_rme = vcs::U3BosonCreationRME(sigma,n_bra,rho_bra,omega_bra,sigma,n_ket,rho_ket,omega_ket);
+                      double boson_rme = u3boson::U3BosonCreationRME(sigma,n_bra,rho_bra,omega_bra,sigma,n_ket,rho_ket,omega_ket);
                       Coef1(row,col) = DeltaOmega*boson_rme;
                       Coef2(col,row) = boson_rme;
                     }
@@ -289,20 +258,21 @@ GetSMatrics(const u3::U3& sigma, const vcs::U3BosonSpace& space)
 
             SMatrices[omega_bra]+=Coef1*SMatrices[omega_ket]*Coef2;
           }
+
           SMatrices[omega_bra]=SMatrices[omega_bra]/(8*Nn);
       }
     return SMatrices;
   }
 
 vcs::KmatrixMap
-GetKMatrices(
+GenerateKmatrices(
   const u3::U3& sigma,
-  const vcs::U3BosonSpace& space,
+  const u3boson::U3BosonSpace& space,
   const double zero_threshold
 )
   {
     // vcs::U3BosonSpace space(sigma,Nn_max);
-    auto SMatrices = GetSMatrics(sigma,space);
+    auto SMatrices = GenerateSmatrices(sigma,space);
 
     KmatrixMap KMatrix_map;
 
@@ -310,8 +280,6 @@ GetKMatrices(
       {
         for(const auto& [omega,SMatrix] : SMatrices)
           {
-            double factor = pow(2,int(omega.N()-sigma.N()));
-
             if(SMatrix.rows()==1)
               {
                 double k_squared = SMatrix(0,0);
@@ -335,28 +303,34 @@ GetKMatrices(
             std::vector<double>eigenvalue_vector;
             for(int i=0; i<eigenvalues.rows(); ++i)
               {
-                // Negative eigenvalues can appear if the irrep is non-unitary.  For now, we 
-                // just eliminate those states from the basis TODO: determine proper
-                // branching rule.
+                // If sigma is a unitary Sp(3,R) irrep, then the eigenvalues of S
+                // should always be >=0.
                 if(eigenvalues(i,0)<0)
                   {
+                    // If negative eigenvalue is ``non-zero", exit with failure.
                     if(fabs(eigenvalues(i,0))>zero_threshold)
-                      fmt::print("negative eigenvalue for {}: {}\n",omega,eigenvalues(i,0));
-                    // eigenvalue_vector.push_back(0);
+                      {
+                        fmt::print("negative eigenvalue for {}: {}\n",omega,eigenvalues(i,0));
+                        exit (EXIT_FAILURE);
+                      }
                   }
+
                 else {eigenvalue_vector.push_back(eigenvalues(i,0));}
               }
             // Get list of non-zero eigenvalues and the index of the corresponding eigenvector. 
             auto nonzero_eigs 
-              = iter::filter([zero_threshold](const auto& eig){return eig.second > zero_threshold;}, iter::enumerate(eigenvalue_vector));
+              = iter::filter(
+                  [zero_threshold](const auto& eig){return eig.second > zero_threshold;},
+                  iter::enumerate(eigenvalue_vector)
+                );
 
             // upsilon_max corresponds to the number of non-zero eigenvalues of S
             int upsilon_max = std::distance(nonzero_eigs.begin(),nonzero_eigs.end());
             if(upsilon_max==0)
               continue;
+
             // K matrix defined such that 
-            // |sigma,upsilon,omega> 
-            //    = sum[n,rho] (K_inv)_{upsilon,[n,rho]}|sigma,n,rho,omega>
+            // |sigma,upsilon,omega> = sum[n,rho] (K_inv)_{upsilon,[n,rho]}|sigma,n,rho,omega>
             auto& K = KMatrix_map[omega][0];
             auto& K_inv = KMatrix_map[omega][1];
             K.resize(SMatrix.cols(),upsilon_max);
@@ -370,9 +344,9 @@ GetKMatrices(
                 i++;
               }
 
-            // From pulling out a factor of 16 from the definition of the Smatrix
-            // We now need to add it back it sqrt(16)^(Nn/2)=2^Nn
-
+            // Since 16 was fatored out of the definition of the Smatrix,
+            // we now need to add it back it sqrt(16)^(Nn/2)=2^Nn
+            double factor = pow(2,int(omega.N()-sigma.N()));
             K=K*factor;
             K_inv=K_inv/factor;
           }

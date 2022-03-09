@@ -32,23 +32,13 @@
 
 #include "basis/basis.h"
 #include "sp3rlib/u3.h"
+#include "sp3rlib/u3boson.h"
 
 namespace sp3r
 {
-  std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
-  // Generate full set of raising polynomial U3 labels up to given Nn_max.
-  //
-  // Labels are generated in "canonical" order, defined as
-  // lexicographic by N(lambda,mu).
-  //
-  // Arguments:
-  //   Nn_max : maximum excitation quanta of raising polynomial
-  //     labels
-  //
-  // Returns:
-  //   Raising polynomial labels
 
-
+  // TODO: Move into vcs?  Or separate sp3r_utils file?
+  // Used in vcs.cpp but, vcs K matrix functions used in sp3r.cpp
   bool IsUnitary(const u3::U3& sigma);
   // Check if sigma is label of unitary Sp(3,R) irrep
   // based on the criteria given in jpa-18-1985-939-Rowe.
@@ -79,8 +69,8 @@ namespace sp3r
   // container for all state labels generated in Sp(3,R) branching
   //    for use as input parameter to U3Subspace::Init()
   typedef std::multimap< u3::U3, MultiplicityTagged<u3::U3> > SpanakopitaType;
-  typedef std::pair< SpanakopitaType::iterator, SpanakopitaType::iterator > SpanakopitaRangeType;
-  typedef std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> RestrictedSpanakopitaType;
+  // typedef std::pair< SpanakopitaType::iterator, SpanakopitaType::iterator > SpanakopitaRangeType;
+  // typedef std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> RestrictedSpanakopitaType;
 
   class U3Subspace;
   class Sp3RSpace;
@@ -91,11 +81,11 @@ namespace sp3r
 
   class U3Subspace
     : public basis::BaseSubspace<
-        U3Subspace, u3::U3,
-        basis::BaseState<U3Subspace>, MultiplicityTagged<u3::U3>
+        U3Subspace,
+        u3::U3,
+        basis::BaseState<U3Subspace>,
+        MultiplicityTagged<u3::U3>
       >
-    // subspace label type: u3::U3
-    // state label type: MultiplicityTagged<u3::U3>
   {
 
   public:
@@ -111,15 +101,15 @@ namespace sp3r
     // Arguments:
     //   omega (u3::U3) : labels for subspace
 
-    U3Subspace(
-        const u3::U3& omega,
-        int upsilon_max,
-        const SpanakopitaRangeType& state_range
-      )
-      : U3Subspace(omega, upsilon_max)
-    {
-      Init(state_range);
-    }
+    // U3Subspace(
+    //     const u3::U3& omega,
+    //     int upsilon_max,
+    //     const SpanakopitaRangeType& state_range
+    //   )
+    //   : U3Subspace(omega, upsilon_max)
+    // {
+    //   Init(state_range);
+    // }
 
     U3Subspace(
         const u3::U3& omega,
@@ -131,7 +121,7 @@ namespace sp3r
       Init(state_set);
     }
 
-    void Init(const SpanakopitaRangeType& state_range);
+    // void Init(const SpanakopitaRangeType& state_range);
     // Populate subspace
     //
     // Arguments:
@@ -148,6 +138,27 @@ namespace sp3r
     void Init(const MultiplicityTagged<u3::U3>::vector& state_set);
     // Alternative constructor from list of (n,rho) states
 
+    ////////////////////////////////////////////////////////////////////////
+    template<typename K1, typename K2>
+    U3Subspace(
+      const u3::U3& omega,
+      int upsilon_max,
+      const u3boson::U3Subspace& u3boson_subpace,
+      K1&& K_matrix__,
+      K2&& Kinv_matrix__
+    )
+    : BaseSubspace{{omega}},
+      upsilon_max_{upsilon_max},
+      K_matrix_{std::forward<K1>(K_matrix__)},
+      Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
+    {
+      Init(u3boson_subpace);
+    }
+
+    void Init(const u3boson::U3Subspace& u3boson_subpace);
+
+    ////////////////////////////////////////////////////////////////////////
+
     // accessors
     const u3::U3& U3() const
     {
@@ -159,8 +170,20 @@ namespace sp3r
     // diagnostic output
     std::string DebugStr() const;
 
+    // Currently K_matrix_ and Kinv_matrix_ only stored when
+    // basis constructed using U3BosonSpace.
+    inline const basis::OperatorBlock<double>& K_matrix() const
+      {
+        return K_matrix_;
+      }
+    inline const basis::OperatorBlock<double>& Kinv_matrix() const
+      {
+        return Kinv_matrix_;
+      }
+
   private:
     int upsilon_max_;
+    basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;
 
   };
 
@@ -186,6 +209,7 @@ namespace sp3r
 
     // constructor
     Sp3RSpace(const u3::U3& sigma, int Nn_max);
+
     inline Sp3RSpace(const u3::U3& sigma, int Nn_max, bool modify_sp3r_to_u3_branching)
     {
       // Whether or not branching rule must be modified is determined internally.
@@ -195,13 +219,13 @@ namespace sp3r
     }
     // Constructs all U3 subspaces up to given Nn_max.
     // Note, restrict_sp3r_to_u3_branching = true not currently implemented.
+    // Option to pass bool Deprecated in favor of ModifySp3RBranching
+
 
     Sp3RSpace(
-      const u3::U3& sigma, int Nn_max,
-      const RestrictedSpanakopitaType& spanakopita
+      const u3::U3& sigma, const int Nn_max,
+      const u3boson::U3BosonSpace& u3boson_space
     );
-    // Constructor from set of states given by spanakopita.  Used in constructing modefied space
-    // for A<6
 
     // diagnostic output
     std::string DebugStr() const;
@@ -217,7 +241,7 @@ namespace sp3r
 
   };
 
-  std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax);
+  // std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax);
   // Returns a list of indices for which each in Nn begins.
 
 }  // namespace

@@ -40,7 +40,7 @@ namespace sp3r
         {
           const MultiplicityTagged<u3::U3>& np_rhop = subspace_bra.GetStateLabels(ip);
           const MultiplicityTagged<u3::U3>& n_rho = subspace_ket.GetStateLabels(i);
-          A_boson(ip,i)=vcs::U3BosonCreationRME(sigma,np_rhop,omegap,sigma,n_rho,omega);
+          A_boson(ip,i)=u3boson::U3BosonCreationRME(sigma,np_rhop,omegap,sigma,n_rho,omega);
           
         }
 

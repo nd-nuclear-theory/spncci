@@ -33,9 +33,6 @@ namespace u3boson{
        return poly_labels;
 
      }
-}
-
-namespace vcs{
 
   U3BosonSpace::U3BosonSpace(const u3::U3& sigma, const int Nn_max)
       : BaseSpace{sigma}
@@ -43,7 +40,7 @@ namespace vcs{
     Nn_max_=Nn_max;
 
     // find all raising polynomials
-    std::vector<u3::U3> n_vector = vcs::RaisingPolynomialLabels(Nn_max);
+    std::vector<u3::U3> n_vector = u3boson::RaisingPolynomialLabels(Nn_max);
 
     // temporary container
     std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
@@ -88,7 +85,7 @@ namespace vcs{
 
     // print space labels
     ss += fmt::format("space sigma {} Nn_max {}\n",sigma(),Nn_max());
-    
+
     // iterate over subspaces
     for (int i_subspace=0; i_subspace<size(); ++i_subspace)
     {
@@ -150,9 +147,7 @@ namespace vcs{
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
   )
   {
-    unsigned int rho0_max=u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
-    unsigned int rhon_max=u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
-    
+
     bool allowed = sigma==sigmap;
     allowed &= u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
     allowed &= u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
@@ -161,13 +156,12 @@ namespace vcs{
     if (allowed)
       {
         rme = ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-          *u3::U(u3::SU3(2,0),n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
-          *BosonCreationRME(np,n); 
+          *u3::U({2,0},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
+          *u3boson::BosonCreationRME(np,n);
       }
-    
+
     return rme;
   }
-
   double U3BosonCreationRME(
     const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop,  const u3::U3& omegap,
     const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
@@ -176,6 +170,7 @@ namespace vcs{
     const auto& [n,rho] = n_rho;
     const auto& [np,rhop] = np_rhop;
     return U3BosonCreationRME(sigmap,np,rhop,omegap,sigma,n,rho,omega);
-  } 
+  }
+
 
 }  //  namespace

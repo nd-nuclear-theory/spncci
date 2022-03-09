@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   // first give specifications for unit tensors, then Brel and Nrel
   std::ofstream control_stream("raising_polynomials.dat");
 
-  std::vector<u3::U3>raising_polynomials=sp3r::RaisingPolynomialLabels(Nmax);
+  std::vector<u3::U3>raising_polynomials=u3boson::RaisingPolynomialLabels(Nmax);
 
   for(int i=0; i<raising_polynomials.size(); ++i)
   {

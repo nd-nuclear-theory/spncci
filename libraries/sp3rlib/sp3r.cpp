@@ -16,34 +16,14 @@
 
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/u3coef.h"
+#include "sp3rlib/u3boson.h"
 #include "sp3rlib/vcs.h"
   namespace sp3r
   {
 
-  ////////////////////////////////////////////////////////////////
-  // Sp(3,R) raising polynomial
-  ////////////////////////////////////////////////////////////////
-
-    std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max)
-    {
-      std::vector<u3::U3> poly_labels;
-
-    // prime with Nn=0 entry
-      if (Nn_max>=0)
-        poly_labels.push_back(u3::U3(0,0,0));
-
-    // Should't N start with 2?
-    // append remaining entries
-      for (int N=0; N<=Nn_max; N+=2)
-        for (int a=N-2; a>=0; a-=2)
-          for (int b=2*(a/4); b>=std::max((2*a-N),0); b-=2)
-           poly_labels.push_back(u3::U3(N-a,a-b,b));
-
-         return poly_labels;
-
-       }
-
-
+  // ////////////////////////////////////////////////////////////////
+  // // Sp(3,R) raising polynomial
+  // ////////////////////////////////////////////////////////////////
     // TauConjugate computes the first two rows of the partition conjugate 
     // of tau = [f1-f3,f2-f3] = [lambda+mu,mu], defined in 
     // jpa-18-1985-939-Rowe. Note, in ref., tau is referred to as lambda. 
@@ -106,28 +86,7 @@
         : BaseSubspace{{omega}}, upsilon_max_{upsilon_max}
        {}
 
-      void U3Subspace::Init(const SpanakopitaRangeType& state_range)
-      {
-    // for each (n,rho_max) entry belonging to this omega subspace
-        for (auto it = state_range.first; it != state_range.second; ++it)
-        {
-	// extract state labels
-	//   from omega -> (n,rho_max) entry
-         MultiplicityTagged<u3::U3> n_rho_max = it->second;
-         u3::U3 n = n_rho_max.irrep;
-         int rho_max = n_rho_max.tag;
-
-	// push state (n,rho) labels into subspace indexing
-	//   enumerating all multiplicity indices
-         for (int rho=1; rho<=rho_max; ++rho)
-         {
-           PushStateLabels(MultiplicityTagged<u3::U3>(n,rho));
-         }
-       }
-     }
-
-
-      void U3Subspace::Init(const MultiplicityTagged<u3::U3>::vector& multiplicities)
+       void U3Subspace::Init(const MultiplicityTagged<u3::U3>::vector& multiplicities)
       {
         // for each (n,rho_max) entry belonging to this omega subspace
         for (auto n_rho : multiplicities)
@@ -159,6 +118,8 @@
     {
       // Make sure sigma is a unitary irrep
       assert(sp3r::IsUnitary(sigma));
+      bool modify_sp3r_to_u3_branching = sp3r::ModifySp3RBranching(sigma);
+      assert(modify_sp3r_to_u3_branching==false);
       // set space labels
       sigma_ = sigma;
       Nn_max_ = Nn_max;
@@ -168,7 +129,7 @@
       std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> states;
 
       // find all raising polynomials
-      std::vector<u3::U3> n_vec = RaisingPolynomialLabels(Nn_max);
+      std::vector<u3::U3> n_vec = u3boson::RaisingPolynomialLabels(Nn_max);
 
       // enumerate states
       //
@@ -186,79 +147,64 @@
               states[omega].push_back({n,rho});
         }
 
-      bool modify_sp3r_to_u3_branching = sp3r::ModifySp3RBranching(sigma);
-      if(modify_sp3r_to_u3_branching)
-        {
-          std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> keep_states;
-          for(const auto&[omega1,n_rho_vec1] : states)
-            {
-              if (omega1==sigma)
-                {
-                  keep_states[omega1].push_back({{0,{0,0}},1});
-                  continue;
-                }
-
-              for(const auto& [n1,rho1] : n_rho_vec1)
-                {
-                  bool keep_irrep=false;
-                  auto omega2_vec = u3::KroneckerProduct(omega1, u3::U3(-2,{0,2}));
-                  for(const auto& [omega2,dummy] : omega2_vec)
-                    {
-                      assert(dummy==1);
-                      for(const auto& [n2,rho2] : states[omega2])
-                        {
-                          double DeltaOmega = vcs::Omega(n1,omega1)-vcs::Omega(n2,omega2);
-                          // if(DeltaOmega<=0)
-                          // {
-                          //   double u3boson_rme = vcs::U3BosonCreationRME(sigma,n1,rho1,omega1,sigma,n2,rho2,omega2);
-                          //   fmt::print("{} {} {}  {} {} {}\n",omega1,n1,rho1,omega2,n2,rho2);
-                          //   fmt::print("{}  {}\n",DeltaOmega,u3boson_rme);
-                          // }
-                          // assert(DeltaOmega>=0);
-                          if(DeltaOmega>0)
-                            {
-                              double u3boson_rme = vcs::U3BosonCreationRME(sigma,n1,rho1,omega1,sigma,n2,rho2,omega2);
-                              if (u3boson_rme>zero_threshold)
-                                {
-                                  keep_irrep=true;
-                                  break;
-                                }
-                            }
-                        }
-                    }
-                  if(keep_irrep)
-                    keep_states[omega1].emplace_back(n1,rho1);
-                }
-            }
-          // Overwrite list of states
-          states=keep_states;
-        }
-
       // scan through spanakopita for subspaces and add subspace
      for(const auto& [omega,multiplicities] : states)
         EmplaceSubspace(omega,multiplicities.size(),multiplicities);
    }
 
 
-  Sp3RSpace::Sp3RSpace(
-    const u3::U3& sigma, int Nn_max,
-    const RestrictedSpanakopitaType& spanakopita
-  )
-  {
-    // set space labels
-    sigma_ = sigma;
-    Nn_max_ = Nn_max;
+  ////////////////////////////////////////////////////////////////////////
+  // Construction from U3BosonSpace
+  ////////////////////////////////////////////////////////////////////////
+  void U3Subspace::Init(const u3boson::U3Subspace& u3boson_subspace)
+    {
+      for(int i=0; i<u3boson_subspace.size(); ++i)
+        {
+          const auto& u3boson_state = u3boson_subspace.GetState(i);
+          const u3::U3& n = u3boson_state.n();
+          for(int rho=1; rho<=u3boson_state.rho_max(); ++rho)
+            {
+              PushStateLabels({n,rho});
+            }
+        }
+    }
 
-    // scan through spanakopita for subspaces
-    for(auto it=spanakopita.begin(); it!=spanakopita.end(); ++it)
-      {
-        // retrieve omega key of this group of states
-        u3::U3 omega=it->first.irrep;
-        int upsilon_max=it->first.tag;
-        const auto& states = it->second;
-        EmplaceSubspace(omega,upsilon_max,states);
-      }
-  }
+
+  Sp3RSpace::Sp3RSpace(
+    const u3::U3& sigma, const int Nn_max,
+    const u3boson::U3BosonSpace& u3boson_space
+    )
+    {
+      Nn_max_ = Nn_max;
+      sigma_=sigma;
+
+      // Check that sigma is an LGI of a unitary Sp(3,R) irrep
+      assert(IsUnitary(sigma));
+
+      double zero_threshold = 1e-12;
+      vcs::KmatrixMap K_matrices
+        = vcs::GenerateKmatrices(sigma,u3boson_space,zero_threshold);
+
+      for(const auto& u3boson_subspace : u3boson_space)
+        {
+          const u3::U3& omega = u3boson_subspace.omega();
+          int upsilon_max = K_matrices[omega][0].cols();
+          if(upsilon_max==0)
+            continue;
+
+          PushSubspace(
+            U3Subspace(
+              omega,upsilon_max,
+              u3boson_subspace,
+              std::move(K_matrices[omega][0]),
+              std::move(K_matrices[omega][1])
+            )
+          );
+        }
+    }
+
+////////////////////////////////////////////////////////////////////////
+
 
 
    std::string Sp3RSpace::DebugStr() const
@@ -285,24 +231,24 @@
   }
 
 
-  std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
-  {
-    // partition irreps by Nn
-    HalfInt Ns=irrep.GetSubspace(0).labels().N();
-    int Nn_last=-1;
-    std::vector<int> IrrepPartionN;
-    for(int i=0; i<irrep.size(); i++ )
-      {
-        u3::U3 omega=irrep.GetSubspace(i).labels();
+  // std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
+  // {
+  //   // partition irreps by Nn
+  //   HalfInt Ns=irrep.GetSubspace(0).labels().N();
+  //   int Nn_last=-1;
+  //   std::vector<int> IrrepPartionN;
+  //   for(int i=0; i<irrep.size(); i++ )
+  //     {
+  //       u3::U3 omega=irrep.GetSubspace(i).labels();
 
-        if ( Nn_last!=int(omega.N()-Ns) )
-          {
-            IrrepPartionN.push_back(i);
-            Nn_last=int(omega.N()-Ns);
-          }
-      }
-    return IrrepPartionN;
-  }
+  //       if ( Nn_last!=int(omega.N()-Ns) )
+  //         {
+  //           IrrepPartionN.push_back(i);
+  //           Nn_last=int(omega.N()-Ns);
+  //         }
+  //     }
+  //   return IrrepPartionN;
+  // }
 
 
 }  // namespace

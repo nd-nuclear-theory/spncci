@@ -14,6 +14,7 @@
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "SU3ME/proton_neutron_ncsmSU3Basis.h"
 
+#include "sp3rlib/u3boson.h"
 
 namespace lsu3shell
 {
@@ -215,7 +216,7 @@ MultiplicityTaggedLGIVector get_lgi_vector(
     {
       HalfInt Sp(lgi.Sp()),Sn(lgi.Sn()), S(lgi.S());
       int Nn_max = Nmax - int(lgi.N() - Nsigma0);
-      std::vector<u3::U3> raising_polynomial_labels = sp3r::RaisingPolynomialLabels(Nn_max);
+      std::vector<u3::U3> raising_polynomial_labels = u3boson::RaisingPolynomialLabels(Nn_max);
 
       for(const u3::U3& n : raising_polynomial_labels)
         {

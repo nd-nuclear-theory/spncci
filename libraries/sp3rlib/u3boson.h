@@ -37,21 +37,18 @@ namespace u3boson
   //
   // Returns:
   //   Raising polynomial labels
-}
-namespace vcs
-{
-  inline std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max)
-  {
-    return u3boson::RaisingPolynomialLabels(Nn_max);
-  }
 
 
   class U3Subspace;
   class U3State;
-  class U3Bosonpace;
- // Class for U(3) boson space, which is a direct product of the space for a unitary U(3) irrep
+  class U3BosonSpace;
+  // Class for U(3) boson space, which is a direct product of the space for a unitary U(3) irrep
   // and the space for a unitary irrep of a Weyl (boson) algebra. See, e.g, jpa-18-1985-939-Rowe
   // or ps-91-2016-033003-Rowe.
+  //
+  // u3boson::U3BosonSpace [sigma]
+  // -> U3Subspace [omega]
+  //    -> U3State [n,rho]
   //
   // Note: U3Subspace is BaseDegenerateSubspace.  To get number of "states", use .size() if want
   // Number of actual states (n,rho), use .dimension()
@@ -120,7 +117,7 @@ namespace vcs
       std::string DebugStr() const;
 
     private:
-      unsigned int Nn_max_; 
+      unsigned int Nn_max_;
 
   };
 
@@ -149,30 +146,9 @@ namespace vcs
   };
 
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-
-  inline double Omega(const u3::U3& n, const u3::U3& omega)
-
-  // Calculate Omega factor used in Kmatrix calculations.
-  //
-  // Based on protopye vcs.py and equation given in
-  //   D. J. Rowe, J. Math Phys. 25 (1984) 2662.
-  //
-  // Returns:
-  //   (double) : Omega factor
-  {
-    const auto& [n1,n2,n3] = std::tuple<int,int,int>(n.f());
-    const auto& [w1,w2,w3] = omega.f();
-
-    double value=0;
-    value += double(int(2*w1)*w1-n1*n1+8*(w1-n1)-2*(2*w1-n1));
-    value += double(int(2*w2)*w2-n2*n2+8*(w2-n2)-4*(2*w2-n2));
-    value += double(int(2*w3)*w3-n3*n3+8*(w3-n3)-6*(2*w3-n3));
-    return value/4.;
-  }
-
   double BosonCreationRME(const u3::U3& np, const u3::U3& n);
   // SU(3) Reduced matrix element of a^\dagger boson creation operator
+  // in a Weyl-boson basis
   //
   // Based on protoype u3boson.py  Formula is given by:
   //   G. Rosensteel and D. J. Rowe. J. Math Phys. 24 (1983) 2461.
@@ -180,20 +156,22 @@ namespace vcs
   // Returns:
   //    rme: (double) reduced matrix element of boson creation operator.
 
-  // double SMatrix(const u3::U3& s, const u3::U3& omega, MultiplicityTagged<u3::U3>& n1_tagged, MultiplicityTagged<u3::U3>& n2_tagged);
-  // Calculate the K^2 matrix elements
-
-  double U3BosonCreationRME(
-  const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop, const u3::U3& omegap,
-  const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega);
-
   double U3BosonCreationRME(
     const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
   );
-  //Overload
+  // SU(3) Reduced matrix element of a^\dagger boson creation operator in the
+  // U(3)-boson basis (defined in U3BosonSpace).  See, e.g.,
+  //   G. Rosensteel and D. J. Rowe. J. Math Phys. 24 (1983) 2461.
+  //   D. J. Rowe, B. G. Wybourne and P. H. Butler. J. Phys. A 18 (1985) 939.
 
 
-}  //  namespace
+  double U3BosonCreationRME(
+  const u3::U3& sigmap, const MultiplicityTagged<u3::U3>np_rhop, const u3::U3& omegap,
+  const u3::U3& sigma, const MultiplicityTagged<u3::U3> n_rho, const u3::U3& omega
+  );
+  // Convenient overload.  Will be deprecated with new recurrence algorithm.
+
+}
 
 #endif
