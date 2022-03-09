@@ -6,7 +6,7 @@
 
   SPDX-License-Identifier: MIT
 ****************************************************************/
-#include "sp3rlib/vcs.h"
+#include "sp3rlib/u3boson.h"
 
 #include <numeric>
 #include "fmt/format.h"
@@ -25,9 +25,8 @@ namespace vcs{
     if (Nn_max>=0)
       poly_labels.push_back(u3::U3(0,0,0));
 
-  // Should't N start with 2?
   // append remaining entries
-    for (int N=0; N<=Nn_max; N+=2)
+    for (int N=2; N<=Nn_max; N+=2)
       for (int a=N-2; a>=0; a-=2)
         for (int b=2*(a/4); b>=std::max((2*a-N),0); b-=2)
          poly_labels.push_back(u3::U3(N-a,a-b,b));
@@ -56,11 +55,11 @@ namespace vcs{
           u3::KroneckerProduct(sigma, n);
       for (const auto& [omega, rho_max] : omega_rhomax_vector)
         states[omega].emplace_back(n, rho_max);
-
-      // Create U3Subspace
-      for (const auto& [omega, n_rho_vector] : states)
-        PushSubspace(U3Subspace(omega,n_rho_vector));
     }
+
+    // Create U3Subspace
+    for (const auto& [omega, n_rho_vector] : states)
+      PushSubspace(U3Subspace(omega,n_rho_vector));
   }
 
 
@@ -101,6 +100,24 @@ namespace vcs{
     return ss;
   }
 
+    U3BosonSectors::U3BosonSectors(
+      const U3BosonSpace& space,
+      const u3::U3& omega0
+    )
+      : BaseSectors{space,space}, omega0_(omega0)
+    {
+      // omega0_ = omega0;
+      for(int bra_index=0; bra_index<space.size(); ++bra_index)
+        for(int ket_index=0; ket_index<space.size(); ++ket_index)
+          {
+            const u3::U3& omega_bra = space.GetSubspace(bra_index).omega();
+            const u3::U3& omega_ket = space.GetSubspace(ket_index).omega();
+            int multiplicity = u3::OuterMultiplicity(omega_ket,omega0,omega_bra);
+
+            if(multiplicity>0)
+              PushSector(bra_index,ket_index,multiplicity);
+          }
+    }
 
 
   double BosonCreationRME(const u3::U3& np, const u3::U3& n)

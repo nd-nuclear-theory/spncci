@@ -67,6 +67,7 @@ namespace vcs
 
     u3::U3 omega() const { return std::get<0>(labels()); }
     std::string DebugStr() const;
+    std::string LabelStr() const {return omega().Str();}
 
    private:
   };
@@ -114,6 +115,31 @@ namespace vcs
       unsigned int Nn_max_; 
 
   };
+
+
+  // Useful accessors:
+  // .multiplicity_index()
+  // .bra_subspace_index()
+  // .bra_subspace()
+  class U3BosonSectors
+    : public basis::BaseSectors<U3BosonSpace>
+  {
+    public:
+
+    // Default constructor
+    U3BosonSectors() = default;
+
+    // Constructor
+    U3BosonSectors(
+        const U3BosonSpace& space,
+        const u3::U3& omega0
+      );
+
+  private:
+    u3::U3 omega0_;
+
+  };
+
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
