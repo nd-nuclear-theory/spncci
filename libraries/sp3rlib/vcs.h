@@ -55,22 +55,12 @@ namespace vcs
 
   
   using KmatrixMap = std::unordered_map<u3::U3, std::array<basis::OperatorBlock<double>, 2>>;
-  
-  KmatrixMap
-  GenerateKMatrices(
+
+  KmatrixMap GetKMatrices(
     const u3::U3& sigma,
-    const std::map<u3::U3, MultiplicityTagged<u3::U3>::vector>& u3_subspaces
+    const vcs::U3BosonSpace& space,
+    const double zero_threshold = 1e-12
   );
-
-
-
-
-KmatrixMap
-GetKMatrices(
-  const u3::U3& sigma,
-  const vcs::U3BosonSpace& space,
-  const double zero_threshold = 1e-12
-);
 
 }  //  namespace
 
