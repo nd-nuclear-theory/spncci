@@ -16,7 +16,7 @@
 #include "sp3rlib/vcs.h"
 #include "mcutils/eigen.h"
 #include "cppitertools/itertools.hpp"
-
+#include "sp3rlib/u3boson.h"
 namespace vcs
 {
 	using Matrix =  basis::OperatorBlock<double>;
@@ -123,15 +123,22 @@ if(true)
 		vcs::GenerateKMatrices(sp3r_irrep,K1_matrix_map);
 		vcs::KmatrixMap K2_matrix_map = vcs::GenerateKMatrices(sigma,u3_subspace_map);
 
+		vcs::U3BosonSpace u3boson_space(sigma,20);
+		auto K3_matrix_map = vcs::GetKMatrices(sigma,u3boson_space,1e-12);
+
 		for(const auto& [omega,K] : test_values)
 		// for(const auto& [omega,K1] : K_matrix_map1)
 			{
 				const auto& K1=K1_matrix_map.at(omega);
 				const auto& K2=K2_matrix_map.at(omega)[0];
+				const auto& K3=K3_matrix_map.at(omega)[0];
 				// std::cout<<K2<<std::endl<<K<<std::endl;
 				assert(mcutils::IsZero(K1-K,1e-6));
 				assert(mcutils::IsZero(K2-K,1e-6));
+				assert(mcutils::IsZero(K3-K,1e-6));
 			}
+
+
 	}
 }
 
