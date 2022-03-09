@@ -26,33 +26,30 @@ namespace spncci::spatial
 Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
     : BaseSpace{sigma}
 {
-  // find all raising polynomials
-  std::vector<u3::U3> n_vector = sp3r::RaisingPolynomialLabels(Nn_max);
+  // Construct U3 boson irrep and generate K matrices
+  vcs::U3BosonSpace u3boson_space(sigma,Nn_max);
+  auto K_matrices = vcs::GetKMatrices(sigma,u3boson_space);
 
-  // temporary container
-  std::map<u3::U3, MultiplicityTagged<u3::U3>::vector> states;
-  
+  for(const auto& subspace : u3boson_space)
+    {
+      const u3::U3& omega = subspace.omega();
 
-  // For each raising polynomial n obtain all allowed couplings
-  // omega (sigma x n -> omega) with outer multiplicities rho_max.
-  for (const auto& n : n_vector)
-  {
-    MultiplicityTagged<u3::U3>::vector omega_rhomax_vector =
-        u3::KroneckerProduct(sigma, n);
-    for (const auto& [omega, rho_max] : omega_rhomax_vector)
-      states[omega].emplace_back(n, rho_max);
-  }
+      // Generate a list of n,rho_max pairs which define the U3Boson subspace
+      MultiplicityTagged<u3::U3>::vector n_rho_vector;
+      for (int i_state=0; i_state<subspace.size(); ++i_state)
+        {
+          const auto& state = subspace.GetState(i_state);
+          n_rho_vector.push_back({state.n(),state.rho_max()});
+        }
 
-  // Calculate K matrices
-  vcs::KmatrixMap K_matrices = vcs::GenerateKMatrices(sigma,states);
-   // Push subpaces
-  for (const auto& [omega, n_rho_vector] : states)
-    PushSubspace(U3Subspace(
-        omega,
-        n_rho_vector,
-        std::move(K_matrices[omega][0]),
-        std::move(K_matrices[omega][1])
-      ));
+      // Push subpaces
+      PushSubspace(U3Subspace(
+          omega,
+          n_rho_vector,
+          std::move(K_matrices[omega][0]),
+          std::move(K_matrices[omega][1])
+        ));
+    }
 }
 
 Space::Space(
