@@ -70,6 +70,14 @@ target_link_libraries(
   spncci::u3ncsm
 )
 
+add_executable(modified_branching_test EXCLUDE_FROM_ALL modified_branching_test.cpp)
+target_link_libraries(
+  modified_branching_test PRIVATE
+  fmt::fmt
+  spncci::utilities
+  spncci::lsu3shell
+  spncci::u3ncsm
+)
 
 add_executable(print_lsu3shell_basis EXCLUDE_FROM_ALL print_lsu3shell_basis.cpp)
 target_link_libraries(

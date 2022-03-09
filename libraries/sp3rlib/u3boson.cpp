@@ -15,8 +15,7 @@
 #include "mcutils/eigen.h"
 #include "cppitertools/itertools.hpp"
 
-namespace vcs{
-
+namespace u3boson{
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max)
   {
     std::vector<u3::U3> poly_labels;
@@ -34,7 +33,9 @@ namespace vcs{
        return poly_labels;
 
      }
+}
 
+namespace vcs{
 
   U3BosonSpace::U3BosonSpace(const u3::U3& sigma, const int Nn_max)
       : BaseSpace{sigma}

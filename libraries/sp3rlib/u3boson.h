@@ -22,9 +22,9 @@
 #include "sp3rlib/u3.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
-namespace vcs
-{
 
+namespace u3boson
+{
   std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
   // Generate full set of raising polynomial U3 labels up to given Nn_max.
   //
@@ -37,6 +37,14 @@ namespace vcs
   //
   // Returns:
   //   Raising polynomial labels
+}
+namespace vcs
+{
+  inline std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max)
+  {
+    return u3boson::RaisingPolynomialLabels(Nn_max);
+  }
+
 
   class U3Subspace;
   class U3State;

@@ -272,9 +272,9 @@ GetSMatrics(const u3::U3& sigma, const vcs::U3BosonSpace& space)
                   const int rho_max_ket = ket_state.rho_max();
                   double DeltaOmega = vcs::Omega(n_bra,omega_bra)-vcs::Omega(n_ket,omega_ket);
 
-                  //testing
-                  if(DeltaOmega<0)
-                    continue;
+                  // //testing
+                  // if(DeltaOmega<0)
+                    // continue;
 
                   for(int rho_bra=1; rho_bra<=rho_max_bra; ++rho_bra)
                     for(int rho_ket=1; rho_ket<=rho_max_ket; ++rho_ket)
@@ -310,6 +310,8 @@ GetKMatrices(
       {
         for(const auto& [omega,SMatrix] : SMatrices)
           {
+            double factor = pow(2,int(omega.N()-sigma.N()));
+
             if(SMatrix.rows()==1)
               {
                 double k_squared = SMatrix(0,0);
@@ -338,7 +340,8 @@ GetKMatrices(
                 // branching rule.
                 if(eigenvalues(i,0)<0)
                   {
-                    fmt::print("negative eigenvalue for {}: {}\n",omega,eigenvalues(i,0));
+                    if(fabs(eigenvalues(i,0))>zero_threshold)
+                      fmt::print("negative eigenvalue for {}: {}\n",omega,eigenvalues(i,0));
                     // eigenvalue_vector.push_back(0);
                   }
                 else {eigenvalue_vector.push_back(eigenvalues(i,0));}
@@ -369,7 +372,7 @@ GetKMatrices(
 
             // From pulling out a factor of 16 from the definition of the Smatrix
             // We now need to add it back it sqrt(16)^(Nn/2)=2^Nn
-            double factor =pow(2,int(omega.N()-sigma.N()));
+
             K=K*factor;
             K_inv=K_inv/factor;
           }

@@ -78,6 +78,8 @@ class U3Subspace
         Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
   {
     for (const auto& [n, rho_max] : nrho_vector) PushStateLabels(n, rho_max);
+
+    //TODO: double check this with Patrick.  May need to redefine K matrix in vcs.cpp
     assert(K_matrix().rows() == Kinv_matrix().cols());
     assert(
         (nonorthogonal_basis_size() == K_matrix().cols())
