@@ -30,7 +30,7 @@ target_link_libraries(
 
 ## For lanczos decompositions
 add_executable(get_u3s_subspaces EXCLUDE_FROM_ALL get_u3s_subspaces.cpp)
-target_link_libraries(get_u3s_subspaces PRIVATE am::am fmt::fmt spncci::sp3rlib)
+target_link_libraries(get_u3s_subspaces PRIVATE am::am fmt::fmt spncci::sp3rlib spncci::u3ncsm spncci::utilities)
 
 ## Old version of generating seeds
 add_executable(get_lgi_expansion EXCLUDE_FROM_ALL get_lgi_expansion.cpp)
