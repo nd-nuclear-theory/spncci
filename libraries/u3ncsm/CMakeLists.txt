@@ -26,6 +26,7 @@ target_link_libraries(
   PUBLIC am::am
          basis::basis
          fmt::fmt
+         spncci::utilities
          spncci::sp3rlib
          spncci::spncci_basis
          spncci::lgi

@@ -39,7 +39,7 @@ recurrence_indexing_spatial.h
 #include "basis/basis.h"
 #include "basis/degenerate.h"
 #include "fmt/format.h"
-#include "lgi/lgi.h"
+// #include "lgi/lgi.h"
 #include "sp3rlib/sp3r.h"
 #include "sp3rlib/u3.h"
 #include "spncci_basis/recurrence_indexing_spin.h"
