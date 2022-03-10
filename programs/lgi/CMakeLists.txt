@@ -7,15 +7,6 @@ find_package(lsu3shell REQUIRED)
 ###############################################################################
 #define executables and link dependencies
 ###############################################################################
-
-add_executable(su3rme_test su3rme_test.cpp)
-target_link_libraries(
-  su3rme_test PRIVATE
-  lsu3shell::SU3ME
-  spncci::lsu3shell
-  spncci::u3ncsm
-)
-
 add_executable(generate_lgi_expansion_lsu3shell generate_lgi_expansion_lsu3shell.cpp)
 target_link_libraries(
   generate_lgi_expansion_lsu3shell PRIVATE

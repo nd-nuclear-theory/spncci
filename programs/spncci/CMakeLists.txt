@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.15)
 # define executables
 # ##############################################################################
 
-add_executable(make_6j_table_q3 make_6j_table_q3.cpp)
 add_executable(generate_seeds_lsu3shell generate_seeds_lsu3shell.cpp)
 add_executable(spncci_exe spncci.cpp)
 set_target_properties(spncci_exe PROPERTIES OUTPUT_NAME "spncci")
@@ -14,8 +13,6 @@ set_target_properties(spncci_exe PROPERTIES OUTPUT_NAME "spncci")
 # ##############################################################################
 # link dependencies
 # ##############################################################################
-
-target_link_libraries(make_6j_table_q3 PRIVATE fmt::fmt am::am)
 
 target_link_libraries(
   generate_seeds_lsu3shell PRIVATE
