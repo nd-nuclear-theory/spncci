@@ -16,8 +16,7 @@ namespace sp3r
   Eigen::MatrixXd  Sp3rRaisingOperator(
       const sp3r::Sp3RSpace& sp3r_space, 
       const u3::U3& omegap, 
-      const u3::U3& omega, 
-      const vcs::MatrixCache& K_matrices
+      const u3::U3& omega
     )
   {
     // Get irrep label
@@ -26,43 +25,40 @@ namespace sp3r
     // Look up  relevant subspaces in Sp(3,R) irrep
     int subspace_index_bra=sp3r_space.LookUpSubspaceIndex(omegap);
     int subspace_index_ket=sp3r_space.LookUpSubspaceIndex(omega);
-
-    const sp3r::U3Subspace& subspace_bra =  sp3r_space.GetSubspace(subspace_index_bra);
-    const sp3r::U3Subspace& subspace_ket =  sp3r_space.GetSubspace(subspace_index_ket);
+    const auto& subspace_bra = sp3r_space.GetSubspace(subspace_index_bra);
+    const auto& subspace_ket = sp3r_space.GetSubspace(subspace_index_ket);
 
     //Construct boson matrix 
     int vp_max=subspace_bra.size();
     int v_max=subspace_ket.size();
-    Eigen::MatrixXd A_boson = Eigen::MatrixXd::Zero(vp_max,v_max);
+    basis::OperatorBlock<double> A_boson
+      = basis::OperatorBlock<double>::Zero(subspace_bra.dimension(),subspace_ket.dimension());
 
-    for(int ip=0; ip<vp_max; ++ip)
-      for(int i=0; i<v_max; ++i)
+
+    for(int ip=0; ip<subspace_bra.size(); ++ip)
+      for(int i=0; i<subspace_bra.size(); ++i)
         {
-          const MultiplicityTagged<u3::U3>& np_rhop = subspace_bra.GetStateLabels(ip);
-          const MultiplicityTagged<u3::U3>& n_rho = subspace_ket.GetStateLabels(i);
-          A_boson(ip,i)=u3boson::U3BosonCreationRME(sigma,np_rhop,omegap,sigma,n_rho,omega);
-          
+          const auto& [np,rhop] = subspace_bra.GetStateLabels(ip);
+          const auto& [n,rho] = subspace_ket.GetStateLabels(i);
+          A_boson(ip,i)=u3boson::U3BosonCreationRME(sigma,np,rhop,omegap,sigma,n,rho,omega);
         }
 
-    // Extract K matrices 
-    const Eigen::MatrixXd& Kp=K_matrices.at(omegap);
-    const Eigen::MatrixXd& K=K_matrices.at(omega);
+    const basis::OperatorBlock<double>& Kp = subspace_bra.K_matrix();
+    const basis::OperatorBlock<double>& Kinv = subspace_bra.Kinv_matrix();
     
     //Calculate matrix element of symplectic raising operator 
-    Eigen::MatrixXd A=Kp*A_boson*K.inverse();
-    return Kp*A_boson*K.inverse();
+    return Kp*A_boson*Kinv;
   }
 
   Eigen::MatrixXd Sp3rLoweringOperator(
       const sp3r::Sp3RSpace& sp3r_space, 
       const u3::U3& omegap, 
-      const u3::U3& omega, 
-      const vcs::MatrixCache& K_matrices
+      const u3::U3& omega
     )
   {
     int parity_sign=ParitySign(u3::ConjugationGrade(omega.SU3())-u3::ConjugationGrade(omegap.SU3()));
     return parity_sign*sqrt(1.0*u3::dim(omega)/u3::dim(omegap))
-            *sp3r::Sp3rRaisingOperator(sp3r_space, omega, omegap, K_matrices);
+            *sp3r::Sp3rRaisingOperator(sp3r_space, omega, omegap);
   }
 
   Eigen::MatrixXd  U3Operator(

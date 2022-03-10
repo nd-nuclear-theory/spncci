@@ -31,6 +31,7 @@
 #include <string>
 
 #include "basis/basis.h"
+#include "basis/operator.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3boson.h"
 
@@ -165,6 +166,11 @@ namespace sp3r
       return labels();
     }
 
+    u3::U3 omega() const { return U3(); }
+    std::string LabelStr() const {return omega().Str();}
+
+
+
     int upsilon_max() const {return upsilon_max_;}
 
     // diagnostic output
@@ -242,8 +248,29 @@ namespace sp3r
 
   };
 
-  // std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax);
-  // Returns a list of indices for which each in Nn begins.
+
+
+  // Sectors: U3Subspaces connected by operator w0
+  class Sp3RSectors
+    : public basis::BaseSectors<Sp3RSpace>
+  {
+    public:
+
+    // Default constructor
+    Sp3RSectors() = default;
+
+    // Constructor
+    Sp3RSectors(
+        const Sp3RSpace& space,
+        const u3::U3& omega0,
+        const bool& su3_generator=false
+      );
+
+  private:
+    u3::U3 omega0_;
+
+  };
+
 
 }  // namespace
 

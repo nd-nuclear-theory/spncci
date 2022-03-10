@@ -244,24 +244,27 @@
   }
 
 
-  // std::vector<int> PartitionIrrepByNn(const sp3r::Sp3RSpace& irrep, const int Nmax)
-  // {
-  //   // partition irreps by Nn
-  //   HalfInt Ns=irrep.GetSubspace(0).labels().N();
-  //   int Nn_last=-1;
-  //   std::vector<int> IrrepPartionN;
-  //   for(int i=0; i<irrep.size(); i++ )
-  //     {
-  //       u3::U3 omega=irrep.GetSubspace(i).labels();
+    Sp3RSectors::Sp3RSectors(
+      const Sp3RSpace& space,
+      const u3::U3& omega0,
+      const bool& su3_generator
+    )
+      : BaseSectors{space,space}, omega0_(omega0)
+    {
+      // omega0_ = omega0;
+      for(int bra_index=0; bra_index<space.size(); ++bra_index)
+        for(int ket_index=0; ket_index<space.size(); ++ket_index)
+          {
+            const u3::U3& omega_bra = space.GetSubspace(bra_index).U3();
+            const u3::U3& omega_ket = space.GetSubspace(ket_index).U3();
 
-  //       if ( Nn_last!=int(omega.N()-Ns) )
-  //         {
-  //           IrrepPartionN.push_back(i);
-  //           Nn_last=int(omega.N()-Ns);
-  //         }
-  //     }
-  //   return IrrepPartionN;
-  // }
+            if(su3_generator && (omega_bra!=omega_ket))
+              continue;
 
+            int multiplicity = u3::OuterMultiplicity(omega_ket,omega0,omega_bra);
+            if(multiplicity>0)
+              PushSector(bra_index,ket_index,multiplicity);
+          }
+    }
 
 }  // namespace

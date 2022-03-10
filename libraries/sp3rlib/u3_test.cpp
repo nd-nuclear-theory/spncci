@@ -65,49 +65,63 @@ int main(int argc, char **argv)
   assert(u3::Conjugate(x2)==u3::SU3(2,2));
 
   fmt::print("\nChecking U(3) construction\n");
-  std::vector<u3::U3> u3_vector;
-  u3::U3 w1(7,{2,1});//[4,2,1]
-  u3_vector.push_back(w1);
-  u3::U3 w2(7,x1);   //[4,3,0]
-  u3_vector.push_back(w2);
-  u3::U3 w3(10,x1);  //[5,4,1]
-  u3_vector.push_back({10,x1});
-  u3::U3 w4(4,2,1);
-  u3_vector.push_back(w4);
-  u3::U3 w5(HalfInt(5,2),HalfInt(3,2),HalfInt(1,2));
-  u3_vector.push_back(w5);
-  u3::U3 w6(HalfInt(11,2),{2,1});
-  u3_vector.push_back(w6);
 
-  
+  // std::array<HalfInt,3> test = {HalfInt(5,2),HalfInt(3,2),HalfInt(1,2)};
+  std::map<u3::U3,std::array<HalfInt,3>>
+  u3_cartesian_check = {
+    {{7,{2,1}},{4,2,1}},
+    {{7,{1,3}},{4,3,0}},
+    {{10,{1,3}},{5,4,1}},
+    {{4,2,1},{4,2,1}},
+    {{{5,2},{3,2},{1,2}},{HalfInt(5,2),HalfInt(3,2),HalfInt(1,2)}},
+    {{0,{1,1}},{1,0,-1}}
+  };
+  // u3::U3 w1(7,{2,1});//[4,2,1]
+  // u3_vector.push_back(w1);
+  // u3::U3 w2(7,x1);   //[4,3,0]
+  // u3_vector.push_back(w2);
+  // u3::U3 w3(10,x1);  //[5,4,1]
+  // u3_vector.push_back({10,x1});
+  // u3::U3 w4(4,2,1);
+  // u3_vector.push_back(w4);
+  // u3::U3 w5(HalfInt(5,2),HalfInt(3,2),HalfInt(1,2));
+  // u3_vector.push_back(w5);
+  // u3::U3 w6(HalfInt(11,2),{2,1});
+  // u3_vector.push_back(w6);
 
 
-  for(const auto& w : u3_vector)
-  {
-    HalfInt f1,f2,f3;
-    std::tie(f1,f2,f3) = w.f(); 
-    fmt::print("w = {:10}  <-> f = [{},{},{}]\n",w.Str(),f1,f2,f3);
-    assert((f1==w.f1()) && (f2==w.f2()) && (f3==w.f3()));
-  }
 
 
-  u3::U3 test(2,{2,0});
-  assert(test == u3::U3(2,0,0));
-  for(const auto& w : u3_vector)
+  for(const auto& [w,f] : u3_cartesian_check)
     {
-      fmt::print("{} == {}: {}\n",w1,w,w1==w);
+      const auto&[f1,f2,f3] = f;
+      assert((f1==w.f1()) && (f2==w.f2()) && (f3==w.f3()));
+      fmt::print("w = {:8}  <-> f = [{},{},{}]\n",w.Str(),f1,f2,f3);
     }
 
 
-  std::cout<<fmt::format("ConguationGrade({}) = {}",w1.Str(),u3::ConjugationGrade(w1))<<std::endl;
-  std::cout<<fmt::format("ConguationGrade({}) = {}",w2.Str(),u3::ConjugationGrade(w2))<<std::endl;
+  std::map<u3::U3,std::tuple<int,int,double>>
+  u3_function_check = {
+    {{7,{2,1}},  {3,15,10.666667}},
+    {{10,{1,3}}, {4,24,16.666667}},
+    {{0,{1,1}},  {2, 8, 6.000000}},
+    {{{5,2},{3,2},{1,2}}, {2,8,6.000000}}
+  };
 
-  std::cout<<std::endl<<"Functions"<<std::endl<<"----------------------"<<std::endl;
-  std::cout<<fmt::format("dim(x1) = {}",dim(x1))<<std::endl;
-  std::cout<<fmt::format("dim(w1) = {}",dim(w1))<<std::endl;
-  std::cout<<fmt::format("Casimir2(x1) = {:4.2f}",u3::Casimir2(x1))<<std::endl;
+  for(const auto& [w,test_values] : u3_function_check)
+    {
+      std::cout<<fmt::format("ConguationGrade[{}] = {}",w,u3::ConjugationGrade(w))<<std::endl;
+      std::cout<<fmt::format("dim[{}] = {}",w,dim(w))<<std::endl;
+      std::cout<<fmt::format("Casimir2[{}] = {:4.6f}",w,u3::Casimir2(w.SU3()))<<std::endl;
 
-  
+      const auto&[g,dimension,casimir] = test_values;
+      assert(u3::ConjugationGrade(w)==g);
+      assert(u3::dim(w)==dimension);
+      assert(fabs(u3::Casimir2(w.SU3())-casimir)<1e-5);
+    }
+
+
+
   u3::SU3 x(3,3), xp(2,1);
   std::map<u3::SU3,unsigned int> products_from_su3lib{
       {u3::SU3(6,2),1},
@@ -132,36 +146,18 @@ int main(int argc, char **argv)
       assert(products_from_su3lib[xxp]==rho);
     }
 
-  {
-  MultiplicityTagged<u3::U3>::vector u3_product = u3::KroneckerProduct(w1,w2);
-  std::cout<<"Kronecker product of w1 x w2: "<<std::endl;
-  fmt::print("Possible SU3 products: \n");
-  MultiplicityTagged<u3::SU3>::vector su3_product = u3::KroneckerProduct(w1.SU3(),w2.SU3());
-  for(const auto& [x,rho_max] : su3_product)
-    fmt::print("x = {}  rho_max = {}\n",x,rho_max);
-  std::cout<<"----------------"<<std::endl;
-  for(const auto& [w,rho_max] : u3_product)
-    std::cout<<fmt::format("  w = {}, rho_max = {}",w,rho_max)<<std::endl;
-  }
-  {
-  MultiplicityTagged<u3::U3>::vector u3_product = u3::KroneckerProduct(w4,w5);
-  fmt::print("Kronecker product of {} x {}: \n", w4,w5);
-  for(const auto& [w,rho_max] : u3_product)
-    std::cout<<fmt::format("  w = {} <-> [{},{},{}], rho_max = {}",w,w.f1(),w.f2(),w.f3(),rho_max)<<std::endl;
-  }
+  u3::U3 w0(0,{1,1});
+  u3::U3 w(5,4,2);
+  std::cout<<u3::OuterMultiplicity({1,1},{1,2},{1,2})<<std::endl;
+  for(const auto& [wp,rho] : u3::KroneckerProduct(w,w0))
+    {
+      std::cout<<fmt::format("{} : {}",wp,rho)<<std::endl;
+    }
 
-  {
-  MultiplicityTagged<u3::U3>::vector u3_product = u3::KroneckerProduct(w5,w6);
-  fmt::print("Kronecker product of {} x {}: \n", w5,w6);
-  for(const auto& [w,rho_max] : u3_product)
-    std::cout<<fmt::format("  w = {} <-> [{},{},{}], rho_max = {}",w,w.f1(),w.f2(),w.f3(),rho_max)<<std::endl;
-  }
-
-
-  {
-  fmt::print("Branching {}",x2);
-  MultiplicityTagged<unsigned int>::vector branched_su3 = u3::BranchingSO3(x2);
-  for(const auto& [L,kappa_max] : branched_su3)
-    std::cout<<fmt::format("L = {}, kappa_max = {}",L,kappa_max)<<std::endl;
-  }
+  // {
+  // fmt::print("Branching {}",x2);
+  // MultiplicityTagged<unsigned int>::vector branched_su3 = u3::BranchingSO3(x2);
+  // for(const auto& [L,kappa_max] : branched_su3)
+  //   std::cout<<fmt::format("L = {}, kappa_max = {}",L,kappa_max)<<std::endl;
+  // }
 } //main

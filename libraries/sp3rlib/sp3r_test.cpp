@@ -113,6 +113,23 @@ int main(int argc, char **argv)
       std::cout<<sp3r_space_light.DebugStr()<<std::endl;
     }
 
+  u3::U3 sigma(16,{2,1});
+  std::map<u3::U3,bool> omega0_list = {
+    {{0,{1,1}},true},
+    {{2,{2,0}},false},
+    {{-2,{0,2}},false}
+  };
+
+
+  u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
+  sp3r::Sp3RSpace sp3r_space(sigma, Nn_max,u3boson_space);
+  for(const auto& [omega0,su3_generator] : omega0_list)
+    {
+      sp3r::Sp3RSectors sectors(sp3r_space,omega0,su3_generator);
+      std::cout<<sectors.DebugStr()<<std::endl;
+    }
+
+
 } //main
 
 

@@ -34,8 +34,7 @@ namespace sp3r
     Eigen::MatrixXd  QuadrupoleOperator(
       const sp3r::Sp3RSpace& sp3r_space,
       const u3::U3& omegap, int kappap, int Lp,
-      const u3::U3& omega, int kappa, int L,
-      const vcs::MatrixCache& K_matrices
+      const u3::U3& omega, int kappa, int L
     )
     //Assumes oscillator length paramters b=1
     {
@@ -45,8 +44,8 @@ namespace sp3r
       if(omega.N()+2 == omegap.N())
         {
           Q = u3::W(omega.SU3(),kappa,L,u3::SU3(2,0),1,2,omegap.SU3(),kappap, Lp,1)
-              *sqrt(15.0/16.0/pi)*Sp3rRaisingOperator(sp3r_space, omegap, omega, K_matrices);
-          std::cout<<"A "<<Sp3rRaisingOperator(sp3r_space, omegap, omega, K_matrices)<<std::endl;
+              *sqrt(15.0/16.0/pi)*Sp3rRaisingOperator(sp3r_space, omegap, omega);
+          std::cout<<"A "<<Sp3rRaisingOperator(sp3r_space, omegap, omega)<<std::endl;
         }
       if(omega.N() == omegap.N())
       {
@@ -56,7 +55,7 @@ namespace sp3r
       }
       if(omega.N()-2 == omegap.N())
         Q = u3::W(omega.SU3(),kappa,L,u3::SU3(0,2),1,2,omegap.SU3(),kappap, Lp,1)
-            *sqrt(15.0/16/pi)*sp3r::Sp3rLoweringOperator(sp3r_space, omegap, omega, K_matrices);
+            *sqrt(15.0/16/pi)*sp3r::Sp3rLoweringOperator(sp3r_space, omegap, omega);
 
       return Q;
     }
@@ -99,17 +98,19 @@ int main(int argc, char **argv)
   u3::U3 sigma(N0,u3::SU3(3,0));
   HalfInt S(1,2);
   int Nmax=2;
-  sp3r::Sp3RSpace sp3r_space(sigma,Nmax);
-  vcs::MatrixCache K_matrices;
-  vcs::GenerateKMatrices(sp3r_space,K_matrices);
-  std::cout<<"Kmatrices "<<std::endl;
-  for(auto it=K_matrices.begin(); it!=K_matrices.end(); ++it)
-    {
-        std::cout<<it->first.Str()<<std::endl;
-        auto matrix=it->second;
-        std::cout<<matrix<<std::endl;
-        // std::cout<<matrix.inverse()<<std::endl;
-    }
+
+  u3boson::U3BosonSpace u3boson_space(sigma,Nmax);
+  sp3r::Sp3RSpace sp3r_space(sigma,Nmax,u3boson_space);
+  // vcs::MatrixCache K_matrices;
+  // vcs::GenerateKMatrices(sp3r_space,K_matrices);
+  // std::cout<<"Kmatrices "<<std::endl;
+  // for(auto it=K_matrices.begin(); it!=K_matrices.end(); ++it)
+  //   {
+  //       std::cout<<it->first.Str()<<std::endl;
+  //       auto matrix=it->second;
+  //       std::cout<<matrix<<std::endl;
+  //       // std::cout<<matrix.inverse()<<std::endl;
+  //   }
 
   std::vector<u3::U3> u3_irreps;
   u3_irreps.push_back(sigma);
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
                   {
                     HalfInt::vector J_values = am::ProductAngularMomenta(L, S);
                     HalfInt::vector Jp_values = am::ProductAngularMomenta(Lp, S);
-                    Eigen::MatrixXd QRME = sp3r::QuadrupoleOperator(sp3r_space,omegap,kappap,Lp,omega,kappa,L,K_matrices);
+                    Eigen::MatrixXd QRME = sp3r::QuadrupoleOperator(sp3r_space,omegap,kappap,Lp,omega,kappa,L);
 
                     // Branching
                     for(HalfInt J : J_values)

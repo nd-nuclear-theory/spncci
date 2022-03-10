@@ -24,8 +24,7 @@ namespace sp3r
   Eigen::MatrixXd  Sp3rRaisingOperator(
       const sp3r::Sp3RSpace& sp3r_space, 
       const u3::U3& omegap, 
-      const u3::U3& omega, 
-      const vcs::MatrixCache& K_matrices
+      const u3::U3& omega
     );
   // Reduced matrix elements of symplectic raising operator between states in
   // omegap and omega subspace of Sp(3,R) irrep defiend by sp3r_space 
@@ -33,8 +32,7 @@ namespace sp3r
   Eigen::MatrixXd Sp3rLoweringOperator(
       const sp3r::Sp3RSpace& sp3r_space, 
       const u3::U3& omegap, 
-      const u3::U3& omega, 
-      const vcs::MatrixCache& K_matrices
+      const u3::U3& omega
     );
   // Reduced matrix elements of symplectic lowering operator between states in
   // omegap and omega subspace of Sp(3,R) irrep defiend by sp3r_space 
