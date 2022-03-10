@@ -224,7 +224,8 @@ namespace sp3r
 
     Sp3RSpace(
       const u3::U3& sigma, const int Nn_max,
-      const u3boson::U3BosonSpace& u3boson_space
+      const u3boson::U3BosonSpace& u3boson_space,
+      const bool subspace_labels_only = false
     );
 
     // diagnostic output

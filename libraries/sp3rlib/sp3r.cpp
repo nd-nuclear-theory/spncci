@@ -100,7 +100,7 @@
 
     // print subspace labels
       u3::U3 omega = labels();
-      ss << "subspace " << omega.Str() << std::endl;
+      ss << fmt::format("subspace {}\nupsilon_max {}  dimension {}",labels().Str(),upsilon_max(),dimension())<<std::endl;
 
     // enumerate state labels within subspace
       for (int i_state=0; i_state<size(); ++i_state)
@@ -172,7 +172,8 @@
 
   Sp3RSpace::Sp3RSpace(
     const u3::U3& sigma, const int Nn_max,
-    const u3boson::U3BosonSpace& u3boson_space
+    const u3boson::U3BosonSpace& u3boson_space,
+    const bool subspace_labels_only
     )
     {
       Nn_max_ = Nn_max;
@@ -181,25 +182,37 @@
       // Check that sigma is an LGI of a unitary Sp(3,R) irrep
       assert(IsUnitary(sigma));
 
-      double zero_threshold = 1e-12;
-      vcs::KmatrixMap K_matrices
-        = vcs::GenerateKmatrices(sigma,u3boson_space,zero_threshold);
+      // If constructing the full space, then compute K matrices and
+      // use K matrices to get upsilon_max.  If subspace labels only,
+      // K matrices only need to be computed if branching must be restricted.
+      vcs::KmatrixMap K_matrices;
+      bool get_upsilon_from_K=false;
+      if(subspace_labels_only==false || sp3r::ModifySp3RBranching(sigma))
+        {
+          double zero_threshold = 1e-12;
+          K_matrices = vcs::GenerateKmatrices(sigma,u3boson_space,zero_threshold);
+          get_upsilon_from_K=true;
+        }
 
       for(const auto& u3boson_subspace : u3boson_space)
         {
           const u3::U3& omega = u3boson_subspace.omega();
-          int upsilon_max = K_matrices[omega][0].cols();
+          int upsilon_max = get_upsilon_from_K?K_matrices[omega][0].cols():u3boson_subspace.dimension();
+
           if(upsilon_max==0)
             continue;
 
-          PushSubspace(
-            U3Subspace(
-              omega,upsilon_max,
-              u3boson_subspace,
-              std::move(K_matrices[omega][0]),
-              std::move(K_matrices[omega][1])
-            )
-          );
+          // Labels only
+          if(subspace_labels_only)
+            PushSubspace(U3Subspace(omega,upsilon_max));
+          // Full space
+          else
+            PushSubspace(U3Subspace(
+                omega,upsilon_max,
+                u3boson_subspace,
+                std::move(K_matrices[omega][0]),
+                std::move(K_matrices[omega][1])
+              ));
         }
     }
 

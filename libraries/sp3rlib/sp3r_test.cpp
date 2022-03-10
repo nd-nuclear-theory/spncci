@@ -104,8 +104,13 @@ int main(int argc, char **argv)
       fmt::print("Modify branching? {}\n",sp3r::ModifySp3RBranching(s));
       assert(sp3r::ModifySp3RBranching(s)==check);
       u3boson::U3BosonSpace u3boson_space(s,Nn_max);
+
       sp3r::Sp3RSpace sp3r_space(s, Nn_max,u3boson_space);
       std::cout<<sp3r_space.DebugStr()<<std::endl;
+      std::cout<<"labels only"<<std::endl;
+      bool subspace_labels_only = true;
+      sp3r::Sp3RSpace sp3r_space_light(s, Nn_max,u3boson_space,subspace_labels_only);
+      std::cout<<sp3r_space_light.DebugStr()<<std::endl;
     }
 
 } //main
