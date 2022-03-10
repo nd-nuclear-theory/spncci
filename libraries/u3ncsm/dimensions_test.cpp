@@ -93,7 +93,7 @@ void test_lgi_generation()
       const auto&[lgi,gamma_max]=lgi_vector[i];
       const auto&[lgi2,gamma2_max]=lgi_vector2[i];
       if(!(lgi==lgi2) || !(gamma_max==gamma2_max))
-        fmt::print("ERROR");
+        fmt::print("ERROR: ");
 
       fmt::print("{}  {:4d}   {}  {:4d}\n", lgi.Str(),gamma_max,lgi2.Str(),gamma2_max);
     }
@@ -135,8 +135,8 @@ void compare_cmf_dimensions(const int Z, const int N, const int Nmax)
 
 int main(int argc, char **argv)
 {
-  int Z=6;
-  int N=6;
+  int Z=3;
+  int N=3;
   int Nmax=4;
 
   test_lsu3shell_basis_generation();

@@ -216,19 +216,20 @@ MultiplicityTaggedLGIVector get_lgi_vector(
     {
       HalfInt Sp(lgi.Sp()),Sn(lgi.Sn()), S(lgi.S());
       int Nn_max = Nmax - int(lgi.N() - Nsigma0);
-      std::vector<u3::U3> raising_polynomial_labels = u3boson::RaisingPolynomialLabels(Nn_max);
 
-      for(const u3::U3& n : raising_polynomial_labels)
+      // Eventually be replaced by single call.
+      const auto& sigma=lgi.U3();
+      u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
+      bool subspace_labels_only = true;
+      sp3r::Sp3RSpace sp3r_space(sigma,Nn_max,u3boson_space,subspace_labels_only);
+
+      for(const auto& subspace : sp3r_space)
         {
-          if (n.N()==0)
+          if(subspace.U3()==sigma)
             continue;
 
-          MultiplicityTagged<u3::U3>::vector omegas_tagged = u3::KroneckerProduct(lgi.U3(), n);
-          for(const auto& [omega,rho_max] : omegas_tagged)
-            {
-              u3shell::U3SPN omegaSpSnS(omega,Sp,Sn,S);
-              lgi_dimensions[omegaSpSnS] -= rho_max*dimension;
-            }
+          u3shell::U3SPN omegaSpSnS(subspace.U3(),Sp,Sn,S);
+          lgi_dimensions[{subspace.U3(),Sp,Sn,S}] -= subspace.upsilon_max()*dimension;
         }
     }
 
