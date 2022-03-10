@@ -44,4 +44,4 @@ target_link_libraries(
 #
 # actual installation is performed by top-level CMakeLists.txt
 # ##############################################################################
-install(TARGETS make_6j_table_q3 spncci_exe generate_seeds_lsu3shell DESTINATION bin)
+install(TARGETS spncci_exe generate_seeds_lsu3shell DESTINATION bin)
