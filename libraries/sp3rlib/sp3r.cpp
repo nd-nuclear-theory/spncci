@@ -66,15 +66,8 @@
   // obtained via laddering which have no counter-part
   // in the Sp(3,R) basis and thus must be removed.
   // Such cases occur when f3<3.
-  //
-  // Basis must be restricted if f3<3 and 
-  // conjugate{tau}_2 > (2*f3-3)
   {
-    const HalfInt& f3 = sigma.f3();
-    if(f3<3)
-      return true;
-    else
-      return false;
+    return sigma.f3()<3;
   }
 
 
