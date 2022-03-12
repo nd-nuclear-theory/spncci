@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.15)
 # define executables
 # ##############################################################################
 
-add_executable(explicit explicit.cpp)
+# add_executable(explicit explicit.cpp)
 add_executable(generate_krel_squared generate_krel_squared.cpp)
 add_executable(
   generate_lsu3shell_interaction generate_lsu3shell_interaction.cpp
@@ -28,9 +28,9 @@ add_executable(
 # link dependencies
 # ##############################################################################
 
-target_link_libraries(
-  explicit PRIVATE fmt::fmt mcutils::mcutils spncci::lgi spncci::spncci
-)
+# target_link_libraries(
+#   explicit PRIVATE fmt::fmt mcutils::mcutils spncci::lgi spncci::spncci
+# )
 target_link_libraries(
   generate_krel_squared PRIVATE fmt::fmt spncci::lsu3shell spncci::sp3rlib
                                 spncci::u3shell
@@ -68,12 +68,12 @@ target_link_libraries(
 # actual installation is performed by top-level CMakeLists.txt
 # ##############################################################################
 install(
-  TARGETS explicit
-          generate_krel_squared
+  TARGETS generate_krel_squared
           generate_lsu3shell_interaction
           generate_lsu3shell_model_space
           generate_lsu3shell_relative_operators
           generate_lsu3shell_two_body_unit_tensors
           generate_unit_tensor_statistics
+          # explicit
   DESTINATION bin
 )

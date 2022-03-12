@@ -7,7 +7,7 @@ set(spncci_headers
     vcs_cache.h
     eigenproblem.h
     computation_control.h
-    explicit_construction.h
+    # explicit_construction.h
     recurrence.h
     parameters.h
     io_control.h
@@ -24,7 +24,7 @@ set(spncci_sources
     vcs_cache.cpp
     eigenproblem.cpp
     computation_control.cpp
-    explicit_construction.cpp
+    # explicit_construction.cpp
     recurrence.cpp
     parameters.cpp
     io_control.cpp
