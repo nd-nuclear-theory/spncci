@@ -61,6 +61,7 @@ set(sp3rlib_UNITS_TEST
     u3coef_test
     vcs_test
     su3coupling_gtest
+    sp3r_operator_test
 )
 
 add_custom_target(sp3rlib_tests)

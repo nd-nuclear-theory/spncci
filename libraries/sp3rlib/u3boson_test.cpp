@@ -53,6 +53,10 @@ int main(int argc, char **argv)
     u3boson::U3BosonCreationRME(sigma,np,1,omegap,sigma,n,1,omega)
   );
 
+  // Testing default constructor
+  std::map<u3::U3,u3boson::U3BosonSpace> test_map;
+  test_map[sigma]=u3boson_space;
+  // =u3boson::U3BosonSpace(sigma,Nn_max);
 
 
 } //main

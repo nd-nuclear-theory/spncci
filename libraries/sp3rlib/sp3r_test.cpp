@@ -36,37 +36,28 @@ int main(int argc, char **argv)
   // Comparison of new with old.
   for(const auto& sigma : sigma_list)
   {
-    u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
-
-    sp3r::Sp3RSpace sp3r_space1(sigma, Nn_max);
-    sp3r::Sp3RSpace sp3r_space2(sigma, Nn_max,u3boson_space);
-    assert(sp3r_space2.size()==sp3r_space1.size());
-
-    std::cout<<sp3r_space1.DebugStr()<<std::endl;
-    std::cout<<"--------------------------------"<<std::endl;
-    std::cout<<sp3r_space2.DebugStr()<<std::endl;
+    bool modify_branching = sp3r::ModifySp3RBranching(sigma);
+    sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);
+    std::cout<<sp3r_space.DebugStr()<<std::endl;
 
     // Checking accessors
-    assert(sp3r_space1.sigma()==sp3r_space2.sigma());
-    assert(sp3r_space2.sigma()==sigma);
-    assert(sp3r_space1.Nn_max()==sp3r_space2.Nn_max());
-    assert(sp3r_space2.Nn_max()==Nn_max);
+    assert(sp3r_space.sigma()==sigma);
+    assert(sp3r_space.Nn_max()==Nn_max);
 
-    for(int i=0; i<sp3r_space1.size(); ++i)
+    // Checking subspaces
+    for(int i=0; i<sp3r_space.size(); ++i)
       {
-        const auto& subspace1 = sp3r_space1.GetSubspace(i);
-        const auto& subspace2 = sp3r_space2.GetSubspace(i);
-        assert(subspace2.size()==subspace1.size());
-        assert(subspace2.U3()==subspace1.U3());
-        assert(subspace2.labels()==subspace2.U3());
-        assert(subspace1.upsilon_max() == subspace2.upsilon_max());
-        assert(subspace2.upsilon_max()<=subspace2.size());
+        const auto& subspace = sp3r_space.GetSubspace(i);
+        assert(subspace.omega()==subspace.U3());
+        assert(subspace.upsilon_max()<=subspace.dimension());
+        if(!modify_branching)
+          assert(subspace.upsilon_max()<=subspace.dimension());
 
-        assert(subspace2.upsilon_max()==subspace2.K_matrix().cols());
-        assert(subspace2.upsilon_max()==subspace2.Kinv_matrix().rows());
-        assert(subspace2.size()==subspace2.K_matrix().rows());
-        assert(subspace2.size()==subspace2.Kinv_matrix().cols());
-        assert(subspace2.K_matrix().rows()==subspace2.Kinv_matrix().cols());
+        assert(subspace.upsilon_max()==subspace.K_matrix().cols());
+        assert(subspace.upsilon_max()==subspace.Kinv_matrix().rows());
+        assert(subspace.dimension()==subspace.K_matrix().rows());
+        assert(subspace.dimension()==subspace.Kinv_matrix().cols());
+        assert(subspace.K_matrix().rows()==subspace.Kinv_matrix().cols());
       }
 
   }
@@ -97,20 +88,28 @@ int main(int argc, char **argv)
       {{16,{2,1}},false}
     };
 
-  for(const auto& [s,check] : modify_basis_test_map)
+  std::map<u3::U3,sp3r::Sp3RSpace> test_map;
+  std::vector<sp3r::Sp3RSpace> test_vector;
+  for(const auto& [sigma,check] : modify_basis_test_map)
     {
-      fmt::print("{}\n",s);
-      fmt::print("Is unitary? {}\n",sp3r::IsUnitary(s));
-      fmt::print("Modify branching? {}\n",sp3r::ModifySp3RBranching(s));
-      assert(sp3r::ModifySp3RBranching(s)==check);
-      u3boson::U3BosonSpace u3boson_space(s,Nn_max);
+      fmt::print("{}\n",sigma);
+      fmt::print("Is unitary? {}\n",sp3r::IsUnitary(sigma));
+      fmt::print("Modify branching? {}\n",sp3r::ModifySp3RBranching(sigma));
+      assert(sp3r::ModifySp3RBranching(sigma)==check);
+      
 
-      sp3r::Sp3RSpace sp3r_space(s, Nn_max,u3boson_space);
+      sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);
       std::cout<<sp3r_space.DebugStr()<<std::endl;
       std::cout<<"labels only"<<std::endl;
       bool subspace_labels_only = true;
-      sp3r::Sp3RSpace sp3r_space_light(s, Nn_max,u3boson_space,subspace_labels_only);
+      sp3r::Sp3RSpace sp3r_space_light(sigma, Nn_max,subspace_labels_only);
       std::cout<<sp3r_space_light.DebugStr()<<std::endl;
+      
+      const std::tuple<u3::U3> s{};
+      test_vector.push_back(sp3r_space);
+      // test_map[sigma];
+      test_map[sigma]=sp3r::Sp3RSpace(sigma, Nn_max);
+
     }
 
   u3::U3 sigma(16,{2,1});
@@ -120,14 +119,13 @@ int main(int argc, char **argv)
     {{-2,{0,2}},false}
   };
 
-
-  u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
-  sp3r::Sp3RSpace sp3r_space(sigma, Nn_max,u3boson_space);
+  sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);
   for(const auto& [omega0,su3_generator] : omega0_list)
     {
       sp3r::Sp3RSectors sectors(sp3r_space,omega0,su3_generator);
       std::cout<<sectors.DebugStr()<<std::endl;
     }
+
 
 
 } //main

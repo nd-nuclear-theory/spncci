@@ -12,6 +12,62 @@
 
 namespace sp3r
 {
+  basis::OperatorBlock<double> Sp3rRaisingOperator(
+    const u3::U3& sigma,
+    const sp3r::U3Subspace& bra_subspace,
+    const sp3r::U3Subspace& ket_subspace,
+    u3::UCoefCache& u_coef_cache
+    )
+  {
+    const auto& omega_bra = bra_subspace.omega();
+    const auto& omega_ket = ket_subspace.omega();
+    if(!u3::OuterMultiplicity(omega_ket,{2,{2,0}},omega_bra))
+      return basis::OperatorBlock<double>::Zero(bra_subspace.upsilon_max(),ket_subspace.upsilon_max());
+
+    basis::OperatorBlock<double> A_boson_matrix
+      = basis::OperatorBlock<double>::Zero(
+        bra_subspace.nonorthogonal_basis_size(),
+        ket_subspace.nonorthogonal_basis_size()
+        );
+
+    for(int bra_state_index=0; bra_state_index<bra_subspace.size(); ++bra_state_index)
+      for(int ket_state_index=0; ket_state_index<ket_subspace.size(); ++ket_state_index)
+        {
+          const auto& bra_state = bra_subspace.GetState(bra_state_index);
+          const auto& ket_state = ket_subspace.GetState(ket_state_index);
+          const u3::U3& n_bra = bra_state.n();
+          const u3::U3& n_ket = ket_state.n();
+          const int rho_bra_max = bra_state.rho_max();
+          const int rho_ket_max = ket_state.rho_max();
+
+          if(!u3::OuterMultiplicity(n_ket,{2,{2,0}},n_bra))
+            continue;
+
+          for(int rho_bra=1; rho_bra<=rho_bra_max; ++rho_bra)
+            for(int rho_ket=1; rho_ket<=rho_ket_max; ++rho_ket)
+              {
+                int row = bra_subspace.GetStateOffset(bra_state_index,rho_bra);
+                int col = ket_subspace.GetStateOffset(ket_state_index,rho_ket);
+                
+                // std::cout<<fmt::format("U((2,0),{},{},{};{}_{};{}{}_)",
+                //   n_ket.SU3(),omega_bra.SU3(),sigma.SU3(),
+                //   n_bra.SU3(),rho_bra,omega_ket.SU3(),rho_ket
+                // )<<std::endl;
+                A_boson_matrix(row,col)
+                  =ParitySign(u3::ConjugationGrade(omega_bra)+u3::ConjugationGrade(omega_ket))
+                    * u3boson::BosonCreationRME(n_bra,n_ket)
+                    *u3::UCached(u_coef_cache,
+                        {2,0},n_ket.SU3(),omega_bra.SU3(),sigma.SU3(),
+                        n_bra.SU3(),1,rho_bra,omega_ket.SU3(),rho_ket,1
+                      );
+              }
+        }
+    return bra_subspace.K_matrix()*A_boson_matrix*ket_subspace.Kinv_matrix();
+  }
+
+
+
+
 
   Eigen::MatrixXd  Sp3rRaisingOperator(
       const sp3r::Sp3RSpace& sp3r_space, 
@@ -38,8 +94,8 @@ namespace sp3r
     for(int ip=0; ip<subspace_bra.size(); ++ip)
       for(int i=0; i<subspace_bra.size(); ++i)
         {
-          const auto& [np,rhop] = subspace_bra.GetStateLabels(ip);
-          const auto& [n,rho] = subspace_ket.GetStateLabels(i);
+          const auto& [np,rhop] = subspace_bra.GetState(ip).n_multiplicity_tagged();
+          const auto& [n,rho] = subspace_ket.GetState(i).n_multiplicity_tagged();
           A_boson(ip,i)=u3boson::U3BosonCreationRME(sigma,np,rhop,omegap,sigma,n,rho,omega);
         }
 

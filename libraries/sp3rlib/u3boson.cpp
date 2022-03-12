@@ -35,10 +35,8 @@ namespace u3boson{
      }
 
   U3BosonSpace::U3BosonSpace(const u3::U3& sigma, const int Nn_max)
-      : BaseSpace{sigma}
+      : sigma_{sigma}, Nn_max_(Nn_max)
   {
-    Nn_max_=Nn_max;
-
     // find all raising polynomials
     std::vector<u3::U3> n_vector = u3boson::RaisingPolynomialLabels(Nn_max);
 

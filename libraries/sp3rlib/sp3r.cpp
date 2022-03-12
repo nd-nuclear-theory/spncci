@@ -21,32 +21,32 @@
   namespace sp3r
   {
 
-  // ////////////////////////////////////////////////////////////////
-  // // Sp(3,R) raising polynomial
-  // ////////////////////////////////////////////////////////////////
-    // TauConjugate computes the first two rows of the partition conjugate 
-    // of tau = [f1-f3,f2-f3] = [lambda+mu,mu], defined in 
-    // jpa-18-1985-939-Rowe. Note, in ref., tau is referred to as lambda. 
-    std::array<int,2> TauConjugate(const u3::U3& sigma)
-    {
-      std::array<int,2> tau_tilde ={0};
-      const auto& lambda = sigma.SU3().lambda();
-      const auto& mu = sigma.SU3().mu();
+  //////////////////////////////////////////////////////////////////
+  //  Sp(3,R) raising polynomial
+  //////////////////////////////////////////////////////////////////
+  // TauConjugate computes the first two rows of the partition conjugate 
+  // of tau = [f1-f3,f2-f3] = [lambda+mu,mu], defined in 
+  // jpa-18-1985-939-Rowe. Note, in ref., tau is referred to as lambda. 
+  std::array<int,2> TauConjugate(const u3::U3& sigma)
+  {
+    std::array<int,2> tau_tilde ={0};
+    const auto& lambda = sigma.SU3().lambda();
+    const auto& mu = sigma.SU3().mu();
 
-      if((lambda+mu)>=1)
-        tau_tilde[0]++;
+    if((lambda+mu)>=1)
+      tau_tilde[0]++;
 
-      if((lambda+mu)>=2)
-        tau_tilde[1]++;
+    if((lambda+mu)>=2)
+      tau_tilde[1]++;
 
-      if(mu>=1)
-        tau_tilde[0]++;
+    if(mu>=1)
+      tau_tilde[0]++;
 
-      if(mu>=2)
-        tau_tilde[1]++;
+    if(mu>=2)
+      tau_tilde[1]++;
 
-      return tau_tilde;
-    }
+    return tau_tilde;
+  }
 
   bool IsUnitary(const u3::U3& sigma)
   // Based on criterion for unitary irrep in jpa-18-1985-939-Rowe
@@ -66,114 +66,32 @@
   // obtained via laddering which have no counter-part
   // in the Sp(3,R) basis and thus must be removed.
   // Such cases occur when f3<3.
-  {
-    return sigma.f3()<3;
-  }
+  {return sigma.f3()<3;}
 
 
   ////////////////////////////////////////////////////////////////
   // space and subspace indexing
   ////////////////////////////////////////////////////////////////
-
-       U3Subspace::U3Subspace(const u3::U3& omega, int upsilon_max)
-        : BaseSubspace{{omega}}, upsilon_max_{upsilon_max}
-       {}
-
-       void U3Subspace::Init(const MultiplicityTagged<u3::U3>::vector& multiplicities)
-      {
-        // for each (n,rho_max) entry belonging to this omega subspace
-        for (auto n_rho : multiplicities)
-          PushStateLabels(n_rho);
-      }
-
-
-     std::string U3Subspace::DebugStr() const
-     {
-      std::ostringstream ss;
-
-    // print subspace labels
-      u3::U3 omega = labels();
-      ss << fmt::format("subspace {}\nupsilon_max {}  dimension {}",labels().Str(),upsilon_max(),dimension())<<std::endl;
-
-    // enumerate state labels within subspace
-      for (int i_state=0; i_state<size(); ++i_state)
-      {
-        MultiplicityTagged<u3::U3> n_rho = GetStateLabels(i_state);
-        ss << "  " << i_state << " " << n_rho.Str() << std::endl;
-      }
-
-      return ss.str();
-    }
-
-
-    double zero_threshold = 1e-6;
-    Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max)
-    {
-      // Make sure sigma is a unitary irrep
-      assert(sp3r::IsUnitary(sigma));
-      bool modify_sp3r_to_u3_branching = sp3r::ModifySp3RBranching(sigma);
-      assert(modify_sp3r_to_u3_branching==false);
-      // set space labels
-      sigma_ = sigma;
-      Nn_max_ = Nn_max;
-
-
-      // set up container for states
-      std::map<u3::U3,MultiplicityTagged<u3::U3>::vector> states;
-
-      // find all raising polynomials
-      std::vector<u3::U3> n_vec = u3boson::RaisingPolynomialLabels(Nn_max);
-
-      // enumerate states
-      //
-      // for each raising polynomial n
-      //   obtain all allowed couplings omega (sigma x n -> omega)
-      //     (with their multiplicities rho_max)
-      //   for each allowed coupling omega
-      //      store to states multimap as key value pair
-      //        omega -> (n,rho_max)
-      for (const auto& n : n_vec)
-        {
-          MultiplicityTagged<u3::U3>::vector omega_tagged_vec = KroneckerProduct(sigma,n);
-          for(const auto& [omega,rho_max] : omega_tagged_vec)
-            for(int rho=1; rho<=rho_max; ++rho)
-              states[omega].push_back({n,rho});
-        }
-
-      // scan through spanakopita for subspaces and add subspace
-     for(const auto& [omega,multiplicities] : states)
-        EmplaceSubspace(omega,multiplicities.size(),multiplicities);
-   }
-
-
-  ////////////////////////////////////////////////////////////////////////
-  // Construction from U3BosonSpace
-  ////////////////////////////////////////////////////////////////////////
   void U3Subspace::Init(const u3boson::U3Subspace& u3boson_subspace)
     {
       for(int i=0; i<u3boson_subspace.size(); ++i)
         {
           const auto& u3boson_state = u3boson_subspace.GetState(i);
-          const u3::U3& n = u3boson_state.n();
-          for(int rho=1; rho<=u3boson_state.rho_max(); ++rho)
-            {
-              PushStateLabels({n,rho});
-            }
+          PushStateLabels(u3boson_state.n(),u3boson_state.rho_max());
         }
     }
 
 
-  Sp3RSpace::Sp3RSpace(
-    const u3::U3& sigma, const int Nn_max,
-    const u3boson::U3BosonSpace& u3boson_space,
-    const bool subspace_labels_only
-    )
+  Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const bool subspace_labels_only)
+    // :BaseSpace{sigma},Nn_max_(Nn_max)
+  : sigma_{sigma},Nn_max_(Nn_max)
     {
-      Nn_max_ = Nn_max;
-      sigma_=sigma;
+      // sigma_=sigma;
 
       // Check that sigma is an LGI of a unitary Sp(3,R) irrep
       assert(IsUnitary(sigma));
+
+      u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
 
       // If constructing the full space, then compute K matrices and
       // use K matrices to get upsilon_max.  If subspace labels only,
@@ -210,7 +128,22 @@
     }
 
 ////////////////////////////////////////////////////////////////////////
+  std::string U3Subspace::DebugStr() const
+  {
+    std::ostringstream ss;
+    ss << fmt::format("subspace: {}\nupsilon_max: {}  size: {}  dimension: {}",
+      omega(),upsilon_max(),size(),dimension()
+      )<<std::endl;
 
+  // enumerate state labels within subspace
+    for (int i_state=0; i_state<size(); ++i_state)
+    {
+      MultiplicityTagged<u3::U3> n_rho = GetState(i_state).n_multiplicity_tagged();
+      ss << "  " << i_state << " " << n_rho.Str() << std::endl;
+    }
+
+    return ss.str();
+  }
 
 
    std::string Sp3RSpace::DebugStr() const
@@ -218,24 +151,21 @@
     std::ostringstream ss;
 
     // print space labels
-    ss << "space sigma " << sigma_.Str() << " Nn_max " << Nn_max_ << std::endl;
+    ss << "space sigma " << sigma().Str() << " Nn_max " << Nn_max_ << std::endl;
 
     // iterate over subspaces
     for (int i_subspace=0; i_subspace<size(); ++i_subspace)
-    {
-        // set up reference to subspace of interest
-        //
-        // Using a reference avoids copying the U3Subspace object (and
-        // all its lookup tables).
-      const sp3r::U3Subspace& subspace = GetSubspace(i_subspace);
-
-        // generate debug information for subspace
-      ss << subspace.DebugStr();
+      {
+        const sp3r::U3Subspace& subspace = GetSubspace(i_subspace);
+        ss << subspace.DebugStr();
+      }
+    return ss.str();
     }
 
-    return ss.str();
-  }
 
+  ////////////////////////////////////////////////////////////////
+  // space and subspace indexing
+  ////////////////////////////////////////////////////////////////
 
     Sp3RSectors::Sp3RSectors(
       const Sp3RSpace& space,

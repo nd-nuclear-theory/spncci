@@ -61,8 +61,9 @@ namespace u3
     // member needs copying
 
     // default constructor
-    constexpr inline SU3()
-      : lambda_(0), mu_(0) {}
+    SU3()=default;
+    // constexpr inline SU3()
+    //   : lambda_(0), mu_(0) {}
 
     // construction from (lambda,mu)
     //
@@ -224,11 +225,11 @@ namespace u3
 
     // copy constructor: synthesized copy constructor since only data
     // member needs copying
-
-    constexpr inline U3()
-      : N_{0},x_{}
-      // default constructor
-      {}
+      U3()=default;
+    // constexpr inline U3()
+    //   : N_{0},x_{}
+    //   // default constructor
+    //   {}
 
 
     constexpr inline U3(const HalfInt& f1, const HalfInt& f2, const HalfInt& f3)

@@ -106,26 +106,23 @@ namespace u3boson
 
   // Space constructor
   class U3BosonSpace
-      : public basis::BaseSpace<U3BosonSpace, U3Subspace, std::tuple<u3::U3>>
+      : public basis::BaseSpace<U3BosonSpace, U3Subspace>
   {
     public:
       U3BosonSpace() = default;
       U3BosonSpace(const u3::U3& sigma, const int Nn_max);
 
-      u3::U3 sigma() const { return std::get<0>(labels()); }
+      u3::U3 sigma() const { return std::get<0>(sigma_); }
       int Nn_max() const {return Nn_max_;}
       std::string DebugStr() const;
 
     private:
       unsigned int Nn_max_;
+      std::tuple<u3::U3> sigma_;
 
   };
 
 
-  // Useful accessors:
-  // .multiplicity_index()
-  // .bra_subspace_index()
-  // .bra_subspace()
   class U3BosonSectors
     : public basis::BaseSectors<U3BosonSpace>
   {

@@ -18,183 +18,203 @@
 
 namespace vcs{
 
-  void GenerateSMatrices(const sp3r::Sp3RSpace& irrep, vcs::SMatrixCache& S_matrix_map, bool sp3r_u3_branch_restricted)
-  {
-    u3::U3 sigma=irrep.sigma();
-    assert(sp3r_u3_branch_restricted==false);
+  // void GenerateSMatrices(const sp3r::Sp3RSpace& irrep, vcs::SMatrixCache& S_matrix_map, bool sp3r_u3_branch_restricted)
+  // {
+  //   assert(sp3r_u3_branch_restricted==false);
 
-    for(int i=0; i<irrep.size(); i++)
-      {
+  //   u3::U3 sigma=irrep.sigma();
+  //   for(int i=0; i<irrep.size(); i++)
+  //     {
+  //       // Generate S_matrix = K_matrix^2
+  //       sp3r::U3Subspace u3_subspace_p=irrep.GetSubspace(i);
+  //       u3::U3 omega_p=u3_subspace_p.omega();
+  //       int dimension_p=u3_subspace_p.dimension();
 
-        // Generate S_matrix = K_matrix^2
-        sp3r::U3Subspace u3_subspace_p=irrep.GetSubspace(i);
-        u3::U3 omega_p=u3_subspace_p.labels();
+  //       vcs::SMatrixType S_matrix_p=vcs::SMatrixType::Zero(dimension_p,dimension_p);
+        
+  //       int upsilon_max=0;
+  //       if (sigma==omega_p)
+  //         {
+  //           S_matrix_p(0,0)=1.0;
+  //           upsilon_max=1;
+  //         }
+  //       // general case
+  //       else
+  //         {
+  //           MultiplicityTagged<u3::U3>::vector omega_set=KroneckerProduct(omega_p, {-2,{0,2}});
+  //           // sum over omega
+  //           for (int w=0; w<omega_set.size(); w++)
+  //             {
+  //               u3::U3 omega(omega_set[w].irrep);
+  //               if (not irrep.ContainsSubspace(omega))
+  //                 continue;
 
-        int dimension_p=u3_subspace_p.size();
-        vcs::SMatrixType S_matrix_p=vcs::SMatrixType::Zero(dimension_p,dimension_p);
-        int upsilon_max=0;
-        if (sigma==omega_p)
-          {
-            S_matrix_p(0,0)=1.0;
-            upsilon_max=1;
-          }
-        // general case
-        else
-          {
-            MultiplicityTagged<u3::U3>::vector omega_set=KroneckerProduct(omega_p, u3::U3(0,0,-2));
-            // sum over omega
-            for (int w=0; w<omega_set.size(); w++)
-              {
-                u3::U3 omega(omega_set[w].irrep);
-                if (not irrep.ContainsSubspace(omega))
-                  continue;
+  //               if(not S_matrix_map.count(omega))
+  //                 continue;
 
-                if(not S_matrix_map.count(omega))
-                  continue;
+  //               const sp3r::U3Subspace& u3_subspace=irrep.LookUpSubspace(omega);//GetSubspace().LookUpSubspaceIndex(omega);
 
-                const sp3r::U3Subspace& u3_subspace=irrep.LookUpSubspace(omega);//GetSubspace().LookUpSubspaceIndex(omega);
+  //               int dimension=u3_subspace.dimension();
+  //               // OPTCHECK: Try doing mat-mat-mat by hand
+  //               vcs::SMatrixType coef1_matrix(dimension_p,dimension);
+  //               vcs::SMatrixType coef2_matrix(dimension,dimension_p);
 
-                int dimension=u3_subspace.size();
-                // OPTCHECK: Try doing mat-mat-mat by hand
-                vcs::SMatrixType coef1_matrix(dimension_p,dimension);
-                vcs::SMatrixType coef2_matrix(dimension,dimension_p);
+  //               // iterate over n1p,rho1p and n2p rho2p
+  //               for (int i1=0; i1<u3_subspace_p.size(); i1++)
+  //                 {
+  //                   const auto& [n1p,rho1p_max] = u3_subspace_p.GetState(i1).n_multiplicity_tagged();
+  //                   for(int rho1p=1; rho1p<=rho1p_max; ++rho1p)
+  //                     // MultiplicityTagged<u3::U3> n1p_rho1p=u3_subspace_p.GetStateLabels(i1);
+  //                     // u3::U3 n1p(n1p_rho1p.irrep);
+  //                     for (int i2=0; i2<u3_subspace_p.size(); i2++)
+  //                       {
+  //                         const auto& [n2p,rho2p_max] = u3_subspace_p.GetState(i2).n_multiplicity_tagged();
+  //                         // MultiplicityTagged<u3::U3> n2p_rho2p=u3_subspace_p.GetStateLabels(i2);
+  //                         // u3::U3 n2p(n2p_rho2p.irrep);
+  //                         for(int rho2p=1; rho2p<=rho2p_max; ++rho2p)
+  //                         {
+  //                           // Filling out coef1_matrix
+  //                           for (int j1=0; j1<dimension; j1++)
+  //                             {
+  //                               MultiplicityTagged<u3::U3> n1_rho1=u3_subspace.GetStateLabels(j1);
+  //                               u3::U3 n1(n1_rho1.irrep);
+  //                               double long coef1;
+  //                               if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0), n1p.SU3())>0)
 
-                // iterate over n1p,rho1p and n2p rho2p
-                for (int i1=0; i1<dimension_p; i1++)
-                  {
+  //                                 coef1=(
+  //                                        2./int(n1p.N())
+  //                                        *(Omega(n1p, omega_p)-Omega(n1,omega))
+  //                                        *u3boson::U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
+  //                                        );
 
-                    MultiplicityTagged<u3::U3> n1p_rho1p=u3_subspace_p.GetStateLabels(i1);
-                    u3::U3 n1p(n1p_rho1p.irrep);
-                    for (int i2=0; i2<dimension_p; i2++)
-                      {
-                        MultiplicityTagged<u3::U3> n2p_rho2p=u3_subspace_p.GetStateLabels(i2);
-                        u3::U3 n2p(n2p_rho2p.irrep);
+  //                               else
+  //                                 coef1=0.0;
 
-                        // Filling out coef1_matrix
-                        for (int j1=0; j1<dimension; j1++)
-                          {
-                            MultiplicityTagged<u3::U3> n1_rho1=u3_subspace.GetStateLabels(j1);
-                            u3::U3 n1(n1_rho1.irrep);
-                            double long coef1;
-                            if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0), n1p.SU3())>0)
+  //                               coef1_matrix(i1,j1)=coef1;
 
-                              coef1=(
-                                     2./int(n1p.N())
-                                     *(Omega(n1p, omega_p)-Omega(n1,omega))
-                                     *u3boson::U3BosonCreationRME(sigma,n1p_rho1p,omega_p,sigma, n1_rho1,omega)
-                                     );
+  //                             }
 
-                            else
-                              coef1=0.0;
+  //                           // Filling out coef2_matrix
+  //                           for (int j2=0; j2<dimension; j2++)
+  //                             {
+  //                               MultiplicityTagged<u3::U3> n2_rho2=u3_subspace.GetStateLabels(j2);
+  //                               u3::U3 n2(n2_rho2.irrep);
+  //                               if (u3::OuterMultiplicity(n2.SU3(),u3::SU3(2,0), n2p.SU3())>0)
+  //                                 coef2_matrix(j2,i2)=u3boson::U3BosonCreationRME(sigma, n2p_rho2p, omega_p, sigma, n2_rho2, omega);
+  //                               else
+  //                                 coef2_matrix(j2,i2)=0.0;
+  //                             }
+  //                       }
+  //                       }
+  //                 }
+  //               double tolerance=1e-4;
+  //               mcutils::ChopMatrix(coef1_matrix, tolerance);
+  //               mcutils::ChopMatrix(coef2_matrix, tolerance);
+  //               S_matrix_p+=coef1_matrix*S_matrix_map[omega]*coef2_matrix;
+  //             }
+  //         }//end else
 
-                            coef1_matrix(i1,j1)=coef1;
+  //         S_matrix_map[omega_p]=S_matrix_p;
 
-                          }
+  //     } // end for (i)
+  // }
 
-                        // Filling out coef2_matrix
-                        for (int j2=0; j2<dimension; j2++)
-                          {
-                            MultiplicityTagged<u3::U3> n2_rho2=u3_subspace.GetStateLabels(j2);
-                            u3::U3 n2(n2_rho2.irrep);
-                            if (u3::OuterMultiplicity(n2.SU3(),u3::SU3(2,0), n2p.SU3())>0)
-                              coef2_matrix(j2,i2)=u3boson::U3BosonCreationRME(sigma, n2p_rho2p, omega_p, sigma, n2_rho2, omega);
-                            else
-                              coef2_matrix(j2,i2)=0.0;
-                          }
-                      }
-                  }
-                double tolerance=1e-4;
-                mcutils::ChopMatrix(coef1_matrix, tolerance);
-                mcutils::ChopMatrix(coef2_matrix, tolerance);
-                S_matrix_p+=coef1_matrix*S_matrix_map[omega]*coef2_matrix;
-              }
-          }//end else
+  // // K matrix computed by taking the built-in Eigen operator square-root of S=KK^dagger
+  // // K=UDU^dagger where U is the eigenvectors of S and D is the diagonal matrix with
+  // // diagonal values given by the square root of the eigenvalues of S.
+  // void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map)
+  // {
+  //   vcs::SMatrixCache S_matrix_map;
+  //   bool sp3r_u3_branch_restricted=false;
+  //   vcs::GenerateSMatrices(irrep,S_matrix_map,false);
+  //   for(auto it=S_matrix_map.begin(); it!=S_matrix_map.end(); ++it)
+  //     {
+  //       //calculate K matrix
+  //       Eigen::SelfAdjointEigenSolver<vcs::SMatrixType> eigen_system(it->second);
+  //       K_matrix_map[it->first]=eigen_system.operatorSqrt().cast<double>();
+  //     }
+  // }
 
-          S_matrix_map[omega_p]=S_matrix_p;
 
-      } // end for (i)
-  }
-
-  // K matrix computed by taking the built-in Eigen operator square-root of S=KK^dagger
-  // K=UDU^dagger where U is the eigenvectors of S and D is the diagonal matrix with
-  // diagonal values given by the square root of the eigenvalues of S.
+  // Temporary wrapper to construct K matrix map until we can completley eliminate 
+  // K_matrix_map from spncci code and only use K_matrices stored as a part of the basis
+  // indexing (Sp3RSpace).
   void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map)
-  {
-    vcs::SMatrixCache S_matrix_map;
-    bool sp3r_u3_branch_restricted=false;
-    vcs::GenerateSMatrices(irrep,S_matrix_map,false);
-    for(auto it=S_matrix_map.begin(); it!=S_matrix_map.end(); ++it)
-      {
-        //calculate K matrix
-        Eigen::SelfAdjointEigenSolver<vcs::SMatrixType> eigen_system(it->second);
-        K_matrix_map[it->first]=eigen_system.operatorSqrt().cast<double>();
-      }
-  }
-
-
-  // K matrix obtained by solving for eigenvalues Lambda and eigenvectors U of KK^dagger
-  // as descripted in D. J. Rowe, A. E. McCoy and M. A. Caprio, Phys. Scripta 91 (2016) 0330003.
-  // K(i,j)=Sqrt(lambda_i)U(i,j)
-  // Kinv(j,i)=Sqrt(lambda_i)^(-1)U(i,j).transpose
-  // Note K compute here differs from K computed in function above and is not symmetric
-  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map, vcs::MatrixCache& Kinv_matrix_map)
-  {
-    vcs::SMatrixCache S_matrix_map;
-    bool sp3r_u3_branch_restricted=true;
-    vcs::GenerateSMatrices(irrep,S_matrix_map,sp3r_u3_branch_restricted);
-    for(auto it=S_matrix_map.begin(); it!=S_matrix_map.end(); ++it)
-      {
-        // Get Eigenvalues and eigenvectors
-        Eigen::SelfAdjointEigenSolver<vcs::SMatrixType> eigen_system(it->second);
-        const vcs::SMatrixType& eigenvectors=eigen_system.eigenvectors();
-        const vcs::SMatrixType& eigenvalues=eigen_system.eigenvalues();
-
-        // sqrt(sum(matrix elements)^2)
-        double sum=0;
-        for(int i=0; i<eigenvalues.size(); ++i)
-          sum+=fabs(eigenvalues(i));
-
-        double norm_factor=sum/eigenvalues.size();
-
-        if(fabs(norm_factor)<1e-2)
-          continue;
-
-        // Loop through eigenvalues and identify which eigenvalues are non-zero
-        std::vector<int> non_zero_eigen_positions;
-        for(int i=0; i<eigenvalues.size(); ++i)
+    {
+      for(const auto& subspace : irrep)
         {
-          // std::cout<<eigenvalues(i)<<"  "<<norm_factor<<"  "<<eigenvalues(i)/norm_factor<<std::endl;
-          if(fabs(eigenvalues(i)/norm_factor)>1e-6)
-          {
-            non_zero_eigen_positions.push_back(i);
-          }
+          K_matrix_map[subspace.omega()]=subspace.K_matrix();
         }
-        if(non_zero_eigen_positions.size()==0)
-          continue;
-
-        // Initialize K and Kinv
-        int rows=non_zero_eigen_positions.size();
-        int cols=eigenvalues.size();
-
-        vcs::SMatrixType K(rows,cols);
-        vcs::SMatrixType Kinv(cols,rows);
+    }
 
 
-        // std::cout<<"Eigenvalues "<<non_zero_eigen_positions.size()<<std::endl<<eigenvalues<<std::endl;
-        // Construct K and Kinv from non-zero eigenvalues and corresponding eigenvectors
-        for(int i=0; i<non_zero_eigen_positions.size(); ++i)
-          {
-            int index=non_zero_eigen_positions[i];
-            double k=sqrt(eigenvalues(index));
-            K.row(i)=k*eigenvectors.row(index);
-            Kinv.col(i)=1/k*eigenvectors.row(index).transpose();
-          }
+  void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map, vcs::MatrixCache& Kinv_matrix_map)
+    {
+      for(const auto& subspace : irrep)
+        {
+          K_matrix_map[subspace.omega()]=subspace.K_matrix();
+          Kinv_matrix_map[subspace.omega()]=subspace.Kinv_matrix();
+        }
 
-        K_matrix_map[it->first]=K.cast<double>();
-        Kinv_matrix_map[it->first]=Kinv.cast<double>();
+    }
+  // void GenerateKMatrices(const sp3r::Sp3RSpace& irrep, vcs::MatrixCache& K_matrix_map, vcs::MatrixCache& Kinv_matrix_map)
+  // {
+  //   vcs::SMatrixCache S_matrix_map;
+  //   bool sp3r_u3_branch_restricted=true;
+  //   vcs::GenerateSMatrices(irrep,S_matrix_map,sp3r_u3_branch_restricted);
+  //   for(auto it=S_matrix_map.begin(); it!=S_matrix_map.end(); ++it)
+  //     {
+  //       // Get Eigenvalues and eigenvectors
+  //       Eigen::SelfAdjointEigenSolver<vcs::SMatrixType> eigen_system(it->second);
+  //       const vcs::SMatrixType& eigenvectors=eigen_system.eigenvectors();
+  //       const vcs::SMatrixType& eigenvalues=eigen_system.eigenvalues();
 
-      }
-  }
+  //       // sqrt(sum(matrix elements)^2)
+  //       double sum=0;
+  //       for(int i=0; i<eigenvalues.size(); ++i)
+  //         sum+=fabs(eigenvalues(i));
+
+  //       double norm_factor=sum/eigenvalues.size();
+
+  //       if(fabs(norm_factor)<1e-2)
+  //         continue;
+
+  //       // Loop through eigenvalues and identify which eigenvalues are non-zero
+  //       std::vector<int> non_zero_eigen_positions;
+  //       for(int i=0; i<eigenvalues.size(); ++i)
+  //       {
+  //         // std::cout<<eigenvalues(i)<<"  "<<norm_factor<<"  "<<eigenvalues(i)/norm_factor<<std::endl;
+  //         if(fabs(eigenvalues(i)/norm_factor)>1e-6)
+  //         {
+  //           non_zero_eigen_positions.push_back(i);
+  //         }
+  //       }
+  //       if(non_zero_eigen_positions.size()==0)
+  //         continue;
+
+  //       // Initialize K and Kinv
+  //       int rows=non_zero_eigen_positions.size();
+  //       int cols=eigenvalues.size();
+
+  //       vcs::SMatrixType K(rows,cols);
+  //       vcs::SMatrixType Kinv(cols,rows);
+
+
+  //       // std::cout<<"Eigenvalues "<<non_zero_eigen_positions.size()<<std::endl<<eigenvalues<<std::endl;
+  //       // Construct K and Kinv from non-zero eigenvalues and corresponding eigenvectors
+  //       for(int i=0; i<non_zero_eigen_positions.size(); ++i)
+  //         {
+  //           int index=non_zero_eigen_positions[i];
+  //           double k=sqrt(eigenvalues(index));
+  //           K.row(i)=k*eigenvectors.row(index);
+  //           Kinv.col(i)=1/k*eigenvectors.row(index).transpose();
+  //         }
+
+  //       K_matrix_map[it->first]=K.cast<double>();
+  //       Kinv_matrix_map[it->first]=Kinv.cast<double>();
+
+  //     }
+  // }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Uses U3Boson basis construction.
@@ -283,11 +303,12 @@ GenerateKmatrices(
             if(SMatrix.rows()==1)
               {
                 double k_squared = SMatrix(0,0);
-                if(fabs(k_squared)>zero_threshold && k_squared>0)
+                // if(fabs(k_squared)>zero_threshold && k_squared>0)
+                if(fabs(k_squared)>zero_threshold)
                   {
                     double k=std::sqrt(k_squared);
                     KMatrix_map[omega][0]=basis::OperatorBlock<double>::Identity(1,1)*k;
-                    KMatrix_map[omega][0]=basis::OperatorBlock<double>::Identity(1,1)/k;
+                    KMatrix_map[omega][1]=basis::OperatorBlock<double>::Identity(1,1)/k;
                   }
                 continue;
               }
@@ -344,7 +365,7 @@ GenerateKmatrices(
                 i++;
               }
 
-            // Since 16 was fatored out of the definition of the Smatrix,
+            // Since 16 was factored out of the definition of the Smatrix,
             // we now need to add it back it sqrt(16)^(Nn/2)=2^Nn
             double factor = pow(2,int(omega.N()-sigma.N()));
             K=K*factor;
