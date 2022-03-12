@@ -22,30 +22,6 @@
 
 namespace spncci
 {
-  // int ValenceShellForNuclide(const lgi::NuclideType& nuclide)
-  // {
-  //   // each major shell eta=2*n+l (for a spin-1/2 fermion) contains (eta+1)*(eta+2) substates
-  //   int N1v = 0;
-  //   for (int species_index : {0,1})
-  //     {
-  //       int num_particles = nuclide[species_index];
-  //       for (int eta=0; num_particles>0; ++eta)
-  //         {
-  //           // add contribution from particles in shell
-  //           int shell_degeneracy = (eta+1)*(eta+2);
-  //           int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
-
-  //           // register this shell as occupied
-  //           N1v = std::max(N1v,eta);
-
-  //           // discard particles in shell
-  //           num_particles -= num_particles_in_shell;
-  //         }
-  //     }
-
-  //   return N1v;
-  // }
-
 
   std::string SpNCCIIrrepFamily::Str() const
   {
@@ -97,38 +73,6 @@ namespace spncci
   }
 
 
-
-  // void ConstructRestrictedSp3RSpace(const u3::U3& sigma, int Nn_max, sp3r::Sp3RSpace& irrep)
-  //   // Contruct an Sp(3,R) irrep applying necessary restrictions for A<6
-  // // Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const sp3r::RestrictedSpanakopitaType& spanakopita)
-  //   {
-  //     // create irrep with no restrictions
-  //     sp3r::Sp3RSpace irrep_temp(sigma,Nn_max);
-
-  //     // Generate K matrices for irrep
-  //     vcs::MatrixCache K_matrix_cache;
-  //     vcs::MatrixCache Kinv_matrix_cache;
-  //     vcs::GenerateKMatrices(irrep_temp,K_matrix_cache, Kinv_matrix_cache);
-
-  //     // set up container for states
-  //     std::map<MultiplicityTagged<u3::U3>,MultiplicityTagged<u3::U3>::vector> spanakopita;
-  //     // Iterate through K matrix identifying omega subspaces which are contained in irrep along with upsilon_max
-  //     for(auto it=K_matrix_cache.begin(); it!=K_matrix_cache.end(); ++it)
-  //       {
-  //         const u3::U3& omega=it->first;
-  //         auto& Kmatrix=it->second;
-  //         int upsilon_max=Kmatrix.rows();
-  //         MultiplicityTagged<u3::U3> omega_tagged(omega,upsilon_max);
-  //         const auto& subspace=irrep_temp.GetSubspace(irrep_temp.LookUpSubspaceIndex(omega));
-  //         MultiplicityTagged<u3::U3>::vector& states=spanakopita[omega_tagged];
-  //         for(int i=0; i<subspace.size(); ++i)
-  //           states.push_back(subspace.GetStateLabels(i));
-  //       }
-
-  //     // Create restricted irrep
-  //     irrep=sp3r::Sp3RSpace(sigma,Nn_max,spanakopita);
-  //   }
-
   void GenerateSpNCCISpace(
       const lgi::MultiplicityTaggedLGIVector& multiplicity_tagged_lgi_vector,
       const TruncatorInterface& truncator,
@@ -169,7 +113,7 @@ namespace spncci
 
 
         if (sigma_irrep_map.count(sigma) == 0)
-          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max,restrict_sp3r_to_u3_branching);
+          sigma_irrep_map[sigma] = sp3r::Sp3RSpace(sigma,Nn_max);
 
         // save info back to SpNCCIIrrepFamily
         const sp3r::Sp3RSpace& irrep_space = sigma_irrep_map[sigma];
@@ -204,7 +148,7 @@ namespace spncci
         for (int subspace_index = 0; subspace_index < irrep_space.size(); ++subspace_index)
           {
             const sp3r::U3Subspace& u3_subspace = irrep_space.GetSubspace(subspace_index);
-            dimension += gamma_max*u3_subspace.size();
+            dimension += gamma_max*u3_subspace.upsilon_max();
           }
       }
 
@@ -237,7 +181,7 @@ namespace spncci
             // At LS-coupled level, the dimension contribution is the
             // product of the number of U(3) reduced states and their
             // L substates.
-            dimension += gamma_max*u3_subspace.size()*L_dimension;
+            dimension += gamma_max*u3_subspace.upsilon_max()*L_dimension;
           }
       }
 
@@ -262,11 +206,11 @@ namespace spncci
             // branching_vector is list of L values tagged with their
             // multiplicity.
             u3::U3 omega = u3_subspace.U3();
-            MultiplicityTagged<unsigned int>::vector branching_vector = BranchingSO3Constrained(omega.SU3(),am::ProductAngularMomentumRange(S,J));
-            // std::cout << " omega " << omega.Str() << " S " << S << " J " << J << std::endl;
+            MultiplicityTagged<unsigned int>::vector branching_vector 
+              = BranchingSO3Constrained(omega.SU3(),am::ProductAngularMomentumRange(S,J));
+            
             int L_dimension = 0;
             for (int L_index=0; L_index<branching_vector.size(); ++L_index)
-              // std::cout << " L " << branching_vector[L_index].irrep << " " << branching_vector[L_index].tag << std::endl;
               L_dimension += branching_vector[L_index].tag;
 
             // dimension contribution of subspace
@@ -274,7 +218,7 @@ namespace spncci
             // At LS-coupled level, the dimension contribution is the
             // product of the number of U(3) reduced states and their
             // L substates.
-            dimension += gamma_max*u3_subspace.size()*L_dimension;
+            dimension += gamma_max*u3_subspace.upsilon_max()*L_dimension;
 
           }
       }
@@ -309,7 +253,7 @@ namespace spncci
                 //
                 // At J-coupled level, the dimension contribution of this L is the
                 // product of the L multiplicity with the number of J values.
-                dimension += gamma_max*L_multiplicity*J_values;
+                dimension += gamma_max*u3_subspace.upsilon_max()*L_multiplicity*J_values;
               }
           }
       }
@@ -357,7 +301,6 @@ namespace spncci
   {
     // save dimension info
     gamma_max_ = spncci_irrep_family.gamma_max();
-    upsilon_max_ = u3_subspace.size();
     upsilon_max_ = u3_subspace.upsilon_max();
     irrep_family_index_=irrep_family_index;
     PushStateLabels({0},gamma_max_*upsilon_max_);

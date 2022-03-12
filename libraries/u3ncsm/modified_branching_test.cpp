@@ -45,7 +45,7 @@ void test_modified_branching_rule(const nuclide::NuclideType& nuclide, int Nmax=
         assert(sp3r::IsUnitary(sigma));
 
         // Construct U3 boson irrep and generate K matrices
-        vcs::U3BosonSpace u3boson_space(sigma,Nn_max);
+        u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
         auto K_matrices = vcs::GenerateKmatrices(sigma,u3boson_space);
 
         for(const auto& [omega,KK] : K_matrices)

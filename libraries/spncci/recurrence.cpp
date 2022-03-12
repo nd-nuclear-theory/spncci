@@ -16,6 +16,7 @@
 #include "mcutils/eigen.h"
 #include "lgi/lgi_unit_tensors.h"
 #include "sp3rlib/u3coef.h"
+#include "sp3rlib/sp3r_operator.h"
 #include "spncci/spncci_common.h"
 #include "spncci/transform_basis.h"
 #include "utilities/utilities.h"
@@ -614,44 +615,61 @@ void AddNn0BlocksToHyperblocks(
   // Construct KBUK matrix
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
+  // Was modified to account for new Sp(3,R) indexing and VCS K matrix calculation
+  // Has NOT been validated
   void ConsructKBUK(
     u3::UCoefCache& u_coef_cache, int Nn,
     const u3::U3& sigma, const u3::U3& omega, const u3::U3& omega1,
     const sp3r::U3Subspace& u3_subspace,
     const sp3r::U3Subspace& u3_subspace1,
-    const Eigen::MatrixXd& K1, //(upsilon_max1,dim1)
-    const Eigen::MatrixXd& K_inv,//(dim,upsilon_max)
+    const Eigen::MatrixXd& K1, //(dim1,upsilon1_max)
+    const Eigen::MatrixXd& K_inv,//(upsilon_max,dim)
     Eigen::MatrixXd& KBUK //(upislon1_max,upsilon)
     )
   {
     int upsilon_max1=u3_subspace1.upsilon_max();
     int upsilon_max=u3_subspace.upsilon_max();
-    int dim1=u3_subspace1.size();
-    int dim=u3_subspace.size();
+    int dim1=u3_subspace1.dimension();
+    int dim=u3_subspace.dimension();
 
-    Eigen::MatrixXd BU(dim1, dim);
-    for(int u3_state_index=0; u3_state_index<dim; ++u3_state_index)
+    basis::OperatorBlock<double> BU = basis::OperatorBlock<double>::Zero(dim1, dim);
+    for(int u3_state_index=0; u3_state_index<u3_subspace.size(); ++u3_state_index)
       {
-        MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(u3_state_index);
-        u3::U3 n(n_rho.irrep);
+        const auto&[n,rho_max] = u3_subspace.GetState(u3_state_index).n_multiplicity_tagged();
+        // MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(u3_state_index);
+        // u3::U3 n(n_rho.irrep);
         // iterate over (n1,rho1)
-        for (int u3_state_index1=0; u3_state_index1<dim1; u3_state_index1++)
+        for (int u3_state_index1=0; u3_state_index1<u3_subspace1.size(); u3_state_index1++)
           {
-            MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
-            u3::U3 n1(n1_rho1.irrep);
-            if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())>0)
-                BU(u3_state_index1,u3_state_index)
-                  =2./Nn*u3boson::BosonCreationRME(n,n1)
-                   *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
-                      n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1
-                    );
-            else
-              BU(u3_state_index1,u3_state_index)=0;
+            const auto&[n1,rho1_max] = u3_subspace1.GetState(u3_state_index1).n_multiplicity_tagged();
+            // MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
+            // u3::U3 n1(n1_rho1.irrep);
+            if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())==0)
+              continue;
+
+            for(int rho=1; rho<=rho_max; ++rho)
+              for(int rho1=1; rho1<=rho1_max; ++rho1)
+                {
+                  int col=u3_subspace1.GetStateOffset(u3_state_index1,rho1);
+                  int row=u3_subspace.GetStateOffset(u3_state_index,rho);
+                  // BU(u3_state_index1,u3_state_index)
+                  //   =2./Nn*u3boson::BosonCreationRME(n,n1)
+                  //    *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
+                  //       n.SU3(),1,n_rho.tag,omega1.SU3(),n1_rho1.tag,1
+                  //     );
+
+                  BU(row,col)
+                    =2./Nn*u3boson::BosonCreationRME(n,n1)
+                     *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
+                        n.SU3(),1,rho,omega1.SU3(),rho1,1
+                      );
+                }
 
           }
       }
     // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-    KBUK.noalias()=K1*BU*K_inv;
+    // KBUK.noalias()=K1*BU*K_inv;
+      KBUK.noalias()=(K_inv*BU*K1).transpose();
     // std::cout<<"KBUK "<<KBUK<<std::endl;
   }
 
@@ -672,33 +690,42 @@ void Amatrix(
   int dimp=u3_subspacep.size();
   int dimpp=u3_subspacepp.size();
 
-  Eigen::MatrixXd boson_matrix(dimp,dimpp);
+  basis::OperatorBlock<double> boson_matrix = basis::OperatorBlock<double>::Zero(dimp,dimpp);
   
   // Extracting K matrices 
   const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
   Eigen::MatrixXd Kpp_inv=Kinv_matrix_map_bra.at(omegapp);
 
+  // for(const auto& statepp : u3_subspacepp)
   for(int vpp=0; vpp<dimpp; vpp++)
     {
-      MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
-      const u3::U3& npp(npp_rhopp.irrep);
-      int rhopp=npp_rhopp.tag;
+      const auto&[npp,rhopp_max] = u3_subspacepp.GetState(vpp).n_multiplicity_tagged();
+      // MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
+      // const u3::U3& npp(npp_rhopp.irrep);
+      // int rhopp=npp_rhopp.tag;
       for(int vp=0; vp<dimp; vp++)
         {
-          MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
-          const u3::U3& np(np_rhop.irrep);
-          int rhop=np_rhop.tag; 
-          if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
-            {
-              boson_matrix(vp,vpp)=
-                u3boson::BosonCreationRME(np,npp)
-                *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
-                *u3::UCached(
-                    u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
-                    np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
-            }
-          else
-            boson_matrix(vp,vpp)=0;
+          const auto&[np,rhop_max] = u3_subspacep.GetState(vp).n_multiplicity_tagged();
+          // MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
+          // const u3::U3& np(np_rhop.irrep);
+          // int rhop=np_rhop.tag; 
+          
+          // RME is already set to zero 
+          if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())==0)
+            continue; 
+
+          for(int rhopp=1; rhopp<=rhopp_max; ++rhopp)
+            for(int rhop=1; rhop<=rhop_max; ++rhop)
+              {
+                int col = u3_subspacepp.GetStateOffset(vpp,rhopp);
+                int row = u3_subspacep.GetStateOffset(vp,rhop);
+                boson_matrix(row,col)=
+                  u3boson::BosonCreationRME(np,npp)
+                  *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
+                  *u3::UCached(
+                      u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
+                      np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
+              }
         } //end vp
     } //end vpp
   // Matrix of symplectic raising operator A
@@ -909,14 +936,17 @@ ComputeUnitTensorHyperblocks(
                           int upsilon_maxpp=u3_subspacepp.upsilon_max();
                           int dimpp=upsilon_maxpp*gamma_maxp;
                           // Obtaining K matrix for omega''
-                          
-                          Eigen::MatrixXd A;
-                          spncci::Amatrix(u_coef_cache,
-                            u3_subspacep,u3_subspacepp,sigmap, omegap, omegapp,
-                            K_matrix_map_bra,Kinv_matrix_map_bra,upsilon_maxp, upsilon_maxpp,
-                            A
-                          );
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////                          
+                          Eigen::MatrixXd A 
+                            = sp3r::Sp3rRaisingOperator(sigmap,u3_subspacep,u3_subspacepp,u_coef_cache);
+
+                          // spncci::Amatrix(u_coef_cache,
+                          //   u3_subspacep,u3_subspacepp,sigmap, omegap, omegapp,
+                          //   K_matrix_map_bra,Kinv_matrix_map_bra,upsilon_maxp, upsilon_maxpp,
+                          //   A
+                          // );
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
                            // Zero initialze blocks accumulating sum over rho0pp and rho0bp
                           std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_rhobp;
                           

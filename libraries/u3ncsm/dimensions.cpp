@@ -219,9 +219,8 @@ MultiplicityTaggedLGIVector get_lgi_vector(
 
       // Eventually be replaced by single call.
       const auto& sigma=lgi.U3();
-      u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
       bool subspace_labels_only = true;
-      sp3r::Sp3RSpace sp3r_space(sigma,Nn_max,u3boson_space,subspace_labels_only);
+      sp3r::Sp3RSpace sp3r_space(sigma,Nn_max,subspace_labels_only);
 
       for(const auto& subspace : sp3r_space)
         {

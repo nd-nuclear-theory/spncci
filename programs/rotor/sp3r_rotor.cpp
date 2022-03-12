@@ -99,8 +99,7 @@ int main(int argc, char **argv)
   HalfInt S(1,2);
   int Nmax=2;
 
-  u3boson::U3BosonSpace u3boson_space(sigma,Nmax);
-  sp3r::Sp3RSpace sp3r_space(sigma,Nmax,u3boson_space);
+  sp3r::Sp3RSpace sp3r_space(sigma,Nmax);
   // vcs::MatrixCache K_matrices;
   // vcs::GenerateKMatrices(sp3r_space,K_matrices);
   // std::cout<<"Kmatrices "<<std::endl;

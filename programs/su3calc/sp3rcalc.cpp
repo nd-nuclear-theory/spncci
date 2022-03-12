@@ -150,10 +150,9 @@ void DoIrrep(int N, int lambda, int mu, int Nnmax)
       const u3::U3 omega = subspace.U3();
       for (int state_index=0; state_index<subspace.size(); ++state_index)
         {
-          MultiplicityTagged<u3::U3> n_rho = subspace.GetStateLabels(state_index);
-          const u3::U3 n = n_rho.irrep;
-          int rho = n_rho.tag;
-          std::cout << fmt::format("  {:12s} {:12s} {:3d}",omega.Str(),n.Str(),rho) << std::endl;
+          const auto&[n,rho_max] = subspace.GetState(state_index).n_multiplicity_tagged();
+          for(int rho=1; rho<=rho_max; ++rho)
+            std::cout << fmt::format("  {:12s} {:12s} {:3d}",omega.Str(),n.Str(),rho) << std::endl;
         }
     }
 }
