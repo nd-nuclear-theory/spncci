@@ -82,11 +82,10 @@ class U3Subspace
     //TODO: double check this with Patrick.  May need to redefine K matrix in vcs.cpp
     assert(K_matrix().rows() == Kinv_matrix().cols());
     assert(
-        (nonorthogonal_basis_size() == K_matrix().cols())
-        && (nonorthogonal_basis_size() == Kinv_matrix().rows())
+        (nonorthogonal_basis_size() == K_matrix().rows())
+        && (nonorthogonal_basis_size() == Kinv_matrix().cols())
       );
   }
-
   // U3Subspace(const sp3r::U3Subspace& u3subspace);
 
   u3::U3 omega() const { return std::get<0>(labels()); }
@@ -101,7 +100,7 @@ class U3Subspace
     return Kinv_matrix_;
   }
 
-  inline std::size_t dimension() const { return K_matrix().rows(); }
+  inline std::size_t dimension() const { return K_matrix().cols(); }
   inline std::size_t nonorthogonal_basis_size() const
   {
     return BaseDegenerateSubspace::dimension();
