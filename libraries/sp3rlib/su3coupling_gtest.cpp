@@ -37,6 +37,34 @@ class WCoeffTest
   void TearDown() override {}
 };
 
+class UCoeffTest
+    : public testing::TestWithParam<std::tuple<u3::SU3, u3::SU3, u3::SU3>>
+{
+ protected:
+  void SetUp() override
+  {
+    // initialization
+    u3::U3CoefInit();
+  }
+
+  void TearDown() override {}
+};
+
+
+class ZCoeffTest
+    : public testing::TestWithParam<std::tuple<u3::SU3, u3::SU3, u3::SU3>>
+{
+ protected:
+  void SetUp() override
+  {
+    // initialization
+    u3::U3CoefInit();
+  }
+
+  void TearDown() override {}
+};
+
+
 // Set up test suite
 INSTANTIATE_TEST_SUITE_P(
     SU3Test,
@@ -47,6 +75,27 @@ INSTANTIATE_TEST_SUITE_P(
         std::pair{u3::SU3{4, 3}, u3::SU3{2, 4}}
       )
   );
+
+INSTANTIATE_TEST_SUITE_P(
+    SU3Test,
+    UCoeffTest,
+    testing::Values(
+      std::tuple{u3::SU3{2, 0}, u3::SU3{2, 0}, u3::SU3{2, 0}},
+      std::tuple{u3::SU3{1, 2}, u3::SU3{3, 4}, u3::SU3{5, 6}},
+      std::tuple{u3::SU3{4, 3}, u3::SU3{2, 4}, u3::SU3{0, 2}}
+      )
+);
+
+INSTANTIATE_TEST_SUITE_P(
+    SU3Test,
+    ZCoeffTest,
+    testing::Values(
+      std::tuple{u3::SU3{2, 0}, u3::SU3{2, 0}, u3::SU3{2, 0}},
+      std::tuple{u3::SU3{1, 2}, u3::SU3{3, 4}, u3::SU3{5, 6}},
+      std::tuple{u3::SU3{4, 3}, u3::SU3{2, 4}, u3::SU3{0, 2}}
+      )
+);
+
 
 
 /************************************************/
@@ -171,28 +220,132 @@ double compute_W_sum_alpha(
   return sum;
 }
 
-/*
-// SU3 test class
-class SU3TestClass : public ::testing::Test
+double compute_U_sum_x12(u3::SU3 &x1, u3::SU3 &x2, u3::SU3 &x, u3::SU3 &x3, u3::SU3 &x23, 
+                    u3::SU3 &x23prime, int r23, int r23prime, int r1_23, int r1_23prime)
+// compute orthogonality sum over x12, rho12, rho12_3
 {
-protected:
-
-    SU3TestClass() : su3_1(1,2), su3_2(3,4) {}
-    ~SU3TestClass() override {}
-
-    void SetUp() override
+    double sum = 0;
+    // couple x1 to x2 -> x12
+    MultiplicityTagged<u3::SU3>::vector x12couple = u3::KroneckerProduct(x1,x2);
+    // sum over x12
+    for (int u = 0; u < x12couple.size(); u++)
     {
-        // initialization
-        u3::U3CoefInit();
+        // x12
+        u3::SU3 x12 = x12couple[u].irrep;
+        // get rho12, rho12_3 values
+        u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12,x23);
+        int r12_max = std::get<0>(UMult);
+        int r12_3_max = std::get<1>(UMult);
+        // loop over r12, r12_3
+        for (int r12 = 1; r12 <= r12_max; r12++)
+        {
+            for (int r12_3 = 1; r12_3 <= r12_3_max; r12_3++)
+            {
+                // compute sum
+                sum += u3::U(x1, x2, x, x3, x12, r12, r12_3, x23, r23, r1_23)
+                        *u3::U(x1, x2, x, x3, x12, r12, r12_3, x23prime, r23prime, r1_23prime);
+            }
+        }
+
     }
+    return sum;
+}
 
-    void TearDown() override {}
 
-    u3::SU3 su3_1;
-    u3::SU3 su3_2;
-};
-*/
+double compute_U_sum_x23(u3::SU3 &x1, u3::SU3 &x2, u3::SU3 &x, u3::SU3 &x3, u3::SU3 &x12, 
+                    u3::SU3 &x12prime, int r12, int r12prime, int r12_3, int r12_3prime)
+// compute orthogonality sum over x23, rho23, rho1_23
+{
+    double sum = 0;
+    // couple x2 to x3 -> x23
+    MultiplicityTagged<u3::SU3>::vector x23couple = u3::KroneckerProduct(x2,x3);
+    // sum over x12
+    for (int u = 0; u < x23couple.size(); u++)
+    {
+        // x12
+        u3::SU3 x23 = x23couple[u].irrep;
+        // get rho23, rho1_23 values
+        u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12,x23);
+        int r23_max = std::get<2>(UMult);
+        int r1_23_max = std::get<3>(UMult);
+        // loop over r23, r1_23
+        for (int r23 = 1; r23 <= r23_max; r23++)
+        {
+            for (int r1_23 = 1; r1_23 <= r1_23_max; r1_23++)
+            {
+                // compute sum
+                sum += u3::U(x1, x2, x, x3, x12, r12, r12_3, x23, r23, r1_23)
+                        *u3::U(x1, x2, x, x3, x12prime, r12prime, r12_3prime, x23, r23, r1_23);
+            }
+        }
 
+    }
+    return sum;
+}
+
+
+double compute_Z_sum_x12(u3::SU3 &x1, u3::SU3 &x2, u3::SU3 &x, u3::SU3 &x3, u3::SU3 &x13, 
+                    u3::SU3 &x13prime, int r13, int r13prime, int r13_2, int r13_2prime)
+// compute orthogonality sum over x12, rho12, rho12_3
+{
+    double sum = 0;
+    // couple x1 to x2 -> x12
+    MultiplicityTagged<u3::SU3>::vector x12couple = u3::KroneckerProduct(x1,x2);
+    // sum over x12
+    for (int u = 0; u < x12couple.size(); u++)
+    {
+        // x12
+        u3::SU3 x12 = x12couple[u].irrep;
+        // get rho12, rho12_3 values
+        u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12,x13);
+        int r12_max = std::get<0>(UMult);
+        int r12_3_max = std::get<1>(UMult);
+        // loop over r12, r12_3
+        for (int r12 = 1; r12 <= r12_max; r12++)
+        {
+            for (int r12_3 = 1; r12_3 <= r12_3_max; r12_3++)
+            {
+                // compute sum
+                sum += u3::Z(x1, x2, x, x3, x12, r12, r12_3, x13, r13, r13_2)
+                        *u3::Z(x1, x2, x, x3, x12, r12, r12_3, x13prime, r13prime, r13_2prime);
+            }
+        }
+
+    }
+    return sum;
+}
+
+
+double compute_Z_sum_x13(u3::SU3 &x1, u3::SU3 &x2, u3::SU3 &x, u3::SU3 &x3, u3::SU3 &x12, 
+                    u3::SU3 &x12prime, int r12, int r12prime, int r12_3, int r12_3prime)
+// compute orthogonality sum over x13, rho13, rho13_2
+{
+    double sum = 0;
+    // couple x1 to x3 -> x13
+    MultiplicityTagged<u3::SU3>::vector x13couple = u3::KroneckerProduct(x1,x3);
+    // sum over x12
+    for (int u = 0; u < x13couple.size(); u++)
+    {
+        // x12
+        u3::SU3 x13 = x13couple[u].irrep;
+        // get rho13, rho1_13 values
+        u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12,x13);
+        int r13_max = std::get<2>(UMult);
+        int r13_2_max = std::get<3>(UMult);
+        // loop over r13, r13_2
+        for (int r13 = 1; r13 <= r13_max; r13++)
+        {
+            for (int r13_2 = 1; r13_2 <= r13_2_max; r13_2++)
+            {
+                // compute sum
+                sum += u3::Z(x1, x2, x, x3, x12, r12, r12_3, x13, r13, r13_2)
+                        *u3::Z(x1, x2, x, x3, x12prime, r12prime, r12_3prime, x13, r13, r13_2);
+            }
+        }
+
+    }
+    return sum;
+}
 
 /************************************************/
 /****************** Unit Tests ******************/
@@ -325,6 +478,163 @@ TEST_P(WCoeffTest, Orthonormality)
     }
   }
 }
+
+TEST_P(UCoeffTest, Orthonormality)
+// tests orthonormality of (l1, m1) x (l2, m2) x (l3, m3)
+{
+
+    auto [x1, x2, x3] = GetParam();
+
+    // couple x1 to x2 -> vector of x12
+    MultiplicityTagged<u3::SU3>::vector x12couple = u3::KroneckerProduct(x1,x2);
+    // couple x2 to x3 -> vector of x23
+    MultiplicityTagged<u3::SU3>::vector x23couple = u3::KroneckerProduct(x2,x3);
+
+    // Loop over x23, r23, r1_23, (lambda, mu) in coupling of (l1, m1) x (l23, m23)
+    for (int u = 0; u <x23couple.size(); u++)
+    {
+        // extract x23
+        u3::SU3 x23 = x23couple[u].irrep;
+        // couple x1 with x23 to get x
+        MultiplicityTagged<u3::SU3>::vector xvec = u3::KroneckerProduct(x1,x23);
+        // loop over xvec
+        for (int i = 0; i < xvec.size(); i++)
+        {
+            // extract x
+            u3::SU3 x = xvec[i].irrep;
+            // calculate max r23, r1_23, and loop over them
+            u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12couple[0].irrep,x23);
+            int r23_max = std::get<2>(UMult);
+            int r1_23_max = std::get<3>(UMult);
+            for (int r23 = 1; r23 <= r23_max; r23++)
+            {
+                for (int r1_23 = 1; r1_23 <= r1_23_max; r1_23++)
+                {
+                    // calculate orthogonality sum over x12, r12, r12_3
+                    double sum12 = compute_U_sum_x12(x1,x2,x,x3,x23,x23,r23,r23,r1_23,r1_23);
+
+                    EXPECT_FLOAT_EQ(sum12, 1)<<fmt::format("orthogonality failed U[{}{}{}{}; (l12,m12)r12 r12_3 {} {} {}] -> {}",
+                                    x1.Str(),x2.Str(),x.Str(),x3.Str(),x23.Str(),r23,r1_23,sum12)<<std::endl;
+                }
+            }
+        }
+    }
+
+
+    // Loop over x12, r12, r12_3, (lambda, mu) in coupling of (l12, m12) x (l3, m3)
+    for (int u = 0; u <x12couple.size(); u++)
+    {
+        // extract x12
+        u3::SU3 x12 = x12couple[u].irrep;
+        // couple x12 with x3 to get x
+        MultiplicityTagged<u3::SU3>::vector xvec = u3::KroneckerProduct(x12,x3);
+        // loop over xvec
+        for (int i = 0; i < xvec.size(); i++)
+        {
+            // extract x
+            u3::SU3 x = xvec[i].irrep;
+            // calculate max r12, r12_3, and loop over them
+            u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12,x23couple[0].irrep);
+            int r12_max = std::get<0>(UMult);
+            int r12_3_max = std::get<1>(UMult);
+            for (int r12 = 1; r12 <= r12_max; r12++)
+            {
+                for (int r12_3 = 1; r12_3 <= r12_3_max; r12_3++)
+                {
+                    // calculate orthogonality sum over x23, r23, r1_23
+                    double sum23 = compute_U_sum_x23(x1,x2,x,x3,x12,x12,r12,r12,r12_3,r12_3);
+
+                    EXPECT_FLOAT_EQ(sum23, 1)<<fmt::format("orthogonality failed U[{}{}{}{}; {} {} {} (l23,m23)r23 r1_23] -> {}",
+                                    x1.Str(),x2.Str(),x.Str(),x3.Str(),x12.Str(),r12,r12_3,sum23)<<std::endl;
+                }
+            }
+        }
+    }
+
+
+}
+
+
+
+
+TEST_P(ZCoeffTest, Orthonormality)
+// tests orthonormality of (l1, m1) x (l2, m2) x (l3, m3)
+{
+    auto [x1, x2, x3] = GetParam();
+
+    // couple x1 to x2 -> vector of x12
+    MultiplicityTagged<u3::SU3>::vector x12couple = u3::KroneckerProduct(x1,x2);
+    // couple x1 to x3 -> vector of x13
+    MultiplicityTagged<u3::SU3>::vector x13couple = u3::KroneckerProduct(x1,x3);
+
+    // Loop over x13, r13, r13_2, (lambda, mu) in coupling of (l13, m13) x (l2, m2)
+    for (int u = 0; u <x13couple.size(); u++)
+    {
+        // extract x13
+        u3::SU3 x13 = x13couple[u].irrep;
+        // couple x13 with x2 to get x
+        MultiplicityTagged<u3::SU3>::vector xvec = u3::KroneckerProduct(x13,x2);
+        // loop over xvec
+        for (int i = 0; i < xvec.size(); i++)
+        {
+            // extract x
+            u3::SU3 x = xvec[i].irrep;
+            // calculate max r13, r13_2, and loop over them
+            u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12couple[0].irrep,x13);
+            int r13_max = std::get<2>(UMult);
+            int r13_2_max = std::get<3>(UMult);
+            for (int r13 = 1; r13 <= r13_max; r13++)
+            {
+                for (int r13_2 = 1; r13_2 <= r13_2_max; r13_2++)
+                {
+                    // calculate orthogonality sum over x12, r12, r12_3
+                    double sum12 = compute_Z_sum_x12(x1,x2,x,x3,x13,x13,r13,r13,r13_2,r13_2);
+
+                    EXPECT_FLOAT_EQ(sum12, 1)<<fmt::format("orthogonality failed Z[{}{}{}{}; (l12,m12)r12 r12_3 {} {} {}] -> {}",
+                                    x1.Str(),x2.Str(),x.Str(),x3.Str(),x13.Str(),r13,r13_2,sum12)<<std::endl;
+                }
+            }
+        }
+    }
+
+
+    // Loop over x12, r12, r12_3, (lambda, mu) in coupling of (l13, m13) x (l2, m2)
+    for (int u = 0; u <x12couple.size(); u++)
+    {
+        // extract x12
+        u3::SU3 x12 = x12couple[u].irrep;
+        // couple x12 with x3 to get x
+        MultiplicityTagged<u3::SU3>::vector xvec = u3::KroneckerProduct(x12,x3);
+        // loop over xvec
+        for (int i = 0; i < xvec.size(); i++)
+        {
+            // extract x
+            u3::SU3 x = xvec[i].irrep;
+            // calculate max r12, r12_3, and loop over them
+            u3::UMultiplicityTuple UMult = u3::UMultiplicity(x1,x2,x,x3,x12,x13couple[0].irrep);
+            int r12_max = std::get<0>(UMult);
+            int r12_3_max = std::get<1>(UMult);
+            for (int r12 = 1; r12 <= r12_max; r12++)
+            {
+                for (int r12_3 = 1; r12_3 <= r12_3_max; r12_3++)
+                {
+                    // calculate orthogonality sum over x13, r13, r13_2
+                    double sum13 = compute_Z_sum_x13(x1,x2,x,x3,x12,x12,r12,r12,r12_3,r12_3);
+
+                    EXPECT_FLOAT_EQ(sum13, 1)<<fmt::format("orthogonality failed Z[{}{}{}{}; {} {} {} (l13,m13)r13 r13_2] -> {}",
+                                    x1.Str(),x2.Str(),x.Str(),x3.Str(),x12.Str(),r12,r12_3,sum13)<<std::endl;
+                }
+            }
+        }
+    }
+
+
+}
+
+
+
+
+
 
 /*
 int main(int argc, char **argv)
