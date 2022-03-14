@@ -132,7 +132,8 @@ void TestOrthogonalityW(int lm_min, int lm_max, int mu_min, int mu_max)
 int main(int argc, char **argv)
 {
   // initialize su3lib
-  u3::U3CoefInit();  //test symmetries of W coefficients 
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
 
   if(argc<4)
   {

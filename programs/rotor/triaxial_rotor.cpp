@@ -260,7 +260,8 @@ int main(int argc, char **argv)
   // initialization
   ////////////////////////////////////////////////////////////////
   // SU(3) caching
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
   double alpha=1.0;
   // If we assum a maximially asymmetric (triaxial) rotor with lambda=mu
   if(true)

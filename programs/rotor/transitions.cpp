@@ -148,7 +148,8 @@ namespace u3{
 
 int main(int argc, char **argv)
 {
-  u3::U3CoefInit();
+  int max_lambda_plus_mu=39;
+  u3::U3CoefInit(max_lambda_plus_mu);
   if (argc<2)
   {
     std::cout<<"Syntax: <inputfile>"<<std::endl;
