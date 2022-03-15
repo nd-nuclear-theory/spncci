@@ -20,7 +20,7 @@
 #include "gtest/gtest.h"
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3coef.h"
-#include "utilities/utilities.h"
+// #include "utilities/utilities.h"
 
 namespace u3
 {

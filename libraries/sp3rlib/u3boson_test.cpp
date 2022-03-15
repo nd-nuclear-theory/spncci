@@ -46,11 +46,23 @@ int main(int argc, char **argv)
     "U3BosonCreationRME ({}{}{}{}||a^dagger||{}{}{}{})\n",
     sigma,np,1,omegap,sigma,n,1,omega
   );
-  // Calculate with two different functions
+
+ // Calculate with two different functions
   fmt::print(
     "{}\n{}\n",
     u3boson::U3BosonCreationRME(sigma,{np,1},omegap,sigma,{n,1},omega),
     u3boson::U3BosonCreationRME(sigma,np,1,omegap,sigma,n,1,omega)
+  );
+
+  fmt::print(
+    "U3BosonAnnihilationRME ({}{}{}{}||a^dagger||{}{}{}{})\n",
+    sigma,np,1,omegap,sigma,n,1,omega
+  );
+
+  // Calculate with two different functions
+  fmt::print(
+    "{}\n",
+    u3boson::U3BosonAnnihilationRME(sigma,n,1,omega,sigma,np,1,omegap)
   );
 
   // Testing default constructor

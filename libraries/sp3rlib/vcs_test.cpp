@@ -112,8 +112,11 @@ if(true)
 			{
 				const auto& K1=K1_matrix_map.at(omega);
 				const auto& K3=K3_matrix_map.at(omega)[0];
+        const auto& K3inv=K3_matrix_map.at(omega)[1];
+        basis::OperatorBlock<double> Id = basis::OperatorBlock<double>::Identity(K3inv.rows(),K3.cols());
 				assert(mcutils::IsZero(K1-K,1e-6));
 				assert(mcutils::IsZero(K3-K,1e-6));
+        assert(mcutils::IsZero(K3inv*K3-Id,1e-6));
 			}
 
 

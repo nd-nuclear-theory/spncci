@@ -169,6 +169,11 @@ namespace u3boson
   );
   // Convenient overload.  Will be deprecated with new recurrence algorithm.
 
+  double U3BosonAnnihilationRME(
+    const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
+    const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
+  );
+
 }
 
 #endif

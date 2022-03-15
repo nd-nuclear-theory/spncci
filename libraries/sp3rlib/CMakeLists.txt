@@ -26,7 +26,7 @@ target_link_libraries(
          fmt::fmt
          GSL::gsl
          spncci::su3_library
-         spncci::utilities
+         # spncci::utilities
 )
 
 # ##############################################################################

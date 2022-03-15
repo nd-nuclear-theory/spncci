@@ -15,7 +15,7 @@
 
 #include "fmt/format.h"
 
-#define WRU3_FUNCTION su3lib::wru3optimized_
+// #define WRU3_FUNCTION su3lib::wru3optimized_
 
 namespace u3
 {

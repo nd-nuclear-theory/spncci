@@ -116,7 +116,7 @@ class U3Subspace
 
     ////////////////////////////////////////////////////////////////////////
     template<typename K1, typename K2>
-    U3Subspace(
+    inline U3Subspace(
       const u3::U3& omega,
       int upsilon_max,
       const u3boson::U3Subspace& u3boson_subpace,

@@ -171,4 +171,19 @@ namespace u3boson{
   }
 
 
+  double U3BosonAnnihilationRME(
+    const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
+    const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
+  )
+  {
+    // matrix=utils.parity(wp.pt()-w.pt())*numpy.sqrt(w.dim()/wp.dim())*A(psired,psipred)
+    double rme
+      =ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
+        *std::sqrt(double(u3::dim(omega.SU3()))/double(u3::dim(omegap.SU3())))
+        *U3BosonCreationRME(sigma,n,rho,omega,sigmap,np,rhop,omegap);
+
+    return rme;
+  }
+
+
 }  //  namespace
