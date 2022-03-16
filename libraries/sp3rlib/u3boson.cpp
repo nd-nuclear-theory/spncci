@@ -1,8 +1,8 @@
 /****************************************************************
-  vcs.cpp
+  u3boson.cpp
 
   Anna E. McCoy
-  University of Notre Dame and TRIUMF
+  Institute for Nuclear Theory
 
   SPDX-License-Identifier: MIT
 ****************************************************************/
@@ -176,11 +176,11 @@ namespace u3boson{
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
   )
   {
-    // matrix=utils.parity(wp.pt()-w.pt())*numpy.sqrt(w.dim()/wp.dim())*A(psired,psipred)
+
     double rme
       =ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-        *std::sqrt(double(u3::dim(omega.SU3()))/double(u3::dim(omegap.SU3())))
-        *U3BosonCreationRME(sigma,n,rho,omega,sigmap,np,rhop,omegap);
+        *u3::U({0,2},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
+        *std::sqrt(1.*u3::dim(n.SU3())/u3::dim(np.SU3()))*BosonCreationRME(n,np);
 
     return rme;
   }

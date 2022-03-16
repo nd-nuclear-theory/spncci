@@ -15,11 +15,9 @@
 #include "sp3rlib/u3boson.h"
 #include "mcutils/eigen.h"
 #include "cppitertools/itertools.hpp"
+#include "mcutils/eigen.h"
 
 namespace vcs{
-
-
-
 
   // Temporary wrapper to construct K matrix map until we can completley eliminate 
   // K_matrix_map from spncci code and only use K_matrices stored as a part of the basis
@@ -130,12 +128,18 @@ GenerateKmatrices(
             if(SMatrix.rows()==1)
               {
                 double k_squared = SMatrix(0,0);
-                // if(fabs(k_squared)>zero_threshold && k_squared>0)
+
                 if(fabs(k_squared)>zero_threshold)
                   {
+                    // Since 16 was factored out of the definition of the Smatrix,
+                    // we need to add it back it sqrt(16)^(Nn/2)=2^Nn
+                    double factor = pow(2,int(omega.N()-sigma.N()));
+
                     double k=std::sqrt(k_squared);
-                    KMatrix_map[omega][0]=basis::OperatorBlock<double>::Identity(1,1)*k;
-                    KMatrix_map[omega][1]=basis::OperatorBlock<double>::Identity(1,1)/k;
+                    KMatrix_map[omega][0]
+                      =basis::OperatorBlock<double>::Identity(1,1)*k*factor;
+                    KMatrix_map[omega][1]
+                      =basis::OperatorBlock<double>::Identity(1,1)/k/factor;
                   }
                 continue;
               }
@@ -144,9 +148,13 @@ GenerateKmatrices(
             Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> 
               eigen_system(SMatrix);
 
-            const basis::OperatorBlock<double>& eigenvectors=eigen_system.eigenvectors();
+            basis::OperatorBlock<double> eigenvectors=eigen_system.eigenvectors();
             const basis::OperatorBlock<double>& eigenvalues=eigen_system.eigenvalues();
             assert(Eigen::ComputationInfo::Success == eigen_system.info());
+
+            // determinant of eigenvectors comming out of eigen solver can have determinant +-1.
+            // For K matrix calculation, need eigenvectors to have determinant 1.
+            eigenvectors*=eigenvectors.determinant();
             
             std::vector<double>eigenvalue_vector;
             for(int i=0; i<eigenvalues.rows(); ++i)
@@ -163,7 +171,7 @@ GenerateKmatrices(
                       }
                   }
 
-                else {eigenvalue_vector.push_back(eigenvalues(i,0));}
+                eigenvalue_vector.push_back(eigenvalues(i,0));
               }
             // Get list of non-zero eigenvalues and the index of the corresponding eigenvector. 
             auto nonzero_eigs 
@@ -177,26 +185,39 @@ GenerateKmatrices(
             if(upsilon_max==0)
               continue;
 
-            // K matrix defined such that 
+            // Define K as UD and Kinv=DinvU^dagger.  Where D is a matix of dimension
+            // u3boson_dimension x upsilon_max with matrix element (i,j) given by
+            // sqrt(eig(j)) where i is the ith non-zero eigenvalue corresponding to the jth
+            // eigenvector.
+            //
+            // K is a matrix of dimension u3boson_dimension x upsilon_max and
+            // Kinv is a matrix of dimension upsilon_max x u3boson_dimension.
             // |sigma,upsilon,omega> = sum[n,rho] (K_inv)_{upsilon,[n,rho]}|sigma,n,rho,omega>
             auto& K = KMatrix_map[omega][0];
-            auto& K_inv = KMatrix_map[omega][1];
-            K.resize(SMatrix.cols(),upsilon_max);
-            K_inv.resize(upsilon_max,SMatrix.cols());
+            auto& Kinv = KMatrix_map[omega][1];
+            basis::OperatorBlock<double> D = basis::OperatorBlock<double>::Zero(SMatrix.cols(),upsilon_max);
+            basis::OperatorBlock<double> Dinv = basis::OperatorBlock<double>::Zero(upsilon_max,SMatrix.cols());
+
             int i=0;
             for(const auto& [j,k_squared] : nonzero_eigs)
               {
                 double k = std::sqrt(k_squared);
-                K.col(i) = k*eigenvectors.col(j);
-                K_inv.row(i) = 1/k*eigenvectors.col(j).transpose(); 
+                D(j,i)=k;
+                Dinv(i,j)=1/k;
                 i++;
               }
+
+            K=eigenvectors*D;
+            Kinv=Dinv*eigenvectors.transpose();
 
             // Since 16 was factored out of the definition of the Smatrix,
             // we now need to add it back it sqrt(16)^(Nn/2)=2^Nn
             double factor = pow(2,int(omega.N()-sigma.N()));
-            K=K*factor;
-            K_inv=K_inv/factor;
+            K*=factor;
+            Kinv*=1./factor;
+
+            assert(mcutils::IsZero(Kinv*K-basis::OperatorBlock<double>::Identity(upsilon_max,upsilon_max),1e-6));
+            assert(mcutils::IsZero(K.transpose()*Kinv.transpose()-basis::OperatorBlock<double>::Identity(upsilon_max,upsilon_max),1e-6));
           }
       }
     else
@@ -210,9 +231,27 @@ GenerateKmatrices(
             //calculate K matrix
             Eigen::SelfAdjointEigenSolver<basis::OperatorBlock<double>> eigen_system(SMatrix);
             KMatrix_map[omega][0]=eigen_system.operatorSqrt().cast<double>();
-
-            KMatrix_map[omega][1]=KMatrix_map[omega][0].inverse()/factor;
+            KMatrix_map[omega][1]=KMatrix_map[omega][0].inverse();
+            KMatrix_map[omega][1]*=1./factor;
             KMatrix_map[omega][0]*=factor;
+
+            // /////////////////////////////////////////////////////////////////////////////
+            // // For Testing
+            // /////////////////////////////////////////////////////////////////////////////
+            // const basis::OperatorBlock<double>& eigenvectors=eigen_system.eigenvectors();
+            // const basis::OperatorBlock<double>& eigenvalues=eigen_system.eigenvalues();
+            // assert(Eigen::ComputationInfo::Success == eigen_system.info());
+
+            // basis::OperatorBlock<double> D=basis::OperatorBlock<double>::Zero(SMatrix.rows(),SMatrix.cols());
+            // for(int i=0; i<eigenvalues.rows(); ++i)
+            //   D(i,i)=std::sqrt(eigenvalues(i,0));
+
+            // basis::OperatorBlock<double> K_test= eigenvectors*D*eigenvectors.transpose()*factor;
+            // // if(!mcutils::IsZero(K_test-KMatrix_map[omega][0],1e-12))
+            // //   std::cout<<K_test<<std::endl<<"---"<<std::endl<<KMatrix_map[omega][0]<<std::endl;
+
+            // assert(mcutils::IsZero(K_test-KMatrix_map[omega][0],1e-6));
+            /////////////////////////////////////////////////////////////////////////////
           }
 
       }

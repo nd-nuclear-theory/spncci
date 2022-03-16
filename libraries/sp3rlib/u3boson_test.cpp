@@ -59,11 +59,20 @@ int main(int argc, char **argv)
     sigma,np,1,omegap,sigma,n,1,omega
   );
 
-  // Calculate with two different functions
+  double comparison_rme
+    =ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
+      *std::sqrt(double(u3::dim(omegap.SU3()))/double(u3::dim(omega.SU3())))
+      *u3boson::U3BosonCreationRME(sigma,np,1,omegap,sigma,n,1,omega);
+
+
   fmt::print(
-    "{}\n",
-    u3boson::U3BosonAnnihilationRME(sigma,n,1,omega,sigma,np,1,omegap)
+    "{}  {}\n",
+    u3boson::U3BosonAnnihilationRME(sigma,n,1,omega,sigma,np,1,omegap),
+    comparison_rme
   );
+
+
+
 
   // Testing default constructor
   std::map<u3::U3,u3boson::U3BosonSpace> test_map;

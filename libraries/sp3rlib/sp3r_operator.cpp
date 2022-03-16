@@ -59,7 +59,7 @@ namespace sp3r
               }
         }
 
-    return bra_subspace.K_matrix()*A_boson_matrix*ket_subspace.Kinv_matrix();
+    return bra_subspace.K_matrix().transpose()*A_boson_matrix*ket_subspace.Kinv_matrix().transpose();
   }
 
 
@@ -75,7 +75,7 @@ namespace sp3r
 
     double conjugation_factor
       =ParitySign(u3::ConjugationGrade(x_bra)+u3::ConjugationGrade(x_ket))
-        *std::sqrt(1.*u3::dim(x_ket)/u3::dim(x_bra)); //cast to double to avoid integer division
+        *std::sqrt(1.*u3::dim(x_ket)/u3::dim(x_bra));
 
     return conjugation_factor*Sp3rRaisingOperator(sigma,ket_subspace,bra_subspace,u_coef_cache).transpose();
 
@@ -96,10 +96,10 @@ namespace sp3r
         //TODO generalize phase
         int phase = omega_bra.SU3().mu()==0?1:-1;
         double rme=phase*std::sqrt(2.0*Casimir2(omega_bra.SU3()));
-        return rme*basis::OperatorBlock<double>::Identity(bra_subspace.dimension(),ket_subspace.dimension());
+        return rme*basis::OperatorBlock<double>::Identity(bra_subspace.upsilon_max(),ket_subspace.upsilon_max());
       }
     else
-      return basis::OperatorBlock<double>::Zero(bra_subspace.dimension(),ket_subspace.dimension());
+      return basis::OperatorBlock<double>::Zero(bra_subspace.upsilon_max(),ket_subspace.upsilon_max());
   }
 
 
