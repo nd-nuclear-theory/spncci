@@ -1,0 +1,57 @@
+# backup
+*~
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fgx
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.tbx
+*.vdx
+*Notes.bib
+
+# output
+/*.pdf
+/*.dvi
+/*.ps
+
+# archives
+*.7z
+*.jar
+*.rar
+*.tar
+*.zip
+*.gz
+*.gzip
+*.tgz
+*.bzip
+*.bzip2
+*.bz2
+*.xz
+*.lzma
+*.cab
+*.xar
+*.iso
+
+# Package management formats
+*.dmg
+*.xpi
+*.gem
+*.egg
+*.deb
+*.rpm
+*.msi
+*.msm
+*.msp
+*.txz
+
+# suppress all subdirectories
+*/
+
+# except allow vc to be committed
+!/vc/

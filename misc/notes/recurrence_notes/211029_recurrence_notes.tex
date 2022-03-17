@@ -1,0 +1,518 @@
+%     AMS-LaTeX v.2 template for use with amsart
+%
+%     Remove any commented or uncommented macros you do not use.
+
+\documentclass[%
+  aps,%
+  prc,%
+  showpacs,%
+  superscriptaddress,%
+  onecolumn,%
+  notitlepage,%
+  11pt,%
+  floatfix,%
+  % endfloats,%
+  amsmath,%
+  amssymb,%
+  %preprintnumbers,%
+  %linenumbers,%
+]{revtex4-2}
+
+\usepackage[margin=0.75in]{geometry}
+
+\usepackage{amscd}
+
+\usepackage{liealg}
+\usepackage{braket}
+\usepackage{wigner}
+\usepackage{mcmath}
+
+% \DeclareMathOperator{\dim}{dim}
+\newcommand{\rel}{\mathrm{rel}}
+\newcommand{\cm}{\mathrm{cm}}
+\newcommand{\intr}{\mathrm{intr}}
+\newcommand{\ex}{\mathrm{ex}}
+\newcommand{\Nmax}{N_\mathrm{max}}
+\newcommand{\Nsmax}{N_{\sigma,\mathrm{max}}}
+\newcommand{\Nsex}{N_{\sigma,\ex}}
+
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\scrO}{\mathcal{O}}
+\newcommand{\scrU}{\mathcal{U}}
+
+\newcommand{\negative}{\,\text{-}}
+\newcommand{\plus}{\text{+}}
+
+%indenting
+\newcommand{\tquad}{\qquad\qquad\qquad}
+\newcommand{\fquad}{\qquad\qquad\qquad\qquad}
+
+
+% \newcommand{\clebsch}{(j m L M \vert j' m')}
+% \newcommand{\threej}{\renewcommand\arraystretch{0.6667}\begin{pmatrix} j'&L&j\\-m'&M&m \end{pmatrix}\renewcommand\arraystretch{1}}
+% % \newcommand{\threej}{\begin{pmatrix} j'&L&j\\-m'&M&m \end{pmatrix}}
+% \newcommand{\me}{\langle \beta j' m' \rvert T_{LM} \lvert \alpha j m \rangle}
+% \newcommand{\rme}{\langle \beta j' \rvert\vert T_L \vert\lvert \alpha j \rangle}
+% \newcommand{\jphat}{\hat\jmath'}
+% \newcommand{\hide}{\hphantom}
+
+\begin{document}
+
+\title{$\grpsptr$ Recurrence Relations}
+
+\author{Patrick J. Fasano}
+% \affiliation{Department of Physics, University of Notre Dame, Notre Dame, Indiana 46556-5670, USA}
+
+\author{Anna E. McCoy}
+% \affiliation{INT}
+
+\date{July 19, 2021}
+
+\maketitle
+
+Form from thesis:
+
+\begin{align*}
+  &\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{(\lambda_0,\mu_0)\omega_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_pS_nS}_{\rho_0}\\
+  &=\sum_{\rho_0'}\Phi_{\rho_0\rho_0'}[\omega\omega_0\omega']\sum_{\omega_1\upsilon_1}
+  \sum_{\substack{n\rho\\n_1\rho_1}}(K_\sigma^\omega)_{\upsilon[n\rho]}^{-1}\frac{2}{N_n}(n||a^\dagger||n_1)U[(2,0)n_1\omega\sigma;n\_\rho;\omega_1\rho_1\_](K_\sigma^{\omega_1})_{[n_1\rho_1],\upsilon_1} \\
+  &\times\sum_{\rho_1'\bar{\rho}_0\omega_0'}U[\omega_0(2,0)\omega'\omega_1;\omega_0'\_\rho_1';\omega\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\omega_0'\omega_1\omega']\\
+  %%%%
+  &\qquad\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}}U[\omega_1\omega_0\omega'(2,0);\bar{\omega}\bar{\rho}\_;\omega_0'\_\bar{\rho}_0]
+  \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{A^{(2,0)}}{\gamma'\sigma'\bar{\upsilon}\bar{\omega}S_p'S_n'S'}\\
+   %%%%
+  &\tquad\times\rme{\gamma'\sigma'\bar{\upsilon}\bar{\omega}S_p'S_n'S'}{\mathcal{U}^{\omega_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}}\Big)\\[3ex]
+   %%%%
+  &\qquad\qquad+\left[\frac{\dim(\omega_0')\dim(\bar{N},0)}{\dim(\omega_0)}\right]^{\frac12}U[(\bar{N}',0)(0,\bar{N})\omega_0'(2,0);\omega_0;(0,\bar{N}\negative2)]\\
+   %%%%
+  &\tquad\times\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{\omega_0'S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\negative2\,\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\[3ex]
+   %%%%
+  &\qquad\qquad-\left[\frac{\dim(\bar{N}',0)^2\dim(\omega_0')}{\dim(2,0)\dim(\bar{N},0)}\right]^{\frac12}U[(\bar{N}'\plus2,0)(0,\bar{N}')\omega_0'\omega_0;(2,0);(0,\bar{N})]\\[-2ex]
+   %%%%
+  &\tquad\times\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{\omega_0'S_0T_0}(\bar{N}'\plus2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\Bigg\}
+\end{align*}
+
+Also useful:
+
+\begin{align*}
+  \rme{\sigma \upsilon'\omega'}{A^{(2,0)}}{\sigma \upsilon \omega}
+    &= \sum_{\substack{n'\rho'\\ n \rho}} (K_\sigma^{\omega'})_{\upsilon',[n'\rho']} (\sigma n'\rho'\omega'\Vert a^\dagger \Vert \sigma n \rho \omega) (K_\sigma^\omega)_{[n \rho],\upsilon}^{-1}\\
+  \rme{\sigma \upsilon'\omega'}{B^{(0,2)}}{\sigma \upsilon \omega}
+    &= (-1)^{\omega-\omega'} \sqrt{\frac{\dim(\omega)}{\dim(\omega')}} \rme{\sigma \upsilon \omega}{A^{(2,0)}}{\sigma \upsilon'\omega'}\\
+    &= (-1)^{\omega-\omega'} \sqrt{\frac{\dim(\omega)}{\dim(\omega')}} \sum_{\substack{n \rho \\ n'\rho'}} (K_\sigma^{\omega})_{\upsilon,[n\rho]} (\sigma n \rho \omega \Vert a^\dagger \Vert \sigma n'\rho'\omega') (K_\sigma^{\omega'})_{[n'\rho'],\upsilon'}^{-1}
+\end{align*}
+\clearpage
+
+Reformatting:
+\begin{align*}
+  &\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{(\lambda_0,\mu_0)\omega_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_pS_nS}_{\rho_0}\\
+  &=\sum_{\omega_1\upsilon_1} \sum_{\substack{n\rho\\n_1\rho_1}}(K_\sigma^\omega)_{\upsilon[n\rho]}^{-1}\frac{2}{N_\omega - N_\sigma}(n\Vert{}a^\dagger\Vert{}n_1)U[(2,0)n_1\omega\sigma;n\_\rho;\omega_1\rho_1\_](K_\sigma^{\omega_1})_{[n_1\rho_1],\upsilon_1} \\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}}
+      \rme{\sigma'\upsilon'\omega'}{A^{(2,0)}}{\sigma'\bar{\upsilon}\bar{\omega}}
+      \rme{\gamma'\sigma'\bar{\upsilon}\bar{\omega}S_p'S_n'S'}{\mathcal{U}^{\omega_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_1'\bar{\rho}_0\omega_0'\rho_0'}\Phi_{\rho_0\rho_0'}[\omega\omega_0\omega']U[\omega_0(2,0)\omega'\omega_1;\omega_0'\_\rho_1';\omega\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\omega_0'\omega_1\omega']U[\omega_1\omega_0\omega'(2,0);\bar{\omega}\bar{\rho}\_;\omega_0'\_\bar{\rho}_0] \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\omega_0'}\sqrt{\frac{\dim(\omega_0')\dim(\bar{N},0)}{\dim(\omega_0)}} \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{\omega_0'S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\negative2\,\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[\omega\omega_0\omega']U[\omega_0(2,0)\omega'\omega_1;\omega_0'\_\rho_1';\omega\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\omega_0'\omega_1\omega']U[(\bar{N}',0)(0,\bar{N})\omega_0'(2,0);\omega_0\_\_;(0,\bar{N}\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\omega_0'}\sqrt{\frac{\dim(\bar{N}',0)^2\dim(\omega_0')}{\dim(2,0)\dim(\bar{N},0)}} \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{\omega_0'S_0T_0}(\bar{N}'\plus2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[\omega\omega_0\omega'] U[\omega_0(2,0)\omega'\omega_1;\omega_0'\_\rho_1';\omega\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\omega_0'\omega_1\omega']U[(\bar{N}'\plus2,0)(0,\bar{N}')\omega_0'\omega_0;(2,0)\_\_;(0,\bar{N})\_\_] \Bigg\}
+\end{align*}
+
+\vspace*{\fill}
+\noindent\rule{\textwidth}{1pt}
+\vspace*{\fill}
+
+Normalizing $\omega_0$ vs. $x_0$:
+\begin{align*}
+  &\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_pS_nS}_{\rho_0}\\
+  &=\sum_{\omega_1\upsilon_1} \sum_{\substack{n\rho\\n_1\rho_1}}(K_\sigma^\omega)_{\upsilon[n\rho]}^{-1}\frac{2}{N_\omega - N_\sigma}(n\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x x_\sigma;n\_\rho;x_1\rho_1\_](K_\sigma^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}}
+      \rme{\sigma'\upsilon'\omega'}{A^{(2,0)}}{\sigma'\bar{\upsilon}\bar{\omega}}
+      \rme{\gamma'\sigma'\bar{\upsilon}\bar{\omega}S_p'S_n'S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_1'\bar{\rho}_0\omega_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x x_0 x'] U[x_0(2,0)x'x_1;x_0'\_\rho_1';x\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[x_0' x_1 x'] U[x_1 x_0 x' (2,0);\bar{x}\bar{\rho}\_;x_0'\_\bar{\rho}_0] \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\omega_0'}\sqrt{\frac{\dim(\omega_0')\dim(\bar{N},0)}{\dim(\omega_0)}} \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\negative2\,\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x x_0 x'] U[x_0 (2,0)x' x_1;x_0'\_\rho_1';x\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[x_0' x_1 x'] U[(\bar{N}',0) (0,\bar{N}) x_0' (2,0);x_0\_\_;(0,\bar{N}\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\omega_0'}\sqrt{\frac{\dim(\bar{N}',0)^2\dim(\omega_0')}{\dim(2,0)\dim(\bar{N},0)}} \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{x_0' S_0 T_0}(\bar{N}'\plus2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x x_0 x'] U[x_0 (2,0) x' x_1;x_0'\_\rho_1';x\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[x_0' x_1 x'] U[(\bar{N}'\plus2,0)(0,\bar{N}') x_0' x_0;(2,0)\_\_;(0,\bar{N})\_\_] \Bigg\}
+\end{align*}
+\clearpage
+
+Writing with bra and ket $\grpu{3}$ as summed over, with explicit Kronecker deltas:
+
+\begin{align*}
+  &\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_pS_nS}_{\rho_0}\\
+  &=\sum_{\substack{\omega_1\upsilon_1\\\omega_2\upsilon_2}} \sum_{\substack{n\rho\\n_1\rho_1}}(K_\sigma^\omega)_{\upsilon[n\rho]}^{-1}\frac{2}{N_\omega - N_\sigma}(n\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x x_\sigma;n\_\rho;x_1\rho_1\_](K_\sigma^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\sum_{\bar{\rho}}\Big(
+      \rme{\sigma'\upsilon'\omega'}{A^{(2,0)}}{\sigma'\upsilon_2\omega_2}
+      \rme{\gamma'\sigma'\upsilon_2\omega_2S_p'S_n'S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_1'\bar{\rho}_0\omega_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x x_0 x'] U[x_0(2,0)x'x_1;x_0'\_\rho_1';x\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[x_0' x_1 x'] U[x_1 x_0 x' (2,0);x_2\bar{\rho}\_;x_0'\_\bar{\rho}_0] \Big)\\
+   %%%%
+  &\qquad+
+  \delta_{\omega',\omega_2}\delta_{\upsilon',\upsilon_2}
+  \sum_{\bar{\rho}_0\omega_0'}\Big(\sqrt{\frac{\dim(\omega_0')\dim(\bar{N},0)}{\dim(\omega_0)}}
+  \rme{\gamma'\sigma'\upsilon_2\omega_2 S_p'S_n'S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\negative2\,\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x x_0 x'] U[x_0 (2,0)x' x_1;x_0'\_\rho_1';x\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[x_0' x_1 x'] U[(\bar{N}',0) (0,\bar{N}) x_0' (2,0);x_0\_\_;(0,\bar{N}\negative2)\_\_]\Big)\\
+   %%%%
+  &\qquad-
+  \delta_{\omega',\omega_2}\delta_{\upsilon',\upsilon_2}
+  \sum_{\bar{\rho}_0\omega_0'}\Big(\sqrt{\frac{\dim(\bar{N}',0)^2\dim(\omega_0')}{\dim(2,0)\dim(\bar{N},0)}}
+  \rme{\gamma'\sigma'\upsilon_2\omega_2 S_p'S_n'S'}{\mathcal{U}^{x_0' S_0 T_0}(\bar{N}'\plus2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x x_0 x'] U[x_0 (2,0) x' x_1;x_0'\_\rho_1';x\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[x_0' x_1 x'] U[(\bar{N}'\plus2,0)(0,\bar{N}') x_0' x_0;(2,0)\_\_;(0,\bar{N})\_\_] \Big)\Bigg\}
+\end{align*}
+% \clearpage
+
+% \vspace*{\fill}
+\noindent\rule{\textwidth}{1pt}
+% \vspace*{\fill}
+
+Simplifying products of $U$ coefficients:\\
+\newsavebox\recurrenceA
+\savebox\recurrenceA{\vbox{
+\begin{align*}
+  &\rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S'}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_pS_nS}_{\rho_0}\\
+  &=\sum_{\substack{\omega_1\upsilon_1\\\omega_2\upsilon_2}} \sum_{\substack{n\rho\\n_1\rho_1}}(K_\sigma^\omega)_{\upsilon[n\rho]}^{-1}\frac{2}{N_\omega - N_\sigma}(n\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x x_\sigma;n\_\rho;x_1\rho_1\_](K_\sigma^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\sum_{\bar{\rho}_0}\Big(
+      \rme{\sigma'\upsilon'\omega'}{A^{(2,0)}}{\sigma'\upsilon_2\omega_2}
+      \rme{\gamma'\sigma'\upsilon_2\omega_2S_p'S_n'S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      (-1)^{\lambda_2+\mu_2+\lambda'+\mu'} U[(2,0) x_1 x' x_0; x \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+
+  \delta_{\omega',\omega_2}\delta_{\upsilon',\upsilon_2}
+  \sum_{\bar{\rho}_0\omega_0'}\Big(\sqrt{\frac{\dim(\omega_0')\dim(\bar{N},0)}{\dim(\omega_0)}}
+  \rme{\gamma'\sigma'\upsilon_2\omega_2 S_p'S_n'S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\negative2\,\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      (-1)^{\lambda_0+\mu_0+\lambda+\mu}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x' x_0; x\_\rho_0;x_0'\_\bar{\rho}_0']
+      U[(\bar{N}',0) (0,\bar{N}) x_0' (2,0);x_0\_\_;(0,\bar{N}\negative2)\_\_]
+    \Big)\\
+  %%%%
+  &\qquad-
+  \delta_{\omega',\omega_2}\delta_{\upsilon',\upsilon_2}
+  \sum_{\bar{\rho}_0\omega_0'}\Big(\sqrt{\frac{\dim(\bar{N}',0)^2\dim(\omega_0')}{\dim(2,0)\dim(\bar{N},0)}}
+  \rme{\gamma'\sigma'\upsilon_2\omega_2 S_p'S_n'S'}{\mathcal{U}^{x_0' S_0 T_0}(\bar{N}'\plus2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon_1\omega_1S_pS_nS}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      (-1)^{\lambda_0+\mu_0+\lambda+\mu}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x' x_0; x\_\rho_0;x_0'\_\bar{\rho}_0']
+      U[(\bar{N}'\plus2,0)(0,\bar{N}') x_0' x_0;(2,0)\_\_;(0,\bar{N})\_\_]
+    \Big)\Bigg\}
+\end{align*}
+}}
+\noindent\usebox\recurrenceA
+\clearpage
+
+Relabeling, with primed labels on right and conjugate $x_0$:
+\begin{align*}
+  &\rme{\gamma \sigma \upsilon \omega S_p S_n S}{\mathcal{U}^{\tilde{x}_0 S_0 T_0}(\bar{N} \bar{S} \bar{T},\bar{N}'\bar{S}'\bar{T}')}{\gamma'\sigma'\upsilon'\omega' S_p' S_n' S'}_{\rho_0}\\
+  &=\sum_{\omega_1\upsilon_1} \sum_{\substack{n'\rho'\\n_1\rho_1}}(K_{\sigma'}^{\omega'})_{\upsilon'[n'\rho']}^{-1}\frac{2}{N_{\omega'} - N_{\sigma'}}(n'\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x' x_{\sigma'};n'\_\rho';x_1\rho_1\_](K_{\sigma'}^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}_0}
+      \rme{\sigma \upsilon \omega}{A^{(2,0)}}{\sigma \bar{\upsilon}\bar{\omega}}
+      \rme{\gamma \sigma \bar{\upsilon}\bar{\omega} S_p S_n S}{\mathcal{U}^{\tilde{x}_0S_0T_0}(\bar{N}\bar{S}\bar{T},\bar{N}'\bar{S}'\bar{T}')}{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_1'\bar{\rho}_0\tilde{\omega}_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0(2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x] U[x_1 \tilde{x}_0 x (2,0);\bar{x}\bar{\rho}\_;\tilde{x}_0'\_\bar{\rho}_0]
+      (-1)^{\lambda_2+\mu_2+\lambda+\mu} U[(2,0) x_1 x \tilde{x}_0; x' \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\tilde{\omega}_0')\dim(\bar{N}',0)}{\dim(\tilde{\omega}_0)}} \rme{\gamma \sigma \upsilon \omega S_p S_n S}{\mathcal{U}^{\tilde{x}_0'S_0T_0}(\bar{N}\bar{S}\bar{T},\bar{N}'\negative2\,\bar{S}'\bar{T}')}{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N},0) (0,\bar{N}') \tilde{x}_0' (2,0);\tilde{x}_0\_\_;(0,\bar{N}'\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\tilde{\omega}_0'}\sqrt{\frac{\dim(\bar{N},0)^2\dim(\tilde{\omega}_0')}{\dim(2,0)\dim(\bar{N}',0)}} \rme{\gamma \sigma \upsilon \omega S_p S_n S}{\mathcal{U}^{\tilde{x}_0' S_0 T_0}(\bar{N}\plus2\,\bar{S}\bar{T},\bar{N}'\bar{S}'\bar{T}')}{\gamma'\sigma'\upsilon_1\omega_1S_p'S_n'S'}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+    % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0) x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+    (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+    U[(\bar{N}\plus2,0)(0,\bar{N}) \tilde{x}_0' \tilde{x}_0;(2,0)\_\_;(0,\bar{N}')\_\_]
+  \Bigg\}
+\end{align*}
+
+\clearpage
+
+Replacements with complex-conjugate matrix elements:
+\begin{multline*}
+  \rme{\omega'S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\omega S}_{\rho_0} \\ \rightarrow
+(-1)^{\lambda_0+\mu_0+\omega'-\omega}\sqrt{\frac{\dim(\bar{N}',0)\dim(\omega)}{\dim(\bar{N},0)\dim(\omega')}}
+\rme{\omega S}{\mathcal{U}^{\tilde{x}_0S_0T_0}(\bar{N}\bar{S}\bar{T},\, \bar{N}'\bar{S}'\bar{T}')}{\omega'S'}_{\rho_0}
+\end{multline*}
+\begin{multline*}
+  \rme{\omega S}{\mathcal{U}^{\tilde{x}_0S_0T_0}(\bar{N}\bar{S}\bar{T},\bar{N}'\bar{S}'\bar{T}')}{\omega'S'}_{\rho_0} \\ \rightarrow
+  (-1)^{\lambda_0+\mu_0+\omega'-\omega} \sqrt{\frac{\dim(\bar{N},0)\dim(\omega')}{\dim(\bar{N}',0)\dim(\omega)}}
+  \rme{\omega'S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\, \bar{N}\bar{S}\bar{T})}{\omega S}_{\rho_0}
+\end{multline*}
+($S$- and $T$-dependent factors cancel on left and right)
+
+\begin{align*}
+  &(-1)^{\lambda_0+\mu_0+\omega'-\omega} \sqrt{\frac{\dim(\bar{N},0)\dim(\omega')}{\dim(\bar{N}',0)\dim(\omega)}}
+  \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_p S_n S}_{\rho_0}\\
+  &=\sum_{\omega_1\upsilon_1} \sum_{\substack{n'\rho'\\n_1\rho_1}}(K_{\sigma'}^{\omega'})_{\upsilon'[n'\rho']}^{-1}\frac{2}{N_{\omega'} - N_{\sigma'}}(n'\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x' x_{\sigma'};n'\_\rho';x_1\rho_1\_](K_{\sigma'}^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}_0}
+      (-1)^{\lambda_0+\mu_0+\omega_1-\bar{\omega}}
+      \sqrt{\frac{\dim(\bar{N},0)\dim(\omega_1)}{\dim(\bar{N}',0)\dim(\bar{\omega})}}
+      (-1)^{\bar{\omega}-\omega}
+      \sqrt{\frac{\dim(\bar{\omega})}{\dim(\omega)}}
+      \\
+      & \qquad \qquad \times
+      \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \bar{\upsilon}\bar{\omega} S_p S_n S}_{\bar{\rho}_0} \, \rme{\sigma \bar{\upsilon}\bar{\omega}}{B^{(0,2)}}{\sigma \upsilon \omega}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_1'\bar{\rho}_0\tilde{\omega}_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0(2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x] U[x_1 \tilde{x}_0 x (2,0);\bar{x}\bar{\rho}\_;\tilde{x}_0'\_\bar{\rho}_0]
+      (-1)^{\lambda_2+\mu_2+\lambda+\mu} U[(2,0) x_1 x \tilde{x}_0; x' \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\tilde{\omega}_0')\dim(\bar{N}',0)}{\dim(\tilde{\omega}_0)}}
+  (-1)^{\lambda_0'+\mu_0'+\omega_1-\omega} \sqrt{\frac{\dim(\bar{N},0)\dim(\omega_1)}{\dim(\bar{N}'\negative2,0)\dim(\omega)}} \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\negative2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N},0) (0,\bar{N}') \tilde{x}_0' (2,0);\tilde{x}_0\_\_;(0,\bar{N}'\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\bar{N},0)^2\dim(\tilde{\omega}_0')}{\dim(2,0)\dim(\bar{N}',0)}}
+  (-1)^{\lambda_0'+\mu_0'+\omega_1-\omega} \sqrt{\frac{\dim(\bar{N}\plus2,0)\dim(\omega_1)}{\dim(\bar{N}',0)\dim(\omega)}} \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1S_p'S_n'S'}{\mathcal{U}^{\tilde{x}_0' S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\plus2\,\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0) x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N}\plus2,0)(0,\bar{N}) \tilde{x}_0' \tilde{x}_0;(2,0)\_\_;(0,\bar{N}')\_\_]
+  \Bigg\}
+\end{align*}
+
+\clearpage
+
+Collect all factors on r.h.s.:
+\begin{align*}
+  &
+  \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_p S_n S}_{\rho_0}\\
+  &=\sum_{\omega_1\upsilon_1} \sum_{\substack{n'\rho'\\n_1\rho_1}}(K_{\sigma'}^{\omega'})_{\upsilon'[n'\rho']}^{-1}\frac{2}{N_{\omega'} - N_{\sigma'}}(n'\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x' x_{\sigma'};n'\_\rho';x_1\rho_1\_](K_{\sigma'}^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}_0}
+      (-1)^{\omega_1-\omega'}
+      \sqrt{\frac{\dim(\bar{N},0)\dim(\omega_1)}{\dim(\bar{N}',0)\dim(\bar{\omega})}}
+      \sqrt{\frac{\dim(\bar{\omega})}{\dim(\omega)}}
+      \sqrt{\frac{\dim(\bar{N}',0)\dim(\omega)}{\dim(\bar{N},0)\dim(\omega')}}
+      \\
+      & \qquad \qquad \times
+      \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \bar{\upsilon}\bar{\omega} S_p S_n S}_{\bar{\rho}_0} \, \rme{\sigma \bar{\upsilon}\bar{\omega}}{B^{(0,2)}}{\sigma \upsilon \omega}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_1'\bar{\rho}_0\tilde{\omega}_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0(2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x] U[x_1 \tilde{x}_0 x (2,0);\bar{x}\bar{\rho}\_;\tilde{x}_0'\_\bar{\rho}_0]
+      (-1)^{\lambda_2+\mu_2+\lambda+\mu} U[(2,0) x_1 x \tilde{x}_0; x' \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\tilde{\omega}_0')\dim(\bar{N}',0)}{\dim(\tilde{\omega}_0)}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0+\omega_1-\omega'} \sqrt{\frac{\dim(\bar{N},0)\dim(\omega_1)}{\dim(\bar{N}'\negative2,0)\dim(\omega)}} \sqrt{\frac{\dim(\bar{N}',0)\dim(\omega)}{\dim(\bar{N},0)\dim(\omega')}}\\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\negative2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N},0) (0,\bar{N}') \tilde{x}_0' (2,0);\tilde{x}_0\_\_;(0,\bar{N}'\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\bar{N},0)^2\dim(\tilde{\omega}_0')}{\dim(2,0)\dim(\bar{N}',0)}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0+\omega_1-\omega'} \sqrt{\frac{\dim(\bar{N}\plus2,0)\dim(\omega_1)}{\dim(\bar{N}',0)\dim(\omega)}} \sqrt{\frac{\dim(\bar{N}',0)\dim(\omega)}{\dim(\bar{N},0)\dim(\omega')}}\\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1S_p'S_n'S'}{\mathcal{U}^{\tilde{x}_0' S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\plus2\,\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0) x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N}\plus2,0)(0,\bar{N}) \tilde{x}_0' \tilde{x}_0;(2,0)\_\_;(0,\bar{N}')\_\_]
+  \Bigg\}
+\end{align*}
+\clearpage
+
+Simplify phases and dimension factors:
+\begin{align*}
+  &
+  \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_p S_n S}_{\rho_0}\\
+  &=\sum_{\omega_1\upsilon_1} \sum_{\substack{n'\rho'\\n_1\rho_1}}(K_{\sigma'}^{\omega'})_{\upsilon'[n'\rho']}^{-1}\frac{2}{N_{\omega'} - N_{\sigma'}}(n'\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x' x_{\sigma'};n'\_\rho';x_1\rho_1\_](K_{\sigma'}^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}_0}
+      (-1)^{\omega_1-\omega'}
+      \sqrt{\frac{\dim(\omega_1)}{\dim(\omega')}}
+      \\
+      & \qquad \qquad \times
+      \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \bar{\upsilon}\bar{\omega} S_p S_n S}_{\bar{\rho}_0} \, \rme{\sigma \bar{\upsilon}\bar{\omega}}{B^{(0,2)}}{\sigma \upsilon \omega}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_1'\bar{\rho}_0\tilde{\omega}_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0(2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x] U[x_1 \tilde{x}_0 x (2,0);\bar{x}\bar{\rho}\_;\tilde{x}_0'\_\bar{\rho}_0]
+      (-1)^{\lambda_2+\mu_2+\lambda+\mu} U[(2,0) x_1 x \tilde{x}_0; x' \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\tilde{\omega}_0')\dim(\bar{N}',0)^2\dim(\omega_1)}{\dim(\tilde{\omega}_0)\dim(\bar{N}'\negative2,0)\dim(\omega')}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0+\omega_1-\omega'}
+  \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\negative2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N},0) (0,\bar{N}') \tilde{x}_0' (2,0);\tilde{x}_0\_\_;(0,\bar{N}'\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\bar{N},0)\dim(\bar{N}\plus2,0)\dim(\omega_1)\dim(\tilde{\omega}_0')}{\dim(2,0)\dim(\bar{N}',0)\dim(\omega')}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0+\omega_1-\omega'}
+  \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1S_p'S_n'S'}{\mathcal{U}^{\tilde{x}_0' S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\plus2\,\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0) x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N}\plus2,0)(0,\bar{N}) \tilde{x}_0' \tilde{x}_0;(2,0)\_\_;(0,\bar{N}')\_\_] \Bigg\}
+\end{align*}
+\clearpage
+
+Factor out overall phase and dimension factors:
+\begin{align*}
+  &
+  \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_p S_n S}_{\rho_0}\\
+  &=
+  \sum_{\omega_1\upsilon_1}
+  \sum_{\substack{n'\rho'\\n_1\rho_1}}
+  (-1)^{\omega_1-\omega'}
+  \sqrt{\frac{\dim(\omega_1)}{\dim(\omega')}}
+  (K_{\sigma'}^{\omega'})_{\upsilon'[n'\rho']}^{-1}\frac{2}{N_{\omega'} - N_{\sigma'}}(n'\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x' x_{\sigma'};n'\_\rho';x_1\rho_1\_](K_{\sigma'}^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\Big(\sum_{\bar{\omega}\bar{\upsilon}\bar{\rho}_0}
+      \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \bar{\upsilon}\bar{\omega} S_p S_n S}_{\bar{\rho}_0} \, \rme{\sigma \bar{\upsilon}\bar{\omega}}{B^{(0,2)}}{\sigma \upsilon \omega}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_1'\bar{\rho}_0\tilde{\omega}_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0(2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x] U[x_1 \tilde{x}_0 x (2,0);\bar{x}\bar{\rho}\_;\tilde{x}_0'\_\bar{\rho}_0]
+      (-1)^{\lambda_2+\mu_2+\lambda+\mu} U[(2,0) x_1 x \tilde{x}_0; x' \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\tilde{\omega}_0')\dim(\bar{N}',0)^2}{\dim(\tilde{\omega}_0)\dim(\bar{N}'\negative2,0)}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0}
+  \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\negative2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N},0) (0,\bar{N}') \tilde{x}_0' (2,0);\tilde{x}_0\_\_;(0,\bar{N}'\negative2)\_\_]\\
+   %%%%
+  &\qquad-\sum_{\bar{\rho}_0\tilde{\omega}_0'}
+  \sqrt{\frac{\dim(\bar{N},0)\dim(\bar{N}\plus2,0)\dim(\tilde{\omega}_0')}{\dim(2,0)\dim(\bar{N}',0)}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0}
+  \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1S_p'S_n'S'}{\mathcal{U}^{\tilde{x}_0' S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\plus2\,\bar{S}\bar{T})}{\gamma \sigma \upsilon \omega S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0) x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N}\plus2,0)(0,\bar{N}) \tilde{x}_0' \tilde{x}_0;(2,0)\_\_;(0,\bar{N}')\_\_]
+  \Bigg\}
+\end{align*}
+
+\clearpage
+
+Rewrite as sum over bra and ket source $\grpu{3}$ irreps:
+
+\newsavebox\recurrenceB
+\savebox\recurrenceB{\vbox{
+\begin{align*}
+  &
+  \rme{\gamma'\sigma'\upsilon'\omega'S_p'S_n'S}{\mathcal{U}^{x_0 S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma\sigma\upsilon\omega S_p S_n S}_{\rho_0}\\
+  &=
+  \sum_{\substack{\omega_1\upsilon_1\\\omega_2\upsilon_2}}
+  \sum_{\substack{n'\rho'\\n_1\rho_1}}
+  (-1)^{\omega_1-\omega'}
+  \sqrt{\frac{\dim(\omega_1)}{\dim(\omega')}}
+  (K_{\sigma'}^{\omega'})_{\upsilon'[n'\rho']}^{-1}\frac{2}{N_{\omega'} - N_{\sigma'}}(n'\Vert{}a^\dagger\Vert{}n_1) U[(2,0)n_1 x' x_{\sigma'};n'\_\rho';x_1\rho_1\_](K_{\sigma'}^{\omega_1})_{[n_1\rho_1],\upsilon_1}\\
+  %%%%
+  &\times\Bigg\{\sum_{\bar{\rho}_0}\Big(
+      \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0S_0T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \upsilon_2\omega_2 S_p S_n S}_{\bar{\rho}_0} \, \rme{\sigma \upsilon_2 \omega_2}{B^{(0,2)}}{\sigma \upsilon \omega}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_1'\bar{\rho}_0\tilde{\omega}_0'\rho_0'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0(2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x] U[x_1 \tilde{x}_0 x (2,0);x_2\bar{\rho}\_;\tilde{x}_0'\_\bar{\rho}_0]
+      (-1)^{\lambda_2+\mu_2+\lambda+\mu} U[(2,0) x_1 x \tilde{x}_0; x' \_ \rho_0; x_2\bar{\rho}_0\_]
+    \Big)\\
+   %%%%
+  &\qquad+
+  \delta_{\omega_2,\omega}\delta_{\upsilon_2,\upsilon}
+  \sum_{\bar{\rho}_0\tilde{\omega}_0'}\Big(
+  \sqrt{\frac{\dim(\tilde{\omega}_0')\dim(\bar{N}',0)^2}{\dim(\tilde{\omega}_0)\dim(\bar{N}'\negative2,0)}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0}
+  \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1 S_p' S_n' S'}{\mathcal{U}^{x_0'S_0T_0}(\bar{N}'\negative2\,\bar{S}'\bar{T}',\bar{N}\bar{S}\bar{T})}{\gamma \sigma \upsilon_2 \omega_2 S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0)x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N},0) (0,\bar{N}') \tilde{x}_0' (2,0);\tilde{x}_0\_\_;(0,\bar{N}'\negative2)\_\_] \Big)\\
+   %%%%
+  &\qquad-
+  \delta_{\omega_2,\omega}\delta_{\upsilon_2,\upsilon}
+  \sum_{\bar{\rho}_0\tilde{\omega}_0'}\Big(
+  \sqrt{\frac{\dim(\bar{N},0)\dim(\bar{N}\plus2,0)\dim(\tilde{\omega}_0')}{\dim(2,0)\dim(\bar{N}',0)}}
+  (-1)^{\lambda_0'+\mu_0'-\lambda_0-\mu_0}
+  \\
+  & \qquad \qquad \times
+  \rme{\gamma'\sigma'\upsilon_1\omega_1S_p'S_n'S'}{\mathcal{U}^{\tilde{x}_0' S_0 T_0}(\bar{N}'\bar{S}'\bar{T}',\bar{N}\plus2\,\bar{S}\bar{T})}{\gamma \sigma \upsilon_2 \omega_2 S_p S_n S}_{\bar{\rho}_0}\\
+   %%%%
+  &\qquad\qquad\times
+      % \sum_{\rho_0'\rho_1'}\Phi_{\rho_0\rho_0'}[x' \tilde{x}_0 x] U[\tilde{x}_0 (2,0) x x_1;\tilde{x}_0'\_\rho_1';x'\_\rho_0']\Phi_{\rho_1'\bar{\rho}_0}[\tilde{x}_0' x_1 x]
+      (-1)^{\lambda_0+\mu_0+\lambda'+\mu'}(-1)^{\lambda_1+\mu_1+\lambda_0'+\mu_0'} U[x_1 (2,0) x \tilde{x}_0; x'\_\rho_0;\tilde{x}_0'\_\bar{\rho}_0']
+      U[(\bar{N}\plus2,0)(0,\bar{N}) \tilde{x}_0' \tilde{x}_0;(2,0)\_\_;(0,\bar{N}')\_\_]
+  \Big)\Bigg\}
+\end{align*}
+}}
+\noindent\usebox\recurrenceB
+
+\newpage\pagestyle{empty}
+
+\noindent\usebox\recurrenceA
+\vspace*{-4.5ex}\\
+\noindent\rule{\textwidth}{1pt}\\
+\vspace*{-5.5ex}
+\noindent\usebox\recurrenceB
+
+% \clearpage
+\end{document}
+
+%-----------------------------------------------------------------------
+% End of amsart-template.tex
+%-----------------------------------------------------------------------
