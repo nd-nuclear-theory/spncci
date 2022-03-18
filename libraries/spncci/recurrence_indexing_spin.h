@@ -20,6 +20,17 @@ recurrence_indexing_spin.h
 
     operator_index -> (S0,T0,Sbar,Sbar',Tbar,Tbar') bit representation
 
+    spin::ContractionSpace() []
+      spin::ContractionLGISpace() [sigma,sigma']
+      ->spin::ContractionSpinSpace() [S,S']
+        -> spin::ContractionSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+          -> spin::ContractionOperatorState() [S0]/[S0,T0]
+
+    spin::BranchingSpace() [J,J',J0]
+      spin::BranchingLGISpace() [sigma,sigma']
+      ->spin::BranchingSpinSubspace() [S,S']
+        -> spin::BranchingSpinState() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+
   Anna E. McCoy[1] and Patrick J. Fasano[2,3]
   [1] Institute for Nuclear Theory
   [2] University of Notre Dame
