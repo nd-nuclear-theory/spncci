@@ -17,7 +17,7 @@
     - Add constexpr to SU3 and U3 where applicable.
     - Fill in missing comparison operators for SU3 and U3.
     - Add U3 overload for OuterMultiplicity.
-  11/1/21 (aem): 
+  11/1/21 (aem):
     - Changed switched U3 to storing N,lambda,mu instead of f1,f2,f3
     - Changed SU3 lambda,mu type to unsigned int
     - Changed multiplicity type to unsigned int
@@ -235,7 +235,7 @@ namespace u3
       : N_{f1+f2+f3}, x_{(unsigned int)(f1-f2), (unsigned int)(f2-f3)}
     // Construct from Cartesian labels [f1,f2,f3].
     {
-      
+
       assert(ValidLabels(f1,f2,f3));
     }
 
@@ -245,6 +245,8 @@ namespace u3
     {
       assert(ValidLabels(N,x));
     }
+
+    explicit constexpr inline operator SU3() const { return SU3(); }
 
     ////////////////////////////////////////////////////////////////
     // validation
@@ -276,7 +278,7 @@ namespace u3
     // access Cartesian labels
     constexpr inline HalfInt N() const {return N_;}
     constexpr inline u3::SU3 SU3() const{return x_;}
-   
+
    // but since division is not defined for HalfInt, work with twice value for division purposes
     constexpr inline HalfInt f1() const
     {
@@ -725,12 +727,12 @@ namespace std
 namespace fmt {
 
 template <>
-struct formatter<u3::SU3> 
+struct formatter<u3::SU3>
 {
   char presentation = 'g';
 
   template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin())
   {
     auto it = ctx.begin(), end = ctx.end();
     if (it != end && (*it == 'd' || *it == 'g')) presentation = *it++;
@@ -744,19 +746,19 @@ struct formatter<u3::SU3>
   }
 
   template <typename FormatContext>
-  FMT_CONSTEXPR auto format(const u3::SU3& x, FormatContext& ctx) -> decltype(ctx.out()) 
+  FMT_CONSTEXPR auto format(const u3::SU3& x, FormatContext& ctx) -> decltype(ctx.out())
   {
     return format_to(ctx.out(), "({:d},{:d})", x.lambda(),x.mu());
   }
 };
 
 template <>
-struct formatter<u3::U3> 
+struct formatter<u3::U3>
 {
   char presentation = 'g';
 
   template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin())
   {
     auto it = ctx.begin(), end = ctx.end();
     if (it != end && (*it == 'd' || *it == 'g' || *it == 'f')) presentation = *it++;
@@ -770,7 +772,7 @@ struct formatter<u3::U3>
   }
 
   template <typename FormatContext>
-  FMT_CONSTEXPR auto format(const u3::U3& w, FormatContext& ctx) -> decltype(ctx.out()) 
+  FMT_CONSTEXPR auto format(const u3::U3& w, FormatContext& ctx) -> decltype(ctx.out())
   {
     if(presentation == 'f')
       return format_to(ctx.out(), "{:f}{:d}",w.N(),w.SU3());
@@ -781,12 +783,12 @@ struct formatter<u3::U3>
 
 
 template <>
-struct formatter<u3::U3S> 
+struct formatter<u3::U3S>
 {
   char presentation = 'g';
 
   template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) 
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin())
   {
     auto it = ctx.begin(), end = ctx.end();
     if (it != end && (*it == 'd' || *it == 'g' || *it == 'f')) presentation = *it++;
@@ -800,7 +802,7 @@ struct formatter<u3::U3S>
   }
 
   template <typename FormatContext>
-  FMT_CONSTEXPR auto format(const u3::U3S& wS, FormatContext& ctx) -> decltype(ctx.out()) 
+  FMT_CONSTEXPR auto format(const u3::U3S& wS, FormatContext& ctx) -> decltype(ctx.out())
   {
     if(presentation == 'f')
       return format_to(ctx.out(), "{:f}{:f}",wS.U3(),wS.S());
