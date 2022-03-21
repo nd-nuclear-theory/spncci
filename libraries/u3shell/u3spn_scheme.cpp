@@ -104,6 +104,7 @@ namespace u3shell {
     const SpaceU3SPN& space_bra, const SpaceU3SPN& space_ket,
     const OperatorLabelsU3S& operator_labels,bool spin_scalar
   )
+    : BaseSectors{space_bra,space_ket}
   {
     for (int bra_subspace_index=0; bra_subspace_index<space_bra.size(); ++bra_subspace_index)
       for (int ket_subspace_index=0; ket_subspace_index<space_ket.size(); ++ket_subspace_index)
@@ -136,7 +137,7 @@ namespace u3shell {
           if (allowed)
             for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
               {
-                PushSector(SectorType(bra_subspace_index,ket_subspace_index,bra_subspace,ket_subspace,multiplicity_index));
+                PushSector(bra_subspace_index,ket_subspace_index,multiplicity_index);
               }
         }
   }

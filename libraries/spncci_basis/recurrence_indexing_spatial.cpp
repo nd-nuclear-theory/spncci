@@ -285,9 +285,11 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
             )
             continue;
         }
-        EmplaceSector(
-            target_u3_index, source_u3_index, target_u3_space, source_u3_space
-          );
+        PushSector(target_u3_index, source_u3_index);
+
+        // EmplaceSector(
+        //     target_u3_index, source_u3_index, target_u3_space, source_u3_space
+        //   );
       }
     }
   }
@@ -317,9 +319,10 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
             == 0
           )
           continue;
-        EmplaceSector(
-            target_u3_index, source_u3_index, target_u3_space, source_u3_space
-          );
+        // EmplaceSector(
+        //     target_u3_index, source_u3_index, target_u3_space, source_u3_space
+        //   );
+        PushSector(target_u3_index,source_u3_index);
       }
     }
   }
