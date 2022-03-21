@@ -54,16 +54,28 @@ namespace sp3r
   // Returns true if Sp(3,R)->U(3) branching obtained by coupling
   // Sp(3,R) raising polynomials onto sigma must be modified.
 
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  // Sp(3,R) irrep (space) -> U(3) irrep (subspace)
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Class for carrier space of Sp(3,R)>U(3)>SO(3) irrep
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // sp3r::Sp3RSpace() [sigma]
+  //  ->sp3r::U3Subspace() [omega] -> upsilon_max
+  //    ->sp3r::U3State() [n] -> rho_max
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
   // space labels: sigma (u3::U3)
   // space truncation: Nn,max (integer)
+  //
   // subspace labels: omega (u3::U3)
+  // subspace degeneracy: upsilon_max
+  // Orthogonalization matrices: K_matrix, Kinv_matrix
+  //    + Only stored if space constructor flag subspace_labels_only = false.
+  //    + For computational convenience, we store the RMEs of
+  //      K as (sigma upsilon omega||K||sigma n rho omega) and
+  //      Kinv as (sigma n rho omega||Kinv||sigma upsilon omega)
+  //
   // state labels within subspace: n (u3::U3) with degeneracy rho_max (integer)
+  //    state labels and multiplicities only stored if space constructor flag
+  //    subspace_labels_only = false.
   //
   // Within a space, the subspaces are ordered by:
   //   -- "canonically" increasing omega
@@ -71,8 +83,7 @@ namespace sp3r
   //
   // Within a subspace, the states are ordered by:
   //   -- "canonically" increasing n
-  //      which is defined for us as lexicographical by N(lambda,mu)
-  //   -- numerically increasing rho
+  //      which is defined for us as lexicographical by N(lambda,mu
 
   class U3Subspace;
   class Sp3RSpace;
@@ -90,31 +101,13 @@ class U3Subspace
 
     U3Subspace() = default;
     // constructor
-    U3Subspace(const u3::U3& omega, int upsilon_max)
+
+    U3Subspace(const u3::U3& omega, unsigned int upsilon_max)
       : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
      {}
-    // U3Subspace(const u3::U3& omega, int upsilon_max);
-    // Construct U(3) subspace.
-    //
     // This is a lightweight constructor which only stores the labels,
     // without populating the subspace with states.
-    //
-    // Arguments:
-    //   omega (u3::U3) : labels for subspace
 
-
-    // U3Subspace(
-    //     const u3::U3& omega,
-    //     int upsilon_max,
-    //     const MultiplicityTagged<u3::U3>::vector& state_set
-    //   )
-    //   : U3Subspace(omega, upsilon_max)
-    // {Init(state_set);}
-
-    // void Init(const MultiplicityTagged<u3::U3>::vector& state_set);
-    // Alternative constructor from list of (n,rho) states
-
-    ////////////////////////////////////////////////////////////////////////
     template<typename K1, typename K2>
     inline U3Subspace(
       const u3::U3& omega,
@@ -130,27 +123,28 @@ class U3Subspace
     {
       assert(K_matrix_.rows()==Kinv_matrix_.cols());
       assert(K_matrix_.cols()==Kinv_matrix_.rows());
+      assert(upsilon_max_==K_matrix().rows());
+      assert(nonorthogonal_basis_size()==K_matrix().cols());
       Init(u3boson_subpace);
     }
+    // Full constructor which computes and stores K matrices
+    // and calls Init function that stores state labels.
 
     void Init(const u3boson::U3Subspace& u3boson_subpace);
 
     ////////////////////////////////////////////////////////////////////////
-
     // accessors
-    const u3::U3 U3() const {return std::get<0>(labels());}
-    const u3::U3 omega() const { return U3(); }
-    std::string LabelStr() const {return omega().Str();}
-    int upsilon_max() const {return upsilon_max_;}
-    std::string DebugStr() const;
+    const u3::U3 U3() const {return U3(); } //Deprecate?
+    const u3::U3 omega() const {return std::get<0>(labels());}
+    inline unsigned int upsilon_max() const {return upsilon_max_;}
+
+    inline std::size_t dimension() const {return upsilon_max();}
 
     inline std::size_t nonorthogonal_basis_size() const
     {
       return BaseDegenerateSubspace::dimension();
     }
 
-    // Currently K_matrix_ and Kinv_matrix_ only stored when
-    // basis constructed using U3BosonSpace. 
     inline const basis::OperatorBlock<double>& K_matrix() const
       {
         return K_matrix_;
@@ -160,8 +154,11 @@ class U3Subspace
         return Kinv_matrix_;
       }
 
+    std::string LabelStr() const {return omega().Str();}
+    std::string DebugStr() const;
+
   private:
-    int upsilon_max_;
+    unsigned int upsilon_max_;
     basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;
 
   };
@@ -193,33 +190,36 @@ class U3Subspace
 
       // pass-through accessors for subspace labels
       u3::U3 n() const { return std::get<0>(labels()); }
-      int rho_max() const { return subspace().GetStateDegeneracy(index()); }
+      unsigned int rho_max() const { return subspace().GetStateDegeneracy(index()); }
       MultiplicityTagged<u3::U3> n_multiplicity_tagged() const { return {n(),rho_max()}; }
 
+      // private:
     };
 
-  ////////////////////////////////////////////////////////////////
-  // Sp(3,R) space
-  ////////////////////////////////////////////////////////////////
-
-class Sp3RSpace
-    : public basis::BaseSpace<Sp3RSpace, U3Subspace>
-// : public basis::BaseSpace<Sp3RSpace, U3Subspace, u3::U3>
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // sp3r::Sp3RSpace() [sigma]
+  //  ->sp3r::U3Subspace() [omega]
+  //    ->sp3r::U3State() [n] -> rho_max
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  class Sp3RSpace
+      : public basis::BaseSpace<Sp3RSpace, U3Subspace>
+  // : public basis::BaseSpace<Sp3RSpace, U3Subspace, u3::U3>
   {
    public:
     Sp3RSpace() = default;
     Sp3RSpace(const u3::U3& sigma, int Nn_max, const bool subspace_labels_only = false);
 
+    // accessors
+    u3::U3 sigma() const {return sigma_;}
+
+    // u3::U3 sigma() const {return std::get<0>(labels());}
+    unsigned int Nn_max() const {return Nn_max_;}
+
     // diagnostic output
     std::string DebugStr() const;
 
-    // accessors
-    u3::U3 sigma() const {return sigma_;}
-    // u3::U3 sigma() const {return std::get<0>(labels());}
-    int Nn_max() const {return Nn_max_;}
-
   private:
-    int Nn_max_;
+    unsigned int Nn_max_;
     u3::U3 sigma_;
   };
 
