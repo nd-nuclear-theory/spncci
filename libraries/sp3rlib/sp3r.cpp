@@ -108,7 +108,7 @@
       for(const auto& u3boson_subspace : u3boson_space)
         {
           const u3::U3& omega = u3boson_subspace.omega();
-          int upsilon_max = get_upsilon_from_K?K_matrices[omega][0].cols():u3boson_subspace.dimension();
+          int upsilon_max = get_upsilon_from_K?K_matrices[omega][0].rows():u3boson_subspace.dimension();
 
           if(upsilon_max==0)
             continue;

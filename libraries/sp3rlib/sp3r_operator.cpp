@@ -59,7 +59,7 @@ namespace sp3r
               }
         }
 
-    return bra_subspace.K_matrix().transpose()*A_boson_matrix*ket_subspace.Kinv_matrix().transpose();
+    return bra_subspace.K_matrix()*A_boson_matrix*ket_subspace.Kinv_matrix();
   }
 
 

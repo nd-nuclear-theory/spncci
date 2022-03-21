@@ -107,7 +107,10 @@ int main(int argc, char **argv)
       
       const std::tuple<u3::U3> s{};
       test_vector.push_back(sp3r_space);
-      // test_map[sigma];
+
+      // ATTENTION PATRICK:
+      // Attempting to add sp3r_space to a map.  This fails with normal basis constructor with
+      // sigma stored as std::tuple<u3::U3>.
       test_map[sigma]=sp3r::Sp3RSpace(sigma, Nn_max);
 
     }
@@ -125,8 +128,6 @@ int main(int argc, char **argv)
       sp3r::Sp3RSectors sectors(sp3r_space,omega0,su3_generator);
       std::cout<<sectors.DebugStr()<<std::endl;
     }
-
-
 
 } //main
 

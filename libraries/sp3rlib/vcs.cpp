@@ -41,17 +41,16 @@ namespace vcs{
 
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Uses U3Boson basis construction.
 // Note: for numerical stability, the Smatrix recurrence used here differs from the recurrence relation given in,
 // e.g.,
 //    D. J. Rowe, A. E. McCoy and M. A. Caprio. Phys. Script. 91 (2016) 033003.
 //    D. J. Rowe, J. Math Phys. 25 (1984) 2662.
 //    D. J. Rowe, B. G. Wybourne and P.H. Butler. J. Phys. A 18 (1985) 939.
-//
-// by a factor of 8, i.e., S_Rowe = 16S_sp3rlib.  Consequently, after taking the squareroot of S to get K,
+// by a factor of 8, i.e., S_Rowe = 16*S_sp3rlib.  Consequently, after taking the square-root of S to get K,
 // we multiply K by a factor of 2^Nn.
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::unordered_map<u3::U3,basis::OperatorBlock<double>>
 GenerateSmatrices(const u3::U3& sigma, const u3boson::U3BosonSpace& space)
   {
@@ -152,8 +151,9 @@ GenerateKmatrices(
             const basis::OperatorBlock<double>& eigenvalues=eigen_system.eigenvalues();
             assert(Eigen::ComputationInfo::Success == eigen_system.info());
 
-            // determinant of eigenvectors comming out of eigen solver can have determinant +-1.
+            // Determinant of eigenvectors comming out of eigensolver can have determinant +1 or -1.
             // For K matrix calculation, need eigenvectors to have determinant 1.
+            // Note: this doesn't matter when K is calculated as UkU^\dagger.
             eigenvectors*=eigenvectors.determinant();
             
             std::vector<double>eigenvalue_vector;
@@ -185,30 +185,35 @@ GenerateKmatrices(
             if(upsilon_max==0)
               continue;
 
-            // Define K as UD and Kinv=DinvU^dagger.  Where D is a matix of dimension
-            // u3boson_dimension x upsilon_max with matrix element (i,j) given by
-            // sqrt(eig(j)) where i is the ith non-zero eigenvalue corresponding to the jth
-            // eigenvector.
-            //
-            // K is a matrix of dimension u3boson_dimension x upsilon_max and
-            // Kinv is a matrix of dimension upsilon_max x u3boson_dimension.
-            // |sigma,upsilon,omega> = sum[n,rho] (K_inv)_{upsilon,[n,rho]}|sigma,n,rho,omega>
-            auto& K = KMatrix_map[omega][0];
-            auto& Kinv = KMatrix_map[omega][1];
-            basis::OperatorBlock<double> D = basis::OperatorBlock<double>::Zero(SMatrix.cols(),upsilon_max);
-            basis::OperatorBlock<double> Dinv = basis::OperatorBlock<double>::Zero(upsilon_max,SMatrix.cols());
+
+            // basis::OperatorBlock<double> D = basis::OperatorBlock<double>::Zero(SMatrix.cols(),upsilon_max);
+            // basis::OperatorBlock<double> Dinv = basis::OperatorBlock<double>::Zero(upsilon_max,SMatrix.cols());
+
+
+            // Construct a matrix D which is u3boson_dimension x upsilon_max with
+            // matrix element (i,j) given by sqrt(eig(j)) where i is the ith
+            // non-zero eigenvalue corresponding to the jth eigenvector.
+            // Dinv is similarly defined.
+            basis::OperatorBlock<double> D = basis::OperatorBlock<double>::Zero(upsilon_max,SMatrix.cols());
+            basis::OperatorBlock<double> Dinv = basis::OperatorBlock<double>::Zero(SMatrix.cols(),upsilon_max);
 
             int i=0;
             for(const auto& [j,k_squared] : nonzero_eigs)
               {
                 double k = std::sqrt(k_squared);
-                D(j,i)=k;
-                Dinv(i,j)=1/k;
+                D(i,j)=k;
+                Dinv(j,i)=1/k;
                 i++;
               }
 
-            K=eigenvectors*D;
-            Kinv=Dinv*eigenvectors.transpose();
+            // For computational convenience, we store the matrix elements of
+            // K as (sigma upsilon omega||K||sigma n rho omega) but the matrix elements of
+            // Kinv is stored as the matrix elements of (sigma n rho omega||Kinv||sigma upsilon omega)
+            // Thus we compute K as DU^dagger and Kinv as Kinv=UDinv.
+            auto& K = KMatrix_map[omega][0];
+            auto& Kinv = KMatrix_map[omega][1];
+            K=D*eigenvectors.transpose();
+            Kinv=eigenvectors*Dinv;
 
             // Since 16 was factored out of the definition of the Smatrix,
             // we now need to add it back it sqrt(16)^(Nn/2)=2^Nn
@@ -216,8 +221,7 @@ GenerateKmatrices(
             K*=factor;
             Kinv*=1./factor;
 
-            assert(mcutils::IsZero(Kinv*K-basis::OperatorBlock<double>::Identity(upsilon_max,upsilon_max),1e-6));
-            assert(mcutils::IsZero(K.transpose()*Kinv.transpose()-basis::OperatorBlock<double>::Identity(upsilon_max,upsilon_max),1e-6));
+            assert(mcutils::IsZero(K*Kinv-basis::OperatorBlock<double>::Identity(upsilon_max,upsilon_max),1e-6));
           }
       }
     else
