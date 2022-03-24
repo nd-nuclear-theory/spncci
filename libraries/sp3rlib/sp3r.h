@@ -124,8 +124,9 @@ class U3Subspace
       assert(K_matrix_.rows()==Kinv_matrix_.cols());
       assert(K_matrix_.cols()==Kinv_matrix_.rows());
       assert(upsilon_max_==K_matrix().rows());
-      assert(nonorthogonal_basis_size()==K_matrix().cols());
+      
       Init(u3boson_subpace);
+      assert(nonorthogonal_basis_size()==K_matrix().cols());
     }
     // Full constructor which computes and stores K matrices
     // and calls Init function that stores state labels.
