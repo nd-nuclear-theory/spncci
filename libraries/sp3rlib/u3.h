@@ -717,6 +717,15 @@ namespace u3
 
 namespace std
 {
+
+  template<> struct hash<u3::SU3>
+  {
+    inline std::size_t operator()(const u3::SU3& h) const
+    {
+      return hash_value(h);
+    }
+  };
+
   template<> struct hash<u3::U3>
   {
     inline std::size_t operator()(const u3::U3& h) const
