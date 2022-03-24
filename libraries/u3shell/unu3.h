@@ -18,6 +18,8 @@
 #include <map>  
 #include <vector>
 #include "sp3rlib/u3.h"
+#include "sp3rlib/u3s.h"
+#include "sp3rlib/u3st.h"
 #include <unordered_map>
 
 

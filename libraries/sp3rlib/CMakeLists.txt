@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
-set(sp3rlib_headers multiplicity_tagged.h u3.h u3boson.h vcs.h sp3r.h u3coef.h
+set(sp3rlib_headers multiplicity_tagged.h u3.h u3s.h u3st.h u3boson.h vcs.h sp3r.h u3coef.h
                     sp3r_operator.h
 )
-set(sp3rlib_sources u3.cpp u3boson.cpp vcs.cpp sp3r.cpp sp3r_operator.cpp u3coef.cpp
+set(sp3rlib_sources u3.cpp u3s.cpp u3st.cpp u3boson.cpp vcs.cpp sp3r.cpp sp3r_operator.cpp u3coef.cpp
                     u3coef_${SPNCCI_SU3_LIBRARY}.cpp
 )
 

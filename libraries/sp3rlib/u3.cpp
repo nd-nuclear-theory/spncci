@@ -27,15 +27,15 @@ namespace u3
     return string;
   }
 
-  std::string U3S::Str() const
-  {
-    return fmt::format("{}x{}",U3(),S());
-  }
+  // std::string U3S::Str() const
+  // {
+  //   return fmt::format("{}x{}",U3(),S());
+  // }
 
-  std::string U3ST::Str() const
-  {
-    return fmt::format("{}x{}x{}",U3(),S(),T());
-  }
+  // std::string U3ST::Str() const
+  // {
+  //   return fmt::format("{}x{}x{}",U3(),S(),T());
+  // }
 
   unsigned int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
   {

@@ -29,6 +29,7 @@
 #include "basis/basis.h"
 #include "basis/degenerate.h"
 #include "sp3rlib/u3.h"
+#include "sp3rlib/u3s.h"
 #include "u3shell/tensor_labels.h"
 
 namespace u3shell {
