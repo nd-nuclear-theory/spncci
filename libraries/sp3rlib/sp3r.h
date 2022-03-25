@@ -135,8 +135,8 @@ class U3Subspace
 
     ////////////////////////////////////////////////////////////////////////
     // accessors
-    const u3::U3 U3() const {return U3(); } //Deprecate?
     const u3::U3 omega() const {return std::get<0>(labels());}
+    const u3::U3 U3() const {return omega(); } //Deprecate?
     inline unsigned int upsilon_max() const {return upsilon_max_;}
 
     inline std::size_t dimension() const {return upsilon_max();}
