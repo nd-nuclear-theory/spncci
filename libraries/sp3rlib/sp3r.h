@@ -27,6 +27,10 @@
     + Switch U3Subspace to be a BaseDegenerateSubspace with degeneracy rho_max
     + Add option for labels only construction of Sp3RSpace
     + Store K matrices with U3Subspace when constructing full space
+  3/24/22 (aem):
+    + Changes state U3Subspace to SO3States.
+    + Raising polynomial information not stored by shared ptr to
+      u3boson::U3Subspace
 ****************************************************************/
 
 #ifndef SP3R_H_
@@ -60,20 +64,25 @@ namespace sp3r
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   // sp3r::Sp3RSpace() [sigma]
   //  ->sp3r::U3Subspace() [omega] -> upsilon_max
-  //    ->sp3r::U3State() [n] -> rho_max
+  //    ->sp3r::SO3State() [L] -> kappa_max
+  //
+  // sp3r::U3Subspace also contains:
+  //    + K and Kinv matrices for basis orthogonalization
+  //    + shared pointer to u3boson::U3Subspace containing raising polynomial labels
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   // space labels: sigma (u3::U3)
   // space truncation: Nn,max (integer)
   //
   // subspace labels: omega (u3::U3)
   // subspace degeneracy: upsilon_max
-  // Orthogonalization matrices: K_matrix, Kinv_matrix
-  //    + Only stored if space constructor flag subspace_labels_only = false.
+  //
+  // Orthogonalization matrices: K_matrix, Kinv_matrix Only stored if
+  // subspace_labels_only = false.
   //    + For computational convenience, we store the RMEs of
   //      K as (sigma upsilon omega||K||sigma n rho omega) and
   //      Kinv as (sigma n rho omega||Kinv||sigma upsilon omega)
   //
-  // state labels within subspace: n (u3::U3) with degeneracy rho_max (integer)
+  // state labels within subspace: L (unsigned int) with degeneracy kappa_max
   //    state labels and multiplicities only stored if space constructor flag
   //    subspace_labels_only = false.
   //
@@ -82,106 +91,82 @@ namespace sp3r
   //      which is defined for us as lexicographical by N(lambda,mu)
   //
   // Within a subspace, the states are ordered by:
-  //   -- "canonically" increasing n
-  //      which is defined for us as lexicographical by N(lambda,mu
+  //   -- "canonically" increasing L
 
   class U3Subspace;
   class Sp3RSpace;
-  class U3State;
+  class SO3State;
 
-  ////////////////////////////////////////////////////////////////
-  // U(3) subspace
-  ////////////////////////////////////////////////////////////////
-  
-class U3Subspace
-    : public basis::
-          BaseDegenerateSubspace<U3Subspace, std::tuple<u3::U3>, U3State, std::tuple<u3::U3>>
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  class U3Subspace
+    : public
+      basis::BaseDegenerateSubspace<
+        U3Subspace,
+        std::tuple<u3::U3>,
+        SO3State,
+        std::tuple<unsigned int>
+      >
   {
   public:
 
     U3Subspace() = default;
     // constructor
 
-    U3Subspace(const u3::U3& omega, unsigned int upsilon_max)
+    inline U3Subspace(const u3::U3& omega, unsigned int upsilon_max)
       : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
      {}
-    // This is a lightweight constructor which only stores the labels,
-    // without populating the subspace with states.
+    // This is a lightweight constructor which only stores the subspace
+    // labels without populating the subspace with states and storing the
+    // Kmatrices and raising polynomial quantum numbers.
 
     template<typename K1, typename K2>
-    inline U3Subspace(
+    U3Subspace(
       const u3::U3& omega,
       int upsilon_max,
-      const u3boson::U3Subspace& u3boson_subpace,
+      std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
       K1&& K_matrix__,
       K2&& Kinv_matrix__
-    )
-    : BaseDegenerateSubspace{omega},
-      upsilon_max_{upsilon_max},
-      K_matrix_{std::forward<K1>(K_matrix__)},
-      Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
-    {
-      assert(K_matrix_.rows()==Kinv_matrix_.cols());
-      assert(K_matrix_.cols()==Kinv_matrix_.rows());
-      assert(upsilon_max_==K_matrix().rows());
-      
-      Init(u3boson_subpace);
-      assert(nonorthogonal_basis_size()==K_matrix().cols());
-    }
-    // Full constructor which computes and stores K matrices
-    // and calls Init function that stores state labels.
-
-    void Init(const u3boson::U3Subspace& u3boson_subpace);
+    );
+    // Full subspace constructor
 
     ////////////////////////////////////////////////////////////////////////
-    // accessors
+    // accessors which can always be used
     const u3::U3 omega() const {return std::get<0>(labels());}
     const u3::U3 U3() const {return omega(); } //Deprecate?
     inline unsigned int upsilon_max() const {return upsilon_max_;}
-
     inline std::size_t dimension() const {return upsilon_max();}
-
-    inline std::size_t nonorthogonal_basis_size() const
-    {
-      return BaseDegenerateSubspace::dimension();
-    }
-
-    inline const basis::OperatorBlock<double>& K_matrix() const
-      {
-        return K_matrix_;
-      }
-    inline const basis::OperatorBlock<double>& Kinv_matrix() const
-      {
-        return Kinv_matrix_;
-      }
-
     std::string LabelStr() const {return omega().Str();}
+
+    // Accessors which should only be used when full subspace constructed.
+    inline const basis::OperatorBlock<double>& K_matrix() const {return K_matrix_;}
+    inline const basis::OperatorBlock<double>& Kinv_matrix() const {return Kinv_matrix_;}
+    const u3boson::U3Subspace& u3boson_subspace() const {return *u3boson_ptr_;}
+    const u3boson::U3Subspace& raising_polynomials() const {return *u3boson_ptr_;}
+    inline std::size_t nonorthogonal_basis_size() const {return K_matrix().cols();}
     std::string DebugStr() const;
 
   private:
     unsigned int upsilon_max_;
     basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;
-
+    std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr_;
   };
 
-  ////////////////////////////////////////////////////////////////
-  // U3State [n] -> rho_max
-  ////////////////////////////////////////////////////////////////
 
-  class U3State
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  class SO3State
       : public basis::BaseDegenerateState<U3Subspace>
     {
      public:
 
-      U3State() = default;
+      SO3State() = default;
       // pass-through constructors
 
-      U3State(const SubspaceType& subspace, std::size_t index)
+      SO3State(const SubspaceType& subspace, std::size_t index)
       // Construct state by index.
           : basis::BaseDegenerateState<U3Subspace>(subspace, index)
       {}
 
-      U3State(
+      SO3State(
           const SubspaceType& subspace,
           const typename SubspaceType::StateLabelsType& state_labels
         )
@@ -190,17 +175,11 @@ class U3Subspace
       {}
 
       // pass-through accessors for subspace labels
-      u3::U3 n() const { return std::get<0>(labels()); }
-      unsigned int rho_max() const { return subspace().GetStateDegeneracy(index()); }
-      MultiplicityTagged<u3::U3> n_multiplicity_tagged() const { return {n(),rho_max()}; }
-
+      unsigned int L() const { return std::get<0>(labels()); }
+      unsigned int kappa_max() const { return subspace().GetStateDegeneracy(index());}
       // private:
     };
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // sp3r::Sp3RSpace() [sigma]
-  //  ->sp3r::U3Subspace() [omega]
-  //    ->sp3r::U3State() [n] -> rho_max
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   class Sp3RSpace
       : public basis::BaseSpace<Sp3RSpace, U3Subspace>
@@ -225,7 +204,7 @@ class U3Subspace
   };
 
 
-
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Sectors: U3Subspaces connected by operator w0
   class Sp3RSectors
     : public basis::BaseSectors<Sp3RSpace>

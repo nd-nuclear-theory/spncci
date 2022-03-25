@@ -72,12 +72,31 @@
   ////////////////////////////////////////////////////////////////
   // space and subspace indexing
   ////////////////////////////////////////////////////////////////
-  void U3Subspace::Init(const u3boson::U3Subspace& u3boson_subspace)
+  // Full subspace constructor which computes and stores K matrices, adds SO3States
+  template<typename K1, typename K2>
+  U3Subspace::U3Subspace(
+      const u3::U3& omega,
+      int upsilon_max,
+      std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
+      K1&& K_matrix__,
+      K2&& Kinv_matrix__
+    )
+    : BaseDegenerateSubspace{omega},
+      upsilon_max_{upsilon_max},
+      u3boson_ptr_(std::move(u3boson_ptr)),
+      K_matrix_{std::forward<K1>(K_matrix__)},
+      Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
     {
-      for(int i=0; i<u3boson_subspace.size(); ++i)
+      assert(K_matrix_.rows()==Kinv_matrix_.cols());
+      assert(K_matrix_.cols()==Kinv_matrix_.rows());
+      assert(upsilon_max_==K_matrix().rows());
+      assert(nonorthogonal_basis_size()==u3boson_subspace().dimension());
+
+      const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
+
+      for(const auto& [L,kappa_max] : L_kappa_vector)
         {
-          const auto& u3boson_state = u3boson_subspace.GetState(i);
-          PushStateLabels(u3boson_state.n(),u3boson_state.rho_max());
+          PushStateLabels(L,kappa_max);
         }
     }
 
@@ -86,11 +105,10 @@
     // :BaseSpace{sigma},Nn_max_(Nn_max)
   : sigma_{sigma},Nn_max_(Nn_max)
     {
-      // sigma_=sigma;
-
       // Check that sigma is an LGI of a unitary Sp(3,R) irrep
       assert(IsUnitary(sigma));
 
+      // Construct the assocaited u3boson space
       u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
 
       // If constructing the full space, then compute K matrices and
@@ -105,10 +123,12 @@
           get_upsilon_from_K=true;
         }
 
-      for(const auto& u3boson_subspace : u3boson_space)
+      for(int i=0; i<u3boson_space.size(); ++i)
         {
+          const auto& u3boson_subspace = u3boson_space.GetSubspace(i);
           const u3::U3& omega = u3boson_subspace.omega();
-          unsigned int upsilon_max = get_upsilon_from_K?K_matrices[omega][0].rows():u3boson_subspace.dimension();
+          unsigned int upsilon_max
+            = get_upsilon_from_K?K_matrices[omega][0].rows():u3boson_subspace.dimension();
 
           if(upsilon_max==0)
             continue;
@@ -116,11 +136,13 @@
           // Labels only
           if(subspace_labels_only)
             PushSubspace(U3Subspace(omega,upsilon_max));
+
           // Full space
           else
             PushSubspace(U3Subspace(
                 omega,upsilon_max,
-                u3boson_subspace,
+                // u3boson_subspace,
+                u3boson_space.GetSubspacePtr(i),
                 std::move(K_matrices[omega][0]),
                 std::move(K_matrices[omega][1])
               ));
@@ -135,12 +157,12 @@
       omega(),upsilon_max(),size(),dimension()
       )<<std::endl;
 
-  // enumerate state labels within subspace
+
     for (int i_state=0; i_state<size(); ++i_state)
-    {
-      MultiplicityTagged<u3::U3> n_rho = GetState(i_state).n_multiplicity_tagged();
-      ss << "  " << i_state << " " << n_rho.Str() << std::endl;
-    }
+      {
+        ss << fmt::format("{} : {}",GetState(i_state).L(),GetState(i_state).kappa_max())<<std::endl;
+
+      }
 
     return ss.str();
   }

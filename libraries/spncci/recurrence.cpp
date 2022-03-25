@@ -632,16 +632,21 @@ void AddNn0BlocksToHyperblocks(
     int dim1=u3_subspace1.dimension();
     int dim=u3_subspace.dimension();
 
+    const auto& u3boson_subspace1 = u3_subspace1.u3boson_subspace();
+    const auto& u3boson_subspace = u3_subspace.u3boson_subspace();
+
+
     basis::OperatorBlock<double> BU = basis::OperatorBlock<double>::Zero(dim1, dim);
     for(int u3_state_index=0; u3_state_index<u3_subspace.size(); ++u3_state_index)
       {
-        const auto&[n,rho_max] = u3_subspace.GetState(u3_state_index).n_multiplicity_tagged();
-        // MultiplicityTagged<u3::U3> n_rho=u3_subspace.GetStateLabels(u3_state_index);
-        // u3::U3 n(n_rho.irrep);
+        const auto& n = u3boson_subspace.GetState(u3_state_index).n();
+        const int rho_max = u3boson_subspace.GetState(u3_state_index).rho_max();
+
         // iterate over (n1,rho1)
         for (int u3_state_index1=0; u3_state_index1<u3_subspace1.size(); u3_state_index1++)
           {
-            const auto&[n1,rho1_max] = u3_subspace1.GetState(u3_state_index1).n_multiplicity_tagged();
+            const auto& n1 = u3boson_subspace1.GetState(u3_state_index1).n();
+            const int rho1_max = u3boson_subspace1.GetState(u3_state_index1).rho_max();
             // MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
             // u3::U3 n1(n1_rho1.irrep);
             if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())==0)
@@ -667,70 +672,69 @@ void AddNn0BlocksToHyperblocks(
 
           }
       }
+
     // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-    // KBUK.noalias()=K1*BU*K_inv;
-      KBUK.noalias()=(K_inv*BU*K1).transpose();
-    // std::cout<<"KBUK "<<KBUK<<std::endl;
+    KBUK.noalias()=K1*BU*K_inv;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Amatrix(
-  u3::UCoefCache& u_coef_cache,
-  const sp3r::U3Subspace& u3_subspacep,
-  const sp3r::U3Subspace& u3_subspacepp,
-  const u3::U3& sigmap, const u3::U3& omegap, const u3::U3& omegapp,
-  const vcs::MatrixCache& K_matrix_map_bra,
-  const vcs::MatrixCache& Kinv_matrix_map_bra,
-  int upsilon_maxp, int upsilon_maxpp,
-  Eigen::MatrixXd& A
-  )
-{
-  // underlying u3boson subspace dimensions
-  int dimp=u3_subspacep.size();
-  int dimpp=u3_subspacepp.size();
+// void Amatrix(
+//   u3::UCoefCache& u_coef_cache,
+//   const sp3r::U3Subspace& u3_subspacep,
+//   const sp3r::U3Subspace& u3_subspacepp,
+//   const u3::U3& sigmap, const u3::U3& omegap, const u3::U3& omegapp,
+//   const vcs::MatrixCache& K_matrix_map_bra,
+//   const vcs::MatrixCache& Kinv_matrix_map_bra,
+//   int upsilon_maxp, int upsilon_maxpp,
+//   Eigen::MatrixXd& A
+//   )
+// {
+//   // underlying u3boson subspace dimensions
+//   int dimp=u3_subspacep.size();
+//   int dimpp=u3_subspacepp.size();
 
-  basis::OperatorBlock<double> boson_matrix = basis::OperatorBlock<double>::Zero(dimp,dimpp);
+//   basis::OperatorBlock<double> boson_matrix = basis::OperatorBlock<double>::Zero(dimp,dimpp);
   
-  // Extracting K matrices 
-  const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
-  Eigen::MatrixXd Kpp_inv=Kinv_matrix_map_bra.at(omegapp);
+//   // Extracting K matrices
+//   const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
+//   Eigen::MatrixXd Kpp_inv=Kinv_matrix_map_bra.at(omegapp);
 
-  // for(const auto& statepp : u3_subspacepp)
-  for(int vpp=0; vpp<dimpp; vpp++)
-    {
-      const auto&[npp,rhopp_max] = u3_subspacepp.GetState(vpp).n_multiplicity_tagged();
-      // MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
-      // const u3::U3& npp(npp_rhopp.irrep);
-      // int rhopp=npp_rhopp.tag;
-      for(int vp=0; vp<dimp; vp++)
-        {
-          const auto&[np,rhop_max] = u3_subspacep.GetState(vp).n_multiplicity_tagged();
-          // MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
-          // const u3::U3& np(np_rhop.irrep);
-          // int rhop=np_rhop.tag; 
+//   // for(const auto& statepp : u3_subspacepp)
+//   for(int vpp=0; vpp<dimpp; vpp++)
+//     {
+//       const auto&[npp,rhopp_max] = u3_subspacepp.GetState(vpp).n_multiplicity_tagged();
+//       // MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
+//       // const u3::U3& npp(npp_rhopp.irrep);
+//       // int rhopp=npp_rhopp.tag;
+//       for(int vp=0; vp<dimp; vp++)
+//         {
+//           const auto&[np,rhop_max] = u3_subspacep.GetState(vp).n_multiplicity_tagged();
+//           // MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
+//           // const u3::U3& np(np_rhop.irrep);
+//           // int rhop=np_rhop.tag;
           
-          // RME is already set to zero 
-          if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())==0)
-            continue; 
+//           // RME is already set to zero
+//           if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())==0)
+//             continue;
 
-          for(int rhopp=1; rhopp<=rhopp_max; ++rhopp)
-            for(int rhop=1; rhop<=rhop_max; ++rhop)
-              {
-                int col = u3_subspacepp.GetStateOffset(vpp,rhopp);
-                int row = u3_subspacep.GetStateOffset(vp,rhop);
-                boson_matrix(row,col)=
-                  u3boson::BosonCreationRME(np,npp)
-                  *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
-                  *u3::UCached(
-                      u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
-                      np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
-              }
-        } //end vp
-    } //end vpp
-  // Matrix of symplectic raising operator A
-  A=Kp*boson_matrix*Kpp_inv;
-}
+//           for(int rhopp=1; rhopp<=rhopp_max; ++rhopp)
+//             for(int rhop=1; rhop<=rhop_max; ++rhop)
+//               {
+//                 int col = u3_subspacepp.GetStateOffset(vpp,rhopp);
+//                 int row = u3_subspacep.GetStateOffset(vp,rhop);
+//                 boson_matrix(row,col)=
+//                   u3boson::BosonCreationRME(np,npp)
+//                   *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
+//                   *u3::UCached(
+//                       u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
+//                       np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
+//               }
+//         } //end vp
+//     } //end vpp
+//   // Matrix of symplectic raising operator A
+//   A=Kp*boson_matrix*Kpp_inv;
+// }
 
 
 void 

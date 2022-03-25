@@ -48,15 +48,16 @@ int main(int argc, char **argv)
     for(int i=0; i<sp3r_space.size(); ++i)
       {
         const auto& subspace = sp3r_space.GetSubspace(i);
+        assert(subspace.u3boson_subspace().dimension()==subspace.K_matrix().cols());
         assert(subspace.omega()==subspace.U3());
         assert(subspace.upsilon_max()<=subspace.dimension());
         if(!modify_branching)
           assert(subspace.upsilon_max()<=subspace.dimension());
 
-        assert(subspace.upsilon_max()==subspace.K_matrix().cols());
-        assert(subspace.upsilon_max()==subspace.Kinv_matrix().rows());
-        assert(subspace.dimension()==subspace.K_matrix().rows());
-        assert(subspace.dimension()==subspace.Kinv_matrix().cols());
+        assert(subspace.upsilon_max()==subspace.K_matrix().rows());
+        assert(subspace.upsilon_max()==subspace.Kinv_matrix().cols());
+        assert(subspace.dimension()==subspace.K_matrix().cols());
+        assert(subspace.dimension()==subspace.Kinv_matrix().rows());
         assert(subspace.K_matrix().rows()==subspace.Kinv_matrix().cols());
       }
 
