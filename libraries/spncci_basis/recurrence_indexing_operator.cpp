@@ -9,6 +9,9 @@
 #include "spncci_basis/recurrence_indexing_operator.h"
 
 #include "fmt/format.h"
+#include <cppitertools/imap.hpp>
+#include <cppitertools/unique_everseen.hpp>
+
 
 
 namespace relative
@@ -24,8 +27,8 @@ namespace spatial
   {
     int Nbar_min=parity_bar;
     int Nbar_max=operator_parameters.Nbar_max;
-    const auto& Allowed_x0_values=operator_parameters.Allowed_x0_values;
-    bool restrict_x0 = Allowed_x0_values.size()>0;
+    const auto& Allowed_w0_values=operator_parameters.Allowed_w0_values;
+    bool restrict_x0 = Allowed_w0_values.size()>0;
     //////////////////////////////////////////////////////////////////////////////
     // int Nbar_min = unit_tensor_constraints.parity_bar;
     std::unordered_map<u3::SU3,std::vector<std::tuple<unsigned int,unsigned int>>> x0_Nbar_pairs;
@@ -40,7 +43,7 @@ namespace spatial
 
           for (const auto& [x0, rho] : possible_x0)
             {
-              if(!restrict_x0  || Allowed_x0_values.count(x0))
+              if(!restrict_x0  || Allowed_w0_values.count({N0,x0}))
                 x0_Nbar_pairs[x0].push_back({Nbar, Nbar_p});
 
             }
@@ -53,7 +56,18 @@ namespace spatial
   OperatorSpace::OperatorSpace(const OperatorParameters& operator_parameters)
   : BaseDegenerateSpace{0}
   {
+    // For a two-body operator, the maximum value of S0 possible is 2.
+    // S0 the minimum possible L0 that will couple to with S0 to J0 is
     L0min_=std::max(0,int(operator_parameters.J0)-2);
+
+    std::vector<HalfInt> Allowed_N0_values;
+    const auto& Allowed_w0_values = operator_parameters.Allowed_w0_values;
+    if(operator_parameters.Allowed_w0_values.size()>0)
+      {
+        // Get list of possible N0 values
+        for( const HalfInt& N0 : iter::unique_everseen(iter::imap([] (u3::U3 w) {return w.N();}, Allowed_w0_values)))
+          Allowed_N0_values.push_back(N0);
+      }
 
     for(uint8_t parity_bar : {0,1})
       for(int N0=0; N0<=operator_parameters.Nbar_max; N0+=2)
@@ -65,6 +79,7 @@ namespace spatial
             {
 
               int degeneracy=0;
+
               std::array<std::size_t,5> L0_offsets;
               const auto& Allowed_L0_values = operator_parameters.Allowed_L0_values;
               for(int L0=0; L0<L0min_+5; ++L0)

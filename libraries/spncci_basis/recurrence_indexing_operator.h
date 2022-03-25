@@ -30,7 +30,7 @@ namespace relative
       const int N1v_,
       const int Nmax_,
       const unsigned int J0_,
-      const std::unordered_set<u3::SU3>& Allowed_x0_values_,
+      const std::unordered_set<u3::U3>& Allowed_w0_values_,
       const std::set<unsigned int>& Allowed_L0_values_,
       const std::set<unsigned int>& Allowed_S0_values_,
       const std::set<unsigned int>& Allowed_T0_values_
@@ -38,7 +38,7 @@ namespace relative
         :
         Nbar_max{Nmax_+2*N1v_},
         J0{J0_},
-        Allowed_x0_values{Allowed_x0_values_},
+        Allowed_w0_values{Allowed_w0_values_},
         Allowed_L0_values{Allowed_L0_values_},
         Allowed_S0_values{Allowed_S0_values_},
         Allowed_T0_values{Allowed_T0_values_}
@@ -50,7 +50,7 @@ namespace relative
     const std::set<unsigned int> Allowed_L0_values;
     const std::set<unsigned int> Allowed_S0_values;
     const std::set<unsigned int> Allowed_T0_values;
-    const std::unordered_set<u3::SU3> Allowed_x0_values;
+    const std::unordered_set<u3::U3> Allowed_w0_values;
   };
 
 namespace spatial
@@ -177,6 +177,13 @@ namespace spatial
     std::string DebugStr() const;
 
     private:
+
+      // Because S0 is at most 2, then the only possible values of L0 for
+      // an operator that has good J0 are the 5 values |J0-2|, |J0-2|+1,...,J0+2
+      // Alternatively, L0_min=max(0,J0-2), L0=L0_min+0, L0_min+1,...,L0_min+4.
+      // The ith entry of L0_offsets gives the offset for L0+i.
+      // The different between the offsets of subsequent L0 values (L0_min+i+1-L0_min+1)
+      // corresponds to kappa0_max.
       std::vector<std::array<std::size_t,5>> L0_offsets_;
       unsigned int L0min_;
   };

@@ -453,7 +453,7 @@ namespace u3shell
 
     inline KeyType Key() const
     {
-      return KeyType(N0_,x0_,S0_,T0_,g0_);
+      return KeyType(N0(),x0(),S0(),T0(),g0());
     }
 
     inline friend bool operator == (const OperatorLabelsU3ST& x1, const OperatorLabelsU3ST& x2)
@@ -825,7 +825,7 @@ namespace u3shell
       return ket_;
     }
 
-    inline const OperatorLabelsU3ST operator_labels()
+    inline const OperatorLabelsU3ST operator_labels() const
       {
         return OperatorLabelsU3ST(N0_,x0_,S0_,T0_,g0_);
       }
