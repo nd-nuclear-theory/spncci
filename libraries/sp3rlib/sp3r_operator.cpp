@@ -24,39 +24,39 @@ namespace sp3r
     if(!u3::OuterMultiplicity(omega_ket,{2,{2,0}},omega_bra))
       return basis::OperatorBlock<double>::Zero(bra_subspace.upsilon_max(),ket_subspace.upsilon_max());
 
-    const auto& bra_u3boson_subspace = bra_subspace.u3boson_subspace();
-    const auto& ket_u3boson_subspace = ket_subspace.u3boson_subspace();
+    const auto& bra_nonorthogonal_basis = bra_subspace.nonorthogonal_basis();
+    const auto& ket_nonorthogonal_basis = ket_subspace.nonorthogonal_basis();
 
     basis::OperatorBlock<double> A_boson_matrix
       = basis::OperatorBlock<double>::Zero(
-        bra_u3boson_subspace.dimension(),
-        ket_u3boson_subspace.dimension()
+        bra_nonorthogonal_basis.dimension(),
+        ket_nonorthogonal_basis.dimension()
         );
 
-    for(int bra_state_index=0; bra_state_index<bra_u3boson_subspace.size(); ++bra_state_index)
-      for(int ket_state_index=0; ket_state_index<ket_u3boson_subspace.size(); ++ket_state_index)
+    for(int bra_state_index=0; bra_state_index<bra_nonorthogonal_basis.size(); ++bra_state_index)
+      for(int ket_state_index=0; ket_state_index<ket_nonorthogonal_basis.size(); ++ket_state_index)
         {
-          const auto& bra_state = bra_u3boson_subspace.GetState(bra_state_index);
-          const auto& ket_state = ket_u3boson_subspace.GetState(ket_state_index);
+          const auto& bra_state = bra_nonorthogonal_basis.GetState(bra_state_index);
+          const auto& ket_state = ket_nonorthogonal_basis.GetState(ket_state_index);
           const u3::U3& n_bra = bra_state.n();
           const u3::U3& n_ket = ket_state.n();
           const int rho_bra_max = bra_state.rho_max();
           const int rho_ket_max = ket_state.rho_max();
 
-          if(!u3::OuterMultiplicity(n_ket,{2,{2,0}},n_bra))
+          if(!u3::OuterMultiplicity(n_ket,{2,{2u,0u}},n_bra))
             continue;
 
           for(int rho_bra=1; rho_bra<=rho_bra_max; ++rho_bra)
             for(int rho_ket=1; rho_ket<=rho_ket_max; ++rho_ket)
               {
-                int row = bra_u3boson_subspace.GetStateOffset(bra_state_index,rho_bra);
-                int col = ket_u3boson_subspace.GetStateOffset(ket_state_index,rho_ket);
+                int row = bra_nonorthogonal_basis.GetStateOffset(bra_state_index,rho_bra);
+                int col = ket_nonorthogonal_basis.GetStateOffset(ket_state_index,rho_ket);
                 
                 A_boson_matrix(row,col)
                   =ParitySign(u3::ConjugationGrade(omega_bra)+u3::ConjugationGrade(omega_ket))
                     * u3boson::BosonCreationRME(n_bra,n_ket)
                     *u3::UCached(u_coef_cache,
-                        {2,0},n_ket.SU3(),omega_bra.SU3(),sigma.SU3(),
+                        {2u,0u},n_ket.SU3(),omega_bra.SU3(),sigma.SU3(),
                         n_bra.SU3(),1,rho_bra,omega_ket.SU3(),rho_ket,1
                       );
               }

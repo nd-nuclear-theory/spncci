@@ -148,11 +148,11 @@ void DoIrrep(int N, int lambda, int mu, int Nnmax)
     {
       const sp3r::U3Subspace& subspace = irrep.GetSubspace(subspace_index);
       const u3::U3 omega = subspace.U3();
-      const auto& u3boson_subspace = subspace.u3boson_subspace();
-      for (int state_index=0; state_index<u3boson_subspace.size(); ++state_index)
+      const auto& nonorthogonal_basis = subspace.nonorthogonal_basis();
+      for (int state_index=0; state_index<nonorthogonal_basis.size(); ++state_index)
         {
-          const auto& n = u3boson_subspace.GetState(state_index).n();
-          const int rho_max = u3boson_subspace.GetState(state_index).rho_max();
+          const auto& n = nonorthogonal_basis.GetState(state_index).n();
+          const int rho_max = nonorthogonal_basis.GetState(state_index).rho_max();
           for(int rho=1; rho<=rho_max; ++rho)
             std::cout << fmt::format("  {:12s} {:12s} {:3d}",omega.Str(),n.Str(),rho) << std::endl;
         }

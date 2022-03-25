@@ -29,8 +29,8 @@
     + Store K matrices with U3Subspace when constructing full space
   3/24/22 (aem):
     + Changes state U3Subspace to SO3States.
-    + Raising polynomial information not stored by shared ptr to
-      u3boson::U3Subspace
+    + Raising polynomial information now stored by shared ptr to
+      u3boson::U3Subspace which is accessed by nonorthogonal_basis()
 ****************************************************************/
 
 #ifndef SP3R_H_
@@ -62,25 +62,30 @@ namespace sp3r
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Class for carrier space of Sp(3,R)>U(3)>SO(3) irrep
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // sp3r::Sp3RSpace() [sigma]
-  //  ->sp3r::U3Subspace() [omega] -> upsilon_max
-  //    ->sp3r::SO3State() [L] -> kappa_max
+  // sp3r::Sp3RSpace() 
+  //  ->sp3r::U3Subspace()
+  //    ->sp3r::SO3State()
   //
-  // sp3r::U3Subspace also contains:
-  //    + K and Kinv matrices for basis orthogonalization
-  //    + shared pointer to u3boson::U3Subspace containing raising polynomial labels
+  //  sp3r::U3Subspace also contains:
+  //    + K and Kinv matrices for basis orthogonalization.  Only stored if 
+  //      constructor flag subspace_labels_only = false. 
+  //      Elements of K_matrix are (sigma upsilon omega||K||sigma n rho omega) and
+  //      elements of Kinv_matrix are (sigma n rho omega||Kinv||sigma upsilon omega).
+  //
+  //    + shared pointer to u3boson::U3Subspace containing u3boson subspaces
+  //      which corresponds to the non-orthogonal Sp(3,R) basis
+  //      Within u3boson subspace, "states" are raising polynomial labels n
+  //      with degeneracy rho_max.
+  //
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   // space labels: sigma (u3::U3)
   // space truncation: Nn,max (integer)
   //
   // subspace labels: omega (u3::U3)
   // subspace degeneracy: upsilon_max
-  //
-  // Orthogonalization matrices: K_matrix, Kinv_matrix Only stored if
-  // subspace_labels_only = false.
-  //    + For computational convenience, we store the RMEs of
-  //      K as (sigma upsilon omega||K||sigma n rho omega) and
-  //      Kinv as (sigma n rho omega||Kinv||sigma upsilon omega)
+  // 
+  // state labels: L (unsigned int)
+  // state degeneracy: kappa_max
   //
   // state labels within subspace: L (unsigned int) with degeneracy kappa_max
   //    state labels and multiplicities only stored if space constructor flag
@@ -140,9 +145,8 @@ namespace sp3r
     // Accessors which should only be used when full subspace constructed.
     inline const basis::OperatorBlock<double>& K_matrix() const {return K_matrix_;}
     inline const basis::OperatorBlock<double>& Kinv_matrix() const {return Kinv_matrix_;}
-    const u3boson::U3Subspace& u3boson_subspace() const {return *u3boson_ptr_;}
-    const u3boson::U3Subspace& raising_polynomials() const {return *u3boson_ptr_;}
-    inline std::size_t nonorthogonal_basis_size() const {return K_matrix().cols();}
+    const u3boson::U3Subspace& nonorthogonal_basis() const {return *u3boson_ptr_;}
+    inline std::size_t nonorthogonal_basis_dimension() const {return K_matrix().cols();}
     std::string DebugStr() const;
 
   private:
@@ -150,7 +154,6 @@ namespace sp3r
     basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;
     std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr_;
   };
-
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   class SO3State
@@ -223,9 +226,7 @@ namespace sp3r
 
   private:
     u3::U3 omega0_;
-
   };
-
 
 }  // namespace
 

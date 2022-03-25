@@ -29,8 +29,8 @@ int main(int argc, char **argv)
 
   std::vector<u3::U3>
   sigma_list = {
-      u3::U3(16,{2,1}),
-      u3::U3({29,2},{2,1})
+      u3::U3(16,{2u,1u}),
+      u3::U3({29,2},{2u,1u})
     };
 
   // Comparison of new with old.
@@ -66,8 +66,8 @@ int main(int argc, char **argv)
   // Check that U(3) is unitary LGI
   std::map<u3::U3,bool> unitary_test_map=
   {
-    {{16,{2,1}},true},
-    {{3,{0,0}},true},
+    {{16,{2u,1u}},true},
+    {{3,{0u,0u}},true},
     {{6,5,1},false}
   };
   
@@ -83,10 +83,10 @@ int main(int argc, char **argv)
     // Check that U(3) is unitary LGI
   std::map<u3::U3,bool> modify_basis_test_map =
     {
-      {{{3,2},{0,0}},true},
-      {{3,{0,0}},true},
-      {{5,{2,0}},true},
-      {{16,{2,1}},false}
+      {{{3,2},{0u,0u}},true},
+      {{3,{0u,0u}},true},
+      {{5,{2u,0u}},true},
+      {{16,{2u,1u}},false}
     };
 
   std::map<u3::U3,sp3r::Sp3RSpace> test_map;
@@ -116,11 +116,11 @@ int main(int argc, char **argv)
 
     }
 
-  u3::U3 sigma(16,{2,1});
+  u3::U3 sigma(16,{2u,1u});
   std::map<u3::U3,bool> omega0_list = {
-    {{0,{1,1}},true},
-    {{2,{2,0}},false},
-    {{-2,{0,2}},false}
+    {{0,{1u,1u}},true},
+    {{2,{2u,0u}},false},
+    {{-2,{0u,2u}},false}
   };
 
   sp3r::Sp3RSpace sp3r_space(sigma, Nn_max);

@@ -65,7 +65,7 @@ GenerateSmatrices(const u3::U3& sigma, const u3boson::U3BosonSpace& space)
         assert(omega_bra!=sigma);
         int Nn = int(omega_bra.N()-sigma.N());
         int bra_dimension = bra_subspace.dimension();
-        auto omega_ket_vector = u3::KroneckerProduct(omega_bra,{-2,{0,2}});
+        auto omega_ket_vector = u3::KroneckerProduct(omega_bra,{-2,{0u,2u}});
         SMatrices[omega_bra]=basis::OperatorBlock<double>::Zero(bra_dimension,bra_dimension);
         for(const auto& [omega_ket,dummy] : omega_ket_vector)
           {

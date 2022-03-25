@@ -632,21 +632,21 @@ void AddNn0BlocksToHyperblocks(
     int dim1=u3_subspace1.dimension();
     int dim=u3_subspace.dimension();
 
-    const auto& u3boson_subspace1 = u3_subspace1.u3boson_subspace();
-    const auto& u3boson_subspace = u3_subspace.u3boson_subspace();
+    const auto& nonorthogonal_basis1 = u3_subspace1.nonorthogonal_basis();
+    const auto& nonorthogonal_basis = u3_subspace.nonorthogonal_basis();
 
 
     basis::OperatorBlock<double> BU = basis::OperatorBlock<double>::Zero(dim1, dim);
     for(int u3_state_index=0; u3_state_index<u3_subspace.size(); ++u3_state_index)
       {
-        const auto& n = u3boson_subspace.GetState(u3_state_index).n();
-        const int rho_max = u3boson_subspace.GetState(u3_state_index).rho_max();
+        const auto& n = nonorthogonal_basis.GetState(u3_state_index).n();
+        const int rho_max = nonorthogonal_basis.GetState(u3_state_index).rho_max();
 
         // iterate over (n1,rho1)
         for (int u3_state_index1=0; u3_state_index1<u3_subspace1.size(); u3_state_index1++)
           {
-            const auto& n1 = u3boson_subspace1.GetState(u3_state_index1).n();
-            const int rho1_max = u3boson_subspace1.GetState(u3_state_index1).rho_max();
+            const auto& n1 = nonorthogonal_basis1.GetState(u3_state_index1).n();
+            const int rho1_max = nonorthogonal_basis1.GetState(u3_state_index1).rho_max();
             // MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
             // u3::U3 n1(n1_rho1.irrep);
             if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())==0)

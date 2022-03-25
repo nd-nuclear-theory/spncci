@@ -60,11 +60,11 @@ namespace spatial
     // S0 the minimum possible L0 that will couple to with S0 to J0 is
     L0min_=std::max(0,int(operator_parameters.J0)-2);
 
+    // Get list of possible N0 values
     std::vector<HalfInt> Allowed_N0_values;
     const auto& Allowed_w0_values = operator_parameters.Allowed_w0_values;
     if(operator_parameters.Allowed_w0_values.size()>0)
       {
-        // Get list of possible N0 values
         for( const HalfInt& N0 : iter::unique_everseen(iter::imap([] (u3::U3 w) {return w.N();}, Allowed_w0_values)))
           Allowed_N0_values.push_back(N0);
       }

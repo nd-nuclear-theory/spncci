@@ -104,11 +104,10 @@ int main(int argc, char **argv)
         };
 
     //Reproducing values from ap-126-1980-343-Rosensteel
-    Amatrix_test[{{48.5_hi,{8,0}},10}]={
-          {{{50.5_hi,{10,0}},{48.5_hi,{8,0}}},sp3r::Matrix{{6.55744}}},
-          {{{54.5_hi,{12,1}},{52.5_hi,{10,1}}},sp3r::Matrix{{10.24695}}},
-          {{{54.5_hi,{12,1}},{52.5_hi,{12,0}}},sp3r::Matrix{{-4.69042}}},
-          {{{54.5_hi,{12,1}},{52.5_hi,{12,0}}},sp3r::Matrix{{-4.69042}}}
+    Amatrix_test[{{48.5_hi,{8u,0u}},10}]={
+          {{{50.5_hi,{10u,0u}},{48.5_hi,{ 8u,0u}}},sp3r::Matrix{{6.55744}}},
+          {{{54.5_hi,{12u,1u}},{52.5_hi,{12u,0u}}},sp3r::Matrix{{-4.69042}}},
+          {{{54.5_hi,{12u,1u}},{52.5_hi,{12u,0u}}},sp3r::Matrix{{-4.69042}}}
           // RMEs do not match in cases where upsilon_max!=1.  This may be due to
           // different approaches to calculating sqrt of K^2 matrix.
           // Checked SVD decompositions and singular values match:
@@ -117,9 +116,9 @@ int main(int argc, char **argv)
           // {{{54.5_hi,{10,2}},{52.5_hi,{8,2}}},sp3r::Matrix{{9.01365,-0.99088},{2.45265,7.94941}}},
           // Singular values:{7.75045, 9.55859}
         };
-      Amatrix_test[{{1.5_hi,{0,0}},4}] = {
-        {{{3.5_hi,{2,0}},{1.5_hi,{0,0}}},sp3r::Matrix{{1.}}},
-        {{{5.5_hi,{4,0}},{3.5_hi,{2,0}}},sp3r::Matrix{{std::sqrt(6)}}}
+      Amatrix_test[{{1.5_hi,{0u,0u}},4}] = {
+        {{{3.5_hi,{2u,0u}},{1.5_hi,{0u,0u}}},sp3r::Matrix{{1.}}},
+        {{{5.5_hi,{4u,0u}},{3.5_hi,{2u,0u}}},sp3r::Matrix{{std::sqrt(6)}}}
       };
 
     for(const auto&[irrep_labels, validation_map] : Amatrix_test)
@@ -149,12 +148,12 @@ int main(int argc, char **argv)
   {
     std::map<u3::U3,std::function<sp3r::Matrix(u3::U3,sp3r::U3Subspace,sp3r::U3Subspace)>>
       commutator_test_map = {
-        {{0,{0,0}},sp3r::CommutatorBA00},
-        {{0,{1,1}},sp3r::CommutatorBA11},
-        {{0,{2,2}},sp3r::CommutatorBA22}
+        {{0,{0u,0u}},sp3r::CommutatorBA00},
+        {{0,{1u,1u}},sp3r::CommutatorBA11},
+        {{0,{2u,2u}},sp3r::CommutatorBA22}
       };
 
-    std::vector<u3::U3> sigma_list = {{16,{2,1}},{{3,2},{0,0}},{5,{2,0}}};
+    std::vector<u3::U3> sigma_list = {{16,{2u,1u}},{{3,2},{0u,0u}},{5,{2u,0u}}};
 
     for(const auto& sigma : sigma_list)
     {
@@ -181,18 +180,18 @@ int main(int argc, char **argv)
                 {
                   const auto& omega_bar=bar_subspace.omega();
 
-                  if(u3::OuterMultiplicity(omega_ket,{2,{2,0}},omega_bar) && u3::OuterMultiplicity(omega_bar,{-2,{0,2}},omega_bra))
+                  if(u3::OuterMultiplicity(omega_ket,{2,{2u,0u}},omega_bar) && u3::OuterMultiplicity(omega_bar,{-2,{0u,2u}},omega_bra))
                     {
                       commutator_matrix +=
-                      u3::UCached(u_coef_cache,omega_ket.SU3(),{2,0},omega_bra.SU3(),{0,2},omega_bar.SU3(),1,1,w0.SU3(),1,1)
+                      u3::UCached(u_coef_cache,omega_ket.SU3(),{2u,0u},omega_bra.SU3(),{0u,2u},omega_bar.SU3(),1,1,w0.SU3(),1,1)
                       *sp3r::Sp3rLoweringOperator(sigma,bra_subspace,bar_subspace,u_coef_cache)
                       *sp3r::Sp3rRaisingOperator(sigma,bar_subspace,ket_subspace,u_coef_cache);
                     }
 
-                  if(u3::OuterMultiplicity(omega_ket,{-2,{0,2}},omega_bar) && u3::OuterMultiplicity(omega_bar,{2,{2,0}},omega_bra))
+                  if(u3::OuterMultiplicity(omega_ket,{-2,{0u,2u}},omega_bar) && u3::OuterMultiplicity(omega_bar,{2,{2u,0u}},omega_bra))
                     {
                       commutator_matrix-=
-                        u3::UCached(u_coef_cache,omega_ket.SU3(),{0,2},omega_bra.SU3(),{2,0},omega_bar.SU3(),1,1,w0.SU3(),1,1)
+                        u3::UCached(u_coef_cache,omega_ket.SU3(),{0u,2u},omega_bra.SU3(),{2u,0u},omega_bar.SU3(),1,1,w0.SU3(),1,1)
                         *sp3r::Sp3rRaisingOperator(sigma,bra_subspace,bar_subspace,u_coef_cache)
                         *sp3r::Sp3rLoweringOperator(sigma,bar_subspace,ket_subspace,u_coef_cache);
                     }
@@ -211,7 +210,7 @@ int main(int argc, char **argv)
   {
     int Nn_max = 6;
     // u3::U3 sigma(16,{2,1});
-    u3::U3 sigma(5,{2,0});
+    u3::U3 sigma(5,{2u,0u});
     u3::UCoefCache u_coef_cache;
     sp3r::Sp3RSpace sp3r_space(sigma,Nn_max);
     for(const auto& bra_subspace : sp3r_space)
@@ -227,11 +226,11 @@ int main(int argc, char **argv)
           for(const auto& bar_subspace : sp3r_space)
             {
               const auto& omega_bar = bar_subspace.omega();
-              if(u3::OuterMultiplicity(omega_ket,{-2,{0,2}},omega_bar)==0) continue;
-              if(u3::OuterMultiplicity(omega_bar,{2,{2,0}},omega_bra)==0) continue;
+              if(u3::OuterMultiplicity(omega_ket,{-2,{0u,2u}},omega_bar)==0) continue;
+              if(u3::OuterMultiplicity(omega_bar,{2,{2u,0u}},omega_bra)==0) continue;
 
               AB_matrix
-                += u3::UCached(u_coef_cache,omega_ket.SU3(),{0,2},omega_bra.SU3(),{2,0},omega_bar.SU3(),1,1,{0,0},1,1)
+                += u3::UCached(u_coef_cache,omega_ket.SU3(),{0u,2u},omega_bra.SU3(),{2u,0u},omega_bar.SU3(),1,1,{0u,0u},1,1)
                     *sp3r::Sp3rRaisingOperator(sigma,bra_subspace,bar_subspace,u_coef_cache)
                     *sp3r::Sp3rLoweringOperator(sigma,bar_subspace,ket_subspace,u_coef_cache);
             }
@@ -243,7 +242,7 @@ int main(int argc, char **argv)
   {
     // Commutation relations given by ap-126-1980-343-Rosensteel
     // [A,A]^(2,1)
-    u3::U3 sigma(16,{2,1});
+    u3::U3 sigma(16,{2u,1u});
     int Nn_max=8;
     sp3r::Sp3RSpace sp3r_space(sigma,Nn_max);
 
@@ -251,7 +250,7 @@ int main(int argc, char **argv)
     for(const auto& bra_subspace : sp3r_space)
       for(const auto& ket_subspace : sp3r_space)
         {
-          u3::SU3 x0(2,1);
+          u3::SU3 x0(2u,1u);
           const auto& omega_bra = bra_subspace.omega();
           const auto& omega_ket = ket_subspace.omega();
           if(u3::OuterMultiplicity(omega_ket,{4,x0},omega_bra))
@@ -262,11 +261,11 @@ int main(int argc, char **argv)
               for(const auto& bar_subspace : sp3r_space)
                 {
                   const auto& omega_bar = bar_subspace.omega();
-                  if(!u3::OuterMultiplicity(omega_ket,{2,{2,0}},omega_bar)) continue;
-                  if(!u3::OuterMultiplicity(omega_bar,{2,{2,0}},omega_bra)) continue;
+                  if(!u3::OuterMultiplicity(omega_ket,{2,{2u,0u}},omega_bar)) continue;
+                  if(!u3::OuterMultiplicity(omega_bar,{2,{2u,0u}},omega_bra)) continue;
 
                   commutator_matrix
-                    -=2*u3::UCached(u_coef_cache,omega_ket.SU3(),{2,0},omega_bra.SU3(),{2,0},omega_bar.SU3(),1,1,x0,1,1)
+                    -=2*u3::UCached(u_coef_cache,omega_ket.SU3(),{2u,0u},omega_bra.SU3(),{2u,0u},omega_bar.SU3(),1,1,x0,1,1)
                       *sp3r::Sp3rRaisingOperator(sigma,bra_subspace,bar_subspace,u_coef_cache)
                       *sp3r::Sp3rRaisingOperator(sigma,bar_subspace,ket_subspace,u_coef_cache);
                 }

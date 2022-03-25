@@ -90,7 +90,7 @@
       assert(K_matrix_.rows()==Kinv_matrix_.cols());
       assert(K_matrix_.cols()==Kinv_matrix_.rows());
       assert(upsilon_max_==K_matrix().rows());
-      assert(nonorthogonal_basis_size()==u3boson_subspace().dimension());
+      assert(nonorthogonal_basis_dimension()==nonorthogonal_basis().dimension());
 
       const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
 
@@ -141,7 +141,6 @@
           else
             PushSubspace(U3Subspace(
                 omega,upsilon_max,
-                // u3boson_subspace,
                 u3boson_space.GetSubspacePtr(i),
                 std::move(K_matrices[omega][0]),
                 std::move(K_matrices[omega][1])
