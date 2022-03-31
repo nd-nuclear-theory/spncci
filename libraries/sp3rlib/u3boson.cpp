@@ -147,14 +147,14 @@ namespace u3boson{
   {
 
     bool allowed = sigma==sigmap;
-    allowed &= u3::OuterMultiplicity(omega.SU3(),{2,0},omegap.SU3());
-    allowed &= u3::OuterMultiplicity(n.SU3(),{2,0},np.SU3());
+    allowed &= u3::OuterMultiplicity(omega.SU3(),{2u,0u},omegap.SU3());
+    allowed &= u3::OuterMultiplicity(n.SU3(),{2u,0u},np.SU3());
 
     double rme=0.0;
     if (allowed)
       {
         rme = ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-          *u3::U({2,0},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
+          *u3::U({2u,0u},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
           *u3boson::BosonCreationRME(np,n);
       }
 
@@ -179,7 +179,7 @@ namespace u3boson{
 
     double rme
       =ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-        *u3::U({0,2},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
+        *u3::U({0u,2u},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
         *std::sqrt(1.*u3::dim(n.SU3())/u3::dim(np.SU3()))*BosonCreationRME(n,np);
 
     return rme;

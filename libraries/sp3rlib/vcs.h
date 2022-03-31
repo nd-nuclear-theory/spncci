@@ -93,8 +93,8 @@ namespace vcs
   //
   // Output
   //  Returns map keyed by omega.  Value is 2D array containing K and Kinv.
-  //    K is a u3bosn_dimension x upsilon_max matrix
-  //    Kinv is a upsilon_max x u3boson_dimension matrix
+  //    K is a upsilon_max x u3boson_subspace.dimension() matrix
+  //    Kinv is a u3boson_subspace.dimension() x upsilon_max matrix
 
 }  //  namespace
 

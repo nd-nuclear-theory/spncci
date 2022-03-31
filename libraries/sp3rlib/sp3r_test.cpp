@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     for(int i=0; i<sp3r_space.size(); ++i)
       {
         const auto& subspace = sp3r_space.GetSubspace(i);
-        assert(subspace.u3boson_subspace().dimension()==subspace.K_matrix().cols());
+        assert(subspace.nonorthogonal_basis().dimension()==subspace.K_matrix().cols());
         assert(subspace.omega()==subspace.U3());
         assert(subspace.upsilon_max()<=subspace.dimension());
         if(!modify_branching)
@@ -112,7 +112,8 @@ int main(int argc, char **argv)
       // ATTENTION PATRICK:
       // Attempting to add sp3r_space to a map.  This fails with normal basis constructor with
       // sigma stored as std::tuple<u3::U3>.
-      test_map[sigma]=sp3r::Sp3RSpace(sigma, Nn_max);
+      // test_map[sigma]=sp3r::Sp3RSpace(sigma, Nn_max);
+      test_map[sigma];
 
     }
 

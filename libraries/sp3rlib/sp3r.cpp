@@ -76,7 +76,7 @@
   template<typename K1, typename K2>
   U3Subspace::U3Subspace(
       const u3::U3& omega,
-      int upsilon_max,
+      unsigned int upsilon_max,
       std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
       K1&& K_matrix__,
       K2&& Kinv_matrix__
