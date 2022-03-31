@@ -12,16 +12,16 @@
   3/7/22 (aem): Add U3BosonSpace class.
 
 ****************************************************************/
-
 #ifndef U3BOSON_H_
 #define U3BOSON_H_
 
-
 #include <unordered_map>
-#include "basis/operator.h"
-#include "sp3rlib/u3.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
+#include "basis/operator.h"
+#include "sp3rlib/u3.h"
+#include "sp3rlib/u3coef.h"
+
 
 namespace u3boson
 {
@@ -148,7 +148,7 @@ namespace u3boson
   // in a Weyl-boson basis
   //
   // Based on protoype u3boson.py  Formula is given by:
-  //   G. Rosensteel and D. J. Rowe. J. Math Phys. 24 (1983) 2461.
+  //   G. Rosensteel and D. J. Rowe, J. Math. Phys. 24 (1983) 2461.
   //
   // Returns:
   //    rme: (double) reduced matrix element of boson creation operator.
@@ -158,9 +158,9 @@ namespace u3boson
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
   );
   // SU(3) Reduced matrix element of a^\dagger boson creation operator in the
-  // U(3)-boson basis (defined in U3BosonSpace).  See, e.g.,
-  //   G. Rosensteel and D. J. Rowe. J. Math Phys. 24 (1983) 2461.
-  //   D. J. Rowe, B. G. Wybourne and P. H. Butler. J. Phys. A 18 (1985) 939.
+  // U(3)-boson basis (defined in U3BosonSpace).
+  //
+  // Based on G. Rosensteel and D. J. Rowe. J. Math Phys. 24 (1983) 2461.
 
 
   double U3BosonCreationRME(
@@ -173,6 +173,34 @@ namespace u3boson
     const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
   );
+  // SU(3) Reduced matrix element of boson annihlation operator in the
+  // U(3)-boson basis (defined in U3BosonSpace).
+  //
+  // Based on G. Rosensteel and D. J. Rowe. J. Math Phys. 24 (1983) 2461.
+
+
+  basis::OperatorBlock<double>
+  U3BosonCreationOperator(
+    const u3::U3& sigma,
+    const u3boson::U3Subspace& bra_subspace,
+    const u3boson::U3Subspace& ket_subspace,
+    u3::UCoefCache& u_coef_cache
+    );
+
+  // Returns SU(3) reduced matrix elements of boson creation operator
+  //  for a given pair of U(3) subspaces.
+
+
+  basis::OperatorBlock<double>
+  U3BosonAnnihilationOperator(
+    const u3::U3& sigma,
+    const u3boson::U3Subspace& bra_subspace,
+    const u3boson::U3Subspace& ket_subspace,
+    u3::UCoefCache& u_coef_cache
+    );
+
+  // Returns SU(3) reduced matrix elements of boson annihilation operator
+  //  for a given pair of U(3) subspaces.
 
 }
 

@@ -115,7 +115,8 @@ namespace u3boson{
           }
     }
 
-
+  // Eq. 8 of G. Rosensteel and D. J. Rowe, J. Math. Phys. 24 (1983) 2461.
+  // for N0 = 3/2.
   double BosonCreationRME(const u3::U3& np, const u3::U3& n)
   //  SU(3) Reduced matrix element of a^\dagger boson creation operator
   {
@@ -140,6 +141,7 @@ namespace u3boson{
 
   }
 
+  // Eq. 9 of G. Rosensteel and D. J. Rowe, J. Math. Phys. 24 (1983) 2461.
   double U3BosonCreationRME(
     const u3::U3& sigmap, const u3::U3& np, unsigned int rhop, const u3::U3& omegap,
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
@@ -176,13 +178,73 @@ namespace u3boson{
     const u3::U3& sigma,  const u3::U3& n,  unsigned int rho,  const u3::U3& omega
   )
   {
-
+    // Eq. 7 of G. Rosensteel and D. J. Rowe, J. Math. Phys. 24 (1983) 2461.
     double rme
       =ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omega))
-        *u3::U({0u,2u},n.SU3(),omegap.SU3(),sigma.SU3(),np.SU3(),1,rhop,omega.SU3(),rho,1)
-        *std::sqrt(1.*u3::dim(n.SU3())/u3::dim(np.SU3()))*BosonCreationRME(n,np);
-
+        *std::sqrt(1.*u3::dim(omega.SU3())/u3::dim(omegap.SU3()))
+        *U3BosonCreationRME(sigma,n,rho,omega,sigmap,np,rhop,omegap);
     return rme;
+  }
+
+
+  basis::OperatorBlock<double>
+  U3BosonCreationOperator(
+    const u3::U3& sigma,
+    const u3boson::U3Subspace& bra_subspace,
+    const u3boson::U3Subspace& ket_subspace,
+    u3::UCoefCache& u_coef_cache
+    )
+  {
+    const auto& omega_bra = bra_subspace.omega();
+    const auto& omega_ket = ket_subspace.omega();
+
+    basis::OperatorBlock<double> operator_block;
+    operator_block = basis::OperatorBlock<double>::Zero(bra_subspace.dimension(),ket_subspace.dimension());
+
+    for(int bra_state_index=0; bra_state_index<bra_subspace.size(); ++bra_state_index)
+      for(int ket_state_index=0; ket_state_index<ket_subspace.size(); ++ket_state_index)
+        {
+          const auto& bra_state = bra_subspace.GetState(bra_state_index);
+          const auto& ket_state = ket_subspace.GetState(ket_state_index);
+
+          const auto& n_bra = bra_state.n();
+          const auto& n_ket = ket_state.n();
+          const auto& rho_max_bra = bra_state.rho_max();
+          const auto& rho_max_ket = ket_state.rho_max();
+          for(int rho_bra=1; rho_bra<=rho_max_bra; ++rho_bra)
+            for(int rho_ket=1; rho_ket<=rho_max_ket; ++rho_ket)
+              {
+                int row = bra_subspace.GetStateOffset(bra_state_index,rho_bra);
+                int col = ket_subspace.GetStateOffset(ket_state_index,rho_ket);
+
+                operator_block(row,col)
+                  =U3BosonCreationRME(
+                      sigma, n_bra,rho_bra,omega_bra,
+                      sigma, n_ket,rho_ket,omega_ket
+                    );
+              }
+        }
+
+    return operator_block;
+  }
+
+  basis::OperatorBlock<double>
+  U3BosonAnnihilationOperator(
+    const u3::U3& sigma,
+    const u3boson::U3Subspace& bra_subspace,
+    const u3boson::U3Subspace& ket_subspace,
+    u3::UCoefCache& u_coef_cache
+    )
+  {
+    const auto& x_bra=bra_subspace.omega().SU3();
+    const auto& x_ket=ket_subspace.omega().SU3();
+
+    double conjugation_factor
+      =ParitySign(u3::ConjugationGrade(x_bra)+u3::ConjugationGrade(x_ket))
+        *std::sqrt(1.*u3::dim(x_ket)/u3::dim(x_bra));
+
+    return conjugation_factor*U3BosonCreationOperator(sigma,ket_subspace,bra_subspace,u_coef_cache).transpose();
+
   }
 
 
