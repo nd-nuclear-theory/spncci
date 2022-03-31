@@ -56,12 +56,10 @@ install(FILES ${sp3rlib_headers} DESTINATION include/spncci/sp3rlib)
 
 set(sp3rlib_UNITS_TEST
     sp3r_test
-    # sp3r_gtest
     u3boson_test
     u3_test
     u3coef_test
     vcs_test
-    # su3coupling_gtest
     sp3r_operator_test
 )
 
@@ -69,6 +67,7 @@ set(sp3rlib_GTEST
   sp3r_gtest
   su3coupling_gtest
   vcs_gtest
+  u3boson_gtest
 )
 
 add_custom_target(sp3rlib_tests)
