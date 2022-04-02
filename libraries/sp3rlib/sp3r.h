@@ -125,13 +125,31 @@ namespace sp3r
     // Kmatrices and raising polynomial quantum numbers.
 
     template<typename K1, typename K2>
-    U3Subspace(
-      const u3::U3& omega,
-      unsigned int upsilon_max,
-      std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
-      K1&& K_matrix__,
-      K2&& Kinv_matrix__
-    );
+    inline U3Subspace(
+        const u3::U3& omega,
+        unsigned int upsilon_max,
+        std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
+        K1&& K_matrix__,
+        K2&& Kinv_matrix__
+      )
+      : BaseDegenerateSubspace{omega},
+        upsilon_max_{upsilon_max},
+        u3boson_ptr_(std::move(u3boson_ptr)),
+        K_matrix_{std::forward<K1>(K_matrix__)},
+        Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
+      {
+        assert(K_matrix_.rows()==Kinv_matrix_.cols());
+        assert(K_matrix_.cols()==Kinv_matrix_.rows());
+        assert(upsilon_max_==K_matrix().rows());
+        assert(nonorthogonal_basis_dimension()==nonorthogonal_basis().dimension());
+
+        const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
+
+        for(const auto& [L,kappa_max] : L_kappa_vector)
+          {
+            PushStateLabels(L,kappa_max);
+          }
+      }
     // Full subspace constructor
 
     ////////////////////////////////////////////////////////////////////////
@@ -185,17 +203,15 @@ namespace sp3r
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////
   class Sp3RSpace
-      : public basis::BaseSpace<Sp3RSpace, U3Subspace>
-  // : public basis::BaseSpace<Sp3RSpace, U3Subspace, u3::U3>
+  : public basis::BaseSpace<Sp3RSpace, U3Subspace, std::tuple<u3::U3>>
   {
    public:
     Sp3RSpace() = default;
     Sp3RSpace(const u3::U3& sigma, int Nn_max, const bool subspace_labels_only = false);
 
     // accessors
-    u3::U3 sigma() const {return sigma_;}
+    u3::U3 sigma() const {return std::get<0>(labels());}
 
-    // u3::U3 sigma() const {return std::get<0>(labels());}
     unsigned int Nn_max() const {return Nn_max_;}
 
     // diagnostic output
@@ -203,7 +219,6 @@ namespace sp3r
 
   private:
     unsigned int Nn_max_;
-    u3::U3 sigma_;
   };
 
 

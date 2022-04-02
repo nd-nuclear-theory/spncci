@@ -89,8 +89,6 @@ int main(int argc, char **argv)
       {{16,{2u,1u}},false}
     };
 
-  std::map<u3::U3,sp3r::Sp3RSpace> test_map;
-  std::vector<sp3r::Sp3RSpace> test_vector;
   for(const auto& [sigma,check] : modify_basis_test_map)
     {
       fmt::print("{}\n",sigma);
@@ -105,16 +103,6 @@ int main(int argc, char **argv)
       bool subspace_labels_only = true;
       sp3r::Sp3RSpace sp3r_space_light(sigma, Nn_max,subspace_labels_only);
       std::cout<<sp3r_space_light.DebugStr()<<std::endl;
-      
-      const std::tuple<u3::U3> s{};
-      test_vector.push_back(sp3r_space);
-
-      // ATTENTION PATRICK:
-      // Attempting to add sp3r_space to a map.  This fails with normal basis constructor with
-      // sigma stored as std::tuple<u3::U3>.
-      // test_map[sigma]=sp3r::Sp3RSpace(sigma, Nn_max);
-      test_map[sigma];
-
     }
 
   u3::U3 sigma(16,{2u,1u});

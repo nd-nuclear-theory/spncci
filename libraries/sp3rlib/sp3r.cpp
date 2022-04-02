@@ -69,41 +69,8 @@
   {return sigma.f3()<3;}
 
 
-  ////////////////////////////////////////////////////////////////
-  // space and subspace indexing
-  ////////////////////////////////////////////////////////////////
-  // Full subspace constructor which computes and stores K matrices, adds SO3States
-  template<typename K1, typename K2>
-  U3Subspace::U3Subspace(
-      const u3::U3& omega,
-      unsigned int upsilon_max,
-      std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
-      K1&& K_matrix__,
-      K2&& Kinv_matrix__
-    )
-    : BaseDegenerateSubspace{omega},
-      upsilon_max_{upsilon_max},
-      u3boson_ptr_(std::move(u3boson_ptr)),
-      K_matrix_{std::forward<K1>(K_matrix__)},
-      Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
-    {
-      assert(K_matrix_.rows()==Kinv_matrix_.cols());
-      assert(K_matrix_.cols()==Kinv_matrix_.rows());
-      assert(upsilon_max_==K_matrix().rows());
-      assert(nonorthogonal_basis_dimension()==nonorthogonal_basis().dimension());
-
-      const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
-
-      for(const auto& [L,kappa_max] : L_kappa_vector)
-        {
-          PushStateLabels(L,kappa_max);
-        }
-    }
-
-
   Sp3RSpace::Sp3RSpace(const u3::U3& sigma, int Nn_max, const bool subspace_labels_only)
-    // :BaseSpace{sigma},Nn_max_(Nn_max)
-  : sigma_{sigma},Nn_max_(Nn_max)
+    :BaseSpace{sigma},Nn_max_(Nn_max)
     {
       // Check that sigma is an LGI of a unitary Sp(3,R) irrep
       assert(IsUnitary(sigma));
