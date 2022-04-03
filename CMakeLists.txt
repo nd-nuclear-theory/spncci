@@ -18,6 +18,7 @@ endif()
 # configurable options
 option(SPNCCI_U_COEFF_CACHE "Enable precalculation and caching of U coefficients" ON)
 option(SPNCCI_HASH_UNIT_TENSOR "Use hash tables for unit tensor sectors" OFF)
+option(BUILD_LSU3SHELL "Directly link to lsu3shell for seed calculation" ON)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -68,7 +69,11 @@ endif()
 ################################################################################
 # include library and program setup
 ################################################################################
-
+# include FetchContent declarations
+include(FetchContent)
+if(SPNCCI_MASTER_PROJECT)
+  include(spncci_shopping_list.cmake)
+endif()
 # include libraries
 include(libraries/libraries.cmake)
 

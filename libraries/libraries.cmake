@@ -12,18 +12,40 @@ set(SPNCCI_SU3_LIBRARY "su3wrc" CACHE STRING "SU(3) coefficient library to use")
 set_property(CACHE SPNCCI_SU3_LIBRARY PROPERTY STRINGS ${SPNCCI_SU3_LIBRARY_OPTIONS})
 
 if(SPNCCI_SU3_LIBRARY STREQUAL "su3wrc")
-  find_package(su3wrc REQUIRED)
-  add_library(spncci::su3_library ALIAS su3wrc::su3wrc)
+  find_package(su3wrc)
+  if(TARGET su3wrc::su3wrc)
+    add_library(spncci::su3_library ALIAS su3wrc::su3wrc)
+  else()
+    FetchContent_MakeAvailable(su3wrc)
+    add_library(spncci::su3_library ALIAS su3wrc)
+  endif()
+
 elseif(SPNCCI_SU3_LIBRARY STREQUAL "ndsu3lib")
-  find_package(ndsu3lib REQUIRED)
-  add_library(spncci::su3_library ALIAS ndsu3lib::ndsu3lib)
+  find_package(ndsu3lib)
+  if(TARGET ndsu3lib::ndsu3lib)
+    add_library(spncci::su3_library ALIAS ndsu3lib::ndsu3lib)
+  else()
+    set(SO3COEF_LIBRARY "wigxjpf")
+    message(STATUS "building ndsu3lib with ${SO3COEF_LIBRARY} support")
+    FetchContent_MakeAvailable(ndsu3lib)
+    add_library(spncci::su3_library ALIAS ndsu3lib)
+  endif()
+
 elseif(SPNCCI_SU3_LIBRARY STREQUAL "SU3lib")
-  find_package(SU3lib REQUIRED)
-  add_library(spncci::su3_library ALIAS SU3lib::SU3lib)
+  find_package(SU3lib)
+  if(TARGET SU3lib::SU3lib)
+    add_library(spncci::su3_library ALIAS SU3lib::SU3lib)
+  else()
+    FetchContent_MakeAvailable(SU3lib)
+    add_library(spncci::su3_library ALIAS SU3lib)
+  endif()
+
 else()
   message(FATAL_ERROR "unknown SU(3) coefficient library ${SPNCCI_SU3_LIBRARY}")
+
 endif()
-message(STATUS "Found SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
+
+message(STATUS "Using SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
 
 
 # ##############################################################################
@@ -36,20 +58,16 @@ find_package(GSL REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
 find_package(Spectra REQUIRED)
-find_package(su3lib REQUIRED)
 
-## find Tomas' lsu3shell libraries
-find_package(lsu3shell)
+if(BUILD_LSU3SHELL)
+  ## find Tomas' lsu3shell libraries
+  message(STATUS "building spncci with lsu3shell support")
+  find_package(lsu3shell REQUIRED)
+endif()
 
-##find_package(GTest REQUIRED)
-include(FetchContent)
-FetchContent_Declare(
-  GTest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        e2239ee6043f73722e7aa812a459f54a28552929 # v1.11.0
-  GIT_SHALLOW    TRUE
-)
-FetchContent_MakeAvailable(GTest)
+if(NOT TARGET GTest::gtest_main)
+  FetchContent_MakeAvailable(GTest)
+endif()
 
 #find_package(MKL) # disabled 21/10/31, broken on Mac (cvc)
 if(TARGET MKL::MKL)
@@ -97,7 +115,10 @@ add_subdirectory(libraries/lsu3shell)
 add_subdirectory(libraries/lgi)
 add_subdirectory(libraries/spncci)
 add_subdirectory(libraries/spncci_basis)
-add_subdirectory(libraries/u3ncsm)
+
+if(BUILD_LSU3SHELL)
+  add_subdirectory(libraries/u3ncsm)
+endif()
 
 # ##############################################################################
 # define meta-library target "spncci::libraries"
@@ -117,6 +138,10 @@ target_link_libraries(
             spncci::lgi
             spncci::spncci
 )
+
+If(BUILD_LSU3SHELL)
+  target_link_libraries(libraries INTERFACE spncci::u3ncsm)
+endif()
 
 install(
   TARGETS libraries

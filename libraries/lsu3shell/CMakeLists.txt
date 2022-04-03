@@ -10,12 +10,10 @@ set(lsu3shell_sources lsu3shell_operator.cpp lsu3shell_basis.cpp
 add_library(lsu3shell ${lsu3shell_sources})
 add_library(spncci::lsu3shell ALIAS lsu3shell)
 
-## find Tomas' lsu3shell libraries
-find_package(lsu3shell REQUIRED)
+
 # ##############################################################################
 # link dependencies
 # ##############################################################################
-
 target_link_libraries(
   lsu3shell
   PUBLIC am::am
@@ -56,18 +54,18 @@ install(FILES ${lsu3shell_headers} DESTINATION include/spncci/lsu3shell)
 # ##############################################################################
 # tests
 # ##############################################################################
-
-add_executable(lsu3shell_basis_test lsu3shell_basis_test.cpp)
-target_link_libraries(
-  lsu3shell_basis_test PRIVATE 
-	lsu3shell::libraries
-	fmt::fmt
-	am::am
-	spncci::utilities
-	spncci::sp3rlib
-	spncci::u3shell
-	spncci::lsu3shell
-)
-
+if(BUILD_LSU3SHELL)
+  add_executable(lsu3shell_basis_test lsu3shell_basis_test.cpp)
+  target_link_libraries(
+    lsu3shell_basis_test PRIVATE
+  	lsu3shell::libraries
+  	fmt::fmt
+  	am::am
+  	spncci::utilities
+  	spncci::sp3rlib
+  	spncci::u3shell
+  	spncci::lsu3shell
+  )
+endif()
 
 
