@@ -148,7 +148,7 @@ namespace fmt
       if(presentation == 'f')
         return format_to(ctx.out(), "{:f}{:f}",wS.U3(),wS.S());
       else
-      return format_to(ctx.out(), "{:d}{:g}", ws.U3(),wS.S());
+      return format_to(ctx.out(), "{:d}{:g}", wS.U3(),wS.S());
     }
   };
 }  // namespace fmt
