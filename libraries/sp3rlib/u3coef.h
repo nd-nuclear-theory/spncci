@@ -19,7 +19,7 @@
   10/17/16 (mac): Add comment on W.
   10/31/21 (aem): Overhall to allow for use of different libraries
     for calculating coupling and recoupling coefficients.
-    Eliminated global cache enabled flag.  Cashing always used when
+    Eliminated global cache enabled flag.  Caching always used when
     caching functions called.
 
 ****************************************************************/
@@ -220,11 +220,12 @@ namespace u3
   ////////////////////////////////////////////////////////////////
   // W coefficient caching
   ////////////////////////////////////////////////////////////////
-
-  typedef std::unordered_map<
-    u3::WCoefLabels,
-    u3::WCoefBlock,
-    boost::hash<u3::WCoefLabels> > WCoefCache;
+  using WCoefCache
+    = std::unordered_map<
+        u3::WCoefLabels,
+        u3::WCoefBlock,
+        boost::hash<u3::WCoefLabels>
+      >;
 
   extern bool g_u_cache_enabled;
   double WCached(
@@ -281,11 +282,11 @@ namespace u3
     const u3::SU3& x3, const u3::SU3& x12, const u3::SU3& x23
   )
   {
-    int r12_max = u3::OuterMultiplicity(x1,x2,x12);
-    int r12_3_max = u3::OuterMultiplicity(x12,x3,x);
-    int r23_max = u3::OuterMultiplicity(x2,x3,x23);
-    int r1_23_max = u3::OuterMultiplicity(x1,x23,x);
-    return UMultiplicityTuple(r12_max,r12_3_max,r23_max,r1_23_max);
+    int rho12_max = u3::OuterMultiplicity(x1,x2,x12);
+    int rho12_3_max = u3::OuterMultiplicity(x12,x3,x);
+    int rho23_max = u3::OuterMultiplicity(x2,x3,x23);
+    int rho1_23_max = u3::OuterMultiplicity(x1,x23,x);
+    return UMultiplicityTuple(rho12_max,rho12_3_max,rho23_max,rho1_23_max);
   }
 
   using ZMultiplicityTuple = UMultiplicityTuple;
@@ -346,10 +347,13 @@ namespace u3
     inline bool Allowed() const
     // Checks if labels satisfy coupling constraints.
     {
-      int r12_max, r12_3_max, r23_max, r1_23_max;
-      std::tie(r12_max,r12_3_max,r23_max,r1_23_max) = UMultiplicity(x1_,x2_,x_,x3_,x12_,x23_);
-      int r_max=r12_max*r12_3_max*r23_max*r1_23_max;
-      return (r_max > 0);
+      int rho12_max, rho12_3_max, rho23_max, rho1_23_max;
+      std::tie(rho12_max,rho12_3_max,rho23_max,rho1_23_max)
+          = UMultiplicity(x1_,x2_,x_,x3_,x12_,x23_);
+
+      int rho_max=rho12_max*rho12_3_max*rho23_max*rho1_23_max;
+
+      return (rho_max > 0);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -469,10 +473,12 @@ namespace u3
   // U coefficient caching
   ////////////////////////////////////////////////////////////////
 
-  typedef std::unordered_map<
-    u3::UCoefLabels,
-    u3::RecouplingCoefBlock,
-    boost::hash<u3::UCoefLabels> > UCoefCache;
+  using UCoefCache
+    = std::unordered_map<
+        u3::UCoefLabels,
+        u3::RecouplingCoefBlock,
+        boost::hash<u3::UCoefLabels>
+      > ;
 
   extern bool g_u_cache_enabled;
   double UCached(
