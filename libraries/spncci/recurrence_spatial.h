@@ -17,7 +17,9 @@
 #include <memory>
 
 #include "basis/basis.h"
-#include "recurrence_indexing.h"
+#include "basis/operator.h"
+#include "recurrence_indexing_spatial.h"
+#include "vcs_cache.h"
 
 
 namespace spncci::recurrence
@@ -29,23 +31,27 @@ class SpatialRecurrenceMatrix
   // constructors
   ////////////////////////////////////////////////////////////////
  public:
-  SpatialRecurrenceMatrix() = default;
+  SpatialRecurrenceMatrix()
+      : lgi_recurrence_dimension_{0}
+  {}
 
   SpatialRecurrenceMatrix(
-      const spncci::spatial::RecurrenceSp3RSpace& recurrence_space
+      std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace> space_ptr
     );
 
   ////////////////////////////////////////////////////////////////
   // accessors
   ////////////////////////////////////////////////////////////////
  public:
-  auto recurrence_space_ptr() const { return recurrence_space_; }
-  const auto recurrence_space() const { return *recurrence_space_; }
+  inline auto recurrence_space_ptr() const { return recurrence_space_ptr_; }
+  inline const auto& recurrence_space() const { return *recurrence_space_ptr_; }
 
-  const std::vector<basis::OperatorBlock<double>>& GetRecurrenceBlock(unsigned int Nnsum) const
+  inline const basis::OperatorBlocks<double>& GetRecurrenceBlock(unsigned int Nnsum) const
   {
+#ifndef NDEBUG
     assert(recurrence_done_.at(Nnsum / 2));
-    return recurrence_blocks_.at(Nnsum / 2);
+#endif
+    return recurrence_blocks_[Nnsum / 2];
   }
 
   ////////////////////////////////////////////////////////////////
@@ -58,10 +64,12 @@ class SpatialRecurrenceMatrix
   // private accessors
   ////////////////////////////////////////////////////////////////
  private:
-  std::vector<basis::OperatorBlock<double>>& GetRecurrenceBlock(unsigned int Nnsum)
+  inline basis::OperatorBlocks<double>& GetRecurrenceBlock(unsigned int Nnsum)
   {
-    assert(recurrence_done_.at(Nnsum / 2));
-    return recurrence_blocks_.at(Nnsum / 2);
+#ifndef NDEBUG
+    assert(recurrence_done_.size() > (Nnsum / 2));
+#endif
+    return recurrence_blocks_[Nnsum / 2];
   }
 
   ////////////////////////////////////////////////////////////////
@@ -69,9 +77,9 @@ class SpatialRecurrenceMatrix
   ////////////////////////////////////////////////////////////////
 
  private:
-  std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace> recurrence_space_;
+  std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace> recurrence_space_ptr_;
   std::vector<basis::OperatorBlocks<double>> recurrence_blocks_;
-  const std::size_t lgi_dimension_;
+  const std::size_t lgi_recurrence_dimension_;
 #ifndef NDEBUG
   std::vector<bool> recurrence_done_;
 #endif
