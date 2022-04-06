@@ -32,6 +32,7 @@ add_compile_options(
   $<$<CONFIG:Debug>:-Wall>
   $<$<CONFIG:Debug>:-Wsign-conversion>
   $<$<CONFIG:Debug>:-Wextra>
+  $<$<CONFIG:Debug>:-Wno-reorder>
   $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-ggdb>
 )
 

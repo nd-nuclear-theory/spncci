@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.18)
 
 # optionally use system-installed fmtlib
 option(USE_SYSTEM_FMT "Use system-provided fmtlib" FALSE)
+# ##############################################################################
+# external dependencies
+# ##############################################################################
+
+find_package(Boost REQUIRED COMPONENTS headers)
+find_package(Eigen3 REQUIRED NO_MODULE)
+find_package(GSL REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(MPI REQUIRED)
+find_package(Spectra REQUIRED)
 
 # ##############################################################################
 # SU(3) coefficient library selection
@@ -47,22 +57,14 @@ endif()
 
 message(STATUS "Using SU(3) coefficient library:  ${SPNCCI_SU3_LIBRARY}")
 
-
-# ##############################################################################
-# external dependencies
-# ##############################################################################
-
-find_package(Boost REQUIRED COMPONENTS headers)
-find_package(Eigen3 REQUIRED NO_MODULE)
-find_package(GSL REQUIRED)
-find_package(OpenMP REQUIRED)
-find_package(MPI REQUIRED)
-find_package(Spectra REQUIRED)
-
 if(BUILD_LSU3SHELL)
-  ## find Tomas' lsu3shell libraries
   message(STATUS "building spncci with lsu3shell support")
-  find_package(lsu3shell REQUIRED)
+  ## find Tomas' lsu3shell libraries
+  find_package(lsu3shell)
+  if(NOT TARGET lsu3shell::lsu3shell)
+    FetchContent_MakeAvailable(lsu3shell)
+  endif()
+
 endif()
 
 if(NOT TARGET GTest::gtest_main)
@@ -124,10 +126,10 @@ endif()
 # define meta-library target "spncci::libraries"
 # ##############################################################################
 
-add_library(libraries INTERFACE)
-add_library(spncci::libraries ALIAS libraries)
+add_library(spncci_libraries INTERFACE)
+add_library(spncci::libraries ALIAS spncci_libraries)
 target_link_libraries(
-  libraries
+  spncci_libraries
   INTERFACE spncci::utilities
             spncci::sp3rlib
             spncci::spncci_basis
@@ -140,11 +142,11 @@ target_link_libraries(
 )
 
 If(BUILD_LSU3SHELL)
-  target_link_libraries(libraries INTERFACE spncci::u3ncsm)
+  target_link_libraries(spncci_libraries INTERFACE spncci::u3ncsm)
 endif()
 
 install(
-  TARGETS libraries
+  TARGETS spncci_libraries
   DESTINATION lib
   EXPORT spncciTargets
 )

@@ -19,6 +19,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+  ompilancz
+  GIT_REPOSITORY git@gitlab.com:nd-nuclear-theory/ompilancz.git
+  GIT_TAG        c7ee7d27e1a38ad2581600a63b8265e3ad3fde22
+  GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
   SU3lib
   GIT_REPOSITORY git@gitlab.com:nd-nuclear-theory/SU3lib.git
   GIT_TAG        master
@@ -39,12 +46,6 @@ FetchContent_Declare(
   GIT_SHALLOW    TRUE
 )
 
-FetchContent_Declare(
-  ompilancz
-  GIT_REPOSITORY git@gitlab.com:nd-nuclear-theory/ompilancz.git
-  GIT_TAG        c7ee7d27e1a38ad2581600a63b8265e3ad3fde22
-  GIT_SHALLOW    TRUE
-)
 
 FetchContent_Declare(
   GTest
