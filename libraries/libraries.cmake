@@ -61,7 +61,7 @@ if(BUILD_LSU3SHELL)
   message(STATUS "building spncci with lsu3shell support")
   ## find Tomas' lsu3shell libraries
   find_package(lsu3shell)
-  if(NOT TARGET lsu3shell::lsu3shell)
+  if(NOT TARGET lsu3shell::libraries)
     FetchContent_MakeAvailable(lsu3shell)
   endif()
 
