@@ -497,7 +497,7 @@ class RecurrenceLGISpace
     return uint8_t(exchange_symm_bar() + abs(sigma_bra().N() - sigma_ket().N())) % 2;
   }
 
-  std::string LabelStr() const 
+  std::string LabelStr() const
   {
     return fmt::format("{} {} {}",sigma_ket().Str(),sigma_bra().Str(),exchange_symm_bar());
   }
@@ -674,7 +674,7 @@ class UnitTensorLabelsST
     return std::bitset<8>(*this) == std::bitset<8>(rhs);
   }
 
-  std::string LabelStr() const 
+  std::string LabelStr() const
   {
     return fmt::format("U[{} {}]({} {}, {} {})",S0(),T0(),Sbarp(),Tbarp(),Sbar(),Tbar());
   }
@@ -736,7 +736,7 @@ inline bool UnitTensorAllowed(
 // all the relevant triangle constraints for coupling to good $S_{p,0} \times
 // S_{n,0} \rightarrow S_0$.
 {
-  
+
   const HalfInt& bra_Sp=bra_labels.Sp, bra_Sn=bra_labels.Sn;
   const int S0=tensor_labels.S0();
   const HalfInt& ket_Sp=ket_labels.Sp, ket_Sn=ket_labels.Sn;

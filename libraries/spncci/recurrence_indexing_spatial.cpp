@@ -190,27 +190,29 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
 
 
 RecurrenceSp3RSpace::RecurrenceSp3RSpace(
-    const Sp3RSpace& sp3r_space_ket,
-    const Sp3RSpace& sp3r_space_bra,
+    std::shared_ptr<const Sp3RSpace> sp3r_space_ket_ptr,
+    std::shared_ptr<const Sp3RSpace> sp3r_space_bra_ptr,
     const UnitTensorConstraintParameters& unit_tensor_constraints
   )
     : BaseSpace{
-        {sp3r_space_ket.sigma(),
-         sp3r_space_bra.sigma(),
+        {sp3r_space_ket_ptr->sigma(),
+         sp3r_space_bra_ptr->sigma(),
          unit_tensor_constraints.parity_bar}
-      }
+      },
+      sp3r_space_ket_ptr_{std::move(sp3r_space_ket_ptr)},
+      sp3r_space_bra_ptr_{std::move(sp3r_space_bra_ptr)}
 {
-  const u3::U3& sigma_ket = sp3r_space_ket.sigma();
-  const u3::U3& sigma_bra = sp3r_space_bra.sigma();
+  const u3::U3& sigma_ket = ket_space().sigma();
+  const u3::U3& sigma_bra = bra_space().sigma();
   // std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<std::endl;
 
   // Partition pairs of omega',omega by Nnsum
   std::map<int, std::vector<std::tuple<int, int>>> Nnsum_partition;
-  for (int i_ket = 0; i_ket < sp3r_space_ket.size(); ++i_ket)
-    for (int i_bra = 0; i_bra < sp3r_space_bra.size(); ++i_bra)
+  for (int i_ket = 0; i_ket < ket_space().size(); ++i_ket)
+    for (int i_bra = 0; i_bra < bra_space().size(); ++i_bra)
     {
-      const u3::U3& omega_ket = sp3r_space_ket.GetSubspace(i_ket).omega();
-      const u3::U3& omega_bra = sp3r_space_bra.GetSubspace(i_bra).omega();
+      const u3::U3& omega_ket = ket_space().GetSubspace(i_ket).omega();
+      const u3::U3& omega_bra = bra_space().GetSubspace(i_bra).omega();
 
       int Nnsum =
           int(omega_ket.N() - sigma_ket.N() + omega_bra.N() - sigma_bra.N());
@@ -222,7 +224,7 @@ RecurrenceSp3RSpace::RecurrenceSp3RSpace(
   for (const auto& [Nnsum, partition] : Nnsum_partition)
   {
     auto subspace = RecurrenceNnsumSpace(
-        Nnsum, partition, sp3r_space_ket, sp3r_space_bra, unit_tensor_constraints
+        Nnsum, partition, ket_space(), bra_space(), unit_tensor_constraints
       );
     if ((Nnsum == 0) && (subspace.dimension() == 0))
       return;  // TODO: is the Nnsum constraint necessary, or is this more general?
@@ -244,12 +246,12 @@ RecurrenceSpace::RecurrenceSpace(
   for (int i_ket = 0; i_ket < space_ket.size(); ++i_ket)
     for (int i_bra = 0; i_bra < space_bra.size(); ++i_bra)
     {
-      const auto& sp3r_space_ket = space_ket.GetSubspace(i_ket);
-      const auto& sp3r_space_bra = space_bra.GetSubspace(i_bra);
+      const auto& sp3r_space_ket_ptr = space_ket.GetSubspacePtr(i_ket);
+      const auto& sp3r_space_bra_ptr = space_bra.GetSubspacePtr(i_bra);
       for (uint8_t parity_bar : {0, 1})
       {
         auto subspace = RecurrenceSp3RSpace(
-            sp3r_space_ket, sp3r_space_bra, {N1v, Nsigma0, parity_bar}
+            sp3r_space_ket_ptr, sp3r_space_bra_ptr, {N1v, Nsigma0, parity_bar}
           );
         if (subspace.dimension() == 0)
           continue;

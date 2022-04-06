@@ -46,6 +46,7 @@ recurrence_indexing_spatial.h
 
 #include <array>
 #include <functional>  // for std::hash
+#include <memory>      // for std::shared_ptr
 #include <unordered_map>
 #include <utility>  // for std::forward
 
@@ -345,14 +346,24 @@ class RecurrenceSp3RSpace
 
   // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
   RecurrenceSp3RSpace(
-      const Sp3RSpace& sp3r_space_ket,
-      const Sp3RSpace& sp3r_space_bra,
+      std::shared_ptr<const Sp3RSpace> sp3r_space_ket_ptr,
+      std::shared_ptr<const Sp3RSpace> sp3r_space_bra_ptr,
       const UnitTensorConstraintParameters& unit_tensor_constraints
     );
 
   u3::U3 sigma_ket() const { return std::get<0>(labels()); }
   u3::U3 sigma_bra() const { return std::get<1>(labels()); }
   uint8_t parity_bar() const { return std::get<2>(labels()); }
+  const Sp3RSpace& ket_space() const { return *sp3r_space_ket_ptr_; }
+  const Sp3RSpace& bra_space() const { return *sp3r_space_bra_ptr_; }
+  const std::shared_ptr<const Sp3RSpace> ket_space_ptr() const
+  {
+    return sp3r_space_ket_ptr_;
+  }
+  const std::shared_ptr<const Sp3RSpace> bra_space_ptr() const
+  {
+    return sp3r_space_bra_ptr_;
+  }
 
   inline std::string LabelStr() const
   {
@@ -361,6 +372,8 @@ class RecurrenceSp3RSpace
       );
   }
 
+ private:
+  std::shared_ptr<const Sp3RSpace> sp3r_space_ket_ptr_, sp3r_space_bra_ptr_;
 };
 
 // spatial::RecurrenceSpace() []
@@ -386,8 +399,43 @@ class RecurrenceSpace
 // recurrence sectors
 ////////////////////////////////////////////////////////////////
 
+class RecurrenceU3Sector
+    : public basis::BaseSector<RecurrenceU3Space>
+{
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+
+  RecurrenceU3Sector(
+      std::size_t bra_subspace_index,
+      std::size_t ket_subspace_index,
+      const RecurrenceU3Space& bra_subspace,
+      const RecurrenceU3Space& ket_subspace
+    )
+      : BaseSector{bra_subspace_index, ket_subspace_index, bra_subspace, ket_subspace}
+  {}
+
+  std::size_t source_subspace_index() const
+  {
+    return BaseSector::ket_subspace_index();
+  }
+  std::size_t target_subspace_index() const
+  {
+    return BaseSector::bra_subspace_index();
+  }
+  const RecurrenceU3Space& source_subspace() const
+  {
+    return BaseSector::ket_subspace();
+  }
+  const RecurrenceU3Space& target_subspace() const
+  {
+    return BaseSector::bra_subspace();
+  }
+};
+
 class RecurrenceU3Sectors
-    : public basis::BaseSectors<RecurrenceNnsumSpace>
+    : public basis::BaseSectors<RecurrenceNnsumSpace, RecurrenceNnsumSpace, RecurrenceU3Sector>
 {
  public:
   ////////////////////////////////////////////////////////////////
