@@ -407,14 +407,7 @@ class RecurrenceU3Sector
   // constructors
   ////////////////////////////////////////////////////////////////
 
-  RecurrenceU3Sector(
-      std::size_t bra_subspace_index,
-      std::size_t ket_subspace_index,
-      const RecurrenceU3Space& bra_subspace,
-      const RecurrenceU3Space& ket_subspace
-    )
-      : BaseSector{bra_subspace_index, ket_subspace_index, bra_subspace, ket_subspace}
-  {}
+  using BaseSector::BaseSector;
 
   std::size_t source_subspace_index() const
   {
