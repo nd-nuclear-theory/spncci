@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 set(spncci_headers
     recurrence_indexing.h
     recurrence_indexing_spin.h
+    recurrence_spatial.h
     spncci_common.h
     spncci_basis.h
     spncci_seeds.h
@@ -40,6 +41,7 @@ set(spncci_sources
     variance.cpp
     recurrence_indexing_spatial.cpp
     recurrence_seeds.cpp
+    recurrence_spatial.cpp
 )
 
 # define spncci library and add source files
