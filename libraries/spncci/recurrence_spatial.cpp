@@ -248,9 +248,9 @@ basis::OperatorBlock<double> UMatrix2(
                   )
                 * u3::U(
                     // clang-format off
-                    {Nbarp, 0}, {0, Nbar}, source_x0_subspace.x0(), {2, 0},
+                    u3::SU3{Nbarp, 0}, u3::SU3{0, Nbar}, source_x0_subspace.x0(), u3::SU3{2, 0},
                     target_x0_subspace.x0(), 1, 1,
-                    {0, Nbar}, 1, 1
+                    u3::SU3{0, Nbar}, 1, 1
                     // clang-format on
                   );
           }
