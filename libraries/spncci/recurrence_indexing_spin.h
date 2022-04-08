@@ -15,7 +15,7 @@ recurrence_indexing_spin.h
     spin::RecurrenceSpace() []
       spin::RecurrenceLGISpace() [sigma,sigma',exchange_symm_bar]
       ->spin::RecurrenceSpinSpace() [S,S']
-        -> spin::RecurrenceSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+        -> spin::RecurrenceSpinSubspace() (gamma,gamma') [Sp,Sn,Sp',Sn']/[T,T']
           ->spin::RecurrenceOperatorState() [operator_index]
 
     operator_index -> (S0,T0,Sbar,Sbar',Tbar,Tbar') bit representation
@@ -23,13 +23,13 @@ recurrence_indexing_spin.h
     spin::ContractionSpace() []
       spin::ContractionLGISpace() [sigma,sigma']
       ->spin::ContractionSpinSpace() [S,S']
-        -> spin::ContractionSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+        -> spin::ContractionSpinSubspace() (gamma,gamma') [Sp,Sn,Sp',Sn']/[T,T']
           -> spin::ContractionOperatorState() [S0]/[S0,T0]
 
     spin::BranchingSpace() [J,J',J0]
       spin::BranchingLGISpace() [sigma,sigma']
       ->spin::BranchingSpinSubspace() [S,S']
-        -> spin::BranchingSpinState() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+        -> spin::BranchingSpinState() (gamma,gamma') [Sp,Sn,Sp',Sn']/[T,T']
 
   Anna E. McCoy[1] and Patrick J. Fasano[2,3]
   [1] Institute for Nuclear Theory

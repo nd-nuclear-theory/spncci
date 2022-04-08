@@ -15,20 +15,20 @@ recurrence_indexing_spatial.h
     spatial::RecurrenceSpace() []
     ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
       ->spatial::RecurrenceNnsumSpace() [Nsum]
-        ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
-          ->spatial::RecurrenceOperatorSubspace() [x0]->rho0_max
+        ->spatial::RecurrenceU3Space() (upsilon,upsilon') [omega,omega']
+          ->spatial::RecurrenceOperatorSubspace() (rho0) [x0]
             ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
 
     spatial::ContractionSpace() [J0]
     ->spatial::ContractionSp3RSpace() [sigma,sigma']
-      ->spatial::ContractionU3Space() [omega,omega']->(upsilon x upsilon')
-        ->spatial::ContractionOperatorSubspace() [x0]->rho0_max
-          ->spatial::ContractionOperatorState() [kappa0,L0]
+      ->spatial::ContractionU3Space() (upsilon,upsilon') [omega,omega']
+        ->spatial::ContractionOperatorSubspace() [L0] <-- J0-2<=L0<=J0+2
+          ->spatial::ContractionOperatorState() (kappa0,rho0) [x0]
 
     spatial::BranchingSpace() [J,J',J0]
     ->spatial::BranchingSp3RSpace() [sigma,sigma']
-      ->spatial::BranchingU3Subspace() [omega,omega']->(upsilon x upsilon')
-        ->spatial::BranchingState() [L,L']->(kappa_max x kappa_max')
+      ->spatial::BranchingU3Subspace() (upsilon,upsilon') [omega,omega']
+        ->spatial::BranchingState() (kappa_max,kappa_max') [L,L']
 
   Anna E. McCoy[1] and Patrick J. Fasano[2,3]
   [1] Institute for Nuclear Theory
