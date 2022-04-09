@@ -54,100 +54,10 @@ namespace spncci::spatial
 //       ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class U3Subspace;
-class U3State;
-class Sp3RSpace;
-class Space;
-
-class U3Subspace
-    : public basis::
-          BaseDegenerateSubspace<U3Subspace, std::tuple<u3::U3>, U3State, std::tuple<u3::U3>>
-{
- public:
-  U3Subspace() = default;
-
-  template<typename K1, typename K2>
-  U3Subspace(
-      const u3::U3& omega,
-      const MultiplicityTagged<u3::U3>::vector& nrho_vector,
-      K1&& K_matrix__,
-      K2&& Kinv_matrix__
-    )
-      : BaseDegenerateSubspace{omega},
-        K_matrix_{std::forward<K1>(K_matrix__)},
-        Kinv_matrix_{std::forward<K2>(Kinv_matrix__)}
-  {
-    for (const auto& [n, rho_max] : nrho_vector) PushStateLabels(n, rho_max);
-
-    //TODO: double check this with Patrick.  May need to redefine K matrix in vcs.cpp
-    assert(K_matrix().rows() == Kinv_matrix().cols());
-    assert(
-        (nonorthogonal_basis_size() == K_matrix().rows())
-        && (nonorthogonal_basis_size() == Kinv_matrix().cols())
-      );
-  }
-  // U3Subspace(const sp3r::U3Subspace& u3subspace);
-
-  u3::U3 omega() const { return std::get<0>(labels()); }
-  inline int upsilon_max() const { return dimension(); }
-
-  inline const basis::OperatorBlock<double>& K_matrix() const
-  {
-    return K_matrix_;
-  }
-  inline const basis::OperatorBlock<double>& Kinv_matrix() const
-  {
-    return Kinv_matrix_;
-  }
-
-  inline std::size_t dimension() const { return K_matrix().cols(); }
-  inline std::size_t nonorthogonal_basis_size() const
-  {
-    return BaseDegenerateSubspace::dimension();
-  }
-
- private:
-  basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;
-};
-
-class U3State
-    : public basis::BaseDegenerateState<U3Subspace>
-{
- public:
-  // pass-through constructors
-
-  U3State(const SubspaceType& subspace, std::size_t index)
-  // Construct state by index.
-      : basis::BaseDegenerateState<U3Subspace>(subspace, index)
-  {}
-
-  U3State(
-      const SubspaceType& subspace,
-      const typename SubspaceType::StateLabelsType& state_labels
-    )
-  // Construct state by reverse lookup on labels.
-      : basis::BaseDegenerateState<U3Subspace>(subspace, state_labels)
-  {}
-
-  // pass-through accessors for subspace labels
-  u3::U3 n() const { return std::get<0>(labels()); }
-  int rho_max() const { return subspace().GetStateDegeneracy(index()); }
-
-  // private:
-};
-
-class Sp3RSpace
-    : public basis::BaseSpace<Sp3RSpace, U3Subspace, std::tuple<u3::U3>>
-{
- public:
-  Sp3RSpace() = default;
-  Sp3RSpace(const u3::U3& sigma, const int Nn_max);
-
-  u3::U3 sigma() const { return std::get<0>(labels()); }
-};
+// class Space;
 
 class Space
-    : public basis::BaseSpace<Space, Sp3RSpace>
+    : public basis::BaseSpace<Space, sp3r::Sp3RSpace>
 {
  public:
   Space() = default;
@@ -282,8 +192,8 @@ class RecurrenceNnsumSpace
   RecurrenceNnsumSpace(
       int Nnsum,
       const std::vector<std::tuple<int, int>> u3subspace_index_pairs,
-      const Sp3RSpace& sp3r_space_ket,
-      const Sp3RSpace& sp3r_space_bra,
+      const sp3r::Sp3RSpace& sp3r_space_ket,
+      const sp3r::Sp3RSpace& sp3r_space_bra,
       const UnitTensorConstraintParameters& unit_tensor_parameters
     );
 
@@ -330,8 +240,8 @@ class RecurrenceSp3RSpace
 
   // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
   RecurrenceSp3RSpace(
-      const Sp3RSpace& sp3r_space_ket,
-      const Sp3RSpace& sp3r_space_bra,
+      const sp3r::Sp3RSpace& sp3r_space_ket,
+      const sp3r::Sp3RSpace& sp3r_space_bra,
       const UnitTensorConstraintParameters& unit_tensor_constraints
     );
 

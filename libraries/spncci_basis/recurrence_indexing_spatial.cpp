@@ -23,34 +23,34 @@
 
 namespace spncci::spatial
 {
-Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
-    : BaseSpace{sigma}
-{
-  // Construct U3 boson irrep and generate K matrices
-  u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
-  auto K_matrices = vcs::GenerateKmatrices(sigma,u3boson_space);
+// Sp3RSpace::Sp3RSpace(const u3::U3& sigma, const int Nn_max)
+//     : BaseSpace{sigma}
+// {
+//   // Construct U3 boson irrep and generate K matrices
+//   u3boson::U3BosonSpace u3boson_space(sigma,Nn_max);
+//   auto K_matrices = vcs::GenerateKmatrices(sigma,u3boson_space);
 
-  for(const auto& subspace : u3boson_space)
-    {
-      const u3::U3& omega = subspace.omega();
+//   for(const auto& subspace : u3boson_space)
+//     {
+//       const u3::U3& omega = subspace.omega();
 
-      // Generate a list of n,rho_max pairs which define the U3Boson subspace
-      MultiplicityTagged<u3::U3>::vector n_rho_vector;
-      for (int i_state=0; i_state<subspace.size(); ++i_state)
-        {
-          const auto& state = subspace.GetState(i_state);
-          n_rho_vector.push_back({state.n(),state.rho_max()});
-        }
+//       // Generate a list of n,rho_max pairs which define the U3Boson subspace
+//       MultiplicityTagged<u3::U3>::vector n_rho_vector;
+//       for (int i_state=0; i_state<subspace.size(); ++i_state)
+//         {
+//           const auto& state = subspace.GetState(i_state);
+//           n_rho_vector.push_back({state.n(),state.rho_max()});
+//         }
 
-      // Push subpaces
-      PushSubspace(U3Subspace(
-          omega,
-          n_rho_vector,
-          std::move(K_matrices[omega][0]),
-          std::move(K_matrices[omega][1])
-        ));
-    }
-}
+//       // Push subpaces
+//       PushSubspace(U3Subspace(
+//           omega,
+//           n_rho_vector,
+//           std::move(K_matrices[omega][0]),
+//           std::move(K_matrices[omega][1])
+//         ));
+//     }
+// }
 
 Space::Space(
     const std::vector<u3::U3>& sigma_vector, const HalfInt& Nsigma0, const int Nmax
@@ -62,7 +62,7 @@ Space::Space(
     // Nsigma0_=Nsigma0;
     int Nn_max = Nmax - int(sigma.N() - Nsigma0);
     if (Nn_max >= 0)
-      PushSubspace(Sp3RSpace(sigma, Nn_max));
+      PushSubspace(sp3r::Sp3RSpace(sigma, Nn_max));
   }
 }
 
@@ -99,14 +99,18 @@ RecurrenceU3Space::RecurrenceU3Space(
     };
 
   int N0{omega_p.N() - omega.N()};
-  int Nbar_min = unit_tensor_constraints.parity_bar;
-  for (int Nbar = Nbar_min; Nbar <= Nbar_max; Nbar += 2)
+  unsigned int Nbar_min = unit_tensor_constraints.parity_bar;
+  for (unsigned int Nbar = Nbar_min; Nbar <= Nbar_max; Nbar += 2)
   {
-    int Nbar_p = N0 + Nbar;
-    if (Nbar_p <= Nbar_p_max & Nbar_p >= 0)
+    // Nbar_p must be non-negative
+    if((N0+int(Nbar))<0)
+      continue;
+
+    unsigned int Nbar_p = N0 + Nbar;
+    if (Nbar_p <= Nbar_p_max)
     {
       MultiplicityTagged<u3::SU3>::vector possible_x0 =
-          u3::KroneckerProduct({Nbar_p, 0}, {0, Nbar});
+          u3::KroneckerProduct({Nbar_p,0u}, {0u,Nbar});
 
       for (const auto& [x0, rho] : possible_x0)
         x0_Nbar_pairs[x0].push_back({Nbar, Nbar_p});
@@ -135,8 +139,8 @@ RecurrenceU3Space::RecurrenceU3Space(
 RecurrenceNnsumSpace::RecurrenceNnsumSpace(
     int Nnsum,
     const std::vector<std::tuple<int, int>> u3subspace_index_pairs,
-    const Sp3RSpace& sp3r_space_ket,
-    const Sp3RSpace& sp3r_space_bra,
+    const sp3r::Sp3RSpace& sp3r_space_ket,
+    const sp3r::Sp3RSpace& sp3r_space_bra,
     const UnitTensorConstraintParameters& unit_tensor_constraints
   )
     : BaseDegenerateSpace{Nnsum}
@@ -168,8 +172,8 @@ RecurrenceNnsumSpace::RecurrenceNnsumSpace(
 
 
 RecurrenceSp3RSpace::RecurrenceSp3RSpace(
-    const Sp3RSpace& sp3r_space_ket,
-    const Sp3RSpace& sp3r_space_bra,
+    const sp3r::Sp3RSpace& sp3r_space_ket,
+    const sp3r::Sp3RSpace& sp3r_space_bra,
     const UnitTensorConstraintParameters& unit_tensor_constraints
   )
     : BaseSpace{
@@ -263,7 +267,7 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
             continue;
           if (
               u3::OuterMultiplicity(
-                  u3::U3{2, {2, 0}},
+                  u3::U3{2, {2u,0u}},
                   source_u3_space.omega_bra(),
                   target_u3_space.omega_bra()
                 )
@@ -277,7 +281,7 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
             continue;
           if (
               u3::OuterMultiplicity(
-                  u3::U3{2, {2, 0}},
+                  u3::U3{2, {2u,0u}},
                   source_u3_space.omega_ket(),
                   target_u3_space.omega_ket()
                 )
@@ -303,7 +307,7 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
       {
         if (
             u3::OuterMultiplicity(
-                u3::U3{2, {2, 0}},
+                u3::U3{2, {2u,0u}},
                 source_u3_space.omega_bra(),
                 target_u3_space.omega_bra()
               )
@@ -312,7 +316,7 @@ RecurrenceU3Sectors::RecurrenceU3Sectors(
           continue;
         if (
             u3::OuterMultiplicity(
-                u3::U3{2, {2, 0}},
+                u3::U3{2, {2u,0u}},
                 source_u3_space.omega_ket(),
                 target_u3_space.omega_ket()
               )
