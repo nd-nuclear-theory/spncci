@@ -18,6 +18,7 @@
 #include "am/am.h"
 #include "am/halfint.h"
 #include "spncci_basis/recurrence_indexing.h"
+#include "u3shell/operator_indexing_spin.h"
 #include "lgi/lgi.h"
 
 //For recurrence indexing
@@ -25,7 +26,7 @@ namespace spncci::spin
 {
   inline bool UnitTensorAllowed(
     const lgi::LGI::UpstreamLabelsType& ket_labels,
-    UnitTensorLabelsST tensor_labels,
+    const u3shell::spin::twobody::OperatorLabelsST& tensor_labels,
     const lgi::LGI::UpstreamLabelsType& bra_labels
   )
 // Check if bra and ket labels can be connected by a given ST tensor.

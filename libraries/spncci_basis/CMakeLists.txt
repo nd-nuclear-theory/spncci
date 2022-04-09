@@ -5,11 +5,9 @@ set(spncci_basis_headers
     recurrence_indexing.h
     recurrence_indexing_spin.h
     recurrence_indexing_spatial.h
-    recurrence_indexing_operator.h
 )
 set(spncci_basis_sources
     recurrence_indexing_spatial.cpp
-    recurrence_indexing_operator.cpp
 )
 
 # define spncci library and add source files
@@ -67,15 +65,6 @@ target_link_libraries(
   recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
                                    cppitertools::cppitertools spncci::spncci
 )
-
-
-  add_executable(recurrence_indexing_operator_test EXCLUDE_FROM_ALL recurrence_indexing_operator_test.cpp)
-  target_link_libraries(recurrence_indexing_operator_test PRIVATE
-    spncci::spncci_basis
-    basis::basis
-    fmt::fmt
-    spncci::sp3rlib
-  )
 
 
 if(SPNCCI_MASTER_PROJECT)

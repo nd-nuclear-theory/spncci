@@ -68,7 +68,7 @@ ReadSeedBlockFromFile(
   const LGILookupTable& lgi_groups,
   const std::vector<int>& lgi_full_space_index_lookup,
   const spncci::spatial::RecurrenceU3Space&  lgi_spatial_space,
-  const spncci::spin::RecurrenceLGISpace<lgi::LGI, spncci::spin::UnitTensorLabelsST>& lgi_spin_space,
+  const spncci::spin::RecurrenceLGISpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& lgi_spin_space,
   basis::OperatorBlock<double>& seed_block
 )
 {
@@ -201,7 +201,7 @@ GetRecurrenceSeedsFromFile(
   const lgi::MultiplicityTaggedLGIVector& lgi_vector,
   const std::vector<int>& lgi_full_space_index_lookup,
   const spncci::spatial::RecurrenceSpace& spatial_recurrence_space,
-  const spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST>& spin_recurrence_space
+  const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& spin_recurrence_space
 )
 {
   // Sort lgi's by U(3)

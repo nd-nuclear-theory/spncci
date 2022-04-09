@@ -27,6 +27,7 @@ recurrence_seeds.h
 #include "am/halfint.h"
 #include "basis/basis.h"
 #include "basis/degenerate.h"
+#include "u3shell/operator_indexing_spin.h"
 #include "lgi/lgi.h"
 #include "sp3rlib/multiplicity_tagged.h"
 #include "sp3rlib/u3.h"
@@ -44,7 +45,7 @@ GetRecurrenceSeedsFromFile(
   const lgi::MultiplicityTaggedLGIVector& lgi_vector,
   const std::vector<int>& lgi_full_space_index_lookup,
   const spncci::spatial::RecurrenceSpace& spatial_recurrence_space,
-  const spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST>& spin_recurrence_space
+  const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& spin_recurrence_space
 );
 
 } // namespace recurrence 

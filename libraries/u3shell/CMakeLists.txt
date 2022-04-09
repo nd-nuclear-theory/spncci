@@ -1,32 +1,36 @@
 cmake_minimum_required(VERSION 3.20)
 
+
+# define units
+set(u3shell_UNITS_H
+  # recurrence_upcoupling
+  operator_parameters
+  operator_indexing_spin
+  # operator_indexing_sectors
+
+)
+set(u3shell_UNITS_H_CPP
+  tensor_labels
+  relative_operator
+  two_body_operator
+  u3st_scheme
+  u3spn_scheme
+  relative_branching
+  upcoupling
+  unu3
+  unit_tensor_expansion
+  unit_tensor_space_u3s
+  interaction_truncation
+  operator_indexing_spatial
+
+  )
+
 # add headers and sources
-set(u3shell_headers
-    tensor_labels.h
-    relative_operator.h
-    two_body_operator.h
-    u3st_scheme.h
-    u3spn_scheme.h
-    relative_branching.h
-    upcoupling.h
-    unu3.h
-    unit_tensor_expansion.h
-    unit_tensor_space_u3s.h
-    interaction_truncation.h
-)
-set(u3shell_sources
-    tensor_labels.cpp
-    relative_operator.cpp
-    two_body_operator.cpp
-    u3st_scheme.cpp
-    u3spn_scheme.cpp
-    relative_branching.cpp
-    upcoupling.cpp
-    unu3.cpp
-    unit_tensor_expansion.cpp
-    unit_tensor_space_u3s.cpp
-    interaction_truncation.cpp
-)
+
+set(u3shell_headers ${u3shell_UNITS_H} ${u3shell_UNITS_H_CPP})
+list(TRANSFORM u3shell_headers APPEND .h)
+set(u3shell_sources ${u3shell_UNITS_H_CPP})
+list(TRANSFORM u3shell_sources APPEND .cpp)
 
 # define am library and add source files
 add_library(u3shell ${u3shell_sources})
@@ -76,3 +80,20 @@ target_link_libraries(relative_operator_test PRIVATE
   spncci::sp3rlib
   spncci::u3shell
 )
+
+add_executable(recurrence_upcoupling_test EXCLUDE_FROM_ALL recurrence_upcoupling_test.cpp)
+target_link_libraries(recurrence_upcoupling_test PRIVATE
+  spncci::spncci_basis
+  fmt::fmt
+  spncci::sp3rlib
+  spncci::u3shell
+)
+
+
+  # add_executable(operator_indexin_test EXCLUDE_FROM_ALL operator_indexin_test.cpp)
+  # target_link_libraries(operator_indexin_test PRIVATE
+  #   spncci::spncci_basis
+  #   basis::basis
+  #   fmt::fmt
+  #   spncci::sp3rlib
+  # )
