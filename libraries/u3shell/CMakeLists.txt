@@ -81,13 +81,13 @@ target_link_libraries(relative_operator_test PRIVATE
   spncci::u3shell
 )
 
-add_executable(recurrence_upcoupling_test EXCLUDE_FROM_ALL recurrence_upcoupling_test.cpp)
-target_link_libraries(recurrence_upcoupling_test PRIVATE
-  spncci::spncci_basis
-  fmt::fmt
-  spncci::sp3rlib
-  spncci::u3shell
-)
+# add_executable(recurrence_upcoupling_test EXCLUDE_FROM_ALL recurrence_upcoupling_test.cpp)
+# target_link_libraries(recurrence_upcoupling_test PRIVATE
+#   spncci::spncci_basis
+#   fmt::fmt
+#   spncci::sp3rlib
+#   spncci::u3shell
+# )
 
 
   # add_executable(operator_indexin_test EXCLUDE_FROM_ALL operator_indexin_test.cpp)
