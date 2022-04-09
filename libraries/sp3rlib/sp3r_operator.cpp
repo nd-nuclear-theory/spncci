@@ -21,46 +21,14 @@ namespace sp3r
   {
     const auto& omega_bra = bra_subspace.omega();
     const auto& omega_ket = ket_subspace.omega();
-    if(!u3::OuterMultiplicity(omega_ket,{2,{2,0}},omega_bra))
+    if(!u3::OuterMultiplicity(omega_ket,{2,{2u,0u}},omega_bra))
       return basis::OperatorBlock<double>::Zero(bra_subspace.upsilon_max(),ket_subspace.upsilon_max());
 
     const auto& bra_nonorthogonal_basis = bra_subspace.nonorthogonal_basis();
     const auto& ket_nonorthogonal_basis = ket_subspace.nonorthogonal_basis();
 
-    basis::OperatorBlock<double> A_boson_matrix
-      = basis::OperatorBlock<double>::Zero(
-        bra_nonorthogonal_basis.dimension(),
-        ket_nonorthogonal_basis.dimension()
-        );
-
-    for(int bra_state_index=0; bra_state_index<bra_nonorthogonal_basis.size(); ++bra_state_index)
-      for(int ket_state_index=0; ket_state_index<ket_nonorthogonal_basis.size(); ++ket_state_index)
-        {
-          const auto& bra_state = bra_nonorthogonal_basis.GetState(bra_state_index);
-          const auto& ket_state = ket_nonorthogonal_basis.GetState(ket_state_index);
-          const u3::U3& n_bra = bra_state.n();
-          const u3::U3& n_ket = ket_state.n();
-          const int rho_bra_max = bra_state.rho_max();
-          const int rho_ket_max = ket_state.rho_max();
-
-          if(!u3::OuterMultiplicity(n_ket,{2,{2u,0u}},n_bra))
-            continue;
-
-          for(int rho_bra=1; rho_bra<=rho_bra_max; ++rho_bra)
-            for(int rho_ket=1; rho_ket<=rho_ket_max; ++rho_ket)
-              {
-                int row = bra_nonorthogonal_basis.GetStateOffset(bra_state_index,rho_bra);
-                int col = ket_nonorthogonal_basis.GetStateOffset(ket_state_index,rho_ket);
-                
-                A_boson_matrix(row,col)
-                  =ParitySign(u3::ConjugationGrade(omega_bra)+u3::ConjugationGrade(omega_ket))
-                    * u3boson::BosonCreationRME(n_bra,n_ket)
-                    *u3::UCached(u_coef_cache,
-                        {2u,0u},n_ket.SU3(),omega_bra.SU3(),sigma.SU3(),
-                        n_bra.SU3(),1,rho_bra,omega_ket.SU3(),rho_ket,1
-                      );
-              }
-        }
+    basis::OperatorBlock<double> A_boson_matrix =
+      u3boson::U3BosonCreationOperator(sigma,bra_nonorthogonal_basis,ket_nonorthogonal_basis,u_coef_cache);
 
     return bra_subspace.K_matrix()*A_boson_matrix*ket_subspace.Kinv_matrix();
   }
