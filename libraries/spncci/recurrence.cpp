@@ -9,7 +9,7 @@
 
 #include "spncci/recurrence.h"
 
-#include <omp.h>  
+#include <omp.h>
 
 #include "fmt/format.h"
 #include "lgi/lgi_unit_tensors.h"
@@ -25,7 +25,7 @@ extern double zero_threshold;
 namespace spncci
 {
 
-  void 
+  void
   ZeroInitBlocks(int number, int rows, int cols,std::vector<basis::OperatorBlock<double>>& unit_tensor_blocks)
   {
     unit_tensor_blocks.resize(number);
@@ -40,13 +40,13 @@ namespace spncci
     const spncci::BabySpNCCISpace& baby_spncci_space
     )
     {
-      // Extract LGI labels 
+      // Extract LGI labels
       const lgi::LGI& lgi=lgi_families[irrep_family_index].irrep;
       u3::U3 sigma;
       HalfInt Sp,Sn,S;
       std::tie(std::ignore,sigma,Sp,Sn,S)=lgi.Key();
 
-      // Get baby spncci index 
+      // Get baby spncci index
       spncci::BabySpNCCISubspaceLabels baby_spncci_labels(sigma,Sp,Sn,S,sigma);
       int baby_spncci_index=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels);
       assert(baby_spncci_space.GetSubspace(baby_spncci_index).irrep_family_index()==irrep_family_index);
@@ -62,19 +62,19 @@ void GetLGIUnitTensorSubspaceIndices(
     // for each unit tensor, extract labels and identify subspace index for both the tensor and its conjugate
     for(auto unit_tensor : lgi_unit_tensors)
       {
-        // Extract unit tensor labels 
-        u3::SU3 x0; 
+        // Extract unit tensor labels
+        u3::SU3 x0;
         HalfInt S0;
         int etap,eta;
         std::tie(x0,S0,std::ignore,etap,std::ignore,std::ignore,eta,std::ignore,std::ignore)=unit_tensor.FlatKey();
 
-        // look up unit tensor index 
+        // look up unit tensor index
         u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels(x0,S0,etap,eta);
         int operator_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
         lgi_operator_subset.insert(operator_subspace_index);
-        
-        // Add conjugate tensor for Nn=0 sectors 
-        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);        
+
+        // Add conjugate tensor for Nn=0 sectors
+        u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels_conj(u3::Conjugate(x0),S0,eta,etap);
         int operator_subspace_index_conj=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels_conj);
         lgi_operator_subset.insert(operator_subspace_index_conj);
 
@@ -92,30 +92,30 @@ int GetUnitTensorSubspaceIndex(
   // for a given unit tensor subspace, look up its subspace index for both the tensor and add the
   // unit tensor subspace to the accumulating set of operator subspaces appearing in the recurrence
   {
-    // Construct unit tensor subspace labels 
+    // Construct unit tensor subspace labels
     u3shell::UnitTensorSubspaceLabels unit_tensor_subspace_labels;
-    
+
     if(conjugate)
       unit_tensor_subspace_labels=u3shell::UnitTensorSubspaceLabels(u3::Conjugate(x0),S0,eta,etap);
     else
       unit_tensor_subspace_labels=u3shell::UnitTensorSubspaceLabels(x0,S0,etap,eta);
 
-    // look up subspace index 
+    // look up subspace index
     int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_subspace_labels);
-    
+
     return unit_tensor_subspace_index;
 
   }
 
 void GetCase1UnitTensors(
-    const u3::SU3& x0, const HalfInt& S0, int etap,int eta, 
+    const u3::SU3& x0, const HalfInt& S0, int etap,int eta,
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     std::set<int>& unit_tensor_subset,
     bool conjugate=false
   )
   // Each new unit tensors must satisfy:
   //    x0 x (2,0) -> x0p
-  // and 
+  // and
   //    (etap-2,0)x(0,eta) -> x0p
   {
     // std::cout<<"case 1"<<std::endl;
@@ -127,14 +127,14 @@ void GetCase1UnitTensors(
       {
         u3::SU3 x0p(x0p_tagged.irrep);
         // std::cout<<x0p.Str()<<"  "<<etap-2<<"  "<<eta<<"  "<<x0.Str()<<std::endl;
-        
+
         // If x0 x (2,0) -> x0p doesn't satisfy constraint go to next x0p
         if(u3::OuterMultiplicity(x0,u3::SU3(0,2),x0p)==0)
           continue;
 
         // get subspace index
         int unit_tensor_subspace_index
-              =GetUnitTensorSubspaceIndex(x0p,S0,etap-2,eta,unit_tensor_space,unit_tensor_subset,conjugate);               
+              =GetUnitTensorSubspaceIndex(x0p,S0,etap-2,eta,unit_tensor_space,unit_tensor_subset,conjugate);
 
         // If unit tensor subspace exists, add to operator_subsets for given Nnp,Nn sector
         if(unit_tensor_subspace_index!=-1)
@@ -145,14 +145,14 @@ void GetCase1UnitTensors(
   }
 
 void GetCase2UnitTensors(
-    const u3::SU3& x0, const HalfInt& S0, int etap,int eta, 
+    const u3::SU3& x0, const HalfInt& S0, int etap,int eta,
     const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
     std::set<int>& unit_tensor_subset,
     bool conjugate=false
   )
   // Each new unit tensors must satisfy:
   //    x0 x (2,0) -> x0p
-  // and 
+  // and
   //    (etap,0)x(0,eta+2) -> x0p
   {
     // case 2
@@ -171,7 +171,7 @@ void GetCase2UnitTensors(
 
         // get subspace index
         int unit_tensor_subspace_index
-              =GetUnitTensorSubspaceIndex(x0p,S0,etap,eta+2,unit_tensor_space,unit_tensor_subset,conjugate);               
+              =GetUnitTensorSubspaceIndex(x0p,S0,etap,eta+2,unit_tensor_space,unit_tensor_subset,conjugate);
 
         // If unit tensor subspace exists, add to operator_subsets for given Nnp,Nn sector
         if(unit_tensor_subspace_index!=-1)
@@ -190,23 +190,23 @@ void GenerateRecurrenceUnitTensors(
   {
     int Nrel_max=Nmax+2*N1v;
 
-    // Get lgi unit tensor subspaces 
+    // Get lgi unit tensor subspaces
     auto& lgi_operator_subset=operator_subsets_NnpNn[spncci::NnPair(0,0)];
     GetLGIUnitTensorSubspaceIndices(unit_tensor_space,lgi_unit_tensors,lgi_operator_subset);
 
     // Unit tensors subspaces are identified recursively starting from those between the lgi
     //
-    // Generate unit tensors for (Nnp,0) and (0,Nn) hypersectors 
+    // Generate unit tensors for (Nnp,0) and (0,Nn) hypersectors
     for(int Nn=0; Nn<=Nmax; Nn+=2)
       {
         std::set<int>& NnpNn_subspaces_source=operator_subsets_NnpNn[spncci::NnPair(0,Nn)];
         std::set<int>& NnpNn_subspaces_target=operator_subsets_NnpNn[spncci::NnPair(0,Nn+2)];
         std::set<int>& NnpNn_subspaces_target_conj=operator_subsets_NnpNn[spncci::NnPair(Nn+2,0)];
-        
+
         for(int subspace_index : NnpNn_subspaces_source)
           {
             // Extract source unit tensor labels
-            u3::SU3 x0; 
+            u3::SU3 x0;
             HalfInt S0;
             int etap,eta;
             std::tie(x0,S0,etap,eta)=unit_tensor_space.GetSubspace(subspace_index).labels();
@@ -216,23 +216,23 @@ void GenerateRecurrenceUnitTensors(
 
             if(etap-2>=0)
               GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
-            
+
             if(eta+2<=Nrel_max)
               GetCase2UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
-            
-            
+
+
             // Generate unit tensors for (Nnp,0)
             conjugate=true;
 
             if(etap-2>=0)
               GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target_conj,conjugate);
-            
+
             if(eta+2<=Nrel_max)
               GetCase2UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target_conj,conjugate);
           }
       }
 
-    // Generate remaining unit tensors 
+    // Generate remaining unit tensors
     for(int Nsum=0; Nsum<=2*Nmax; Nsum+=2)
       for(int Nnp=0; Nnp<=Nmax; Nnp+=2)
         {
@@ -245,17 +245,17 @@ void GenerateRecurrenceUnitTensors(
           std::set<int>& NnpNn_subspaces_source=operator_subsets_NnpNn[spncci::NnPair(Nnp,Nn)];
           // std::cout<<"Nsum group "<<Nsum<<"  "<<Nnp<<"  "<<Nn<<std::endl;
 
-          // (Nnp,Nn)-> (Nnp,Nn+2) sectors 
+          // (Nnp,Nn)-> (Nnp,Nn+2) sectors
           if(Nn+2<=Nnp)
             {
               std::set<int>& NnpNn_subspaces_target=operator_subsets_NnpNn[spncci::NnPair(Nnp,Nn+2)];
                           // Generate unit tensors for (0,Nn)
-              
+
 
               for(int subspace_index : NnpNn_subspaces_source)
                   {
                     // Extract source unit tensor labels
-                    u3::SU3 x0; 
+                    u3::SU3 x0;
                     HalfInt S0;
                     int etap,eta;
                     std::tie(x0,S0,etap,eta)=unit_tensor_space.GetSubspace(subspace_index).labels();
@@ -264,7 +264,7 @@ void GenerateRecurrenceUnitTensors(
 
                     if(etap-2>0)
                       GetCase1UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
-                    
+
                     if(eta+2<=Nrel_max)
                       GetCase2UnitTensors(x0,S0,etap,eta,unit_tensor_space,NnpNn_subspaces_target,conjugate);
                   }
@@ -288,7 +288,7 @@ void GenerateRecurrenceUnitTensors(
     )
   {
 
-    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
+    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above
     std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
     for(int irrep_family_index_bra=0; irrep_family_index_bra<lgi_families.size(); ++irrep_family_index_bra)
       for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
@@ -302,9 +302,9 @@ void GenerateRecurrenceUnitTensors(
       {
         std::cout<<it->first<<std::endl;
         for(const auto& pair : it->second)
-          lgi_pairs.push_back(pair);  
+          lgi_pairs.push_back(pair);
       }
-      
+
     // for(auto pair: lgi_pairs)
     //   std::cout<<pair.first<<"  "<<pair.second<<std::endl;
 
@@ -348,9 +348,9 @@ void GetLGIPairsForRecurrence(
     )
   {
 
-    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
+    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above
     std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
-  
+
     int num_irrep_families=lgi_full_space_index_lookup.size();
     for(int irrep_family_index_bra=0; irrep_family_index_bra<num_irrep_families; ++irrep_family_index_bra)
       for(int irrep_family_index_ket=0; irrep_family_index_ket<=irrep_family_index_bra; ++irrep_family_index_ket)
@@ -367,7 +367,7 @@ void GetLGIPairsForRecurrence(
         // std::cout<<it->first<<std::endl;
 
         for(const auto& pair : it->second)
-          lgi_pairs.push_back(pair);  
+          lgi_pairs.push_back(pair);
       }
   }
 
@@ -387,7 +387,7 @@ void GetLGIPairsForRecurrence(
     // number of irrep famlies in space
     int num_irrep_families=lgi_full_space_index_lookup.size();
 
-    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above 
+    // Organize lgi pairs by basis size -- alternative to simple loop over LGI familes above
     std::map<int, std::vector<spncci::LGIPair>, std::greater<int> > sort_map;
 
     //Create pairs for calculating RMEs all irrep family pairs in trial subspace
@@ -400,7 +400,7 @@ void GetLGIPairsForRecurrence(
                 irrep_family_index_bra,irrep_family_index_bra,sort_map
               );
         }
-    //Create pairs for test subspace with trial subpace 
+    //Create pairs for test subspace with trial subpace
     for(int irrep_family_index_ket : trial_subspace)
       for(int irrep_family_index_bra : test_subspace)
         {
@@ -421,13 +421,13 @@ void GetLGIPairsForRecurrence(
       {
         std::cout<<it->first<<std::endl;
         for(const auto& pair : it->second)
-          lgi_pairs.push_back(pair);  
+          lgi_pairs.push_back(pair);
       }
   }
 
 
 
-  void 
+  void
   PopulateHypersectorsWithSeeds(
     int irrep_family_index_bra, int irrep_family_index_ket,
     const lgi::MultiplicityTaggedLGIVector& lgi_families,
@@ -462,11 +462,11 @@ void GetLGIPairsForRecurrence(
       {
         const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor=lgi_unit_tensors[i];
         int rho0=rho0_values[i];
-        
-        // Extract unit tensor labels 
+
+        // Extract unit tensor labels
         u3::SU3 x0;
         HalfInt S0,T0, Sp,Tp,S,T;
-        int etap, eta; 
+        int etap, eta;
         std::tie(x0,S0,T0,etap,Sp,Tp,eta,S,T)=unit_tensor.FlatKey();
         // std::cout<<sigmap.Str()<<" "<<lgi_bra.S()<<"  "<<sigma.Str()<<"  "<<lgi_ket.S()<<" "<<unit_tensor.Str()<<std::endl;
 
@@ -490,7 +490,7 @@ void GetLGIPairsForRecurrence(
         //   <<unit_tensor_seed_blocks[i]<<std::endl;
         unit_tensor_hyperblocks[hypersector_index][unit_tensor_state_index]=unit_tensor_seed_blocks[i];
 
-        // Get conjugate 
+        // Get conjugate
 
         // Look up conjugate unit tensor subspace
         // std::cout<<x0.Str()<<"  "<<S0<<"  "<<eta<<"  "<<etap<<std::endl;
@@ -541,22 +541,22 @@ void AddNn0BlocksToHyperblocks(
       std::tie(baby_spncci_index_ket,baby_spncci_index_bra,unit_tensor_subspace_index_Nn0,rho0)=key;
 
       // Extract unit tensor subspace labels from Nn0 tensor
-      auto& unit_tensor_subspace_Nn0=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_Nn0);      
+      auto& unit_tensor_subspace_Nn0=unit_tensor_space.GetSubspace(unit_tensor_subspace_index_Nn0);
       u3::SU3 x0c;
       HalfInt S0;
       int etap,eta;
       std::tie(x0c,S0,eta,etap)=unit_tensor_subspace_Nn0.labels();
-      
+
       // Get bra and ket labels from Nn0 sector
       const spncci::BabySpNCCISubspace& subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_index_bra);
       const spncci::BabySpNCCISubspace& subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index_ket);
-      
+
       u3::U3 omegap=subspace_bra.omega();
       HalfInt Sp=subspace_bra.S();
 
       u3::U3 omega=subspace_ket.omega();
       HalfInt S=subspace_ket.S();
-      
+
       // part of conjugation factor
       double conjugation_factor_base
               =ParitySign(u3::ConjugationGrade(omega)+S-u3::ConjugationGrade(omegap)-Sp)
@@ -567,13 +567,13 @@ void AddNn0BlocksToHyperblocks(
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Looking up target hypersector
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      // Get unit tensor subspace index in hyperblocks 
+      // Get unit tensor subspace index in hyperblocks
       u3::SU3 x0(u3::Conjugate(x0c));
       u3shell::UnitTensorSubspaceLabels unit_tensor_labels
         =u3shell::UnitTensorSubspaceLabels(x0,S0,etap,eta);
 
       int unit_tensor_subspace_index=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels);
-      auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);      
+      auto& unit_tensor_subspace=unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
       // Look up hypersector
       int hypersector_index
@@ -583,7 +583,7 @@ void AddNn0BlocksToHyperblocks(
 
       // std::cout<<"hypersector "<<hypersector_index<<"  "<<subspace_bra.LabelStr()<<" "<<subspace_ket.LabelStr()<<std::endl;
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      // For each source hyperblock, identify target block and conjugate 
+      // For each source hyperblock, identify target block and conjugate
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       for(int unit_tensor_index_Nn0=0; unit_tensor_index_Nn0<unit_tensor_subspace_Nn0.size(); ++unit_tensor_index_Nn0)
         {
@@ -651,7 +651,7 @@ void AddNn0BlocksToHyperblocks(
           }
       }
     // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-    KBUK.noalias()=K1*BU*K_inv;
+    KBUK.noalias()=K1.transpose()*BU*K_inv.transpose();
     // std::cout<<"KBUK "<<KBUK<<std::endl;
   }
 
@@ -673,8 +673,8 @@ void Amatrix(
   int dimpp=u3_subspacepp.size();
 
   Eigen::MatrixXd boson_matrix(dimp,dimpp);
-  
-  // Extracting K matrices 
+
+  // Extracting K matrices
   const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
   Eigen::MatrixXd Kpp_inv=Kinv_matrix_map_bra.at(omegapp);
 
@@ -687,7 +687,7 @@ void Amatrix(
         {
           MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
           const u3::U3& np(np_rhop.irrep);
-          int rhop=np_rhop.tag; 
+          int rhop=np_rhop.tag;
           if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())>0)
             {
               boson_matrix(vp,vpp)=
@@ -706,7 +706,7 @@ void Amatrix(
 }
 
 
-void 
+void
 ComputeUnitTensorHyperblocks(
   int Nmax, int N1v,
   u3::UCoefCache& u_coef_cache,
@@ -724,18 +724,18 @@ ComputeUnitTensorHyperblocks(
 {
   // std::cout<<"in the recurrence"<<std::endl;
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //  Set up for calculation 
+  //  Set up for calculation
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   for(int Nsum=2; Nsum<=2*Nmax; Nsum+=2)
     {
       const std::vector<int>& unit_tensor_hypersectors=unit_tensor_hypersector_subsets[Nsum/2];
 
-      // Parallelize here 
-      // unit_tensor_hyperblocks are zero initalized so there should be no race conditions in 
+      // Parallelize here
+      // unit_tensor_hyperblocks are zero initalized so there should be no race conditions in
       // writing each hyperbock to unit_tensor_hyperblocks
       // std::cout<<"omp_get_num_threads "<<omp_get_num_threads()<<std::endl;
-      
-      for(int i=0; i<unit_tensor_hypersectors.size(); ++i)  
+
+      for(int i=0; i<unit_tensor_hypersectors.size(); ++i)
       // for(int hypersector_index : unit_tensor_hypersectors)
         {
           int hypersector_index=unit_tensor_hypersectors[i];
@@ -743,26 +743,26 @@ ComputeUnitTensorHyperblocks(
 
           int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
           std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
-          
+
           const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra
               =baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
 
           const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket
               =baby_spncci_space.GetSubspace(baby_spncci_index);
-          
+
           const u3shell::RelativeUnitTensorSubspaceU3S& unit_tensor_subspace
               =unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
 
-          // Extract ket dimensions and mulitplicities 
+          // Extract ket dimensions and mulitplicities
           int dim=baby_spncci_subspace_ket.dimension();
           int gamma_max=baby_spncci_subspace_ket.gamma_max();
           int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
 
-          // Extract bra dimensions and mulitplicities 
+          // Extract bra dimensions and mulitplicities
           int dimp=baby_spncci_subspace_bra.dimension();
           int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
           int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
-          
+
           // Extract Sp(3,R) space
           int irrep_family_index_bra=baby_spncci_subspace_bra.irrep_family_index();
           int irrep_family_index_ket=baby_spncci_subspace_ket.irrep_family_index();
@@ -771,7 +771,7 @@ ComputeUnitTensorHyperblocks(
           const sp3r::Sp3RSpace& irrep_bra = spncci_space[irrep_family_index_bra].Sp3RSpace();
           const sp3r::Sp3RSpace& irrep_ket = spncci_space[irrep_family_index_ket].Sp3RSpace();
 
-          // extract subspace labels 
+          // extract subspace labels
           u3::U3 omegap,sigmap,omega,sigma;
           u3::SU3 x0;
           HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
@@ -787,7 +787,7 @@ ComputeUnitTensorHyperblocks(
           // omega u3 subspace in irrep
           const sp3r::U3Subspace& u3_subspace=irrep_ket.LookUpSubspace(omega);
           const sp3r::U3Subspace& u3_subspacep=irrep_bra.LookUpSubspace(omegap);
-          // Extracting K matrices for sp_irrep and sp_irrepp from the K_matrix_maps 
+          // Extracting K matrices for sp_irrep and sp_irrepp from the K_matrix_maps
           // std::cout<<"bunny1"<<std::endl;
           const vcs::MatrixCache& K_matrix_map_bra=k_matrix_map.at(sigmap);
           // std::cout<<"bunny2"<<std::endl;
@@ -804,11 +804,11 @@ ComputeUnitTensorHyperblocks(
           // std::cout<<sigma.Str()<<". "<<omega.Str()<<std::endl;
           const Eigen::MatrixXd& K_inv=Kinv_matrix_map_ket.at(omega);
 
-          // Generate labels to sum over 
+          // Generate labels to sum over
           int rho0_max=u3::OuterMultiplicity(omega.SU3(),x0,omegap.SU3());
 
           // Precalculating kronecker products used in sum to calculate unit tensor matrix
-          MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2)); 
+          MultiplicityTagged<u3::U3>::vector omegapp_set=KroneckerProduct(omegap, u3::U3(0,0,-2));
           MultiplicityTagged<u3::U3>::vector omega1_set=KroneckerProduct(omega, u3::U3(0,0,-2));
           MultiplicityTagged<u3::SU3>::vector x0p_set=KroneckerProduct(x0, u3::SU3(2,0));
 
@@ -825,7 +825,7 @@ ComputeUnitTensorHyperblocks(
 
               if (not irrep_ket.ContainsSubspace(omega1))
                 continue;
-                  
+
               spncci::BabySpNCCISubspaceLabels baby_spncci_labels1(sigma,Sp_ket,Sn_ket,S_ket,omega1);
               int baby_spncci_subspace_index1=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labels1);
               // std::cout<<"bunny rabbit 1"<<std::endl;
@@ -842,13 +842,13 @@ ComputeUnitTensorHyperblocks(
               // Construct KBUK matrix
               ////////////////////////////////////////////////////////////////////////////////////////////////////////
               Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-              
+
               spncci::ConsructKBUK(
                 u_coef_cache, Nn,sigma, omega, omega1,
                 u3_subspace,u3_subspace1,K1,K_inv,
                 KBUK
               );
-              
+
               // ////////////////////////////////////////////////////////////////////////////////////////////////////////
               //summing over x0'
               // std::cout<<"sum over x0"<<std::endl;
@@ -857,7 +857,7 @@ ComputeUnitTensorHyperblocks(
                   u3::SU3 x0p(x0p_mult.irrep);
                   // std::cout<<"x0p "<<x0p.Str()<<std::endl;
                   int rho0p_max=OuterMultiplicity(omega1.SU3(),x0p,omegap.SU3());
-                  
+
                   // summing over rho0'
                   // std::cout<<"summing over rho0p.  rho0p_max "<<rho0p_max<<std::endl;
                   for (int rho0p=1; rho0p<=rho0p_max; rho0p++)
@@ -869,7 +869,7 @@ ComputeUnitTensorHyperblocks(
                       double coef=0;
                       for(int rho0b=1; rho0b<=rho0_max; rho0b++)
                         {
-                          //(2,0)xx0->x0p(by construction), 
+                          //(2,0)xx0->x0p(by construction),
                           //(2,0)xomega1->omega (by construction),
                           // x0xomega->omegap, (rho0_max)
                           //omega1xx0p->omegap (rho0p_max)
@@ -899,7 +899,7 @@ ComputeUnitTensorHyperblocks(
 
                           if (not irrep_bra.ContainsSubspace(omegapp))
                             continue;
-                          
+
                           // get hypersector index
                           spncci::BabySpNCCISubspaceLabels baby_spncci_labelspp(sigmap,Sp_bra,Sn_bra,S_bra,omegapp);
                           int baby_spncci_subspace_indexpp=baby_spncci_space.LookUpSubspaceIndex(baby_spncci_labelspp);
@@ -909,7 +909,7 @@ ComputeUnitTensorHyperblocks(
                           int upsilon_maxpp=u3_subspacepp.upsilon_max();
                           int dimpp=upsilon_maxpp*gamma_maxp;
                           // Obtaining K matrix for omega''
-                          
+
                           Eigen::MatrixXd A;
                           spncci::Amatrix(u_coef_cache,
                             u3_subspacep,u3_subspacepp,sigmap, omegap, omegapp,
@@ -919,14 +919,14 @@ ComputeUnitTensorHyperblocks(
 
                            // Zero initialze blocks accumulating sum over rho0pp and rho0bp
                           std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_rhobp;
-                          
+
                           ZeroInitBlocks(num_blocks,dimpp,dim1,unit_tensor_blocks_rhobp);
 
                           // Summing over rho0bp
                           int rho0bp_max=u3::OuterMultiplicity(omega1.SU3(),x0,omegapp.SU3());
                           for(int rho0bp=1; rho0bp<=rho0bp_max; ++rho0bp)
                             {
-                              // Get hypersector index 
+                              // Get hypersector index
                               int hypersector_index3
                                 =baby_spncci_hypersectors.LookUpHypersectorIndex(baby_spncci_subspace_indexpp,baby_spncci_subspace_index1,unit_tensor_subspace_index,rho0bp);
                               // std::cout<<"hypersector3 "<<hypersector_index3<<std::endl;
@@ -935,7 +935,7 @@ ComputeUnitTensorHyperblocks(
 
                               double coef3=0;
                               for (int rho0pp=1; rho0pp<=rho0p_max; rho0pp++)
-                                { 
+                                {
                                 // omegaxx0->omegapp
                                 // x0x(2,0)->x0p (construction)
                                 // omegappx(2,0)->omegap (construction)
@@ -952,14 +952,14 @@ ComputeUnitTensorHyperblocks(
                               for(int b=0; b<num_blocks; ++b)
                                 unit_tensor_blocks_rhobp[b]+=coef3*unit_tensor_hyperblocks[hypersector_index3][b];
                             }
-                        
+
                           // matrix product A*unit_tensor_block (v',v'')*(v'',v1)
                           // std::cout<<"add in A operator and sum over blocks "<<std::endl;
                           for(int b=0; b<num_blocks; ++b)
                             for(int i=0; i<gamma_maxp; ++i)
                               for(int j=0; j<gamma_max; ++j)
                                 {
-                                  // Get target indices 
+                                  // Get target indices
                                   int it=i*upsilon_maxp;
                                   int jt=j*upsilon_max1;
                                   // Get source indices
@@ -970,7 +970,7 @@ ComputeUnitTensorHyperblocks(
                                     +=A*unit_tensor_blocks_rhobp[b].block(is,js,upsilon_maxpp,upsilon_max1);
                                 }
                         } //omegapp
-                      // std::cout<<"accumulating over unit tensor blocks x0p"<<std::endl; 
+                      // std::cout<<"accumulating over unit tensor blocks x0p"<<std::endl;
                       // accumulating sum over omegapp
                       for(int b=0; b<num_blocks; ++b)
                         unit_tensor_blocks_x0p[b]+=unit_tensor_blocks_omegapp[b];
@@ -978,27 +978,27 @@ ComputeUnitTensorHyperblocks(
                       // std::cout<<"term 1"<<std::endl;
                       // std::cout<<unit_tensor_blocks_x0p[0]<<std::endl;
                       ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                      //first term 
+                      //first term
                       //////////////////////////////////////////////////////////////////////////////////////////////////////////
                       if(u3::OuterMultiplicity(u3::SU3(etap,0),u3::SU3(0,eta-2),x0p)>0)
                         {
                           assert((eta-2)>=0);
-                          // look up index of subspace in unit tensor space 
+                          // look up index of subspace in unit tensor space
                           u3shell::UnitTensorSubspaceLabels unit_tensor_labels(x0p,S0,etap,eta-2);
 
                           int unit_tensor_subspace_index1=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels);
                           assert(unit_tensor_subspace_index1!=-1);
-                          
-                          //(rbp,0)x(0,rb)->x0, (0,rb)x(2,0)->(0,rb-2), x0x(2,0)->x0p, (0,rb-2)x(rbp,0)->x0p                        
-                          double 
+
+                          //(rbp,0)x(0,rb)->x0, (0,rb)x(2,0)->(0,rb-2), x0x(2,0)->x0p, (0,rb-2)x(rbp,0)->x0p
+                          double
                           coef1=u3::UCached(u_coef_cache,u3::SU3(etap,0),u3::SU3(0,eta),x0p, u3::SU3(2,0),x0,1,1,u3::SU3(0,eta-2),1,1)
-                                *sqrt(1.*u3::dim(x0p)*u3::dim(u3::SU3(eta,0))/(u3::dim(x0)));                      
- 
+                                *sqrt(1.*u3::dim(x0p)*u3::dim(u3::SU3(eta,0))/(u3::dim(x0)));
+
                           // zero initialize blocks for accumulating first term in sum over rhobp
                           std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_rho0bp;
                             ZeroInitBlocks(num_blocks,dimp,dim1,unit_tensor_blocks_rho0bp);
 
-                          // summing over rho0bp and accumulating sectors in unit1_matrix. 
+                          // summing over rho0bp and accumulating sectors in unit1_matrix.
                           for(int rho0bp=1; rho0bp<=rho0p_max; ++rho0bp)
                             {
                               int hypersector_index1=baby_spncci_hypersectors.LookUpHypersectorIndex(
@@ -1019,31 +1019,31 @@ ComputeUnitTensorHyperblocks(
                               }
                             } //end rho0bp
 
-                          // std::cout<<"coef1 "<<coef1<<std::endl;  
+                          // std::cout<<"coef1 "<<coef1<<std::endl;
                           // std::cout<<unit_tensor_blocks_rho0bp[0]<<std::endl;
                           for(int b=0; b<num_blocks; ++b)
                             unit_tensor_blocks_x0p[b]+=coef1*unit_tensor_blocks_rho0bp[b];
-                        } 
+                        }
 
                         // std::cout<<"term 2 "<<std::endl;
                         // std::cout<<unit_tensor_blocks_x0p[0]<<std::endl;
                         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        // second term 
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////////  
+                        // second term
+                        //////////////////////////////////////////////////////////////////////////////////////////////////////////
                         // std::cout<<"term 2 "<<std::endl;
                         // std::cout<<"x0p "<<x0p.Str()<<std::endl;
                         if ((u3::OuterMultiplicity(u3::SU3(etap+2,0),u3::SU3(0,eta),x0p)>0) && (etap+2)<=Nmax+2*N1v)
                           {
                             // (2,0)x(rbp,0)->(rbp+2,0), (rbp,0)x(0,rb)->x0, (rbp+2,0)x(0,rb)->x0p, x0x(2,0)->x0p
-                            // look up index of subspace in unit tensor space 
+                            // look up index of subspace in unit tensor space
                             u3shell::UnitTensorSubspaceLabels unit_tensor_labels(x0p,S0,etap+2,eta);
-                            
+
 
                             int unit_tensor_subspace_index2=unit_tensor_space.LookUpSubspaceIndex(unit_tensor_labels);
                             assert(unit_tensor_subspace_index2!=-1);
 
 
-                            double 
+                            double
                             coef2=-1*ParitySign(u3::ConjugationGrade(x0)-u3::ConjugationGrade(x0p))
                                     * u3::dim(u3::SU3(etap,0))*sqrt(u3::dim(x0p)/(6.*u3::dim(u3::SU3(eta,0))))
                                     *u3::UCached(u_coef_cache,u3::SU3(etap+2,0),u3::SU3(0,etap),x0p,x0,
@@ -1084,7 +1084,7 @@ ComputeUnitTensorHyperblocks(
                         for(int b=0; b<num_blocks; ++b)
                           unit_tensor_blocks_omega1[b]+=coef*unit_tensor_blocks_x0p[b];
                       }//end rho0p
-                  }// end x0p sum 
+                  }// end x0p sum
                 // summing over n, rho, n1, rho1, v1
                 for(int b=0; b<num_blocks; ++b)
                   for(int i=0; i<gamma_maxp; ++i)
@@ -1097,11 +1097,11 @@ ComputeUnitTensorHyperblocks(
                       // (v'v1) (v1 v)
                       unit_tensor_blocks[b].block(it,jt,upsilon_maxp,upsilon_max)
                         +=unit_tensor_blocks_omega1[b].block(is,js,upsilon_maxp,upsilon_max1)*KBUK;
-                        
+
                     }
                 // std::cout<<"done with blocks"<<std::endl;
-              }// end omega1_mult 
-        }// end hypersector index 
+              }// end omega1_mult
+        }// end hypersector index
     }// end Nsum
   // std::cout<<"end recurrence"<<std::endl;
   }
@@ -1125,16 +1125,16 @@ void DoRecurrenceInitialization(
   )
 {
     //////////////////////////////////////////////////////////////////////
-    // Extract lgi index  labels 
+    // Extract lgi index  labels
     int irrep_family_index_bra,irrep_family_index_ket;
     std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
     ///////////////////////////////////////////////////////////////////////////
     // Read in list of unit tensors between lgi pair and conjugates from files
-    // Returned bool, files_found_test has no current use, but could be used 
+    // Returned bool, files_found_test has no current use, but could be used
     //  to identify lgi pair with no non-zero rmes between them.
     // Corresponding rho0 values stored separately for later hypersector lookup
     ///////////////////////////////////////////////////////////////////////////
-    // Initialize containers 
+    // Initialize containers
     std::vector<u3shell::RelativeUnitTensorLabelsU3ST> lgi_unit_tensors;
     std::vector<int> rho0_values;
 
@@ -1143,7 +1143,7 @@ void DoRecurrenceInitialization(
     int index1=lgi_full_space_index_lookup[irrep_family_index_bra];
     int index2=lgi_full_space_index_lookup[irrep_family_index_ket];
 
-    // Read in operators 
+    // Read in operators
     std::string lgi_unit_tensor_filename
       =fmt::format("seeds/operators_{:06d}_{:06d}.dat",index1,index2);
     bool files_found_test=lgi::ReadUnitTensorLabels(lgi_unit_tensor_filename,lgi_unit_tensors,rho0_values);
@@ -1151,12 +1151,12 @@ void DoRecurrenceInitialization(
     ///////////////////////////////////////////////////////////////////////////
     // Set up hypersectors and hyperblocks for seeds
     // Generate hypersectors from list of unit tensors and outer-mulitplicites
-    //  read from files 
-    // Populate hyperblocks using seeds read in from file 
+    //  read from files
+    // Populate hyperblocks using seeds read in from file
     //////////////////////////////////////////////////////////////////////////
 
     // Reads in unit tensor seed blocks and stores them in a vector of blocks. Order
-    // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file. 
+    // corresponds to order of (unit_tensor,rho0) pairs in corresponding operator file.
     basis::OperatorBlocks<double> unit_tensor_seed_blocks;
     std::string seed_filename
       =fmt::format("seeds/seeds_{:06d}_{:06d}.rmes",index1,index2);
@@ -1188,12 +1188,12 @@ void DoRecurrenceInitialization(
         irrep_family_index_ket,irrep_family_index_bra
       );
 
-    // Zero initialize seed hyperblocks and conjugate hyperblocks 
-    basis::SetHyperoperatorToZero(baby_spncci_hypersector_seeds,unit_tensor_hyperblocks_seeds);    
+    // Zero initialize seed hyperblocks and conjugate hyperblocks
+    basis::SetHyperoperatorToZero(baby_spncci_hypersector_seeds,unit_tensor_hyperblocks_seeds);
     basis::SetHyperoperatorToZero(baby_spncci_hypersector_seeds_conj,unit_tensor_hyperblocks_seeds_conj);
-    
+
     // Populate the hyperblocks and conjugate hyperblocks with the seed
-    // Conjugate hyperspectors will be used in calculating Nn0 rmes in recurrence 
+    // Conjugate hyperspectors will be used in calculating Nn0 rmes in recurrence
     spncci::PopulateHypersectorsWithSeeds(
       irrep_family_index_bra, irrep_family_index_ket,lgi_families,
       baby_spncci_space,unit_tensor_space,
@@ -1233,7 +1233,7 @@ void DoRecurrenceInitialization(
     // Generate Nn=0 hypersectors to be computed by conjugation
     bool Nn0_conjugate_hypersectors=true;
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
-    
+
     spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_Nn0(
       Nmax, baby_spncci_space, unit_tensor_space,
       unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets_Nn0,
@@ -1244,7 +1244,7 @@ void DoRecurrenceInitialization(
     // Hypersectors for Nnp>=Nn
     Nn0_conjugate_hypersectors=false;
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
-    
+
     // (Nnp,Nn) sectors for Nnp>Nn
     baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
       Nmax,baby_spncci_space, unit_tensor_space,
@@ -1253,7 +1253,7 @@ void DoRecurrenceInitialization(
       Nn0_conjugate_hypersectors
     );
 
-    //Zero initialize hyperblocks for both Nn=0 and Nnp>=Nn sectors 
+    //Zero initialize hyperblocks for both Nn=0 and Nnp>=Nn sectors
     basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_Nn0;
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors_Nn0,unit_tensor_hyperblocks_Nn0);
     basis::SetHyperoperatorToZero(baby_spncci_hypersectors,unit_tensor_hyperblocks);
@@ -1311,7 +1311,7 @@ void DoRecurrenceInitialization(
 
 
 
-} // End namespace 
-  
+} // End namespace
 
-          
+
+
