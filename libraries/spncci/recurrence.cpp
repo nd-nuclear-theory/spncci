@@ -677,65 +677,6 @@ void AddNn0BlocksToHyperblocks(
     KBUK.noalias()=K1*BU*K_inv;
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// void Amatrix(
-//   u3::UCoefCache& u_coef_cache,
-//   const sp3r::U3Subspace& u3_subspacep,
-//   const sp3r::U3Subspace& u3_subspacepp,
-//   const u3::U3& sigmap, const u3::U3& omegap, const u3::U3& omegapp,
-//   const vcs::MatrixCache& K_matrix_map_bra,
-//   const vcs::MatrixCache& Kinv_matrix_map_bra,
-//   int upsilon_maxp, int upsilon_maxpp,
-//   Eigen::MatrixXd& A
-//   )
-// {
-//   // underlying u3boson subspace dimensions
-//   int dimp=u3_subspacep.size();
-//   int dimpp=u3_subspacepp.size();
-
-//   basis::OperatorBlock<double> boson_matrix = basis::OperatorBlock<double>::Zero(dimp,dimpp);
-  
-//   // Extracting K matrices
-//   const Eigen::MatrixXd& Kp=K_matrix_map_bra.at(omegap);
-//   Eigen::MatrixXd Kpp_inv=Kinv_matrix_map_bra.at(omegapp);
-
-//   // for(const auto& statepp : u3_subspacepp)
-//   for(int vpp=0; vpp<dimpp; vpp++)
-//     {
-//       const auto&[npp,rhopp_max] = u3_subspacepp.GetState(vpp).n_multiplicity_tagged();
-//       // MultiplicityTagged<u3::U3> npp_rhopp=u3_subspacepp.GetStateLabels(vpp);
-//       // const u3::U3& npp(npp_rhopp.irrep);
-//       // int rhopp=npp_rhopp.tag;
-//       for(int vp=0; vp<dimp; vp++)
-//         {
-//           const auto&[np,rhop_max] = u3_subspacep.GetState(vp).n_multiplicity_tagged();
-//           // MultiplicityTagged<u3::U3> np_rhop=u3_subspacep.GetStateLabels(vp);
-//           // const u3::U3& np(np_rhop.irrep);
-//           // int rhop=np_rhop.tag;
-          
-//           // RME is already set to zero
-//           if (u3::OuterMultiplicity(npp.SU3(), u3::SU3(2,0),np.SU3())==0)
-//             continue;
-
-//           for(int rhopp=1; rhopp<=rhopp_max; ++rhopp)
-//             for(int rhop=1; rhop<=rhop_max; ++rhop)
-//               {
-//                 int col = u3_subspacepp.GetStateOffset(vpp,rhopp);
-//                 int row = u3_subspacep.GetStateOffset(vp,rhop);
-//                 boson_matrix(row,col)=
-//                   u3boson::BosonCreationRME(np,npp)
-//                   *ParitySign(u3::ConjugationGrade(omegap)+u3::ConjugationGrade(omegapp))
-//                   *u3::UCached(
-//                       u_coef_cache,u3::SU3(2,0),npp.SU3(),omegap.SU3(),sigmap.SU3(),
-//                       np.SU3(),1,rhop,omegapp.SU3(),rhopp,1);
-//               }
-//         } //end vp
-//     } //end vpp
-//   // Matrix of symplectic raising operator A
-//   A=Kp*boson_matrix*Kpp_inv;
-// }
-
 
 void 
 ComputeUnitTensorHyperblocks(
