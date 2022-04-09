@@ -41,7 +41,7 @@ namespace u3
  //
  // max_lambda_plus_mu only used with SU3lib of Dytrych and Langr.
  // max_lambda_plus_mu is max value of lambda+mu needed
- 
+
 
   class WCoefLabels
   // Class to gather and provide hashing for U coefficient labels
@@ -111,7 +111,7 @@ namespace u3
   using WMultiplicityTuple=std::tuple<int,int,int,int>;
 
   inline u3::WMultiplicityTuple WMultiplicity(
-    const u3::SU3& x1, const int L1, 
+    const u3::SU3& x1, const int L1,
     const u3::SU3& x2, const int L2,
     const u3::SU3& x3, const int L3
   )
@@ -175,7 +175,7 @@ namespace u3
       const int kappa1, const int kappa2, const int kappa3, const int rho
       ) const
     {
-      
+
       // validate multiplicity indices
       assert(
              (rho <= rho_max_)
@@ -230,9 +230,9 @@ namespace u3
   extern bool g_u_cache_enabled;
   double WCached(
                  WCoefCache& cache,
-                 const u3::SU3& x1, const int kappa1, const int L1, 
+                 const u3::SU3& x1, const int kappa1, const int L1,
                  const u3::SU3& x2, const int kappa2, const int L2,
-                 const u3::SU3& x3, const int kappa3, const int L3, 
+                 const u3::SU3& x3, const int kappa3, const int L3,
                  const int rho
                  );
   // Cached SU(3) Wigner coupling coefficient for coupling from (1x2)->3.
@@ -255,7 +255,7 @@ namespace u3
     WCoefLabels labels(x1,L1,x2,L2,x3,L3);
     auto block = WCoefBlock(labels);
     return block.GetCoef(k1,k2,k3,r0);
-  } 
+  }
   // Compute SU(3) reduced coupling coefficient, referred to as Wigner coefficient
   //
   // Provides wrapper for su3lib function wu3r3w_
@@ -275,8 +275,8 @@ namespace u3
   ////////////////////////////////////////////////////////////////
 
   using UMultiplicityTuple=std::tuple<int,int,int,int>;
-  
-  inline u3::UMultiplicityTuple 
+
+  inline u3::UMultiplicityTuple
   UMultiplicity(
     const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
     const u3::SU3& x3, const u3::SU3& x12, const u3::SU3& x23
@@ -290,7 +290,7 @@ namespace u3
   }
 
   using ZMultiplicityTuple = UMultiplicityTuple;
-  
+
   inline u3::ZMultiplicityTuple ZMultiplicity(
           const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
           const u3::SU3& x3, const u3::SU3& x12, const u3::SU3& x23
@@ -298,7 +298,7 @@ namespace u3
         {
           return UMultiplicity(x1,x2,x,x3,x12,x23);
         }
-   
+
   // Calculate multiplicities for SU(3) Racah U and Z coefficients.
   //
   // Arguments:
@@ -408,7 +408,7 @@ namespace u3
     // type definitions
     ////////////////////////////////////////////////////////////////
 
-    
+
     ////////////////////////////////////////////////////////////////
     // constructors
     ////////////////////////////////////////////////////////////////
@@ -418,7 +418,7 @@ namespace u3
 
     //Note ZCoefLabels is same as UCoefLabels
     RecouplingCoefBlock(const u3::UCoefLabels& labels, const u3::RecouplingMode);
-    
+
     //Default is U coefficient
     inline RecouplingCoefBlock(const u3::UCoefLabels& labels)
       {RecouplingCoefBlock(labels,RecouplingMode::kU);}
@@ -430,12 +430,12 @@ namespace u3
     {
       return KeyType(r12_max_,r12_3_max_,r23_max_,r1_23_max_);
     }
-    
+
     u3::RecouplingMode mode()const {return mode_;}
     ////////////////////////////////////////////////////////////////
     // entry lookup
     ////////////////////////////////////////////////////////////////
-    
+
     inline double GetCoef(int r12, int r12_3, int r23, int r1_23) const
     {
       // validate multiplicity indices
@@ -481,7 +481,30 @@ namespace u3
       > ;
 
   extern bool g_u_cache_enabled;
+  template<
+      typename T1 = u3::SU3, typename T2 = u3::SU3, typename T = u3::SU3,
+      typename T3 = u3::SU3, typename T12 = u3::SU3, typename T23 = u3::SU3
+    >
   double UCached(
+      UCoefCache& cache,
+      const T1& x1, const T2& x2, const T& x, const T3& x3, const T12& x12,
+      int r12, int r12_3, const T23& x23, int r23, int r1_23
+    )
+  {
+    return UCached(
+        cache,
+        u3::SU3(x1), u3::SU3(x2), u3::SU3(x), u3::SU3(x3), u3::SU3(x12),
+        r12, r12_3, u3::SU3(x23), r23, r1_23
+      );
+  }
+
+  template<>
+  double UCached(
+                 UCoefCache& cache,
+                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
+                 int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
+                 );
+  extern template double UCached(
                  UCoefCache& cache,
                  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
@@ -496,12 +519,16 @@ namespace u3
   //   (double): single coefficient value
 
 
+  template<
+      typename T1 = u3::SU3, typename T2 = u3::SU3, typename T = u3::SU3,
+      typename T3 = u3::SU3, typename T12 = u3::SU3, typename T23 = u3::SU3
+    >
   inline double U(
-   const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3,
-   const u3::SU3& x12, int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
+   const T1& x1, const T2& x2, const T& x, const T3& x3,
+   const T12& x12, int r12, int r12_3, const T23& x23, int r23, int r1_23
   )
   {
-    auto block = RecouplingCoefBlock({x1,x2,x,x3,x12,x23},RecouplingMode::kU);
+    auto block = RecouplingCoefBlock({SU3(x1),SU3(x2),SU3(x),SU3(x3),SU3(x12),SU3(x23)},RecouplingMode::kU);
     return block.GetCoef(r12,r12_3,r23,r1_23);
   }
   // Same as UCached except computed values are not saved to a Cache.
@@ -514,7 +541,7 @@ namespace u3
     //   u3::RecouplingCoefBlock,
     //   boost::hash<u3::ZCoefLabels> > ZCoefCache;
   using ZCoefCache = UCoefCache;
-  
+
   double ZCached(
                  ZCoefCache& cache,
                  const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, const u3::SU3& x3, const u3::SU3& x12,

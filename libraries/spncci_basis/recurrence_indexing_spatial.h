@@ -14,10 +14,22 @@ recurrence_indexing_spatial.h
 
     spatial::RecurrenceSpace() []
     ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
-      ->spatial::RecurrenceNnsumSpace() [Nsum]
-        ->spatial::RecurrenceU3Space() [omega,omega']->(upsilon x upsilon')
-          ->spatial::RecurrenceOperatorSubspace() [x0] ->rho0_max
+      ->spatial::RecurrenceNnsumSpace() [Nnsum]
+        ->spatial::RecurrenceU3Space() [omega,omega'] (upsilon,upsilon')
+          ->spatial::RecurrenceOperatorSubspace() [x0] (rho0)
             ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
+
+    spatial::ContractionSpace() [J0]
+    ->spatial::ContractionSp3RSpace() [sigma,sigma',parity_bar]
+      ->spatial::ContractionU3Space() [omega,omega'] (upsilon,upsilon')
+        ->spatial::ContractionOperatorSubspace() [L0] (kappa0) <-- J0-2<=L0<=J0+2
+          ->spatial::ContractionOperatorState() [x0] (rho0)
+
+    spatial::BranchingSpace() [J,J',J0]
+    ->spatial::BranchingSp3RSpace() [sigma,sigma',parity_bar]
+      ->spatial::BranchingU3Subspace() [omega,omega'] (upsilon,upsilon')
+        ->spatial::BranchingState() [L,L'] (kappa,kappa')
+    TODO: Find efficient way to actually store in (L,kappa,L',kappa') order
 
   Anna E. McCoy[1] and Patrick J. Fasano[2,3]
   [1] Institute for Nuclear Theory
@@ -33,7 +45,11 @@ recurrence_indexing_spatial.h
 #ifndef RECURRENCE_INDEXING_SPATIAL_H_
 #define RECURRENCE_INDEXING_SPATIAL_H_
 
+#include <array>
+#include <functional>  // for std::hash
+#include <memory>      // for std::shared_ptr
 #include <tuple>
+#include <unordered_map>
 #include <utility>  // for std::forward
 #include "am/halfint.h"
 #include "basis/basis.h"
@@ -51,8 +67,10 @@ namespace spncci::spatial
 // spncci::spatial::Space() []
 // ->spncci::spatial::Sp3RSpace() [sigma]
 //     ->spncci::spatial::U3Subspace() [omega]
-//       ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+using Sp3RSpace = sp3r::Sp3RSpace;
+using U3Subspace = sp3r::U3Subspace;
 
 // class Space;
 
@@ -240,14 +258,24 @@ class RecurrenceSp3RSpace
 
   // spatial_unit_tensors <(x0,Nbar_p,Nbar)>
   RecurrenceSp3RSpace(
-      const sp3r::Sp3RSpace& sp3r_space_ket,
-      const sp3r::Sp3RSpace& sp3r_space_bra,
+      std::shared_ptr<const Sp3RSpace> sp3r_space_ket_ptr,
+      std::shared_ptr<const Sp3RSpace> sp3r_space_bra_ptr,
       const UnitTensorConstraintParameters& unit_tensor_constraints
     );
 
   u3::U3 sigma_ket() const { return std::get<0>(labels()); }
   u3::U3 sigma_bra() const { return std::get<1>(labels()); }
   uint8_t parity_bar() const { return std::get<2>(labels()); }
+  const Sp3RSpace& ket_space() const { return *sp3r_space_ket_ptr_; }
+  const Sp3RSpace& bra_space() const { return *sp3r_space_bra_ptr_; }
+  const std::shared_ptr<const Sp3RSpace> ket_space_ptr() const
+  {
+    return sp3r_space_ket_ptr_;
+  }
+  const std::shared_ptr<const Sp3RSpace> bra_space_ptr() const
+  {
+    return sp3r_space_bra_ptr_;
+  }
 
   inline std::string LabelStr() const
   {
@@ -256,6 +284,8 @@ class RecurrenceSp3RSpace
       );
   }
 
+ private:
+  std::shared_ptr<const Sp3RSpace> sp3r_space_ket_ptr_, sp3r_space_bra_ptr_;
 };
 
 // spatial::RecurrenceSpace() []
@@ -281,8 +311,36 @@ class RecurrenceSpace
 // recurrence sectors
 ////////////////////////////////////////////////////////////////
 
+class RecurrenceU3Sector
+    : public basis::BaseSector<RecurrenceU3Space>
+{
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+
+  using BaseSector::BaseSector;
+
+  std::size_t source_subspace_index() const
+  {
+    return BaseSector::ket_subspace_index();
+  }
+  std::size_t target_subspace_index() const
+  {
+    return BaseSector::bra_subspace_index();
+  }
+  const RecurrenceU3Space& source_subspace() const
+  {
+    return BaseSector::ket_subspace();
+  }
+  const RecurrenceU3Space& target_subspace() const
+  {
+    return BaseSector::bra_subspace();
+  }
+};
+
 class RecurrenceU3Sectors
-    : public basis::BaseSectors<RecurrenceNnsumSpace>
+    : public basis::BaseSectors<RecurrenceNnsumSpace, RecurrenceNnsumSpace, RecurrenceU3Sector>
 {
  public:
   ////////////////////////////////////////////////////////////////

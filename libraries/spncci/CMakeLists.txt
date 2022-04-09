@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
 set(spncci_headers
+    recurrence_spatial.h
     spncci_common.h
     spncci_basis.h
     vcs_cache.h
@@ -34,6 +35,7 @@ set(spncci_sources
     hyperblocks_u3s.cpp
     variance.cpp
     recurrence_seeds.cpp
+    recurrence_spatial.cpp
 )
 
 # define spncci library and add source files

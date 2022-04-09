@@ -15,10 +15,21 @@ recurrence_indexing_spin.h
     spin::RecurrenceSpace() []
       spin::RecurrenceLGISpace() [sigma,sigma',exchange_symm_bar]
       ->spin::RecurrenceSpinSpace() [S,S']
-        -> spin::RecurrenceSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
+        -> spin::RecurrenceSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T'] (gamma,gamma')
           ->spin::RecurrenceOperatorState() [operator_index]
 
     operator_index -> (S0,T0,Sbar,Sbar',Tbar,Tbar') bit representation
+
+    spin::ContractionSpace() []
+      spin::ContractionLGISpace() [sigma,sigma',exchange_symm_bar]
+      ->spin::ContractionSpinSpace() [S,S']
+        -> spin::ContractionSpinSubspace() [Sp,Sn,Sp',Sn']/[T,T'] (gamma,gamma')
+          -> spin::ContractionOperatorState() [S0]/[S0,T0]
+
+    spin::BranchingSpace() [J,J',J0]
+      spin::BranchingLGISpace() [sigma,sigma',exchange_symm_bar]
+      ->spin::BranchingSpinSubspace() [S,S']
+        -> spin::BranchingSpinState() [Sp,Sn,Sp',Sn']/[T,T'] (gamma,gamma')
 
   Anna E. McCoy[1] and Patrick J. Fasano[2,3]
   [1] Institute for Nuclear Theory
@@ -486,7 +497,7 @@ class RecurrenceLGISpace
     return uint8_t(exchange_symm_bar() + abs(sigma_bra().N() - sigma_ket().N())) % 2;
   }
 
-  std::string LabelStr() const 
+  std::string LabelStr() const
   {
     return fmt::format("{} {} {}",sigma_ket().Str(),sigma_bra().Str(),exchange_symm_bar());
   }
@@ -567,5 +578,4 @@ RecurrenceSpace<tLGIType, tUnitTensorLabelsType>::RecurrenceSpace(
 
 }  // namespace spin
 }  // namespace spncci
-
 #endif  // RECURRENCE_INDEXING_SPIN_H_

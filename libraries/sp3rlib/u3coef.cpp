@@ -36,11 +36,11 @@ namespace u3
   {
     const u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
 
-    // If block not cached.  Compute and cache. 
+    // If block not cached.  Compute and cache.
     if (cache.count(labels)==0)
       cache[labels]=u3::WCoefBlock(labels);
 
-    const u3::WCoefBlock& block = cache.at(labels); 
+    const u3::WCoefBlock& block = cache.at(labels);
     return block.GetCoef(kappa1, kappa2, kappa3, rho);
   }
 
@@ -52,25 +52,26 @@ namespace u3
 
   std::string UCoefLabels::Str() const
   {
-    std::string label_str 
+    std::string label_str
     = fmt::format("[{} {} {} {} {} {}",
       x1_.Str(),x2_.Str(),x_.Str(),x3_.Str(),x12_.Str(),x23_.Str()
       );
-    
+
     return label_str;
   }
 
 
 
+  template <>
   double UCached(
                  u3::UCoefCache& cache,
-                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, 
+                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
                  const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
                  )
   {
     const u3::UCoefLabels labels(x1,x2,x,x3,x12,x23);
-    
+
     //If  coef block not found in cache, compute
     if (cache.count(labels)==0)
       {cache[labels]=u3::RecouplingCoefBlock(labels,RecouplingMode::kU);}
@@ -85,13 +86,13 @@ namespace u3
 
   double ZCached(
                  u3::ZCoefCache& cache,
-                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x, 
+                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
                  const u3::SU3& x3, const u3::SU3& x12,
                  int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
                  )
   {
     const u3::ZCoefLabels labels(x1,x2,x,x3,x12,x23);
-    
+
     //If  coef block not found in cache, compute
     if (cache.count(labels)==0)
       {cache[labels]=u3::RecouplingCoefBlock(labels,RecouplingMode::kZ);}
