@@ -21,10 +21,10 @@
 #include "sp3rlib/u3.h"
 #include "u3shell/operator_parameters.h"
 
-namespace spatial
+namespace u3shell
 {
 
-namespace onecoord
+namespace spatial::onecoord
 {
 
   std::map<u3::SU3,std::vector<unsigned int>>
@@ -43,6 +43,7 @@ namespace onecoord
   class OperatorSU3Subspace;
   class OperatorL0Space;
   class OperatorN0Space;
+  class OperatorParitySpace;
   class OperatorSpace;
 
   ////////////////////////////////////////////////////////////////
@@ -77,6 +78,7 @@ namespace onecoord
     u3::SU3 x0() const {return std::get<0>(labels());}
     int N0() const {return N0_;}
     std::string LabelStr() const {return x0().Str();}
+    std::string DebugStr(const std::string& indent="") const;
 
     private:
       int N0_;
@@ -112,12 +114,14 @@ namespace onecoord
       //Reconstruct Nbarp from Nbar and N0;
       inline unsigned int Nbarp() const
       {
-        return Nbar()+subspace().N0();
+        // Casting shouldn't be necessary, but I'm paranoid (aem).
+        return static_cast<unsigned int>(static_cast<int>(Nbar())+subspace().N0());
       }
 
       std::string LabelStr() const
         {return fmt::format("[{} {}]",Nbar(),Nbarp());}
 
+      std::string DebugStr(const std::string& indent="") const;
       // private:
     };
 
@@ -152,7 +156,7 @@ namespace onecoord
         {
           unsigned int kappa0_max = u3::BranchingMultiplicitySO3(x0,L0);
           auto subspace = OperatorU3Subspace(N0,x0,Nbar_vector);
-          if(subspace.size()>0)
+          if(subspace.size()>0 && kappa0_max>0)
             PushSubspace(std::move(subspace),kappa0_max);
         }
 
@@ -162,7 +166,7 @@ namespace onecoord
     unsigned int L0() const {return std::get<0>(labels());}
     unsigned int kappa0_max(std::size_t i) const {return GetSubspaceDegeneracy(i);}
     std::string LabelStr() const {return fmt::format("{}",L0());}
-
+    std::string DebugStr(const std::string& indent="") const;
     // private:
 
   };
@@ -184,10 +188,11 @@ namespace onecoord
     {
 
       // Extract S0max from operator_parameters.
+      // if no S0 values given, then S0max is default value
       int S0max = 2;
       const auto& allowed_S0_values = operator_parameters.Allowed_S0_values;
-      // allowed_S0_values are in ordered set with largest value being the right-most
       if(allowed_S0_values.size()>0)
+      // allowed_S0_values are in ordered set with largest value being the right-most
         S0max= *(allowed_S0_values.rbegin());
 
       // Extract allowed values for L0 from operator_parameters.
@@ -196,7 +201,7 @@ namespace onecoord
          allowed_L0_values = operator_parameters.Allowed_L0_values;
       else
         {
-          unsigned int L0min=std::max(0,int(operator_parameters.J0)-S0max);
+          unsigned int L0min=static_cast<int>(std::max(0,int(operator_parameters.J0)-S0max));
 
           for(unsigned int L0=L0min; L0<=operator_parameters.J0+S0max; ++L0)
             {
@@ -218,7 +223,8 @@ namespace onecoord
     }
 
     int N0() const {return std::get<0>(labels());}
-    std::string DebugStr() const;
+    std::string LabelStr() const {return fmt::format("{}",N0());}
+    std::string DebugStr(const std::string& indent="") const;
 
     // private:
 
@@ -227,10 +233,11 @@ namespace onecoord
 
   //////////////////////////////////////////////////////////////////////////////////////
   /// Space
-  ///   OperatorSpace [parity_bar]
-  ///     -> OperatorN0Space [N0]
-  ///       -> OperatorL0Space [L0]
-  ///          -> OperatorSU3Subspace (kappa0)[omega0]
+  ///   OperatorSpace
+  ///     -> OperatorParitySpace [parity_bar]
+  ///       -> OperatorN0Space [N0]
+  ///         -> OperatorL0Space [L0]
+  ///           -> OperatorSU3Subspace (kappa0)[omega0]
   ///              ->OperatorStates [Nbar]  Nbarp fixed by N0.
   ///
   /// Takes as an argument an u3shell::relative::OperatorParameters struct
@@ -253,14 +260,14 @@ namespace onecoord
   ///    Allowed_w0_values={} -> Given by GenerateSpatialOperators
   ///
   /////////////////////////////////////////////////////////////////////////////////////
-  class OperatorU3Space
-  : public basis::BaseSpace<OperatorU3Space, OperatorN0Space,std::tuple<uint8_t>>
+  class OperatorParitySpace
+  : public basis::BaseSpace<OperatorParitySpace, OperatorN0Space,std::tuple<uint8_t>>
   {
 
    public:
-    OperatorU3Space() = default;
+    OperatorParitySpace() = default;
 
-    OperatorU3Space(
+    OperatorParitySpace(
       const uint8_t parity_bar,
       const u3shell::relative::OperatorParameters& operator_parameters
     ) : BaseSpace{parity_bar}
@@ -277,159 +284,39 @@ namespace onecoord
 
     uint8_t parity_bar() const {return std::get<0>(labels());}
 
-    std::string DebugStr() const;
-
+    std::string DebugStr(const std::string& indent) const;
+    std::string LabelStr() const {return fmt::format("{}",parity_bar());}
     // private:
 
   };
 
-
-
-  // [TODO: Rewrite with new U3Space indexing in mind]
-  ////////////////////////////////////////////////////////////////
-  // For upcoupling, define spatial indexing for relative
-  ////////////////////////////////////////////////////////////////
-
-  class OperatorSO3Space;
-  class OperatorSO3Subspace;
-  class OperatorSO3State;
-
-  ////////////////////////////////////////////////////////////////
-  // L0 subspaces with degeneracy given by (L0,kappa0) pairs
-  ////////////////////////////////////////////////////////////////
-  class OperatorSO3Subspace
-    : public basis::BaseDegenerateSubspace<
-          OperatorSO3Subspace,
-          std::tuple<uint8_t, unsigned int>,
-          OperatorSO3State,
-          std::tuple<unsigned int, unsigned int>
-        >
-  {
-  public:
-
-    // constructors
-    OperatorSO3Subspace() = default;
-
-    OperatorSO3Subspace(
-      const uint8_t parity_bar,
-      const unsigned int Nmax,
-      const unsigned int L0
-    )
-    : BaseDegenerateSubspace{{parity_bar,L0}}
-    {
-      for(int Lbar = parity_bar; Lbar<=Nmax; Lbar+=2)
-        for(int Lbarp = std::abs(int(Lbar)-int(L0)); Lbarp<(Lbar+L0)&&Lbarp<=Nmax; Lbarp+=2)
-          {
-            int np_max = (Nmax-Lbarp-parity_bar)/2;
-            int n_max = (Nmax-Lbar-parity_bar)/2;
-            int degeneracy = np_max*n_max;
-            PushStateLabels({Lbar,Lbarp},degeneracy);
-            np_max_values_.push_back(np_max);
-          }
-    }
-
-    // accessors
-    uint8_t parity_bar() const {return std::get<0>(labels());}
-    unsigned int L0() const {return std::get<1>(labels());}
-
-    inline std::size_t GetStateOffset(const std::size_t i, const int Nbar, const int Nbarp) const
-      {
-        const auto& [Lbar,Lbarp] = GetStateLabels(i);
-        int n = (Nbar-Lbar)/2;
-        int np = (Nbarp-Lbarp)/2;
-        int degeneracy_index = n*np_max_values_[i]+np;
-        return BaseDegenerateSubspace::GetStateOffset(i, degeneracy_index);
-      }
-
-    std::string LabelStr() const
-      {return fmt::format("[{} {}]",L0(),parity_bar());}
-
-    private:
-      std::vector<unsigned int> np_max_values_;
-  };
-
-
-  ////////////////////////////////////////////////////////////////
-  // States given by Nbar,Nbar' pairs
-  ////////////////////////////////////////////////////////////////
-  class OperatorSO3State
-      : public basis::BaseState<OperatorSO3Subspace>
-    {
-     public:
-
-      OperatorSO3State() = default;
-      // pass-through constructors
-
-      OperatorSO3State(const SubspaceType& subspace, const std::size_t index)
-      // Construct state by index.
-          : basis::BaseState<OperatorSO3Subspace>(subspace, index)
-      {}
-
-      OperatorSO3State(
-          const SubspaceType& subspace,
-          const typename SubspaceType::StateLabelsType& state_labels
-        )
-      // Construct state by reverse lookup on labels.
-          : basis::BaseState<OperatorSO3Subspace>(subspace, state_labels)
-      {}
-
-      unsigned int Lbar()  const {return std::get<0>(labels());}
-      unsigned int Lbarp() const {return std::get<1>(labels());}
-
-      std::string LabelStr() const
-        {return fmt::format("[{} {}]",Lbar(),Lbarp());}
-
-      // private:
-    };
-
-  ////////////////////////////////////////////////////////////////
-  //  OperatorSO3Space
-  //   -> OperatorSO3Subspace [L0] {Nbar,Nbar'}
-  //       -> OperatorSO3State [Lbar,Lbarp]
-  ////////////////////////////////////////////////////////////////
-  // QUERRY PATRICK: Can we get rid of mandatory SpaceLabelType for BaseDegenerateSpace
-  class OperatorSO3Space
-  : public basis::BaseSpace<OperatorSO3Space, OperatorSO3Subspace>
+  class OperatorSpace
+  : public basis::BaseSpace<OperatorSpace,OperatorParitySpace>
   {
 
    public:
-    OperatorSO3Space() = default;
+    OperatorSpace() = default;
 
-    OperatorSO3Space(const unsigned int J0, const unsigned int Nbar_max)
+    OperatorSpace(
+      const u3shell::relative::OperatorParameters& operator_parameters
+    ) : BaseSpace{}
     {
-      int L0_min = std::max(0,int(J0)-2);
-      for(int parity_bar : {0,1})
-        for(unsigned int L0=L0_min; L0<=J0+2; L0++)
-          {
-            auto subspace = OperatorSO3Subspace(parity_bar,Nbar_max,L0);
-            if(subspace.size()>0)
-              PushSubspace(std::move(subspace));
-          }
-    }
+      for(uint8_t parity_bar : {0,1})
+        {
+          auto subspace = OperatorParitySpace(parity_bar,operator_parameters);
+          if(subspace.size()>0)
+            PushSubspace(std::move(subspace));
+        }
 
-    OperatorSO3Space(const u3shell::relative::OperatorParameters& operator_parameters)
-    {
-      const auto& Allowed_L0_values = operator_parameters.Allowed_L0_values;
-      const unsigned int Nbar_max = operator_parameters.Nbar_max;
-      for(int parity_bar : {0,1})
-        for(const unsigned int L0 : Allowed_L0_values)
-          {
-            auto subspace = OperatorSO3Subspace(parity_bar,Nbar_max,L0);
-            if(subspace.size()>0)
-              PushSubspace(std::move(subspace));
-          }
     }
 
     std::string DebugStr() const;
+
     // private:
+
   };
 
-
-}// spatial namespace
-
-
-}//relative namespace
-
-
+  }  // namespace spatial::onecoord
+  }  // namespace u3shell
 
 #endif

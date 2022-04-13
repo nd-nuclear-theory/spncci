@@ -35,7 +35,8 @@ namespace std
 template<> struct hash<u3shell::spin::twobody::OperatorLabelsST>;
 }
 
-namespace u3shell::spin::twobody{
+namespace u3shell::spin::twobody
+{
 
 class OperatorLabelsST
 {
@@ -94,6 +95,13 @@ public:
     return {Sbar(),Sbarp(),Tbar(),Tbarp()};
   }
 
+  inline std::tuple<unsigned int,unsigned int,unsigned int,unsigned int,unsigned int,unsigned int>
+  labels() const
+  {
+    return {S0(),T0(),Sbar(),Sbarp(),Tbar(),Tbarp()};
+  }
+
+
   inline uint8_t exchange_symm_bar() const { return (Sbar() + Tbar()) % 2; }
   inline uint8_t exchange_symm_barp() const { return (Sbarp() + Tbarp()) % 2; }
 
@@ -111,8 +119,8 @@ public:
   mcutils::bit_tuple<uint8_t,2,2,1,1,1,1> bitrep_;
 };
 
-// 36 possible two-body spin and isospin labels
-inline std::array<OperatorLabelsST, 36> const OperatorLabelsST::ALLOWED_LABELS{{
+  // 36 possible two-body spin and isospin labels
+  inline std::array<OperatorLabelsST, 36> const OperatorLabelsST::ALLOWED_LABELS{{
     // (S0, T0, Sbar, Sbarp, Tbar, Tbarp)
     OperatorLabelsST{0, 0, 0, 0, 0, 0},
     OperatorLabelsST{0, 0, 0, 0, 1, 1},
@@ -153,19 +161,157 @@ inline std::array<OperatorLabelsST, 36> const OperatorLabelsST::ALLOWED_LABELS{{
   }};
 
 
-  std::size_t GetSpinOperatorOffset(const unsigned int S0)
-    {
-      for(std::size_t index=0; index<36; index++)
-        {
-          if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
-            return index;
-        }
+  inline std::size_t GetSpinOperatorOffset(const unsigned int S0)
+      {
+        for(std::size_t index=0; index<36; index++)
+          {
+            if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
+              return index;
+          }
+        fmt::print("S0 = {} is not an allowed two-body spin");
+        exit(EXIT_FAILURE);
+      }
 
-      exit(EXIT_FAILURE);
+  inline std::size_t GetSpinOperatorOffset(const unsigned int S0, const unsigned int T0)
+      {
+        for(std::size_t index=0; index<36; index++)
+          {
+            if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
+              if(OperatorLabelsST::ALLOWED_LABELS[index].T0()==T0)
+                return index;
+          }
+
+        exit(EXIT_FAILURE);
+      }
+  ////////////////////////////////////////////////////////////////
+  class OperatorState;
+  class OperatorSubspace;
+  class OperatorSpace;
+  ////////////////////////////////////////////////////////////////
+  // OperatorSubspace [exchange_syn_bar]
+  //  -> OperatorStates [i]
+  // States within subspace are index into
+  // OperatorLabelsST::ALLOWED_LABELS
+  // corresponding to S0 T0 Sbar Sbarp Tbar Tbarp
+  ////////////////////////////////////////////////////////////////
+  class OperatorSubspace
+      : public basis::BaseSubspace<
+      OperatorSubspace,
+      std::tuple<uint8_t,uint8_t>,
+      OperatorState,
+      std::tuple<uint8_t>
+    >
+  {
+     public:
+      // constructors
+      OperatorSubspace() = default;
+
+      OperatorSubspace(
+        const uint8_t exchange_symm_bar,
+        const uint8_t S0,
+        const u3shell::relative::OperatorParameters& operator_parameters
+        ): BaseSubspace{{exchange_symm_bar,S0}}
+      {
+
+        auto allowed_T0_values =
+            (operator_parameters.Allowed_T0_values.size() == 0)?
+            std::set<uint8_t>{0, 1, 2}
+            :operator_parameters.Allowed_T0_values;
+
+        for (int i = 0; i < 36; ++i)
+        {
+          const auto& labels = OperatorLabelsST::ALLOWED_LABELS[i];
+          bool allowed_state = S0==labels.S0();
+          allowed_state &= allowed_T0_values.count(labels.T0());
+          allowed_state &= (labels.Sbar()+labels.Tbar()+exchange_symm_bar)%2 == 0;
+
+          if(allowed_state)
+            PushStateLabels({i});
+        }
+      }
+
+      // accessors
+      uint8_t exchange_symm_bar() const { return std::get<0>(labels()); }
+      uint8_t S0() const { return std::get<1>(labels()); }
+      std::string DebugStr(const std::string& indent = "") const;
+      std::string LabelStr() const {return fmt::format("[{} {}]",exchange_symm_bar(),S0());}
+     // private:
+
+  };
+
+
+  ////////////////////////////////////////////////////////////////
+  // States: index into OperatorLabelsST::ALLOWED_LABELS
+  ////////////////////////////////////////////////////////////////
+  class OperatorState
+      : public basis::BaseState<OperatorSubspace>
+    {
+     public:
+
+      OperatorState() = default;
+      OperatorState(const SubspaceType& subspace, std::size_t index)
+      // Construct state by index.
+          : basis::BaseState<OperatorSubspace>(subspace, index)
+      {}
+
+      OperatorState(
+          const SubspaceType& subspace,
+          const typename SubspaceType::StateLabelsType& state_labels
+        )
+      // Construct state by reverse lookup on labels.
+          : basis::BaseState<OperatorSubspace>(subspace, state_labels)
+      {}
+
+      inline int index()  const {return static_cast<int>(std::get<0>(BaseState::labels()));}
+      inline std::tuple<unsigned int,unsigned int,unsigned int,unsigned int,unsigned int,unsigned int>
+        labels() const {return OperatorLabelsST::ALLOWED_LABELS[index()].labels();}
+
+      std::string LabelStr() const
+        {return OperatorLabelsST::ALLOWED_LABELS[index()].LabelStr();}
+    };
+
+
+class OperatorSpace
+  : public basis::BaseSpace<
+    OperatorSpace, OperatorSubspace
+    >
+  {
+
+   public:
+    OperatorSpace() = default;
+
+    OperatorSpace(
+      const u3shell::relative::OperatorParameters& operator_parameters
+    ) : BaseSpace{}
+    {
+
+      auto allowed_S0_values =
+          (operator_parameters.Allowed_S0_values.size() == 0)?
+          std::set<uint8_t>{0, 1, 2}
+          :operator_parameters.Allowed_S0_values;
+
+
+      for(uint8_t exchange_symm_bar : {0,1})
+      {
+        for (uint8_t S0 : allowed_S0_values)
+        {
+          auto subspace =
+              OperatorSubspace(exchange_symm_bar, S0, operator_parameters);
+
+          if(subspace.size()>0)
+            PushSubspace(std::move(subspace));
+        }
+      }
+
     }
 
-}// spin::twobody namespace
+    std::string DebugStr() const;
 
+    // private:
+
+  };
+
+}  // namespace u3shell::spin::twobody
 
 
 namespace std

@@ -8,7 +8,9 @@
 
   3/23/22 (aem): Created.
 ****************************************************************/
-#include "spncci_basis/recurrence_indexing_operator.h"
+#include "u3shell/operator_indexing_spatial.h"
+#include "u3shell/operator_indexing_spin.h"
+#include "u3shell/operator_indexing_sectors.h"
 
 ////////////////////////////////////////////////////////////////
 // main
@@ -18,25 +20,35 @@
 
 int main(int argc, char **argv)
 {
+  using relative_operator_sectors
+  = u3shell::relative::OperatorU3SpinSectors<
+    u3shell::spatial::onecoord::OperatorSpace,
+    u3shell::spatial::onecoord::OperatorL0Space,
+    u3shell::spin::twobody::OperatorSpace,
+    u3shell::spin::twobody::OperatorSubspace
+    >;
 
   if(true)
   {
     // Check indexing for Sp(3,R) raising operator
-    int Nmax=2;
+    int Nmax=4;
     int N1v=1;
-    relative::OperatorParameters Arel_parameters(N1v,Nmax,0,{{2,{2,0}}},{0,2},{0},{0});
+
+    // Parameters are N1v, Nmax, J0, Allowed_w0_values,
+    //  Allowed_L0_values, Allowed_S0_values, Allowed T0_values
+    u3shell::relative::OperatorParameters Arel_parameters(N1v,Nmax,0,{{2,{2u,0u}}},{0,2},{0},{0});
 
     std::cout<<"Relative Sp(3,R) raising operator"<<std::endl;
-    relative::spatial::OperatorSpace
-      spatial_operator_space(Arel_parameters);
 
-    std::cout<<spatial_operator_space.DebugStr()<<std::endl;
+    auto spatial_ptr
+    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(Arel_parameters);
+    std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
-    relative::spin::OperatorSpace
-      spin_operator_space(Arel_parameters);
-    std::cout<<spin_operator_space.DebugStr()<<std::endl;
+    auto spin_ptr
+    = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(Arel_parameters);
+    std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative::OperatorSectors operator_sectors(spatial_operator_space,spin_operator_space);
+    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,Arel_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
   }
@@ -48,37 +60,36 @@ int main(int argc, char **argv)
     // Check indexing for Trel
     int Nmax=2;
     int N1v=1;
-    relative::OperatorParameters Trel_parameters(N1v,Nmax,0,{{2,{2,0}},{-2,{0,2}},{0,{0,0}}},{0},{0},{0});
+    u3shell::relative::OperatorParameters
+      Trel_parameters(N1v,Nmax,0,{{2,{2u,0u}},{-2,{0u,2u}},{0,{0u,0u}}},{0},{0},{0});
 
     std::cout<<"Relative kinetic energy"<<std::endl;
-    relative::spatial::OperatorSpace
-      spatial_operator_space(Trel_parameters);
+    auto spatial_ptr
+    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(Trel_parameters);
+    std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
-    std::cout<<spatial_operator_space.DebugStr()<<std::endl;
+    auto spin_ptr
+    = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(Trel_parameters);
+    std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative::spin::OperatorSpace
-      spin_operator_space(Trel_parameters);
-    std::cout<<spin_operator_space.DebugStr()<<std::endl;
-
-    relative::OperatorSectors operator_sectors(spatial_operator_space,spin_operator_space);
+    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,Trel_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
   }
 
 
-  if(false)
+  if(true)
   {
-    int Nmax=2;
+    // No contraints other than J0.
+    std::cout<<"No constraints"<<std::endl;
+    int Nmax=20;
     int N1v=1;
     unsigned int J0=0;
-    std::vector<unsigned int> allowed_L0_values={0};
-
-    std::unordered_set<u3::U3> Allowed_w0_values={{0,{0,0}},{0,{2,2}}};
-    std::set<unsigned int> Allowed_L0_values={0,2};
-    std::set<unsigned int> Allowed_S0_values={};
-    std::set<unsigned int> Allowed_T0_values={};
-    relative::OperatorParameters
-      operator_parameters(
+    std::unordered_set<u3::U3> Allowed_w0_values;
+    std::set<unsigned int> Allowed_L0_values;
+    std::set<uint8_t> Allowed_S0_values,Allowed_T0_values;
+    u3shell::relative::OperatorParameters
+      hamiltonian_parameters(
         N1v,Nmax,J0,
         Allowed_w0_values,
         Allowed_L0_values,
@@ -86,39 +97,18 @@ int main(int argc, char **argv)
         Allowed_T0_values
         );
 
-    relative::spatial::OperatorSpace
-      spatial_operator_space(operator_parameters);
+    auto spatial_ptr
+    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(hamiltonian_parameters);
+    // std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
-    std::cout<<spatial_operator_space.DebugStr()<<std::endl;
+    auto spin_ptr
+    = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(hamiltonian_parameters);
+    // std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative::spin::OperatorSpace
-      spin_operator_space(operator_parameters);
-    std::cout<<spin_operator_space.DebugStr()<<std::endl;
-
-    relative::OperatorSectors operator_sectors(spatial_operator_space,spin_operator_space);
+    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,hamiltonian_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
-    for(int i=0; i<operator_sectors.size(); ++i)
-      {
-        const auto& sector = operator_sectors.GetSector(i);
-        std::cout<<fmt::format("bra_degeneracy: {}  ket_degeneracy: {}",
-          sector.bra_subspace_degeneracy(),
-          sector.ket_subspace_degeneracy()
-        )<<std::endl;
 
-        std::cout<<fmt::format("num_elements: {}  num_block_elements: {}",
-          sector.num_elements(), sector.num_block_elements()
-        )<<std::endl;
-
-        for(int bra_degeneracy_index=1; bra_degeneracy_index<=sector.bra_subspace_degeneracy(); bra_degeneracy_index++)
-          for(int ket_degeneracy_index=1; ket_degeneracy_index<=sector.ket_subspace_degeneracy(); ket_degeneracy_index++)
-            {
-              std::cout<<fmt::format("bra_degeneracy_index: {}  ket_degeneracy_index: {}  block offset: {}",
-                bra_degeneracy_index,ket_degeneracy_index,sector.GetBlockOffset(bra_degeneracy_index,ket_degeneracy_index)
-              )<<std::endl;
-            }
-      }
   }
-  // termination
   return 0;
 }
