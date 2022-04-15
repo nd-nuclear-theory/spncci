@@ -3,10 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 
 # define units
 set(u3shell_UNITS_H
-  # recurrence_upcoupling
+
   operator_parameters
-  operator_indexing_spin
-  # operator_indexing_sectors
+  operator_indexing_sectors
 
 )
 set(u3shell_UNITS_H_CPP
@@ -22,7 +21,8 @@ set(u3shell_UNITS_H_CPP
   unit_tensor_space_u3s
   interaction_truncation
   operator_indexing_spatial
-
+  operator_indexing_spin
+  relative_upcoupling
   )
 
 # add headers and sources
@@ -90,10 +90,19 @@ target_link_libraries(relative_operator_test PRIVATE
 # )
 
 
-  # add_executable(operator_indexin_test EXCLUDE_FROM_ALL operator_indexin_test.cpp)
-  # target_link_libraries(operator_indexin_test PRIVATE
-  #   spncci::spncci_basis
-  #   basis::basis
-  #   fmt::fmt
-  #   spncci::sp3rlib
-  # )
+add_executable(operator_indexing_test EXCLUDE_FROM_ALL operator_indexing_test.cpp)
+target_link_libraries(operator_indexing_test PRIVATE
+  basis::basis
+  fmt::fmt
+  spncci::sp3rlib
+  spncci::u3shell
+)
+
+add_executable(relative_upcoupling_test EXCLUDE_FROM_ALL relative_upcoupling_test.cpp)
+target_link_libraries(relative_upcoupling_test PRIVATE
+  basis::basis
+  fmt::fmt
+  spncci::utilities
+  spncci::sp3rlib
+  spncci::u3shell
+)
