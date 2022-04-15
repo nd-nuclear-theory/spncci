@@ -19,8 +19,9 @@ namespace u3
 
   void U3CoefInit(int max_lambda_plus_mu)
   {
+    // max_lambda_plus_mu*=2;
     int jjmax = 2*max_lambda_plus_mu;
-    su3::init_thread(max_lambda_plus_mu, jjmax);
+    su3::init_thread(2*max_lambda_plus_mu, jjmax);
   }
 
   int WCoefBlock::CoefIndex(
@@ -45,7 +46,7 @@ namespace u3
     std::tie(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_) = WMultiplicity(x1,L1,x2,L2,x3,L3);
     
     su3::wu3r3w(lambda1,mu1,lambda2,mu2,lambda3,mu3,
-      L1,L2,L3,kappa3_max_,kappa2_max_,kappa1_max_,rho_max_,coefs_
+      L1,L2,L3,kappa1_max_,kappa2_max_,kappa3_max_,rho_max_,coefs_
       );
   }
 
