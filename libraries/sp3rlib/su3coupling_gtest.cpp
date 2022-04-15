@@ -176,6 +176,9 @@ double compute_W_sum_alpha(
   {
     for (L_kappa& tLK2 : lk2)
     {
+      if(!am::AllowedTriangle(tLK1.L,tLK2.L,L))
+        continue;
+
       double coef =
           u3::W(x1, tLK1.kappa, tLK1.L, x2, tLK2.kappa, tLK2.L, x, kappa, L, rho)
           * u3::W(
