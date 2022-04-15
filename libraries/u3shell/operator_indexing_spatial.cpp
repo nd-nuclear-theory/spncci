@@ -17,9 +17,13 @@ namespace u3shell
 {
 namespace spatial::onecoord
 {
-std::map<u3::SU3, std::vector<unsigned int>> GenerateSpatialOperators(
-    const int N0, const uint8_t parity_bar,
-    const u3shell::relative::OperatorParameters& operator_parameters) {
+std::map<u3::SU3, std::vector<unsigned int>>
+GenerateSpatialOperators(
+    const int N0,
+    const uint8_t parity_bar,
+    const u3shell::relative::OperatorParameters& operator_parameters
+  )
+{
   unsigned int Nbar_min = parity_bar;
   unsigned int Nbar_max = operator_parameters.Nbar_max;
   const auto& Allowed_w0_values = operator_parameters.Allowed_w0_values;
@@ -45,7 +49,7 @@ std::map<u3::SU3, std::vector<unsigned int>> GenerateSpatialOperators(
   }
 
   return x0_Nbar_vector;
-    }
+}
 
 
     std::string OperatorU3Subspace::DebugStr(const std::string& indent) const

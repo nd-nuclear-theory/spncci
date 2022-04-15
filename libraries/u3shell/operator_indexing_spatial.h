@@ -272,7 +272,10 @@ namespace spatial::onecoord
       const u3shell::relative::OperatorParameters& operator_parameters
     ) : BaseSpace{parity_bar}
     {
-      int N0_max=operator_parameters.Nbar_max-parity_bar;
+      // For parity conserving Nbar and Nbarp
+      // If parity_bar=1, then max(Nbarp-Nbar)=Nbar_max-2
+      // If parity_bar=0, then max(Nbarp-Nbar)=Nbar_max
+      int N0_max=operator_parameters.Nbar_max-2*parity_bar;
       for(int N0 = -N0_max; N0<=N0_max; N0+=2)
         {
           auto subspace = OperatorN0Space(parity_bar,N0,operator_parameters);
