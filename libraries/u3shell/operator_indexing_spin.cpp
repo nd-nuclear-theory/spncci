@@ -17,7 +17,7 @@ namespace u3shell::spin::twobody{
 std::string OperatorSubspace::DebugStr(const std::string& indent) const
 {
   std::string debug_str = fmt::format(
-      "{}S0Subspace: S0: {} parity_bar: {} size: {}  dimension: {}\n",
+      "{}S0Subspace: S0: {} exchange_symm_bar: {} size: {}  dimension: {}\n",
       indent,
       S0(),
       exchange_symm_bar(),

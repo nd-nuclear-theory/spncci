@@ -39,13 +39,90 @@ namespace u3shell::relative
 ///
 ////////////////////////////////////////////////////////////////
 
+template<typename tOperatorSpatialSubspaceType,typename tOperatorSpinSubspaceType>
+class OperatorU3SpinSector
+  : public basis::BaseSector<tOperatorSpatialSubspaceType,tOperatorSpinSubspaceType>
+{
+private:
+  using BaseSectorType =
+     basis::BaseSector<tOperatorSpatialSubspaceType, tOperatorSpinSubspaceType>;
+
+public:
+ using BaseSectorType::bra_subspace;
+ using BaseSectorType::bra_subspace_index;
+ using BaseSectorType::ket_subspace;
+ using BaseSectorType::ket_subspace_index;
+
+ using KeyType = std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>;
+
+ OperatorU3SpinSector() = default;
+
+ OperatorU3SpinSector(
+     const std::size_t spatial_subspace_index,
+     const std::size_t spin_subspace_index,
+     std::shared_ptr<const tOperatorSpatialSubspaceType> spatial_subspace_ptr,
+     std::shared_ptr<const tOperatorSpinSubspaceType> spin_subspace_ptr,
+     const std::size_t parity_space_index,
+     const std::size_t N0_space_index
+   )
+     : BaseSectorType{spatial_subspace_index, spin_subspace_index, std::move(spatial_subspace_ptr), std::move(spin_subspace_ptr)},
+       parity_space_index_{parity_space_index},
+       N0_space_index_{N0_space_index}
+ {}
+
+ inline std::size_t parity_space_index() const { return parity_space_index_; }
+ inline std::size_t N0_space_index() const { return N0_space_index_; }
+
+ inline std::size_t element_offset(
+     const std::size_t spin_index,
+     const std::size_t x0_kappa0_index,
+     const std::size_t Nbar_index
+   ) const
+  {
+   return spin_index * bra_subspace().dimension() + x0_kappa0_index + Nbar_index;
+  }
+
+
+  inline std::size_t element_offset(
+      const std::size_t spin_index,
+      const u3::SU3& x0,
+      const unsigned int kappa0,
+      const unsigned int Nbar
+    ) const
+  {
+    std::size_t x0_index = bra_subspace().LookUpSubspaceIndex(x0);
+    std::size_t x0_kappa0_index =
+        bra_subspace().GetSubspaceOffset(x0_index, kappa0);
+    std::size_t Nbar_index =
+        bra_subspace().GetSubspace(x0_index).LookUpStateIndex(Nbar);
+    return element_offset(spin_index, x0_kappa0_index, Nbar_index);
+  }
+
+  inline KeyType Key() const
+  {
+    return {
+        parity_space_index(),
+        N0_space_index(),
+        bra_subspace_index(),
+        ket_subspace_index()
+      };
+  }
+
+private:
+  std::size_t parity_space_index_;
+  std::size_t N0_space_index_;
+
+};
+
+
+
 template<typename tOperatorSpatialSpaceType, typename tOperatorSpatialSubspaceType,
  typename tOperatorSpinSpaceType,typename tOperatorSpinSubspaceType>
 class OperatorU3SpinSectors
   : public basis::BaseSectors<
       tOperatorSpatialSpaceType,
       tOperatorSpinSpaceType,
-      basis::BaseSector<tOperatorSpatialSubspaceType,tOperatorSpinSubspaceType>
+      OperatorU3SpinSector<tOperatorSpatialSubspaceType,tOperatorSpinSubspaceType>
       >
 {
 private:
@@ -53,7 +130,7 @@ private:
     using BaseSectorsType = basis::BaseSectors<
       tOperatorSpatialSpaceType,
       tOperatorSpinSpaceType,
-      basis::BaseSector<tOperatorSpatialSubspaceType,tOperatorSpinSubspaceType>
+      OperatorU3SpinSector<tOperatorSpatialSubspaceType,tOperatorSpinSubspaceType>
       >;
 
   public:
@@ -72,14 +149,23 @@ private:
     )
     : BaseSectorsType{std::move(spatial_space_ptr),std::move(spin_space_ptr)},J0_(J0)
     {
-      for (const auto& spatial_subspace : bra_space())
-        for (int i_spin = 0; i_spin < ket_space().size(); ++i_spin) {
+      //By parity/exchange_symm
+      //By S0
+      //By N0
+      //By L0
+      for (unsigned int  parity_space_index : {0,1})
+      {
+        const auto& parity_space = bra_space().GetSubspace(parity_space_index);
+        for (int i_spin = 0; i_spin < ket_space().size(); ++i_spin)
+        {
           const auto& spin_subspace = ket_space().GetSubspace(i_spin);
-          if (spatial_subspace.parity_bar() != (spin_subspace.exchange_symm_bar() + 1) % 2)
+          if((parity_space.parity_bar()+spin_subspace.exchange_symm_bar())%2 !=1)
             continue;
 
           const auto& S0 = spin_subspace.S0();
-          for (const auto& N0subspace : spatial_subspace)
+          for(int N0_space_index=0; N0_space_index<parity_space.size(); ++N0_space_index)
+          {
+            const auto& N0subspace = parity_space.GetSubspace(N0_space_index);
             for (int i_spatial = 0; i_spatial < N0subspace.size(); ++i_spatial)
             {
               const auto& L0subspace = N0subspace.GetSubspace(i_spatial);
@@ -88,10 +174,17 @@ private:
                 auto spatial_ptr = N0subspace.GetSubspacePtr(i_spatial);
                 auto spin_ptr = ket_space().GetSubspacePtr(i_spin);
 
-                BaseSectorsType::EmplaceSector(i_spatial, i_spin,spatial_ptr,spin_ptr,1);
+                BaseSectorsType::EmplaceSector(
+                  i_spatial, i_spin,
+                  spatial_ptr,spin_ptr,
+                  parity_space_index,
+                  N0_space_index
+                  );
               }
             }
-       }
+          }
+        }
+      }
     }
 
     inline unsigned int J0() const {return J0_;}
