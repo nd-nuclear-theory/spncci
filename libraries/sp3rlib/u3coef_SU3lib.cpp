@@ -45,9 +45,12 @@ namespace u3
     const auto&[lambda3,mu3]=x3.Key();
     std::tie(kappa1_max_,kappa2_max_,kappa3_max_,rho_max_) = WMultiplicity(x1,L1,x2,L2,x3,L3);
     
-    su3::wu3r3w(lambda1,mu1,lambda2,mu2,lambda3,mu3,
-      L1,L2,L3,kappa1_max_,kappa2_max_,kappa3_max_,rho_max_,coefs_
-      );
+    if(am::AllowedTriangle(L1,L2,L3))
+      su3::wu3r3w(lambda1,mu1,lambda2,mu2,lambda3,mu3,
+        L1,L2,L3,kappa1_max_,kappa2_max_,kappa3_max_,rho_max_,coefs_
+        );
+    else
+      coefs_=std::vector<double>(kappa1_max_*kappa2_max_*kappa3_max_*rho_max_,0.0);
   }
 
   // ////////////////////////////////////////////////////////////////
