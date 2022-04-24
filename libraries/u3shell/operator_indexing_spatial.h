@@ -273,9 +273,12 @@ namespace spatial::onecoord
     ) : BaseSpace{parity_bar}
     {
       // For parity conserving Nbar and Nbarp
-      // If parity_bar=1, then max(Nbarp-Nbar)=Nbar_max-2
-      // If parity_bar=0, then max(Nbarp-Nbar)=Nbar_max
-      int N0_max=operator_parameters.Nbar_max-2*parity_bar;
+      // If Nmax even,
+      //    If parity_bar=1, then max(Nbarp-Nbar)=Nbar_max-2
+      //    If parity_bar=0, then max(Nbarp-Nbar)=Nbar_max
+      // If Nmax odd
+      //    then max(Nbarp-Nbar) = Nbar_max-1
+      int N0_max=operator_parameters.Nbar_max-2*parity_bar+(operator_parameters.Nbar_max%2);
       for(int N0 = -N0_max; N0<=N0_max; N0+=2)
         {
           auto subspace = OperatorN0Space(parity_bar,N0,operator_parameters);
