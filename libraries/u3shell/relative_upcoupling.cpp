@@ -18,6 +18,93 @@
 
 namespace u3shell::relative
 {
+
+  basis::OperatorBlock<double> UpcoupleLST(
+    const std::tuple<unsigned int,unsigned int, unsigned int, unsigned int>& labels_op,
+    const std::tuple<unsigned int,unsigned int, unsigned int>& labels_bra,
+    const std::tuple<unsigned int,unsigned int, unsigned int>& labels_ket,
+    const basis::RelativeSectorsLSJT& sectors_lsjt,
+    basis::OperatorBlocks<double>& blocks
+    )
+  {
+    const auto&[L0,S0,T0,J0] = labels_op;
+    const auto&[Lbar,Sbar,Tbar] = labels_ket;
+    const auto&[Lbarp,Sbarp,Tbarp] = labels_bra;
+
+    const auto& bra_space_lsjt = sectors_lsjt.bra_space();
+    const auto& ket_space_lsjt = sectors_lsjt.ket_space();
+
+    const int Jbar_min = abs(static_cast<int>(Lbar) - static_cast<int>(Sbar));
+    const int Jbarp_min = abs(static_cast<int>(Lbarp) - static_cast<int>(Sbarp));
+    size_t dimp = bra_space_lsjt.LookUpSubspace({Lbarp, Sbarp, Jbarp_min, Tbarp, Lbarp%2}).dimension();
+    size_t dim = ket_space_lsjt.LookUpSubspace({Lbar, Sbar, Jbar_min, Tbar, Lbar%2}).dimension();
+    basis::OperatorBlock<double> temp = basis::OperatorBlock<double>::Zero(dimp, dim);
+
+    // Summing over Jbar and Jbarp
+    for (int Jbar = Jbar_min; Jbar <= Lbar + Sbar; ++Jbar)
+      for (int Jbarp = Jbarp_min; Jbarp <= Lbarp + Sbarp; ++Jbarp)
+      {
+        if (!am::AllowedTriangle(Jbar, J0, Jbarp))
+          continue;
+
+          size_t bra_index = bra_space_lsjt.LookUpSubspaceIndex({Lbarp, Sbarp, Jbarp, Tbarp, Lbarp%2});
+          size_t ket_index = ket_space_lsjt.LookUpSubspaceIndex({Lbar, Sbar, Jbar, Tbar, Lbar%2});
+
+          bool get_adoint_sector = bra_index>ket_index;
+
+          size_t block_index;
+          if(get_adoint_sector)
+            block_index = sectors_lsjt.LookUpSectorIndex(ket_index,bra_index);
+          else
+            block_index = sectors_lsjt.LookUpSectorIndex(bra_index, ket_index);
+
+          auto& block = blocks[block_index];
+
+          // If the sector is diagonal, then we need to fill in lower triangle of the sector
+          // because only the upper triangle was saved to file.
+          if (bra_index==ket_index)
+          {
+            int nmax = block.cols() - 1;
+            for (int n = 0; n <= nmax; ++n)
+              for (int np = 0; np < n; ++np)
+              {
+                block(n, np) = block(np, n);
+              }
+          }
+
+          // accumulating blocks
+          double so3_coef =
+              am::Unitary9J(Lbar, Sbar, Jbar, L0, S0, J0, Lbarp, Sbarp, Jbarp)
+              * (am::dim(Jbarp) * am::dim(S0) * am::dim(L0))
+              / (am::dim(J0) * am::dim(Sbarp) * am::dim(Lbarp));
+
+          if(get_adoint_sector)
+          {
+
+            assert(block.rows() == dim);
+            assert(block.cols() == dimp);
+
+            // It is assumed here that the operator is a spherical tensor,
+            // i.e., (V^{J_0}_{M_0})^\dagger = (-1)^{M_0}V^{J_0}_{\tilde{M}_0}. Thus
+            // \braket{J'||V^{J_0}||J}=(-1)^{J'-J} \hat{J}/\hat{J'}\braket{J||V^{J_0}||J'}
+            // SU_J(2) and SU_T(2).
+            double conjugation_factor
+              = ParitySign(Jbar-Jbarp+Tbar-Tbarp)*(Hat(Jbar)*Hat(Tbar))/(Hat(Jbarp)*Hat(Tbarp));
+            temp += so3_coef * conjugation_factor*block.transpose();
+
+          }
+          else
+          {
+            assert(block.rows() == dimp);
+            assert(block.cols() == dim);
+
+            temp += so3_coef * block;
+          }
+      }
+    return temp;
+  }
+
+
   std::vector<double> UpcoupleU3ST(
       const int Nbar_max,
       const uint8_t g0,
@@ -50,13 +137,10 @@ namespace u3shell::relative
       {
         const auto& [S00, T0, Sbar, Sbarp, Tbar, Tbarp] =
             spin_subspace.GetState(index_spin_state).labels();
-        // fmt::print("{} {} [{} {}, {} {}]\n",S0,T0,Sbarp,Tbarp,Sbar,Tbar);
+
         assert(S00 == S0);
         const basis::RelativeSectorsLSJT& sectors_lsjt = component_sectors[T0];
         basis::OperatorBlocks<double>& blocks = component_blocks[T0];
-
-        const auto& bra_space_lsjt = sectors_lsjt.bra_space();
-        const auto& ket_space_lsjt = sectors_lsjt.ket_space();
 
         for (int Lbar = parity_bar; Lbar <= Nbar_max; Lbar += 2)
           for (int Lbarp = parity_bar; Lbarp <= Nbar_max; Lbarp += 2)
@@ -64,57 +148,12 @@ namespace u3shell::relative
             if (!am::AllowedTriangle(Lbar, L0, Lbarp))
               continue;
 
-            // from lsjt_scheme: indexing of states within sector
-            // for (int N = L; N <= Nmax; N +=2)
-            //   PushStateLabels(StateLabelsType(N));
-            auto dimp = int((Nbar_max - Lbarp - parity_bar) / 2) + 1;
-            auto dim = int((Nbar_max - Lbar - parity_bar) / 2) + 1;
-            basis::OperatorBlock<double> temp =
-                basis::OperatorBlock<double>::Zero(dimp, dim);
+            basis::OperatorBlock<double> block_lst;
+            const std::tuple<unsigned int,unsigned int, unsigned int> bra_label{Lbarp,Sbarp,Tbarp};
+            const std::tuple<unsigned int,unsigned int, unsigned int> ket_label{Lbar,Sbar,Tbar};
 
-            // Summing over Jbar and Jbarp
-            for (int Jbar = abs(Lbar - static_cast<int>(Sbar));
-                 Jbar <= Lbar + Sbar;
-                 ++Jbar)
-              for (int Jbarp = abs(Lbarp - static_cast<int>(Sbarp));
-                   Jbarp <= Lbarp + Sbarp;
-                   ++Jbarp)
-              {
-                if (!am::AllowedTriangle(Jbar, J0, Jbarp))
-                  continue;
-
-                size_t bra_index = bra_space_lsjt.LookUpSubspaceIndex(
-                    {Lbarp, Sbarp, Jbarp, Tbarp, parity_bar}
-                  );
-                size_t ket_index = ket_space_lsjt.LookUpSubspaceIndex(
-                    {Lbar, Sbar, Jbar, Tbar, parity_bar}
-                  );
-                size_t block_index =
-                    sectors_lsjt.LookUpSectorIndex(bra_index, ket_index);
-                auto& block = blocks[block_index];
-
-                assert(block.rows() == dimp);
-                assert(block.cols() == dim);
-
-                // If the sector is diagonal, then fill in lower triangle of the sector
-                if (sectors_lsjt.GetSector(block_index).IsDiagonal())
-                {
-                  int nmax = block.cols() - 1;
-                  for (int n = 0; n <= nmax; ++n)
-                    for (int np = 0; np < n; ++np)
-                    {
-                      block(n, np) = block(np, n);
-                    }
-                }
-
-                // accumulating blocks
-                double so3_coef =
-                    am::Unitary9J(Lbar, Sbar, Jbar, L0, S0, J0, Lbarp, Sbarp, Jbarp)
-                    * (am::dim(Jbarp) * am::dim(S0) * am::dim(L0))
-                    / (am::dim(J0) * am::dim(Sbarp) * am::dim(Lbarp));
-
-                temp += so3_coef * block;
-              }
+            // Upcouple to LST
+            block_lst = UpcoupleLST({L0,S0,T0,J0},bra_label,ket_label,sectors_lsjt,blocks);
 
             // Upcoupling to U3ST
             // RMEs are stored in array:
@@ -132,13 +171,16 @@ namespace u3shell::relative
               {
                 const auto x0kappa0_offset =
                     spatial_subspace.GetSubspaceOffset(index_x0, kappa0);
-                for (unsigned int Nbar = Lbar; Nbar <= Nbar_max; Nbar += 2)
+                for (int index_spatial_state=0; index_spatial_state<x0_subspace.size(); ++index_spatial_state)
                 {
-                  auto index_spatial_state = x0_subspace.LookUpStateIndex({Nbar});
-                  const auto Nbarp = Nbar + N0;
+                  const auto& spatial_state = x0_subspace.GetState(index_spatial_state);
+                  const auto Nbar = spatial_state.Nbar();
+                  if(Nbar<Lbar) continue;
+                  const auto Nbarp = spatial_state.Nbarp();
+                  if(Nbarp<Lbarp) continue;
 
-                  int n = int((static_cast<int>(Nbar) - Lbar) / 2);
-                  int np = int((static_cast<int>(Nbarp) - Lbarp) / 2);
+                  int n = int((static_cast<int>(Nbar) - static_cast<int>(Lbar)) / 2);
+                  int np = int((static_cast<int>(Nbarp) - static_cast<int>(Lbarp)) / 2);
 
                   size_t array_index =
                       sector_u3st_offset +
@@ -146,15 +188,12 @@ namespace u3shell::relative
                         index_spin_state,x0kappa0_offset,index_spatial_state
                       );
 
-                  // fmt::print("index: {}  ({} {} ; {} {} {}|| {} {})  {}x{}\n",
-                  //   array_index,Nbar,Lbar,x0,kappa0,L0,Nbarp,Lbarp,np,n
-                  //   );
-
                   rme_array[array_index] +=
                       u3::W({Nbar,0u}, 1, Lbar, x0, kappa0, L0, {Nbarp,0u}, 1, Lbarp, 1)
                       * (u3::dim(x0) * am::dim(Lbarp))
-                      / (1.*u3::dim({Nbar,0u}) * am::dim(L0)) * ParitySign(n + np)
-                      * temp(np, n);
+                      / (1.*u3::dim({Nbarp,0u}) * am::dim(L0))
+                      * ParitySign(n + np)
+                      * block_lst(np, n);
                 }
               }
             }
