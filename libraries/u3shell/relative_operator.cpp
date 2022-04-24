@@ -174,7 +174,7 @@ namespace u3shell {
       double rme=0.0;
       int eta=ket.eta();
       int etap=bra.eta();
-      if((eta==0)||(eta==1))
+      if((eta==0))
         return rme;
 
       if(
@@ -182,7 +182,7 @@ namespace u3shell {
           && (bra.T()==bra.T()) // delta on isospin
           && (eta==etap)      //only connect states with eta+2=etap
         )
-          rme=std::sqrt(4.*(eta*eta+3*eta)/3);
+          rme=std::sqrt(4.*(eta*eta+3*eta)/3.);
 
       return rme;
 
