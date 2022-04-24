@@ -153,9 +153,16 @@ private:
       //By S0
       //By N0
       //By L0
-      for (unsigned int  parity_space_index : {0,1})
+      for (uint8_t  parity : {0,1})
       {
+        std::size_t parity_space_index = bra_space().LookUpSubspaceIndex(parity);
+        if(parity_space_index == basis::kNone)
+        {
+          continue;
+        }
+
         const auto& parity_space = bra_space().GetSubspace(parity_space_index);
+
         for (int i_spin = 0; i_spin < ket_space().size(); ++i_spin)
         {
           const auto& spin_subspace = ket_space().GetSubspace(i_spin);
