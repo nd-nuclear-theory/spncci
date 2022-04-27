@@ -224,6 +224,7 @@ public:
           bool allowed_state = S0==labels.S0();
           allowed_state &= allowed_T0_values.count(labels.T0());
           allowed_state &= (labels.Sbar()+labels.Tbar())%2 == exchange_symm_bar;
+          allowed_state &= (labels.Sbarp()+labels.Tbarp())%2 == exchange_symm_bar;
 
           if(allowed_state)
             PushStateLabels({i});
