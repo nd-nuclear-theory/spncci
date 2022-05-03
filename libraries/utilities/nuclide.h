@@ -44,7 +44,7 @@ inline unsigned int N0ForNuclide(const NuclideType& nuclide)
           // add contribution from particles in shell
           int shell_degeneracy = (eta+1)*(eta+2);
           int num_particles_in_shell = std::min(num_particles,shell_degeneracy);
-          N0 += num_particles_in_shell*eta;
+          N0 += static_cast<unsigned int>(num_particles_in_shell*eta);
 
           // discard particles in shell
           num_particles -= num_particles_in_shell;
