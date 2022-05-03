@@ -32,6 +32,21 @@
 
 // extern double zero_threshold;
 
+// Based on https://stackoverflow.com/questions/3376124/how-to-add-element-by-element-of-two-stl-vectors
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
+{
+    assert(a.size() == b.size());
+
+    std::vector<T> result;
+    result.reserve(a.size());
+
+    std::transform(a.begin(), a.end(), b.begin(), 
+                   std::back_inserter(result), std::plus<T>());
+    return result;
+}
+
+
 namespace utils
 {
 inline bool FileExists(std::string filename, bool verbose)
