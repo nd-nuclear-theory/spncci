@@ -13,6 +13,7 @@
 #include "sp3rlib/vcs.h"
 #include "u3shell/u3st_scheme.h"
 #include "u3shell/two_body_operator.h"
+#include "boost/math/constants/constants.hpp"
 
 namespace u3shell {
 
@@ -40,8 +41,9 @@ namespace u3shell {
     #endif
 
     bool restrict_J0 = (J0!=-1);
-    int N0_min=restrict_positive_N0?0:-1*Nmax;
     int eta_max=Nmax+2*N1v;
+    int N0_min=restrict_positive_N0?0:-1*eta_max;
+
 
     for(int N0=N0_min; N0<=Nmax; N0+=2)
       {
@@ -208,10 +210,196 @@ namespace u3shell {
     rme+=std::sqrt(3)*u3shell::Crel(bra,ket);
     rme+=std::sqrt(3)*u3shell::Arel(bra,ket);
     rme+=std::sqrt(3)*u3shell::Brel(bra,ket);
+    return rme;
+  }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// New code for updated recurrence
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace relative
+{
+
+RelativeOperator::RelativeOperator(
+    const std::vector<OperatorParameters>& parameter_set,
+    const std::vector<RMEFunction>& rme_functions,
+    const std::vector<double>& coefficients
+  )
+{
+  // Generate sectors
+  parameters_ = u3shell::relative::CombineParameters(parameter_set);
+
+  auto spatial_ptr =
+      std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(parameters());
+  auto spin_ptr =
+      std::make_shared<const u3shell::spin::twobody::OperatorSpace>(parameters());
+  sectors_ = OperatorSectors{spatial_ptr, spin_ptr, parameters().J0};
+
+  // Compute RMEs
+
+  rmes_=std::vector<double>(sectors_.num_elements(), 0.0);
+  for (int i = 0; i < rme_functions.size(); ++i)
+  {
+    auto temp = RelativeOperatorRMEs(sectors_, rme_functions[i], coefficients[i]);
+    rmes_ = rmes_
+            + RelativeOperatorRMEs(sectors_, rme_functions[i], coefficients[i]);
+  }
+}
+
+
+  double IdentityRME(
+    const TensorLabelsU3ST& tensor_labels,
+    const StateLabelsNST& bra,
+    const StateLabelsNST& ket,
+    const double coef
+  )
+  {
+    const auto&[x0,S0,T0] = tensor_labels;
+    if(S0==0 && T0==0 && x0==u3::SU3(0u,0u))
+      if(bra[0]==ket[0] && bra[1]==ket[1] && bra[2]==ket[2])
+        return 1.0;
+
+    return 0.0;
+  }
+
+  double QuadrupoleRME(
+    const TensorLabelsU3ST& tensor_labels,
+    const StateLabelsNST& bra,
+    const StateLabelsNST& ket,
+    const double coef
+  )
+  {
+    double rme = 0.0;
+    const auto&[x0,S0,T0] = tensor_labels;
+
+    if(bra[1]==ket[1] && bra[2]==ket[2] && S0==0 && T0!=2)
+    {
+      int T = ket[2];
+      double isospin_coefficient=(T0==1)?2*sqrt(T*(T+1)):1;
+      if(x0==u3::SU3(2u,0u))
+        rme = std::sqrt(3)*spatial::onecoord::Arme(bra[0],ket[0]);
+      if(x0==u3::SU3(0u,2u))
+        rme = std::sqrt(3)*spatial::onecoord::Brme(bra[0],ket[0]);
+      if(x0==u3::SU3(1u,1u))
+        rme = std::sqrt(3)*spatial::onecoord::Crme(bra[0],ket[0]);
+
+      double coef = sqrt(5./(16*boost::math::constants::pi<double>()));
+      rme*=coef*isospin_coefficient;
+    }
 
     return rme;
   }
 
+
+  double KSquaredRME(
+    const TensorLabelsU3ST& tensor_labels,
+    const StateLabelsNST& bra,
+    const StateLabelsNST& ket,
+    const double coef
+  )
+  {
+    double rme = 0.0;
+    const auto&[x0,S0,T0] = tensor_labels;
+
+    if(bra[1]==ket[1] && bra[2]==ket[2] && S0==0 && T0==0)
+    {
+      if(x0==u3::SU3(2u,0u))
+        rme = -std::sqrt(1.5)*spatial::onecoord::Arme(bra[0],ket[0]);
+      if(x0==u3::SU3(0u,2u))
+        rme = -std::sqrt(1.5)*spatial::onecoord::Brme(bra[0],ket[0]);
+      if(x0==u3::SU3(0u,0u))
+        rme = spatial::onecoord::Hrme(bra[0],ket[0]);
+    }
+
+    return rme;
+  }
+
+  double RSquaredRME(
+    const TensorLabelsU3ST& tensor_labels,
+    const StateLabelsNST& bra,
+    const StateLabelsNST& ket,
+    const double coef
+  )
+  {
+    double rme = 0.0;
+    const auto&[x0,S0,T0] = tensor_labels;
+
+    if(bra[1]==ket[1] && bra[2]==ket[2] && S0==0 && T0==0)
+    {
+      if(x0==u3::SU3(2u,0u))
+        rme = std::sqrt(1.5)*spatial::onecoord::Arme(bra[0],ket[0]);
+      if(x0==u3::SU3(0u,2u))
+        rme = std::sqrt(1.5)*spatial::onecoord::Brme(bra[0],ket[0]);
+      if(x0==u3::SU3(0u,0u))
+        rme = spatial::onecoord::Hrme(bra[0],ket[0]);
+    }
+
+    return rme;
+  }
+
+
+
+  std::vector<double> RelativeOperatorRMEs(
+    const OperatorSectors& sectors,
+    const RMEFunction& rme_function,
+    const double coef
+  )
+  {
+    std::vector<double> rme_array(sectors.num_elements(),0.0);
+    for (size_t sector_index = 0; sector_index < sectors.size(); ++sector_index)
+    {
+      const auto& sector = sectors.GetSector(sector_index);
+      const auto sector_offset = sectors.GetSectorOffset(sector_index);
+
+      const auto& spatial_subspace = sector.bra_subspace();
+      const auto& L0 = spatial_subspace.L0();
+
+      const auto& spin_subspace = sector.ket_subspace();
+      const auto& S0 = spin_subspace.S0();
+      const auto& exchange_symm_bar = spin_subspace.exchange_symm_bar();
+
+      const int parity_bar = (exchange_symm_bar + 1) % 2;
+
+      for (std::size_t spin_state_index = 0; spin_state_index < spin_subspace.size();
+           ++spin_state_index)
+      {
+        const auto& [S00, T0, Sbar, Sbarp, Tbar, Tbarp] =
+            spin_subspace.GetState(spin_state_index).labels();
+
+        assert(S00 == S0);
+
+        for(size_t x0subspace_index=0; x0subspace_index<spatial_subspace.size(); ++x0subspace_index)
+        {
+          const auto& x0_subspace = spatial_subspace.GetSubspace(x0subspace_index);
+          const auto& x0 = x0_subspace.x0();
+          const auto& N0 = x0_subspace.N0();
+          for (unsigned int kappa0 = 1;kappa0 <= spatial_subspace.GetSubspaceDegeneracy(x0subspace_index); ++kappa0)
+          {
+            const auto x0kappa0_offset =
+                spatial_subspace.GetSubspaceOffset(x0subspace_index, kappa0);
+
+            for (std::size_t spatial_state_index=0; spatial_state_index<x0_subspace.size(); ++spatial_state_index)
+            {
+              const auto& spatial_state = x0_subspace.GetState(spatial_state_index);
+              const auto& Nbar = spatial_state.Nbar();
+              const auto& Nbarp = spatial_state.Nbarp();
+
+              size_t array_index =
+                  sector_offset
+                  + sector.element_offset(spin_state_index, x0kappa0_offset, spatial_state_index);
+
+              rme_array[array_index]
+                = rme_function({x0, S0, T0}, {Nbarp, Sbarp, Tbarp}, {Nbar, Sbar, Tbar},coef);
+            }
+          }
+        }
+      }
+    }
+    return rme_array;
+  }
+
+
+  }  // namespace relative
 
 
 } // namespace

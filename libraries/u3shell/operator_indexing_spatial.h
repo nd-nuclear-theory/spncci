@@ -47,9 +47,9 @@ namespace spatial::onecoord
   class OperatorSpace;
 
   ////////////////////////////////////////////////////////////////
-  // x0 subspaces
-  // States within subspace are Nbar,Nbarp pairs,
-  // but containing spaces has fixed N0, so only Nbar is stored.
+  /// Subspace, labeled by x0, which contains states with label Nbar.
+  /// As a convenience N0 is also stored. 
+  /// For each state, Nbarp obtained as Nbar+N0. 
   ////////////////////////////////////////////////////////////////
   class OperatorU3Subspace
     : public basis::BaseSubspace<
@@ -61,9 +61,18 @@ namespace spatial::onecoord
   {
   public:
 
-    // constructors
+     /// Default OperatorU3Subspace constructor.
     OperatorU3Subspace() = default;
 
+    
+    /// OperatorU3Subspace constructor.
+    /// Input:
+    ///   N0 : N0 of operator
+    ///   x0 : SU(3) tensor character of operator
+    ///   Nbar_vector : Vector containing allowed Nbar values
+    ///     for the operator subject to the contraint that 
+    ///     (Nbarp,0)x(0,Nbar)->x0, where Nbarp=Nbar+N0.
+    ///     Can be obtained using function GenerateSpatialOperators.
     OperatorU3Subspace(
       const int N0,
       const u3::SU3& x0,
@@ -75,7 +84,9 @@ namespace spatial::onecoord
     }
 
     // accessors
+    /// Returns SU(3) label x0=$(\lambda_0,\mu_0)$ of subspace 
     u3::SU3 x0() const {return std::get<0>(labels());}
+    /// Returns N0 of operator
     int N0() const {return N0_;}
     std::string LabelStr() const {return x0().Str();}
     std::string DebugStr(const std::string& indent="") const;
@@ -154,7 +165,7 @@ namespace spatial::onecoord
     {
       for(const auto&[x0,Nbar_vector] : x0_Nbar_vector)
         {
-          unsigned int kappa0_max = u3::BranchingMultiplicitySO3(x0,L0);
+          unsigned int kappa0_max = L0==u3shell::relative::kNone?1:u3::BranchingMultiplicitySO3(x0,L0);
           auto subspace = OperatorU3Subspace(N0,x0,Nbar_vector);
           if(subspace.size()>0 && kappa0_max>0)
             PushSubspace(std::move(subspace),kappa0_max);
@@ -165,7 +176,7 @@ namespace spatial::onecoord
     // accessors
     unsigned int L0() const {return std::get<0>(labels());}
     unsigned int kappa0_max(std::size_t i) const {return GetSubspaceDegeneracy(i);}
-    std::string LabelStr() const {return fmt::format("{}",L0());}
+    std::string LabelStr() const;
     std::string DebugStr(const std::string& indent="") const;
     // private:
 

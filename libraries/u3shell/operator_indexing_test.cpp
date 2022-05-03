@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     // Parameters are N1v, Nmax, J0, Allowed_w0_values,
     //  Allowed_L0_values, Allowed_S0_values, Allowed T0_values
-    u3shell::relative::OperatorParameters Identity_parameters(N1v,Nmax,0,{{0,{0u,0u}}},{0},{0},{0});
+    u3shell::relative::OperatorParameters Identity_parameters(2*N1v+Nmax,0,{{0,{0u,0u}}},{0},{0},{0});
 
     std::cout<<"Identity operator"<<std::endl;
 
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
     // Parameters are N1v, Nmax, J0, Allowed_w0_values,
     //  Allowed_L0_values, Allowed_S0_values, Allowed T0_values
-    u3shell::relative::OperatorParameters Arel_parameters(N1v,Nmax,0,{{2,{2u,0u}}},{0,2},{0},{0});
+    u3shell::relative::OperatorParameters Arel_parameters(2*N1v+Nmax,0,{{2,{2u,0u}}},{0,2},{0},{0});
 
     std::cout<<"Relative Sp(3,R) raising operator"<<std::endl;
 
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     int Nmax=2;
     int N1v=1;
     u3shell::relative::OperatorParameters
-      Trel_parameters(N1v,Nmax,0,{{2,{2u,0u}},{-2,{0u,2u}},{0,{0u,0u}}},{0},{0},{0});
+      Trel_parameters(2*N1v+Nmax,0,{{2,{2u,0u}},{-2,{0u,2u}},{0,{0u,0u}}},{0},{0},{0});
 
     std::cout<<"Relative kinetic energy"<<std::endl;
     auto spatial_ptr
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     std::set<uint8_t> Allowed_S0_values,Allowed_T0_values;
     u3shell::relative::OperatorParameters
       hamiltonian_parameters(
-        N1v,Nmax,J0,
+        2*N1v+Nmax,J0,
         Allowed_w0_values,
         Allowed_L0_values,
         Allowed_S0_values,

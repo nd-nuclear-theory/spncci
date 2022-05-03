@@ -21,16 +21,17 @@
 #include "u3shell/operator_indexing_spin.h"
 #include "u3shell/operator_indexing_spatial.h"
 #include "u3shell/operator_indexing_sectors.h"
+#include "u3shell/relative_operator.h"
 
 namespace u3shell::relative
 {
-  using OperatorSectors
-  = u3shell::relative::OperatorU3SpinSectors<
-    u3shell::spatial::onecoord::OperatorSpace,
-    u3shell::spatial::onecoord::OperatorL0Space,
-    u3shell::spin::twobody::OperatorSpace,
-    u3shell::spin::twobody::OperatorSubspace
-    >;
+  // using OperatorSectors
+  // = u3shell::relative::OperatorU3SpinSectors<
+  //   u3shell::spatial::onecoord::OperatorSpace,
+  //   u3shell::spatial::onecoord::OperatorL0Space,
+  //   u3shell::spin::twobody::OperatorSpace,
+  //   u3shell::spin::twobody::OperatorSubspace
+  //   >;
 
   std::vector<double> UpcoupleU3ST(
       const int Nbar_max,

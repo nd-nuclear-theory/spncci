@@ -116,6 +116,7 @@ private:
 
 
 
+
 template<typename tOperatorSpatialSpaceType, typename tOperatorSpatialSubspaceType,
  typename tOperatorSpinSpaceType,typename tOperatorSpinSubspaceType>
 class OperatorU3SpinSectors
@@ -145,7 +146,7 @@ private:
     OperatorU3SpinSectors(
       std::shared_ptr<const tOperatorSpatialSpaceType> spatial_space_ptr,
       std::shared_ptr<const tOperatorSpinSpaceType> spin_space_ptr,
-      const unsigned int J0
+      const unsigned int J0=u3shell::relative::kNone
     )
     : BaseSectorsType{std::move(spatial_space_ptr),std::move(spin_space_ptr)},J0_(J0)
     {
@@ -176,7 +177,7 @@ private:
             for (int i_spatial = 0; i_spatial < N0subspace.size(); ++i_spatial)
             {
               const auto& L0subspace = N0subspace.GetSubspace(i_spatial);
-              if (am::AllowedTriangle(S0, L0subspace.L0(), J0))
+              if (am::AllowedTriangle(S0, L0subspace.L0(), J0) || (J0==u3shell::relative::kNone))
               {
                 auto spatial_ptr = N0subspace.GetSubspacePtr(i_spatial);
                 auto spin_ptr = ket_space().GetSubspacePtr(i_spin);

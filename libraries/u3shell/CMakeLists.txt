@@ -12,7 +12,7 @@ set(u3shell_UNITS_H_CPP
   tensor_labels
   relative_operator
   two_body_operator
-  u3st_scheme
+  u3st_scheme ## Only used in generating operators for lsu3shell
   u3spn_scheme
   relative_branching
   upcoupling

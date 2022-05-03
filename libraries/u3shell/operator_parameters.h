@@ -21,14 +21,17 @@
 namespace u3shell::relative
 {
 
+  static constexpr unsigned int kNone = std::numeric_limits<unsigned int>::max();
+  
   struct OperatorParameters
   // Provides information about the relative two-body operator
   // Includes SU(3), angular momentum, spin, and isospin
   // quantum numbers for selection rules.
   {
+    OperatorParameters()=default;
+
     OperatorParameters(
-      const int N1v_,
-      const int Nmax_,
+      const unsigned int Nbar_max_,
       const unsigned int J0_,
       const std::unordered_set<u3::U3>& Allowed_w0_values_,
       const std::set<unsigned int>& Allowed_L0_values_,
@@ -36,13 +39,12 @@ namespace u3shell::relative
       const std::set<uint8_t>& Allowed_T0_values_
     )
         :
-        Nbar_max{Nmax_+2*N1v_},
+        Nbar_max{Nbar_max_},
         J0{J0_},
         Allowed_w0_values{Allowed_w0_values_},
         Allowed_L0_values{Allowed_L0_values_},
         Allowed_S0_values{Allowed_S0_values_},
         Allowed_T0_values{Allowed_T0_values_}
-
     {
       for(const auto& S0 : Allowed_S0_values_)
         assert(S0==0 || S0==1 || S0==2);
@@ -51,13 +53,80 @@ namespace u3shell::relative
         assert(T0==0 || T0==1 || T0==2);
     }
 
-    const int Nbar_max;
-    const unsigned int J0;
-    const std::set<unsigned int> Allowed_L0_values;
-    const std::set<uint8_t> Allowed_S0_values;
-    const std::set<uint8_t> Allowed_T0_values;
-    const std::unordered_set<u3::U3> Allowed_w0_values;
+    // Members
+    unsigned int Nbar_max;
+    unsigned int J0;
+    std::set<unsigned int> Allowed_L0_values;
+    std::set<uint8_t> Allowed_S0_values;
+    std::set<uint8_t> Allowed_T0_values;
+    std::unordered_set<u3::U3> Allowed_w0_values;
   };
+
+
+  inline OperatorParameters CombineParameters(std::vector<OperatorParameters> parameters)
+  {
+    std::unordered_set<u3::U3> Allowed_w0_values;
+    std::set<unsigned int> Allowed_L0_values;
+    std::set<uint8_t> Allowed_S0_values;
+    std::set<uint8_t> Allowed_T0_values;
+    unsigned int Nbar_max=parameters[0].Nbar_max; 
+    unsigned int J0 = parameters[0].J0;
+    for(const auto& param : parameters)
+    {
+      // If J0 values do not match, then eliminate selection rules based on J0
+      // by setting J0 to kNone value.
+      if(J0!=param.J0)
+        J0=u3shell::relative::kNone;
+
+      Nbar_max = std::max(Nbar_max,param.Nbar_max);
+      Allowed_w0_values.insert(param.Allowed_w0_values.begin(),param.Allowed_w0_values.end());
+      Allowed_L0_values.insert(param.Allowed_L0_values.begin(),param.Allowed_L0_values.end());
+      Allowed_S0_values.insert(param.Allowed_S0_values.begin(),param.Allowed_S0_values.end());
+      Allowed_T0_values.insert(param.Allowed_T0_values.begin(),param.Allowed_T0_values.end());
+    }
+    OperatorParameters new_parameters(
+        Nbar_max, J0, Allowed_w0_values, Allowed_L0_values, Allowed_S0_values, Allowed_T0_values
+      );
+    return new_parameters;
+  }
+  //////////////////////////////////////////////////////////////////////////////////////////
+  // Operator parameters for commonly used operators
+  //////////////////////////////////////////////////////////////////////////////////////////
+  /// Operator parameters for identity operator
+  inline u3shell::relative::OperatorParameters
+  IdentityParameters(const unsigned int Nbar_max)
+  {return u3shell::relative::OperatorParameters(Nbar_max,0,{{0,{0,0}}},{0},{0},{0});}
+
+  /// Operator parameters for isoscalar quadrupole operator (T0=0)
+  inline OperatorParameters
+  QIsoscalarParameters(const unsigned int Nbar_max)
+  {return OperatorParameters(Nbar_max,2,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{2},{0},{0});}
+
+  /// Operator parameters for isovector quadrupole operator (T0=1)
+  inline OperatorParameters
+  QIsovectorParameters(const unsigned int Nbar_max)
+  {return OperatorParameters(Nbar_max,2,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{2},{0},{1});}
+
+  /// Operator parameters for isovector quadrupole operator (T0=1)
+  inline OperatorParameters
+  HamiltonianParameters(const unsigned int Nbar_max)
+  {return OperatorParameters(Nbar_max,0,{},{},{},{});}
+
+  /// Operator parameters for kinetic energy
+  inline OperatorParameters
+  KineticEnergyParameters(const unsigned int Nbar_max)
+  {return OperatorParameters(Nbar_max,0,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{0},{0},{0});}
+
+  /// Operator parameters for kinetic energy
+  inline OperatorParameters
+  KSquaredParameters(const unsigned int Nbar_max)
+  {return OperatorParameters(Nbar_max,0,{{0,{0u,0u}},{-2,{0u,2u}},{2,{2u,0u}}},{0},{0},{0});}
+
+  /// Operator parameters for kinetic energy
+  inline OperatorParameters
+  RSquaredParameters(const unsigned int Nbar_max)
+  {return OperatorParameters(Nbar_max,0,{{0,{0u,0u}},{-2,{0u,2u}},{2,{2u,0u}}},{0},{0},{0});}
+
 
 }//relative namespace
 
