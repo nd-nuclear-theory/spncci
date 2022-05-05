@@ -162,27 +162,40 @@ public:
 
 
   inline std::size_t GetSpinOperatorOffset(const unsigned int S0)
+  {
+    for(std::size_t index=0; index<36; index++)
       {
-        for(std::size_t index=0; index<36; index++)
-          {
-            if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
-              return index;
-          }
-        fmt::print("S0 = {} is not an allowed two-body spin");
-        exit(EXIT_FAILURE);
+        if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
+          return index;
       }
+    fmt::print("S0 = {} is not an allowed two-body spin");
+    exit(EXIT_FAILURE);
+  }
 
   inline std::size_t GetSpinOperatorOffset(const unsigned int S0, const unsigned int T0)
+  {
+    for(std::size_t index=0; index<36; index++)
       {
-        for(std::size_t index=0; index<36; index++)
-          {
-            if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
-              if(OperatorLabelsST::ALLOWED_LABELS[index].T0()==T0)
-                return index;
-          }
-
-        exit(EXIT_FAILURE);
+        if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
+          if(OperatorLabelsST::ALLOWED_LABELS[index].T0()==T0)
+            return index;
       }
+
+    exit(EXIT_FAILURE);
+  }
+
+  inline std::size_t LookUpIndex(const OperatorLabelsST& labels)
+  {
+    for(int i = 0; i < 36; ++i)
+      {
+        if(labels == OperatorLabelsST::ALLOWED_LABELS[i])
+          return i;
+      }
+
+    fmt::print("labels not allowed\n");
+    exit(EXIT_FAILURE);
+
+  }
   ////////////////////////////////////////////////////////////////
   class OperatorState;
   class OperatorSubspace;
