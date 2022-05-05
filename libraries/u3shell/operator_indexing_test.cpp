@@ -1,5 +1,5 @@
 /****************************************************************
-  recurrence_indexing_relative_operator_test.cpp
+  operator_indexing_test.cpp
 
   Anna E. McCoy
   Institute for Nuclear Theory
@@ -12,23 +12,9 @@
 #include "u3shell/operator_indexing_spin.h"
 #include "u3shell/operator_indexing_sectors.h"
 
-////////////////////////////////////////////////////////////////
-// main
-////////////////////////////////////////////////////////////////
-
-
 
 int main(int argc, char **argv)
 {
-  using relative_operator_sectors
-  = u3shell::relative::OperatorU3SpinSectors<
-    u3shell::spatial::onecoord::OperatorSpace,
-    u3shell::spatial::onecoord::OperatorL0Space,
-    u3shell::spin::twobody::OperatorSpace,
-    u3shell::spin::twobody::OperatorSubspace
-    >;
-
-
   if(true)
   {
     // Check indexing for Identity
@@ -49,7 +35,7 @@ int main(int argc, char **argv)
     = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(Identity_parameters);
     std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,Identity_parameters.J0);
+    u3shell::relative::OperatorSectors operator_sectors(spatial_ptr,spin_ptr,Identity_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
   }
@@ -74,7 +60,7 @@ int main(int argc, char **argv)
     = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(Arel_parameters);
     std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,Arel_parameters.J0);
+    u3shell::relative::OperatorSectors operator_sectors(spatial_ptr,spin_ptr,Arel_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
   }
@@ -98,7 +84,7 @@ int main(int argc, char **argv)
     = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(Trel_parameters);
     std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,Trel_parameters.J0);
+    u3shell::relative::OperatorSectors operator_sectors(spatial_ptr,spin_ptr,Trel_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
   }
@@ -131,7 +117,7 @@ int main(int argc, char **argv)
     = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(hamiltonian_parameters);
     // std::cout<<spin_ptr->DebugStr()<<std::endl;
 
-    relative_operator_sectors operator_sectors(spatial_ptr,spin_ptr,hamiltonian_parameters.J0);
+    u3shell::relative::OperatorSectors operator_sectors(spatial_ptr,spin_ptr,hamiltonian_parameters.J0);
     std::cout<<operator_sectors.DebugStr()<<std::endl;
 
 

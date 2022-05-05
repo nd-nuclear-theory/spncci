@@ -26,6 +26,7 @@
 #include "u3shell/operator_indexing_spin.h"
 #include "u3shell/operator_indexing_spatial.h"
 #include "u3shell/operator_indexing_sectors.h"
+#include "u3shell/relative_upcoupling.h"
 
 namespace u3shell
 {
@@ -52,7 +53,7 @@ namespace u3shell
 
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax,
-        int N1v, 
+        int N1v,
         std::vector<RelativeUnitTensorLabelsU3ST>& relative_unit_tensor_labels,
         int J0=-1,
         int T00=-1,
@@ -84,13 +85,13 @@ namespace u3shell
 
   void GenerateRelativeUnitTensorLabelsU3ST(
         int Nmax,
-        int N1v, 
+        int N1v,
         std::map<int,std::vector<RelativeUnitTensorLabelsU3ST>>& relative_unit_tensor_labels,
         int J0=-1,
         int T00=-1,
         bool restrict_positive_N0=false
       );
-  // Overload of above function where container is map with unit tensors sorted by N0. 
+  // Overload of above function where container is map with unit tensors sorted by N0.
 
 
   double Nrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
@@ -98,13 +99,13 @@ namespace u3shell
 
   double Arel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
   // U(3) RME of Sp(3,R) raising operator between relative harmonic oscillator states (bra and ket)
-  
+
   double Brel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
   // U(3) RME of Sp(3,R) lowering operator between relative harmonic oscillator states (bra and ket)
-  
+
   double Crel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
   // U(3) RME of tensor of relative U(3) generators between relative harmonic oscillator states (bra and ket)
-  
+
   double K2rel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
   // U(3) RME of k^2 between relative harmonic oscillator states (bra and ket)
 
@@ -185,20 +186,14 @@ namespace spatial::onecoord
         return 0.0;
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// New code part of spncci rewrite
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace relative
 {
-  using OperatorSectors
-  = u3shell::relative::OperatorU3SpinSectors<
-    u3shell::spatial::onecoord::OperatorSpace,
-    u3shell::spatial::onecoord::OperatorL0Space,
-    u3shell::spin::twobody::OperatorSpace,
-    u3shell::spin::twobody::OperatorSubspace
-    >;
-
   using StateLabelsNST = std::array<unsigned int,3>;
   using TensorLabelsU3ST = std::tuple<u3::SU3,uint8_t,uint8_t>;
-  using RMEFunction = std::function<double(TensorLabelsU3ST,StateLabelsNST,StateLabelsNST,double)>;
+  using RMEFunction = std::function<double(TensorLabelsU3ST,StateLabelsNST,StateLabelsNST,unsigned int, unsigned int)>;
 
   std::vector<double> RelativeOperatorRMEs(
       const OperatorSectors& sectors,
@@ -234,22 +229,12 @@ namespace relative
     : parameters_{parameters}
     {
        // Generate sectors
-      auto spatial_ptr
-        = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(parameters_);
-      auto spin_ptr
-        = std::make_shared<const u3shell::spin::twobody::OperatorSpace>(parameters_);
-      sectors_ = OperatorSectors{spatial_ptr,spin_ptr,parameters_.J0};
+      sectors_ = ConstructOperatorSectors(parameters_);
 
       // Compute RMEs
       rmes_ =  RelativeOperatorRMEs(sectors_,rme_function);
     }
 
-
-    RelativeOperator(
-      const std::vector<OperatorParameters>& parameter_set,
-      const std::vector<RMEFunction>& rme_functions,
-      const std::vector<double>& coefficients
-    );
     /// Constructor that can take combines multiple operators and parameter sets
     ///   and combine them into a single operator
     /// Args:
@@ -272,16 +257,56 @@ namespace relative
     ///
     ///   is given by
     ///       C =alpha*A + beta*B
+    RelativeOperator(
+      const std::vector<OperatorParameters>& parameter_set,
+      const std::vector<RMEFunction>& rme_functions,
+      const std::vector<double>& coefficients
+    );
 
-    inline OperatorParameters parameters() const {return parameters_;}
+    /// Construct operator from file
+    RelativeOperator(const std::string& filename, const std::string& filetype="text");
+
+    /// Constructor that reads in lsjt branched matrix elements and upcouples
+    /// the matrix elements to obtain U(3)xSU(2)xSU(2) reduced matrix elements.
+    RelativeOperator(
+      const int Nbar_max,
+      const OperatorParameters& parameters,
+      const std::string& input_filename,
+      const unsigned int input_Nbar_max,
+      const unsigned int input_Jmax
+    ): parameters_{parameters}
+    {
+
+      sectors_ = ConstructOperatorSectors(parameters_);
+
+      rmes_ = u3shell::relative::UpcoupleU3ST(
+          Nbar_max, sectors_,input_filename, input_Nbar_max, input_Jmax
+        );
+
+    }
+
+    // Accessors
+    inline OperatorParameters parameters() const { return parameters_; }
     inline OperatorSectors sectors() const {return sectors_;}
     inline std::vector<double> rmes() const {return rmes_;}
+
+    double ReducedMatrixElement(
+      const TensorLabelsU3ST& tensor_labels,
+      const StateLabelsNST& bra,
+      const StateLabelsNST& ket,
+      const unsigned int kappa0=1,
+      const unsigned int L0 = u3shell::relative::kNone
+    );//NOTE:  Not currently used except in testing
 
   private:
     OperatorParameters parameters_;
     OperatorSectors sectors_;
     std::vector<double> rmes_;
   };
+
+  /// Write Relative operator to file
+  /// Writes operator parameters and rmes
+  void WriteRelativeOperatorText(const RelativeOperator& op, const std::string& filename);
 
 
   /// Functions of type RMEFunction for calculating RMEs for differnt operators
@@ -296,7 +321,8 @@ namespace relative
     const TensorLabelsU3ST& tensor_labels,
     const StateLabelsNST& bra,
     const StateLabelsNST& ket,
-    const double coef=1.0
+    const unsigned int kappa0=1,
+    const unsigned int L0 = 0
   );
   /// Computes SU(3) reduced matrix element of the Identity operator
 
@@ -305,7 +331,8 @@ namespace relative
     const TensorLabelsU3ST& tensor_labels,
     const StateLabelsNST& bra,
     const StateLabelsNST& ket,
-    const double coef=1.0
+    const unsigned int kappa0=1,
+    const unsigned int L0 = 2
   );
   /// Computes SU(3) reduced matrix element of the Quadrupole operator
 
@@ -314,7 +341,8 @@ namespace relative
     const TensorLabelsU3ST& tensor_labels,
     const StateLabelsNST& bra,
     const StateLabelsNST& ket,
-    const double coef=1.0
+    const unsigned int kappa0=1,
+    const unsigned int L0 = 0
   );
   /// Computes SU(3) reduced matrix element of the $k^2$ operator
 
@@ -322,7 +350,8 @@ namespace relative
     const TensorLabelsU3ST& tensor_labels,
     const StateLabelsNST& bra,
     const StateLabelsNST& ket,
-    const double coef=1.0
+    const unsigned int kappa0=1,
+    const unsigned int L0 = 0
   );
   /// Computes SU(3) reduced matrix element of the $r^2$ operator
 

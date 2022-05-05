@@ -14,7 +14,7 @@
 #include "fmt/format.h"
 #include "sp3rlib/u3coef.h"
 #include "u3shell/relative_operator.h"
-
+#include "u3shell/upcoupling.h"
 ////////////////////////////////////////////////////////////////
 // main
 ////////////////////////////////////////////////////////////////
@@ -150,7 +150,12 @@ int main(int argc, char **argv)
 ////////////////////////////////////////////////////////////////
 if(true)
 {
+  fmt::print("Testing relative operator construction\n");
   unsigned int Nbar_max=4;
+
+  ////////////////////////////////////////////////////////////////
+  // Quadrupole operator
+  ////////////////////////////////////////////////////////////////
   auto quadrupoleT0_parameters = u3shell::relative::QIsoscalarParameters(Nbar_max);
   auto quadrupoleT1_parameters = u3shell::relative::QIsovectorParameters(Nbar_max);
 
@@ -164,8 +169,8 @@ if(true)
     std::make_shared<const u3shell::spin::twobody::OperatorSpace>(quadrupoleT1_parameters)
   };
 
-  std::vector<double> quadrupole_test0 = RelativeOperatorRMEs(sectors_T0, u3shell::relative::QuadrupoleRME);
-  std::vector<double> quadrupole_test1 = RelativeOperatorRMEs(sectors_T1, u3shell::relative::QuadrupoleRME);
+  std::vector<double> quadrupole_test0 = u3shell::relative::RelativeOperatorRMEs(sectors_T0, u3shell::relative::QuadrupoleRME);
+  std::vector<double> quadrupole_test1 = u3shell::relative::RelativeOperatorRMEs(sectors_T1, u3shell::relative::QuadrupoleRME);
 
   u3shell::relative::RelativeOperator quadruple_operator_T0(
     quadrupoleT0_parameters,
@@ -187,8 +192,9 @@ if(true)
   {
     assert(fabs(quadrupole_test1[i]-quadruple_operator_T1.rmes()[i])<1e-10);
   }
+  fmt::print("isoscalar and isovector quadrupole operators validated\n");
 
-  // std::cout<<"combo "<<std::endl;
+  // Combining the isoscalar and isovector
   auto combined_parameters =
     u3shell::relative::CombineParameters({quadrupoleT0_parameters,quadrupoleT1_parameters});
   auto spatial_ptr
@@ -200,8 +206,7 @@ if(true)
     std::make_shared<const u3shell::spin::twobody::OperatorSpace>(combined_parameters)
   };
 
-  std::vector<double> quadrupole_test = RelativeOperatorRMEs(sectors, u3shell::relative::QuadrupoleRME);
-
+  std::vector<double> quadrupole_test = u3shell::relative::RelativeOperatorRMEs(sectors, u3shell::relative::QuadrupoleRME);
 
   u3shell::relative::RelativeOperator quadruple_operator(
     combined_parameters,
@@ -219,21 +224,101 @@ if(true)
     {1.0}
   );
 
-  // std::cout<<quadruple_operator2.sectors().DebugStr()<<std::endl;
-  // std::cout<<"num "<<quadruple_operator2.sectors().num_elements()<<std::endl;
-  // std::cout<<"rme size "<<quadruple_operator2.rmes().size()<<std::endl;
+  // Compare rmes vs test function
   for(int i=0; i<quadrupole_test.size(); ++i)
   {
     assert(fabs(quadrupole_test[i]-quadruple_operator2.rmes()[i])<1e-10);
   }
+  fmt::print("isoscalar+isovector quadrupole operator validated\n");
 
 
+  ////////////////////////////////////////////////////////////////
+  // Checking construction via upcoupling
+  ////////////////////////////////////////////////////////////////
+
+  // Parameters for input from file.  Nmax must be >= Nbar_max.
+  std::string filename = "Daejeon16_Nmax40_hw15.0_rel.dat";
+      std::string inputfile = fmt::format(
+          "{}/spncci/data/relative_interactions/{}",
+          utils::get_spncci_project_root_dir(),
+          filename
+        );
+
+  int Nmax = 40;
+  int Jmax=Nmax+1;
+  u3shell::relative::RelativeOperator daejeon_operator(Nbar_max,u3shell::relative::HamiltonianParameters(Nbar_max),inputfile,Nmax,Jmax);
 
 
+  bool verbose = true;
+  assert(utils::FileExists(inputfile, verbose));
+  basis::RelativeSpaceLSJT relative_space_lsjt(Nbar_max, Jmax);
+  std::array<basis::RelativeSectorsLSJT, 3> sectors_lsjt;
+  std::array<basis::OperatorBlocks<double>, 3> blocks_lsjt;
+  basis::RelativeOperatorParametersLSJT op_labels_lsjt;
 
+  basis::ReadRelativeOperatorLSJT(
+      inputfile,
+      relative_space_lsjt,
+      op_labels_lsjt,
+      sectors_lsjt,
+      blocks_lsjt,
+      true
+    );
 
+  // For testing
+  u3shell::RelativeRMEsU3ST rme_map;
+  u3shell::Upcoupling(relative_space_lsjt,sectors_lsjt, blocks_lsjt,0,0,-1,Nbar_max,rme_map);
+
+  for(const auto& [key, rme1] : rme_map)
+    {
+      const auto&[labels,kappa0,L0] = key;
+      const auto&[x0,S0,T0,Nbarp,Sbarp,Tbarp,Nbar,Sbar,Tbar]=labels.FlatKey();
+      u3shell::relative::StateLabelsNST ket{int(Nbar),int(Sbar),int(Tbar)};
+      u3shell::relative::StateLabelsNST bra{int(Nbarp),int(Sbarp),int(Tbarp)};
+      double rme2 = daejeon_operator.ReducedMatrixElement({x0,int(S0),int(T0)},bra,ket,kappa0,L0);
+      // fmt::print("{} {} {}   {} {} {}   {} {} {}  {} {}\n",x0,S0,T0,Nbarp,Sbarp,Tbarp,Nbar,Sbar,Tbar,kappa0,L0);
+      // std::cout<<rme1<<" "<<rme2<<std::endl;
+      assert(fabs(rme1-rme2)<1e-8);
+    }
+
+  std::string output_filename = "relative_operator_daejeon_test_Nmax04.dat";
+  std::cout<<"write to file"<<std::endl;
+  u3shell::relative::WriteRelativeOperatorText(daejeon_operator,output_filename);
+  std::cout<<"read from file"<<std::endl;
+  u3shell::relative::RelativeOperator daejeon_operator2(output_filename);
+  const auto& rmes1 = daejeon_operator.rmes();
+  const auto& rmes2 = daejeon_operator2.rmes();
+  assert(rmes1.size()==rmes2.size());
+  for(int i=0; i<rmes1.size(); ++i)
+  {
+    assert(fabs(rmes1[i]-rmes2[i])<1e-7);
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // Constructing Hamiltonian operator
+  ////////////////////////////////////////////////////////////////
+  auto hamiltonian_parameters
+  = u3shell::relative::CombineParameters({
+    u3shell::relative::KSquaredParameters(Nbar_max),
+    u3shell::relative::HamiltonianParameters(Nbar_max,0u,0u)
+    });
+
+  auto hamiltonian_sectors = u3shell::relative::ConstructOperatorSectors(hamiltonian_parameters);
+
+  std::vector<double> hamiltonian_rmes = u3shell::relative::UpcoupleU3ST(
+      Nbar_max, hamiltonian_sectors, inputfile, Nmax, Jmax
+    );
+
+  hamiltonian_rmes =
+      hamiltonian_rmes
+      + u3shell::relative::RelativeOperatorRMEs(
+          hamiltonian_sectors, u3shell::relative::KSquaredRME, 15.0 / 4
+        );
+
+  u3shell::relative::RelativeOperator hamiltonian_operator(hamiltonian_parameters,hamiltonian_sectors,hamiltonian_rmes);
 
 }
+
 
 
   // termination

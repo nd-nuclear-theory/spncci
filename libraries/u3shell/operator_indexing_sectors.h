@@ -18,7 +18,7 @@
 #include "basis/basis.h"
 #include "basis/degenerate.h"
 
-namespace u3shell::relative
+namespace u3shell
 {
 ////////////////////////////////////////////////////////////////
 /// Selection rules:
@@ -204,6 +204,27 @@ private:
 
 }//relative namespace
 
+namespace u3shell::relative
+{
+  using OperatorSectors
+  = u3shell::OperatorU3SpinSectors<
+    u3shell::spatial::onecoord::OperatorSpace,
+    u3shell::spatial::onecoord::OperatorL0Space,
+    u3shell::spin::twobody::OperatorSpace,
+    u3shell::spin::twobody::OperatorSubspace
+    >;
 
+  /// Construct OperatorSectors from OperatorParameters and returns OperatorSectors
+  inline OperatorSectors ConstructOperatorSectors(
+      const u3shell::relative::OperatorParameters& parameters
+    )
+  {
+    return OperatorSectors{
+        std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(parameters),
+        std::make_shared<const u3shell::spin::twobody::OperatorSpace>(parameters),
+        parameters.J0
+      };
+  }
+}
 
 #endif
