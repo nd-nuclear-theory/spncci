@@ -13,7 +13,7 @@
 #include "am/wigner_gsl.h"
 #include "fmt/format.h"
 #include "u3shell/operator_indexing_sectors.h"
-
+#include "utilities/utilities.h"
 // extern double zero_threshold;
 
 namespace u3shell::relative
@@ -24,7 +24,7 @@ namespace u3shell::relative
     const std::tuple<unsigned int,unsigned int, unsigned int>& labels_bra,
     const std::tuple<unsigned int,unsigned int, unsigned int>& labels_ket,
     const basis::RelativeSectorsLSJT& sectors_lsjt,
-    basis::OperatorBlocks<double>& blocks
+    basis::OperatorBlocks<double>& blocks_lsjt
     )
   {
     const auto&[L0,S0,T0,J0] = labels_op;
@@ -36,9 +36,19 @@ namespace u3shell::relative
 
     const int Jbar_min = abs(static_cast<int>(Lbar) - static_cast<int>(Sbar));
     const int Jbarp_min = abs(static_cast<int>(Lbarp) - static_cast<int>(Sbarp));
-    size_t dimp = bra_space_lsjt.LookUpSubspace({Lbarp, Sbarp, Jbarp_min, Tbarp, Lbarp%2}).dimension();
-    size_t dim = ket_space_lsjt.LookUpSubspace({Lbar, Sbar, Jbar_min, Tbar, Lbar%2}).dimension();
-    basis::OperatorBlock<double> temp = basis::OperatorBlock<double>::Zero(dimp, dim);
+
+    std::size_t bra_index = bra_space_lsjt.LookUpSubspaceIndex({Lbarp, Sbarp, Jbarp_min, Tbarp, Lbarp%2});
+    std::size_t ket_index = ket_space_lsjt.LookUpSubspaceIndex({Lbar, Sbar, Jbar_min, Tbar, Lbar%2});
+
+    basis::OperatorBlock<double> temp;
+    if(bra_index==basis::kNone || ket_index == basis::kNone)
+      // return zero sized block
+      return temp;
+
+    // Otherwise initialize block as zero matrix.
+    std::size_t dimp = bra_space_lsjt.GetSubspace(bra_index).dimension();
+    std::size_t dim = ket_space_lsjt.GetSubspace(ket_index).dimension();
+    temp = basis::OperatorBlock<double>::Zero(dimp, dim);
 
     // Summing over Jbar and Jbarp
     for (int Jbar = Jbar_min; Jbar <= Lbar + Sbar; ++Jbar)
@@ -58,7 +68,7 @@ namespace u3shell::relative
           else
             block_index = sectors_lsjt.LookUpSectorIndex(bra_index, ket_index);
 
-          auto& block = blocks[block_index];
+          auto& block = blocks_lsjt[block_index];
 
           // If the sector is diagonal, then we need to fill in lower triangle of the sector
           // because only the upper triangle was saved to file.
@@ -140,6 +150,10 @@ namespace u3shell::relative
 
         assert(S00 == S0);
         const basis::RelativeSectorsLSJT& sectors_lsjt = component_sectors[T0];
+
+        if(sectors_lsjt.size()==0)
+          continue;
+
         basis::OperatorBlocks<double>& blocks = component_blocks[T0];
 
         for (int Lbar = parity_bar; Lbar <= Nbar_max; Lbar += 2)
@@ -154,6 +168,8 @@ namespace u3shell::relative
 
             // Upcouple to LST
             block_lst = UpcoupleLST({L0,S0,T0,J0},bra_label,ket_label,sectors_lsjt,blocks);
+            if(block_lst.rows()==0)
+              continue;
 
             // Upcoupling to U3ST
             // RMEs are stored in array:
@@ -204,6 +220,84 @@ namespace u3shell::relative
     return rme_array;
   }
 
+
+  std::vector<double> UpcoupleU3ST(
+      const unsigned int Nbar_max,
+      const u3shell::relative::OperatorSectors& sectors_u3st,
+      const std::string& input_filename,
+      const unsigned int input_Nbar_max,
+      const unsigned int input_Jmax
+    )
+  {
+    bool verbose = true;
+    assert(utils::FileExists(input_filename, verbose));
+    basis::RelativeSpaceLSJT relative_space_lsjt(input_Nbar_max, input_Jmax);
+    std::array<basis::RelativeSectorsLSJT, 3> sectors_lsjt;
+    std::array<basis::OperatorBlocks<double>, 3> blocks_lsjt;
+    basis::RelativeOperatorParametersLSJT op_labels_lsjt;
+
+    basis::ReadRelativeOperatorLSJT(
+        input_filename,
+        relative_space_lsjt,
+        op_labels_lsjt,
+        sectors_lsjt,
+        blocks_lsjt,
+        true
+      );
+
+    std::vector<double> rmes = UpcoupleU3ST(
+        Nbar_max, op_labels_lsjt.g0, sectors_u3st, sectors_lsjt, blocks_lsjt
+      );
+
+    return UpcoupleU3ST(
+        Nbar_max, op_labels_lsjt.g0, sectors_u3st, sectors_lsjt, blocks_lsjt
+      );
+  }
+
+
+  std::pair<u3shell::relative::OperatorParameters,std::vector<double>> UpcoupleU3ST(
+      const unsigned int Nbar_max,
+      const std::string& input_filename,
+      const unsigned int input_Nbar_max,
+      const unsigned int input_Jmax
+    )
+  {
+    bool verbose = true;
+    assert(utils::FileExists(input_filename, verbose));
+    basis::RelativeSpaceLSJT relative_space_lsjt(input_Nbar_max, input_Jmax);
+    std::array<basis::RelativeSectorsLSJT, 3> sectors_lsjt;
+    std::array<basis::OperatorBlocks<double>, 3> blocks_lsjt;
+    basis::RelativeOperatorParametersLSJT op_labels_lsjt;
+
+    basis::ReadRelativeOperatorLSJT(
+        input_filename,
+        relative_space_lsjt,
+        op_labels_lsjt,
+        sectors_lsjt,
+        blocks_lsjt,
+        true
+      );
+
+    std::set<uint8_t> Allowed_T0_values;
+    for(uint8_t T0 = op_labels_lsjt.T0_min; T0<=op_labels_lsjt.T0_max; ++T0)
+      Allowed_T0_values.insert(T0);
+
+    u3shell::relative::OperatorParameters parameters(
+        Nbar_max, op_labels_lsjt.J0, {}, {}, {}, Allowed_T0_values
+      );
+
+    u3shell::relative::OperatorSectors sectors_u3st(
+        std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(parameters),
+        std::make_shared<const u3shell::spin::twobody::OperatorSpace>(parameters),
+        parameters.J0
+      );
+
+    std::vector<double> rmes = UpcoupleU3ST(
+        Nbar_max, op_labels_lsjt.g0, sectors_u3st, sectors_lsjt, blocks_lsjt
+      );
+
+    return {parameters,rmes};
+  }
 
 
   }  // namespace u3shell::relative
