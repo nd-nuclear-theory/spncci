@@ -15,6 +15,8 @@
 #define OPERATOR_PARAMETERS_H_
 
 #include <unordered_set>
+#include <fstream>
+#include <string>
 #include "sp3rlib/u3.h"
 
 
@@ -22,11 +24,11 @@ namespace u3shell::relative
 {
 
   static constexpr unsigned int kNone = std::numeric_limits<unsigned int>::max();
-  
+
   struct OperatorParameters
-  // Provides information about the relative two-body operator
-  // Includes SU(3), angular momentum, spin, and isospin
-  // quantum numbers for selection rules.
+  /// Provides information about the relative two-body operator
+  /// Includes SU(3), angular momentum, spin, and isospin
+  /// quantum numbers for selection rules.
   {
     OperatorParameters()=default;
 
@@ -69,7 +71,7 @@ namespace u3shell::relative
     std::set<unsigned int> Allowed_L0_values;
     std::set<uint8_t> Allowed_S0_values;
     std::set<uint8_t> Allowed_T0_values;
-    unsigned int Nbar_max=parameters[0].Nbar_max; 
+    unsigned int Nbar_max=parameters[0].Nbar_max;
     unsigned int J0 = parameters[0].J0;
     for(const auto& param : parameters)
     {
@@ -89,6 +91,28 @@ namespace u3shell::relative
       );
     return new_parameters;
   }
+
+  /// Write header containing information on what's in the output file
+  void WriteOperatorParametersHeader(std::ofstream& output);
+
+  /// Write operator parameters to file.
+  /// If L0 or J0 is kNone, then value is given as -1.
+  ///
+  /// Order within file is
+  ///   Nbar_max J0
+  ///   Num_w0 N01 lambda01 mu01  N02 lambda02 mu02 ...
+  ///   Num_L0 L01 L02 L03...
+  ///   Num_S0 S01 S02 S03...
+  ///   Num_T0 T01 T02 T03...
+  void WriteOperatorParameters(
+      const OperatorParameters& parameters, std::ofstream& output
+    );
+
+
+  /// Read operator parameters from file.  Option bool value indicates if file contains
+  /// header or not.
+  OperatorParameters ReadOperatorParametersText(std::ifstream& input,const bool header_included=false);
+
   //////////////////////////////////////////////////////////////////////////////////////////
   // Operator parameters for commonly used operators
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -109,8 +133,12 @@ namespace u3shell::relative
 
   /// Operator parameters for isovector quadrupole operator (T0=1)
   inline OperatorParameters
-  HamiltonianParameters(const unsigned int Nbar_max)
-  {return OperatorParameters(Nbar_max,0,{},{},{},{});}
+  HamiltonianParameters(const unsigned int Nbar_max, const unsigned int T0_min=0u, const unsigned int T0_max=2u)
+  {
+    std::set<uint8_t> Allowed_T0_values;
+    for(uint8_t T0 = T0_min; T0<=T0_max; ++T0)
+      Allowed_T0_values.insert(T0);
+    return OperatorParameters(Nbar_max,0,{},{},{},Allowed_T0_values);}
 
   /// Operator parameters for kinetic energy
   inline OperatorParameters

@@ -3,11 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 
 # define units
 set(u3shell_UNITS_H
-
-  operator_parameters
   operator_indexing_sectors
-
 )
+
 set(u3shell_UNITS_H_CPP
   tensor_labels
   relative_operator
@@ -20,6 +18,7 @@ set(u3shell_UNITS_H_CPP
   unit_tensor_expansion
   unit_tensor_space_u3s
   interaction_truncation
+  operator_parameters
   operator_indexing_spatial
   operator_indexing_spin
   relative_upcoupling

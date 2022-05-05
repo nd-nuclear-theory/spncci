@@ -26,34 +26,13 @@
 
 namespace u3shell
 {
-  // Define test function for upcoupled interaction. 
-  double JISP16RME(
-    const TensorLabelsU3ST& tensor_labels,
-    const StateLabelsNST& bra,
-    const StateLabelsNST& ket
-  )
-  {
-    const auto& [x0,S0,T0] = tensor_labels;
-    const auto& [Nbar,Sbar,Tbar] = ket;
-    const auto& [Nbarp,Sbarp,Tbarp] = bra;
-    
-  }
-}
 
+}
 
 int main(int argc, char **argv)
 {
   u3::U3CoefInit(39);
 
-    // unsigned int J0=0;
-    // Nbar_max=4
-    // int Nmax=2, N1v=1;
-    // int Jmax=Nmax+2*N1v+1;
-
-    // std::unordered_set<u3::U3> Allowed_w0_values = {{0,{0u,0u}}};
-    // std::set<unsigned int> Allowed_L0_values =  {0};
-    // std::set<uint8_t> Allowed_S0_values = {0};
-    // std::set<uint8_t> Allowed_T0_values = {0};
     //Nbar_max,J0,Allowed_w0_values,Allowed_L0_values,Allowed_S0_values,Allowed_T0_values
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -82,13 +61,7 @@ int main(int argc, char **argv)
         u3shell::relative::QuadrupoleRME,
         20,
         "relative_quadrupole_T1_Nmax20.dat"
-      },
-      {
-        // HamiltonianParameters(const unsigned int Nbar_max)
-        // Lambda function for testing that uses old upcoupling
       }
-
-
     };
 
     for(const auto& [parameters,rme_function,Nmax_lsjt,filename] : operator_data)
@@ -213,7 +186,7 @@ int main(int argc, char **argv)
                     fmt::print("Nbar: {} {}\n", Nbarp, Nbar);
 
                     std::cout
-                        << rme_array[sector_offset + element_offset] << std::endl;
+                        << rme_array[array_index] << std::endl;
                     std::cout
                         <<
                         operator_rmes[array_index]
