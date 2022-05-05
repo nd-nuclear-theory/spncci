@@ -29,7 +29,7 @@ namespace u3shell
       std::map<RelativeSectorNLST,Eigen::MatrixXd>& rme_nlst_map
     )
   {
-  	std::cout<<zero_threshold<<std::endl;
+  	// std::cout<<zero_threshold<<std::endl;
     for (int index=0; index<sectors.size(); ++index)
       {
         if(sector_vector[index].size()==0)
@@ -62,6 +62,9 @@ namespace u3shell
         for (int S0=0; S0<=2; ++S0)            
           for (int L0=abs(S0-J0); L0<=(S0+J0); ++L0)
             {
+              if(!am::AllowedTriangle(S,S0,Sp))
+                continue;
+
               RelativeSectorNLST key(L0,S0,T0,bra_nlst,ket_nlst);
               // upcoupling factor
               double so3_coef=am::Unitary9J(L,S,J, L0,S0,J0, Lp,Sp,Jp)
