@@ -25,7 +25,7 @@
 
 namespace u3boson
 {
-  std::vector<u3::U3> RaisingPolynomialLabels(int Nn_max);
+  std::vector<u3::U3> RaisingPolynomialLabels(unsigned int Nn_max);
   // Generate full set of raising polynomial U3 labels up to given Nn_max.
   //
   // Labels are generated in "canonical" order, defined as
@@ -99,7 +99,7 @@ namespace u3boson
 
     // pass-through accessors for subspace labels
     u3::U3 n() const { return std::get<0>(labels()); }
-    int rho_max() const { return subspace().GetStateDegeneracy(index()); }
+    unsigned int rho_max() const { return subspace().GetStateDegeneracy(index()); }
 
     // private:
   };
@@ -110,10 +110,10 @@ namespace u3boson
   {
     public:
       U3BosonSpace() = default;
-      U3BosonSpace(const u3::U3& sigma, const int Nn_max);
+      U3BosonSpace(const u3::U3& sigma, const unsigned int Nn_max);
 
       u3::U3 sigma() const { return std::get<0>(sigma_); }
-      int Nn_max() const {return Nn_max_;}
+      unsigned int Nn_max() const {return Nn_max_;}
       std::string DebugStr() const;
 
     private:

@@ -20,113 +20,146 @@
 namespace u3
 {
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  // W coefs
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  std::string WCoefLabels::Str() const
+////////////////////////////////////////////////////////////////////////////////////////////////
+// W coefs
+////////////////////////////////////////////////////////////////////////////////////////////////
+std::string WCoefLabels::Str() const
+{
+  return fmt::format(
+      "({} {}; {} {}| {} {})", x1_.Str(), L1_, x2_.Str(), L2_, x3_.Str(), L3_
+    );
+}
+
+double WCached(
+    u3::WCoefCache& cache,
+    const u3::SU3& x1,
+    unsigned int kappa1,
+    unsigned int L1,
+    const u3::SU3& x2,
+    unsigned int kappa2,
+    unsigned int L2,
+    const u3::SU3& x3,
+    unsigned int kappa3,
+    unsigned int L3,
+    unsigned int rho
+  )
+{
+  const u3::WCoefLabels labels(x1, L1, x2, L2, x3, L3);
+
+  // If block not cached.  Compute and cache.
+  if (cache.count(labels) == 0)
+    cache[labels] = u3::WCoefBlock(labels);
+
+  const u3::WCoefBlock& block = cache.at(labels);
+  return block.GetCoef(kappa1, kappa2, kappa3, rho);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// U and Z coefficients
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+std::string UCoefLabels::Str() const
+{
+  std::string label_str = fmt::format(
+      "[{} {} {} {} {} {}",
+      x1_.Str(),
+      x2_.Str(),
+      x_.Str(),
+      x3_.Str(),
+      x12_.Str(),
+      x23_.Str()
+    );
+
+  return label_str;
+}
+
+
+template<>
+double UCached(
+    u3::UCoefCache& cache,
+    const u3::SU3& x1,
+    const u3::SU3& x2,
+    const u3::SU3& x,
+    const u3::SU3& x3,
+    const u3::SU3& x12,
+    unsigned int r12,
+    unsigned int r12_3,
+    const u3::SU3& x23,
+    unsigned int r23,
+    unsigned int r1_23
+  )
+{
+  const u3::UCoefLabels labels(x1, x2, x, x3, x12, x23);
+
+  // If  coef block not found in cache, compute
+  if (cache.count(labels) == 0)
   {
-    return fmt::format("({} {}; {} {}| {} {})",x1_.Str(),L1_,x2_.Str(),L2_,x3_.Str(),L3_);
+    cache[labels] = u3::RecouplingCoefBlock(labels, RecouplingMode::kU);
   }
 
-  double WCached(
-                 u3::WCoefCache& cache,
-                 const u3::SU3& x1, int kappa1, int L1, const u3::SU3& x2, int kappa2, int L2,
-                 const u3::SU3& x3, int kappa3, int L3, int rho
-                 )
+  const auto& block = cache.at(labels);
+
+  return block.GetCoef(r12, r12_3, r23, r1_23);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+double ZCached(
+    u3::ZCoefCache& cache,
+    const u3::SU3& x1,
+    const u3::SU3& x2,
+    const u3::SU3& x,
+    const u3::SU3& x3,
+    const u3::SU3& x12,
+    unsigned int r12,
+    unsigned int r12_3,
+    const u3::SU3& x23,
+    unsigned int r23,
+    unsigned int r1_23
+  )
+{
+  const u3::ZCoefLabels labels(x1, x2, x, x3, x12, x23);
+
+  // If  coef block not found in cache, compute
+  if (cache.count(labels) == 0)
   {
-    const u3::WCoefLabels labels(x1,L1,x2,L2,x3,L3);
-
-    // If block not cached.  Compute and cache.
-    if (cache.count(labels)==0)
-      cache[labels]=u3::WCoefBlock(labels);
-
-    const u3::WCoefBlock& block = cache.at(labels);
-    return block.GetCoef(kappa1, kappa2, kappa3, rho);
+    cache[labels] = u3::RecouplingCoefBlock(labels, RecouplingMode::kZ);
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  // U and Z coefficients
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  const auto& block = cache.at(labels);
 
+  return block.GetCoef(r12, r12_3, r23, r1_23);
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Interchange matrices and phases
+////////////////////////////////////////////////////////////////////////////////////////////////
 
-  std::string UCoefLabels::Str() const
+std::string PhiCoefLabels::Str() const
+{
+  return fmt::format("[{} {} {}]", x1_.Str(), x2_.Str(), x3_.Str());
+}
+
+double PhiCached(
+    u3::PhiCoefCache& cache,
+    const u3::SU3& x1,
+    const u3::SU3& x2,
+    const u3::SU3& x3,
+    unsigned int rho1,
+    unsigned int rho2
+  )
+{
+  const u3::PhiCoefLabels labels(x1, x2, x3);
+  // #pragma omp critical (phi)
   {
-    std::string label_str
-    = fmt::format("[{} {} {} {} {} {}",
-      x1_.Str(),x2_.Str(),x_.Str(),x3_.Str(),x12_.Str(),x23_.Str()
-      );
-
-    return label_str;
+    if (cache.count(labels) == 0)
+      cache[labels] = u3::PhiCoefBlock(labels);
   }
+  const u3::PhiCoefBlock& block = cache.at(labels);
+  return block.GetCoef(rho1, rho2);
+}
 
 
-
-  template <>
-  double UCached(
-                 u3::UCoefCache& cache,
-                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
-                 const u3::SU3& x3, const u3::SU3& x12,
-                 int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
-                 )
-  {
-    const u3::UCoefLabels labels(x1,x2,x,x3,x12,x23);
-
-    //If  coef block not found in cache, compute
-    if (cache.count(labels)==0)
-      {cache[labels]=u3::RecouplingCoefBlock(labels,RecouplingMode::kU);}
-
-    const auto& block = cache.at(labels);
-
-    return block.GetCoef(r12,r12_3,r23,r1_23);
-  }
-
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-
-  double ZCached(
-                 u3::ZCoefCache& cache,
-                 const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x,
-                 const u3::SU3& x3, const u3::SU3& x12,
-                 int r12, int r12_3, const u3::SU3& x23, int r23, int r1_23
-                 )
-  {
-    const u3::ZCoefLabels labels(x1,x2,x,x3,x12,x23);
-
-    //If  coef block not found in cache, compute
-    if (cache.count(labels)==0)
-      {cache[labels]=u3::RecouplingCoefBlock(labels,RecouplingMode::kZ);}
-
-    const auto& block = cache.at(labels);
-
-    return block.GetCoef(r12,r12_3,r23,r1_23);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  // Interchange matrices and phases
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-
-  std::string PhiCoefLabels::Str() const
-  {return fmt::format("[{} {} {}]",x1_.Str(),x2_.Str(),x3_.Str());}
-
-  double PhiCached(
-         u3::PhiCoefCache& cache,
-         const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3, int rho1, int rho2
-        )
-  {
-    const u3::PhiCoefLabels labels(x1,x2,x3);
-    // #pragma omp critical (phi)
-    {
-      if (cache.count(labels)==0)
-        cache[labels]=u3::PhiCoefBlock(labels);
-    }
-    const u3::PhiCoefBlock& block = cache.at(labels);
-    return block.GetCoef(rho1, rho2);
-  }
-
-
-
-
-
-
-} // namespace
+}  // namespace u3

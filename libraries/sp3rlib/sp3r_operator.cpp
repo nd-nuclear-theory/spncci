@@ -81,15 +81,15 @@ namespace sp3r
     )
   {
     // Look up  relevant subspaces in Sp(3,R) irrep
-    int subspace_index_bra=sp3r_space.LookUpSubspaceIndex(omegap);
-    int subspace_index_ket=sp3r_space.LookUpSubspaceIndex(omega);
+    std::size_t subspace_index_bra=sp3r_space.LookUpSubspaceIndex(omegap);
+    std::size_t subspace_index_ket=sp3r_space.LookUpSubspaceIndex(omega);
 
     const sp3r::U3Subspace& subspace_bra =  sp3r_space.GetSubspace(subspace_index_bra);
     const sp3r::U3Subspace& subspace_ket =  sp3r_space.GetSubspace(subspace_index_ket);
 
     //Construct boson matrix 
-    int vp_max=subspace_bra.size();
-    int v_max=subspace_ket.size();
+    std::size_t vp_max=subspace_bra.size();
+    std::size_t v_max=subspace_ket.size();
 
     if(omegap==omega)
       {

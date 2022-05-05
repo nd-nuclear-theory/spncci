@@ -85,8 +85,8 @@ void CheckingU3Subspace(
     // with sigma to omega should be included in the basis.
     const auto raising_polynomials = u3boson::RaisingPolynomialLabels(Nn_max);
     const auto& nonorthogonal_basis = subspace.nonorthogonal_basis();
-    int num_state_labels=0;
-    int num_states=0;
+    std::size_t num_state_labels=0;
+    std::size_t num_states=0;
     for(const auto& n : raising_polynomials)
     {
       unsigned int rho_max = u3::OuterMultiplicity(sigma,n,omega);
@@ -97,7 +97,7 @@ void CheckingU3Subspace(
             n,sigma,omega
           );
           num_state_labels++;
-          num_states+=rho_max;
+          num_states+=static_cast<std::size_t>(rho_max);
         }
     }
 
@@ -138,7 +138,7 @@ void CheckingSp3RSpace(
     );
 
     // Checking subspaces
-    for(int i=0; i<irrep.size(); ++i)
+    for(std::size_t i=0; i<irrep.size(); ++i)
       {
         const auto& subspace = irrep.GetSubspace(i);
         CheckingU3Subspace(sigma, Nn_max,subspace);

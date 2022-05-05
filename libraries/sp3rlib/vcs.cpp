@@ -58,7 +58,7 @@ GenerateSmatrices(const u3::U3& sigma, const u3boson::U3BosonSpace& space)
     SMatrices[sigma] = basis::OperatorBlock<double>::Identity(1,1);
 
     // Skip bra_index=0 (omega=sigma) since that's already accounted for above.
-    for(int bra_index=1; bra_index<space.size(); ++bra_index)
+    for(std::size_t bra_index=1; bra_index<space.size(); ++bra_index)
       {
         const auto& bra_subspace = space.GetSubspace(bra_index);
         const auto& omega_bra=bra_subspace.omega();
@@ -69,8 +69,8 @@ GenerateSmatrices(const u3::U3& sigma, const u3boson::U3BosonSpace& space)
         SMatrices[omega_bra]=basis::OperatorBlock<double>::Zero(bra_dimension,bra_dimension);
         for(const auto& [omega_ket,dummy] : omega_ket_vector)
           {
-            int ket_index = space.LookUpSubspaceIndex(omega_ket);
-            if(ket_index==-1)
+            std::size_t ket_index = space.LookUpSubspaceIndex(omega_ket);
+            if(ket_index==basis::kNone)
               continue;
 
             const auto& ket_subspace = space.GetSubspace(ket_index);
@@ -78,19 +78,19 @@ GenerateSmatrices(const u3::U3& sigma, const u3boson::U3BosonSpace& space)
 
             basis::OperatorBlock<double> Coef1(bra_dimension,ket_dimension);
             basis::OperatorBlock<double> Coef2(ket_dimension,bra_dimension);
-            for(int bra_state_index=0; bra_state_index<bra_subspace.size(); ++bra_state_index)
-              for(int ket_state_index=0; ket_state_index<ket_subspace.size(); ++ket_state_index)
+            for(std::size_t bra_state_index=0; bra_state_index<bra_subspace.size(); ++bra_state_index)
+              for(std::size_t ket_state_index=0; ket_state_index<ket_subspace.size(); ++ket_state_index)
                 {
                   const auto& bra_state = bra_subspace.GetState(bra_state_index);
                   const auto& ket_state = ket_subspace.GetState(ket_state_index);
                   const u3::U3& n_bra = bra_state.n();
                   const u3::U3& n_ket = ket_state.n();
-                  const int rho_max_bra = bra_state.rho_max();
-                  const int rho_max_ket = ket_state.rho_max();
+                  const unsigned int rho_max_bra = bra_state.rho_max();
+                  const unsigned int rho_max_ket = ket_state.rho_max();
                   double DeltaOmega = vcs::Omega(n_bra,omega_bra)-vcs::Omega(n_ket,omega_ket);
 
-                  for(int rho_bra=1; rho_bra<=rho_max_bra; ++rho_bra)
-                    for(int rho_ket=1; rho_ket<=rho_max_ket; ++rho_ket)
+                  for(unsigned int rho_bra=1; rho_bra<=rho_max_bra; ++rho_bra)
+                    for(unsigned int rho_ket=1; rho_ket<=rho_max_ket; ++rho_ket)
                     {
                       int row = bra_subspace.GetStateOffset(bra_state_index,rho_bra);
                       int col = ket_subspace.GetStateOffset(ket_state_index,rho_ket);

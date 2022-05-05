@@ -57,9 +57,9 @@ INSTANTIATE_TEST_SUITE_P(
     SU3Test,
     WCoeffTest,
     testing::Values(
-        std::pair{u3::SU3{1, 2}, u3::SU3{3, 4}},
-        std::pair{u3::SU3{2, 0}, u3::SU3{2, 0}},
-        std::pair{u3::SU3{4, 3}, u3::SU3{2, 4}}
+        std::pair{u3::SU3{1u, 2u}, u3::SU3{3u, 4u}},
+        std::pair{u3::SU3{2u, 0u}, u3::SU3{2u, 0u}},
+        std::pair{u3::SU3{4u, 3u}, u3::SU3{2u, 4u}}
       )
   );
 
@@ -72,7 +72,7 @@ INSTANTIATE_TEST_SUITE_P(
 struct L_kappa
 {
   // constructor
-  L_kappa(const u3::SU3& x, int L_, int kappa_)
+  L_kappa(const u3::SU3& x, unsigned int L_, unsigned int kappa_)
       : irrep(x), L(L_), kappa(kappa_)
   {}
   // default constructor
@@ -81,8 +81,8 @@ struct L_kappa
   {}
 
   u3::SU3 irrep;
-  int L;
-  int kappa;
+  unsigned int L;
+  unsigned int kappa;
 };
 
 
@@ -94,8 +94,8 @@ std::vector<L_kappa> get_coupling_labels(u3::SU3& x)
   // vector containing labels
   std::vector<L_kappa> lk;
   // add L, kappa to vector of labels
-  for (int i = 0; i < branch.size(); i++)
-    for (int j = 1; j <= branch[i].tag; j++)
+  for (std::size_t i = 0; i < branch.size(); i++)
+    for (unsigned int j = 1; j <= branch[i].tag; j++)
     {
       lk.push_back(L_kappa(x, branch[i].irrep, j));
     }
@@ -106,31 +106,31 @@ std::vector<L_kappa> get_coupling_labels(u3::SU3& x)
 double compute_W_sum_SU3(
     u3::SU3& x1,
     u3::SU3& x2,
-    int kappa1,
-    int kappa1prime,
-    int L1,
-    int L1prime,
-    int kappa2,
-    int kappa2prime,
-    int L2,
-    int L2prime,
-    int L
+    unsigned int kappa1,
+    unsigned int kappa1prime,
+    unsigned int L1,
+    unsigned int L1prime,
+    unsigned int kappa2,
+    unsigned int kappa2prime,
+    unsigned int L2,
+    unsigned int L2prime,
+    unsigned int L
   )
 // compute orthogonality sum over (lambda,mu), rho, kappa, for a given L
 {
   double sum = 0;
   // couple x1 to x2
   MultiplicityTagged<u3::SU3>::vector coupling = u3::KroneckerProduct(x1, x2);
-  for (int u = 0; u < coupling.size(); u++)
+  for (std::size_t u = 0; u < coupling.size(); u++)
   {
     //(lambda,mu)
     u3::SU3 x = coupling[u].irrep;
     // outer multiplicity
-    int rho_max = u3::OuterMultiplicity(x1, x2, x);
+    unsigned int rho_max = u3::OuterMultiplicity(x1, x2, x);
     std::vector<L_kappa> lk = get_coupling_labels(x);
     // sum over rho, L, kappa
 
-    for (int rho = 1; rho <= rho_max; rho++)
+    for (unsigned int rho = 1; rho <= rho_max; rho++)
     {
       for (L_kappa& tLK : lk)
       {
@@ -162,10 +162,10 @@ double compute_W_sum_alpha(
     u3::SU3& x2,
     u3::SU3& x,
     u3::SU3& xprime,
-    int kappa,
-    int L,
-    int rho,
-    int rhoprime
+    unsigned int kappa,
+    unsigned int L,
+    unsigned int rho,
+    unsigned int rhoprime
   )
 // compute orthogonality sum over L1, kappa1, L2, kappa2 for given kappa, L
 {
@@ -176,7 +176,7 @@ double compute_W_sum_alpha(
   {
     for (L_kappa& tLK2 : lk2)
     {
-      if(!am::AllowedTriangle(tLK1.L,tLK2.L,L))
+      if (!am::AllowedTriangle(tLK1.L, tLK2.L, L))
         continue;
 
       double coef =
@@ -230,8 +230,6 @@ protected:
 /************************************************/
 /****************** Unit Tests ******************/
 /************************************************/
-
-
 TEST_P(WCoeffTest, WvsWCached)
 // check coupling (lambda_1, mu_1) x (lambda_2, mu_2)
 // check that W = WCached
@@ -243,11 +241,11 @@ TEST_P(WCoeffTest, WvsWCached)
   // couple x1 to x2
   MultiplicityTagged<u3::SU3>::vector coupling = u3::KroneckerProduct(x1, x2);
   // check coupling for x3 in vector coupling
-  for (int u = 0; u < coupling.size(); u++)
+  for (std::size_t u = 0; u < coupling.size(); u++)
   {
     u3::SU3 x3 = coupling[u].irrep;
     // outer multiplicity
-    int rho = u3::OuterMultiplicity(x1, x2, x3);
+    unsigned int rho = u3::OuterMultiplicity(x1, x2, x3);
     // branching and vector of tuples of L, kappa
     std::vector<L_kappa> lk3 = get_coupling_labels(x3);
     // compute coefficients
@@ -255,20 +253,21 @@ TEST_P(WCoeffTest, WvsWCached)
       for (L_kappa& tupleLK2 : lk2)
         for (L_kappa& tupleLK3 : lk3)
         {
-          int L1 = tupleLK1.L;
-          int k1 = tupleLK1.kappa;
-          int L2 = tupleLK2.L;
-          int k2 = tupleLK2.kappa;
-          int L3 = tupleLK3.L;
-          int k3 = tupleLK3.kappa;
+          unsigned int L1 = tupleLK1.L;
+          unsigned int k1 = tupleLK1.kappa;
+          unsigned int L2 = tupleLK2.L;
+          unsigned int k2 = tupleLK2.kappa;
+          unsigned int L3 = tupleLK3.L;
+          unsigned int k3 = tupleLK3.kappa;
 
           // check triangle inequality
-          if (L3 >= std::abs(L1 - L2) && L3 <= (L1 + L2))
+          if (am::AllowedTriangle(L1, L2, L3))
           {
             // calculate coefficients
             double w_coeff = u3::W(x1, k1, L1, x2, k2, L2, x3, k3, L3, rho);
             ASSERT_TRUE(std::isfinite(w_coeff)) << fmt::format(
-                "coefficient not finite: W({} {} {}; {} {} {} || {} {} {}){} = {}",
+                "coefficient not finite: W({} {} {}; {} {} {} || {} {} {}){} = "
+                "{}",
                 x1.Str(),
                 k1,
                 L1,
@@ -318,12 +317,16 @@ TEST_P(WCoeffTest, Orthonormality)
   for (L_kappa& tLK1 : lk1)
     for (L_kappa& tLK2 : lk2)
     {
-      int kappa1 = tLK1.kappa;
-      int kappa2 = tLK2.kappa;
-      int L1 = tLK1.L;
-      int L2 = tLK2.L;
+      unsigned int kappa1 = tLK1.kappa;
+      unsigned int kappa2 = tLK2.kappa;
+      unsigned int L1 = tLK1.L;
+      unsigned int L2 = tLK2.L;
       // L obeys triangle inequality
-      for (int L = std::abs(L1 - L2); L <= (L1 + L2); L++)
+      for (unsigned int L = static_cast<unsigned int>(
+               std::abs(static_cast<int>(L1) - static_cast<int>(L2))
+             );
+           L <= (L1 + L2);
+           L++)
       {
         // orthonormality check for summing over SU(3) > SO(3) labels
         double w_sum = compute_W_sum_SU3(
@@ -354,18 +357,18 @@ TEST_P(WCoeffTest, Orthonormality)
       }
     }
   // loop over x = (l1, m1) x (l2, m2)
-  for (int u = 0; u < coupling.size(); u++)
+  for (std::size_t u = 0; u < coupling.size(); u++)
   {
     u3::SU3 x = coupling[u].irrep;
     // outer multiplicity
-    int rho_max = u3::OuterMultiplicity(x1, x2, x);
+    unsigned int rho_max = u3::OuterMultiplicity(x1, x2, x);
     std::vector<L_kappa> lk = get_coupling_labels(x);
-    for (int rho = 1; rho <= rho_max; rho++)
+    for (unsigned int rho = 1; rho <= rho_max; rho++)
     {
       for (L_kappa& tLK : lk)
       {
-        int kappa = tLK.kappa;
-        int L = tLK.L;
+        unsigned int kappa = tLK.kappa;
+        unsigned int L = tLK.L;
         // orthonormality check for summing over alpha = Li, kappa_i
         double w_sum_2 = compute_W_sum_alpha(x1, x2, x, x, kappa, L, rho, rho);
         ASSERT_TRUE(std::isfinite(w_sum_2)) << fmt::format(

@@ -25,7 +25,7 @@ int main(int argc, char **argv)
   // Sp(3,R) irrep construction test
   ////////////////////////////////////////////////////////////////
   // u3::U3 sigma = u3::U3(16,u3::SU3(2,1));
-  int Nn_max = 6;
+  unsigned int Nn_max = 6;
 
   std::vector<u3::U3>
   sigma_list = {
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     assert(sp3r_space.Nn_max()==Nn_max);
 
     // Checking subspaces
-    for(int i=0; i<sp3r_space.size(); ++i)
+    for(std::size_t i=0; i<sp3r_space.size(); ++i)
       {
         const auto& subspace = sp3r_space.GetSubspace(i);
         assert(subspace.nonorthogonal_basis().dimension()==subspace.K_matrix().cols());

@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   if(false)
   {
     u3::U3 sigma(20,13,10);
-    int Nn_max=4;
+    unsigned int Nn_max=4;
     sp3r::Sp3RSpace sp3r_space(sigma,Nn_max);
     u3::UCoefCache u_coef_cache;
     std::map<std::tuple<u3::U3,int>,std::map<std::tuple<u3::U3,u3::U3>,sp3r::Matrix>> Amatrix_test;
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 
     for(const auto& sigma : sigma_list)
     {
-      int Nn_max = 6;
+      unsigned int Nn_max = 6;
       // u3::U3 sigma(16,{2,1});
       std::cout<<fmt::format("sigma: {}",sigma)<<std::endl;
       u3::UCoefCache u_coef_cache;
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
   // Checking [AxB]^(0,0)
   if(true)
   {
-    int Nn_max = 6;
+    unsigned int Nn_max = 6;
     // u3::U3 sigma(16,{2,1});
     u3::U3 sigma(5,{2u,0u});
     u3::UCoefCache u_coef_cache;
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
     // Commutation relations given by ap-126-1980-343-Rosensteel
     // [A,A]^(2,1)
     u3::U3 sigma(16,{2u,1u});
-    int Nn_max=8;
+    unsigned int Nn_max=8;
     sp3r::Sp3RSpace sp3r_space(sigma,Nn_max);
 
     u3::UCoefCache u_coef_cache;

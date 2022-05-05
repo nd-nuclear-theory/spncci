@@ -30,7 +30,7 @@ int main(int argc, char **argv)
   // Sp(3,R) irrep construction test
   ////////////////////////////////////////////////////////////////
   u3::U3 sigma = u3::U3(16,u3::SU3(2u,1u));
-  int Nn_max = 10;
+  unsigned int Nn_max = 10;
 
   std::vector<u3::U3> polynomial_labels = u3boson::RaisingPolynomialLabels(Nn_max);
   for (const auto&n : polynomial_labels)
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 // Checking commutation relations [a,a^\dagger]^(0,0)
   if(true)
   {
-    int Nn_max = 6;
+    unsigned int Nn_max = 6;
     u3::U3 sigma(16,{2u,1u});
     // u3::U3 sigma(5,{2u,0u});
     u3::UCoefCache u_coef_cache;
