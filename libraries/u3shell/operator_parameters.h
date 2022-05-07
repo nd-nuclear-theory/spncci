@@ -119,17 +119,17 @@ namespace u3shell::relative
   /// Operator parameters for identity operator
   inline u3shell::relative::OperatorParameters
   IdentityParameters(const unsigned int Nbar_max)
-  {return u3shell::relative::OperatorParameters(Nbar_max,0,{{0,{0,0}}},{0},{0},{0});}
+  {return u3shell::relative::OperatorParameters(Nbar_max,0u,{{0,{0u,0u}}},{0u},{0},{0});}
 
   /// Operator parameters for isoscalar quadrupole operator (T0=0)
   inline OperatorParameters
   QIsoscalarParameters(const unsigned int Nbar_max)
-  {return OperatorParameters(Nbar_max,2,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{2},{0},{0});}
+  {return OperatorParameters(Nbar_max,2u,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{2u},{0},{0});}
 
   /// Operator parameters for isovector quadrupole operator (T0=1)
   inline OperatorParameters
   QIsovectorParameters(const unsigned int Nbar_max)
-  {return OperatorParameters(Nbar_max,2,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{2},{0},{1});}
+  {return OperatorParameters(Nbar_max,2u,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{2u},{0},{1});}
 
   /// Operator parameters for isovector quadrupole operator (T0=1)
   inline OperatorParameters
@@ -138,22 +138,22 @@ namespace u3shell::relative
     std::set<uint8_t> Allowed_T0_values;
     for(uint8_t T0 = T0_min; T0<=T0_max; ++T0)
       Allowed_T0_values.insert(T0);
-    return OperatorParameters(Nbar_max,0,{},{},{},Allowed_T0_values);}
+    return OperatorParameters(Nbar_max,0u,{},{},{},Allowed_T0_values);}
 
   /// Operator parameters for kinetic energy
   inline OperatorParameters
   KineticEnergyParameters(const unsigned int Nbar_max)
-  {return OperatorParameters(Nbar_max,0,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{0},{0},{0});}
+  {return OperatorParameters(Nbar_max,0u,{{0,{1u,1u}},{-2,{0u,2u}},{2,{2u,0u}}},{0u},{0},{0});}
 
   /// Operator parameters for kinetic energy
   inline OperatorParameters
   KSquaredParameters(const unsigned int Nbar_max)
-  {return OperatorParameters(Nbar_max,0,{{0,{0u,0u}},{-2,{0u,2u}},{2,{2u,0u}}},{0},{0},{0});}
+  {return OperatorParameters(Nbar_max,0u,{{0,{0u,0u}},{-2,{0u,2u}},{2,{2u,0u}}},{0u},{0},{0});}
 
   /// Operator parameters for kinetic energy
   inline OperatorParameters
   RSquaredParameters(const unsigned int Nbar_max)
-  {return OperatorParameters(Nbar_max,0,{{0,{0u,0u}},{-2,{0u,2u}},{2,{2u,0u}}},{0},{0},{0});}
+  {return OperatorParameters(Nbar_max,0u,{{0,{0u,0u}},{-2,{0u,2u}},{2,{2u,0u}}},{0u},{0},{0});}
 
 
 }//relative namespace

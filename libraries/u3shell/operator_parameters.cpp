@@ -38,10 +38,11 @@ namespace u3shell::relative{
     if(parameters.Allowed_L0_values.count(u3shell::relative::kNone))
       L0_string = fmt::format("{:3d} {:3d}\n",1,-1);
     else
+    {
       L0_string = fmt::format("{:3d}",parameters.Allowed_L0_values.size());
       for(const auto L0 : parameters.Allowed_L0_values)
         L0_string+=fmt::format(" {:3d}",L0);
-
+    }
     output << fmt::format("{}\n",L0_string);
 
     std::string S0_string=fmt::format("{:3d}",parameters.Allowed_S0_values.size());
@@ -60,7 +61,7 @@ namespace u3shell::relative{
     // Skip header lines
     std::string line;
     std::istringstream line_stream;
-    int line_count = 0;
+    // int line_count = 0;
     if(header_included)
       for(int i=0; i<5; ++i) std::getline(input, line);
 
@@ -68,7 +69,7 @@ namespace u3shell::relative{
     int Nbar_max, J0in;
     std::getline(input,line);
     std::istringstream(line) >> Nbar_max >> J0in;
-    unsigned int J0 = (J0in==-1)?u3shell::relative::kNone: J0in;
+    unsigned int J0 = (J0in==-1)?u3shell::relative::kNone: static_cast<unsigned int>(J0in);
 
     // Read in allowed w0 values
     int num,lambda0,mu0,N0;
