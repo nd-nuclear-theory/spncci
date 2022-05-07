@@ -231,16 +231,12 @@ RelativeOperator::RelativeOperator(
   // Generate sectors
   parameters_ = u3shell::relative::CombineParameters(parameter_set);
 
-  sectors_ = OperatorSectors{
-    std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(parameters_),
-    std::make_shared<const u3shell::spin::twobody::OperatorSpace>(parameters_),
-    parameters_.J0
-  };
+  sectors_ = ConstructOperatorSectors(parameters_);
 
   // Compute RMEs
 
   rmes_=std::vector<double>(sectors_.num_elements(), 0.0);
-  for (int i = 0; i < rme_functions.size(); ++i)
+  for (std::size_t i = 0; i < rme_functions.size(); ++i)
   {
     auto temp = RelativeOperatorRMEs(sectors_, rme_functions[i], coefficients[i]);
     rmes_ = rmes_
@@ -499,7 +495,7 @@ RelativeOperator::RelativeOperator(const std::string& filename, const std::strin
 
   }
 
-  //NOTE:  Not currently used except in testing
+
   double RelativeOperator::ReducedMatrixElement(
       const TensorLabelsU3ST& tensor_labels,
       const StateLabelsNST& bra,
@@ -530,7 +526,7 @@ RelativeOperator::RelativeOperator(const std::string& filename, const std::strin
             {
               const auto& x0_subspace = L0_space.GetSubspace(x0_index);
               const std::size_t x0_kappa0_index = L0_space.GetSubspaceOffset(x0_index, kappa0);
-              const std::size_t Nbar_index = x0_subspace.LookUpStateIndex(Nbar);
+              const std::size_t Nbar_index = x0_subspace.LookUpStateIndex({{Nbar}});
               if (Nbar_index != basis::kNone)
               {
                 const auto& spin_space = sectors().ket_space();
@@ -549,12 +545,6 @@ RelativeOperator::RelativeOperator(const std::string& filename, const std::strin
                   {
                     const auto sector_offset =
                         sectors().GetSectorOffset(sector_index);
-
-                    //// Querry Patrick: Get segfault if I do it this way??? Why?
-                    // const auto& sector = sectors().GetSector(sector_index);
-                    // const auto element_offset = sector.element_offset(
-                    //     spin_index, x0_kappa0_index, Nbar_index
-                    //   );
 
                     const auto element_offset = sectors().GetSector(sector_index).element_offset(
                         spin_index, x0_kappa0_index, Nbar_index

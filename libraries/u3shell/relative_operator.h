@@ -12,8 +12,8 @@
                  tensor_labels.
   12/6/16 (aem): Added optional parameters to GenerateRelativeUnitTensors
   9/13/19 (aem): Rename relative operators to be consistent with other libraries/programs
+   5/3/22 (aem): Add RelativeOperator class and supporting functions
 ****************************************************************/
-
 #ifndef RELATIVE_OPERATOR_H_
 #define RELATIVE_OPERATOR_H_
 
@@ -269,7 +269,7 @@ namespace relative
     /// Constructor that reads in lsjt branched matrix elements and upcouples
     /// the matrix elements to obtain U(3)xSU(2)xSU(2) reduced matrix elements.
     RelativeOperator(
-      const int Nbar_max,
+      const unsigned int Nbar_max,
       const OperatorParameters& parameters,
       const std::string& input_filename,
       const unsigned int input_Nbar_max,
@@ -286,9 +286,9 @@ namespace relative
     }
 
     // Accessors
-    inline OperatorParameters parameters() const { return parameters_; }
-    inline OperatorSectors sectors() const {return sectors_;}
-    inline std::vector<double> rmes() const {return rmes_;}
+    inline const OperatorParameters& parameters() const { return parameters_; }
+    inline const OperatorSectors& sectors() const {return sectors_;}
+    inline const std::vector<double>& rmes() const {return rmes_;}
 
     double ReducedMatrixElement(
       const TensorLabelsU3ST& tensor_labels,
