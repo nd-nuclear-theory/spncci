@@ -12,8 +12,6 @@
 #ifndef U3SHELL_RELATIVE_UPCOUPLING_H_
 #define U3SHELL_RELATIVE_UPCOUPLING_H_
 
-// #include <tuple>
-// #include <Eigen/Eigen>
 #include "basis/basis.h"
 #include "basis/lsjt_scheme.h"
 #include "basis/lsjt_operator.h"
@@ -21,13 +19,13 @@
 #include "u3shell/operator_indexing_spin.h"
 #include "u3shell/operator_indexing_spatial.h"
 #include "u3shell/operator_indexing_sectors.h"
-// #include "u3shell/relative_operator.h"
+
 
 namespace u3shell::relative
 {
 
   std::vector<double> UpcoupleU3ST(
-      const int Nbar_max,
+      const unsigned int Nbar_max,
       const uint8_t g0,
       const u3shell::relative::OperatorSectors& sectors_u3st,
       const std::array<basis::RelativeSectorsLSJT,3>& component_sectors,
