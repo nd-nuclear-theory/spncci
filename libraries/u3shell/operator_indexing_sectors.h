@@ -17,6 +17,7 @@
 #include <unordered_set>
 #include "basis/basis.h"
 #include "basis/degenerate.h"
+#include "u3shell/operator_parameters.h"
 
 namespace u3shell
 {
@@ -94,7 +95,7 @@ public:
     std::size_t x0_kappa0_index =
         bra_subspace().GetSubspaceOffset(x0_index, kappa0);
     std::size_t Nbar_index =
-        bra_subspace().GetSubspace(x0_index).LookUpStateIndex(Nbar);
+        bra_subspace().GetSubspace(x0_index).LookUpStateIndex({{Nbar}});
     return element_offset(spin_index, x0_kappa0_index, Nbar_index);
   }
 
@@ -164,17 +165,17 @@ private:
 
         const auto& parity_space = bra_space().GetSubspace(parity_space_index);
 
-        for (int i_spin = 0; i_spin < ket_space().size(); ++i_spin)
+        for (std::size_t i_spin = 0; i_spin < ket_space().size(); ++i_spin)
         {
           const auto& spin_subspace = ket_space().GetSubspace(i_spin);
           if((parity_space.parity_bar()+spin_subspace.exchange_symm_bar())%2 !=1)
             continue;
 
           const auto& S0 = spin_subspace.S0();
-          for(int N0_space_index=0; N0_space_index<parity_space.size(); ++N0_space_index)
+          for(std::size_t N0_space_index=0; N0_space_index<parity_space.size(); ++N0_space_index)
           {
             const auto& N0subspace = parity_space.GetSubspace(N0_space_index);
-            for (int i_spatial = 0; i_spatial < N0subspace.size(); ++i_spatial)
+            for (std::size_t i_spatial = 0; i_spatial < N0subspace.size(); ++i_spatial)
             {
               const auto& L0subspace = N0subspace.GetSubspace(i_spatial);
               if (am::AllowedTriangle(S0, L0subspace.L0(), J0) || (J0==u3shell::relative::kNone))
@@ -208,8 +209,8 @@ namespace u3shell::relative
 {
   using OperatorSectors
   = u3shell::OperatorU3SpinSectors<
-    u3shell::spatial::onecoord::OperatorSpace,
-    u3shell::spatial::onecoord::OperatorL0Space,
+    u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>,
+    u3shell::spatial::OperatorL0Space<u3shell::spatial::OneCoordType>,
     u3shell::spin::twobody::OperatorSpace,
     u3shell::spin::twobody::OperatorSubspace
     >;
@@ -220,7 +221,7 @@ namespace u3shell::relative
     )
   {
     return OperatorSectors{
-        std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(parameters),
+        std::make_shared<const u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>>(parameters),
         std::make_shared<const u3shell::spin::twobody::OperatorSpace>(parameters),
         parameters.J0
       };

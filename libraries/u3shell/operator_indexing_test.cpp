@@ -18,8 +18,8 @@ int main(int argc, char **argv)
   if(true)
   {
     // Check indexing for Identity
-    int Nmax=4;
-    int N1v=1;
+    unsigned int Nmax=4;
+    unsigned int N1v=1;
 
     // Parameters are N1v, Nmax, J0, Allowed_w0_values,
     //  Allowed_L0_values, Allowed_S0_values, Allowed T0_values
@@ -43,8 +43,8 @@ int main(int argc, char **argv)
   if(false)
   {
     // Check indexing for Sp(3,R) raising operator
-    int Nmax=4;
-    int N1v=1;
+    unsigned int Nmax=4;
+    unsigned int N1v=1;
 
     // Parameters are N1v, Nmax, J0, Allowed_w0_values,
     //  Allowed_L0_values, Allowed_S0_values, Allowed T0_values
@@ -70,10 +70,10 @@ int main(int argc, char **argv)
   {
 
     // Check indexing for Trel
-    int Nmax=2;
-    int N1v=1;
+    unsigned int Nmax=2;
+    unsigned int N1v=1;
     u3shell::relative::OperatorParameters
-      Trel_parameters(2*N1v+Nmax,0,{{2,{2u,0u}},{-2,{0u,2u}},{0,{0u,0u}}},{0},{0},{0});
+      Trel_parameters(2*N1v+Nmax,0u,{{2,{2u,0u}},{-2,{0u,2u}},{0,{0u,0u}}},{0u},{0},{0});
 
     std::cout<<"Relative kinetic energy"<<std::endl;
     auto spatial_ptr
@@ -94,8 +94,8 @@ int main(int argc, char **argv)
   {
     // No contraints other than J0.
     std::cout<<"No constraints"<<std::endl;
-    int Nmax=20;
-    int N1v=1;
+    unsigned int Nmax=20;
+    unsigned int N1v=1;
     unsigned int J0=0;
     std::unordered_set<u3::U3> Allowed_w0_values;
     std::set<unsigned int> Allowed_L0_values;

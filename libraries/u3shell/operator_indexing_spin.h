@@ -186,7 +186,7 @@ public:
 
   inline std::size_t LookUpIndex(const OperatorLabelsST& labels)
   {
-    for(int i = 0; i < 36; ++i)
+    for(std::size_t i = 0; i < 36; ++i)
       {
         if(labels == OperatorLabelsST::ALLOWED_LABELS[i])
           return i;
@@ -231,7 +231,7 @@ public:
             std::set<uint8_t>{0, 1, 2}
             :operator_parameters.Allowed_T0_values;
 
-        for (int i = 0; i < 36; ++i)
+        for (std::size_t i = 0; i < 36; ++i)
         {
           const auto& labels = OperatorLabelsST::ALLOWED_LABELS[i];
           bool allowed_state = S0==labels.S0();
@@ -276,7 +276,7 @@ public:
           : basis::BaseState<OperatorSubspace>(subspace, state_labels)
       {}
 
-      inline int index()  const {return static_cast<int>(std::get<0>(BaseState::labels()));}
+      inline std::size_t index()  const {return static_cast<std::size_t>(std::get<0>(BaseState::labels()));}
       inline std::tuple<unsigned int,unsigned int,unsigned int,unsigned int,unsigned int,unsigned int>
         labels() const {return OperatorLabelsST::ALLOWED_LABELS[index()].labels();}
 

@@ -74,20 +74,10 @@ install(FILES ${u3shell_headers} DESTINATION include/spncci/u3shell)
 
 add_executable(relative_operator_test EXCLUDE_FROM_ALL relative_operator_test.cpp)
 target_link_libraries(relative_operator_test PRIVATE
-  spncci::spncci_basis
   fmt::fmt
   spncci::sp3rlib
   spncci::u3shell
 )
-
-# add_executable(recurrence_upcoupling_test EXCLUDE_FROM_ALL recurrence_upcoupling_test.cpp)
-# target_link_libraries(recurrence_upcoupling_test PRIVATE
-#   spncci::spncci_basis
-#   fmt::fmt
-#   spncci::sp3rlib
-#   spncci::u3shell
-# )
-
 
 add_executable(operator_indexing_test EXCLUDE_FROM_ALL operator_indexing_test.cpp)
 target_link_libraries(operator_indexing_test PRIVATE
