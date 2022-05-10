@@ -180,7 +180,7 @@ int main(int argc, char **argv)
                 {
                   const auto& omega_bar=bar_subspace.omega();
 
-                  if(u3::OuterMultiplicity(omega_ket,{2,{2u,0u}},omega_bar) && u3::OuterMultiplicity(omega_bar,{-2,{0u,2u}},omega_bra))
+                  if(u3::OuterMultiplicity(omega_ket,{2u,0u},omega_bar) && u3::OuterMultiplicity(omega_bar,{0u,2u},omega_bra))
                     {
                       commutator_matrix +=
                       u3::UCached(u_coef_cache,omega_ket.SU3(),{2u,0u},omega_bra.SU3(),{0u,2u},omega_bar.SU3(),1,1,w0.SU3(),1,1)
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
                       *sp3r::Sp3rRaisingOperator(sigma,bar_subspace,ket_subspace,u_coef_cache);
                     }
 
-                  if(u3::OuterMultiplicity(omega_ket,{-2,{0u,2u}},omega_bar) && u3::OuterMultiplicity(omega_bar,{2,{2u,0u}},omega_bra))
+                  if(u3::OuterMultiplicity(omega_ket,{0u,2u},omega_bar) && u3::OuterMultiplicity(omega_bar,{2u,0u},omega_bra))
                     {
                       commutator_matrix-=
                         u3::UCached(u_coef_cache,omega_ket.SU3(),{0u,2u},omega_bra.SU3(),{2u,0u},omega_bar.SU3(),1,1,w0.SU3(),1,1)
@@ -226,8 +226,8 @@ int main(int argc, char **argv)
           for(const auto& bar_subspace : sp3r_space)
             {
               const auto& omega_bar = bar_subspace.omega();
-              if(u3::OuterMultiplicity(omega_ket,{-2,{0u,2u}},omega_bar)==0) continue;
-              if(u3::OuterMultiplicity(omega_bar,{2,{2u,0u}},omega_bra)==0) continue;
+              if(u3::OuterMultiplicity(omega_ket,{0u,2u},omega_bar)==0) continue;
+              if(u3::OuterMultiplicity(omega_bar,{2u,0u},omega_bra)==0) continue;
 
               AB_matrix
                 += u3::UCached(u_coef_cache,omega_ket.SU3(),{0u,2u},omega_bra.SU3(),{2u,0u},omega_bar.SU3(),1,1,{0u,0u},1,1)
@@ -253,7 +253,7 @@ int main(int argc, char **argv)
           u3::SU3 x0(2u,1u);
           const auto& omega_bra = bra_subspace.omega();
           const auto& omega_ket = ket_subspace.omega();
-          if(u3::OuterMultiplicity(omega_ket,{4,x0},omega_bra))
+          if(u3::OuterMultiplicity(omega_ket,x0,omega_bra))
             {
 
               sp3r::Matrix commutator_matrix
@@ -261,8 +261,8 @@ int main(int argc, char **argv)
               for(const auto& bar_subspace : sp3r_space)
                 {
                   const auto& omega_bar = bar_subspace.omega();
-                  if(!u3::OuterMultiplicity(omega_ket,{2,{2u,0u}},omega_bar)) continue;
-                  if(!u3::OuterMultiplicity(omega_bar,{2,{2u,0u}},omega_bra)) continue;
+                  if(!u3::OuterMultiplicity(omega_ket,{2u,0u},omega_bar)) continue;
+                  if(!u3::OuterMultiplicity(omega_bar,{2u,0u},omega_bra)) continue;
 
                   commutator_matrix
                     -=2*u3::UCached(u_coef_cache,omega_ket.SU3(),{2u,0u},omega_bra.SU3(),{2u,0u},omega_bar.SU3(),1,1,x0,1,1)

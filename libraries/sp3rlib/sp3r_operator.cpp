@@ -21,7 +21,7 @@ namespace sp3r
   {
     const auto& omega_bra = bra_subspace.omega();
     const auto& omega_ket = ket_subspace.omega();
-    if(!u3::OuterMultiplicity(omega_ket,{2,{2u,0u}},omega_bra))
+    if(!u3::OuterMultiplicity(omega_ket,{2u,0u},omega_bra))
       return basis::OperatorBlock<double>::Zero(bra_subspace.upsilon_max(),ket_subspace.upsilon_max());
 
     const auto& bra_nonorthogonal_basis = bra_subspace.nonorthogonal_basis();

@@ -367,7 +367,11 @@ inline int ConjugationGrade(const u3::U3& omega)
 ////////////////////////////////////////////////////////////////
 // coupling
 ////////////////////////////////////////////////////////////////
+template<typename T1 = u3::SU3, typename T2=u3::SU3,  typename T3=u3::SU3>
+inline unsigned int OuterMultiplicity(const T1& x1, const T2& x2, const T3& x3)
+{return OuterMultiplicity(u3::SU3(x1),u3::SU3(x2),u3::SU3(x3));}
 
+template<>
 unsigned int OuterMultiplicity(
     const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3
   );
@@ -384,15 +388,15 @@ unsigned int OuterMultiplicity(
 // Returns:
 //   (int) : multiplicity
 
-inline unsigned int OuterMultiplicity(
-    const u3::U3& omega1, const u3::U3& omega2, const u3::U3& omega3
-  )
-// Overloaded for U3.
-{
-  if (omega1.N() + omega2.N() != omega3.N())
-    return 0;
-  return OuterMultiplicity(omega1.SU3(), omega2.SU3(), omega3.SU3());
-}
+// inline unsigned int OuterMultiplicity(
+//     const u3::U3& omega1, const u3::U3& omega2, const u3::U3& omega3
+//   )
+// // Overloaded for U3.
+// {
+//   if (omega1.N() + omega2.N() != omega3.N())
+//     return 0;
+//   return OuterMultiplicity(omega1.SU3(), omega2.SU3(), omega3.SU3());
+// }
 
 MultiplicityTagged<u3::SU3>::vector KroneckerProduct(
     const u3::SU3& x1, const u3::SU3& x2

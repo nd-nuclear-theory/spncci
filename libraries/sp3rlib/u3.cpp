@@ -35,7 +35,7 @@ std::string U3::Str() const
 // {
 //   return fmt::format("{}x{}x{}",U3(),S(),T());
 // }
-
+template<>
 unsigned int OuterMultiplicity(const u3::SU3& x1, const u3::SU3& x2, const u3::SU3& x3)
 {
   unsigned int multiplicity = 0;
