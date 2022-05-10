@@ -61,10 +61,10 @@ foreach(test_name IN LISTS spncci_basis_UNITS_TEST)
   add_dependencies(spncci_basis_tests ${test_name})
 endforeach()
 
-target_link_libraries(
-  recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
-                                   cppitertools::cppitertools spncci::spncci
-)
+# target_link_libraries(
+#   recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
+#                                    cppitertools::cppitertools spncci::spncci
+# )
 
 
 if(SPNCCI_MASTER_PROJECT)

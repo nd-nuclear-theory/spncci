@@ -258,7 +258,6 @@ class RecurrenceOperatorState;
 
 // spin::RecurrenceS[PN/T]Subspace() [Sp,Sn,Sp',Sn']/[T,T']->(gamma,gamma')
 template<typename tLGIType, typename tUnitTensorLabelsType>
-
 class RecurrenceSpinSubspace
     : public basis::BaseSubspace<
           RecurrenceSpinSubspace<tLGIType, tUnitTensorLabelsType>, /* derived type */

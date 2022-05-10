@@ -77,7 +77,7 @@ int main(int argc, char **argv)
       assert(utils::FileExists(inputfile, verbose));
 
       auto spatial_ptr =
-          std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(
+          std::make_shared<const u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>>(
               parameters
             );
 

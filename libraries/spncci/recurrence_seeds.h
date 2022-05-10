@@ -44,7 +44,7 @@ basis::OperatorBlocks<double>
 GetRecurrenceSeedsFromFile(
   const lgi::MultiplicityTaggedLGIVector& lgi_vector,
   const std::vector<int>& lgi_full_space_index_lookup,
-  const spncci::spatial::RecurrenceSpace& spatial_recurrence_space,
+  const spncci::spatial::RecurrenceSpace<u3shell::spatial::OneCoordType>& spatial_recurrence_space,
   const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& spin_recurrence_space
 );
 

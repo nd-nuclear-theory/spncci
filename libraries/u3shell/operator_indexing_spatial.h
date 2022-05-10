@@ -10,6 +10,7 @@
   SPDX-License-Identifier: MIT
 
   3/23/22 (aem): Created.
+  5/9/22 (aem): Templatized operator space on coordinate type.
 ****************************************************************/
 
 #ifndef OPERATOR_INDEXING_SPATIAL_H_
@@ -25,7 +26,7 @@
 namespace u3shell::spatial
 {
 
-using OneCoordType = std::array<unsigned int,1>;
+using OneCoordType = std::array<unsigned int, 1>;
 
 void GenerateSpatialOperators(
     const int N0,
@@ -89,6 +90,8 @@ class OperatorU3Subspace
       std::tuple<tOperatorStateLabelType>
     >;
 
+  using OperatorStateLabelType = tOperatorStateLabelType;
+
  public:
   /// Default OperatorU3Subspace constructor.
   OperatorU3Subspace() = default;
@@ -105,7 +108,7 @@ class OperatorU3Subspace
   OperatorU3Subspace(
       const int N0,
       const u3::SU3& x0,
-      const std::vector<tOperatorStateLabelType>& Nbar_vector
+      const std::vector<OperatorStateLabelType>& Nbar_vector
     )
       : BaseSubspaceType{x0}, N0_{N0}
   {
@@ -120,7 +123,7 @@ class OperatorU3Subspace
   ////////////////////////////////////////////////////////////////////////////////
   /// Returns SU(3) label x0=$(\lambda_0,\mu_0)$ of subspace
   u3::SU3 x0() const { return std::get<0>(BaseSubspaceType::labels()); }
-  
+
   /// Returns N0 of operator
   int N0() const { return N0_; }
 
@@ -159,8 +162,10 @@ class OperatorNbarStates
   using BaseStateType =
       basis::BaseState<OperatorU3Subspace<tOperatorStateLabelType>>;
 
+  using OperatorStateLabelType = tOperatorStateLabelType;
+
  public:
-  using SubspaceType = OperatorU3Subspace<tOperatorStateLabelType>;
+  using SubspaceType = typename BaseStateType::SubspaceType;
 
   OperatorNbarStates() = default;
   // pass-through constructors
@@ -172,7 +177,7 @@ class OperatorNbarStates
 
   OperatorNbarStates(
       const SubspaceType& subspace,
-      const typename SubspaceType::StateLabelsType& state_labels
+      const typename BaseStateType::StateLabelsType& state_labels
     )
   // Construct state by reverse lookup on labels.
       : BaseStateType(subspace, state_labels)
@@ -181,18 +186,52 @@ class OperatorNbarStates
   ////////////////////////////////////////////////////////////////////////////////
   // accessors
   ////////////////////////////////////////////////////////////////////////////////
-  inline const tOperatorStateLabelType& Nbar_labels() const
+  inline const OperatorStateLabelType& Nbar_labels() const
   {
     return std::get<0>(BaseStateType::labels());
   }
 
-  inline unsigned int N1bar() const {return Nbar_labels()[0];}
+  inline unsigned int N1bar() const { return Nbar_labels()[0]; }
 
-  // Wrapper for N1bar() one coordinate [TODO: Add one-coordinate conditions]
-  inline unsigned int Nbar() const {return N1bar();}
+  template<
+    typename U = tOperatorStateLabelType,
+    std::enable_if_t<(std::tuple_size<U>::value >= 2)>* = nullptr
+  >
+  inline unsigned int N2bar() const { return Nbar_labels()[1]; }
 
-  // [TODO: Add one-coordinate conditions]
+  template<
+    typename U = tOperatorStateLabelType,
+    std::enable_if_t<(std::tuple_size<U>::value >= 3)>* = nullptr
+  >
+  inline unsigned int N1barp() const { return Nbar_labels()[2]; }
+
+  template<
+    typename U = tOperatorStateLabelType,
+    std::enable_if_t<(std::tuple_size<U>::value >= 4)>* = nullptr
+  >
+  inline unsigned int N2barp() const { return Nbar_labels()[3]; }
+
+
+  // Wrapper for N1bar() one coordinate
+  template<
+    typename U = tOperatorStateLabelType,
+    std::enable_if_t<(std::tuple_size<U>::value <= 2)>* = nullptr
+  >
+  inline unsigned int Nbar() const { return N1bar(); }
+
+  // Wrapper for N2bar() one coordinate
+  template<
+    typename U = tOperatorStateLabelType,
+    std::enable_if_t<(std::tuple_size<U>::value == 2)>* = nullptr
+  >
+  inline unsigned int Nbarp() const { return N2bar(); }
+
+
   // Reconstruct Nbarp from Nbar and N0;
+  template<
+    typename U = tOperatorStateLabelType,
+    std::enable_if_t<(std::tuple_size<U>::value == 1)>* = nullptr
+  >
   inline unsigned int Nbarp() const
   {
     return static_cast<unsigned int>(Nbar() + BaseStateType::subspace().N0());
@@ -207,15 +246,6 @@ class OperatorNbarStates
     return fmt::format("[{}]", label_str);
   }
 
-
-  // unsigned int Nbar() const { return std::get<0>(labels()); }
-
-  // // Reconstruct Nbarp from Nbar and N0;
-  // inline unsigned int Nbarp() const
-  // {
-  //
-  //   return static_cast<unsigned int>(Nbar() + subspace().N0());
-  // }
 };
 
 ////////////////////////////////////////////////////////////////
@@ -284,7 +314,8 @@ class OperatorL0Space
     std::string debug_str = fmt::format("{}L0: {}\n", indent, LabelStr());
 
     std::string subspace_indent = indent + "  ";
-    for (std::size_t i_subspace = 0; i_subspace < BaseDegenerateSpaceType::size(); ++i_subspace)
+    for (std::size_t i_subspace = 0; i_subspace < BaseDegenerateSpaceType::size();
+         ++i_subspace)
     {
       const auto& subspace = BaseDegenerateSpaceType::GetSubspace(i_subspace);
 
@@ -358,7 +389,9 @@ class OperatorN0Space
     }
 
     std::map<u3::SU3, std::vector<tOperatorStateLabelType>> x0_Nbar_vector;
-    GenerateSpatialOperators(N0, parity_bar, operator_parameters, x0_Nbar_vector);
+    u3shell::spatial::GenerateSpatialOperators(
+        N0, parity_bar, operator_parameters, x0_Nbar_vector
+      );
 
     // Iterate over L0 values and push L0Subspaces
     for (const unsigned int L0 : allowed_L0_values)
@@ -383,7 +416,8 @@ class OperatorN0Space
     std::string debug_str = fmt::format("{}N0: {}\n", indent, N0());
 
     std::string subspace_indent = indent + "  ";
-    for (std::size_t i_subspace = 0; i_subspace < BaseSpaceType::size(); ++i_subspace)
+    for (std::size_t i_subspace = 0; i_subspace < BaseSpaceType::size();
+         ++i_subspace)
     {
       const auto& subspace = BaseSpaceType::GetSubspace(i_subspace);
 
@@ -458,7 +492,8 @@ class OperatorParitySpace
   {
     std::string debug_str = fmt::format("parity_bar: {}\n", parity_bar());
 
-    for (std::size_t i_subspace = 0; i_subspace < BaseSpaceType::size(); ++i_subspace)
+    for (std::size_t i_subspace = 0; i_subspace < BaseSpaceType::size();
+         ++i_subspace)
     {
       const auto& subspace = BaseSpaceType::GetSubspace(i_subspace);
 
@@ -541,7 +576,8 @@ class OperatorSpace
   std::string DebugStr() const
   {
     std::string debug_str;
-    for (std::size_t i_subspace = 0; i_subspace < BaseSpaceType::size(); ++i_subspace)
+    for (std::size_t i_subspace = 0; i_subspace < BaseSpaceType::size();
+         ++i_subspace)
     {
       const auto& subspace = BaseSpaceType::GetSubspace(i_subspace);
 

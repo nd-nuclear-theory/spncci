@@ -67,7 +67,7 @@ basis::OperatorBlock<double>
 ReadSeedBlockFromFile(
   const LGILookupTable& lgi_groups,
   const std::vector<int>& lgi_full_space_index_lookup,
-  const spncci::spatial::RecurrenceU3Space&  lgi_spatial_space,
+  const spncci::spatial::RecurrenceU3Space<u3shell::spatial::OneCoordType>&  lgi_spatial_space,
   const spncci::spin::RecurrenceLGISpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& lgi_spin_space,
   basis::OperatorBlock<double>& seed_block
 )
@@ -147,7 +147,7 @@ ReadSeedBlockFromFile(
             const auto& spatial_operator_subspace
                 = lgi_spatial_space.GetSubspace(spatial_operator_index);
             
-            int spatial_state_index = spatial_operator_subspace.LookUpStateIndex({Nbar,Nbarp});
+            int spatial_state_index = spatial_operator_subspace.LookUpStateIndex({{Nbar}});
             
             //Calculate target row index 
             int target_index_row 
@@ -200,7 +200,7 @@ basis::OperatorBlocks<double>
 GetRecurrenceSeedsFromFile(
   const lgi::MultiplicityTaggedLGIVector& lgi_vector,
   const std::vector<int>& lgi_full_space_index_lookup,
-  const spncci::spatial::RecurrenceSpace& spatial_recurrence_space,
+  const spncci::spatial::RecurrenceSpace<u3shell::spatial::OneCoordType>& spatial_recurrence_space,
   const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& spin_recurrence_space
 )
 {

@@ -148,8 +148,8 @@ class U3Subspace
 
   ////////////////////////////////////////////////////////////////////////
   // accessors which can always be used
-  const u3::U3 omega() const { return std::get<0>(labels()); }
-  const u3::U3 U3() const { return omega(); }  // Deprecate?
+  const u3::U3& omega() const { return std::get<0>(labels()); }
+  const u3::U3& U3() const { return omega(); }  // Deprecate?
   inline unsigned int upsilon_max() const { return upsilon_max_; }
   inline std::size_t dimension() const
   {
@@ -223,7 +223,7 @@ class Sp3RSpace
     );
 
   // accessors
-  u3::U3 sigma() const { return std::get<0>(labels()); }
+  const u3::U3& sigma() const { return std::get<0>(labels()); }
 
   unsigned int Nn_max() const { return Nn_max_; }
 
