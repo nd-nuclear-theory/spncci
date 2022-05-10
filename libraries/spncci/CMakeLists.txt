@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
 set(spncci_headers
-    recurrence_spatial.h
+    # recurrence_spatial.h
     spncci_common.h
     spncci_basis.h
     vcs_cache.h
@@ -35,7 +35,7 @@ set(spncci_sources
     hyperblocks_u3s.cpp
     variance.cpp
     recurrence_seeds.cpp
-    recurrence_spatial.cpp
+    # recurrence_spatial.cpp
 )
 
 # define spncci library and add source files
@@ -88,7 +88,6 @@ install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
 # ##############################################################################
 
 set(spncci_UNITS_TEST
-    recurrence_indexing_test
     recurrence_mapping_test
     recurrence_seeds_test
 )
@@ -100,23 +99,20 @@ foreach(test_name IN LISTS spncci_UNITS_TEST)
   add_dependencies(spncci_tests ${test_name})
 endforeach()
 
+
 target_link_libraries(
-  recurrence_indexing_test PRIVATE fmt::fmt am::am spncci::lgi
-                                   cppitertools::cppitertools 
-                                   spncci::spncci_basis
-                                   spncci::spncci
+  recurrence_mapping_test PRIVATE
+  fmt::fmt am::am spncci::lgi
+  cppitertools::cppitertools
+  spncci::spncci_basis
+  spncci::spncci
 )
 target_link_libraries(
-  recurrence_mapping_test PRIVATE fmt::fmt am::am spncci::lgi
-                                  cppitertools::cppitertools 
-                                  spncci::spncci_basis
-                                  spncci::spncci
-)
-target_link_libraries(
-  recurrence_seeds_test PRIVATE fmt::fmt am::am spncci::lgi
-                                cppitertools::cppitertools 
-                                spncci::spncci_basis
-                                spncci::spncci
+  recurrence_seeds_test PRIVATE
+  fmt::fmt am::am spncci::lgi
+  cppitertools::cppitertools
+  spncci::spncci_basis
+  spncci::spncci
 )
 
 

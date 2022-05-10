@@ -37,10 +37,6 @@ target_link_libraries(
          spncci::lsu3shell
          spncci::spncci_basis
          OpenMP::OpenMP_CXX
-         # lsu3shell::libraries
-         # lsu3shell::SU3ME
-         # lsu3shell::LookUpContainers
-         # lsu3shell::LSU3
 )
 
 # ##############################################################################
@@ -52,10 +48,10 @@ target_include_directories(
                     $<INSTALL_INTERFACE:include/spncci>
 )
 
-# ##############################################################################
+###############################################################################
 # define installed targets
 # actual installation is performed by top-level CMakeLists.txt
-# ##############################################################################
+###############################################################################
 install(
   TARGETS lgi
   DESTINATION lib
@@ -64,9 +60,9 @@ install(
 install(FILES ${lgi_headers} DESTINATION include/spncci/lgi)
 
 
-# ##############################################################################
+###############################################################################
 # tests
-# ##############################################################################
+###############################################################################
 add_custom_target(lgi_tests)
 
 add_executable(lgi_test EXCLUDE_FROM_ALL lgi_test.cpp)
@@ -82,22 +78,19 @@ target_link_libraries(
 )
 add_dependencies(lgi_tests lgi_test)
 
-# add_executable(dimensions_test EXCLUDE_FROM_ALL dimensions_test.cpp)
-# target_link_libraries(
-#   dimensions_test PRIVATE 
-#   fmt::fmt
-#   # am::am
-#   spncci::utilities
-#   # spncci::sp3rlib
-#   # spncci::u3shell
-#   spncci::lsu3shell
-#   spncci::lgi
-#   # lsu3shell::libraries
-#   # lsu3shell::LSU3
-#   # lsu3shell::SU3ME
-# )
-# add_dependencies(lgi_tests dimensions_test)
 
+add_executable(recurrence_indexing_test EXCLUDE_FROM_ALL recurrence_indexing_test.cpp)
+
+target_link_libraries(
+  recurrence_indexing_test PRIVATE
+  fmt::fmt
+  am::am
+  spncci::lgi
+  OpenMP::OpenMP_CXX
+  cppitertools::cppitertools
+  spncci::spncci_basis
+  spncci::u3shell
+)
 
 
 if(SPNCCI_MASTER_PROJECT)
