@@ -39,8 +39,6 @@ namespace lsu3shell
           int32_t ibegin = basis.blockBegin(ipin_block);
           int32_t iend = basis.blockEnd(ipin_block);
           
-          // std::cout<<"alphas " <<alpha_n_max<<"  "<<alpha_p_max<<std::endl;
-          // std::cout<<"begin end "<<ibegin<<" "<<iend<<std::endl;
           for (int32_t iwpn = ibegin; iwpn < iend; ++iwpn) 
             {
               SU3xSU2::LABELS omega_pn(basis.getOmega_pn(ip, in, iwpn));
@@ -51,31 +49,6 @@ namespace lsu3shell
       return num_irreps;
     }
 
-/////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////
-// /////////////////////////////////////////////////////////////////////////////
-// template <typename tDataType>
-// void WriteBinary(std::ostream& os, tDataType data)
-// // Write binary data item to stream.
-// //
-// // Note that, if the template parameter is omitted, the data type
-// // of the value given for data will determine the output type, but
-// // explicitly giving the template parameter casts the data to the
-// // given data type tDataType.  Explicitly giving the template
-// // parameter is recommended both to document the data format in
-// // the output file and to avoid any ambiguity of the output type.
-// //
-// // Arguments:
-// //   os (input): binary stream for output
-// //   data (input): data value to output
-// //
-// // Ex:
-// //   mcutils::WriteBinary<float>(out_stream,value);
-// {
-//    os.write(reinterpret_cast<const char*>(&data), sizeof(data));
-// }
-/////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
 std::vector<double> ComputeRME(std::vector<MECalculatorData>& rmeCoeffsPNPN)
@@ -94,7 +67,6 @@ std::vector<double> ComputeRME(std::vector<MECalculatorData>& rmeCoeffsPNPN)
 
    // resulting rmes do not have rho0 dependence
    int32_t nrmes_to_compute = bra_max * ket_max * rhot_max;
-   // std::cout<<"num rmes to comput "<<nrmes_to_compute<<std::endl;
    std::vector<double> result_rmes(nrmes_to_compute, 0.0);
 
    // iterate over PP NN and PN tensors each has the same lm0 mu0 and S0
@@ -108,7 +80,8 @@ std::vector<double> ComputeRME(std::vector<MECalculatorData>& rmeCoeffsPNPN)
       int32_t rme_index = 0;
       for (int i = 0; i < bra_max; ++i) {
          for (int j = 0; j < ket_max; ++j) {
-            //Summing over irho0.  For all relative unit tensors and Sp(3,R) generators rho0_max=1
+            //Summing over irho0.
+            // Note: for all relative unit tensors and Sp(3,R) generators rho0_max=1
             for (int irho0 = 0; irho0 < rho0_max; ++irho0) {
                // vector with rhot_max elements
                // rmes = < i ||| rho0 ||| j>[i][j][rho0] = {...}
@@ -140,11 +113,10 @@ basis::OperatorBlocks<double> CalculateRME(
   // Iterate over bra and ket irrep subspaces (i.e., subspaces of equivalent
   // irreps, distinguished by upstream quantum numbers), and for each pair of
   // irrep subspaces connected by given operator (e.g., unit tensor), calculate
-  // RMEs of the given operator between that pair, and write these to file.
+  // RMEs of the given operator between that pair.
   //
   // Calls: ComputeRME
 {
-  // Should probably return matrix or vector of matrices...
   int rows = lsu3shell::get_num_U3PNSPN_irreps(bra);
   int cols = lsu3shell::get_num_U3PNSPN_irreps(ket);
 
@@ -152,6 +124,8 @@ basis::OperatorBlocks<double> CalculateRME(
   for(basis::OperatorBlock<double>& block : operator_blocks)
     block = Eigen::MatrixXd::Zero(rows,cols);
 
+  //////////////////////////////////////////////////////////////////
+  // Declarations
   //////////////////////////////////////////////////////////////////
   std::vector<unsigned char> hoShells_n, hoShells_p;
   std::vector<CTensorGroup*> tensorGroupsPP, tensorGroupsNN;
@@ -183,7 +157,17 @@ basis::OperatorBlocks<double> CalculateRME(
   int32_t icurrentDistr_p, icurrentDistr_n;
   int32_t icurrentGamma_p, icurrentGamma_n;
 
-  // main block-by-block calculation
+
+  //////////////////////////////////////////////////////////////////
+  // Iterate over subspaces with definite wp and wn [w is SU(3)xSU(2) labels]
+  // for bra, then for ket.
+  //
+  // Then iterate over w in product of wp and wn for bra, for ket and
+  // compute rmes ([wp',wn']w'||Op||[wp,wn]w)_{rho_t} for all rho_t
+  // and copy results into operator blocks (vector of length rhot_max_max
+  // of dim(bra)xdim(ket) matrices with).
+  //////////////////////////////////////////////////////////////////
+
    int32_t row_irrep = 0;
 
    for (unsigned int ipin_block = 0; ipin_block < number_ipin_blocks; ipin_block++) 

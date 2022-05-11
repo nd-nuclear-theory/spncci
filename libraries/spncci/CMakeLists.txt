@@ -17,7 +17,7 @@ set(spncci_headers
     transform_basis.h
     hyperblocks_u3s.h
     variance.h
-    recurrence_seeds.h
+    
 )
 set(spncci_sources
     spncci_common.cpp
@@ -34,7 +34,7 @@ set(spncci_sources
     transform_basis.cpp
     hyperblocks_u3s.cpp
     variance.cpp
-    recurrence_seeds.cpp
+    
     # recurrence_spatial.cpp
 )
 
@@ -89,7 +89,6 @@ install(FILES ${spncci_headers} DESTINATION include/spncci/spncci)
 
 set(spncci_UNITS_TEST
     recurrence_mapping_test
-    recurrence_seeds_test
 )
 
 add_custom_target(spncci_tests)
@@ -102,13 +101,6 @@ endforeach()
 
 target_link_libraries(
   recurrence_mapping_test PRIVATE
-  fmt::fmt am::am spncci::lgi
-  cppitertools::cppitertools
-  spncci::spncci_basis
-  spncci::spncci
-)
-target_link_libraries(
-  recurrence_seeds_test PRIVATE
   fmt::fmt am::am spncci::lgi
   cppitertools::cppitertools
   spncci::spncci_basis

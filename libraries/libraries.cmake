@@ -114,12 +114,11 @@ add_subdirectory(libraries/u3shell)
 add_subdirectory(libraries/moshinsky)
 add_subdirectory(libraries/lsu3shell)
 add_subdirectory(libraries/lgi)
+add_subdirectory(libraries/seeds)
 add_subdirectory(libraries/spncci)
 add_subdirectory(libraries/spncci_basis)
+add_subdirectory(libraries/u3ncsm)
 
-if(BUILD_LSU3SHELL)
-  add_subdirectory(libraries/u3ncsm)
-endif()
 
 # ##############################################################################
 # define meta-library target "spncci::libraries"
@@ -137,12 +136,9 @@ target_link_libraries(
             spncci::moshinsky
             spncci::lsu3shell
             spncci::lgi
+            spncci::u3ncsm
             spncci::spncci
 )
-
-If(BUILD_LSU3SHELL)
-  target_link_libraries(spncci_libraries INTERFACE spncci::u3ncsm)
-endif()
 
 install(
   TARGETS spncci_libraries

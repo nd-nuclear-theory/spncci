@@ -34,10 +34,7 @@ recurrence_seeds.h
 #include "spncci_basis/recurrence_indexing.h"
 #include "lgi/recurrence_lgi.h"
 
-namespace spncci
-{
-
-namespace recurrence
+namespace spncci::seeds
 {
 
 basis::OperatorBlocks<double>
@@ -48,8 +45,7 @@ GetRecurrenceSeedsFromFile(
   const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& spin_recurrence_space
 );
 
-} // namespace recurrence 
-}  // namespace spncci
+}
 
 
 #endif  // RECURRENCE_SEEDS_H_

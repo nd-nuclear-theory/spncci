@@ -1,20 +1,35 @@
 cmake_minimum_required(VERSION 3.20)
 
-# add headers and sources
-set(u3ncsm_headers
-    su3rme.h
-    lgi_gen.h
-    dimensions.h
-    seed_gen.h
-)
-set(u3ncsm_sources
-    su3rme.cpp
-    lgi_gen.cpp
-    dimensions.cpp
-    seed_gen.cpp
-)
+# # add headers and sources
+set(u3ncsm_UNITS_H
+  )
 
-# define spncci library and add source files
+set(u3ncsm_UNITS_H_CPP
+  u3ncsm_interface
+  )
+
+set(u3ncsm_lsu3shell_UNITS_H_CPP
+    su3rme
+    lgi_gen
+    dimensions
+    seed_gen
+  )
+
+
+set(u3ncsm_headers ${u3shell_UNITS_H} ${u3ncsm_UNITS_H_CPP})
+if(BUILD_LSU3SHELL)
+  set(u3ncsm_headers ${u3ncsm_headers} ${u3ncsm_lsu3shell_UNITS_H_CPP})
+endif()
+
+set(u3ncsm_sources ${u3ncsm_UNITS_H_CPP})
+if(BUILD_LSU3SHELL)
+  set(u3ncsm_sources ${u3ncsm_sources} ${u3ncsm_lsu3shell_UNITS_H_CPP})
+endif()
+
+list(TRANSFORM u3ncsm_headers APPEND .h)
+list(TRANSFORM u3ncsm_sources APPEND .cpp)
+
+# define u3ncsm library and add source files
 add_library(u3ncsm ${u3ncsm_sources})
 add_library(spncci::u3ncsm ALIAS u3ncsm)
 
@@ -23,18 +38,26 @@ add_library(spncci::u3ncsm ALIAS u3ncsm)
 # ##############################################################################
 target_link_libraries(
   u3ncsm
-  PUBLIC am::am
-         basis::basis
-         fmt::fmt
-         spncci::utilities
-         spncci::sp3rlib
-         spncci::spncci_basis
-         spncci::lgi
-         OpenMP::OpenMP_CXX
-         lsu3shell::SU3ME
-         lsu3shell::LookUpContainers
-         lsu3shell::LSU3
+  PUBLIC
+  am::am
+  basis::basis
+  fmt::fmt
+  spncci::utilities
+  spncci::sp3rlib
+  spncci::spncci_basis
+  spncci::lgi
 )
+
+if(BUILD_LSU3SHELL)
+target_link_libraries(
+  u3ncsm
+  PUBLIC
+  OpenMP::OpenMP_CXX
+  lsu3shell::SU3ME
+  lsu3shell::LookUpContainers
+  lsu3shell::LSU3
+)
+endif()
 
 # ##############################################################################
 # define include directory

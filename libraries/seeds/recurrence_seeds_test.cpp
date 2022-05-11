@@ -8,7 +8,7 @@
 
  9/24/21 (aem): Created.
 ****************************************************************/
-#include "spncci/recurrence_seeds.h"
+#include "seeds/recurrence_seeds.h"
 
 #include <cppitertools/itertools.hpp>
 #include <string>
@@ -28,7 +28,7 @@
 #include "mcutils/eigen.h"
 #include "u3shell/relative_operator.h"
 #include "utilities/utilities.h"
-
+#include "u3ncsm/u3ncsm_interface.h"
 #include "Spectra/SymEigsSolver.h"
 
 unsigned long int NumNonZeros(const basis::OperatorBlock<double>& block)
@@ -55,7 +55,7 @@ basis::OperatorBlock<double> get_temp_block(int Z, int N, lgi::LGI& bra, lgi::LG
           rho0,operator_index
         );
 
-  return ReadOperatorBlockBinary(filename);
+  return utils::ReadOperatorBlockBinary(filename);
 
 }
 
@@ -87,11 +87,12 @@ int main(int argc, char** argv)
     lgi_full_space_index_lookup[i]=i;
   
   spncci::spin::Space<lgi::LGI> spin_space(lgi_vector, Nmax);
-  const spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST> spin_recurrence_space(spin_space, spin_space);
+  const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST> spin_recurrence_space(spin_space, spin_space);
 
   auto it =iter::imap([](MultiplicityTagged<lgi::LGI> l) { return l.irrep.U3(); }, lgi_vector)| iter::unique_everseen;
   const spncci::spatial::Space spatial_space(std::vector<u3::U3>(it.begin(), it.end()), Nsigma0, Nmax);
-  const spncci::spatial::RecurrenceSpace spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
+  const spncci::spatial::RecurrenceSpace<u3shell::spatial::OneCoordType>
+    spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Dump spatial basis 
@@ -253,7 +254,7 @@ int main(int argc, char** argv)
 
   // std::cout<<"Get the seeds "<<std::endl;
   basis::OperatorBlocks<double> seed_blocks
-    =spncci::recurrence::GetRecurrenceSeedsFromFile(
+    =spncci::seeds::GetRecurrenceSeedsFromFile(
       lgi_vector,lgi_full_space_index_lookup,
       spatial_recurrence_space,spin_recurrence_space
       );
@@ -319,7 +320,7 @@ int main(int argc, char** argv)
       const auto& spatial_subspace = spatial_recurrence_space.GetSubspace(index);
       const auto&[sigma_ket,sigma_bra,parity_bar] = spatial_subspace.labels();
       std::string seed_filename = spncci::seeds::seed_filename(Z,N,Nsigma0,sigma_bra,sigma_ket,parity_bar);
-      basis::OperatorBlock<double> seed_block1 = ReadOperatorBlockBinary(seed_filename);
+      basis::OperatorBlock<double> seed_block1 = utils::ReadOperatorBlockBinary(seed_filename);
       basis::OperatorBlock<double> seed_block2 = seed_blocks[index];
       std::cout<<"****************************************"<<std::endl;
       std::cout<<sigma_bra.Str()<<"  "<<sigma_ket.Str()<<"  "<<parity_bar<<std::endl;

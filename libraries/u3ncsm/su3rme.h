@@ -38,6 +38,18 @@ namespace lsu3shell
     const SU3xSU2::LABELS& w0,
     int rhot_max
   );
+// Calculate RMEs of a two-body operator between SU(3)xSU(2) irreps given by bra and ket bases.
+//
+// Args:
+//    interactionPPNN : proton-proton or neutron-neutron terms of operator
+//    interactionPN : proton-neutron terms of operator
+//    bra : basis for bra consisting of SU(3)xSU(2) irreps
+//    ket : basis for ket consisting of SU(3)xSU(2) irreps
+//    dN0 : Number of oscillator quanta carried by the operator
+//    w0 : SU(3)xSU(2) quantum numbers of operator
+//    rhot_max : Maximum outermutiplicity in the product of ket x w0 -> bra
+//    TODO: rename rhot_max to rhot_max_max.
+
 
 }// end namespace 
 
