@@ -21,17 +21,18 @@
 #include "lgi/lgi.h"
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "fmt/format.h"
+#include "u3ncsm/u3ncsm_interface.h"
 
 namespace lgi{
 
-  inline std::string lgi_expansion_filename(const int Z, const int N, const lgi::LGI& lgi)
-    {
-      const auto&[Nex,sigma,Sp,Sn,S]=lgi.Key();
-      std::string filename
-        = fmt::format("lgi_expansion_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_2Sp{:02}_2Sn{:02}_2S{:02}.dat",
-              Z,N,Nex,sigma.SU3().lambda(),sigma.SU3().mu(),TwiceValue(Sp),TwiceValue(Sn),TwiceValue(S));
-      return filename;
-    }
+  // inline std::string lgi_expansion_filename(const int Z, const int N, const lgi::LGI& lgi)
+  //   {
+  //     const auto&[Nex,sigma,Sp,Sn,S]=lgi.Key();
+  //     std::string filename
+  //       = fmt::format("lgi_expansion_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_2Sp{:02}_2Sn{:02}_2S{:02}.dat",
+  //             Z,N,Nex,sigma.SU3().lambda(),sigma.SU3().mu(),TwiceValue(Sp),TwiceValue(Sn),TwiceValue(S));
+  //     return filename;
+  //   }
 
  basis::OperatorBlock<double> generate_lgi_expansion(
     const nuclide::NuclideType& nuclide,
