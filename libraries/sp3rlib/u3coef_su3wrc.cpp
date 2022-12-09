@@ -33,7 +33,7 @@ extern "C"
 {
   extern void wu3r3w_(
     const int&,const int&,const int&,const int&,const int&,const int&,
-    const int&,const int&,const int&, int&, int&, int&, int&,
+    const int&,const int&,const int&, const int&, const int&, const int&, const int&,
     double[MAX_K][MAX_K][MAX_K][MAX_K]
   );
 
