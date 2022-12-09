@@ -298,7 +298,7 @@ void GenerateRecurrenceUnitTensors(
                 +spncci_space[irrep_family_index_ket].Sp3RSpace().size();
           sort_map[t].push_back(spncci::LGIPair(irrep_family_index_bra,irrep_family_index_ket));
         }
-    std::cout<<"sorted map"<<std::endl;
+    // std::cout<<"sorted map"<<std::endl;
     for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
       {
         std::cout<<it->first<<std::endl;
@@ -417,7 +417,7 @@ void GetLGIPairsForRecurrence(
               );
         }
 
-    std::cout<<"sort the lgi pairs"<<std::endl;
+    // std::cout<<"sort the lgi pairs"<<std::endl;
     for(auto it=sort_map.begin(); it!=sort_map.end(); ++it)
       {
         std::cout<<it->first<<std::endl;
@@ -629,25 +629,24 @@ void AddNn0BlocksToHyperblocks(
   {
     int upsilon_max1=u3_subspace1.upsilon_max();
     int upsilon_max=u3_subspace.upsilon_max();
-    int dim1=u3_subspace1.dimension();
-    int dim=u3_subspace.dimension();
 
     const auto& nonorthogonal_basis1 = u3_subspace1.nonorthogonal_basis();
     const auto& nonorthogonal_basis = u3_subspace.nonorthogonal_basis();
-
+    int dim1=nonorthogonal_basis1.dimension();
+    int dim=nonorthogonal_basis.dimension();
 
     basis::OperatorBlock<double> BU = basis::OperatorBlock<double>::Zero(dim1, dim);
-    for(int u3_state_index=0; u3_state_index<u3_subspace.size(); ++u3_state_index)
+    for(int u3_state_index=0; u3_state_index<nonorthogonal_basis.size(); ++u3_state_index)
       {
         const auto& n = nonorthogonal_basis.GetState(u3_state_index).n();
         const int rho_max = nonorthogonal_basis.GetState(u3_state_index).rho_max();
 
         // iterate over (n1,rho1)
-        for (int u3_state_index1=0; u3_state_index1<u3_subspace1.size(); u3_state_index1++)
+        for (int u3_state_index1=0; u3_state_index1<nonorthogonal_basis1.size(); u3_state_index1++)
           {
             const auto& n1 = nonorthogonal_basis1.GetState(u3_state_index1).n();
             const int rho1_max = nonorthogonal_basis1.GetState(u3_state_index1).rho_max();
-            // MultiplicityTagged<u3::U3> n1_rho1=u3_subspace1.GetStateLabels(u3_state_index1);
+
             // u3::U3 n1(n1_rho1.irrep);
             if (u3::OuterMultiplicity(n1.SU3(), u3::SU3(2,0),n.SU3())==0)
               continue;
@@ -655,8 +654,8 @@ void AddNn0BlocksToHyperblocks(
             for(int rho=1; rho<=rho_max; ++rho)
               for(int rho1=1; rho1<=rho1_max; ++rho1)
                 {
-                  int col=u3_subspace1.GetStateOffset(u3_state_index1,rho1);
-                  int row=u3_subspace.GetStateOffset(u3_state_index,rho);
+                  int col=nonorthogonal_basis1.GetStateOffset(u3_state_index1,rho1);
+                  int row=nonorthogonal_basis.GetStateOffset(u3_state_index,rho);
                   // BU(u3_state_index1,u3_state_index)
                   //   =2./Nn*u3boson::BosonCreationRME(n,n1)
                   //    *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
@@ -669,7 +668,6 @@ void AddNn0BlocksToHyperblocks(
                         n.SU3(),1,rho,omega1.SU3(),rho1,1
                       );
                 }
-
           }
       }
 
@@ -807,14 +805,15 @@ ComputeUnitTensorHyperblocks(
 
               int dim1=upsilon_max1*gamma_max;
               std::vector<basis::OperatorBlock<double>> unit_tensor_blocks_omega1;
-
+              // std::cout<<"initializing"<<std::endl;
               // Initializing blocks for sum over omega1
               ZeroInitBlocks(num_blocks,dimp,dim1,unit_tensor_blocks_omega1);
+              // std::cout<<"here"<<std::endl;
               ////////////////////////////////////////////////////////////////////////////////////////////////////////
               // Construct KBUK matrix
               ////////////////////////////////////////////////////////////////////////////////////////////////////////
               Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-
+              // fmt::print("Constructing for {}: {}  {}",sigma,omega,omega1);
               spncci::ConsructKBUK(
                 u_coef_cache, Nn,sigma, omega, omega1,
                 u3_subspace,u3_subspace1,K1,K_inv,
@@ -1210,6 +1209,7 @@ void DoRecurrenceInitialization(
     bool Nn0_conjugate_hypersectors=true;
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets_Nn0;
 
+
     spncci::BabySpNCCIHypersectors baby_spncci_hypersectors_Nn0(
       Nmax, baby_spncci_space, unit_tensor_space,
       unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets_Nn0,
@@ -1222,6 +1222,7 @@ void DoRecurrenceInitialization(
     std::vector<std::vector<int>> unit_tensor_hypersector_subsets;
 
     // (Nnp,Nn) sectors for Nnp>Nn
+    // std::cout<<"generate Nnp>Nn hypersectors"<<std::endl;
     baby_spncci_hypersectors=spncci::BabySpNCCIHypersectors(
       Nmax,baby_spncci_space, unit_tensor_space,
       unit_tensor_subspace_subsets, unit_tensor_hypersector_subsets,
