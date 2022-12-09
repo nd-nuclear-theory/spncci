@@ -93,6 +93,21 @@ target_link_libraries(
 )
 
 
+add_executable(recurrence_indexing_test_simple EXCLUDE_FROM_ALL recurrence_indexing_test_simple.cpp)
+
+target_link_libraries(
+  recurrence_indexing_test_simple PRIVATE
+  fmt::fmt
+  am::am
+  spncci::lgi
+  OpenMP::OpenMP_CXX
+  cppitertools::cppitertools
+  spncci::spncci_basis
+  spncci::u3shell
+  spncci::u3ncsm
+)
+
+
 if(SPNCCI_MASTER_PROJECT)
   add_dependencies(tests lgi_tests)
 endif()
