@@ -180,7 +180,8 @@ class RecurrenceU3Space
     {
       unsigned int rho_max = u3::OuterMultiplicity(omega, x0, omegap);
       auto subspace =
-          u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>();
+          u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>(N0,x0,state_vector);
+
       BaseDegenerateSpaceType::PushSubspace(std::move(subspace), rho_max);
     }
   }
@@ -351,8 +352,10 @@ class RecurrenceSp3RSpace
       auto subspace = RecurrenceNnsumSpace<tOperatorStateLabelType>(
           Nnsum, partition, ket_space(), bra_space(), operator_constraints
         );
+
       if ((Nnsum == 0) && (subspace.dimension() == 0))
         return;  // TODO: is the Nnsum constraint necessary, or is this more general?
+
       if (subspace.dimension() == 0)
         continue;
       BaseSpaceType::PushSubspace(std::move(subspace));
@@ -429,6 +432,7 @@ class RecurrenceSpace
           auto subspace = RecurrenceSp3RSpace<tOperatorStateLabelType>(
               sp3r_space_ket_ptr, sp3r_space_bra_ptr, {N1v, Nsigma0, parity_bar}
             );
+
           if (subspace.dimension() == 0)
             continue;
 
