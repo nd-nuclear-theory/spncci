@@ -100,9 +100,17 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Initial basis set-up
   //
-  //Generate list of CMF LGI labels and multiplicity for given nuclide and Nmax
-  lgi::MultiplicityTaggedLGIVector lgi_vector = lgi::get_lgi_vector(nuclide,Nsigma0,Nsigma_max);
+  // Generate map containing U3SPN irreps along with their multiplicity gamma_max in the u3ncsm basis
+  std::map<u3shell::U3SPN, unsigned int> u3spn_dimensions
+    = lsu3shell::LSU3ShellBasisDimensions(nuclide,Nsigma0,Nsigma_max);
 
+  //Generate list of CMF LGI labels and multiplicity for given nuclide and Nmax
+  lgi::MultiplicityTaggedLGIVector lgi_vector =
+    lgi::GetLGIVector(
+      lsu3shell::LSU3ShellCMFBasisDimensions(Nsigma0,Nsigma_max,u3spn_dimensions),
+      Nsigma0,
+      Nsigma_max
+    );
   ////////////////////////////////////////////////////////////////////////////////////////////////
   static const int tag_work = 0;
   static const int tag_finished = 1;
@@ -116,9 +124,6 @@ int main(int argc, char **argv)
       ////////////////////////////////////////////////////////////////////////////////////////////////
       // Create list of indices of lgi which appear in selected basis
       ////////////////////////////////////////////////////////////////////////////////////////////////
-      // for(int j=0; j<lgi_vector.size(); ++j)
-      //   std::cout<<j<<"  "<<lgi_vector[j].Str()<<std::endl;
-
       std::vector<int>lgi_indices;
       if(argc == 6)
         {
@@ -133,9 +138,6 @@ int main(int argc, char **argv)
               if(select_lgi.count(lgi_vector[i].irrep))
                 lgi_indices.push_back(i);
             }
-
-          // for(auto k : lgi_indices)
-          //   std::cout<<"  "<<k<<"  "<<lgi_vector[k].Str()<<std::endl;
         }
       else
         {
@@ -198,15 +200,18 @@ int main(int argc, char **argv)
 
           // Otherwise, compute the lgi_expansion
           basis::OperatorBlock<double> lgi_expansion
-            = generate_lgi_expansion(
-                nuclide,Nsigma_max,N0,
+            = lgi::GenerateLGIExpansion(
+                nuclide,
+                Nsigma0,
+                N0,
                 baseSU3Irreps,
-                lgi_vector,lgi_index,
+                u3spn_dimensions,
+                lgi_vector[lgi_index],
                 operator_dir,
                 MPI_COMM_SELF
                 );
 
-          std::cout<<lgi_vector[lgi_index].Str()<<std::endl;
+          // std::cout<<lgi_vector[lgi_index].Str()<<std::endl;
 
           // Save lgi expansion to file
           std::string lgi_expansion_filename =lgi::lgi_expansion_filename(Z,N,lgi_vector[lgi_index].irrep);
