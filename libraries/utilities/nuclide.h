@@ -28,7 +28,7 @@ inline unsigned int N0ForNuclide(const NuclideType& nuclide)
 // Calculate N0 for nuclide.
 //
 // Arguments:
-//   nuclide (input): (N,Z) for nucleus
+//   nuclide (input): (Z,N) for nucleus
 //
 // Returns:
 //   N0
