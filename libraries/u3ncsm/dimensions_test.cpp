@@ -8,12 +8,14 @@
 
   11/2/21 (aem): Created.
 ****************************************************************/
+#include "u3ncsm/dimensions.h"
+
 #include <fstream>
 #include <ostream>  
 
 #include "fmt/format.h"
 #include "lgi/lgi.h"
-#include "u3ncsm/dimensions.h"
+
 #include "lsu3shell/lsu3shell_basis.h"
 #include "utilities/utilities.h"
 #include "utilities/nuclide.h"
@@ -28,15 +30,15 @@ void test_lsu3shell_basis_generation()
     HalfInt Nsigma0=nuclide::Nsigma0ForNuclide(nuclide,intrinsic);
     int Nmax=6;
     std::cout<<"Nsigma0 : "<<Nsigma0<<std::endl;
-    std::map<u3shell::U3SPN, unsigned int> u3spn_dimensions
-      =lsu3shell::generate_lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
+    auto u3spn_dimensions
+      =lsu3shell::LSU3ShellBasisDimensions(nuclide,Nsigma0,Nmax);
 
     std::map<u3shell::U3SPN, unsigned int> u3spn_cmf_dimensions 
-      =lsu3shell::lsu3shell_cmf_basis_dimensions(Nsigma0,Nmax,u3spn_dimensions);
+      =lsu3shell::LSU3ShellCMFBasisDimensions(Nsigma0,Nmax,u3spn_dimensions);
 
 
     std::map<u3shell::U3SPN, unsigned int> u3spn_cmf_dimensions2 
-      =lsu3shell::lsu3shell_cmf_basis_dimensions(nuclide,Nsigma0,Nmax);
+      =lsu3shell::LSU3ShellCMFBasisDimensions(nuclide,Nsigma0,Nmax);
 
 
     std::string spncci_root_dir=utils::get_spncci_project_root_dir();
@@ -75,7 +77,7 @@ void test_lgi_generation()
   fmt::print("List of lgi's generated using lsu3shell basis constructors 6Li\n");
   nuclide::NuclideType nuclide({3,3});
   int Nmax=2;
-  lgi::MultiplicityTaggedLGIVector lgi_vector2 = lgi::get_lgi_vector(nuclide, Nsigma0,Nmax);
+  lgi::MultiplicityTaggedLGIVector lgi_vector2 = lgi::GetLGIVector(nuclide, Nsigma0,Nmax);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //To compare lgi input file generated with old ordering, need to change ordering, 
@@ -105,12 +107,12 @@ void compare_cmf_dimensions(const int Z, const int N, const int Nmax)
     nuclide::NuclideType nuclide({Z,N});
     HalfInt Nsigma0=nuclide::Nsigma0ForNuclide(nuclide);
     std::map<u3shell::U3SPN, unsigned int> u3spn_dimensions
-      =lsu3shell::generate_lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
+      =lsu3shell::LSU3ShellBasisDimensions(nuclide,Nsigma0,Nmax);
 
     std::map<u3shell::U3SPN, unsigned int> u3spn_cmf_dimensions 
-      =lsu3shell::lsu3shell_cmf_basis_dimensions(Nsigma0,Nmax,u3spn_dimensions);
+      =lsu3shell::LSU3ShellCMFBasisDimensions(Nsigma0,Nmax,u3spn_dimensions);
 
-    lgi::MultiplicityTaggedLGIVector lgi_vector = lgi::get_lgi_vector(nuclide,Nsigma0,Nmax);
+    lgi::MultiplicityTaggedLGIVector lgi_vector = lgi::GetLGIVector(nuclide,Nsigma0,Nmax);
 
     int num_gamma_max_zero = 0;
     for(const auto& [lgi,gamma_max] : lgi_vector)

@@ -27,6 +27,6 @@ int main(int argc, char **argv)
   int Nmax=std::stoi(argv[3]);
   int Nstep=std::stoi(argv[4]);
 
-  lsu3shell::print_lsu3shell_basis_info({Z,N},Nmax,Nstep);
+  lsu3shell::PrintLSU3ShellBasisInfo({Z,N},Nmax,Nstep);
 
 }//end main

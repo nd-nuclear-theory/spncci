@@ -19,10 +19,11 @@
 namespace lsu3shell
 {
 
-  std::map<u3shell::U3SPN,unsigned int> lsu3shell_basis_dimensions(
-    const nuclide::NuclideType& nuclide, 
+  std::map<u3shell::U3SPN,unsigned int>
+  LSU3ShellBasisDimensions(
+    const nuclide::NuclideType& nuclide,
     const HalfInt& Nsigma0,
-    const int& Nmax
+    const int Nmax
   )
   // For a given Nucleus, determine number of U(3)SpSnS irreps in an Nmax truncated basis
   {
@@ -70,8 +71,9 @@ namespace lsu3shell
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  std::map<u3shell::U3SPN, unsigned int> 
-  eliminate_cmf_contributions(
+  // Removes irreps with center of mass contamination based on counting arguments
+  std::map<u3shell::U3SPN, unsigned int>
+  EliminateCMContributions(
     const int Nmax,
     const HalfInt& Nsigma0,
     const std::map<u3shell::U3SPN, unsigned int>& u3spn_dimensions
@@ -108,18 +110,18 @@ namespace lsu3shell
 
 
   std::map<u3shell::U3SPN, unsigned int>
-  lsu3shell_cmf_basis_dimensions(
+  LSU3ShellCMFBasisDimensions(
     const HalfInt& Nsigma0,
     const int& Nmax, 
     const std::map<u3shell::U3SPN, unsigned int>& u3spn_dimensions
   )
   {
-    return eliminate_cmf_contributions(Nmax,Nsigma0,u3spn_dimensions);
+    return EliminateCMContributions(Nmax,Nsigma0,u3spn_dimensions);
   }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   std::map<u3shell::U3SPN, unsigned int>
-  lsu3shell_cmf_basis_dimensions(
+  LSU3ShellCMFBasisDimensions(
     const nuclide::NuclideType& nuclide, 
     const HalfInt& Nsigma0,
     const int& Nmax
@@ -127,13 +129,13 @@ namespace lsu3shell
   {
     // initial with all lsu3shell dimensions
     std::map<u3shell::U3SPN,unsigned int> u3spn_dimensions
-      =lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
+      = LSU3ShellBasisDimensions(nuclide,Nsigma0,Nmax);
 
-    return eliminate_cmf_contributions(Nmax,Nsigma0,u3spn_dimensions);
+    return EliminateCMContributions(Nmax,Nsigma0,u3spn_dimensions);
   }
 
 
-  void print_lsu3shell_basis_info(
+  void PrintLSU3ShellBasisInfo(
     const nuclide::NuclideType& nuclide,
     const int Nmax,
     const int Nstep
@@ -200,15 +202,14 @@ namespace lsu3shell
 namespace lgi
 {
 
-MultiplicityTaggedLGIVector get_lgi_vector(
-    const nuclide::NuclideType& nuclide, 
+MultiplicityTaggedLGIVector GetLGIVector(
+    const std::map<u3shell::U3SPN, unsigned int>& lsu3shell_cmf_dimensions,
     const HalfInt& Nsigma0,
-    const unsigned int& Nmax
+    const unsigned int Nmax
   )
 {
   // Initialize lgi_dimension with cmf U3SPN dimensions from lsu3shell basis
-  std::map<u3shell::U3SPN, unsigned int>
-  lgi_dimensions = lsu3shell::lsu3shell_cmf_basis_dimensions(nuclide,Nsigma0,Nmax);
+  std::map<u3shell::U3SPN, unsigned int> lgi_dimensions = lsu3shell_cmf_dimensions;
 
   // Iterate through basis and identify LGI dimension by substracting
   // U(3) irreps obtained by laddering from lower grade LGI.
