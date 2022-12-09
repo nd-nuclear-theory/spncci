@@ -97,13 +97,13 @@ basis::OperatorBlock<double> ReadSeedBlockFromFile(
       const auto& [Sp_ket, Sn_ket] = lgi_ket.upstream_labels();
       int spin_space_index = lgi_spin_space.LookUpSubspaceIndex({S_ket, S_bra});
 
-      if (spin_space_index == -1)
+      if (spin_space_index == basis::kNone)
         continue;
 
       const auto& spin_space = lgi_spin_space.GetSubspace(spin_space_index);
       int spin_subspace_index =
           spin_space.LookUpSubspaceIndex({{Sp_ket, Sn_ket}, {Sp_bra, Sn_bra}});
-      if (spin_subspace_index == -1)
+      if (spin_subspace_index == basis::kNone)
         continue;
 
       const int degeneracy_ket =
