@@ -59,6 +59,28 @@ int main(int argc, char **argv)
         assert(subspace.dimension()==subspace.K_matrix().cols());
         assert(subspace.dimension()==subspace.Kinv_matrix().rows());
         assert(subspace.K_matrix().rows()==subspace.Kinv_matrix().cols());
+
+        // Test restriction of U3Subspace
+        sp3r::U3Subspace(
+          subspace.omega(),
+          subspace.upsilon_max(),
+          subspace.nonorthogonal_basis_ptr(),
+          subspace.K_matrix(),
+          subspace.Kinv_matrix(),
+          true,
+          {0u,2u}
+        );
+
+
+        sp3r::U3Subspace(
+          subspace.omega(),
+          subspace.upsilon_max(),
+          subspace.nonorthogonal_basis_ptr(),
+          subspace.K_matrix(),
+          subspace.Kinv_matrix(),
+          false
+        );
+
       }
 
   }

@@ -45,6 +45,11 @@
 #include "sp3rlib/u3.h"
 #include "sp3rlib/u3boson.h"
 
+namespace so3
+{
+  static constexpr unsigned int kNone = std::numeric_limits<unsigned int>::max();
+}
+
 namespace sp3r
 {
 
@@ -114,17 +119,20 @@ class U3Subspace
   inline U3Subspace(const u3::U3& omega, unsigned int upsilon_max)
       : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
   {}
-  // This is a lightweight constructor which only stores the subspace
-  // labels without populating the subspace with states and storing the
-  // Kmatrices and raising polynomial quantum numbers.
+  /// This is a lightweight constructor which only stores the subspace
+  /// labels without populating the subspace with states and storing the
+  /// Kmatrices and raising polynomial quantum numbers.
 
+  /// Full subspace constructor
   template<typename K1, typename K2>
   inline U3Subspace(
       const u3::U3& omega,
       unsigned int upsilon_max,
       std::shared_ptr<const u3boson::U3Subspace> u3boson_ptr,
       K1&& K_matrix__,
-      K2&& Kinv_matrix__
+      K2&& Kinv_matrix__,
+      bool branch_to_so3 = true,
+      const std::pair<unsigned int,unsigned int>& L_min_max={0,so3::kNone}
     )
       : BaseDegenerateSubspace{omega},
         upsilon_max_{upsilon_max},
@@ -137,14 +145,17 @@ class U3Subspace
     assert(upsilon_max_ == K_matrix().rows());
     assert(nonorthogonal_basis_dimension() == nonorthogonal_basis().dimension());
 
-    const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
-
-    for (const auto& [L, kappa_max] : L_kappa_vector)
+    if (branch_to_so3)
     {
-      PushStateLabels(L, kappa_max);
+      const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
+      const auto& [Lmin,Lmax] = L_min_max;
+      for (const auto& [L, kappa_max] : L_kappa_vector)
+      {
+        if(L >= Lmin && L<= Lmax)
+        PushStateLabels(L, kappa_max);
+      }
     }
   }
-  // Full subspace constructor
 
   ////////////////////////////////////////////////////////////////////////
   // accessors which can always be used
@@ -165,6 +176,10 @@ class U3Subspace
   inline const basis::OperatorBlock<double>& Kinv_matrix() const
   {
     return Kinv_matrix_;
+  }
+  const std::shared_ptr<const u3boson::U3Subspace>& nonorthogonal_basis_ptr() const
+  {
+    return u3boson_ptr_;
   }
   const u3boson::U3Subspace& nonorthogonal_basis() const
   {
