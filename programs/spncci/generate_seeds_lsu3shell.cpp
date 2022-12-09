@@ -18,6 +18,8 @@
 
   2/18/22 (aem): Created.
 ****************************************************************/
+#include <fstream>
+// #include <iostream>
 #include "LookUpContainers/CWig9lmLookUpTable.h"
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "SU3ME/CInteractionPN.h"
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
     }
   //Otherwise, generate LGI vector by finding possible cmf LGI by counting arguments
   else
-    lgi_vector = lgi::get_lgi_vector(nuclide,Nsigma0,Nsigma_max);
+    lgi_vector = lgi::GetLGIVector(nuclide,Nsigma0,Nsigma_max);
 
 
   if(true && my_rank==0)
@@ -111,9 +113,9 @@ int main(int argc, char **argv)
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Set up recurrence space
   spncci::spin::Space<lgi::LGI> spin_space(lgi_vector, Nsigma_max);
-  spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST> spin_recurrence_space(spin_space, spin_space);
+  spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST> spin_recurrence_space(spin_space, spin_space);
   spncci::spatial::Space spatial_space(spin_space,Nsigma0, Nsigma_max);
-  spncci::spatial::RecurrenceSpace spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
+  spncci::spatial::RecurrenceSpace<u3shell::spatial::OneCoordType> spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
 
   // assert(spatial_recurrence_space.size()==spin_recurrence_space.size());
   //lsu3shell basis initialization
@@ -134,6 +136,7 @@ int main(int argc, char **argv)
       // eliminates empty subspaces, while spin does not.
       int lgi_subspace_index=0;
       int num_jobs=std::min(nprocs,int(spatial_recurrence_space.size()));
+      std::cout<<"num jobs "<<num_jobs<<" "<<spatial_recurrence_space.size()<<std::endl;
       for(int grad_student=1; grad_student < num_jobs; ++grad_student)
         {
           MPI_Send(&lgi_subspace_index, 1, MPI_INT, grad_student, tag_work, MPI_COMM_WORLD);
@@ -175,22 +178,27 @@ int main(int argc, char **argv)
           //If all the work finished, break out
           if(status.MPI_TAG == tag_finished) break;
 
-          basis::OperatorBlock<double> recurrence_seed_block
-            = spncci::seeds::GenerateRecurrenceSeedBlock(
-                  nuclide,Nsigma0,N1v,
-                  unit_tensor_labels,
-                  spin_recurrence_space,
-                  spatial_recurrence_space,
-                  baseSU3Irreps,
-                  operator_dir,
-                  lgi_subspace_index
-                );
-
-          // Write seeds to file
           const auto&[sigma_ket,sigma_bra,parity_bar] = spatial_recurrence_space.GetSubspace(lgi_subspace_index).labels();
           std::string seed_filename = spncci::seeds::seed_filename(Z,N,Nsigma0,sigma_bra,sigma_ket,parity_bar);
-          utils::WriteOperatorBlockBinary(recurrence_seed_block, seed_filename);
+          // Check if file exists.  If not, compute seeds and write to file.
+          std::ifstream file(seed_filename);
+          if(!file.is_open())
+            {
 
+              basis::OperatorBlock<double> recurrence_seed_block
+                = spncci::seeds::GenerateRecurrenceSeedBlock(
+                      nuclide,Nsigma0,N1v,
+                      unit_tensor_labels,
+                      spin_recurrence_space,
+                      spatial_recurrence_space,
+                      baseSU3Irreps,
+                      operator_dir,
+                      lgi_subspace_index
+                    );
+
+              // Write seeds to file
+              utils::WriteOperatorBlockBinary(recurrence_seed_block, seed_filename);
+            }
           // Let advisor know seeds for given lgi pair computed
           MPI_Send(&dummy,0,MPI_CHAR,0,tag_finished,MPI_COMM_WORLD);
         }
