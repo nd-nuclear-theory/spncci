@@ -5,7 +5,7 @@ recurrence_indexing_spin.h
 
     SpNCCIIrrep
     ->  sigma
-        -> omega (states (n,rho) -> upsilon)
+        -> omega
 
     spin::Space() []
     ->spin::LGISpace() [sigma]

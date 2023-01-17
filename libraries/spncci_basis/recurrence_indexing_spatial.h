@@ -3,14 +3,10 @@ recurrence_indexing_spatial.h
 
     Indexing for SpNCCI recurrence
 
-    SpNCCIIrrep
-    ->  sigma
-        -> omega (states (n,rho) -> upsilon)
-
     spncci::spatial::Space() []
     ->spncci::spatial::Sp3RSpace() [sigma]
-        ->spncci::spatial::U3Subspace() [omega]
-          ->spncci::spatial::U3State() [n,rho] n=Nn(lambda_n,mu_n)/(nx,ny,nz)
+        ->spncci::spatial::U3Subspace() [omega] (upsilon_max)
+          ->spncci::spatial::U3State() [L] (kappa_max)
 
     spatial::RecurrenceSpace() []
     ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]

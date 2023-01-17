@@ -72,7 +72,10 @@ bool ModifySp3RBranching(const u3::U3& sigma)
 
 
 Sp3RSpace::Sp3RSpace(
-    const u3::U3& sigma, unsigned int Nn_max, const bool subspace_labels_only
+    const u3::U3& sigma,
+    unsigned int Nn_max,
+    const bool cache_Kmatrices,
+    const bool branch_to_so3
   )
     : BaseSpace{sigma}, Nn_max_(Nn_max)
 {
@@ -87,7 +90,7 @@ Sp3RSpace::Sp3RSpace(
   // K matrices only need to be computed if branching must be restricted.
   vcs::KmatrixMap K_matrices;
   bool get_upsilon_from_K = false;
-  if (subspace_labels_only == false || sp3r::ModifySp3RBranching(sigma))
+  if (cache_Kmatrices == true || sp3r::ModifySp3RBranching(sigma))
   {
     double zero_threshold = 1e-12;
     K_matrices = vcs::GenerateKmatrices(sigma, u3boson_space, zero_threshold);
@@ -107,18 +110,20 @@ Sp3RSpace::Sp3RSpace(
       continue;
 
     // Labels only
-    if (subspace_labels_only)
-      PushSubspace(U3Subspace(omega, upsilon_max));
+    if (cache_Kmatrices)
+      PushSubspace(U3Subspace(
+        omega,
+        upsilon_max,
+        u3boson_space.GetSubspacePtr(i),
+        std::move(K_matrices[omega][0]),
+        std::move(K_matrices[omega][1]),
+        branch_to_so3
+      ));
+
 
     // Full space
     else
-      PushSubspace(U3Subspace(
-          omega,
-          upsilon_max,
-          u3boson_space.GetSubspacePtr(i),
-          std::move(K_matrices[omega][0]),
-          std::move(K_matrices[omega][1])
-        ));
+      PushSubspace(U3Subspace(omega, upsilon_max));
   }
 }
 
