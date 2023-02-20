@@ -105,10 +105,15 @@ su3rme_subdirectory_list = []
 # ... from lsu3shell
 su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
 su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+## su3rme_executable = spncci.get_lsu3shell_executable("SU3RME_MPI")
+## su3basis_executable = spncci.get_lsu3shell_executable("ncsmSU3xSU2IrrepsTabular")
 
 # ... from spncci
 generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
 u3s_subspace_lister_executable=os.path.join(project_root,"spncci","programs","lgi","get_u3s_subspaces")
+# TODO (mac): update paths to proper installation directory...
+## generate_lsu3shell_model_space_executable = spncci.get_spncci_executable("generate_lsu3shell_model_space")
+## u3s_subspace_lister_executable = spncci.get_spncci_executable("get_u3s_subspaces")
 
 
 

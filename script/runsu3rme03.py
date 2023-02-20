@@ -85,8 +85,8 @@ mcscript.task.init(
     task_descriptor=task_descriptor,
     task_pool=task_pool,
     phase_handler_list=[
-        # su3rme.do_generate_lsu3shell_generator_rmes
-        su3rme.do_generate_lsu3shell_unittensor_rmes
+        su3rme.do_generate_lsu3shell_generator_rmes,
+        su3rme.do_generate_lsu3shell_unittensor_rmes,
         ],
     # Note: change to mcscript.task.archive_handler_hsi for tape backup
     archive_phase_handler_list=[mcscript.task.archive_handler_generic]

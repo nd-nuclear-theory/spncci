@@ -7,6 +7,8 @@
 
             At NERSC: ${MCSRIPT_INSTALL_HOME}/${CRAY_CPU_TARGET}/spncci
 
+            TODO(mac): Deprecate or remove in favor of get_spncci_executable()?
+
 
         SPNCCI_DATA_DIR -- base directory for directories including
             seeds: contains seeds for SpNCCI recurrence
@@ -114,7 +116,7 @@ def get_lsu3shell_executable(name):
 
     if os.path.isfile(mcscript.utils.expand_path(name)):
         return mcscript.utils.expand_path(name)
-    return os.path.join(mcscript.parameters.run.install_dir, "su3shell", "bin", name)
+    return os.path.join(mcscript.parameters.run.install_dir, "lsu3shell", "bin", name)
 
 def get_spncci_executable(name):
     """Construct filename for a spncci executable."""
@@ -127,6 +129,7 @@ def get_spncci_executable(name):
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
 ################################################################
+
 def stacksize_setup():
     """ Set OpenMP stacksize variables.
 
@@ -135,9 +138,6 @@ def stacksize_setup():
     # set number of threads by global qsubm depth parameter
     print("Setting OMP_STACKSIZE to {}M.".format(stacksize))
     os.environ["OMP_STACKSIZE"] = "20 M"
-
-
-
 
 def generate_observable_rmes(task):
     """Generate relative U3ST RMEs of observable operators.
