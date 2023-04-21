@@ -123,7 +123,11 @@ Sp3RSpace::Sp3RSpace(
 
     // Full space
     else
-      PushSubspace(U3Subspace(omega, upsilon_max));
+      PushSubspace(U3Subspace(
+        omega,
+        upsilon_max,
+        branch_to_so3
+      ));
   }
 }
 

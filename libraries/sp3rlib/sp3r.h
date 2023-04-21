@@ -90,10 +90,9 @@ bool ModifySp3RBranching(const u3::U3& sigma);
 //      Within u3boson subspace, "states" are raising polynomial labels n
 //      with degeneracy rho_max.
 //      -> u3boson::U3Subspace [omega]
-//         -> u3boson::U3State [n] (rho)
+//         -> u3boson::U3State [n] (rho_max)
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: Redo flags so that one flag controls branching and one controls including U3boson/Kmatrices
 // Sp3RSpace:
 //
 //  Constructor arguments:
@@ -114,7 +113,6 @@ bool ModifySp3RBranching(const u3::U3& sigma);
 class U3Subspace;
 class Sp3RSpace;
 class SO3State;
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 class U3Subspace
     : public basis::
@@ -141,13 +139,14 @@ class U3Subspace
   inline U3Subspace(
     const u3::U3& omega,
     unsigned int upsilon_max,
-    const bool branch_to_so3 = true,
-    const std::pair<unsigned int,unsigned int>& L_min_max={0,so3::kNone}
+    const bool branch_to_so3,
+    const std::pair<unsigned int,unsigned int>& L_min_max={0,so3::kNone} //Currently not implemented
   )
-      : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
+    : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
   {
     if (branch_to_so3)
     {
+
       GenerateSO3States(omega,L_min_max);
     }
   }
@@ -180,13 +179,6 @@ class U3Subspace
     if (branch_to_so3)
     {
       GenerateSO3States(omega,L_min_max);
-      // const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
-      // const auto& [Lmin,Lmax] = L_min_max;
-      // for (const auto& [L, kappa_max] : L_kappa_vector)
-      // {
-      //   if(L >= Lmin && L<= Lmax)
-      //   PushStateLabels(L, kappa_max);
-      // }
     }
   }
 
