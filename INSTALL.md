@@ -17,7 +17,7 @@ For compiling on NERSC: set environment variables in env-intel-nersc.sh and sour
 env-intel-nersc.sh will also set some require environment variables
 
 Compiling:
-cmake -B <build dir>
+cmake -B <build_dir>
 
 	To build with debug turned on	
 	cmake -DCMAKE_BUILD_TYPE=Debug
@@ -25,18 +25,26 @@ cmake -B <build dir>
 	To build with debug off.  Note, sets -DNDEBUG which turns off asserts
 	cmake -DCMAKE_BUILD_TYPE=Release
 
-cmake --build <build dir> -j <N>
+cmake --build <build_dir> -j <N>
 
 Example: Set up build directory with linking to LSU3Shell turned off:
   cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LSU3SHELL=OFF
 
 Example: Build specific target
-  cmake --build <build dir> -j <N> --target recurrence_indexing_test
+  cmake --build <build_dir> -j <N> --target recurrence_indexing_test
 
+Example: Install to architecture-specific path
 
-To change compile options, e.g., build with lsu3shell option, run ccmake on build
-directory.
+  cmake --install <build_dir>
 
+To change compile options, e.g., build with lsu3shell option, interactively with
+the CMake curses interface, run ccmake on build directory.
+
+To install to the standard architecture-dependent path expected by mcscript, use
+the --install-prefix option:
+
+  --install-prefix=${MCSCRIPT_INSTALL_HOME}/${CRAY_CPU_TARGET}/spncci
+ 
 ------------------------------------------------------------------------------------
 cmake 3.22 bug: Not correctly identifying Cray Programming Environment.  When
 setting up build, explicitly set compilers:
@@ -47,3 +55,4 @@ See https://docs.nersc.gov/development/build-tools/cmake/#use-the-cray-compiler-
 
 Should see near begining of the output:
   - Cray Programming Environment <version and compiler>
+
