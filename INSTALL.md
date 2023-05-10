@@ -17,7 +17,7 @@ For compiling on NERSC: set environment variables in env-intel-nersc.sh and sour
 env-intel-nersc.sh will also set some require environment variables
 
 Compiling:
-cmake -B<build dir>
+cmake -B <build dir>
 
 	To build with debug turned on	
 	cmake -DCMAKE_BUILD_TYPE=Debug
@@ -27,9 +27,8 @@ cmake -B<build dir>
 
 cmake --build <build dir> -j <N>
 
-
 Example: Set up build directory with linking to LSU3Shell turned off:
-  cmake -B build-test -DCMAKE_BUILD_TYPE=Debug -DBUILD_LSU3SHELL=OFF
+  cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LSU3SHELL=OFF
 
 Example: Build specific target
   cmake --build <build dir> -j <N> --target recurrence_indexing_test
@@ -39,10 +38,12 @@ To change compile options, e.g., build with lsu3shell option, run ccmake on buil
 directory.
 
 ------------------------------------------------------------------------------------
-cmake 3.22 bug:  Not correctly identifying Cray Programming Environment for intel.
-When setting up build directy, run (See https://docs.nersc.gov/development/build-tools/cmake/#use-the-cray-compiler-wrappers):
+cmake 3.22 bug: Not correctly identifying Cray Programming Environment.  When
+setting up build, explicitly set compilers:
 
-  CC=cc CXX=CC FC=ftn cmake -B build -DCMAKE_BUILD_TYPE=Debug
+  env CC=cc CXX=CC FC=ftn cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
+
+See https://docs.nersc.gov/development/build-tools/cmake/#use-the-cray-compiler-wrappers.
 
 Should see near begining of the output:
   - Cray Programming Environment <version and compiler>
