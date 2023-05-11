@@ -44,7 +44,10 @@ namespace u3shell {
 
     bool restrict_J0 = (J0!=-1);
     int eta_max=Nmax+2*N1v;
-    int N0_min=restrict_positive_N0?0:-1*eta_max;
+    int N0_min=restrict_positive_N0?0:-Nmax;
+    // 05/11/23 (jh): Change eta_max to Nmax to make get_spncci_seed_blocks work.
+    //                This would not work if bra and ket have different numbers of quanta in the lowest Pauli allowed configuration,
+    //                such as for some Tz-changing operators.
 
 
     for(int N0=N0_min; N0<=Nmax; N0+=2)
