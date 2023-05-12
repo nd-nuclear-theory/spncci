@@ -110,6 +110,16 @@ namespace lsu3shell
     );
   // Wraper function for when sp3r_generators not specified.
 
+//******************************************** Added by J.H. **************************************
+  void ReadLSU3ShellRMEs(
+      const std::string& filename,
+      const LSU3ShellBasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space,
+      const u3shell::OperatorLabelsU3S& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      lsu3shell::OperatorBlocks& blocks
+    );
+//*************************************************************************************************
 
   void
     ReadLSU3ShellSymplecticOperatorRMEs(

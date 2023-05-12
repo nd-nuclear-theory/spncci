@@ -481,6 +481,580 @@ void ComputeManyBodyRMEs(
     return;
   }
 
+//****************************************** Added by J.H. ****************************************
+void ComputeOneBodyUnitTensorRMEs(
+  const spncci::RunParameters& run_parameters,
+  int N1vp,
+  int N1vn,
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  const std::vector<int>& lgi_full_space_index_lookup,
+  const spncci::SpNCCISpace& spncci_space,
+  const spncci::BabySpNCCISpace& baby_spncci_space,
+  const u3shell::OneBodyUnitTensorSpaceU3S& one_body_unit_tensor_space,
+  const spncci::KMatrixCache& k_matrix_cache,
+  const spncci::KMatrixCache& kinv_matrix_cache,
+  spncci::OperatorBlocks& lgi_transformations,
+  u3::UCoefCache& u_coef_cache,
+  u3::PhiCoefCache& phi_coef_cache,
+  const spncci::LGIPair& lgi_pair,
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks,
+  spncci::BabySpNCCIOneBodyUnitTensorHypersectors& baby_spncci_hypersectors,
+  basis::OperatorHyperblocks<double>& unit_tensor_hyperblocks2,
+  spncci::BabySpNCCIOneBodyUnitTensorHypersectors& baby_spncci_hypersectors2
+  )
+  {
+    // Extract lgi index  labels 
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+
+    // Container for indices for unit tensors whose rmes should be 
+    //  evaluated at each (Nnp,Nn) step in recurrence
+    std::map<spncci::NnPair,std::set<int>> unit_tensor_subspace_subsets;
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Setting up seeds for use in recurrence.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // + Reads in seed labels and RMEs from file
+    // + Apply lgi change of basis if transform_lgi_families=true
+    // + Generate hypersectors for lgi from list of unit tensor in files 
+    // + Read RMEs and store RMEs and their conjugates in 
+    //    unit_tensor_hyperblocks_seeds 
+    //    unit_tensor_hyperblocks_seeds_conj
+    // + Initalizes unit_tensor_subspace_subsets for (Nnp,Nn)=0 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    spncci::BabySpNCCIOneBodyUnitTensorHypersectors baby_spncci_hypersector_seeds;
+    spncci::BabySpNCCIOneBodyUnitTensorHypersectors baby_spncci_hypersector_seeds_conj;
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds;
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_seeds_conj;
+
+    spncci::DoOneBodyRecurrenceInitialization(
+      run_parameters.Nmax,N1vp,N1vn,lgi_pair,lgi_families,lgi_full_space_index_lookup,
+      baby_spncci_space,one_body_unit_tensor_space,lgi_transformations,run_parameters.transform_lgi,
+      unit_tensor_subspace_subsets, baby_spncci_hypersector_seeds,baby_spncci_hypersector_seeds_conj,
+      unit_tensor_hyperblocks_seeds,unit_tensor_hyperblocks_seeds_conj
+    );
+/*
+if(irrep_family_index_bra==1 && irrep_family_index_ket==0){
+std::cout<<"unit_tensor_subspace_subsets[spncci::NnPair(0,0)] (Np N lm0 mu0 S0):"<<std::endl;
+for(int ind : unit_tensor_subspace_subsets[spncci::NnPair(0,0)]){
+const u3shell::OneBodyUnitTensorSubspaceU3S& subspace=one_body_unit_tensor_space.GetSubspace(ind);
+std::cout<<subspace.etap()<<" "<<subspace.eta()<<" "<<subspace.x0().lambda()<<" "<<subspace.x0().mu()<<" "<<subspace.S0()<<std::endl;
+}
+std::cout<<"unit_tensor_subspace_subsets[spncci::NnPair(2,0)] (Np N lm0 mu0 S0):"<<std::endl;
+for(int ind : unit_tensor_subspace_subsets[spncci::NnPair(2,0)]){
+const u3shell::OneBodyUnitTensorSubspaceU3S& subspace=one_body_unit_tensor_space.GetSubspace(ind);
+std::cout<<subspace.etap()<<" "<<subspace.eta()<<" "<<subspace.x0().lambda()<<" "<<subspace.x0().mu()<<" "<<subspace.S0()<<std::endl;
+}
+std::cout<<"unit_tensor_subspace_subsets[spncci::NnPair(2,2)] (Np N lm0 mu0 S0):"<<std::endl;
+for(int ind : unit_tensor_subspace_subsets[spncci::NnPair(2,2)]){
+const u3shell::OneBodyUnitTensorSubspaceU3S& subspace=one_body_unit_tensor_space.GetSubspace(ind);
+std::cout<<subspace.etap()<<" "<<subspace.eta()<<" "<<subspace.x0().lambda()<<" "<<subspace.x0().mu()<<" "<<subspace.S0()<<std::endl;
+}
+}
+*/
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Compute RMEs for unit tensor hyperblocks via recurrence for lgi pair 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // For LGI pair, compute SU(3) RMEs of all unit tensors with non-zero RMEs
+    //   between Sp(3,R) many-body states using reccurence method 
+    // + Recurrence calculate RMEs for states U(3) branched states with
+    //   Nnp>=Nn
+    // + If lgi_bra!=lgi_ket, then also need to flip lgi pair and compute unit tensor
+    //    RMEs with Nnp>=Nn for flipped pair
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    //Compute RMEs with Nnp>=Nn
+//    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks;
+//    spncci::BabySpNCCIOneBodyUnitTensorHypersectors baby_spncci_hypersectors;
+
+    bool files_found=
+    spncci::GenerateOneBodyUnitTensorHyperblocks(
+      lgi_pair, run_parameters.Nmax, N1vp, N1vn, run_parameters.nuclide[0]+run_parameters.nuclide[1],
+      spncci_space,baby_spncci_space,one_body_unit_tensor_space,k_matrix_cache,kinv_matrix_cache,
+      unit_tensor_subspace_subsets,baby_spncci_hypersector_seeds,baby_spncci_hypersector_seeds_conj,
+      unit_tensor_hyperblocks_seeds,unit_tensor_hyperblocks_seeds_conj,
+      u_coef_cache,phi_coef_cache,baby_spncci_hypersectors,unit_tensor_hyperblocks
+    );
+    //Check that file exists 
+    assert(files_found);
+
+    // Compute RMEs with Nnp<Nn if lgi_bra!=lgi_ket
+    spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
+//    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks2;
+//    spncci::BabySpNCCIOneBodyUnitTensorHypersectors baby_spncci_hypersectors2;
+
+    // Check if hypersectors are diagonal in irrep family. 
+    bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
+          
+    if(not is_diagonal)
+      {  
+//        spncci::BabySpNCCIOneBodyUnitTensorHypersectors baby_spncci_hypersectors_test;
+//        basis::OperatorHyperblocks<double> unit_tensor_hyperblocks_test;
+        spncci::GenerateOneBodyUnitTensorHyperblocks(
+          lgi_pair2, run_parameters.Nmax, N1vp, N1vn, run_parameters.nuclide[0]+run_parameters.nuclide[1],
+          spncci_space,baby_spncci_space,one_body_unit_tensor_space,k_matrix_cache,
+          kinv_matrix_cache,unit_tensor_subspace_subsets,
+          baby_spncci_hypersector_seeds_conj,baby_spncci_hypersector_seeds,
+          unit_tensor_hyperblocks_seeds_conj,unit_tensor_hyperblocks_seeds,
+          u_coef_cache,phi_coef_cache,
+          baby_spncci_hypersectors2,unit_tensor_hyperblocks2
+        );
+      }
+
+    // Diagnostic output
+    if(false ){//&& irrep_family_index_bra==2 && irrep_family_index_ket==0){
+//      std::cout<<"*********************************** ONE-BODY UNIT TENSOR RMEs *******************************************"<<std::endl;
+//      std::cout<<"irrep_family_index_bra,irrep_family_index_ket: "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
+      if(baby_spncci_hypersectors.size()!=unit_tensor_hyperblocks.size())
+	std::cout<<"ERROR: baby_spncci_hypersectors.size(),unit_tensor_hyperblocks.size(): "
+		 <<baby_spncci_hypersectors.size()<<" "<<unit_tensor_hyperblocks.size()<<std::endl;
+
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
+        int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int etap,eta;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+//	std::cout<<"hypersector:"<<std::endl;
+//	std::cout<<"N_sigma' lambda_sigma' mu_sigma' Sp' Sn' S' N_omega' lambda_omega' mu_omega': "<<sigmap.N()<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra<<" "<<Sn_bra<<" "<<S_bra<<" "<<omegap.N()<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<std::endl;
+//        std::cout<<"N_sigma  lambda_sigma  mu_sigma  Sp  Sn  S  N_omega  lambda_omega  mu_omega : "<<sigma.N()<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket<<" "<<Sn_ket<<" "<<S_ket<<" "<<omega.N()<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<std::endl;
+//        std::cout<<"lambda0 mu0 S0 N' N rho0: "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0<<" "<<etap<<" "<<eta<<" "<<rho0<<std::endl;
+	if(unit_tensor_hyperblocks[hypersector_index].size()>2)std::cout<<"ERROR: unit_tensor_hyperblocks["<<hypersector_index<<"].size()="<<unit_tensor_hyperblocks[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<unit_tensor_hyperblocks[hypersector_index].size(); operator_index++){
+//          std::cout<<"Operator index="<<operator_index<<std::endl;
+          if(unit_tensor_hyperblocks[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: unit_tensor_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<unit_tensor_hyperblocks[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(unit_tensor_hyperblocks[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: unit_tensor_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<unit_tensor_hyperblocks[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+
+          for(int i=0; i<gamma_maxp; ++i)
+            for(int j=0; j<gamma_max; ++j){
+//	      std::cout<<"gammap,gamma="<<i+1<<" "<<j+1<<std::endl;
+              int it=i*upsilon_maxp;
+              int jt=j*upsilon_max; 
+              // unit_tensor_hyperblocks[hypersector_index][operator_index].block(it,jt,upsilon_maxp,upsilon_max) is block corresponding to given gammap,gamma.
+ 	      // Its elements correspond to different upsilonp,upsilon.
+	      for(int up=0; up<upsilon_maxp; up++)
+		for(int u=0; u<upsilon_max; u++){
+//                  std::cout<<"gamma' upsilon' gamma upsilon RME: "<<i+1<<" "<<up+1<<" "<<j+1<<" "<<u+1<<" "
+//			   <<unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+std::cout<<i+1<<" "<<(sigmap.N().TwiceValue()-19)/2<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra.TwiceValue()<<" "<<Sn_bra.TwiceValue()<<" "<<S_bra.TwiceValue()
+	 <<" "<<up+1<<" "<<(omegap.N().TwiceValue()-19)/2<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<" "
+	 <<j+1<<" "<<(sigma.N().TwiceValue()-19)/2<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket.TwiceValue()<<" "<<Sn_ket.TwiceValue()<<" "<<S_ket.TwiceValue()<<" "
+	 <<u+1<<" "<<(omega.N().TwiceValue()-19)/2<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<" "
+	 <<operator_index<<" "<<etap<<" "<<eta<<" "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0.TwiceValue()<<" "<<rho0<<" "
+	 <<unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+	      }
+          }
+        }
+      }
+
+      if(not is_diagonal){
+//      std::cout<<"irrep_family_index_bra,irrep_family_index_ket: "<<irrep_family_index_ket<<" "<<irrep_family_index_bra<<std::endl;
+      if(baby_spncci_hypersectors2.size()!=unit_tensor_hyperblocks2.size())
+	std::cout<<"ERROR: baby_spncci_hypersectors2.size(),unit_tensor_hyperblocks2.size(): "
+		 <<baby_spncci_hypersectors2.size()<<" "<<unit_tensor_hyperblocks2.size()<<std::endl;
+
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors2.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors2.GetHypersector(hypersector_index).Key();
+        int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int etap,eta;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+//	std::cout<<"hypersector:"<<std::endl;
+//	std::cout<<"N_sigma' lambda_sigma' mu_sigma' Sp' Sn' S' N_omega' lambda_omega' mu_omega': "<<sigmap.N()<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra<<" "<<Sn_bra<<" "<<S_bra<<" "<<omegap.N()<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<std::endl;
+//   	std::cout<<"N_sigma  lambda_sigma  mu_sigma  Sp  Sn  S  N_omega  lambda_omega  mu_omega : "<<sigma.N()<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket<<" "<<Sn_ket<<" "<<S_ket<<" "<<omega.N()<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<std::endl;
+//	std::cout<<"lambda0 mu0 S0 N' N rho0: "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0<<" "<<etap<<" "<<eta<<" "<<rho0<<std::endl;
+	if(unit_tensor_hyperblocks2[hypersector_index].size()>2)std::cout<<"ERROR: unit_tensor_hyperblocks2["<<hypersector_index<<"].size()="<<unit_tensor_hyperblocks2[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<unit_tensor_hyperblocks2[hypersector_index].size(); operator_index++){
+//          std::cout<<"Operator index="<<operator_index<<std::endl;
+          if(unit_tensor_hyperblocks2[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: unit_tensor_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<unit_tensor_hyperblocks2[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(unit_tensor_hyperblocks2[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: unit_tensor_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<unit_tensor_hyperblocks2[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+
+          for(int i=0; i<gamma_maxp; ++i)
+            for(int j=0; j<gamma_max; ++j){
+//	      std::cout<<"gammap,gamma="<<i+1<<" "<<j+1<<std::endl;
+              int it=i*upsilon_maxp;
+              int jt=j*upsilon_max; 
+              // unit_tensor_hyperblocks2[hypersector_index][operator_index].block(it,jt,upsilon_maxp,upsilon_max) is block corresponding to given gammap,gamma.
+ 	      // Its elements correspond to different upsilonp,upsilon.
+	      for(int up=0; up<upsilon_maxp; up++)
+		for(int u=0; u<upsilon_max; u++){
+//                  std::cout<<"gamma' upsilon' gamma upsilon RME: "<<i+1<<" "<<up+1<<" "<<j+1<<" "<<u+1<<" "
+//			  <<unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+std::cout<<i+1<<" "<<(sigmap.N().TwiceValue()-19)/2<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra.TwiceValue()<<" "<<Sn_bra.TwiceValue()<<" "<<S_bra.TwiceValue()
+         <<" "<<up+1<<" "<<(omegap.N().TwiceValue()-19)/2<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<" "
+         <<j+1<<" "<<(sigma.N().TwiceValue()-19)/2<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket.TwiceValue()<<" "<<Sn_ket.TwiceValue()<<" "<<S_ket.TwiceValue()<<" "
+         <<u+1<<" "<<(omega.N().TwiceValue()-19)/2<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<" "
+         <<operator_index<<" "<<etap<<" "<<eta<<" "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0.TwiceValue()<<" "<<rho0<<" "
+         <<unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+  		}
+          }
+        }
+      }
+      }
+//      std::cout<<"*********************************************************************************************************"<<std::endl;
+    }
+
+    // Check of symmetries
+    if(true){
+      std::map<spncci::OBUnitTensorRMELabels,double> RME_by_labels;
+      if(baby_spncci_hypersectors.size()!=unit_tensor_hyperblocks.size())
+	std::cout<<"ERROR: baby_spncci_hypersectors.size(),unit_tensor_hyperblocks.size(): "
+		 <<baby_spncci_hypersectors.size()<<" "<<unit_tensor_hyperblocks.size()<<std::endl;
+      int Z=run_parameters.nuclide[0];
+      int N=run_parameters.nuclide[1];
+      int A=Z+N;
+      int N0=0;
+      if(Z>0){
+	Z=Z-2;
+      }
+      if(Z>0){
+	N0=N0+std::min(Z,6);
+	Z=Z-6;
+      }
+      if(Z>0){
+        N0=N0+std::min(Z,12);
+      }
+      if(N>0){
+        N=N-2;
+      }
+      if(N>0){
+        N0=N0+std::min(N,6);
+        N=N-6;
+      }
+      if(N>0){
+        N0=N0+std::min(N,12);
+      }
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
+        int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int etap,eta;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+	int N_ex_sigma_p=(sigmap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_omega_p=(omegap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_sigma=(sigma.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int N_ex_omega=(omega.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int lambda_sigma_p=sigmap.SU3().lambda();
+	int mu_sigma_p=sigmap.SU3().mu();
+	int lambda_sigma=sigma.SU3().lambda();
+	int mu_sigma=sigma.SU3().mu();
+	int twice_Sp_p=Sp_bra.TwiceValue();
+	int twice_Sn_p=Sn_bra.TwiceValue();
+	int twice_S_p=S_bra.TwiceValue();
+	int twice_Sp=Sp_ket.TwiceValue();
+        int twice_Sn=Sn_ket.TwiceValue();
+        int twice_S=S_ket.TwiceValue();
+	int lambda_omega_p=omegap.SU3().lambda();
+	int mu_omega_p=omegap.SU3().mu();
+	int lambda_omega=omega.SU3().lambda();
+        int mu_omega=omega.SU3().mu();
+	int lambda0=x0.lambda();
+	int mu0=x0.mu();
+	int twice_S0=S0.TwiceValue();
+       	if(unit_tensor_hyperblocks[hypersector_index].size()>2)std::cout<<"ERROR: unit_tensor_hyperblocks["<<hypersector_index<<"].size()="<<unit_tensor_hyperblocks[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<unit_tensor_hyperblocks[hypersector_index].size(); operator_index++){
+          if(unit_tensor_hyperblocks[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: unit_tensor_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<unit_tensor_hyperblocks[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(unit_tensor_hyperblocks[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: unit_tensor_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<unit_tensor_hyperblocks[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+	  int Tz;
+	  if(operator_index==0){
+            Tz=1;
+	  }else{
+	    Tz=-1;
+	  }
+
+          for(int i=0; i<gamma_maxp; ++i){
+            int gamma_p=i+1;
+	    int it=i*upsilon_maxp;
+            for(int j=0; j<gamma_max; ++j){
+	      int gamma=j+1;
+              int jt=j*upsilon_max; 
+	      for(int up=0; up<upsilon_maxp; up++){
+		int upsilon_p=up+1;
+		for(int u=0; u<upsilon_max; u++){
+	          int upsilon=u+1;
+                  spncci::OBUnitTensorRMELabels labels(N_ex_sigma_p, lambda_sigma_p, mu_sigma_p, twice_Sp_p, twice_Sn_p, twice_S_p, N_ex_omega_p, lambda_omega_p, mu_omega_p, gamma_p, upsilon_p, N_ex_sigma, lambda_sigma, mu_sigma, twice_Sp, twice_Sn, twice_S, N_ex_omega, lambda_omega, mu_omega, gamma, upsilon, lambda0, mu0, twice_S0, etap, eta, rho0, Tz);
+                  RME_by_labels[labels]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u);
+		}
+	      }
+	    }
+          }
+        }
+      }
+      if(not is_diagonal){
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors2.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors2.GetHypersector(hypersector_index).Key();
+        int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int etap,eta;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+	int N_ex_sigma_p=(sigmap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_omega_p=(omegap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_sigma=(sigma.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int N_ex_omega=(omega.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int lambda_sigma_p=sigmap.SU3().lambda();
+	int mu_sigma_p=sigmap.SU3().mu();
+	int lambda_sigma=sigma.SU3().lambda();
+	int mu_sigma=sigma.SU3().mu();
+	int twice_Sp_p=Sp_bra.TwiceValue();
+	int twice_Sn_p=Sn_bra.TwiceValue();
+	int twice_S_p=S_bra.TwiceValue();
+	int twice_Sp=Sp_ket.TwiceValue();
+        int twice_Sn=Sn_ket.TwiceValue();
+        int twice_S=S_ket.TwiceValue();
+	int lambda_omega_p=omegap.SU3().lambda();
+	int mu_omega_p=omegap.SU3().mu();
+	int lambda_omega=omega.SU3().lambda();
+        int mu_omega=omega.SU3().mu();
+	int lambda0=x0.lambda();
+	int mu0=x0.mu();
+	int twice_S0=S0.TwiceValue();
+       	if(unit_tensor_hyperblocks2[hypersector_index].size()>2)std::cout<<"ERROR: unit_tensor_hyperblocks2["<<hypersector_index<<"].size()="<<unit_tensor_hyperblocks2[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<unit_tensor_hyperblocks2[hypersector_index].size(); operator_index++){
+          if(unit_tensor_hyperblocks2[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: unit_tensor_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<unit_tensor_hyperblocks2[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(unit_tensor_hyperblocks2[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: unit_tensor_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<unit_tensor_hyperblocks2[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+	  int Tz;
+	  if(operator_index==0){
+            Tz=1;
+	  }else{
+	    Tz=-1;
+	  }
+
+          for(int i=0; i<gamma_maxp; ++i){
+            int gamma_p=i+1;
+	    int it=i*upsilon_maxp;
+            for(int j=0; j<gamma_max; ++j){
+	      int gamma=j+1;
+              int jt=j*upsilon_max; 
+	      for(int up=0; up<upsilon_maxp; up++){
+		int upsilon_p=up+1;
+		for(int u=0; u<upsilon_max; u++){
+	          int upsilon=u+1;
+                  spncci::OBUnitTensorRMELabels labels(N_ex_sigma_p, lambda_sigma_p, mu_sigma_p, twice_Sp_p, twice_Sn_p, twice_S_p, N_ex_omega_p, lambda_omega_p, mu_omega_p, gamma_p, upsilon_p, N_ex_sigma, lambda_sigma, mu_sigma, twice_Sp, twice_Sn, twice_S, N_ex_omega, lambda_omega, mu_omega, gamma, upsilon, lambda0, mu0, twice_S0, etap, eta, rho0, Tz);
+                  RME_by_labels[labels]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+		}
+	      }
+	    }
+          }
+        }
+      }
+      }
+
+      for(std::map<spncci::OBUnitTensorRMELabels,double>::iterator it=RME_by_labels.begin(); it!=RME_by_labels.end(); ++it){
+        spncci::OBUnitTensorRMELabels labels=it->first;
+	int twice_S=labels.twice_S();
+	int twice_S_p=labels.twice_S_p();
+	int lambda_omega=labels.lambda_omega();
+        int mu_omega=labels.mu_omega();
+	int lambda_omega_p=labels.lambda_omega_p();
+        int mu_omega_p=labels.mu_omega_p();
+        int eta=labels.eta();
+	int eta_p=labels.eta_p();
+	spncci::OBUnitTensorRMELabels labels_conj(labels.N_ex_sigma(), labels.lambda_sigma(), labels.mu_sigma(), labels.twice_Sp(), labels.twice_Sn(), twice_S, labels.N_ex_omega(), lambda_omega, mu_omega, labels.gamma(), labels.upsilon(), labels.N_ex_sigma_p(), labels.lambda_sigma_p(), labels.mu_sigma_p(), labels.twice_Sp_p(), labels.twice_Sn_p(), twice_S_p, labels.N_ex_omega_p(), lambda_omega_p, mu_omega_p, labels.gamma_p(), labels.upsilon_p(), labels.mu0(), labels.lambda0(), labels.twice_S0(), eta, eta_p, labels.rho0(), labels.Tz());
+        if(RME_by_labels.find(labels_conj)==RME_by_labels.end())continue;
+	double factor=sqrt(double((twice_S_p+1)*(lambda_omega_p+1)*(mu_omega_p+1)*(lambda_omega_p+mu_omega_p+2)*(eta+1)*(eta+2))
+			  /double((twice_S+1)*(lambda_omega+1)*(mu_omega+1)*(lambda_omega+mu_omega+2)*(eta_p+1)*(eta_p+2)));
+	int phase=eta-eta_p+lambda_omega+mu_omega-lambda_omega_p-mu_omega_p+(twice_S-twice_S_p)/2;
+	if(2*((phase)/2)!=phase)factor=-factor;
+	if(std::abs(RME_by_labels[labels_conj]-factor*it->second)>1.0e-6){
+	  if(labels.N_ex_omega_p()==0 && labels.N_ex_omega_p()==6)std::cout<<"N06 ";
+	  if(labels.N_ex_omega_p()==2 && labels.N_ex_omega_p()==6)std::cout<<"N26 ";
+	  if(labels.N_ex_omega_p()==4 && labels.N_ex_omega_p()==6)std::cout<<"N46 ";
+	  if(labels.N_ex_omega_p()==6 && labels.N_ex_omega_p()==6)std::cout<<"N66 ";
+	  if(labels.N_ex_omega_p()==6 && labels.N_ex_omega_p()==0)std::cout<<"N60 ";
+	  if(labels.N_ex_omega_p()==6 && labels.N_ex_omega_p()==2)std::cout<<"N62 ";
+	  if(labels.N_ex_omega_p()==6 && labels.N_ex_omega_p()==4)std::cout<<"N64 ";
+	  if(labels.N_ex_omega_p()<6 && labels.N_ex_omega_p()<6)std::cout<<"Nmax4 ";
+	  std::cout<<"ERROR: "<<factor*it->second<<" "<<RME_by_labels[labels_conj]<<std::endl;
+	  std::cout<<"irrep_family_index_bra irrep_family_index_ket: "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
+          std::cout<<"N_ex_sigma' lambda_sigma' mu_sigma' 2*Sp' 2*Sn' 2*S' N_ex_omega' lambda_omega' mu_omega': "<<labels.N_ex_sigma_p()<<" "<<labels.lambda_sigma_p()<<" "<<labels.mu_sigma_p()<<" "<<labels.twice_Sp_p()<<" "<<labels.twice_Sn_p()<<" "<<twice_S_p<<" "<<labels.N_ex_omega_p()<<" "<<lambda_omega_p<<" "<<mu_omega_p<<std::endl;
+        std::cout<<"N_ex_sigma  lambda_sigma  mu_sigma  2*Sp  2*Sn  2*S  N_ex_omega  lambda_omega  mu_omega : "<<labels.N_ex_sigma()<<" "<<labels.lambda_sigma()<<" "<<labels.mu_sigma()<<" "<<labels.twice_Sp()<<" "<<labels.twice_Sn()<<" "<<twice_S<<" "<<labels.N_ex_omega()<<" "<<lambda_omega<<" "<<mu_omega<<std::endl;
+        std::cout<<"lambda0 mu0 2*S0 N' N rho0: "<<labels.lambda0()<<" "<<labels.mu0()<<" "<<labels.twice_S0()<<" "<<labels.eta_p()<<" "<<labels.eta()<<" "<<labels.rho0()<<std::endl;
+	}
+      }
+    }
+    return;
+  }
+
+void ComputeTwoBodyDensityRMEs(
+  const spncci::RunParameters& run_parameters,
+  int N1vp,
+  int N1vn,
+  const lgi::MultiplicityTaggedLGIVector& lgi_families,
+  const std::vector<int>& lgi_full_space_index_lookup,
+  const spncci::SpNCCISpace& spncci_space,
+  const spncci::BabySpNCCISpace& baby_spncci_space,
+  const u3shell::TwoBodyDensitySpace& two_body_density_space,
+  const spncci::KMatrixCache& k_matrix_cache,
+  const spncci::KMatrixCache& kinv_matrix_cache,
+  spncci::OperatorBlocks& lgi_transformations,
+  u3::UCoefCache& u_coef_cache,
+  u3::PhiCoefCache& phi_coef_cache,
+  const spncci::LGIPair& lgi_pair
+  )
+
+  {
+    // Extract lgi index  labels 
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+
+    // Container for indices for TBDs whose rmes should be 
+    //  evaluated at each (Nnp,Nn) step in recurrence
+    std::map<spncci::NnPair,std::set<int>> tbd_subspace_subsets;
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Setting up seeds for use in recurrence.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // + Reads in seed labels and RMEs from file
+    // + Apply lgi change of basis if transform_lgi_families=true
+    // + Generate hypersectors for lgi from list of TBD in files 
+    // + Read RMEs and store RMEs and their conjugates in 
+    //    tbd_hyperblocks_seeds 
+    //    tbd_hyperblocks_seeds_conj
+    // + Initalizes tbd_subspace_subsets for (Nnp,Nn)=0 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersector_seeds;
+    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersector_seeds_conj;
+    basis::OperatorHyperblocks<double> tbd_hyperblocks_seeds;
+    basis::OperatorHyperblocks<double> tbd_hyperblocks_seeds_conj;
+
+    spncci::DoTwoBodyRecurrenceInitialization(
+      run_parameters.Nmax,N1vp,N1vn,lgi_pair,lgi_families,lgi_full_space_index_lookup,
+      baby_spncci_space,two_body_density_space,lgi_transformations,run_parameters.transform_lgi,
+      tbd_subspace_subsets, baby_spncci_hypersector_seeds,baby_spncci_hypersector_seeds_conj,
+      tbd_hyperblocks_seeds, tbd_hyperblocks_seeds_conj, phi_coef_cache
+    );
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Compute RMEs for TBD hyperblocks via recurrence for lgi pair 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // For LGI pair, compute SU(3) RMEs of all TBDs with non-zero RMEs
+    //   between Sp(3,R) many-body states using reccurence method 
+    // + Recurrence calculate RMEs for states U(3) branched states with
+    //   Nnp>=Nn
+    // + If lgi_bra!=lgi_ket, then also need to flip lgi pair and compute TBD
+    //    RMEs with Nnp>=Nn for flipped pair
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    //Compute RMEs with Nnp>=Nn
+    basis::OperatorHyperblocks<double> tbd_hyperblocks;
+    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors;
+
+    bool files_found=
+    spncci::GenerateTwoBodyDensityHyperblocks(
+      lgi_pair, run_parameters.Nmax, N1vp, N1vn, run_parameters.nuclide[0]+run_parameters.nuclide[1],
+      spncci_space,baby_spncci_space,two_body_density_space,k_matrix_cache,kinv_matrix_cache,
+      tbd_subspace_subsets,baby_spncci_hypersector_seeds,baby_spncci_hypersector_seeds_conj,
+      tbd_hyperblocks_seeds,tbd_hyperblocks_seeds_conj,
+      u_coef_cache,phi_coef_cache,baby_spncci_hypersectors,tbd_hyperblocks
+    );
+    //Check that file exists 
+    assert(files_found);
+
+    // Compute RMEs with Nnp<Nn if lgi_bra!=lgi_ket
+    spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
+    basis::OperatorHyperblocks<double> tbd_hyperblocks2;
+    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors2;
+
+    // Check if hypersectors are diagonal in irrep family. 
+    bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
+          
+    if(not is_diagonal)
+      {  
+        spncci::GenerateTwoBodyDensityHyperblocks(
+          lgi_pair2, run_parameters.Nmax, N1vp, N1vn, run_parameters.nuclide[0]+run_parameters.nuclide[1],
+          spncci_space,baby_spncci_space,two_body_density_space,k_matrix_cache,
+          kinv_matrix_cache,tbd_subspace_subsets,
+          baby_spncci_hypersector_seeds_conj,baby_spncci_hypersector_seeds,
+          tbd_hyperblocks_seeds_conj,tbd_hyperblocks_seeds,
+          u_coef_cache,phi_coef_cache,
+          baby_spncci_hypersectors2,tbd_hyperblocks2
+        );
+      }
+
+    return;
+  }
+//*************************************************************************************************
+
 void GetBabySpNCCIHyperBlocks(
   const int observable_index,
   const int hw_index,

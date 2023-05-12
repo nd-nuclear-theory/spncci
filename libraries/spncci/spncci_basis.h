@@ -665,6 +665,116 @@ namespace spncci
 
   };
 
+//******************************************** Added by J.H. *********************************************
+  class BabySpNCCIOneBodyUnitTensorHypersectors
+    : public basis::BaseHypersectors<BabySpNCCISpace,u3shell::OneBodyUnitTensorSpaceU3S>
+  {
+
+  public:
+      // constructor
+
+    BabySpNCCIOneBodyUnitTensorHypersectors() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes
+
+    BabySpNCCIOneBodyUnitTensorHypersectors(
+        const lgi::MultiplicityTaggedLGIVector& lgi_families,
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::OneBodyUnitTensorSpaceU3S& operator_space,
+        const std::set<int>& operator_subset,
+        int irrep_family_index_1, int irrep_family_index_2
+      );
+      // Constructor for setting up hypersectors for only the LGI of each irrep family
+      // for use in storing seed RMEs for unit tensor recurrence.
+
+    BabySpNCCIOneBodyUnitTensorHypersectors(
+        int Nmax,
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::OneBodyUnitTensorSpaceU3S& operator_space,
+        const std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn,
+        std::vector<std::vector<int>>& unit_tensor_hypersector_subsets,
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1,
+        bool Nn0_conjugate_hypersectors=false
+      );
+
+      //Overload of notation
+      // Enumerate unit tensor hypersector connected by baby spncci subspaces
+      //
+      // Arguments:
+      //    space : full baby spncci space
+      //    operator_space : unit tensor space.  Subspaces by x0,S0,etap,eta
+      //
+      //    operator_subset : map of unit_tensor_subspace indices which have
+      //      may have non-zero rmes between the given irrep family pair.
+      //
+      //    unit_tensor_hypersector_subset: is a vector of vectors of indices
+      //      for unit hypersectors organized by Nsum=Nn+Nnp.  Each previous
+      //      Nsum must be computed before the recurrence can go to the next Nsum.
+      //
+      //    irrep_family_index : index of irrep family in SpNCCISpace.  Used to
+      //      restrict hypersectors to include baby spncci subspaces for a given
+      //      irrep family pair.  If irrep_family_index=-1, then there is no
+      //      restriction by irrep family.
+      //    Nn0_conjugate_hypersectors : Generate hypersectors for special case that
+      //      Nn=0 and Nnp!=0.  irrep_family_index_bra and irrep_family_index_ket are
+      //      passed as flipped, so hypersectors enumerate for Nnp'=0 and Nn'!=0.
+  };
+
+  class BabySpNCCITwoBodyDensityHypersectors
+    : public basis::BaseHypersectors<BabySpNCCISpace,u3shell::TwoBodyDensitySpace>
+  {
+
+  public:
+      // constructor
+
+    BabySpNCCITwoBodyDensityHypersectors() {};
+    // default constructor -- provided since required for certain
+    // purposes by STL container classes
+
+    BabySpNCCITwoBodyDensityHypersectors(
+        const lgi::MultiplicityTaggedLGIVector& lgi_families,
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::TwoBodyDensitySpace& operator_space,
+        const std::set<int>& operator_subset,
+        int irrep_family_index_1, int irrep_family_index_2
+      );
+      // Constructor for setting up hypersectors for only the LGI of each irrep family
+      // for use in storing seed RMEs for TBD recurrence.
+
+    BabySpNCCITwoBodyDensityHypersectors(
+        int Nmax,
+        const spncci::BabySpNCCISpace& space,
+        const u3shell::TwoBodyDensitySpace& operator_space,
+        const std::map<spncci::NnPair,std::set<int>>& operator_subsets_NnpNn,
+        std::vector<std::vector<int>>& tbd_hypersector_subsets,
+        int irrep_family_index_1=-1, int irrep_family_index_2=-1,
+        bool Nn0_conjugate_hypersectors=false
+      );
+
+      //Overload of notation
+      // Enumerate TBD hypersector connected by baby spncci subspaces
+      //
+      // Arguments:
+      //    space : full baby spncci space
+      //    operator_space : TBD space.  Subspaces by x0,S0,N1,N2,N3,N4
+      //
+      //    operator_subset : map of tbd_subspace indices which
+      //      may have non-zero rmes between the given irrep family pair.
+      //
+      //    tbd_hypersector_subset: is a vector of vectors of indices
+      //      for hypersectors organized by Nsum=Nn+Nnp.  Each previous
+      //      Nsum must be computed before the recurrence can go to the next Nsum.
+      //
+      //    irrep_family_index : index of irrep family in SpNCCISpace.  Used to
+      //      restrict hypersectors to include baby spncci subspaces for a given
+      //      irrep family pair.  If irrep_family_index=-1, then there is no
+      //      restriction by irrep family.
+      //    Nn0_conjugate_hypersectors : Generate hypersectors for special case that
+      //      Nn=0 and Nnp!=0.  irrep_family_index_bra and irrep_family_index_ket are
+      //      passed as flipped, so hypersectors enumerate for Nnp'=0 and Nn'!=0.
+  };
+//********************************************************************************************************
+
   void PrintHypersectors(
       const spncci::BabySpNCCISpace& baby_spncci_space,
       const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,

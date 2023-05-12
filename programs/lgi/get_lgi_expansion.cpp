@@ -164,7 +164,6 @@ int main(int argc, char **argv)
     {
       std::string lgi_filename="lgi_families.dat";
       lgi::WriteLGILabels(lgi_families, lgi_filename);
-
       // std::cout<<"write expansion to file "<<std::endl;
       std::string lgi_expansion_filename="lgi_expansions.dat";
       lgi::WriteLGIExpansions(lgi_expansion_filename,lgi_expansions);

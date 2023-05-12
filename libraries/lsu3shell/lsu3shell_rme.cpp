@@ -160,7 +160,6 @@ namespace lsu3shell
 
     // allocate matrices for operator
     basis::SetOperatorToZero(sectors,blocks);
-
     // read rmes
     while(in_stream)
       {
@@ -168,7 +167,6 @@ namespace lsu3shell
         RMEIndexType i, j;
         mcutils::ReadBinary<RMEIndexType>(in_stream,i);
         mcutils::ReadBinary<RMEIndexType>(in_stream,j);
-
         // quit if this has brought us past end of file
         if (!in_stream)
           break;
@@ -348,6 +346,94 @@ namespace lsu3shell
     );
 
   }
+
+//******************************************** Added by J.H. ***************************************
+  void ReadLSU3ShellRMEs(
+      const std::string& filename,
+      const LSU3ShellBasisTable& lsu3_basis_table,
+      const u3shell::SpaceU3SPN& space,
+      const u3shell::OperatorLabelsU3S& operator_labels,
+      const u3shell::SectorsU3SPN& sectors,
+      lsu3shell::OperatorBlocks& blocks
+    )
+  {
+    // open file
+    std::ifstream in_stream(filename,std::ios_base::in|std::ios_base::binary);
+    mcutils::StreamCheck(bool(in_stream),filename,"Failure opening lsu3shell rme file");
+
+    // read file header
+    int format_code;
+    mcutils::ReadBinary<int>(in_stream,format_code);
+    assert(format_code==1);
+    int float_precision;
+    mcutils::ReadBinary<int>(in_stream,float_precision);
+    assert((float_precision==4)||(float_precision==8));
+
+    // allocate matrices for operator
+    basis::SetOperatorToZero(sectors,blocks);
+    // read rmes
+    while(in_stream)
+      {
+        // read bra/ket lsu3shell basis multiplicity group indices
+        RMEIndexType i, j;
+        mcutils::ReadBinary<RMEIndexType>(in_stream,i);
+        mcutils::ReadBinary<RMEIndexType>(in_stream,j);
+        // quit if this has brought us past end of file
+        if (!in_stream)
+          break;
+
+        // retrieve lsu3shell basis multiplicity group information
+        u3shell::U3SPN omegaSPNi, omegaSPNj;
+        assert((i<lsu3_basis_table.size())&&(j<lsu3_basis_table.size()));
+        const LSU3ShellBasisGroupData& group_i = lsu3_basis_table[i];
+        const LSU3ShellBasisGroupData& group_j = lsu3_basis_table[j];
+        u3::SU3 xi(group_i.omegaSPN.SU3());
+        u3::SU3 xj(group_j.omegaSPN.SU3());
+        int rho0_max=u3::OuterMultiplicity(xj,operator_labels.x0(),xi);
+        int i_subspace_index=space.LookUpSubspaceIndex(group_i.omegaSPN);
+        int j_subspace_index=space.LookUpSubspaceIndex(group_j.omegaSPN);
+        assert((i_subspace_index!=basis::kNone)&&(j_subspace_index!=basis::kNone));
+
+        // verify multiplicity given in file
+        RMEIndexType num_rmes = group_i.dim*group_j.dim*rho0_max;
+        if(rho0_max==0)
+          std::cout<<fmt::format("{} {}  {}  {}  {}", i,j,group_i.omegaSPN.Str(), operator_labels.Str(),group_j.omegaSPN.Str())<<std::endl;
+        mcutils::VerifyBinary<RMEIndexType>(
+            in_stream,num_rmes,
+            fmt::format("Unexpected value encountered reading binary rme file {}",filename),"rho0_max"
+          );
+
+        // extract and store matrix elements
+        for(int gi=0; gi<group_i.dim; ++gi)
+          for(int gj=0; gj<group_j.dim; ++gj)
+            for(int rho0=1; rho0<=rho0_max; ++rho0)
+              {
+                // read rme
+                double rme;
+                if (float_precision==4)
+                  {
+                    float rme_float;
+                    mcutils::ReadBinary<float>(in_stream,rme_float);
+                    rme = rme_float;
+                  }
+                else if (float_precision==8)
+                  {
+                    mcutils::ReadBinary<double>(in_stream,rme);
+                  }
+
+                // Note: Since rho0 is most rapidly varying index in sector enumeration, we could just 
+                // calculate the sector_index by offsetting from the sector with rho0=1.
+                int sector_index=sectors.LookUpSectorIndex(i_subspace_index,j_subspace_index,rho0);
+                assert(sector_index!=basis::kNone);
+                int row_index=group_i.start_index+gi;
+                int column_index=group_j.start_index+gj;
+                blocks[sector_index](row_index,column_index)=rme;
+              }
+      }
+    // close file
+    in_stream.close();
+  };
+//**************************************************************************************************
 
   void
     ReadLSU3ShellSymplecticOperatorRMEs(

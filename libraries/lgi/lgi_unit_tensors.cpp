@@ -160,7 +160,6 @@ namespace lgi
     // lgi::LGIGroupedSeedLabels& lgi_grouped_seed_labels
 
     unit_tensor_spncci_matrices_array.resize(lgi_unit_tensor_labels.size());
-
     #pragma omp parallel
       {
         lgi::LGIGroupedSeedLabels lgi_grouped_seed_labels_temp;
@@ -172,7 +171,6 @@ namespace lgi
             // Get labels of corresponding unit tensor
             basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
             const u3shell::RelativeUnitTensorLabelsU3ST& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
-
             // Get file name containing lsu3shell rmes of unit tensor
             std::string filename = fmt::format(relative_unit_tensor_filename_template,unit_tensor_index);
 
@@ -224,6 +222,257 @@ namespace lgi
       }
   }
 
+//********************************************* Added by J.H. *********************************************
+  void RegroupOneBodySeedBlocks(
+      int unit_tensor_index,
+      const u3shell::SectorsU3SPN& unit_tensor_sectors,
+      const u3shell::OneBodyUnitTensorLabelsU3S& unit_tensor_labels,
+      lgi::LGIGroupedOneBodySeedLabels& lgi_grouped_seed_labels,
+      basis::OperatorBlocks<double>& unit_tensor_spncci_matrices,
+      std::vector<int>& lsu3shell_index_lookup_table,
+      bool restrict_seeds
+    )
+  {
+    for(int sector_index=0; sector_index<unit_tensor_sectors.size(); ++sector_index)
+      {
+        // Check that the sector has non-zero rmes as defined by the zero_tolerance
+        if(mcutils::IsZero(unit_tensor_spncci_matrices[sector_index],lgi::zero_tolerance))
+          continue;
+
+        // extract U3SPN sector information from unit tensor sectors definded in lsu3shell basis
+        const typename u3shell::SectorsU3SPN::SectorType& sector = unit_tensor_sectors.GetSector(sector_index);
+        int bra_subspace_index = sector.bra_subspace_index();
+        int ket_subspace_index = sector.ket_subspace_index();
+
+        int bra_lgi_index=lsu3shell_index_lookup_table[bra_subspace_index];
+        int ket_lgi_index=lsu3shell_index_lookup_table[ket_subspace_index];
+
+        // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
+        bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
+        if(not keep)
+          continue;
+
+        const int rho0=sector.multiplicity_index();
+
+        // Regroup by lgi pair, then by unit tensor
+        std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
+
+        // Labels for looking up correct block to write to file
+        lgi::OneBodySeedLabels seed_labels(unit_tensor_labels,rho0,unit_tensor_index,sector_index);
+
+        // Accumulating list
+        lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
+
+      }// sector index
+  }
+
+  void ComputeOneBodyUnitTensorSeedBlocks(
+      const std::vector<u3shell::OneBodyUnitTensorLabelsU3S>& lgi_unit_tensor_labels,
+      const std::string& one_body_unit_tensor_filename_template,
+      const u3shell::SpaceU3SPN& lsu3shell_space,
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+      const basis::OperatorBlocks<double>& lgi_expansions,
+      lgi::LGIGroupedOneBodySeedLabels& lgi_grouped_seed_labels,
+      std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array,
+      std::vector<int>& lsu3shell_index_lookup_table,
+      bool restrict_seeds
+    )
+  {
+    // Compute one-body unit tensor seed blocks from lsu3shell unit tensor rmes and lgi expansion
+    // and write blocks to file in binary format
+    //
+    // Container for seed labels and indices for lookup when writing to file
+    // lgi::LGIGroupedOneBodySeedLabels& lgi_grouped_seed_labels
+
+    unit_tensor_spncci_matrices_array.resize(lgi_unit_tensor_labels.size());
+    #pragma omp parallel
+      {
+        lgi::LGIGroupedOneBodySeedLabels lgi_grouped_seed_labels_temp;
+
+        // For each unit tensor
+        #pragma omp for schedule(dynamic) nowait
+        for (int unit_tensor_index=0; unit_tensor_index<lgi_unit_tensor_labels.size(); ++unit_tensor_index)
+          {
+            // Get labels of corresponding unit tensor
+            basis::OperatorBlocks<double> unit_tensor_spncci_matrices;
+            const u3shell::OneBodyUnitTensorLabelsU3S& unit_tensor_labels = lgi_unit_tensor_labels[unit_tensor_index];
+            // Get file name containing lsu3shell rmes of unit tensor
+            std::string filename = fmt::format(one_body_unit_tensor_filename_template,
+              unit_tensor_labels.Nbra(),unit_tensor_labels.Nket(),unit_tensor_labels.x0().lambda(),
+	      unit_tensor_labels.x0().mu(),unit_tensor_labels.S0().TwiceValue(),unit_tensor_labels.Tz());
+
+            // generate unit tensor sectors in lsu3shell basis
+	    const bool spin_scalar = false; // All spin values allowed
+            u3shell::SectorsU3SPN unit_tensor_sectors(lsu3shell_space,unit_tensor_labels,spin_scalar);
+
+            // Read in lsu3shell rmes of unit tensor
+            basis::OperatorBlocks<double> unit_tensor_lsu3shell_matrices;
+            lsu3shell::ReadLSU3ShellRMEs(
+                filename,
+                lsu3shell_basis_table,lsu3shell_space,
+                unit_tensor_labels,unit_tensor_sectors,
+                unit_tensor_lsu3shell_matrices
+              );
+
+            // Transform seed rmes to SpNCCI basis
+            lgi::TransformOperatorToSpBasis(
+                unit_tensor_sectors,lgi_expansions,
+                unit_tensor_lsu3shell_matrices,
+                unit_tensor_spncci_matrices
+              );
+
+            // Re-organize unit tensor seed bocks
+            // by lgi then by tensor
+            lgi::RegroupOneBodySeedBlocks(
+                unit_tensor_index,unit_tensor_sectors,unit_tensor_labels,
+                lgi_grouped_seed_labels_temp,unit_tensor_spncci_matrices,
+                lsu3shell_index_lookup_table,restrict_seeds
+              );
+
+            // Matrix copy into final container
+            #pragma omp critical(matrix_copy)
+              unit_tensor_spncci_matrices_array[unit_tensor_index]=unit_tensor_spncci_matrices;
+
+          }
+
+       #pragma omp critical(regroup)
+          {
+            std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
+            for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
+              {
+                auto& seed_labels=it->second;
+                auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+                accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+              }
+          }
+      }
+  }
+
+  void RegroupTwoBodySeedBlocks(
+      int tbd_index,
+      const u3shell::SectorsU3SPN& tbd_sectors,
+      const u3shell::TwoBodyDensityLabels& tbd_labels,
+      lgi::LGIGroupedTwoBodySeedLabels& lgi_grouped_seed_labels,
+      basis::OperatorBlocks<double>& tbd_spncci_matrices,
+      std::vector<int>& lsu3shell_index_lookup_table,
+      bool restrict_seeds
+    )
+  {
+    for(int sector_index=0; sector_index<tbd_sectors.size(); ++sector_index)
+      {
+        // Check that the sector has non-zero rmes as defined by the zero_tolerance
+        if(mcutils::IsZero(tbd_spncci_matrices[sector_index],lgi::zero_tolerance))
+          continue;
+
+        // extract U3SPN sector information from tbd sectors definded in lsu3shell basis
+        const typename u3shell::SectorsU3SPN::SectorType& sector = tbd_sectors.GetSector(sector_index);
+        int bra_subspace_index = sector.bra_subspace_index();
+        int ket_subspace_index = sector.ket_subspace_index();
+
+        int bra_lgi_index=lsu3shell_index_lookup_table[bra_subspace_index];
+        int ket_lgi_index=lsu3shell_index_lookup_table[ket_subspace_index];
+
+        // If restrict_seeds=true, keep only if bra>=ket, else keep all seeds
+        bool keep=restrict_seeds?(bra_lgi_index>=ket_lgi_index):true;
+        if(not keep)
+          continue;
+
+        const int rho=sector.multiplicity_index();
+
+        // Regroup by lgi pair, then by tbd
+        std::pair<int,int> irrep_family_pair(bra_lgi_index,ket_lgi_index);
+
+        // Labels for looking up correct block to write to file
+        lgi::TwoBodySeedLabels seed_labels(tbd_labels,rho,tbd_index,sector_index);
+
+        // Accumulating list
+        lgi_grouped_seed_labels[irrep_family_pair].push_back(seed_labels);
+
+      }// sector index
+  }
+
+  void ComputeTwoBodyDensitySeedBlocks(
+      const std::vector<u3shell::TwoBodyDensityLabels>& lgi_tbd_labels,
+      const std::string& tbd_filename_template,
+      const u3shell::SpaceU3SPN& lsu3shell_space,
+      const lsu3shell::LSU3ShellBasisTable& lsu3shell_basis_table,
+      const basis::OperatorBlocks<double>& lgi_expansions,
+      lgi::LGIGroupedTwoBodySeedLabels& lgi_grouped_seed_labels,
+      std::vector<basis::OperatorBlocks<double>>& tbd_spncci_matrices_array,
+      std::vector<int>& lsu3shell_index_lookup_table,
+      bool restrict_seeds
+    )
+  {
+    // Compute two-body density seed blocks from lsu3shell tbd rmes and lgi expansion
+    // and write blocks to file in binary format
+
+    tbd_spncci_matrices_array.resize(lgi_tbd_labels.size());
+    #pragma omp parallel
+      {
+        lgi::LGIGroupedTwoBodySeedLabels lgi_grouped_seed_labels_temp;
+
+        // For each tbd
+        #pragma omp for schedule(dynamic) nowait
+        for (int tbd_index=0; tbd_index<lgi_tbd_labels.size(); ++tbd_index)
+          {
+            // Get labels of corresponding tbd
+            basis::OperatorBlocks<double> tbd_spncci_matrices;
+            const u3shell::TwoBodyDensityLabels& tbd_labels = lgi_tbd_labels[tbd_index];
+            // Get file name containing lsu3shell rmes of tbd
+            std::string filename = fmt::format(tbd_filename_template,
+              tbd_labels.N1(),tbd_labels.N2(),tbd_labels.N3(),tbd_labels.N4(),
+	      tbd_labels.xf().lambda(),tbd_labels.xf().mu(),2*tbd_labels.Sf(),
+	      tbd_labels.xi().lambda(),tbd_labels.xi().mu(),2*tbd_labels.Si(),
+	      tbd_labels.rho0()-1,tbd_labels.x0().lambda(),tbd_labels.x0().mu(),tbd_labels.S0().TwiceValue(),tbd_labels.Tz());
+
+            // generate tbd sectors in lsu3shell basis
+	    const bool spin_scalar = false; // All spin values allowed
+            u3shell::SectorsU3SPN tbd_sectors(lsu3shell_space,tbd_labels,spin_scalar);
+
+            // Read in lsu3shell rmes of tbd
+            basis::OperatorBlocks<double> tbd_lsu3shell_matrices;
+            lsu3shell::ReadLSU3ShellRMEs(
+                filename,
+                lsu3shell_basis_table,lsu3shell_space,
+                tbd_labels,tbd_sectors,
+                tbd_lsu3shell_matrices
+              );
+
+            // Transform seed rmes to SpNCCI basis
+            lgi::TransformOperatorToSpBasis(
+                tbd_sectors,lgi_expansions,
+                tbd_lsu3shell_matrices,
+                tbd_spncci_matrices
+              );
+
+            // Re-organize tbd seed bocks
+            // by lgi then by tensor
+            lgi::RegroupTwoBodySeedBlocks(
+                tbd_index,tbd_sectors,tbd_labels,
+                lgi_grouped_seed_labels_temp,tbd_spncci_matrices,
+                lsu3shell_index_lookup_table,restrict_seeds
+              );
+
+            // Matrix copy into final container
+            #pragma omp critical(matrix_copy)
+              tbd_spncci_matrices_array[tbd_index]=tbd_spncci_matrices;
+
+          }
+
+       #pragma omp critical(regroup)
+          {
+            std::cout<<"thread "<<omp_get_thread_num()<<std::endl;
+            for(auto it=lgi_grouped_seed_labels_temp.begin(); it!=lgi_grouped_seed_labels_temp.end(); ++it)
+              {
+                auto& seed_labels=it->second;
+                auto& accumulated_seed_labels=lgi_grouped_seed_labels[it->first];
+                accumulated_seed_labels.insert(accumulated_seed_labels.end(),seed_labels.begin(), seed_labels.end());
+              }
+          }
+      }
+
+  }
+//*********************************************************************************************************
 
   void ComputeUnitTensorSeedBlocks(
       const std::vector<u3shell::RelativeUnitTensorLabelsU3ST>& lgi_unit_tensor_labels,
@@ -356,6 +605,45 @@ namespace lgi
       <<std::endl;
 
   }
+
+//************************************* Added by J.H. **********************************************
+  void WriteOneBodyUnitTensorLabels(
+    const std::pair<u3shell::OneBodyUnitTensorLabelsU3S,int>& unit_tensor_labels_tagged,
+    std::ostream& out_file
+    )
+  {
+    // Extract unit tensor labels
+    u3::SU3 x0;
+    HalfInt S0;
+    int etap,eta,Tz;
+    std::tie(x0,S0,etap,eta,Tz)=unit_tensor_labels_tagged.first.FlatKey();
+    int rho0=unit_tensor_labels_tagged.second;
+
+    out_file<<x0.lambda()<<"  "<<x0.mu()<<"  "<<TwiceValue(S0)<<"  "
+      <<etap<<"  "<<eta<<"  "<<Tz<<"  "<<rho0<<std::endl;
+
+  }
+
+  void WriteTwoBodyDensityLabels(
+    const std::pair<u3shell::TwoBodyDensityLabels,int>& tbd_labels_tagged,
+    std::ostream& out_file
+    )
+  {
+    // Extract tbd labels
+    u3::SU3 xf,xi,x0;
+    HalfInt S0;
+    int N1,N2,N3,N4,Sf,Si,rho0,Tz;
+    std::tie(x0,S0,N1,N2,N3,N4,xf,Sf,xi,Si,rho0,Tz)=tbd_labels_tagged.first.FlatKey();
+    int rho=tbd_labels_tagged.second;
+
+    out_file<<x0.lambda()<<"  "<<x0.mu()<<"  "<<TwiceValue(S0)<<"  "
+      <<N1<<"  "<<N2<<"  "<<N3<<"  "<<N4<<"  "
+      <<xf.lambda()<<"  "<<xf.mu()<<"  "<<2*Sf<<"  "
+      <<xi.lambda()<<"  "<<xi.mu()<<"  "<<2*Si<<"  "
+      <<rho0<<"  "<<Tz<<"  "<<rho<<std::endl;
+
+  }
+//**************************************************************************************************
 
   void WriteMatrix(const basis::OperatorBlock<double>& block, std::ostream& out_file)
   // Writes rho0, num_rows, num_cols, rmes
@@ -504,7 +792,173 @@ namespace lgi
     seed_file.close();
   }
 
+//*********************************************** Added by J.H. ********************************************
+  void WriteOneBodySeedsToFile(
+      const lgi::LGIGroupedOneBodySeedLabels& lgi_grouped_seed_labels,
+      const std::vector<basis::OperatorBlocks<double>>& unit_tensor_spncci_matrices_array
+    )
+  {
+    std::vector<std::pair<int,int>> irrep_pairs;
+    for(auto it=lgi_grouped_seed_labels.begin(); it!=lgi_grouped_seed_labels.end(); ++it)
+      irrep_pairs.push_back(it->first);
 
+    #pragma omp parallel
+    {
+    #pragma omp for schedule(dynamic)
+    for(int i=0; i<irrep_pairs.size(); ++i)
+      {
+        int lgi_bra_index, lgi_ket_index;
+        std::tie(lgi_bra_index,lgi_ket_index)=irrep_pairs[i];
+
+        // temporary container of unit tensor labels and rho0 for writing to separate file
+        std::vector<std::pair<u3shell::OneBodyUnitTensorLabelsU3S,int>> unit_tensor_sector_labels;
+
+        // output filename
+        std::string seed_filename=fmt::format("seeds/obseeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
+
+        // open output file
+        // output in binary mode
+        std::ios_base::openmode mode_argument = std::ios_base::out;
+        mode_argument |= std::ios_base::binary;
+        std::ofstream seed_file;
+        seed_file.open(seed_filename,mode_argument);
+
+        if (!seed_file)
+         {
+            std::cerr << "Could not open file '" << seed_filename << "'!" << std::endl;
+            assert(seed_file);
+         }
+
+        // Indicate file format code and binary precision
+        WriteHeader(seed_file);
+
+        // for each unit tensor, write non-zero sectors to file
+        auto& seed_labels_list=lgi_grouped_seed_labels.at(irrep_pairs[i]);
+        for(const OneBodySeedLabels& seed_labels : seed_labels_list)
+          {
+            u3shell::OneBodyUnitTensorLabelsU3S unit_tensor_labels;
+            int rho0, index1,index2;
+            std::tie(unit_tensor_labels,rho0,index1,index2)=seed_labels;
+
+            // add unit tensor to list
+            unit_tensor_sector_labels.emplace_back(unit_tensor_labels,rho0);
+
+            // get block
+            const basis::OperatorBlock<double>& block=unit_tensor_spncci_matrices_array[index1][index2];
+
+            // write block
+            // #pragma omp critical (write_seeds)
+              lgi::WriteMatrix(block, seed_file);
+
+          }
+
+        seed_file.close();
+
+        // Write unit tensor labels to file
+        std::string operator_filename=fmt::format("seeds/oboperators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index);
+
+        // open output file
+        std::ios_base::openmode mode_argument_op = std::ios_base::out;
+        std::ofstream operator_file;
+        operator_file.open(operator_filename,mode_argument_op);
+
+        if (!operator_file)
+          {
+            std::cerr << "Could not open file '" << operator_filename << "'!" << std::endl;
+            assert(operator_file);
+          }
+
+        for(auto labels : unit_tensor_sector_labels)
+            lgi::WriteOneBodyUnitTensorLabels(labels,operator_file);
+
+        operator_file.close();
+      }//end for loop
+    }//end parallel region
+  }
+
+  void WriteTwoBodySeedsToFile(
+      const lgi::LGIGroupedTwoBodySeedLabels& lgi_grouped_seed_labels,
+      const std::vector<basis::OperatorBlocks<double>>& tbd_spncci_matrices_array
+    )
+  {
+    std::vector<std::pair<int,int>> irrep_pairs;
+    for(auto it=lgi_grouped_seed_labels.begin(); it!=lgi_grouped_seed_labels.end(); ++it)
+      irrep_pairs.push_back(it->first);
+
+    #pragma omp parallel
+    {
+    #pragma omp for schedule(dynamic)
+    for(int i=0; i<irrep_pairs.size(); ++i)
+      {
+        int lgi_bra_index, lgi_ket_index;
+        std::tie(lgi_bra_index,lgi_ket_index)=irrep_pairs[i];
+
+        // temporary container of tbd labels and rho for writing to separate file
+        std::vector<std::pair<u3shell::TwoBodyDensityLabels,int>> tbd_sector_labels;
+
+        // output filename
+        std::string seed_filename=fmt::format("seeds/tbseeds_{:06d}_{:06d}.rmes",lgi_bra_index,lgi_ket_index);
+
+        // open output file
+        // output in binary mode
+        std::ios_base::openmode mode_argument = std::ios_base::out;
+        mode_argument |= std::ios_base::binary;
+        std::ofstream seed_file;
+        seed_file.open(seed_filename,mode_argument);
+
+        if (!seed_file)
+         {
+            std::cerr << "ERROR: Could not open file '" << seed_filename << "'!" << std::endl;
+            assert(seed_file);
+         }
+
+        // Indicate file format code and binary precision
+        WriteHeader(seed_file);
+
+        // for each tbd, write non-zero sectors to file
+        auto& seed_labels_list=lgi_grouped_seed_labels.at(irrep_pairs[i]);
+        for(const TwoBodySeedLabels& seed_labels : seed_labels_list)
+          {
+            u3shell::TwoBodyDensityLabels tbd_labels;
+            int rho, index1,index2;
+            std::tie(tbd_labels,rho,index1,index2)=seed_labels;
+
+            // add tbd to list
+            tbd_sector_labels.emplace_back(tbd_labels,rho);
+
+            // get block
+            const basis::OperatorBlock<double>& block=tbd_spncci_matrices_array[index1][index2];
+
+            // write block
+            // #pragma omp critical (write_seeds)
+              lgi::WriteMatrix(block, seed_file);
+
+          }
+
+        seed_file.close();
+
+        // Write tbd labels to file
+        std::string operator_filename=fmt::format("seeds/tboperators_{:06d}_{:06d}.dat",lgi_bra_index,lgi_ket_index);
+
+        // open output file
+        std::ios_base::openmode mode_argument_op = std::ios_base::out;
+        std::ofstream operator_file;
+        operator_file.open(operator_filename,mode_argument_op);
+
+        if (!operator_file)
+          {
+            std::cerr << "ERROR: Could not open file '" << operator_filename << "'!" << std::endl;
+            assert(operator_file);
+          }
+
+        for(auto labels : tbd_sector_labels)
+            lgi::WriteTwoBodyDensityLabels(labels,operator_file);
+
+        operator_file.close();
+      }//end for loop
+    }//end parallel region
+  }
+//**********************************************************************************************************
 
 
   bool ReadUnitTensorLabels(
@@ -564,6 +1018,98 @@ namespace lgi
         }
       return file_found;
     }
+
+//********************************************* Added by J.H. ******************************************
+  bool ReadOneBodyUnitTensorLabels(
+      std::string& filename,
+      std::vector<u3shell::OneBodyUnitTensorLabelsU3S>& unit_tensor_labels,
+      std::vector<int>& rho0_values
+    )
+    {
+      // open input file
+      bool file_found=false;
+      std::ifstream in_stream(filename,std::ios_base::in);
+      if(not bool(in_stream))
+        {
+          return file_found;
+        }
+      else
+        file_found=true;
+      // scan input file
+      std::string line;
+      int line_count=0;
+      while ( std::getline(in_stream, line) )
+        {
+          // count line
+          ++line_count;
+
+          // set up for parsing
+          std::istringstream line_stream(line);
+
+          // parse line
+          int lambda0,mu0,twice_S0,etap,eta,Tz,rho0;
+
+          line_stream >>lambda0>>mu0>>twice_S0>>etap>>eta>>Tz>>rho0;
+
+          mcutils::ParsingCheck(line_stream, line_count, line);
+
+          // conversions
+          HalfInt S0 = HalfInt(twice_S0,2);
+          u3::SU3 x0(lambda0,mu0);
+
+          //Construct unit tensor labels
+          unit_tensor_labels.emplace_back(x0,S0,etap,eta,Tz);
+          rho0_values.push_back(rho0);
+        }
+      return file_found;
+    }
+
+  bool ReadTwoBodyDensityLabels(
+      std::string& filename,
+      std::vector<u3shell::TwoBodyDensityLabels>& tbd_labels,
+      std::vector<int>& rho_values
+    )
+    {
+      // open input file
+      bool file_found=false;
+      std::ifstream in_stream(filename,std::ios_base::in);
+      if(not bool(in_stream))
+        {
+          return file_found;
+        }
+      else
+        file_found=true;
+      // scan input file
+      std::string line;
+      int line_count=0;
+      while ( std::getline(in_stream, line) )
+        {
+          // count line
+          ++line_count;
+
+          // set up for parsing
+          std::istringstream line_stream(line);
+
+          // parse line
+          int lm0,mu0,SS0,N1,N2,N3,N4,lmf,muf,SSf,lmi,mui,SSi,rho0,Tz,rho;
+
+          line_stream >>lm0>>mu0>>SS0>>N1>>N2>>N3>>N4>>lmf>>muf>>SSf>>lmi>>mui>>SSi>>rho0>>Tz>>rho;
+
+          mcutils::ParsingCheck(line_stream, line_count, line);
+
+          // conversions
+          HalfInt S0 = HalfInt(SS0,2);
+          u3::SU3 x0(lm0,mu0);
+          u3::SU3 xf(lmf,muf);
+	  u3::SU3 xi(lmi,mui);
+
+          //Construct TBD labels
+          tbd_labels.emplace_back(x0,S0,N1,N2,N3,N4,xf,SSf/2,xi,SSi/2,rho0,Tz);
+          rho_values.push_back(rho);
+        }
+      return file_found;
+    }
+//******************************************************************************************************
 
   void ReadBlock(std::istream& in_stream, Eigen::MatrixXd& block, int float_precision)
     {

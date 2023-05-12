@@ -42,7 +42,7 @@ std::map<u3shell::U3SPN, unsigned int> LSU3ShellCMFBasisDimensions(
 
 // ////TEMP
 //  inline std::map<u3shell::U3SPN,unsigned int>
-//  generate_lsu3shell_basis_dimensions(
+//  lsu3shell_basis_dimensions(
 //    const nuclide::NuclideType& nuclide,
 //    const HalfInt& Nsigma0,
 //    const int& Nmax

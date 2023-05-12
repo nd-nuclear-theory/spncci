@@ -93,6 +93,39 @@ namespace u3shell
       );
   // Overload of above function where container is map with unit tensors sorted by N0.
 
+//******************************** Added by J.H. *************************************
+  void GenerateOneBodyUnitTensorLabelsU3S(
+        int Nmax,
+        int N1vp,
+	int N1vn,
+        std::vector<OneBodyUnitTensorLabelsU3S>& one_body_unit_tensor_labels
+        );
+
+  /// Generates labels for one-body unit tensors acting within
+  /// the space of a given Nmax truncation and stores
+  /// labels in vector
+  ///
+  ///  Arguments:
+  ///    Nmax (input) : Nmax
+  ///    N1vp,N1vn (input) : N of valence shell for protons and neutrons
+  ///    one_body_unit_tensor_labels (output) : container for one-body unit tensor labels
+
+  void GenerateTwoBodyDensityLabels(
+        int Nmax,
+        int N1vp,
+        int N1vn,
+        std::vector<TwoBodyDensityLabels>& two_body_density_labels
+        );
+
+  /// Generates labels for two-body densities acting within
+  /// the space of a given Nmax truncation and stores
+  /// labels in vector
+  ///
+  ///  Arguments:
+  ///    Nmax (input) : Nmax
+  ///    N1vp,N1vn (input) : N of valence shell for protons and neutrons
+  ///    two_body_density_labels (output) : container for two-body density labels
+//************************************************************************************
 
   double Nrel(const u3shell::RelativeStateLabelsU3ST& bra, const u3shell::RelativeStateLabelsU3ST& ket);
   // U(3) RME of relative number operator between relative harmonic oscillator states (bra and ket)

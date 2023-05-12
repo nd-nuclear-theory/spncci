@@ -18,17 +18,19 @@ if(BUILD_LSU3SHELL)
 
   ## For lanczos decompositions
   message(STATUS "Including program/lgi/get_u3s_subspaces in the build.")
-  add_executable(get_u3s_subspaces EXCLUDE_FROM_ALL get_u3s_subspaces.cpp)
+#  add_executable(get_u3s_subspaces EXCLUDE_FROM_ALL get_u3s_subspaces.cpp) # commented out by J.H.
+  add_executable(get_u3s_subspaces get_u3s_subspaces.cpp) # added by J.H.
   target_link_libraries(get_u3s_subspaces PRIVATE am::am fmt::fmt spncci::sp3rlib spncci::u3ncsm spncci::utilities)
 endif()
 
-
 ## Old version of generating seeds
-add_executable(get_lgi_expansion EXCLUDE_FROM_ALL get_lgi_expansion.cpp)
+#add_executable(get_lgi_expansion EXCLUDE_FROM_ALL get_lgi_expansion.cpp) # commented out by J.H.
+add_executable(get_lgi_expansion get_lgi_expansion.cpp) # added by J.H.
 target_link_libraries(get_lgi_expansion PRIVATE fmt::fmt mcutils::mcutils spncci::lgi
                       spncci::sp3rlib spncci::spncci spncci::u3shell)
 
-add_executable(get_spncci_seed_blocks EXCLUDE_FROM_ALL get_spncci_seed_blocks.cpp)
+#add_executable(get_spncci_seed_blocks EXCLUDE_FROM_ALL get_spncci_seed_blocks.cpp) # commented out by J.H.
+add_executable(get_spncci_seed_blocks get_spncci_seed_blocks.cpp) # added by J.H.
 target_link_libraries(get_spncci_seed_blocks PRIVATE fmt::fmt mcutils::mcutils spncci::lgi
                         spncci::sp3rlib spncci::spncci spncci::u3shell)
 
@@ -42,5 +44,5 @@ target_link_libraries(transform_seed_blocks PRIVATE fmt::fmt spncci::lgi spncci:
 # actual installation is performed by top-level CMakeLists.txt
 # ##############################################################################
 if(BUILD_LSU3SHELL)
-  install(TARGETS generate_lgi_expansion_lsu3shell  get_u3s_subspaces DESTINATION bin)
+  install(TARGETS generate_lgi_expansion_lsu3shell  get_u3s_subspaces get_lgi_expansion get_spncci_seed_blocks DESTINATION bin)
 endif()

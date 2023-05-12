@@ -103,8 +103,11 @@ su3rme_subdirectory_list = []
 
 # executable files
 # ... from lsu3shell
-su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
-su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+#su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI") # commented out by J.H.
+#su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular") # commented out ny J.H.
+# added by J.H.:
+su3rme_executable = os.path.join(os.environ["MCSCRIPT_INSTALL_HOME"],os.environ["CRAY_CPU_TARGET"],"lsu3shell/bin/SU3RME_MPI")
+su3basis_executable = os.path.join(os.environ["MCSCRIPT_INSTALL_HOME"],os.environ["CRAY_CPU_TARGET"],"lsu3shell/bin/ncsmSU3xSU2IrrepsTabular")
 
 # ... from spncci
 generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
@@ -139,14 +142,14 @@ def generate_model_space_files(task):
     if task["model_space_file_bra"]==None:
         print("generating model_space.dat")
         
-        mcscript.call(command_line,mode=mcscript.CallMode.kSerial)
+        mcscript.call(model_space_executable_command_line,mode=mcscript.CallMode.kSerial) # "model_space_executable_" added by J.H.
         mcscript.call(["cp","model_space.dat","model_space_bra.dat"])
 
     else:
         mcscript.call(["cp",task["model_space_file_bra"], "model_space_bra.dat"])
 
     if task["model_space_file_ket"]==None:
-        mcscript.call(command_line,mode=mcscript.CallMode.kSerial)
+        mcscript.call(model_space_executable_command_line,mode=mcscript.CallMode.kSerial) # "model_space_executable_" added by J.H.
         mcscript.call(["cp","model_space.dat","model_space_ket.dat"])
 
     else:
@@ -178,6 +181,8 @@ def generate_basis_table(task):
         command_line,
         mode=mcscript.CallMode.kSerial
     )
+
+    mcscript.call(["cp","lsu3shell_basis_bra.dat","lsu3shell_basis.dat"]) # added by J.H.
 
 ################################################################
 # relative operator SU(3) RME construction
@@ -239,8 +244,8 @@ def save_su3rme_files(task):
         "model_space_ket.dat",
         "model_space_bra.dat",
         "relative_operators.dat",
-        "lsu3shell_basis.dat",
-        "relative_unit_tensor_labels.dat"
+        "lsu3shell_basis.dat"#, # commented out by J.H.
+#        "relative_unit_tensor_labels.dat" # commented out by J.H.
     ]
     archive_file_list += glob.glob('*.rme')
 
@@ -359,8 +364,9 @@ def do_generate_lsu3shell_generator_rmes(task,save=True):
     """
 
     # retrieve relevant operator files
-    retrieve_generator_operator_files(task)
-    mcscript.call(["ln","-sf","relative_generators.dat","relative_operators.dat"])
+    lsu3.retrieve_generator_operator_files(task) # "lsu3." added by J.H.
+#    mcscript.call(["ln","-sf","relative_generators.dat","relative_operators.dat"]) # commented out by J.H.
+    mcscript.call(["ln","-sf","relative_generator_operators.dat","relative_operators.dat"]) # added by J.H.
     generate_lsu3shell_rmes(task)
 
     if save:
@@ -386,9 +392,10 @@ def do_generate_lsu3shell_unittensor_rmes(task,save=True):
     """
 
     # retrieve relevant operator files
-    retrieve_unit_operator_files(task)
-    split_relative_operator_file(task)
-    mcscript.call(["ln","-sf","relative_unittensors.dat","relative_operators.dat"])
+    lsu3.retrieve_unit_operator_files(task) # "lsu3." added by J.H.
+#    lsu3.split_relative_operator_file(task) # "lsu3." added by J.H., commented out by J.H.
+#    mcscript.call(["ln","-sf","relative_unittensors.dat","relative_operators.dat"]) # commented out by J.H.
+    mcscript.call(["ln","-sf","relative_unit_operators.dat","relative_operators.dat"]) # added by J.H.
     generate_lsu3shell_rmes(task)
     
     if save:
@@ -411,7 +418,7 @@ def do_generate_lsu3shell_rmes(task):
     is defined by task["su3rme_descriptor_template"]
     """
     ## retrieve relevant operator files
-    retrieve_operator_files(task)
+    lsu3.retrieve_operator_files(task) # "lsu3." added by J.H.
     
     ## Compute su3rmes for generators 
     do_generate_lsu3shell_generator_rmes(task,save=False)

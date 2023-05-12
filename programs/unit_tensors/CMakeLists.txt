@@ -23,6 +23,8 @@ add_executable(
 add_executable(
   generate_unit_tensor_statistics generate_unit_tensor_statistics.cpp
 )
+add_executable(generate_one_body_unit_tensor_labels generate_one_body_unit_tensor_labels.cpp) # added by J.H.
+add_executable(generate_two_body_density_labels generate_two_body_density_labels.cpp) # added by J.H.
 
 # ##############################################################################
 # link dependencies
@@ -61,6 +63,8 @@ target_link_libraries(
   generate_unit_tensor_statistics PRIVATE fmt::fmt spncci::lgi
                                           spncci::lsu3shell spncci::u3shell
 )
+target_link_libraries(generate_one_body_unit_tensor_labels PRIVATE spncci::u3shell) # added by J.H.
+target_link_libraries(generate_two_body_density_labels PRIVATE spncci::u3shell) # added by J.H.
 
 # ##############################################################################
 # define installed targets
@@ -74,6 +78,8 @@ install(
           generate_lsu3shell_relative_operators
           generate_lsu3shell_two_body_unit_tensors
           generate_unit_tensor_statistics
+	  generate_one_body_unit_tensor_labels # added by J.H.
+	  generate_two_body_density_labels # added by J.H.
           # explicit
   DESTINATION bin
 )

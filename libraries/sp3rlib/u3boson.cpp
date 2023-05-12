@@ -165,8 +165,8 @@ double U3BosonCreationRME(
   double rme = 0.0;
   if (allowed)
   {
-    rme = ParitySign(u3::ConjugationGrade(omegap) + u3::ConjugationGrade(omega))
-          * u3::U(
+    rme = ParitySign(u3::ConjugationGrade(omegap) + u3::ConjugationGrade(omega)) *
+            u3::U(
               {2u, 0u},
               n.SU3(),
               omegap.SU3(),

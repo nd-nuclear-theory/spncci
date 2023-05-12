@@ -27,7 +27,8 @@ namespace lgi
   std::string LGIFamilyStr(const MultiplicityTagged<lgi::LGI>& lgi_family)
     {
       const auto&[lgi,gamma_max]=lgi_family;
-      return fmt::format("{} {}",lgi,gamma_max);
+//      return fmt::format("{} {}",lgi,gamma_max); // commented out by J.H.
+      return fmt::format("{} {} {} {} {} {} {}",lgi.Nex(),lgi.sigma().SU3().lambda(),lgi.sigma().SU3().mu(),lgi.Sp().TwiceValue(),lgi.Sn().TwiceValue(),lgi.S().TwiceValue(),gamma_max); // added by J.H.
     }
 
   void 
@@ -41,7 +42,7 @@ namespace lgi
       {
         std::tie(Nex,sigma,Sp,Sn,S)=lgi_count.irrep.Key();
         int count=lgi_count.tag;
-        os<<LGIFamilyStr(lgi_count)<<std::endl;
+	os<<LGIFamilyStr(lgi_count)<<std::endl;
       }
   }
 

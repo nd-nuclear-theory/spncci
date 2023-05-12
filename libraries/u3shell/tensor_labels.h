@@ -10,7 +10,7 @@
 
   5/15/16 (mac): Created as tensor.h.
   5/25/16 (mac): Rename to tensor_labels.h.  Extract 
-    non-isospin-scheme labels as separate class
+    non-isospin-scheme labels as separate cRelativeUnitTensorLabelsU3STlass
     (OperatorLabelsU3S, etc.).
   5/27/16 (mac): Restructure operator constuctor definitions.
   9/7/16 (mac): Add OperatorLabelsU3S conversion from OperatorLabelsU3ST.
@@ -883,7 +883,324 @@ namespace u3shell
     return RelativeUnitTensorLabelsU3ST(Conjugate(tensor.operator_labels()),tensor.ket(),tensor.bra());
   }
 
+//********************************** Added by J.H. ***********************************
 
+  class OneBodyUnitTensorLabelsU3S
+    : public OperatorLabelsU3S
+  // U(1)xSU(3)xS one-body unit tensor labels
+  //
+  // Stored labels:
+  //   (OperatorLabelsU3S) : tensor operator labels (N0,x0,S0,g0)
+  //   Nbra, Nket (int) : N for bra and ket
+  //   Tz (int) : 1 for proton, -1 for neutron
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    public:
+
+    inline OneBodyUnitTensorLabelsU3S() 
+    // Default constructor.
+    {}
+
+    inline OneBodyUnitTensorLabelsU3S(
+        const u3::SU3& x0, HalfInt S0,
+        const int& Nbra,
+        const int& Nket,
+	const int& Tz
+      )
+      : Nbra_(Nbra), Nket_(Nket), Tz_(Tz)
+    // Construct from labels, with operator labels set individually.
+    //
+    // Structured
+    // form below requires N0 to be explicitly calculated, instead of
+    // implicitly from bra-ket difference.
+    //
+    // Redundant operator labels are set from the bra/ket labels.
+    {
+      N0_ = Nbra_ - Nket_;
+      x0_= x0;
+      S0_ = S0;
+      g0_ = N0_%2;
+    }
+
+    inline OneBodyUnitTensorLabelsU3S (
+        const u3shell::OperatorLabelsU3S operator_labels,
+        const int& Nbra,
+        const int& Nket,
+	const int& Tz
+      )
+      : OperatorLabelsU3S(operator_labels), Nbra_(Nbra), Nket_(Nket), Tz_(Tz)
+    // Construct from labels, with operator labels set collectively.
+    //
+    // The redundant (additive) operator labels are verified against
+    // the bra/ket labels through assertions, but the triangularity of
+    // couplings is not verified.
+    {
+      assert(N0_ == Nbra_ - Nket_);
+      assert(g0_ == N0_%2);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    // Note: OperatorLabelsU3S accessors N0(), ..., are inherited
+
+    inline const int& Nbra() const
+    {
+      return Nbra_;
+    }
+
+    inline const int& Nket() const
+    {
+      return Nket_;
+    }
+
+    inline const int& Tz() const
+    {
+      return Tz_;
+    }
+
+    inline const OperatorLabelsU3S operator_labels() const
+      {
+        return OperatorLabelsU3S(N0_,x0_,S0_,g0_);
+      }
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<OperatorLabelsU3S::KeyType,int,int,int> KeyType;
+    // operator, Nbra, Nket, Tz
+
+    inline KeyType Key() const
+    {
+      return KeyType(OperatorLabelsU3S::Key(),Nbra_,Nket_,Tz_);
+    }
+
+    typedef std::tuple<u3::SU3,HalfInt,int,int,int> FlatKeyType;
+    inline FlatKeyType FlatKey() const
+    {
+      return FlatKeyType(x0_,S0_,Nbra_,Nket_,Tz_);
+    }
+
+    inline friend bool operator == (const OneBodyUnitTensorLabelsU3S& x1, const OneBodyUnitTensorLabelsU3S& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+    
+    inline friend bool operator < (const OneBodyUnitTensorLabelsU3S& x1, const OneBodyUnitTensorLabelsU3S& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    inline friend std::size_t hash_value(const OneBodyUnitTensorLabelsU3S& v)
+    {
+      boost::hash<OneBodyUnitTensorLabelsU3S::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    //std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    private:
+    int Nbra_, Nket_, Tz_;
+  };
+
+  class TwoBodyDensityLabels
+    : public OperatorLabelsU3S
+  // U(1)xSU(3)xS two-body density labels
+  //
+  // Stored labels:
+  //   (OperatorLabelsU3S) : tensor operator labels (N0,x0,S0,g0)
+  //   N1, N2, N3, N4 (int) : numbers of HO quanta carried by creation and anihilation operators
+  //   xf, xi (u3::SU3) : SU(3) labels of intermediate cuplings
+  //   Sf, Si (int) : spins of intermediate couplings
+  //   rho0 (int) : outer multiplicity label for coupling xf x xi -> x0
+  //   Tz (int) : 1 for proton, -1 for neutron
+  {
+
+    ////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////
+
+    public:
+
+    inline TwoBodyDensityLabels() 
+    // Default constructor.
+    {}
+
+    inline TwoBodyDensityLabels(
+        const u3::SU3& x0, HalfInt S0,
+        const int& N1,
+        const int& N2,
+	const int& N3,
+	const int& N4,
+	const u3::SU3& xf,
+	const int& Sf,
+	const u3::SU3& xi,
+	const int& Si,
+	const int& rho0,
+	const int& Tz
+      )
+      : N1_(N1), N2_(N2), N3_(N3), N4_(N4), xf_(xf), Sf_(Sf), xi_(xi), Si_(Si), rho0_(rho0), Tz_(Tz)
+    // Construct from labels, with operator labels set individually.
+    //
+    // Structured
+    // form below requires N0 to be explicitly calculated, instead of
+    // implicitly from bra-ket difference.
+    //
+    // Redundant operator labels are set from the bra/ket labels.
+    {
+      N0_ = N1_ + N2_ - N3_ - N4_;
+      x0_= x0;
+      S0_ = S0;
+      g0_ = N0_%2;
+    }
+
+    inline TwoBodyDensityLabels (
+        const u3shell::OperatorLabelsU3S operator_labels,
+        const int& N1,
+        const int& N2,
+        const int& N3,
+        const int& N4,
+        const u3::SU3& xf,
+        const int& Sf,
+        const u3::SU3& xi,
+        const int& Si,
+	const int& rho0,
+        const int& Tz
+      )
+      : OperatorLabelsU3S(operator_labels), N1_(N1), N2_(N2), N3_(N3), N4_(N4), xf_(xf), Sf_(Sf), xi_(xi), Si_(Si), rho0_(rho0), Tz_(Tz)
+    // Construct from labels, with operator labels set collectively.
+    //
+    // The redundant (additive) operator labels are verified against
+    // the bra/ket labels through assertions, but the triangularity of
+    // couplings is not verified.
+    {
+      assert(N0_ == N1_ + N2_ - N3_ - N4_);
+      assert(g0_ == N0_%2);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    // accessors
+    ////////////////////////////////////////////////////////////////
+
+    // Note: OperatorLabelsU3S accessors N0(), ..., are inherited
+
+    inline const int& N1() const
+    {
+      return N1_;
+    }
+
+    inline const int& N2() const
+    {
+      return N2_;
+    }
+
+    inline const int& N3() const
+    {
+      return N3_;
+    }
+
+    inline const int& N4() const
+    {
+      return N4_;
+    }
+
+    inline const u3::SU3& xf() const
+    {
+      return xf_;
+    }
+
+    inline const int& Sf() const
+    {
+      return Sf_;
+    }
+
+    inline const u3::SU3& xi() const
+    {
+      return xi_;
+    }
+
+    inline const int& Si() const
+    {
+      return Si_;
+    }
+
+    inline const int& rho0() const
+    {
+      return rho0_;
+    }
+
+    inline const int& Tz() const
+    {
+      return Tz_;
+    }
+
+    inline const OperatorLabelsU3S operator_labels() const
+      {
+        return OperatorLabelsU3S(N0_,x0_,S0_,g0_);
+      }
+    ////////////////////////////////////////////////////////////////
+    // key tuple, comparisons, and hashing
+    ////////////////////////////////////////////////////////////////
+
+    typedef std::tuple<OperatorLabelsU3S::KeyType,int,int,int,int,u3::SU3::KeyType,int,u3::SU3::KeyType,int,int,int> KeyType;
+    // operator, N1, N2, N3, N4, xf, Sf, xi, Si, rho0, Tz
+
+    inline KeyType Key() const
+    {
+      return KeyType(OperatorLabelsU3S::Key(),N1_,N2_,N3_,N4_,xf().Key(),Sf_,xi().Key(),Si_,rho0_,Tz_);
+    }
+
+    typedef std::tuple<u3::SU3,HalfInt,int,int,int,int,u3::SU3,int,u3::SU3,int,int,int> FlatKeyType;
+    inline FlatKeyType FlatKey() const
+    {
+      return FlatKeyType(x0_,S0_,N1_,N2_,N3_,N4_,xf_,Sf_,xi_,Si_,rho0_,Tz_);
+    }
+
+    inline friend bool operator == (const TwoBodyDensityLabels& x1, const TwoBodyDensityLabels& x2)
+    {
+      return x1.Key() == x2.Key();
+    }
+    
+    inline friend bool operator < (const TwoBodyDensityLabels& x1, const TwoBodyDensityLabels& x2)
+    {
+      return x1.Key() < x2.Key();
+    }
+
+    inline friend std::size_t hash_value(const TwoBodyDensityLabels& v)
+    {
+      boost::hash<TwoBodyDensityLabels::KeyType> hasher;
+      return hasher(v.Key());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // string conversion
+    ////////////////////////////////////////////////////////////////
+    
+    //std::string Str() const;
+
+    ////////////////////////////////////////////////////////////////
+    // labels
+    ////////////////////////////////////////////////////////////////
+
+    private:
+    int N1_, N2_, N3_, N4_, Sf_, Si_, rho0_, Tz_;
+    u3::SU3 xf_, xi_;
+  };
+
+//************************************************************************************
 
 
   class RelativeCMUnitTensorLabelsU3ST

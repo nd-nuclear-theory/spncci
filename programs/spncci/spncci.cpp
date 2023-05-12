@@ -123,6 +123,7 @@ branching2 currently used for branching.
 #include "spncci/hyperblocks_u3s.h"
 #include "spncci/variance.h"
 #include "spncci/parameters.h"
+#include "wigxjpf.h"
 ////////////////////////////////////////////////////////////////
 // WIP code
 //
@@ -332,6 +333,65 @@ int main(int argc, char **argv)
   // std::cout<<"unit tensor space "<<unit_tensor_space.size()<<std::endl;
   // std::cout<<unit_tensor_space.Str()<<std::endl;
 
+//************************************ Added by J.H. *********************************
+  int N1vp, N1vn, N0;
+  int A=run_parameters.nuclide[0]+run_parameters.nuclide[1];
+  if(run_parameters.nuclide[0]<=2)
+    {
+      N1vp=0;
+      N0=0;
+    }
+  else if(run_parameters.nuclide[0]<=8)
+    {
+      N1vp=1;
+      N0=run_parameters.nuclide[0]-2;
+    }
+  else if(run_parameters.nuclide[0]<=20)
+    {
+      N1vp=2;
+      N0=2*(run_parameters.nuclide[0]-8)+6;
+    }
+  if(run_parameters.nuclide[1]<=2)
+    {
+      N1vn=0;
+    }
+  else if(run_parameters.nuclide[1]<=8)
+    {
+      N1vn=1;
+      N0+=run_parameters.nuclide[1]-2;
+    }
+  else if(run_parameters.nuclide[1]<=20)
+    {
+      N1vn=2;
+      N0+=2*(run_parameters.nuclide[1]-8)+6;
+    }
+  int NmNex=2*N0+3*(A-1);
+
+  // get full set of possible one-body unit tensor labels
+  std::vector<u3shell::OneBodyUnitTensorLabelsU3S> one_body_unit_tensor_labels;
+  // u3shell::OneBodyUnitTensorLabelsU3S contains N0,x0,S0,g0,Nbra,Nket,Tz
+  u3shell::GenerateOneBodyUnitTensorLabelsU3S(
+      run_parameters.Nmax, N1vp, N1vn,
+      one_body_unit_tensor_labels
+    );
+
+  // generate one-body unit tensor subspaces
+  u3shell::OneBodyUnitTensorSpaceU3S
+    one_body_unit_tensor_space(run_parameters.Nmax,N1vp,N1vn,one_body_unit_tensor_labels);
+
+  // get full set of possible two-body density labels
+  std::vector<u3shell::TwoBodyDensityLabels> two_body_density_labels;
+  // u3shell::TwoBodyDensityLabels contains N0,x0,S0,g0,N1,N2,N3,N4,xf,Sf,xi,Si,rho0,Tz
+  u3shell::GenerateTwoBodyDensityLabels(
+      run_parameters.Nmax, N1vp, N1vn,
+      two_body_density_labels
+    );
+
+  // generate two-body density subspaces
+  u3shell::TwoBodyDensitySpace
+    two_body_density_space(run_parameters.Nmax,N1vp,N1vn,two_body_density_labels);
+//************************************************************************************
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //  Read in observables
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -377,6 +437,18 @@ int main(int argc, char **argv)
       restrict_positive_N0
     );
 
+//************************************** Added by J.H. *************************************
+  std::vector<u3shell::OneBodyUnitTensorLabelsU3S> lgi_one_body_unit_tensor_labels;
+  u3shell::GenerateOneBodyUnitTensorLabelsU3S(
+      run_parameters.Nsigmamax, N1vp, N1vn, lgi_one_body_unit_tensor_labels
+    );
+
+  std::vector<u3shell::TwoBodyDensityLabels> lgi_two_body_density_labels;
+  u3shell::GenerateTwoBodyDensityLabels(
+      run_parameters.Nsigmamax, N1vp, N1vn, lgi_two_body_density_labels
+    );
+//******************************************************************************************
+
   //Get look-up table for lgi index in full space.  Used for looking up seed filenames
   // which are index by full space index
   std::cout<<"reading lgi table "<<std::endl;
@@ -389,6 +461,13 @@ int main(int argc, char **argv)
   //
   std::vector<spncci::LGIPair> lgi_pairs;
   spncci::GetLGIPairsForRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs);
+
+//*************************************** Added by J.H. *************************************
+  std::vector<spncci::LGIPair> lgi_pairs_ob, lgi_pairs_tb;
+  spncci::GetLGIPairsForOneBodyRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs_ob);
+  spncci::GetLGIPairsForTwoBodyRecurrence(lgi_full_space_index_lookup,spncci_space,run_parameters.Nmax,lgi_pairs_tb);
+//*******************************************************************************************
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // If transforming LGI basis
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -469,7 +548,164 @@ int main(int argc, char **argv)
       phi_coef_cache.clear();
 
     } //end parallel region
-     
+
+//****************************************** Added by J.H. ***************************************
+  // Recurrence for RMEs of one-body unit tensors
+  u3::UCoefCache u_coef_cache;
+  u3::PhiCoefCache phi_coef_cache;
+
+  std::map<std::array<int,28>,double> proton_OBDRME_by_labels, neutron_OBDRME_by_labels;
+  // Labels are gamma', Nex_sigma', lm_sigma', mu_sigma', SSp', SSn', SS', upsilon', Nex_omega', lm_omega', mu_omega',
+  // gamma, Nex_sigma, lm_sigma, mu_sigma, SSp, SSn, SS, upsilon, Nex_omega, lm_omega, mu_omega,
+  // N', N, lm0, mu0, SS0, rho0
+  for(int i=0; i<lgi_pairs_ob.size(); ++i){
+    const spncci::LGIPair& lgi_pair=lgi_pairs_ob[i];
+
+    basis::OperatorHyperblocks<double> unit_tensor_hyperblocks,unit_tensor_hyperblocks2;
+    spncci::BabySpNCCIOneBodyUnitTensorHypersectors baby_spncci_hypersectors,baby_spncci_hypersectors2;
+
+    spncci::ComputeOneBodyUnitTensorRMEs(
+              run_parameters,N1vp,N1vn,lgi_families,lgi_full_space_index_lookup,
+              spncci_space,baby_spncci_space,
+	      one_body_unit_tensor_space,
+	      k_matrix_cache,kinv_matrix_cache,
+              lgi_transformations,
+	      u_coef_cache,phi_coef_cache,lgi_pair,
+	      unit_tensor_hyperblocks,baby_spncci_hypersectors,
+	      unit_tensor_hyperblocks2,baby_spncci_hypersectors2
+            );
+      
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+    
+    for(std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index){
+      auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
+      int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
+      std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
+      const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+      const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+      const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+      int dim=baby_spncci_subspace_ket.dimension();
+      int gamma_max=baby_spncci_subspace_ket.gamma_max();
+      int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+      int dimp=baby_spncci_subspace_bra.dimension();
+      int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+      int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+      u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+      u3::SU3 x0;
+      HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+      int etap,eta;
+      std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+      std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+      std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+      int Nex_sigmap=(sigmap.N().TwiceValue()-NmNex)/2;
+      int Nex_omegap=(omegap.N().TwiceValue()-NmNex)/2;
+      int Nex_sigma=(sigma.N().TwiceValue()-NmNex)/2;
+      int Nex_omega=(omega.N().TwiceValue()-NmNex)/2;
+      double factor=sqrt(double((S0.TwiceValue()+1)*u3::dim(x0))/double(2*u3::dim(u3::SU3(etap,0))));
+      for(int operator_index=0; operator_index<unit_tensor_hyperblocks[hypersector_index].size(); operator_index++){
+        for(int i=0; i<gamma_maxp; ++i)
+          for(int j=0; j<gamma_max; ++j){
+            int it=i*upsilon_maxp;
+            int jt=j*upsilon_max;
+            for(int up=0; up<upsilon_maxp; up++)
+              for(int u=0; u<upsilon_max; u++){
+                std::array<int,28> key={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
+	          S_bra.TwiceValue(),up+1,Nex_omegap,omegap.SU3().lambda(),omegap.SU3().mu(),
+                  j+1,Nex_sigma,sigma.SU3().lambda(),sigma.SU3().mu(),Sp_ket.TwiceValue(),Sn_ket.TwiceValue(),S_ket.TwiceValue(),
+                  u+1,Nex_omega,omega.SU3().lambda(),omega.SU3().mu(),
+                  etap,eta,x0.lambda(),x0.mu(),S0.TwiceValue(),rho0};
+                if(operator_index==0){
+                  proton_OBDRME_by_labels[key]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)*factor;
+	        }else{
+	          neutron_OBDRME_by_labels[key]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)*factor;
+		}
+              }
+          }
+      }
+    }   
+
+    if(irrep_family_index_ket!=irrep_family_index_bra){
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors2.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors2.GetHypersector(hypersector_index).Key();
+        int unit_tensor_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho0;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,unit_tensor_subspace_index,rho0)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int etap,eta;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,etap,eta)=unit_tensor_subspace.labels();
+	int Nex_sigmap=(sigmap.N().TwiceValue()-NmNex)/2;
+	int Nex_omegap=(omegap.N().TwiceValue()-NmNex)/2;
+	int Nex_sigma=(sigma.N().TwiceValue()-NmNex)/2;
+	int Nex_omega=(omega.N().TwiceValue()-NmNex)/2;
+        for(int operator_index=0; operator_index<unit_tensor_hyperblocks2[hypersector_index].size(); operator_index++){
+          for(int i=0; i<gamma_maxp; ++i)
+            for(int j=0; j<gamma_max; ++j){
+              int it=i*upsilon_maxp;
+              int jt=j*upsilon_max;
+              for(int up=0; up<upsilon_maxp; up++)
+                for(int u=0; u<upsilon_max; u++){
+	          std::array<int,28> key={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
+	            S_bra.TwiceValue(),up+1,Nex_omegap,omegap.SU3().lambda(),omegap.SU3().mu(),
+                    j+1,Nex_sigma,sigma.SU3().lambda(),sigma.SU3().mu(),Sp_ket.TwiceValue(),Sn_ket.TwiceValue(),S_ket.TwiceValue(),
+                    u+1,Nex_omega,omega.SU3().lambda(),omega.SU3().mu(),
+                    etap,eta,x0.lambda(),x0.mu(),S0.TwiceValue(),rho0};
+                  if(operator_index==0){
+                    proton_OBDRME_by_labels[key]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+                  }else{
+		    neutron_OBDRME_by_labels[key]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+		  }
+                }
+            }
+        }
+      }
+    }
+  }
+
+  for(int i=0; i<lgi_pairs_tb.size(); ++i){
+    const spncci::LGIPair& lgi_pair=lgi_pairs_tb[i];
+
+    spncci::ComputeTwoBodyDensityRMEs(
+              run_parameters,N1vp,N1vn,lgi_families,lgi_full_space_index_lookup,
+              spncci_space,baby_spncci_space,
+              two_body_density_space,
+              k_matrix_cache,kinv_matrix_cache,
+              lgi_transformations,
+              u_coef_cache,phi_coef_cache,lgi_pair
+            );
+  }
+
+  u_coef_cache.clear();
+  phi_coef_cache.clear();
+/*
+  double wcoef=u3::W(u3::SU3(4,3),1,2,u3::SU3(2,0),1,2,u3::SU3(5,2),1,2,1);
+  std::cout<<"Wigner coef: "<<wcoef<<std::endl;
+  double ninej=wig9jj(1,2,3,
+		      4,6,8,
+		      3,6,9);
+  std::cout<<"9j coef: "<<ninej<<std::endl;
+*/
+  int JJ_bra=2;
+  int index_bra=0;
+  int JJ_ket=2;
+  int index_ket=0;
+
+  std::map<std::array<int,13>,double> amplitude_by_labels_bra, amplitude_by_labels_ket;
+  // Labels are gamma, Nex_sigma, lm_sigma, mu_sigma, SSp, SSn, SS, upsilon, Nex_omega, lm_omega, mu_omega, kappa, L
+//************************************************************************************************
+
   timing_output.close();
   timer_recurrence.Stop();
   std::cout<<"Recurrence: "<<timer_recurrence.ElapsedTime()<<std::endl;
@@ -598,6 +834,34 @@ int main(int argc, char **argv)
             timer_eigensolver.Stop();
             std::cout<<fmt::format("   time: {}",timer_eigensolver.ElapsedTime())<<std::endl;
 
+//****************************************** Added by J.H. ***************************************
+if(J.TwiceValue()==JJ_bra || J.TwiceValue()==JJ_ket){
+  int i=-1;
+  for (int subspace_index=0; subspace_index<spbasis_bra.size(); ++subspace_index){
+    int gamma_max = spbasis_bra.GetSubspace(subspace_index).gamma_max();
+    for (int state_index=0; state_index<spbasis_bra.GetSubspace(subspace_index).size(); ++state_index){
+      const spncci::StateSpBasis state(spbasis_bra.GetSubspace(subspace_index),state_index);
+      int kappa_max = u3::BranchingMultiplicitySO3(state.omega().SU3(),state.L());
+      int upsilon_max = state.degeneracy()/(kappa_max*gamma_max); // state.degeneracy()=kappa_max*gamma_max*upsilon_max
+      int Nex_sigma = (state.sigmaSPN().N().TwiceValue()-NmNex)/2; // N=N_ex+N_0+3*(A-1)/2
+      int Nex_omega = (state.omega().N().TwiceValue()-NmNex)/2;
+      for (int kappa=1; kappa<=kappa_max; ++kappa){
+        for (int gamma=1; gamma<=gamma_max; ++gamma){
+          for (int upsilon=1; upsilon<=upsilon_max; ++upsilon){
+            ++i;
+	    std::array<int,13> key={gamma,Nex_sigma,state.sigmaSPN().SU3().lambda(),state.sigmaSPN().SU3().mu(),
+	      state.sigmaSPN().Sp().TwiceValue(),state.sigmaSPN().Sn().TwiceValue(),state.sigmaSPN().S().TwiceValue(),
+	      upsilon,Nex_omega,state.omega().SU3().lambda(),state.omega().SU3().mu(),kappa,state.L()};
+            if(J.TwiceValue()==JJ_bra)amplitude_by_labels_bra[key]=eigenvectors_J(i,index_bra);
+	    if(J.TwiceValue()==JJ_ket)amplitude_by_labels_ket[key]=eigenvectors_J(i,index_ket);
+	  }
+        }
+      }
+    }
+  }
+}
+//************************************************************************************************
+
             //Testing
             //Eigen matrix cast to float is not a good idea
             int binary_float_precision=8;
@@ -714,6 +978,60 @@ int main(int argc, char **argv)
       }//End observable section 
     // std::cout<<"hi"<<std::endl;
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//******************************************** Added by J.H. *******************************************
+int Np=0;
+int lp=0;
+int jjp=1;
+int N=0;
+int l=0;
+int jj=1;
+int JJ0=0;
+int Tz=1;
+
+double OBDME=0.0;
+for(auto x0 : u3::KroneckerProduct(u3::SU3(Np,0),u3::SU3(0,N))){
+  for(auto L0 : u3::BranchingSO3(x0.irrep)){
+    for(int kappa0=1; kappa0<=L0.tag; kappa0++){
+      double sum_S0=0.0;
+      for(int SS0=0; SS0<=2; SS0+=2){
+        double sum_basis=0.0;
+        for(std::map<std::array<int,13>,double>::iterator
+            itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
+          for(std::map<std::array<int,13>,double>::iterator
+              itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
+            double sum_rho=0.0;
+	    for(int rho=1; rho<=u3::OuterMultiplicity(u3::SU3(itket->first[9],itket->first[10]),x0.irrep,
+				    u3::SU3(itbra->first[9],itbra->first[10])); rho++){
+              std::array<int,28> key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+		                      itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+                                      itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+				      itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+                                      Np,N,x0.irrep.lambda(),x0.irrep.mu(),SS0,rho};
+	      double OBDRME;
+	      if(Tz==1){
+                OBDRME=proton_OBDRME_by_labels[key];
+	      }else{
+                OBDRME=neutron_OBDRME_by_labels[key];
+	      }
+	      sum_rho+=u3::W(u3::SU3(itket->first[9],itket->first[10]),itket->first[11],itket->first[12],x0.irrep,kappa0,L0.irrep,
+			     u3::SU3(itbra->first[9],itbra->first[10]),itbra->first[11],itbra->first[12],rho)*OBDRME;
+	    }
+	    sum_basis+=itbra->second*itket->second*sqrt(double((JJ_ket+1)*(JJ0+1)*(2*itbra->first[12]+1)*(itbra->first[6]+1)))
+	               *wig9jj(2*itket->first[12],itket->first[6],JJ_ket,2*L0.irrep,SS0,JJ0,2*itbra->first[12],itbra->first[6],JJ_bra)
+		       *sum_rho;
+          }
+        }
+	sum_S0+=sqrt(double(SS0+1))*wig9jj(2*lp,2*l,2*L0.irrep,1,1,SS0,jjp,jj,JJ0)*sum_basis;
+      }
+      OBDME+=sqrt(double(2*L0.irrep+1))*u3::W(u3::SU3(Np,0),1,lp,u3::SU3(0,N),1,l,x0.irrep,kappa0,L0.irrep,1)*sum_S0;
+    }
+  }
+}
+OBDME*=sqrt(double((jjp+1)*(jj+1)));
+std::cout<<"OBDME: "<<OBDME<<std::endl;
+//******************************************************************************************************
+
   }
 
 // timing stop

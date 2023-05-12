@@ -653,7 +653,7 @@ def save_spncci_results(task):
     raw_res_filename = "spncci.res"
     new_res_filename = os.path.join(
         mcscript.task.results_dir,
-        "{name}-{descriptor}.res".format(name=mcscript.parameters.run.name,**task)
+        "{name}-{metadata[descriptor]}.res".format(name=mcscript.parameters.run.name,**task)
     )
     mcscript.call(
         [

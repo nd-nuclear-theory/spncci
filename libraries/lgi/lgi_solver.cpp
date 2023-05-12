@@ -318,7 +318,7 @@ void WriteLGIExpansions(const std::string& filename, const lsu3shell::OperatorBl
             mcutils::WriteBinary<double>(expansion_file,rme);
         }
   }
-  
+
 void WriteLGIExpansionsText(const std::string& filename, const lsu3shell::OperatorBlock& lgi_expansion)
   {
 

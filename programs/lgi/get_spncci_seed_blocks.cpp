@@ -13,7 +13,7 @@ Output: All files are written to directory "seeds"
   
     i  twice_Nsigma lambda_sigma mu_sigma twice_Sp twice_Sn twice_S
 
-For each pair of lgi families (i,j) with i>=j, there are two
+For each pair of lgi families (i,j) with i>=j, there are 6
 files in directory seeds containing:
   1. "seeds/seeds_00000i_00000j.rmes": All non-zero unit tensor seed blocks
       
@@ -24,6 +24,26 @@ files in directory seeds containing:
       to each seed block
       
       lambda0, mu0, 2S0, 2T0, etap, 2Sp, 2Tp, eta, 2S, 2T, rho0
+
+  3. "seeds/obseeds_00000i_00000j.rmes": All non-zero one-body unit tensor seed blocks
+      
+      binary_format_code (1) and binary precision (4 or 8)
+      num_rows, num_cols, rmes...
+
+  4. "seeds/oboperators_00000i_00000j.dat": one-body unit tensor labels corresponding
+      to each seed block
+      
+      lambda0, mu0, 2S0, etap, eta, Tz, rho
+
+  5. "seeds/tbseeds_00000i_00000j.rmes": All non-zero two-body density seed blocks
+
+      binary_format_code (1) and binary precision (4 or 8)
+      num_rows, num_cols, rmes...
+
+  4. "seeds/tboperators_00000i_00000j.dat": two-body density labels corresponding
+      to each seed block
+
+      N1, N2, N3, N4, lmf, muf, SSf, lmi, mui, SSi, rho0, lm0, mu0, SS0, Tz, rho
     
 "seeds/lgi_expansions.dat": File containing expansion of lgis in lsu3shell basis.
     For each lsu3shell subspace, 
@@ -168,6 +188,72 @@ int main(int argc, char **argv)
 
   // std::cout<<"write seeds to file"<<std::endl;
   lgi::WriteSeedsToFile(lgi_grouped_seed_labels,unit_tensor_spncci_matrices_array);
+
+//************************************************ Added by J.H. ********************************************
+  int N1vp, N1vn;
+  if(Z<=2)
+    {
+      N1vp=0;
+    }
+  else if(Z<=8)
+    {
+      N1vp=1;
+    }
+  else if(Z<=20)
+    {
+      N1vp=2;
+    }
+  if(N<=2)
+    {
+      N1vn=0;
+    }
+  else if(N<=8)
+    {
+      N1vn=1;
+    }
+  else if(N<=20)
+    {
+      N1vn=2;
+    }
+
+  std::string one_body_unit_tensor_filename_template = su3rme_filename_base + "/a+{}ta{}_{}_{}_{}_{}.rme";
+
+  std::vector<u3shell::OneBodyUnitTensorLabelsU3S> lgi_one_body_unit_tensor_labels;
+  u3shell::GenerateOneBodyUnitTensorLabelsU3S(
+      Nmax,N1vp,N1vn,lgi_one_body_unit_tensor_labels
+    );
+
+  lgi::LGIGroupedOneBodySeedLabels lgi_grouped_one_body_seed_labels;
+  std::vector<basis::OperatorBlocks<double>> one_body_unit_tensor_spncci_matrices_array;
+  lgi::ComputeOneBodyUnitTensorSeedBlocks(
+      lgi_one_body_unit_tensor_labels,one_body_unit_tensor_filename_template,
+      lsu3shell_space, lsu3shell_basis_table,lgi_expansions,
+      lgi_grouped_one_body_seed_labels,one_body_unit_tensor_spncci_matrices_array,
+      lsu3hsell_index_lookup_table,false
+    );
+
+  lgi::WriteOneBodySeedsToFile(lgi_grouped_one_body_seed_labels,one_body_unit_tensor_spncci_matrices_array);
+
+  std::string two_body_density_filename_template = su3rme_filename_base + "/{}_{}_{}_{}--{}_{}_{}--{}_{}_{}--{}_{}_{}_{}_{}.rme";
+
+  std::vector<u3shell::TwoBodyDensityLabels> lgi_two_body_density_labels;
+  u3shell::GenerateTwoBodyDensityLabels(
+      Nmax,N1vp,N1vn,lgi_two_body_density_labels
+    );
+
+  lgi::LGIGroupedTwoBodySeedLabels lgi_grouped_two_body_seed_labels;
+
+  std::vector<basis::OperatorBlocks<double>> two_body_density_spncci_matrices_array;
+  lgi::ComputeTwoBodyDensitySeedBlocks(
+      lgi_two_body_density_labels,two_body_density_filename_template,
+      lsu3shell_space, lsu3shell_basis_table,lgi_expansions,
+      lgi_grouped_two_body_seed_labels,two_body_density_spncci_matrices_array,
+      lsu3hsell_index_lookup_table,false
+    );
+
+  lgi::WriteTwoBodySeedsToFile(lgi_grouped_two_body_seed_labels,two_body_density_spncci_matrices_array);
+//***********************************************************************************************************
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Test code
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////

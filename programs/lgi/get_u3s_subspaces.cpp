@@ -36,6 +36,9 @@
 #include "utilities/nuclide.h"
 #include "u3ncsm/dimensions.h"
 
+#include "LSU3/ncsmSU3xSU2Basis.h" // added by J.H.
+#include "SU3ME/proton_neutron_ncsmSU3Basis.h" // added by J.H.
+
 namespace lsu3shell
 {
 
@@ -109,9 +112,11 @@ int main(int argc, char **argv)
 
   HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide);
 
-  auto u3s_subspace_labels_set
-    = lsu3shell::lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
+//  auto u3s_subspace_labels_set // commented out by J.H.
+//    = lsu3shell::lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax); // commented out by J.H.
 
+  auto u3s_subspace_labels_set // added by J.H.
+    = lsu3shell::LSU3ShellBasisDimensions(nuclide,Nsigma0,Nmax); // added by J.H.
 
   lsu3shell::WriteU3SLabels(Nsigma0,u3s_filename,u3s_subspace_labels_set);
   

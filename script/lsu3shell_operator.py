@@ -49,13 +49,13 @@ import os
 # environment configuration variables
 project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
 operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
-operator_subdirectory_list = []
+operator_subdirectory_list = ["rununittensor01"]
 su3rme_directory_list = os.environ["SPNCCI_SU3RME_DIR"].split(":")
 su3rme_subdirectory_list = []
 
 # executable files
 # ... from lsu3shell
-recoupler_executable_dir = os.path.join(os.environ["MCSCRIPT_INSTALL_HOME"],os.environ["CRAY_CPU_TARGET"], "su3shell/bin")
+recoupler_executable_dir = os.path.join(os.environ["MCSCRIPT_INSTALL_HOME"],os.environ["CRAY_CPU_TARGET"], "lsu3shell/bin")
 recoupler_executable = os.path.join(recoupler_executable_dir,"RecoupleSU3Operator")
 # recoupler_executable = os.path.join(project_root,"lsu3shell","programs","upstreams","RecoupleSU3Operator")
 

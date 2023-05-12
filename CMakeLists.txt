@@ -18,7 +18,7 @@ endif()
 # configurable options
 option(SPNCCI_U_COEFF_CACHE "Enable precalculation and caching of U coefficients" ON)
 option(SPNCCI_HASH_UNIT_TENSOR "Use hash tables for unit tensor sectors" OFF)
-option(BUILD_LSU3SHELL "Directly link to lsu3shell for seed calculation" OFF)
+option(BUILD_LSU3SHELL "Directly link to lsu3shell for seed calculation" ON)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
