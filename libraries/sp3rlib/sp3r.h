@@ -63,50 +63,56 @@ bool ModifySp3RBranching(const u3::U3& sigma);
 // Returns true if Sp(3,R)->U(3) branching obtained by coupling
 // Sp(3,R) raising polynomials onto sigma must be modified.
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Class for carrier space of Sp(3,R)>U(3)>SO(3) irrep
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// sp3r::Sp3RSpace()
-//  ->sp3r::U3Subspace()
-//    ->sp3r::SO3State()
+// sp3r::Sp3RSpace() [sigma]
+//  ->sp3r::U3Subspace() [omega] (upsilon_max)
+//    ->sp3r::SO3State() [L] (kappa_max)
+//
+//  Within an sp3r::Sp3RSpace, the subspaces are ordered by:
+//    -- "canonically" increasing omega
+//       which is defined for us as lexicographical by N(lambda,mu)
+//
+//  Within an sp3r::U3Subspace, SO3State(), labeled by L (unsigned int)
+//    with degeneracy kappa_max are stored by "canonically" increasing L.
+//    States and multiplicities are constructed and stored only if
+//    branch_to_so3 = true (default).
 //
 //  sp3r::U3Subspace also contains:
-//    + K and Kinv matrices for basis orthogonalization.  Only stored if
-//      constructor flag subspace_labels_only = false.
-//      Elements of K_matrix are (sigma upsilon omega||K||sigma n rho omega) and
-//      elements of Kinv_matrix are (sigma n rho omega||Kinv||sigma upsilon omega).
+//    + K and Kinv matrices for basis orthogonalization.
+//       - Stored if constructor flag subspace_labels_only = false (default).
+//       - Elements of K_matrix are (sigma upsilon omega||K||sigma n rho omega) and
+//          elements of Kinv_matrix are (sigma n rho omega||Kinv||sigma upsilon omega).
 //
 //    + shared pointer to u3boson::U3Subspace containing u3boson subspaces
-//      which corresponds to the non-orthogonal Sp(3,R) basis
+//      which corresponds to the non-orthogonal Sp(3,R) basis.
 //      Within u3boson subspace, "states" are raising polynomial labels n
 //      with degeneracy rho_max.
+//      -> u3boson::U3Subspace [omega]
+//         -> u3boson::U3State [n] (rho_max)
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// space labels: sigma (u3::U3)
-// space truncation: Nn,max (integer)
+// Sp3RSpace:
 //
-// subspace labels: omega (u3::U3)
-// subspace degeneracy: upsilon_max
+//  Constructor arguments:
+//    sigma (u3::U3): irrep label
+//    Nn_max (unsigned int) : Truncates space to Nn_max>=Nomega-Nsigma
+//    subspace_labels_only (bool, default false) : Flag controlling if only subspace labels
+//      should be stored.
+//        - If True: Only U3Subspace labels omega and multiplicities (upsilon_max) are
+//            generated and stored
+//        - If False: Full U3Subspace constructed and stored including
+//            + K_matrix and Kinv_matrix
+//            + u3boson::U3Subspace constructed and shared point to subspace stored.
+//            + States (sp3r::SO3State) <- if branch_to_so3 true
+//   branch_to_so3 (bool, default true): Flag controlling is sp3r::U3Subspace()
+//      constructs and stores states.
 //
-// state labels: L (unsigned int)
-// state degeneracy: kappa_max
-//
-// state labels within subspace: L (unsigned int) with degeneracy kappa_max
-//    state labels and multiplicities only stored if space constructor flag
-//    subspace_labels_only = false.
-//
-// Within a space, the subspaces are ordered by:
-//   -- "canonically" increasing omega
-//      which is defined for us as lexicographical by N(lambda,mu)
-//
-// Within a subspace, the states are ordered by:
-//   -- "canonically" increasing L
 
 class U3Subspace;
 class Sp3RSpace;
 class SO3State;
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 class U3Subspace
     : public basis::
@@ -116,12 +122,37 @@ class U3Subspace
   U3Subspace() = default;
   // constructor
 
-  inline U3Subspace(const u3::U3& omega, unsigned int upsilon_max)
-      : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
-  {}
+  inline void GenerateSO3States(
+    const u3::U3& omega,
+    const std::pair<unsigned int,unsigned int>& L_min_max
+  )
+  {
+    const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
+    const auto& [Lmin,Lmax] = L_min_max;
+    for (const auto& [L, kappa_max] : L_kappa_vector)
+    {
+      if(L >= Lmin && L<= Lmax)
+        PushStateLabels(L, kappa_max);
+    }
+  }
+
+  inline U3Subspace(
+    const u3::U3& omega,
+    unsigned int upsilon_max,
+    const bool branch_to_so3,
+    const std::pair<unsigned int,unsigned int>& L_min_max={0,so3::kNone} //Currently not implemented
+  )
+    : BaseDegenerateSubspace{omega}, upsilon_max_{upsilon_max}
+  {
+    if (branch_to_so3)
+    {
+
+      GenerateSO3States(omega,L_min_max);
+    }
+  }
   /// This is a lightweight constructor which only stores the subspace
-  /// labels without populating the subspace with states and storing the
-  /// Kmatrices and raising polynomial quantum numbers.
+  /// labels without storing the Kmatrices and corresponding u3boson subspace.
+  /// If branch_to_so3 = false, only the subspace labels are stored.
 
   /// Full subspace constructor
   template<typename K1, typename K2>
@@ -147,13 +178,7 @@ class U3Subspace
 
     if (branch_to_so3)
     {
-      const auto& L_kappa_vector = u3::BranchingSO3(omega.SU3());
-      const auto& [Lmin,Lmax] = L_min_max;
-      for (const auto& [L, kappa_max] : L_kappa_vector)
-      {
-        if(L >= Lmin && L<= Lmax)
-        PushStateLabels(L, kappa_max);
-      }
+      GenerateSO3States(omega,L_min_max);
     }
   }
 
@@ -234,7 +259,11 @@ class Sp3RSpace
  public:
   Sp3RSpace() = default;
   Sp3RSpace(
-      const u3::U3& sigma, unsigned int Nn_max, const bool subspace_labels_only = false
+      const u3::U3& sigma,
+      unsigned int Nn_max,
+      const bool cache_Kmatrices = true,
+      // const bool subspace_labels_only = false,
+      const bool branch_to_so3 = true
     );
 
   // accessors

@@ -2,56 +2,30 @@
 
     Environment variables:
 
-        SPNCCI_PROJECT_ROOT_DIR -- root directory under which
-            lsu3shell and spncci codes are found
+        SPNCCI_INSTALL_DIR -- root directory under which binaries
+            for spncci are found
 
-        SPNCCI_OPERATOR_DIR -- base directory for relative operator
-            files (colon-delimited search path); operator files will
-            be sought within subdirectories named in
-            spncci.operator_subdirectory_list
+            At NERSC: ${MCSRIPT_INSTALL_HOME}/${CRAY_CPU_TARGET}/spncci
 
-        SPNCCI_SU3RME_DIR -- base directory for su3rme files
-            (colon-delimited search path); su3rme files will be sought
-            within subdirectories named in spncci.su3rme_subdirectory_list
+            TODO(mac): Deprecate or remove in favor of get_spncci_executable()?
 
-        SPNCCI_INTERACTION_DIR -- base directory for relative lsjt
-            interaction files (colon-delimited search path);
-            interaction files will be sought within subdirectories
-            named in spncci.interaction_subdirectory_list
 
-        SPNCCI_SEED_DIR -- base directory containing seeds for SpNCCI recurrence.
+        SPNCCI_DATA_DIR -- base directory for directories including
+            seeds: contains seeds for SpNCCI recurrence
+            operator: Contains su3 coupled operators for use with lsu3shell
 
-        Ex (personal workstation):
-            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator
-            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel
+            At NERSC: ${GROUP_HOME}/data
 
-        Ex (NDCRC nuclthy):
-            setenv SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            setenv SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/afs/crc.nd.edu/group/nuclthy/data/spncci/operator
-            setenv SPNCCI_SU3RME_DIR ${HOME}/data/spncci/su3rme:/afs/crc.nd.edu/group/nuclthy/data/spncci/su3rme
-            setenv SPNCCI_SEED_DIR ${HOME}/data/spncci/seeds:/afs/crc.nd.edu/group/nuclthy/data/spncci/seeds
-            setenv SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/afs/crc.nd.edu/group/nuclthy/data/interaction/rel
+            seeds: ${SPNCCI_DATA_DIR}/spncci/seeds
+            operators: ${SPNCCI_DATA_DIR}/spncci/operator
+            interaction: ${SPNCCI_DATA_DIR}/interaction/rel
 
-        Ex (NERSC m2032):
-            SPNCCI_PROJECT_ROOT_DIR "${HOME}/code"
-            SPNCCI_INTERACTION_DIR ${HOME}/data/interaction/rel:/project/projectdirs/m2032/data/interaction/rel
-            SPNCCI_OPERATOR_DIR ${HOME}/data/spncci/operator:/project/projectdirs/m2032/data/spncci/operator
-            SPNCCI_SU3RME_DIR /project/projectdirs/m2032/data/spncci/su3rme
-            SPNCCI_SU3RME_DIR ${SPNCCI_SU3RME_DIR}:${SCRATCH}/data/spncci/su3rme-expanded:${CSCRATCH}/data/spncci/su3rme-expanded
-            SPNCCI_SEED_DIR ${SCRATCH}/seeds/
-            PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
+        SPNCCI_TRUNCATION_DIR -- directory containing truncation files for spncci
+            basis truncations
 
-        Example of pre-expanded rme files (see script/su3rme-untar.csh):
+            Currently: /global/homes/a/amccoy/scratch/truncations
 
-            edison09:/global/cscratch1/sd/mcaprio/data/spncci/su3rme-expanded% ls runmac0408/
-            su3rme-Z03-N03-Nsigmamax00-Nstep2/  su3rme-Z03-N03-Nsigmamax04-Nstep2/  su3rme-Z03-N03-Nsigmamax08-Nstep2/
-            su3rme-Z03-N03-Nsigmamax02-Nstep2/  su3rme-Z03-N03-Nsigmamax06-Nstep2/
-
-            edison09:/global/cscratch1/sd/mcaprio/data/spncci/su3rme-expanded% ls runmac0408/su3rme-Z03-N03-Nsigmamax00-Nstep2/
-            Arel.rme                  relative_unit_000007.rme  relative_unit_000020.rme  relative_unit_000033.rme  relative_unit_000046.rme
-            ...
+            TODO: determine better location and set definitions accordingly
 
 
     You will also need the directory containing the present script
@@ -59,7 +33,8 @@
 
         setenv PYTHONPATH ${SPNCCI_PROJECT_ROOT_DIR}/spncci/script:${PYTHONPATH}
 
-    Task parameters:
+
+    Scripting expects a task parameters dictionary to be defined with the following keys:
 
         # space parameters
         nuclide (tuple of int): (N,Z)
@@ -82,7 +57,7 @@
         J_range (tuple of float/int): (min,max,step) for J spaces
         hw_range (tuple of float): (min,max,step) for oscillator hw
         ...
-          
+
   Language: Python 3
 
   A. E. McCoy and M. A. Caprio
@@ -103,6 +78,7 @@
   7/4/17 (mac): Add support for using pre-staged expanded archive of su3rmes.
   2/15/18 (aem): Add seed calculation scripting
   2/16/18 (aem): Factored out su3rme computation into su3rme.py
+  12/9/22 (aem): Updated environment variables to be more consistent with mcscript.
 """
   
 import glob
@@ -115,43 +91,34 @@ import su3rme
 ################################################################
 
 # environment configuration variables
-project_root = os.environ["SPNCCI_PROJECT_ROOT_DIR"]
-interaction_directory_list = os.environ["SPNCCI_INTERACTION_DIR"].split(":")
+data_dir = os.environ["SPNCCI_DATA_DIR"]
+
+interaction_directory_list = [f"{data_dir}/interaction/rel"]
 interaction_subdirectory_list = []
-operator_directory_list = os.environ["SPNCCI_OPERATOR_DIR"].split(":")
+
+operator_directory_list = [f"{data_dir}/spncci/operator"]
 operator_subdirectory_list = []
 
-# seed_directory_list = os.environ["SPNCCI_SEED_DIR"].split(":")
-seed_directory_list = os.environ["SPNCCI_SEED_DIR"]
+seed_directory_list = [f"{data_dir}/spncci/seeds"]
 seed_subdirectory_list = []
 
 truncation_directory = os.environ["SPNCCI_TRUNCATION_DIR"]
 truncation_subdirectory = []
 
-
-# ... from spncci
-# DEPRECATED: TODO, e.g., replace
-#   generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
-# with
-#   spncci_filename("generate_relative_u3st_operators")
-
-generate_relative_operator_rmes_executable = os.path.join(project_root,"spncci","programs","operators","generate_relative_u3st_operators")
-generate_spncci_seed_files_executable = os.path.join(project_root,"spncci","programs","lgi","get_spncci_seed_blocks")
-spncci_executable_dir = os.path.join(project_root,"spncci","programs","spncci")
 seed_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
 
 ################################################################
-# filename utilities
+# executable filename utilities
 ################################################################
 
-def lsu3shell_filename(name):
+def get_lsu3shell_executable(name):
     """Construct filename for an lsu3shell executable."""
 
     if os.path.isfile(mcscript.utils.expand_path(name)):
         return mcscript.utils.expand_path(name)
-    return os.path.join(mcscript.parameters.run.install_dir, "su3shell", "bin", name)
+    return os.path.join(mcscript.parameters.run.install_dir, "lsu3shell", "bin", name)
 
-def spncci_filename(name):
+def get_spncci_executable(name):
     """Construct filename for a spncci executable."""
 
     if os.path.isfile(mcscript.utils.expand_path(name)):
@@ -162,6 +129,7 @@ def spncci_filename(name):
 ################################################################
 # generate SU(3)-coupled relative matrix elements of observables
 ################################################################
+
 def stacksize_setup():
     """ Set OpenMP stacksize variables.
 
@@ -170,9 +138,6 @@ def stacksize_setup():
     # set number of threads by global qsubm depth parameter
     print("Setting OMP_STACKSIZE to {}M.".format(stacksize))
     os.environ["OMP_STACKSIZE"] = "20 M"
-
-
-
 
 def generate_observable_rmes(task):
     """Generate relative U3ST RMEs of observable operators.
@@ -249,7 +214,12 @@ def generate_observable_rmes(task):
         # Call code to upcouple and generate input file for hamiltonian
         #
         # TODO: fix to take (N,Z) instead of (A,N1v), and remove N1v from task dictionary
+        # generate_relative_operator_rmes_executable = f"{install_dir}/bin/generate_relative_u3st_operators"
+
+        generate_relative_operator_rmes_executable=get_spncci_executable("generate_relative_u3st_operators")
+
         command_line = [
+                # get_spncci_executable("generate_relative_u3st_operators"),
                 generate_relative_operator_rmes_executable,
                 "{}".format(Z),"{}".format(N),    
                 "{Nmax:d}".format(**task),
@@ -327,7 +297,8 @@ def generate_spncci_seed_files(task):
 
     # generate seed rmes
     command_line = [
-        generate_spncci_seed_files_executable,
+        get_spncci_executable("get_spncci_seed_blocks"),
+        # generate_spncci_seed_files_executable,
         "{nuclide[0]:d}".format(**task),
         " {nuclide[1]:d}".format(**task),
         " {Nsigma_max:d}".format(**task)
@@ -626,9 +597,10 @@ def call_spncci(task):
 
     if ("spncci_variant" not in task):
         task["spncci_variant"] = "spncci"
-    spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
+    # spncci_executable = spncci_executable(task["spncci_variant"])
+    # os.path.join(spncci_executable_dir,task["spncci_variant"])
 
-    command_line = [spncci_executable]
+    command_line = [get_spncci_executable(task["spncci_variant"])]
     mcscript.call(
         command_line,
         mode=mcscript.CallMode.kSerial

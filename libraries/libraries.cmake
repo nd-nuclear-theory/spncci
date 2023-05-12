@@ -10,7 +10,7 @@ find_package(Boost REQUIRED COMPONENTS headers)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(GSL REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(MPI REQUIRED)
+find_package(MPI) ## REQUIRED?
 find_package(Spectra REQUIRED)
 
 set(SPNCCI_SU3_LIBRARY_OPTIONS "su3wrc" "ndsu3lib" "SU3lib")

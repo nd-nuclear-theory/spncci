@@ -105,10 +105,15 @@ su3rme_subdirectory_list = []
 # ... from lsu3shell
 su3rme_executable = os.path.join(project_root,"lsu3shell","programs","tools","SU3RME_MPI")
 su3basis_executable = os.path.join(project_root,"lsu3shell","programs","tools","ncsmSU3xSU2IrrepsTabular")
+## su3rme_executable = spncci.get_lsu3shell_executable("SU3RME_MPI")
+## su3basis_executable = spncci.get_lsu3shell_executable("ncsmSU3xSU2IrrepsTabular")
 
 # ... from spncci
 generate_lsu3shell_model_space_executable = os.path.join(project_root,"spncci","programs","unit_tensors","generate_lsu3shell_model_space")
 u3s_subspace_lister_executable=os.path.join(project_root,"spncci","programs","lgi","get_u3s_subspaces")
+# TODO (mac): update paths to proper installation directory...
+## generate_lsu3shell_model_space_executable = spncci.get_spncci_executable("generate_lsu3shell_model_space")
+## u3s_subspace_lister_executable = spncci.get_spncci_executable("get_u3s_subspaces")
 
 
 
@@ -189,7 +194,7 @@ def generate_basis_table(task):
 su3rme_descriptor_template_Nsigmamax = "Z{nuclide[0]:02d}-N{nuclide[1]:02d}-Nsigmamax{Nsigma_max:02d}-Nstep{Nstep:d}"
 
 
-def setup_su3shell_directories(task):
+def set_up_su3shell_directories(task):
     """
     Make sure temporary work directory exists
     """
@@ -335,7 +340,7 @@ def generate_lsu3shell_rmes(task):
 
     """
     # set up necessary directories for lsu3shell
-    setup_su3shell_directories(task)
+    set_up_su3shell_directories(task)
 
     # generate model space files for bra and ket
     generate_model_space_files(task)
@@ -360,6 +365,9 @@ def do_generate_lsu3shell_generator_rmes(task,save=True):
 
     # retrieve relevant operator files
     retrieve_generator_operator_files(task)
+    # TODO (mac): check for possible inconsistency with
+    # "relative_generator_operators.dat" and ""relative_unit_operators.dat"
+    # defined in lsu3shell_operator.py
     mcscript.call(["ln","-sf","relative_generators.dat","relative_operators.dat"])
     generate_lsu3shell_rmes(task)
 

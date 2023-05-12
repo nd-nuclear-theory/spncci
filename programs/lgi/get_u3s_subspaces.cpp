@@ -110,7 +110,7 @@ int main(int argc, char **argv)
   HalfInt Nsigma0 = nuclide::Nsigma0ForNuclide(nuclide);
 
   auto u3s_subspace_labels_set
-    = lsu3shell::lsu3shell_basis_dimensions(nuclide,Nsigma0,Nmax);
+    = lsu3shell::LSU3ShellBasisDimensions(nuclide,Nsigma0,Nmax);
 
 
   lsu3shell::WriteU3SLabels(Nsigma0,u3s_filename,u3s_subspace_labels_set);
