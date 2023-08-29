@@ -98,17 +98,17 @@ namespace spncci
 
         // define eigensolver and compute
         Spectra::DenseSymMatProd<spncci::MatrixFloatType> matvec(matrix);
-        Spectra::SymEigsSolver<Spectra::DenseSymMatProd<spncci::MatrixFloatType> >
+        Spectra::SymEigsSolver<spncci::MatrixFloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<spncci::MatrixFloatType>>
           eigensolver(
-              matvec,
+              &matvec,
               num_eigenvalues,
               eigensolver_num_convergence
             );
         eigensolver.init();
         int converged_eigenvectors = eigensolver.compute(
-            Spectra::SortRule::SmallestAlge,
             eigensolver_max_iterations,
-            eigensolver_tolerance
+            eigensolver_tolerance,
+            Spectra::SMALLEST_ALGE  // sorting rule
           );
 
         // verify status
@@ -122,7 +122,7 @@ namespace spncci
         //     Spectra::NUMERICAL_ISSUE
         //   }
 
-        auto eigensolver_status = eigensolver.info();
+        int eigensolver_status = eigensolver.info();
         int eigensolver_num_iterations = eigensolver.num_iterations();
         if(verbose)
           {
