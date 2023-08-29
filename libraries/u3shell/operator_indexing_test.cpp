@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     std::cout<<"Identity operator"<<std::endl;
 
     auto spatial_ptr
-    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(Identity_parameters);
+    = std::make_shared<const u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>>(Identity_parameters);
     std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
     auto spin_ptr
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     std::cout<<"Relative Sp(3,R) raising operator"<<std::endl;
 
     auto spatial_ptr
-    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(Arel_parameters);
+    = std::make_shared<const u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>>(Arel_parameters);
     std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
     auto spin_ptr
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     std::cout<<"Relative kinetic energy"<<std::endl;
     auto spatial_ptr
-    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(Trel_parameters);
+    = std::make_shared<const u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>>(Trel_parameters);
     std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
     auto spin_ptr
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
         );
 
     auto spatial_ptr
-    = std::make_shared<const u3shell::spatial::onecoord::OperatorSpace>(hamiltonian_parameters);
+    = std::make_shared<const u3shell::spatial::OperatorSpace<u3shell::spatial::OneCoordType>>(hamiltonian_parameters);
     // std::cout<<spatial_ptr->DebugStr()<<std::endl;
 
     auto spin_ptr
