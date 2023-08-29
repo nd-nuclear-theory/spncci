@@ -25,8 +25,14 @@
 namespace spncci::recurrence
 {
 
+// n.b.: this could possibly be renamed to something like IntrinsicTwoBodySpatialRecurrenceMatrix
+// but that seems needlessly verbose right now
 class SpatialRecurrenceMatrix
 {
+ public:
+  using OperatorStateLabelType = u3shell::spatial::OneCoordType;
+  using RecurrenceSp3RSpace = spncci::spatial::RecurrenceSp3RSpace<OperatorStateLabelType>;
+  using RecurrenceU3Space = spncci::spatial::RecurrenceU3Space<OperatorStateLabelType>;
   ////////////////////////////////////////////////////////////////
   // constructors
   ////////////////////////////////////////////////////////////////
@@ -36,7 +42,7 @@ class SpatialRecurrenceMatrix
   {}
 
   SpatialRecurrenceMatrix(
-      std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace> space_ptr
+      std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace<OperatorStateLabelType>> space_ptr
     );
 
   ////////////////////////////////////////////////////////////////
@@ -77,7 +83,7 @@ class SpatialRecurrenceMatrix
   ////////////////////////////////////////////////////////////////
 
  private:
-  std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace> recurrence_space_ptr_;
+  std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace<OperatorStateLabelType>> recurrence_space_ptr_;
   std::vector<basis::OperatorBlocks<double>> recurrence_blocks_;
   const std::size_t lgi_recurrence_dimension_;
 #ifndef NDEBUG
