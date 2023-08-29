@@ -57,6 +57,7 @@ target_link_libraries(
          spncci::u3shell
          spncci::spncci_basis
          spncci::lgi
+         spncci::seeds
          Spectra::Spectra
          OpenMP::OpenMP_CXX
          MPI::MPI_CXX
@@ -101,7 +102,10 @@ endforeach()
 
 target_link_libraries(
   recurrence_mapping_test PRIVATE
-  fmt::fmt am::am spncci::lgi
+  fmt::fmt
+  am::am
+  spncci::lgi
+  spncci::seeds
   cppitertools::cppitertools
   spncci::spncci_basis
   spncci::spncci

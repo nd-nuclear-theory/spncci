@@ -4,8 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 set(seeds_headers
   recurrence_seeds.h
     )
-set(
-  seeds_sources
+set(seeds_sources
   recurrence_seeds.cpp
   )
 

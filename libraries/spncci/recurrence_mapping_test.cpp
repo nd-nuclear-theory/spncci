@@ -8,7 +8,7 @@
 
  9/24/21 (aem): Created.
 ****************************************************************/
-#include "spncci/recurrence_seeds.h"
+#include "seeds/recurrence_seeds.h"
 
 #include <cppitertools/itertools.hpp>
 #include <string>
@@ -22,14 +22,15 @@
 #include "lgi/lgi_unit_tensors.h"
 // #include "mcutils/profiling.h"
 #include "mcutils/eigen.h"
-#include "spncci_basis/recurrence_indexing.h"
-#include "lgi/recurrence_lgi.h"
 // #include "spncci/recurrence_spatial.h"
 #include "spncci/recurrence.h"
 #include "spncci/spncci_basis.h"
 #include "u3shell/relative_operator.h"
 
-
+// New code
+#include "spncci_basis/recurrence_indexing.h"
+#include "lgi/recurrence_lgi.h"
+#include "u3shell/operator_indexing_spatial.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Mapping from output of recurrence to unit tensor hypersectors
@@ -51,8 +52,8 @@
 // Within each block, rmes are index by (gamma',upsilon')x(gamma,upsilon)
 //
 basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
-  const spncci::spatial::RecurrenceSpace& spatial_recurrence_space,
-  const spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST>& spin_recurrence_space,
+  const spncci::spatial::RecurrenceSpace<u3shell::spatial::OneCoordType>& spatial_recurrence_space,
+  const spncci::spin::RecurrenceSpace<lgi::LGI, u3shell::spin::twobody::OperatorLabelsST>& spin_recurrence_space,
   const spncci::BabySpNCCISpace& baby_spncci_space,
   const u3shell::RelativeUnitTensorSpaceU3S& unit_tensor_space,
   const spncci::BabySpNCCIHypersectors& unit_tensor_hypersectors,
@@ -127,7 +128,7 @@ basis::OperatorHyperblocks<double> MapRecurrenceBlockToHypersectors(
       // std::cout<<spatial_operator_index<<std::endl;
       int spatial_operator_subspace_offset = u3_recurrence_space.GetSubspaceOffset(spatial_operator_index,rho0);
       const auto& spatial_operator_subspace = u3_recurrence_space.GetSubspace(spatial_operator_index);
-      int spatial_operator_state_index = spatial_operator_subspace.LookUpStateIndex({Nbar,Nbarp});
+      int spatial_operator_state_index = spatial_operator_subspace.LookUpStateIndex({{Nbar}});
       // std::cout<<"got everything"<<std::endl;
       // Get index and offset information for spins and spin operators
       ////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +217,7 @@ int main(int argc, char** argv)
   // int N1v=std::stoi(argv[4]);
 
   const nuclide::NuclideType nuclide({Z,N});
-  int N1v = nuclide::ValenceShellForNuclide(nuclide);
+  unsigned int N1v = nuclide::ValenceShellForNuclide(nuclide);
 
   const std::string lgi_filename="lgi_families.dat";
 
@@ -233,15 +234,16 @@ int main(int argc, char** argv)
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   std::cout<<"setting up recurrence indexing "<<std::endl;
   spncci::spin::Space<lgi::LGI> spin_space(lgi_vector, Nmax);
-  const spncci::spin::RecurrenceSpace<lgi::LGI, spncci::spin::UnitTensorLabelsST> spin_recurrence_space(spin_space, spin_space);
+  const spncci::spin::RecurrenceSpace<lgi::LGI,u3shell::spin::twobody::OperatorLabelsST> spin_recurrence_space(spin_space, spin_space);
 
   auto it =iter::imap([](MultiplicityTagged<lgi::LGI> l) { return l.irrep.U3(); }, lgi_vector)| iter::unique_everseen;
   const spncci::spatial::Space spatial_space(std::vector<u3::U3>(it.begin(), it.end()), Nsigma0, Nmax);
-  const spncci::spatial::RecurrenceSpace spatial_recurrence_space(spatial_space,spatial_space,N1v,Nsigma0);
+  const spncci::spatial::RecurrenceSpace<u3shell::spatial::OneCoordType> spatial_recurrence_space(
+    spatial_space,spatial_space,N1v,Nsigma0);
 
   std::cout<<"Read seeds from file "<<std::endl;
   basis::OperatorBlocks<double>
-  seed_blocks=spncci::recurrence::GetRecurrenceSeedsFromFile(
+  seed_blocks=spncci::seeds::GetRecurrenceSeedsFromFile(
         lgi_vector,lgi_full_space_index_lookup,
         spatial_recurrence_space,spin_recurrence_space
       );
