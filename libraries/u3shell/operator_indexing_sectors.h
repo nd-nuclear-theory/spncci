@@ -22,6 +22,12 @@
 namespace u3shell
 {
 ////////////////////////////////////////////////////////////////
+/// OperatorU3SpinSectors
+///   By parity/exchange_symm
+///   By S0
+///   By N0
+///   By L0
+///
 /// Selection rules:
 ///  parity_bar==(exchange_symm_bar + 1)%2.
 ///  S0 x L0 -> J0
@@ -30,6 +36,8 @@ namespace u3shell
 ///  -> OperatorSubspace [S0,exhcange_sym_bar]
 ///    -> OperatorStates [i]
 ///
+/// OperatorU3SpinSector(spin OperatorSubspace, spatial OperatorSU3Subspace)
+///
 /// spatial Space
 ///  OperatorSpace
 ///    ->OperatorParitySpace [parity_bar]
@@ -37,6 +45,13 @@ namespace u3shell
 ///        -> OperatorL0Space [L0]
 ///           -> OperatorSU3Subspace (kappa0)[omega0]
 ///               ->OperatorStates [Nbar]  Nbarp fixed by N0.
+///
+///
+/// Order of rmes in memory is
+///   by parity_bar, S0, N0, L0,
+///     by spin state [S0,T0,Sbar,Sbarp,Tbar,Tbarp]
+///       by kappa0,omega0
+///         by Nbar (Nbarp fixed by N0)
 ///
 ////////////////////////////////////////////////////////////////
 
@@ -92,10 +107,13 @@ public:
     ) const
   {
     std::size_t x0_index = bra_subspace().LookUpSubspaceIndex(x0);
+
     std::size_t x0_kappa0_index =
         bra_subspace().GetSubspaceOffset(x0_index, kappa0);
+
     std::size_t Nbar_index =
         bra_subspace().GetSubspace(x0_index).LookUpStateIndex({{Nbar}});
+
     return element_offset(spin_index, x0_kappa0_index, Nbar_index);
   }
 
@@ -114,7 +132,6 @@ private:
   std::size_t N0_space_index_;
 
 };
-
 
 
 
