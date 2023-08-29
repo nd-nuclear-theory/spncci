@@ -23,7 +23,7 @@ namespace spncci::recurrence
 {
 
 SpatialRecurrenceMatrix::SpatialRecurrenceMatrix(
-    std::shared_ptr<const spncci::spatial::RecurrenceSp3RSpace> space_ptr
+    std::shared_ptr<const RecurrenceSp3RSpace> space_ptr
   )
     : recurrence_space_ptr_{space_ptr},
       recurrence_blocks_{recurrence_space().size()},
@@ -54,8 +54,8 @@ inline namespace
 
 basis::OperatorBlock<double> aDaggerBosonMatrix(
     const u3::U3& sigma,
-    const spncci::spatial::U3Subspace& u3_subspace_bra,
-    const spncci::spatial::U3Subspace& u3_subspace_ket
+    const u3boson::U3Subspace& u3_subspace_bra,
+    const u3boson::U3Subspace& u3_subspace_ket
   )
 {
   const auto& bra_dimension = u3_subspace_bra.dimension();
@@ -89,7 +89,7 @@ basis::OperatorBlock<double> aDaggerBosonMatrix(
                   omega_ket.SU3(), rho_ket, 1
                 )
               // clang-format on
-              * vcs::BosonCreationRME(n_bra, n_ket);
+              * u3boson::BosonCreationRME(n_bra, n_ket);
         }
       }
     }
@@ -104,7 +104,11 @@ inline basis::OperatorBlock<double> AMatrix(
   )
 {
   return u3_subspace_bra.K_matrix()
-         * aDaggerBosonMatrix(sigma, u3_subspace_bra, u3_subspace_ket)
+         * aDaggerBosonMatrix(
+              sigma,
+              u3_subspace_bra.nonorthogonal_basis(),
+              u3_subspace_ket.nonorthogonal_basis()
+            )
          * u3_subspace_ket.Kinv_matrix();
 }
 
@@ -124,7 +128,11 @@ inline basis::OperatorBlock<double> BMatrix(
              u3::dim(u3_subspace_ket.omega()) / u3::dim(u3_subspace_bra.omega())
            )
          * (u3_subspace_ket.K_matrix()
-            * aDaggerBosonMatrix(sigma, u3_subspace_ket, u3_subspace_bra)
+            * aDaggerBosonMatrix(
+                sigma,
+                u3_subspace_ket.nonorthogonal_basis(),
+                u3_subspace_bra.nonorthogonal_basis()
+              )
             * u3_subspace_bra.Kinv_matrix())
                .transpose();
 }
@@ -141,7 +149,11 @@ inline basis::OperatorBlock<double> ChiMatrix(
            )
          * (2. / float(u3_subspace_bra.omega().N() - sigma.N()))
          * u3_subspace_bra.Kinv_matrix().transpose()
-         * aDaggerBosonMatrix(sigma, u3_subspace_bra, u3_subspace_ket)
+         * aDaggerBosonMatrix(
+             sigma,
+             u3_subspace_bra.nonorthogonal_basis(),
+             u3_subspace_ket.nonorthogonal_basis()
+           )
          * u3_subspace_ket.K_matrix().transpose();
 }
 
@@ -150,8 +162,8 @@ basis::OperatorBlock<double> UMatrix1(
     const u3::U3& target_omega_ket,
     const u3::U3& source_omega_bra,
     const u3::U3& source_omega_ket,
-    const spncci::spatial::RecurrenceU3Space& target_U3_space,
-    const spncci::spatial::RecurrenceU3Space& source_U3_space
+    const SpatialRecurrenceMatrix::RecurrenceU3Space& target_U3_space,
+    const SpatialRecurrenceMatrix::RecurrenceU3Space& source_U3_space
   )
 {
   basis::OperatorBlock<double> u_matrix = basis::OperatorBlock<double>::Zero(
@@ -204,8 +216,8 @@ basis::OperatorBlock<double> UMatrix2(
     const u3::U3& target_omega_ket,
     const u3::U3& source_omega_bra,
     const u3::U3& source_omega_ket,
-    const spncci::spatial::RecurrenceU3Space& target_U3_space,
-    const spncci::spatial::RecurrenceU3Space& source_U3_space
+    const SpatialRecurrenceMatrix::RecurrenceU3Space& target_U3_space,
+    const SpatialRecurrenceMatrix::RecurrenceU3Space& source_U3_space
   )
 {
   basis::OperatorBlock<double> u_matrix = basis::OperatorBlock<double>::Zero(
