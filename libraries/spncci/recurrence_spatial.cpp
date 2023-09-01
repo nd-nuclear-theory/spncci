@@ -30,7 +30,7 @@ SpatialRecurrenceMatrix::SpatialRecurrenceMatrix(
       lgi_recurrence_dimension_{recurrence_space().GetSubspace(/*Nnsum=*/0).dimension()}
 {
 #ifndef NDEBUG
-  recurrence_done_ = std::vector<bool>(recurrence_space.size());
+  recurrence_done_ = std::vector<bool>(recurrence_space().size());
 #endif
 
   for (const auto& Nnsum_space : recurrence_space())
@@ -245,24 +245,26 @@ basis::OperatorBlock<double> UMatrix2(
           for (auto&& [target_op_index, target_op] :
                iter::enumerate(target_x0_subspace))
           {
-            auto& [Nbar, Nbarp] = target_op.labels();
+            const auto& l = target_op.labels();
+            const auto& Nbar = target_op.Nbar();
+            const auto& Nbarp = target_op.Nbarp();
             auto source_op_index =
-                source_x0_subspace.LookUpStateIndex({Nbar - 2, Nbarp});
+                source_x0_subspace.LookUpStateIndex({Nbar - 2});
             u_matrix(
                 target_offset + target_op_index, source_offset + source_op_index
               ) =
                 u3::U(
                     // clang-format off
-                    source_omega_ket, u3::SU3{2, 0}, target_omega_bra, target_x0_subspace.x0(),
+                    source_omega_ket, u3::SU3{2u, 0u}, target_omega_bra, target_x0_subspace.x0(),
                     target_omega_ket, 1, target_r0,
                     source_x0_subspace.x0(), source_r0, 1
                     // clang-format on
                   )
                 * u3::U(
                     // clang-format off
-                    u3::SU3{Nbarp, 0}, u3::SU3{0, Nbar}, source_x0_subspace.x0(), u3::SU3{2, 0},
+                    u3::SU3{Nbarp, 0u}, u3::SU3{0u, Nbar}, source_x0_subspace.x0(), u3::SU3{2u, 0u},
                     target_x0_subspace.x0(), 1, 1,
-                    u3::SU3{0, Nbar}, 1, 1
+                    u3::SU3{0u, Nbar}, 1, 1
                     // clang-format on
                   );
           }

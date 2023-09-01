@@ -26,7 +26,7 @@
 namespace u3shell::spatial
 {
 
-using OneCoordType = std::array<unsigned int, 1>;
+using OneCoordType = std::tuple<unsigned int>;
 
 void GenerateSpatialOperators(
     const int N0,
@@ -61,8 +61,8 @@ inline void GenerateSpatialOperators(
 /////////////////////////////////////////////////////////////////////////////////////
 
 // tOperatorStateLabelType is expected to be a tuple of integral type
-template<typename tOperatorStateLabelType> class OperatorNbarStates;
-template<typename tOperatorStateLabelType> class OperatorSU3Subspace;
+template<typename tOperatorStateLabelType, typename = void> class OperatorNbarStates;
+template<typename tOperatorStateLabelType> class OperatorU3Subspace;  // TODO(aem): rename U3->SU3?
 template<typename tOperatorStateLabelType> class OperatorL0Space;
 template<typename tOperatorStateLabelType> class OperatorN0Space;
 template<typename tOperatorStateLabelType> class OperatorParitySpace;
@@ -79,7 +79,7 @@ class OperatorU3Subspace
           OperatorU3Subspace<tOperatorStateLabelType>,
           std::tuple<u3::SU3>,
           OperatorNbarStates<tOperatorStateLabelType>,
-          std::tuple<tOperatorStateLabelType>
+          tOperatorStateLabelType
         >
 {
  private:
@@ -87,7 +87,7 @@ class OperatorU3Subspace
       OperatorU3Subspace<tOperatorStateLabelType>,
       std::tuple<u3::SU3>,
       OperatorNbarStates<tOperatorStateLabelType>,
-      std::tuple<tOperatorStateLabelType>
+      tOperatorStateLabelType
     >;
 
   using OperatorStateLabelType = tOperatorStateLabelType;
@@ -154,11 +154,11 @@ class OperatorU3Subspace
 ////////////////////////////////////////////////////////////////
 // States given by Nbar,Nbar' pairs
 ////////////////////////////////////////////////////////////////
-template<typename tOperatorStateLabelType>
+template<typename tOperatorStateLabelType, typename>
 class OperatorNbarStates
     : public basis::BaseState<OperatorU3Subspace<tOperatorStateLabelType>>
 {
- private:
+ protected:
   using BaseStateType =
       basis::BaseState<OperatorU3Subspace<tOperatorStateLabelType>>;
 
@@ -188,62 +188,38 @@ class OperatorNbarStates
   ////////////////////////////////////////////////////////////////////////////////
   inline const OperatorStateLabelType& Nbar_labels() const
   {
-    return std::get<0>(BaseStateType::labels());
+    return BaseStateType::labels();
   }
 
-  inline unsigned int N1bar() const { return Nbar_labels()[0]; }
+};
 
-  template<
-    typename U = tOperatorStateLabelType,
-    std::enable_if_t<(std::tuple_size<U>::value >= 2)>* = nullptr
-  >
-  inline unsigned int N2bar() const { return Nbar_labels()[1]; }
+template<>
+class OperatorNbarStates<OneCoordType,void>
+    : public OperatorNbarStates<OneCoordType,OneCoordType>
+{
+ public:
+  OperatorNbarStates() = default;
+  OperatorNbarStates(const SubspaceType& subspace, std::size_t index)
+      : OperatorNbarStates<OneCoordType, OneCoordType>(subspace, index)
+  {}
+  OperatorNbarStates(
+      const SubspaceType& subspace,
+      const typename BaseStateType::StateLabelsType& state_labels
+    )
+      : OperatorNbarStates<OneCoordType, OneCoordType>(subspace, state_labels)
+  {}
 
-  template<
-    typename U = tOperatorStateLabelType,
-    std::enable_if_t<(std::tuple_size<U>::value >= 3)>* = nullptr
-  >
-  inline unsigned int N1barp() const { return Nbar_labels()[2]; }
-
-  template<
-    typename U = tOperatorStateLabelType,
-    std::enable_if_t<(std::tuple_size<U>::value >= 4)>* = nullptr
-  >
-  inline unsigned int N2barp() const { return Nbar_labels()[3]; }
-
-
-  // Wrapper for N1bar() one coordinate
-  template<
-    typename U = tOperatorStateLabelType,
-    std::enable_if_t<(std::tuple_size<U>::value <= 2)>* = nullptr
-  >
-  inline unsigned int Nbar() const { return N1bar(); }
-
-  // Wrapper for N2bar() one coordinate
-  template<
-    typename U = tOperatorStateLabelType,
-    std::enable_if_t<(std::tuple_size<U>::value == 2)>* = nullptr
-  >
-  inline unsigned int Nbarp() const { return N2bar(); }
-
+  inline unsigned int Nbar() const { return std::get<0>(Nbar_labels()); }
 
   // Reconstruct Nbarp from Nbar and N0;
-  template<
-    typename U = tOperatorStateLabelType,
-    std::enable_if_t<(std::tuple_size<U>::value == 1)>* = nullptr
-  >
   inline unsigned int Nbarp() const
   {
-    return static_cast<unsigned int>(Nbar() + BaseStateType::subspace().N0());
+    return static_cast<unsigned int>(Nbar() + BaseState::subspace().N0());
   }
 
   std::string LabelStr() const
   {
-    std::string label_str = fmt::format("{:2d}", Nbar_labels()[0]);
-    for (std::size_t i = 1; i < Nbar_labels().size(); ++i)
-      label_str += fmt::format(" {:2d}", Nbar_labels()[i]);
-
-    return fmt::format("[{}]", label_str);
+    return fmt::format("[{:2d} {:2d}]", Nbar(), Nbarp());
   }
 
 };
@@ -606,4 +582,4 @@ namespace u3shell::spatial::onecoord
 }  // namespace u3shell::spatial::onecoord
 
 
-#endif
+#endif  // OPERATOR_INDEXING_SPATIAL_H_
