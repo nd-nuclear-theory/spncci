@@ -191,7 +191,8 @@ def generate_observable_rmes(task):
     """
     # if relative_observabels directory already exist, remove and recreate fresh copy
     if (os.path.exists("relative_observables")):
-        mcscript.call(["rm", "-r","relative_observables"])
+#        mcscript.call(["rm", "-r","relative_observables"]) # commented out due to new mcscript
+        mcscript.control.call(["rm", "-r","relative_observables"]) # added due to new mcscript
 
 
     mcscript.utils.mkdir("relative_observables")
@@ -256,9 +257,11 @@ def generate_observable_rmes(task):
                 "{N1v:d}".format(**task),
                 "hamiltonian"
             ]
-        mcscript.call(
+#        mcscript.call( # commented out due to new mcscript
+        mcscript.control.call( # added due to new mcscript
             command_line,
-            mode=mcscript.CallMode.kSerial
+#            mode=mcscript.CallMode.kSerial # commented out due to new mcscript
+            mode=mcscript.control.CallMode.kSerial # added due to new mcscript
         )
 
     # generate RMEs for other observables (analytically)
@@ -282,9 +285,11 @@ def generate_observable_rmes(task):
                 "{N1v:d}".format(**task),
                 "{}".format(observable_name)
             ]
-            mcscript.call(
+#            mcscript.call( # commented out due to new mcscript
+            mcscript.control.call( # added due to new mcscript
                 command_line,
-                mode=mcscript.CallMode.kSerial
+#                mode=mcscript.CallMode.kSerial # commented out due to new mcscript
+                mode=mcscript.control.CallMode.kSerial # added due to new mcscript
             )
 
     os.chdir("..")
@@ -320,7 +325,8 @@ def generate_spncci_seed_files(task):
     """
     # if seed directory already exist, remove and recreate fresh copy
     if (os.path.exists("seeds")):
-        mcscript.call(["rm", "-r","seeds"])
+#        mcscript.call(["rm", "-r","seeds"]) # commented out due to new mcscript
+        mcscript.control.call(["rm", "-r","seeds"]) # added due to new mcscript
 
     mcscript.utils.mkdir("seeds")
 
@@ -332,9 +338,11 @@ def generate_spncci_seed_files(task):
         " {nuclide[1]:d}".format(**task),
         " {Nsigma_max:d}".format(**task)
     ]
-    mcscript.call(
+#    mcscript.call( # commented out due to new mcscript
+    mcscript.control.call( # added due to new mcscript
         command_line,
-        mode=mcscript.CallMode.kSerial
+#        mode=mcscript.CallMode.kSerial # commented out due to new mcscript
+        mode=mcscript.control.CallMode.kSerial # added due to new mcscript
     )
     
     # mcscript.call(["ls"])
@@ -344,9 +352,11 @@ def generate_spncci_seed_files(task):
     
     # if seed directory already exist, remove and recreate fresh copy
     if (os.path.exists(seed_directory)):
-        mcscript.call(["rm", "-r",seed_directory])
+#        mcscript.call(["rm", "-r",seed_directory]) # commented out due to new mcscript
+        mcscript.control.call(["rm", "-r",seed_directory]) # added due to new mcscript
     
-    mcscript.call(["mv","seeds",seed_directory])
+#    mcscript.call(["mv","seeds",seed_directory]) # commented out due to new mcscript
+    mcscript.control.call(["mv","seeds",seed_directory]) # added due to new mcscript
 
 
 def save_seed_files(task):
@@ -367,7 +377,8 @@ def save_seed_files(task):
     archive_filename = "seeds-{}.tgz".format(seed_descriptor)
 
 
-    mcscript.call(
+#    mcscript.call( # commented out due to new mcscript
+    mcscript.control.call( # added due to new mcscript
         [
             "tar", "-zcvf", archive_filename, "--format=posix", directory
         ] 
@@ -377,7 +388,8 @@ def save_seed_files(task):
 
     # move archive to results directory (if in multi-task run)
     if (mcscript.task.results_dir is not None):
-        mcscript.call(
+#        mcscript.call( # commented out due to new mcscript
+        mcscript.control.call( # added due to new mcscript
             [
                 "mv",
                 "--verbose",
@@ -389,7 +401,8 @@ def save_seed_files(task):
 
     # clean up working directory
     # mcscript.call(["rm","-r", "seeds"])
-    mcscript.call(["rm","-r", "lsu3shell_rme"])
+#    mcscript.call(["rm","-r", "lsu3shell_rme"]) # commented out due to new mcscript
+    mcscript.control.call(["rm","-r", "lsu3shell_rme"]) # added due to new mcscript
 
 
 def retrieve_seed_files(task):
@@ -416,19 +429,23 @@ def retrieve_seed_files(task):
 
     # remove any existing symlink or data directory
     if (os.path.exists("seeds")):
-        mcscript.call(["rm","-r","seeds"])
+#        mcscript.call(["rm","-r","seeds"]) # commented out due to new mcscript
+        mcscript.control.call(["rm","-r","seeds"]) # added due to new mcscript
         # print("hi")
     
 
     if (directory_name is not None):
         print("seed directory ",directory_name)
-        mcscript.call(["ln", "-s", directory_name, "seeds"])
+#        mcscript.call(["ln", "-s", directory_name, "seeds"]) # commented out due to new mcscript
+        mcscript.control.call(["ln", "-s", directory_name, "seeds"]) # added due to new mcscript
 
     elif (archive_filename is not None):
         # extract archive contents
         directory_name="seeds-{}".format(seed_descriptor)
-        mcscript.call(["tar","-xf",archive_filename])
-        mcscript.call(["ln", "-s", directory_name, "seeds"])
+#        mcscript.call(["tar","-xf",archive_filename]) # commented out due to new mcscript
+        mcscript.control.call(["tar","-xf",archive_filename]) # added due to new mcscript
+#        mcscript.call(["ln", "-s", directory_name, "seeds"]) # commented out due to new mcscript
+        mcscript.control.call(["ln", "-s", directory_name, "seeds"]) # added due to new mcscript
 
 
     else:
@@ -453,12 +470,14 @@ def get_lgi_file(task):
 
     print("lgi_families.dat exits ",os.path.exists("lgi_families.dat"))
     if (os.path.exists("lgi_families.dat")):
-        mcscript.call(["rm","-r","lgi_families.dat"])
+#        mcscript.call(["rm","-r","lgi_families.dat"]) # commented out due to new mcscript
+        mcscript.control.call(["rm","-r","lgi_families.dat"]) # added due to new mcscript
         print("removed lgi families file")
 
     # if no truncation filename is given, then use full Nsigma,max space
     if task["truncation_filename"]==None:
-        mcscript.call(
+#        mcscript.call( # commented out due to new mcscript
+        mcscript.control.call( # added due to new mcscript
             [
                 "cp",
                 "seeds/lgi_families.dat",
@@ -468,7 +487,8 @@ def get_lgi_file(task):
     
     # create symbolic link to truncated list of lgi family labels
     else :
-        mcscript.call(
+#        mcscript.call( # commented out due to new mcscript
+        mcscript.control.call( # added due to new mcscript
             [
                 # "ln",
                 # "-s",
@@ -566,9 +586,11 @@ def generate_spncci_control_file(task):
         transform_lgi=1
 
         if (os.path.exists("lgi_transformations.dat")):
-            mcscript.call(["rm","-r","lgi_transformations.dat"])
+#            mcscript.call(["rm","-r","lgi_transformations.dat"]) # commented out due to new mcscript
+            mcscript.control.call(["rm","-r","lgi_transformations.dat"]) # added due to new mcscript
 
-        mcscript.call(
+#        mcscript.call( # commented out due to new mcscript
+        mcscript.control.call( # added due to new mcscript
             [
                 "ln",
                 "-s",
@@ -599,7 +621,8 @@ def make_hyperblocks_dir(task):
     Defines temporary director for hyperblocks 
     """
     if (os.path.exists("hyperblocks")):
-        mcscript.call(["rm","-r","hyperblocks"])
+#        mcscript.call(["rm","-r","hyperblocks"]) # commented out due to new mcscript
+        mcscript.control.call(["rm","-r","hyperblocks"]) # added due to new mcscript
 
 
     if task["hyperblocks_dir"]==None:
@@ -610,7 +633,8 @@ def make_hyperblocks_dir(task):
         mcscript.utils.mkdir(directory)
 
         # link to hyperblocks temporary directory
-        mcscript.call(
+#        mcscript.call( # commented out due to new mcscript
+        mcscript.control.call( # added due to new mcscript
             [
                 "ln",
                 "-s",
@@ -629,19 +653,23 @@ def call_spncci(task):
     spncci_executable = os.path.join(spncci_executable_dir,task["spncci_variant"])
 
     command_line = [spncci_executable]
-    mcscript.call(
+#    mcscript.call( # commented out due to new mcscript
+    mcscript.control.call( # added due to new mcscript
         command_line,
-        mode=mcscript.CallMode.kSerial
+#        mode=mcscript.CallMode.kSerial # commented out due to new mcscript
+        mode=mcscript.control.CallMode.kSerial # added due to new mcscript
     )
 
     # cleanup
-    mcscript.call(["rm","-r","seeds","relative_observables","hyperblocks"])
+#    mcscript.call(["rm","-r","seeds","relative_observables","hyperblocks"]) # commented out due to new mcscript
+    mcscript.control.call(["rm","-r","seeds","relative_observables","hyperblocks"]) # added due to new mcscript
 
     seed_descriptor = task["seed_descriptor_template"].format(**task)
     seed_directory = "seeds-{}".format(seed_descriptor)
 
     if (os.path.exists(seed_directory)):
-        mcscript.call(["rm","-r",seed_directory])
+#        mcscript.call(["rm","-r",seed_directory]) # commented out due to new mcscript
+        mcscript.control.call(["rm","-r",seed_directory]) # added due to new mcscript
 
 def save_spncci_results(task):
     """
@@ -655,7 +683,8 @@ def save_spncci_results(task):
         mcscript.task.results_dir,
         "{name}-{metadata[descriptor]}.res".format(name=mcscript.parameters.run.name,**task)
     )
-    mcscript.call(
+#    mcscript.call( # commented out due to new mcscript
+    mcscript.control.call( # added due to new mcscript
         [
             "cp",
             "--verbose",
@@ -700,7 +729,8 @@ def test(task):
     
     file = open(filename, 'r') 
     print(file.read())
-    mcscript.call(["rm","-r","hyperblocks"])
+#    mcscript.call(["rm","-r","hyperblocks"]) # commented out due to new mcscript
+    mcscript.control.call(["rm","-r","hyperblocks"]) # added due to new mcscript
 
 if (__name__ == "__MAIN__"):
     pass

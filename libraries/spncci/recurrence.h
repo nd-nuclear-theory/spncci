@@ -324,6 +324,16 @@ bool GenerateOneBodyUnitTensorHyperblocks(
     //  baby_spncci_hypersectors 
     //  unit_tensor_hyperblocks  
 
+  void ZeroInitializeTBDHyperblocks(
+    const spncci::BabySpNCCISpace& baby_spncci_space,
+    const u3shell::TwoBodyDensitySpace& tbd_space,
+    const spncci::BabySpNCCITwoBodyDensityHypersectors& baby_spncci_hypersectors_Nn0,
+    const spncci::BabySpNCCITwoBodyDensityHypersectors& baby_spncci_hypersectors,
+    basis::OperatorHyperblocks<double>& tbd_hyperblocks_Nn0,
+    basis::OperatorHyperblocks<double>& tbd_hyperblocks,
+    u3::PhiCoefCache& phi_coef_cache
+  );
+
   void AddNn0BlocksToTwoBodyDensityHyperblocks(
     const spncci::BabySpNCCISpace& baby_spncci_space,
     const u3shell::TwoBodyDensitySpace& tbd_space,

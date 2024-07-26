@@ -43,7 +43,7 @@ files in directory seeds containing:
   4. "seeds/tboperators_00000i_00000j.dat": two-body density labels corresponding
       to each seed block
 
-      N1, N2, N3, N4, lmf, muf, SSf, lmi, mui, SSi, rho0, lm0, mu0, SS0, Tz, rho
+      lm0, mu0, SS0, N1, N2, N3, N4, lmf, muf, SSf, lmi, mui, SSi, rho0, Tz, rho
     
 "seeds/lgi_expansions.dat": File containing expansion of lgis in lsu3shell basis.
     For each lsu3shell subspace, 

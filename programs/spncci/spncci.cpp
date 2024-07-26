@@ -550,14 +550,14 @@ int main(int argc, char **argv)
     } //end parallel region
 
 //****************************************** Added by J.H. ***************************************
-  // Recurrence for RMEs of one-body unit tensors
+  // Recurrence for RMEs of one-body unit tensors and two-body densities
   u3::UCoefCache u_coef_cache;
   u3::PhiCoefCache phi_coef_cache;
 
   std::map<std::array<int,28>,double> proton_OBDRME_by_labels, neutron_OBDRME_by_labels;
   // Labels are gamma', Nex_sigma', lm_sigma', mu_sigma', SSp', SSn', SS', upsilon', Nex_omega', lm_omega', mu_omega',
   // gamma, Nex_sigma, lm_sigma, mu_sigma, SSp, SSn, SS, upsilon, Nex_omega, lm_omega, mu_omega,
-  // N', N, lm0, mu0, SS0, rho0
+  // N', N, lm0, mu0, SS0, rho
   for(int i=0; i<lgi_pairs_ob.size(); ++i){
     const spncci::LGIPair& lgi_pair=lgi_pairs_ob[i];
 
@@ -585,10 +585,10 @@ int main(int argc, char **argv)
       const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
       const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
       const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
-      int dim=baby_spncci_subspace_ket.dimension();
+//      int dim=baby_spncci_subspace_ket.dimension();
       int gamma_max=baby_spncci_subspace_ket.gamma_max();
       int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
-      int dimp=baby_spncci_subspace_bra.dimension();
+//      int dimp=baby_spncci_subspace_bra.dimension();
       int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
       int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
       u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
@@ -610,15 +610,15 @@ int main(int argc, char **argv)
             int jt=j*upsilon_max;
             for(int up=0; up<upsilon_maxp; up++)
               for(int u=0; u<upsilon_max; u++){
-                std::array<int,28> key={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
+                std::array<int,28> keyp={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
 	          S_bra.TwiceValue(),up+1,Nex_omegap,omegap.SU3().lambda(),omegap.SU3().mu(),
                   j+1,Nex_sigma,sigma.SU3().lambda(),sigma.SU3().mu(),Sp_ket.TwiceValue(),Sn_ket.TwiceValue(),S_ket.TwiceValue(),
                   u+1,Nex_omega,omega.SU3().lambda(),omega.SU3().mu(),
                   etap,eta,x0.lambda(),x0.mu(),S0.TwiceValue(),rho0};
                 if(operator_index==0){
-                  proton_OBDRME_by_labels[key]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)*factor;
+                  proton_OBDRME_by_labels[keyp]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)*factor;
 	        }else{
-	          neutron_OBDRME_by_labels[key]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)*factor;
+	          neutron_OBDRME_by_labels[keyp]=unit_tensor_hyperblocks[hypersector_index][operator_index](it+up,jt+u)*factor;
 		}
               }
           }
@@ -633,10 +633,10 @@ int main(int argc, char **argv)
         const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
         const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
         const u3shell::OneBodyUnitTensorSubspaceU3S& unit_tensor_subspace=one_body_unit_tensor_space.GetSubspace(unit_tensor_subspace_index);
-        int dim=baby_spncci_subspace_ket.dimension();
+//        int dim=baby_spncci_subspace_ket.dimension();
         int gamma_max=baby_spncci_subspace_ket.gamma_max();
         int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
-        int dimp=baby_spncci_subspace_bra.dimension();
+//        int dimp=baby_spncci_subspace_bra.dimension();
         int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
         int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
         u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
@@ -650,6 +650,7 @@ int main(int argc, char **argv)
 	int Nex_omegap=(omegap.N().TwiceValue()-NmNex)/2;
 	int Nex_sigma=(sigma.N().TwiceValue()-NmNex)/2;
 	int Nex_omega=(omega.N().TwiceValue()-NmNex)/2;
+	double factor=sqrt(double((S0.TwiceValue()+1)*u3::dim(x0))/double(2*u3::dim(u3::SU3(etap,0))));
         for(int operator_index=0; operator_index<unit_tensor_hyperblocks2[hypersector_index].size(); operator_index++){
           for(int i=0; i<gamma_maxp; ++i)
             for(int j=0; j<gamma_max; ++j){
@@ -657,15 +658,15 @@ int main(int argc, char **argv)
               int jt=j*upsilon_max;
               for(int up=0; up<upsilon_maxp; up++)
                 for(int u=0; u<upsilon_max; u++){
-	          std::array<int,28> key={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
+	          std::array<int,28> keyp={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
 	            S_bra.TwiceValue(),up+1,Nex_omegap,omegap.SU3().lambda(),omegap.SU3().mu(),
                     j+1,Nex_sigma,sigma.SU3().lambda(),sigma.SU3().mu(),Sp_ket.TwiceValue(),Sn_ket.TwiceValue(),S_ket.TwiceValue(),
                     u+1,Nex_omega,omega.SU3().lambda(),omega.SU3().mu(),
                     etap,eta,x0.lambda(),x0.mu(),S0.TwiceValue(),rho0};
                   if(operator_index==0){
-                    proton_OBDRME_by_labels[key]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+                    proton_OBDRME_by_labels[keyp]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u)*factor;
                   }else{
-		    neutron_OBDRME_by_labels[key]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+		    neutron_OBDRME_by_labels[keyp]=unit_tensor_hyperblocks2[hypersector_index][operator_index](it+up,jt+u)*factor;
 		  }
                 }
             }
@@ -674,8 +675,15 @@ int main(int argc, char **argv)
     }
   }
 
+  std::map<std::array<int,37>,double> proton_TBDRME_by_labels, neutron_TBDRME_by_labels, pn_TBDRME_by_labels;
+  // Labels are gamma', Nex_sigma', lm_sigma', mu_sigma', SSp', SSn', SS', upsilon', Nex_omega', lm_omega', mu_omega',
+  // gamma, Nex_sigma, lm_sigma, mu_sigma, SSp, SSn, SS, upsilon, Nex_omega, lm_omega, mu_omega,
+  // N1, N2, N3, N4, lmf, muf, SSf, lmi, mui, SSi, lm0, mu0, SS0, rho0, rho
   for(int i=0; i<lgi_pairs_tb.size(); ++i){
     const spncci::LGIPair& lgi_pair=lgi_pairs_tb[i];
+
+    basis::OperatorHyperblocks<double> tbd_hyperblocks,tbd_hyperblocks2;
+    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors,baby_spncci_hypersectors2;
 
     spncci::ComputeTwoBodyDensityRMEs(
               run_parameters,N1vp,N1vn,lgi_families,lgi_full_space_index_lookup,
@@ -683,12 +691,116 @@ int main(int argc, char **argv)
               two_body_density_space,
               k_matrix_cache,kinv_matrix_cache,
               lgi_transformations,
-              u_coef_cache,phi_coef_cache,lgi_pair
+              u_coef_cache,phi_coef_cache,lgi_pair,
+              tbd_hyperblocks,baby_spncci_hypersectors,
+	      tbd_hyperblocks2,baby_spncci_hypersectors2
             );
+
+    int irrep_family_index_bra,irrep_family_index_ket;
+    std::tie(irrep_family_index_bra,irrep_family_index_ket)=lgi_pair;
+
+    for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index){
+      auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
+      int tbd_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho;
+      std::tie(baby_spncci_subspace_indexp,baby_spncci_index,tbd_subspace_index,rho)=key;
+      const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+      const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+      const u3shell::TwoBodyDensitySubspace& tbd_subspace=two_body_density_space.GetSubspace(tbd_subspace_index);
+      int gamma_max=baby_spncci_subspace_ket.gamma_max();
+      int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+      int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+      int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+      u3::U3 omegap,sigmap,omega,sigma;
+      u3::SU3 x0,xf,xi;
+      HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+      int N1,N2,N3,N4,rho0;
+      std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+      std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+      std::tie(x0,S0,N1,N2,N3,N4,xf,xi,rho0)=tbd_subspace.labels();
+      int Nex_sigmap=(sigmap.N().TwiceValue()-NmNex)/2;
+      int Nex_omegap=(omegap.N().TwiceValue()-NmNex)/2;
+      int Nex_sigma=(sigma.N().TwiceValue()-NmNex)/2;
+      int Nex_omega=(omega.N().TwiceValue()-NmNex)/2;
+      for(int operator_index=0; operator_index<tbd_hyperblocks[hypersector_index].size(); operator_index++){
+        int Sf,Si,Tz;
+        std::tie(Sf,Si,Tz)=tbd_subspace.GetStateLabels(operator_index);
+        for(int i=0; i<gamma_maxp; ++i)
+          for(int j=0; j<gamma_max; ++j){
+            int it=i*upsilon_maxp;
+            int jt=j*upsilon_max;
+            for(int up=0; up<upsilon_maxp; up++)
+              for(int u=0; u<upsilon_max; u++){
+                std::array<int,37> keyp={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
+	          S_bra.TwiceValue(),up+1,Nex_omegap,omegap.SU3().lambda(),omegap.SU3().mu(),
+                  j+1,Nex_sigma,sigma.SU3().lambda(),sigma.SU3().mu(),Sp_ket.TwiceValue(),Sn_ket.TwiceValue(),
+		  S_ket.TwiceValue(),u+1,Nex_omega,omega.SU3().lambda(),omega.SU3().mu(),
+                  N1,N2,N3,N4,xf.lambda(),xf.mu(),2*Sf,xi.lambda(),xi.mu(),2*Si,x0.lambda(),x0.mu(),S0.TwiceValue(),rho0,rho};
+	        if(Tz==1){
+                  proton_TBDRME_by_labels[keyp]=tbd_hyperblocks[hypersector_index][operator_index](it+up,jt+u);
+                }else if(Tz==-1){
+                  neutron_TBDRME_by_labels[keyp]=tbd_hyperblocks[hypersector_index][operator_index](it+up,jt+u);
+		}else{
+	          pn_TBDRME_by_labels[keyp]=tbd_hyperblocks[hypersector_index][operator_index](it+up,jt+u);
+                }
+              }
+          }
+      }
+    }
+
+    if(irrep_family_index_ket!=irrep_family_index_bra){
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors2.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors2.GetHypersector(hypersector_index).Key();
+        int tbd_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,tbd_subspace_index,rho)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::TwoBodyDensitySubspace& tbd_subspace=two_body_density_space.GetSubspace(tbd_subspace_index);
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+        u3::U3 omegap,sigmap,omega,sigma;
+        u3::SU3 x0,xf,xi;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int N1,N2,N3,N4,rho0;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,N1,N2,N3,N4,xf,xi,rho0)=tbd_subspace.labels();
+        int Nex_sigmap=(sigmap.N().TwiceValue()-NmNex)/2;
+        int Nex_omegap=(omegap.N().TwiceValue()-NmNex)/2;
+        int Nex_sigma=(sigma.N().TwiceValue()-NmNex)/2;
+        int Nex_omega=(omega.N().TwiceValue()-NmNex)/2;
+        for(int operator_index=0; operator_index<tbd_hyperblocks2[hypersector_index].size(); operator_index++){
+          int Sf,Si,Tz;
+          std::tie(Sf,Si,Tz)=tbd_subspace.GetStateLabels(operator_index);
+          for(int i=0; i<gamma_maxp; ++i)
+            for(int j=0; j<gamma_max; ++j){
+              int it=i*upsilon_maxp;
+              int jt=j*upsilon_max;
+              for(int up=0; up<upsilon_maxp; up++)
+                for(int u=0; u<upsilon_max; u++){
+                  std::array<int,37> keyp={i+1,Nex_sigmap,sigmap.SU3().lambda(),sigmap.SU3().mu(),Sp_bra.TwiceValue(),Sn_bra.TwiceValue(),
+                    S_bra.TwiceValue(),up+1,Nex_omegap,omegap.SU3().lambda(),omegap.SU3().mu(),
+                    j+1,Nex_sigma,sigma.SU3().lambda(),sigma.SU3().mu(),Sp_ket.TwiceValue(),Sn_ket.TwiceValue(),
+                    S_ket.TwiceValue(),u+1,Nex_omega,omega.SU3().lambda(),omega.SU3().mu(),
+                    N1,N2,N3,N4,xf.lambda(),xf.mu(),2*Sf,xi.lambda(),xi.mu(),2*Si,x0.lambda(),x0.mu(),S0.TwiceValue(),rho0,rho};
+                  if(Tz==1){
+                    proton_TBDRME_by_labels[keyp]=tbd_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+                  }else if(Tz==-1){
+                    neutron_TBDRME_by_labels[keyp]=tbd_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+		  }else{
+		    pn_TBDRME_by_labels[keyp]=tbd_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+                  }
+                }
+            }
+        }
+      }
+    }
+
   }
 
   u_coef_cache.clear();
-  phi_coef_cache.clear();
+//  phi_coef_cache.clear();
 /*
   double wcoef=u3::W(u3::SU3(4,3),1,2,u3::SU3(2,0),1,2,u3::SU3(5,2),1,2,1);
   std::cout<<"Wigner coef: "<<wcoef<<std::endl;
@@ -980,58 +1092,1122 @@ if(J.TwiceValue()==JJ_bra || J.TwiceValue()==JJ_ket){
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //******************************************** Added by J.H. *******************************************
-int Np=0;
-int lp=0;
-int jjp=1;
-int N=0;
-int l=0;
-int jj=1;
-int JJ0=0;
-int Tz=1;
-
-double OBDME=0.0;
+/*
+std::cout<<"*******************************************************************"<<std::endl;
+std::cout<<"Ground state wave function (gamma Nex_sigma lm_sigma mu_sigma SSp SSn SS upsilon Nex_omega lm_omega mu_omega kappa L amplitude):"<<std::endl;
+for(std::map<std::array<int,13>,double>::iterator it=amplitude_by_labels_bra.begin(); it!=amplitude_by_labels_bra.end(); it++){
+  std::cout<<it->first[0]<<" "<<it->first[1]<<" "<<it->first[2]<<" "<<it->first[3]<<" "<<it->first[4]<<" "
+	   <<it->first[5]<<" "<<it->first[6]<<" "<<it->first[7]<<" "<<it->first[8]<<" "<<it->first[9]<<" "
+	   <<it->first[10]<<" "<<it->first[11]<<" "<<it->first[12]<<" "<<it->second<<std::endl;
+}
+*/
+/*
+std::cout<<"*******************************************************************"<<std::endl;
+std::cout<<"OBDRMEs (N' l' 2j' N l 2j J0 proton neutron):"<<std::endl;
+for(int Np=0; Np<=std::max(N1vp,N1vn)+run_parameters.Nmax; Np++){
+for(int lp=Np%2; lp<=Np; lp+=2){
+for(int jjp=std::abs(2*lp-1); jjp<=2*lp+1; jjp+=2){
+for(int N=Np%2; N<=std::max(N1vp,N1vn)+run_parameters.Nmax; N+=2){ // so that the OBD operator doesn't change parity
+for(int l=N%2; l<=N; l+=2){
+for(int jj=std::abs(2*l-1); jj<=2*l+1; jj+=2){
+for(int JJ0=std::max(std::abs(jjp-jj),std::abs(JJ_ket-JJ_bra)); JJ0<=std::min(jjp+jj,JJ_ket+JJ_bra); JJ0+=2){
+double OBDME_p=0.0;
+double OBDME_n=0.0;
+*/
+/*
 for(auto x0 : u3::KroneckerProduct(u3::SU3(Np,0),u3::SU3(0,N))){
   for(auto L0 : u3::BranchingSO3(x0.irrep)){
     for(int kappa0=1; kappa0<=L0.tag; kappa0++){
-      double sum_S0=0.0;
+      double sum_S0_p=0.0;
+      double sum_S0_n=0.0;
       for(int SS0=0; SS0<=2; SS0+=2){
-        double sum_basis=0.0;
+        double sum_basis_p=0.0;
+	double sum_basis_n=0.0;
         for(std::map<std::array<int,13>,double>::iterator
             itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
           for(std::map<std::array<int,13>,double>::iterator
               itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
-            double sum_rho=0.0;
+            double sum_rho_p=0.0;
+            double sum_rho_n=0.0;
 	    for(int rho=1; rho<=u3::OuterMultiplicity(u3::SU3(itket->first[9],itket->first[10]),x0.irrep,
 				    u3::SU3(itbra->first[9],itbra->first[10])); rho++){
-              std::array<int,28> key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
-		                      itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
-                                      itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
-				      itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
-                                      Np,N,x0.irrep.lambda(),x0.irrep.mu(),SS0,rho};
-	      double OBDRME;
-	      if(Tz==1){
-                OBDRME=proton_OBDRME_by_labels[key];
+              std::array<int,28> key;
+	      double factor;
+	      if(itbra->first[8]-itbra->first[1]>=itket->first[8]-itket->first[1]){
+		key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+		     itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+                     itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+		     itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+                     Np,N,x0.irrep.lambda(),x0.irrep.mu(),SS0,rho};
+		factor=1.0;
 	      }else{
-                OBDRME=neutron_OBDRME_by_labels[key];
+                key={itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+                     itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+		     itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+                     itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+                     N,Np,x0.irrep.mu(),x0.irrep.lambda(),SS0,rho};
+                factor=sqrt(double((itket->first[6]+1)*u3::dim(u3::SU3(itket->first[9],itket->first[10])))/
+		            double((itbra->first[6]+1)*u3::dim(u3::SU3(itbra->first[9],itbra->first[10]))));
+		int phase=Np-N+itbra->first[9]+itbra->first[10]-itket->first[9]-itket->first[10]+(itbra->first[6]-itket->first[6])/2;
+		if(2*(phase/2)!=phase)factor=-factor;
 	      }
-	      sum_rho+=u3::W(u3::SU3(itket->first[9],itket->first[10]),itket->first[11],itket->first[12],x0.irrep,kappa0,L0.irrep,
-			     u3::SU3(itbra->first[9],itbra->first[10]),itbra->first[11],itbra->first[12],rho)*OBDRME;
+	      double OBDRMEp=factor*proton_OBDRME_by_labels[key];
+	      double OBDRMEn=factor*neutron_OBDRME_by_labels[key];
+	      sum_rho_p+=u3::W(u3::SU3(itket->first[9],itket->first[10]),itket->first[11],itket->first[12],x0.irrep,kappa0,L0.irrep,
+			     u3::SU3(itbra->first[9],itbra->first[10]),itbra->first[11],itbra->first[12],rho)*OBDRMEp;
+	      sum_rho_n+=u3::W(u3::SU3(itket->first[9],itket->first[10]),itket->first[11],itket->first[12],x0.irrep,kappa0,L0.irrep,
+                             u3::SU3(itbra->first[9],itbra->first[10]),itbra->first[11],itbra->first[12],rho)*OBDRMEn;
 	    }
-	    sum_basis+=itbra->second*itket->second*sqrt(double((JJ_ket+1)*(JJ0+1)*(2*itbra->first[12]+1)*(itbra->first[6]+1)))
+	    sum_basis_p+=itbra->second*itket->second*sqrt(double((JJ_ket+1)*(JJ0+1)*(2*itbra->first[12]+1)*(itbra->first[6]+1)))
 	               *wig9jj(2*itket->first[12],itket->first[6],JJ_ket,2*L0.irrep,SS0,JJ0,2*itbra->first[12],itbra->first[6],JJ_bra)
-		       *sum_rho;
+		       *sum_rho_p;
+	    sum_basis_n+=itbra->second*itket->second*sqrt(double((JJ_ket+1)*(JJ0+1)*(2*itbra->first[12]+1)*(itbra->first[6]+1)))
+                       *wig9jj(2*itket->first[12],itket->first[6],JJ_ket,2*L0.irrep,SS0,JJ0,2*itbra->first[12],itbra->first[6],JJ_bra)
+                       *sum_rho_n;
           }
         }
-	sum_S0+=sqrt(double(SS0+1))*wig9jj(2*lp,2*l,2*L0.irrep,1,1,SS0,jjp,jj,JJ0)*sum_basis;
+	sum_S0_p+=sqrt(double(SS0+1))*wig9jj(2*lp,2*l,2*L0.irrep,1,1,SS0,jjp,jj,JJ0)*sum_basis_p;
+	sum_S0_n+=sqrt(double(SS0+1))*wig9jj(2*lp,2*l,2*L0.irrep,1,1,SS0,jjp,jj,JJ0)*sum_basis_n;
       }
-      OBDME+=sqrt(double(2*L0.irrep+1))*u3::W(u3::SU3(Np,0),1,lp,u3::SU3(0,N),1,l,x0.irrep,kappa0,L0.irrep,1)*sum_S0;
+      OBDME_p+=sqrt(double(2*L0.irrep+1))*u3::W(u3::SU3(Np,0),1,lp,u3::SU3(0,N),1,l,x0.irrep,kappa0,L0.irrep,1)*sum_S0_p;
+      OBDME_n+=sqrt(double(2*L0.irrep+1))*u3::W(u3::SU3(Np,0),1,lp,u3::SU3(0,N),1,l,x0.irrep,kappa0,L0.irrep,1)*sum_S0_n;
     }
   }
 }
-OBDME*=sqrt(double((jjp+1)*(jj+1)));
-std::cout<<"OBDME: "<<OBDME<<std::endl;
-//******************************************************************************************************
+OBDME_p*=sqrt(double((jjp+1)*(jj+1)));
+OBDME_n*=sqrt(double((jjp+1)*(jj+1)));
+*/
+/*
+for(auto x0 : u3::KroneckerProduct(u3::SU3(Np,0),u3::SU3(0,N))){
+  for(auto L0tagged : u3::BranchingSO3(x0.irrep)){
+    int L0=int(L0tagged.irrep);
+    if(std::abs(lp-l)>L0 || L0>lp+l)continue;
+    for(int kappa0=1; kappa0<=L0tagged.tag; kappa0++){
+      double factor1=sqrt(double(2*L0+1))*u3::W(u3::SU3(Np,0),1,lp,u3::SU3(0,N),1,l,x0.irrep,kappa0,L0,1);
+      for(std::map<std::array<int,13>,double>::iterator
+          itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
+	int gamma_bra=itbra->first[0];
+	int Nex_sigma_bra=itbra->first[1];
+	int lm_sigma_bra=itbra->first[2];
+	int mu_sigma_bra=itbra->first[3];
+	int SSp_bra=itbra->first[4];
+	int SSn_bra=itbra->first[5];
+	int SS_bra=itbra->first[6];
+	int upsilon_bra=itbra->first[7];
+	int Nex_omega_bra=itbra->first[8];
+	int lm_omega_bra=itbra->first[9];
+	int mu_omega_bra=itbra->first[10];
+	int kappa_bra=itbra->first[11];
+	int L_bra=itbra->first[12];
+	u3::SU3 x_bra(lm_omega_bra,mu_omega_bra);
+	double factor2=factor1*sqrt(double((2*L_bra+1)*(SS_bra+1)))*itbra->second;
+        for(std::map<std::array<int,13>,double>::iterator
+            itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
+	  int L_ket=itket->first[12];
+          if(std::abs(L_ket-L0)>L_bra || L_bra>L_ket+L0)continue;
+          int gamma_ket=itket->first[0];
+          int Nex_sigma_ket=itket->first[1];
+          int lm_sigma_ket=itket->first[2];
+          int mu_sigma_ket=itket->first[3];
+          int SSp_ket=itket->first[4];
+          int SSn_ket=itket->first[5];
+          int SS_ket=itket->first[6];
+          int upsilon_ket=itket->first[7];
+          int Nex_omega_ket=itket->first[8];
+          int lm_omega_ket=itket->first[9];
+          int mu_omega_ket=itket->first[10];
+          int kappa_ket=itket->first[11];
+          u3::SU3 x_ket(lm_omega_ket,mu_omega_ket);
+	  double factor3=factor2*itket->second;
+          for(int rho=1; rho<=u3::OuterMultiplicity(x_ket,x0.irrep,x_bra); rho++){
+            double factor4=factor3*u3::W(x_ket,kappa_ket,L_ket,x0.irrep,kappa0,L0,x_bra,kappa_bra,L_bra,rho);
+            for(int SS0=0; SS0<=2; SS0+=2){
+	      if(std::abs(2*L0-SS0)>JJ0 || JJ0>2*L0+SS0 || std::abs(SS_ket-SS0)>SS_bra || SS_bra>SS_ket+SS0)continue;
+              double factor5=factor4*sqrt(double(SS0+1))*wig9jj(2*lp,2*l,2*L0,1,1,SS0,jjp,jj,JJ0)
+		                                        *wig9jj(2*L_ket,SS_ket,JJ_ket,2*L0,SS0,JJ0,2*L_bra,SS_bra,JJ_bra);
+              std::array<int,28> key;
+	      double factor;
+	      if(Nex_omega_bra-Nex_sigma_bra>=Nex_omega_ket-Nex_sigma_ket){
+		key={gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,
+		     SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                     gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,
+		     SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+                     Np,N,x0.irrep.lambda(),x0.irrep.mu(),SS0,rho};
+		factor=1.0;
+	      }else{
+                key={gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,
+                     SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+		     gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,
+                     SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                     N,Np,x0.irrep.mu(),x0.irrep.lambda(),SS0,rho};
+                factor=sqrt(double((SS_ket+1)*u3::dim(x_ket))/double((SS_bra+1)*u3::dim(x_bra)));
+		if((Np-N+lm_omega_bra+mu_omega_bra-lm_omega_ket-mu_omega_ket+(SS_bra-SS_ket)/2)%2!=0)factor=-factor;
+	      }
+              OBDME_p+=factor5*factor*proton_OBDRME_by_labels[key];
+	      OBDME_n+=factor5*factor*neutron_OBDRME_by_labels[key];
+            }
+	  }
+        }
+      }
+    }
+  }
+}
+double factor0=sqrt(double((jjp+1)*(jj+1)*(JJ_ket+1)*(JJ0+1)));
+OBDME_p*=factor0;
+OBDME_n*=factor0;
 
+std::cout<<Np<<" "<<lp<<" "<<jjp<<" "<<N<<" "<<l<<" "<<jj<<" "<<JJ0/2<<" "
+         <<OBDME_p*sqrt(double(JJ_bra+1)/double(JJ0+1))<<" "<<OBDME_n*sqrt(double(JJ_bra+1)/double(JJ0+1))<<std::endl;
+}
+}
+}
+}
+}
+}
+}
+*/
+//std::cout<<"*******************************************************************"<<std::endl;
+/*
+int number=0;
+for(int N1=0; N1<=std::max(N1vp,N1vn)+run_parameters.Nmax; N1++){
+for(int l1=N1%2; l1<=N1; l1+=2){
+for(int jj1=std::abs(2*l1-1); jj1<=2*l1+1; jj1+=2){
+for(int N2=N1; N2<=std::min(std::max(N1vp,N1vn)+run_parameters.Nmax,N0+run_parameters.Nmax-N1); N2++){
+int l2min;
+if(N2==N1){
+l2min=l1;
+}else{
+l2min=N2%2;
+}
+for(int l2=l2min; l2<=N2; l2+=2){
+int jj2min;
+if(N2==N1 && l2==l1){
+jj2min=jj1;
+}else{
+jj2min=std::abs(2*l2-1);
+}
+for(int jj2=jj2min; jj2<=2*l2+1; jj2+=2){
+for(int N3=0; N3<=std::max(N1vp,N1vn)+run_parameters.Nmax; N3++){
+for(int l3=N3%2; l3<=N3; l3+=2){
+for(int jj3=std::abs(2*l3-1); jj3<=2*l3+1; jj3+=2){
+int N4min=std::max(std::max(0,N1+N2-N3-run_parameters.Nmax),N3);
+if((N1+N2-N3-N4min)%2!=0)N4min++; // so that TBD operator doesn't change parity
+for(int N4=N4min; N4<=std::min(std::min(std::max(N1vp,N1vn)+run_parameters.Nmax,N0+run_parameters.Nmax-N3),N1+N2-N3+run_parameters.Nmax); N4+=2){
+int l4min;
+if(N4==N3){
+l4min=l3;
+}else{
+l4min=N4%2;
+}
+for(int l4=l4min; l4<=N4; l4+=2){
+int jj4min;
+if(N4==N3 && l4==l3){
+jj4min=jj3;
+}else{
+jj4min=std::abs(2*l4-1);
+}
+for(int jj4=jj4min; jj4<=2*l4+1; jj4+=2){
+for(int JJf=std::abs(jj1-jj2); JJf<=jj1+jj2; JJf+=2){
+//if(N1==N2 && l1==l2 && jj1==jj2 && (JJf/2)%2 != 0)continue;
+for(int JJi=std::abs(jj3-jj4); JJi<=jj3+jj4; JJi+=2){
+//if(N3==N4 && l3==l4 && jj3==jj4 && (JJi/2)%2 != 0)continue;
+for(int JJ0=std::max(std::abs(JJf-JJi),std::abs(JJ_ket-JJ_bra)); JJ0<=std::min(JJf+JJi,JJ_ket+JJ_bra); JJ0+=2){
+  number++;
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+std::cout<<"Number of TBDRMEs: "<<number<<std::endl;
+*/
+/*
+std::cout<<"TBDRMEs (N1 l1 2j1 N2 l2 2j2 N3 l3 2j3 N4 l4 2j4 Jf Ji J0 proton neutron proton-neutron):"<<std::endl;
+for(int N1=0; N1<=std::max(N1vp,N1vn)+run_parameters.Nmax; N1++){
+for(int l1=N1%2; l1<=N1; l1+=2){
+for(int jj1=std::abs(2*l1-1); jj1<=2*l1+1; jj1+=2){
+for(int N2=N1; N2<=std::min(std::max(N1vp,N1vn)+run_parameters.Nmax,N0+run_parameters.Nmax-N1); N2++){
+int l2min;
+if(N2==N1){
+l2min=l1;
+}else{
+l2min=N2%2;
+}
+for(int l2=l2min; l2<=N2; l2+=2){
+int jj2min;
+if(N2==N1 && l2==l1){
+jj2min=jj1;
+}else{
+jj2min=std::abs(2*l2-1);
+}
+for(int jj2=jj2min; jj2<=2*l2+1; jj2+=2){
+for(int N3=0; N3<=std::max(N1vp,N1vn)+run_parameters.Nmax; N3++){
+for(int l3=N3%2; l3<=N3; l3+=2){
+for(int jj3=std::abs(2*l3-1); jj3<=2*l3+1; jj3+=2){
+int N4min=std::max(std::max(0,N1+N2-N3-run_parameters.Nmax),N3);
+if((N1+N2-N3-N4min)%2!=0)N4min++; // so that TBD operator doesn't change parity
+for(int N4=N4min; N4<=std::min(std::min(std::max(N1vp,N1vn)+run_parameters.Nmax,N0+run_parameters.Nmax-N3),N1+N2-N3+run_parameters.Nmax); N4+=2){
+int l4min;
+if(N4==N3){
+l4min=l3;
+}else{
+l4min=N4%2;
+}
+for(int l4=l4min; l4<=N4; l4+=2){
+int jj4min;
+if(N4==N3 && l4==l3){
+jj4min=jj3;
+}else{
+jj4min=std::abs(2*l4-1);
+}
+for(int jj4=jj4min; jj4<=2*l4+1; jj4+=2){
+for(int JJf=std::abs(jj1-jj2); JJf<=jj1+jj2; JJf+=2){
+//if(N1==N2 && l1==l2 && jj1==jj2 && (JJf/2)%2 != 0)continue;
+for(int JJi=std::abs(jj3-jj4); JJi<=jj3+jj4; JJi+=2){
+//if(N3==N4 && l3==l4 && jj3==jj4 && (JJi/2)%2 != 0)continue;
+for(int JJ0=std::max(std::abs(JJf-JJi),std::abs(JJ_ket-JJ_bra)); JJ0<=std::min(JJf+JJi,JJ_ket+JJ_bra); JJ0+=2){
+double TBDME_p=0.0;
+double TBDME_n=0.0;
+double TBDME_pn=0.0;
+*/
+/*
+for(auto xf : u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0))){
+  for(auto Lf : u3::BranchingSO3(xf.irrep)){
+    for(int kappaf=1; kappaf<=Lf.tag; kappaf++){
+      double sum_Sf_p=0.0;
+      double sum_Sf_n=0.0;
+      double sum_Sf_pn=0.0;
+      for(int SSf=0; SSf<=2; SSf+=2){
+        double sum_i_p=0.0;
+	double sum_i_n=0.0;
+	double sum_i_pn=0.0;
+	for(auto xi : u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4))){
+          for(auto Li : u3::BranchingSO3(xi.irrep)){
+            for(int kappai=1; kappai<=Li.tag; kappai++){
+	      double sum_Si_p=0.0;
+	      double sum_Si_n=0.0;
+	      double sum_Si_pn=0.0;
+	      for(int SSi=0; SSi<=2; SSi+=2){
+		double sum_0_p=0.0;
+		double sum_0_n=0.0;
+		double sum_0_pn=0.0;
+		for(auto x0 : u3::KroneckerProduct(xf.irrep,xi.irrep)){
+	          for(int rho0=1; rho0<=x0.tag; rho0++){
+		    for(auto L0 : u3::BranchingSO3(x0.irrep)){
+		      for(int kappa0=1; kappa0<=L0.tag; kappa0++){
+                        double sum_S0_p=0.0;
+			double sum_S0_n=0.0;
+			double sum_S0_pn=0.0;
+			for(int SS0=std::abs(SSf-SSi); SS0<=SSf+SSi; SS0+=2){
+			  double sum_basis_p=0.0;
+			  double sum_basis_n=0.0;
+			  double sum_basis_pn=0.0;
+                          for(std::map<std::array<int,13>,double>::iterator
+                              itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
+                            for(std::map<std::array<int,13>,double>::iterator
+                                itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
+                              double sum_rho_p=0.0;
+			      double sum_rho_n=0.0;
+			      double sum_rho_pn=0.0;
+			      for(int rho=1; rho<=u3::OuterMultiplicity(u3::SU3(itket->first[9],itket->first[10]),x0.irrep,
+                                                                        u3::SU3(itbra->first[9],itbra->first[10])); rho++){
+                                std::array<int,37> key;
+                                double TBDRME_p=0.0;
+				double TBDRME_n=0.0;
+				double TBDRME_pn=0.0;
+				int sign=1;
+                                if(itbra->first[8]-itbra->first[1]>=itket->first[8]-itket->first[1]){
+//				  if(N1>=N2 && N3>=N4){
+                                    key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+                                         itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+                                         itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+                                         itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+                                         N1,N2,N3,N4,xf.irrep.lambda(),xf.irrep.mu(),SSf,xi.irrep.lambda(),xi.irrep.mu(),SSi,
+					 x0.irrep.lambda(),x0.irrep.mu(),SS0,rho0,rho};
+//				  }else if(N1<N2 && N3>=N4){
+//                                    key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+//                                         itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+//                                         itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+//                                         itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+//                                         N2,N1,N3,N4,xf.irrep.lambda(),xf.irrep.mu(),SSf,xi.irrep.lambda(),xi.irrep.mu(),SSi,
+//                                         x0.irrep.lambda(),x0.irrep.mu(),SS0,rho0,rho};
+//				    int phase=N1+N2-xf.irrep.lambda()-xf.irrep.mu()+SSf/2;
+//			            if(2*(phase/2)!=phase)sign=-1;
+//			          }else if(N1>=N2 && N3<N4){
+//                                   key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+//                                         itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+//                                         itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+//                                         itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+//                                         N1,N2,N4,N3,xf.irrep.lambda(),xf.irrep.mu(),SSf,xi.irrep.lambda(),xi.irrep.mu(),SSi,
+//                                         x0.irrep.lambda(),x0.irrep.mu(),SS0,rho0,rho};
+//				    int phase=N3+N4-xi.irrep.lambda()-xi.irrep.mu()+SSi/2;
+//                                    if(2*(phase/2)!=phase)sign=-1;
+//				  }else{
+//                                    key={itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+//                                         itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+//                                         itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+//                                         itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+//                                         N2,N1,N4,N3,xf.irrep.lambda(),xf.irrep.mu(),SSf,xi.irrep.lambda(),xi.irrep.mu(),SSi,
+//                                         x0.irrep.lambda(),x0.irrep.mu(),SS0,rho0,rho};
+//				    int phase=N1+N2-xf.irrep.lambda()-xf.irrep.mu()+N3+N4-xi.irrep.lambda()-xi.irrep.mu()+(SSf+SSi)/2;
+//                                    if(2*(phase/2)!=phase)sign=-1;
+//				  }
+                                  TBDRME_p=sign*proton_TBDRME_by_labels[key];
+                                  TBDRME_n=sign*neutron_TBDRME_by_labels[key];
+                                  TBDRME_pn=sign*pn_TBDRME_by_labels[key];
+                                }else{
+                                  for(int rho0p=1; rho0p<=x0.tag; rho0p++){
+			            sign=-sign;
+				    int sign2=1;
+//				    if(N3>=N4 && N1>=N2){
+                                      key={itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+                                           itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+					   itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+                                           itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+                                           N4,N3,N2,N1,xi.irrep.mu(),xi.irrep.lambda(),SSi,xf.irrep.mu(),xf.irrep.lambda(),SSf,
+                                           x0.irrep.mu(),x0.irrep.lambda(),SS0,rho0p,rho};
+//                                  }else if(N3<N4 && N1>=N2){
+//                                      key={itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+//                                           itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+//                                           itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+//                                           itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+//                                           N4,N3,N1,N2,xi.irrep.mu(),xi.irrep.lambda(),SSi,xf.irrep.mu(),xf.irrep.lambda(),SSf,
+//                                           x0.irrep.mu(),x0.irrep.lambda(),SS0,rho0p,rho};
+//				      int phase2=N3+N4-xi.irrep.lambda()-xi.irrep.mu()+SSi/2;
+//				      if(2*(phase2/2)!=phase2)sign2=-1;
+//                                    }else if(N3>=N4 && N1<N2){
+//                                      key={itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+//                                           itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+//                                           itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+//                                           itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+//                                          N3,N4,N2,N1,xi.irrep.mu(),xi.irrep.lambda(),SSi,xf.irrep.mu(),xf.irrep.lambda(),SSf,
+//                                           x0.irrep.mu(),x0.irrep.lambda(),SS0,rho0p,rho};
+//				      int phase2=N1+N2-xf.irrep.lambda()-xf.irrep.mu()+SSf/2;
+//                                      if(2*(phase2/2)!=phase2)sign2=-1;
+//                                    }else{
+//                                      key={itket->first[0],itket->first[1],itket->first[2],itket->first[3],itket->first[4],itket->first[5],
+//                                           itket->first[6],itket->first[7],itket->first[8],itket->first[9],itket->first[10],
+//                                           itbra->first[0],itbra->first[1],itbra->first[2],itbra->first[3],itbra->first[4],itbra->first[5],
+//                                           itbra->first[6],itbra->first[7],itbra->first[8],itbra->first[9],itbra->first[10],
+//                                           N4,N3,N2,N1,xi.irrep.mu(),xi.irrep.lambda(),SSi,xf.irrep.mu(),xf.irrep.lambda(),SSf,
+//                                           x0.irrep.mu(),x0.irrep.lambda(),SS0,rho0p,rho};
+//				      int phase2=N3+N4-xi.irrep.lambda()-xi.irrep.mu()+N1+N2-xf.irrep.lambda()-xf.irrep.mu()+(SSi+SSf)/2;
+//                                      if(2*(phase2/2)!=phase2)sign2=-1;
+//				    }
+				    double factor0=sign*PhiCached(phi_coef_cache,xf.irrep,xi.irrep,x0.irrep,rho0,rho0p)*sign2;
+                                    TBDRME_p+=factor0*proton_TBDRME_by_labels[key];
+                                    TBDRME_n+=factor0*neutron_TBDRME_by_labels[key];
+				    TBDRME_pn+=factor0*pn_TBDRME_by_labels[key];
+                                  }
+				  double factor1=sqrt(double((itket->first[6]+1)*u3::dim(u3::SU3(itket->first[9],itket->first[10])))
+                                                     /double((itbra->first[6]+1)*u3::dim(u3::SU3(itbra->first[9],itbra->first[10]))));
+                                  TBDRME_p*=factor1;
+				  TBDRME_n*=factor1;
+				  TBDRME_pn*=factor1;
+				  int phase=x0.irrep.lambda()+x0.irrep.mu()+itbra->first[9]+itbra->first[10]-itket->first[9]-itket->first[10]
+					    +(itket->first[6]-itbra->first[6])/2+x0.tag+xi.irrep.lambda()+xi.irrep.mu()
+					    +xf.irrep.lambda()+xf.irrep.mu()+N1+N2+N3+N4;
+				  if(2*(phase/2)!=phase){
+			            TBDRME_p=-TBDRME_p;
+				    TBDRME_n=-TBDRME_n;
+				    TBDRME_pn=-TBDRME_pn;
+				  }
+				}
+				double factor2=u3::W(u3::SU3(itket->first[9],itket->first[10]),itket->first[11],itket->first[12],
+                                               x0.irrep,kappa0,L0.irrep,
+                                               u3::SU3(itbra->first[9],itbra->first[10]),itbra->first[11],itbra->first[12],rho);
+                                sum_rho_p+=factor2*TBDRME_p;
+				sum_rho_n+=factor2*TBDRME_n;
+				sum_rho_pn+=factor2*TBDRME_pn;
+			      }
+			      double factor3=sqrt(double((2*itbra->first[12]+1)*(itbra->first[6]+1)))*itbra->second*itket->second
+                                         *wig9jj(2*itket->first[12],itket->first[6],JJ_ket,2*L0.irrep,SS0,JJ0,
+                                                 2*itbra->first[12],itbra->first[6],JJ_bra);
+			      sum_basis_p+=factor3*sum_rho_p;
+                              sum_basis_n+=factor3*sum_rho_n;
+			      sum_basis_pn+=factor3*sum_rho_pn;
+		            }
+	                  }
+			  double factor4=sqrt(double(SS0+1))*wig9jj(2*Lf.irrep,2*Li.irrep,2*L0.irrep,SSf,SSi,SS0,JJf,JJi,JJ0);
+			  sum_S0_p+=factor4*sum_basis_p;
+			  sum_S0_n+=factor4*sum_basis_n;
+			  sum_S0_pn+=factor4*sum_basis_pn;
+                        }
+			double factor5=sqrt(double(2*L0.irrep+1))
+                               *u3::W(xf.irrep,kappaf,Lf.irrep,xi.irrep,kappai,Li.irrep,x0.irrep,kappa0,L0.irrep,rho0);
+			sum_0_p+=factor5*sum_S0_p;
+			sum_0_n+=factor5*sum_S0_n;
+			sum_0_pn+=factor5*sum_S0_pn;
+		      }
+		    }
+		  }
+	        }
+		double factor6=sqrt(double(SSi+1))*wig9jj(2*l3,2*l4,2*Li.irrep,1,1,SSi,jj3,jj4,JJi);
+		sum_Si_p+=factor6*sum_0_p;
+		sum_Si_n+=factor6*sum_0_n;
+		sum_Si_pn+=factor6*sum_0_pn;
+              }
+	      double factor7=sqrt(double(2*Li.irrep+1))*u3::W(u3::SU3(0,N3),1,l3,u3::SU3(0,N4),1,l4,xi.irrep,kappai,Li.irrep,1);
+	      sum_i_p+=factor7*sum_Si_p;
+	      sum_i_n+=factor7*sum_Si_n;
+	      sum_i_pn+=factor7*sum_Si_pn;
+            }
+          }
+        }
+	double factor8=sqrt(double(SSf+1))*wig9jj(2*l1,2*l2,2*Lf.irrep,1,1,SSf,jj1,jj2,JJf);
+        sum_Sf_p+=factor8*sum_i_p;
+	sum_Sf_n+=factor8*sum_i_n;
+	sum_Sf_pn+=factor8*sum_i_pn;
+      }
+      double factor9=sqrt(double(2*Lf.irrep+1))*u3::W(u3::SU3(N1,0),1,l1,u3::SU3(N2,0),1,l2,xf.irrep,kappaf,Lf.irrep,1);
+      TBDME_p+=factor9*sum_Sf_p;
+      TBDME_n+=factor9*sum_Sf_n;
+      TBDME_pn+=factor9*sum_Sf_pn;
+    }
+  }
+}
+*/
+/*
+for(auto xf : u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0))){
+ for(auto Lftagged : u3::BranchingSO3(xf.irrep)){
+  int Lf=int(Lftagged.irrep);
+  if(std::abs(l1-l2)>Lf || Lf>l1+l2)continue;
+  for(int kappaf=1; kappaf<=Lftagged.tag; kappaf++){
+   double factor1=sqrt(double(2*Lf+1))*u3::W(u3::SU3(N1,0),1,l1,u3::SU3(N2,0),1,l2,xf.irrep,kappaf,Lf,1);
+   for(auto xi : u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4))){
+    for(auto Litagged : u3::BranchingSO3(xi.irrep)){
+     int Li=int(Litagged.irrep);
+     if(std::abs(l3-l4)>Li || Li>l3+l4)continue;
+     for(int kappai=1; kappai<=Litagged.tag; kappai++){
+      double factor2=factor1*sqrt(double(2*Li+1))*u3::W(u3::SU3(0,N3),1,l3,u3::SU3(0,N4),1,l4,xi.irrep,kappai,Li,1);
+      for(auto x0 : u3::KroneckerProduct(xf.irrep,xi.irrep)){
+       for(auto L0tagged : u3::BranchingSO3(x0.irrep)){
+	int L0=int(L0tagged.irrep);
+	if(std::abs(Lf-Li)>L0 || L0>Lf+Li)continue;
+	for(int kappa0=1; kappa0<=L0tagged.tag; kappa0++){
+         for(int rho0=1; rho0<=x0.tag; rho0++){
+          double factor3=factor2*sqrt(double(2*L0+1))*u3::W(xf.irrep,kappaf,Lf,xi.irrep,kappai,Li,x0.irrep,kappa0,L0,rho0);
+          for(std::map<std::array<int,13>,double>::iterator
+              itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
+           int gamma_bra=itbra->first[0];
+           int Nex_sigma_bra=itbra->first[1]; 
+           int lm_sigma_bra=itbra->first[2];
+           int mu_sigma_bra=itbra->first[3];
+           int SSp_bra=itbra->first[4];
+           int SSn_bra=itbra->first[5];
+           int SS_bra=itbra->first[6];
+           int upsilon_bra=itbra->first[7];
+           int Nex_omega_bra=itbra->first[8];
+           int lm_omega_bra=itbra->first[9];
+           int mu_omega_bra=itbra->first[10];
+           int kappa_bra=itbra->first[11];
+           int L_bra=itbra->first[12];
+           u3::SU3 x_bra(lm_omega_bra,mu_omega_bra);
+	   double factor4=factor3*sqrt(double((2*L_bra+1)*(SS_bra+1)))*itbra->second;
+           for(std::map<std::array<int,13>,double>::iterator
+               itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
+            int L_ket=itket->first[12];
+            if(std::abs(L_ket-L0)>L_bra || L_bra>L_ket+L0)continue;
+            int gamma_ket=itket->first[0];
+            int Nex_sigma_ket=itket->first[1];
+            int lm_sigma_ket=itket->first[2];
+            int mu_sigma_ket=itket->first[3];
+            int SSp_ket=itket->first[4];
+            int SSn_ket=itket->first[5];
+            int SS_ket=itket->first[6];
+            int upsilon_ket=itket->first[7];
+            int Nex_omega_ket=itket->first[8];
+            int lm_omega_ket=itket->first[9];
+            int mu_omega_ket=itket->first[10];
+            int kappa_ket=itket->first[11];
+            u3::SU3 x_ket(lm_omega_ket,mu_omega_ket);
+	    double factor5=factor4*itket->second;
+            for(int rho=1; rho<=u3::OuterMultiplicity(x_ket,x0.irrep,x_bra); rho++){
+             double factor6=factor5*u3::W(x_ket,kappa_ket,L_ket,x0.irrep,kappa0,L0,x_bra,kappa_bra,L_bra,rho);
+	     for(int SSf=0; SSf<=2; SSf+=2){
+              if(std::abs(2*Lf-SSf)>JJf || JJf>2*Lf+SSf)continue;
+              double factor7=factor6*sqrt(double(SSf+1))*wig9jj(2*l1,2*l2,2*Lf,1,1,SSf,jj1,jj2,JJf);
+              for(int SSi=0; SSi<=2; SSi+=2){
+               if(std::abs(2*Li-SSi)>JJi || JJi>2*Li+SSi)continue;
+               double factor8=factor7*sqrt(double(SSi+1))*wig9jj(2*l3,2*l4,2*Li,1,1,SSi,jj3,jj4,JJi);
+               for(int SS0=std::abs(SSf-SSi); SS0<=SSf+SSi; SS0+=2){
+		if(std::abs(2*L0-SS0)>JJ0 || JJ0>2*L0+SS0 || std::abs(SS_ket-SS0)>SS_bra || SS_bra>SS_ket+SS0)continue;
+                double factor9=factor8*sqrt(double(SS0+1))*wig9jj(2*Lf,2*Li,2*L0,SSf,SSi,SS0,JJf,JJi,JJ0)
+			       *wig9jj(2*L_ket,SS_ket,JJ_ket,2*L0,SS0,JJ0,2*L_bra,SS_bra,JJ_bra);
+
+                double TBDRME_p;
+		double TBDRME_n;
+		double TBDRME_pn;
+                if(Nex_omega_bra-Nex_sigma_bra>=Nex_omega_ket-Nex_sigma_ket){
+                 std::array<int,37> key={gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,
+                                         SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                                         gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,
+                                         SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+                                         N1,N2,N3,N4,xf.irrep.lambda(),xf.irrep.mu(),SSf,xi.irrep.lambda(),xi.irrep.mu(),SSi,
+		                         x0.irrep.lambda(),x0.irrep.mu(),SS0,rho0,rho};
+                 TBDRME_p=proton_TBDRME_by_labels[key];
+                 TBDRME_n=neutron_TBDRME_by_labels[key];
+                 TBDRME_pn=pn_TBDRME_by_labels[key];
+                }else{
+		 TBDRME_p=0.0;
+                 TBDRME_n=0.0;
+                 TBDRME_pn=0.0;
+		 int sign=1;
+                 for(int rho0p=1; rho0p<=x0.tag; rho0p++){
+		  sign=-sign;
+                  std::array<int,37> key={gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,
+                                          SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+		                          gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,
+                                          SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                                          N4,N3,N2,N1,xi.irrep.mu(),xi.irrep.lambda(),SSi,xf.irrep.mu(),xf.irrep.lambda(),SSf,
+                                          x0.irrep.mu(),x0.irrep.lambda(),SS0,rho0p,rho};
+    	          double factor0=sign*PhiCached(phi_coef_cache,xf.irrep,xi.irrep,x0.irrep,rho0,rho0p);
+                  TBDRME_p+=factor0*proton_TBDRME_by_labels[key];
+                  TBDRME_n+=factor0*neutron_TBDRME_by_labels[key];
+	          TBDRME_pn+=factor0*pn_TBDRME_by_labels[key];
+                 }
+	 	 double factor11=sqrt(double((SS_ket+1)*u3::dim(x_ket))/double((SS_bra+1)*u3::dim(x_bra)));
+                 TBDRME_p*=factor11;
+		 TBDRME_n*=factor11;
+		 TBDRME_pn*=factor11;
+		 int phase=x0.irrep.lambda()+x0.irrep.mu()+lm_omega_bra+mu_omega_bra-lm_omega_ket-mu_omega_ket
+		           +(SS_ket-SS_bra)/2+x0.tag+xi.irrep.lambda()+xi.irrep.mu()+xf.irrep.lambda()+xf.irrep.mu()+N1+N2+N3+N4;
+		 if(phase%2!=0){
+		  TBDRME_p=-TBDRME_p;
+		  TBDRME_n=-TBDRME_n;
+		  TBDRME_pn=-TBDRME_pn;
+		 }
+		}
+              
+		TBDME_p+=factor9*TBDRME_p;
+                TBDME_n+=factor9*TBDRME_n;
+                TBDME_pn+=factor9*TBDRME_pn;
+	       }
+	      }
+	     }
+            }
+           }
+	  }
+	 }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
+
+double factor10=sqrt(double((jj1+1)*(jj2+1)*(jj3+1)*(jj4+1)*(JJf+1)*(JJi+1)*(JJ_ket+1)*(JJ0+1)));
+TBDME_p*=factor10;
+TBDME_n*=factor10;
+TBDME_pn*=factor10;
+std::cout<<N1<<" "<<l1<<" "<<jj1<<" "<<N2<<" "<<l2<<" "<<jj2<<" "<<N3<<" "<<l3<<" "<<jj3<<" "<<N4<<" "<<l4<<" "<<jj4<<" "
+         <<JJf/2<<" "<<JJi/2<<" "<<JJ0/2<<" "<<TBDME_p*sqrt(double(JJ_bra+1)/double(JJ0+1))<<" "
+	 <<TBDME_n*sqrt(double(JJ_bra+1)/double(JJ0+1))<<" "<<TBDME_pn*sqrt(double(JJ_bra+1)/double(JJ0+1))<<std::endl;
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+*/
+/*
+std::map<std::array<int,15>,std::array<double,3>> tbdrmes;
+// Key is {N1,l1,jj1,N2,l2,jj2,N3,l3,jj3,N4,l4,jj4,JJf,JJi,JJ0}
+// Value is {proton, neutron, proton-neutron}
+int etamax=std::max(N1vp,N1vn)+run_parameters.Nmax;
+int Ntotmax=N0+run_parameters.Nmax;
+for(int N1=0; N1<=etamax; N1++){
+for(int N2=0; N2<=std::min(etamax,Ntotmax-N1); N2++){
+for(int l1=N1%2; l1<=N1; l1+=2){
+for(int l2=N2%2; l2<=N2; l2+=2){
+for(int jj1=std::abs(2*l1-1); jj1<=2*l1+1; jj1+=2){
+for(int jj2=std::abs(2*l2-1); jj2<=2*l2+1; jj2+=2){
+for(int N3=0; N3<=etamax; N3++){
+for(int l3=N3%2; l3<=N3; l3+=2){
+for(int jj3=std::abs(2*l3-1); jj3<=2*l3+1; jj3+=2){
+int N4min=std::max(N1+N2-N3-run_parameters.Nmax,0);
+if((N1+N2-N3-N4min)%2!=0)N4min++; // so that TBD operator doesn't change parity
+for(int N4=N4min; N4<=std::min(std::min(etamax,Ntotmax-N3),N1+N2-N3+run_parameters.Nmax); N4+=2){
+for(int l4=N4%2; l4<=N4; l4+=2){
+for(int jj4=std::abs(2*l4-1); jj4<=2*l4+1; jj4+=2){
+for(int JJf=std::abs(jj1-jj2); JJf<=jj1+jj2; JJf+=2){
+for(int JJi=std::abs(jj3-jj4); JJi<=jj3+jj4; JJi+=2){
+for(int JJ0=std::max(std::abs(JJf-JJi),std::abs(JJ_ket-JJ_bra)); JJ0<=std::min(JJf+JJi,JJ_ket+JJ_bra); JJ0+=2){
+  std::array<double,3> value={0.0,0.0,0.0};
+  tbdrmes[{N1,l1,jj1,N2,l2,jj2,N3,l3,jj3,N4,l4,jj4,JJf,JJi,JJ0}]=value;
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+std::cout<<"Number of TBDRMEs: "<<tbdrmes.size()<<std::endl;
+std::vector<std::array<int,8>> N1N2l1l2xfLfkf;
+for(int N1=0; N1<=etamax; N1++){
+for(int N2=0; N2<=std::min(etamax,Ntotmax-N1); N2++){
+for(int l1=N1%2; l1<=N1; l1+=2){
+for(int l2=N2%2; l2<=N2; l2+=2){
+for(auto xf : u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0))){
+int lmf=xf.irrep.lambda();
+int muf=xf.irrep.mu();
+for(auto Lftagged : u3::BranchingSO3(xf.irrep)){
+int Lf=int(Lftagged.irrep);
+if(std::abs(l1-l2)>Lf || Lf>l1+l2)continue;
+for(int kappaf=1; kappaf<=Lftagged.tag; kappaf++){
+  N1N2l1l2xfLfkf.push_back({N1,N2,l1,l2,lmf,muf,Lf,kappaf});
+}
+}
+}
+}
+}
+}
+}
+std::cout<<"Number of iterations of outer loop: "<<N1N2l1l2xfLfkf.size()<<std::endl;
+
+#pragma omp parallel
+{
+int num_threads=omp_get_num_threads();
+std::cout<<"Number of threads: "<<num_threads<<std::endl;
+spncci::InitializeSpNCCI();
+#pragma omp for schedule(dynamic)
+for(int ind=0; ind<N1N2l1l2xfLfkf.size(); ind++){
+//for(int N1=0; N1<=etamax; N1++){
+// for(int N2=0; N2<=std::min(etamax,Ntotmax-N1); N2++){
+//  for(int l1=N1%2; l1<=N1; l1+=2){
+//   for(int l2=N2%2; l2<=N2; l2+=2){
+//    for(auto xf : u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0))){
+//     for(auto Lftagged : u3::BranchingSO3(xf)){
+//      int Lf=int(Lftagged.irrep);
+//      if(std::abs(l1-l2)>Lf || Lf>l1+l2)continue;
+//      for(int kappaf=1; kappaf<=Lftagged.tag; kappaf++){
+ int N1=N1N2l1l2xfLfkf[ind][0];
+ int N2=N1N2l1l2xfLfkf[ind][1];
+ int l1=N1N2l1l2xfLfkf[ind][2];
+ int l2=N1N2l1l2xfLfkf[ind][3];
+ int lmf=N1N2l1l2xfLfkf[ind][4];
+ int muf=N1N2l1l2xfLfkf[ind][5];
+ int Lf=N1N2l1l2xfLfkf[ind][6];
+ int kappaf=N1N2l1l2xfLfkf[ind][7];
+ u3::SU3 xf(lmf,muf);
+     int phase1=lmf+muf+N1+N2;
+       double factor1=sqrt(double((JJ_ket+1)*(2*Lf+1)))*u3::W(u3::SU3(N1,0),1,l1,u3::SU3(N2,0),1,l2,xf,kappaf,Lf,1);
+       for(int N3=0; N3<=etamax; N3++){
+        int N4min=std::max(N1+N2-N3-run_parameters.Nmax,0);
+        if((N1+N2-N3-N4min)%2!=0)N4min++; // so that TBD operator doesn't change parity
+        for(int N4=N4min; N4<=std::min(std::min(etamax,Ntotmax-N3),N1+N2-N3+run_parameters.Nmax); N4+=2){
+         for(int l3=N3%2; l3<=N3; l3+=2){
+          for(int l4=N4%2; l4<=N4; l4+=2){
+           for(auto xi : u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4))){
+   	    int phase2=phase1+xi.irrep.lambda()+xi.irrep.mu()+N3+N4;
+            for(auto Litagged : u3::BranchingSO3(xi.irrep)){
+             int Li=int(Litagged.irrep);
+             if(std::abs(l3-l4)>Li || Li>l3+l4)continue;
+              for(int kappai=1; kappai<=Litagged.tag; kappai++){
+              double factor2=factor1*sqrt(double(2*Li+1))*u3::W(u3::SU3(0,N3),1,l3,u3::SU3(0,N4),1,l4,xi.irrep,kappai,Li,1);
+              for(auto x0 : u3::KroneckerProduct(xf,xi.irrep)){
+	       int phase3=phase2+x0.irrep.lambda()+x0.irrep.mu()+x0.tag;
+               for(auto L0tagged : u3::BranchingSO3(x0.irrep)){
+	        int L0=int(L0tagged.irrep);
+	        if(std::abs(Lf-Li)>L0 || L0>Lf+Li)continue;
+	        for(int kappa0=1; kappa0<=L0tagged.tag; kappa0++){
+                 for(int rho0=1; rho0<=x0.tag; rho0++){
+                  double factor3=factor2*sqrt(double(2*L0+1))*u3::W(xf,kappaf,Lf,xi.irrep,kappai,Li,x0.irrep,kappa0,L0,rho0);
+                  for(std::map<std::array<int,13>,double>::iterator
+                      itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
+                   int gamma_bra=itbra->first[0];
+                   int Nex_sigma_bra=itbra->first[1]; 
+                   int lm_sigma_bra=itbra->first[2];
+                   int mu_sigma_bra=itbra->first[3];
+                   int SSp_bra=itbra->first[4];
+                   int SSn_bra=itbra->first[5];
+                   int SS_bra=itbra->first[6];
+                   int upsilon_bra=itbra->first[7];
+                   int Nex_omega_bra=itbra->first[8];
+                   int lm_omega_bra=itbra->first[9];
+                   int mu_omega_bra=itbra->first[10];
+                   int kappa_bra=itbra->first[11];
+                   int L_bra=itbra->first[12];
+	           int Nn_bra=Nex_omega_bra-Nex_sigma_bra;
+                   u3::SU3 x_bra(lm_omega_bra,mu_omega_bra);
+	           double factor4=factor3*sqrt(double((2*L_bra+1)*(SS_bra+1)))*itbra->second;
+                   for(std::map<std::array<int,13>,double>::iterator
+                       itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
+                    int L_ket=itket->first[12];
+                    if(std::abs(L_ket-L0)>L_bra || L_bra>L_ket+L0)continue;
+                    int gamma_ket=itket->first[0];
+                    int Nex_sigma_ket=itket->first[1];
+                    int lm_sigma_ket=itket->first[2];
+                    int mu_sigma_ket=itket->first[3];
+                    int SSp_ket=itket->first[4];
+                    int SSn_ket=itket->first[5];
+                    int SS_ket=itket->first[6];
+                    int upsilon_ket=itket->first[7];
+                    int Nex_omega_ket=itket->first[8];
+                    int lm_omega_ket=itket->first[9];
+                    int mu_omega_ket=itket->first[10];
+                    int kappa_ket=itket->first[11];
+		    int Nn_ket=Nex_omega_ket-Nex_sigma_ket;
+                    u3::SU3 x_ket(lm_omega_ket,mu_omega_ket);
+		    double factor11=sqrt(double((SS_ket+1)*u3::dim(x_ket))/double((SS_bra+1)*u3::dim(x_bra)));
+		    int phase=phase3+lm_omega_bra+mu_omega_bra-lm_omega_ket-mu_omega_ket+(SS_ket-SS_bra)/2;
+	            double factor5=factor4*itket->second;
+                    for(int rho=1; rho<=u3::OuterMultiplicity(x_ket,x0.irrep,x_bra); rho++){
+                     double factor6=factor5*u3::W(x_ket,kappa_ket,L_ket,x0.irrep,kappa0,L0,x_bra,kappa_bra,L_bra,rho);
+                     for(int jj1=std::abs(2*l1-1); jj1<=2*l1+1; jj1+=2){
+                      for(int jj2=std::abs(2*l2-1); jj2<=2*l2+1; jj2+=2){
+                       for(int JJf=std::abs(jj1-jj2); JJf<=jj1+jj2; JJf+=2){
+	                for(int SSf=0; SSf<=2; SSf+=2){
+                         if(std::abs(2*Lf-SSf)>JJf || JJf>2*Lf+SSf)continue;
+                         double factor7=factor6*sqrt(double((jj1+1)*(jj2+1)*(JJf+1)*(SSf+1)))*wig9jj(2*l1,2*l2,2*Lf,1,1,SSf,jj1,jj2,JJf);
+                         for(int jj3=std::abs(2*l3-1); jj3<=2*l3+1; jj3+=2){
+                          for(int jj4=std::abs(2*l4-1); jj4<=2*l4+1; jj4+=2){
+                           for(int JJi=std::abs(jj3-jj4); JJi<=jj3+jj4; JJi+=2){
+                            for(int SSi=0; SSi<=2; SSi+=2){
+                             if(std::abs(2*Li-SSi)>JJi || JJi>2*Li+SSi)continue;
+                             double factor8=factor7*sqrt(double((jj3+1)*(jj4+1)*(JJi+1)*(SSi+1)))*wig9jj(2*l3,2*l4,2*Li,1,1,SSi,jj3,jj4,JJi);
+                             for(int JJ0=std::max(std::abs(JJf-JJi),std::abs(JJ_ket-JJ_bra)); JJ0<=std::min(JJf+JJi,JJ_ket+JJ_bra); JJ0+=2){
+			      std::array<int,15> keyt={N1,l1,jj1,N2,l2,jj2,N3,l3,jj3,N4,l4,jj4,JJf,JJi,JJ0};
+                              for(int SS0=std::abs(SSf-SSi); SS0<=SSf+SSi; SS0+=2){
+	 	               if(std::abs(2*L0-SS0)>JJ0 || JJ0>2*L0+SS0 || std::abs(SS_ket-SS0)>SS_bra || SS_bra>SS_ket+SS0)continue;
+                               double factor9=factor8*sqrt(double((JJ0+1)*(SS0+1)))*wig9jj(2*Lf,2*Li,2*L0,SSf,SSi,SS0,JJf,JJi,JJ0)
+		   	                      *wig9jj(2*L_ket,SS_ket,JJ_ket,2*L0,SS0,JJ0,2*L_bra,SS_bra,JJ_bra);
+
+                               double TBDRME_p;
+ 		               double TBDRME_n;
+		               double TBDRME_pn;
+                               if(Nn_bra>=Nn_ket){
+                                std::array<int,37> key={gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,
+                                                        SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                                                        gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,
+                                                        SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+                                                        N1,N2,N3,N4,lmf,muf,SSf,xi.irrep.lambda(),xi.irrep.mu(),SSi,
+		                                        x0.irrep.lambda(),x0.irrep.mu(),SS0,rho0,rho};
+                                TBDRME_p=proton_TBDRME_by_labels[key];
+                                TBDRME_n=neutron_TBDRME_by_labels[key];
+                                TBDRME_pn=pn_TBDRME_by_labels[key];
+                               }else{
+		                TBDRME_p=0.0;
+                                TBDRME_n=0.0;
+                                TBDRME_pn=0.0;
+		                int sign=1;
+                                for(int rho0p=1; rho0p<=x0.tag; rho0p++){
+		                 sign=-sign;
+                                 std::array<int,37> key={gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,
+                                                         SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+		                                         gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,
+                                                         SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                                                         N4,N3,N2,N1,xi.irrep.mu(),xi.irrep.lambda(),SSi,muf,lmf,SSf,
+                                                         x0.irrep.mu(),x0.irrep.lambda(),SS0,rho0p,rho};
+    	                         double factor0=sign*PhiCached(phi_coef_cache,xf,xi.irrep,x0.irrep,rho0,rho0p);
+                                 TBDRME_p+=factor0*proton_TBDRME_by_labels[key];
+                                 TBDRME_n+=factor0*neutron_TBDRME_by_labels[key];
+	                         TBDRME_pn+=factor0*pn_TBDRME_by_labels[key];
+                                }
+                                TBDRME_p*=factor11;
+		                TBDRME_n*=factor11;
+		                TBDRME_pn*=factor11;
+		                if(phase%2!=0){
+		                 TBDRME_p=-TBDRME_p;
+		                 TBDRME_n=-TBDRME_n;
+		                 TBDRME_pn=-TBDRME_pn;
+		                }
+		               }
+
+		               tbdrmes[keyt][0]+=factor9*TBDRME_p;
+                               tbdrmes[keyt][1]+=factor9*TBDRME_n;
+                               tbdrmes[keyt][2]+=factor9*TBDRME_pn;
+	                      }
+			     }
+			    }
+			   }
+			  }
+	                 }
+	                }
+                       }
+		      }
+		     }
+		    }
+                   }
+	          }
+	         }
+                }
+               }
+	      }
+	     }
+	    }
+	   }
+          }
+         }
+        }
+       }
+//      }
+//     }
+//    }
+//   }
+//  }
+// }
+}
+} // End of parallel region
+std::cout<<"TBDRMEs (N1 l1 2j1 N2 l2 2j2 N3 l3 2j3 N4 l4 2j4 2Jf 2Ji 2J0 proton neutron proton-neutron):"<<std::endl;
+for(std::map<std::array<int,15>,std::array<double,3>>::iterator it=tbdrmes.begin(); it!=tbdrmes.end(); it++){
+ double trdensfactor=sqrt(double(JJ_bra+1)/double(it->first[14]+1));
+ std::cout<<it->first[0]<<" "<<it->first[1]<<" "<<it->first[2]<<" "<<it->first[3]<<" "<<it->first[4]<<" "<<it->first[5]<<" "
+	  <<it->first[6]<<" "<<it->first[7]<<" "<<it->first[8]<<" "<<it->first[9]<<" "<<it->first[10]<<" "<<it->first[11]<<" "
+	  <<it->first[12]<<" "<<it->first[13]<<" "<<it->first[14]<<" "
+	  <<it->second[0]*trdensfactor<<" "<<it->second[1]*trdensfactor<<" "<<it->second[2]*trdensfactor<<std::endl;
+}
+*/
+/*
+std::cout<<"*******************************************************************"<<std::endl;
+std::cout<<"OB rhos (N N' lm0 mu0 S0 rho lm' mu' kappa' L' 2S' lm mu kappa L 2S proton neutron):"<<std::endl;
+int etamax=std::max(N1vp,N1vn)+run_parameters.Nmax;
+for(int N=0; N<=etamax; N++){
+  int Npmin=std::max(0,N-run_parameters.Nmax);
+  if((N-Npmin)%2!=0)Npmin++; // so that the OBD operator doesn't change parity
+  for(int Np=Npmin; Np<=std::min(etamax,N+run_parameters.Nmax); Np=Np+2){
+// for(int Np=N%2; Np<=etamax; Np=Np+2){ // so that the OBD operator doesn't change parity
+  for(auto x0 : u3::KroneckerProduct(u3::SU3(N,0),u3::SU3(0,Np))){
+   for(int S0=0; S0<=1; S0++){
+    std::map<std::array<int,11>,std::array<double,2>> obrho_by_labels;
+    // Labels are rho, lm', mu', kappa', L', 2S', lm, mu, kappa, L, 2S
+    // Values are proton and neutron
+    for(std::map<std::array<int,13>,double>::iterator itbra=amplitude_by_labels_bra.begin(); itbra!=amplitude_by_labels_bra.end(); itbra++){
+     int gamma_bra=itbra->first[0];
+     int Nex_sigma_bra=itbra->first[1];
+     int lm_sigma_bra=itbra->first[2];
+     int mu_sigma_bra=itbra->first[3];
+     int SSp_bra=itbra->first[4];
+     int SSn_bra=itbra->first[5];
+     int SS_bra=itbra->first[6];
+     int upsilon_bra=itbra->first[7];
+     int Nex_omega_bra=itbra->first[8];
+     int lm_omega_bra=itbra->first[9];
+     int mu_omega_bra=itbra->first[10];
+     int kappa_bra=itbra->first[11];
+     int L_bra=itbra->first[12];
+     double amplitude_bra=itbra->second;
+     for(std::map<std::array<int,13>,double>::iterator itket=amplitude_by_labels_ket.begin(); itket!=amplitude_by_labels_ket.end(); itket++){
+      int gamma_ket=itket->first[0];
+      int Nex_sigma_ket=itket->first[1];
+      int lm_sigma_ket=itket->first[2];
+      int mu_sigma_ket=itket->first[3];
+      int SSp_ket=itket->first[4];
+      int SSn_ket=itket->first[5];
+      int SS_ket=itket->first[6];
+      int upsilon_ket=itket->first[7];
+      int Nex_omega_ket=itket->first[8];
+      int lm_omega_ket=itket->first[9];
+      int mu_omega_ket=itket->first[10];
+      int kappa_ket=itket->first[11];
+      int L_ket=itket->first[12];
+      double amplitude_ket=itket->second;
+      std::map<std::array<int,11>,std::array<double,2>>::iterator
+	iter=obrho_by_labels.find({1,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket});
+      for(int rho=1; rho<=u3::OuterMultiplicity(u3::SU3(lm_omega_ket,mu_omega_ket),x0.irrep,u3::SU3(lm_omega_bra,mu_omega_bra)); rho++){
+       std::array<int,28> key;
+       double factor;
+       if(Nex_omega_bra-Nex_sigma_bra>=Nex_omega_ket-Nex_sigma_ket){
+        key={gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+             gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+             N,Np,x0.irrep.lambda(),x0.irrep.mu(),2*S0,rho};
+        factor=1.0;
+       }else{
+        key={gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+             gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+             Np,N,x0.irrep.mu(),x0.irrep.lambda(),2*S0,rho};
+        factor=sqrt(double((SS_ket+1)*u3::dim(u3::SU3(lm_omega_ket,mu_omega_ket)))
+	            /double((SS_bra+1)*u3::dim(u3::SU3(lm_omega_bra,mu_omega_bra))));
+        int phase=N-Np+lm_omega_bra+mu_omega_bra-lm_omega_ket-mu_omega_ket+(SS_bra-SS_ket)/2;
+        if(phase%2!=0)factor=-factor;
+       }
+       double OBDRMEp=factor*proton_OBDRME_by_labels[key];
+       double OBDRMEn=factor*neutron_OBDRME_by_labels[key];
+       if(iter==obrho_by_labels.end()){
+        obrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][0]
+	  =amplitude_bra*amplitude_ket*OBDRMEp;
+        obrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][1]
+	  =amplitude_bra*amplitude_ket*OBDRMEn;
+       }else{
+        obrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][0]
+	  +=amplitude_bra*amplitude_ket*OBDRMEp;
+        obrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][1]
+	  +=amplitude_bra*amplitude_ket*OBDRMEn;
+       }
+      } // rho
+     } // ket amplitude
+    } // bra amplitude
+    for(std::map<std::array<int,11>,std::array<double,2>>::iterator it=obrho_by_labels.begin(); it!=obrho_by_labels.end(); it++){
+     std::cout<<N<<" "<<Np<<" "<<x0.irrep.lambda()<<" "<<x0.irrep.mu()<<" "<<S0<<" "
+	      <<it->first[0]<<" "<<it->first[1]<<" "<<it->first[2]<<" "<<it->first[3]<<" "<<it->first[4]<<" "<<it->first[5]<<" "
+	      <<it->first[6]<<" "<<it->first[7]<<" "<<it->first[8]<<" "<<it->first[9]<<" "<<it->first[10]<<" "
+	      <<it->second[0]<<" "<<it->second[1]<<std::endl;
+    } // OB rho labels
+   } // S0
+  } // x0
+ } // Np
+} // N
+std::cout<<"*******************************************************************"<<std::endl;
+std::cout<<"TB rhos (N1 N2 N3 N4 lmf muf Sf lmi mui Si lm0 mu0 S0 rho0 rho lm' mu' kappa' L' 2S' lm mu kappa L 2S proton neutron pn):"
+         <<std::endl;
+for(int N1=0; N1<=etamax; N1++){
+ for(int N2=0; N2<=std::min(etamax,N0+run_parameters.Nmax-N1); N2++){
+  for(int N3=0; N3<=etamax; N3++){
+   int N123=N1+N2-N3;
+   int N4min=std::max(0,N123-run_parameters.Nmax);
+   if((N123-N4min)%2!=0)N4min++; // so that the TBD operator doesn't change parity
+   for(int N4=N4min; N4<=std::min(std::min(etamax,N0+run_parameters.Nmax-N3),N123+run_parameters.Nmax); N4=N4+2){
+    for(auto xf : u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0))){
+     for(int Sf=0; Sf<=1; Sf++){
+      for(auto xi : u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4))){
+       for(int Si=0; Si<=1; Si++){
+	for(auto x0 : u3::KroneckerProduct(xf.irrep,xi.irrep)){
+	 for(int S0=std::abs(Sf-Si); S0<=Sf+Si; S0++){
+          for(int rho0=1; rho0<=x0.tag; rho0++){
+           std::map<std::array<int,11>,std::array<double,3>> tbrho_by_labels;
+           // Labels are rho, lm', mu', kappa', L', 2S', lm, mu, kappa, L, 2S
+           // Values are proton, neutron and proton-neutron
+           for(std::map<std::array<int,13>,double>::iterator itbra=amplitude_by_labels_bra.begin();
+	       itbra!=amplitude_by_labels_bra.end(); itbra++){
+            int gamma_bra=itbra->first[0];
+            int Nex_sigma_bra=itbra->first[1];
+            int lm_sigma_bra=itbra->first[2];
+            int mu_sigma_bra=itbra->first[3];
+            int SSp_bra=itbra->first[4];
+            int SSn_bra=itbra->first[5];
+            int SS_bra=itbra->first[6];
+            int upsilon_bra=itbra->first[7];
+            int Nex_omega_bra=itbra->first[8];
+            int lm_omega_bra=itbra->first[9];
+            int mu_omega_bra=itbra->first[10];
+            int kappa_bra=itbra->first[11];
+            int L_bra=itbra->first[12];
+            double amplitude_bra=itbra->second;
+            for(std::map<std::array<int,13>,double>::iterator itket=amplitude_by_labels_ket.begin();
+		itket!=amplitude_by_labels_ket.end(); itket++){
+             int gamma_ket=itket->first[0];
+             int Nex_sigma_ket=itket->first[1];
+             int lm_sigma_ket=itket->first[2];
+             int mu_sigma_ket=itket->first[3];
+             int SSp_ket=itket->first[4];
+             int SSn_ket=itket->first[5];
+             int SS_ket=itket->first[6];
+             int upsilon_ket=itket->first[7];
+             int Nex_omega_ket=itket->first[8];
+             int lm_omega_ket=itket->first[9];
+             int mu_omega_ket=itket->first[10];
+             int kappa_ket=itket->first[11];
+             int L_ket=itket->first[12];
+             double amplitude_ket=itket->second;
+             std::map<std::array<int,11>,std::array<double,3>>::iterator iter=tbrho_by_labels.find
+	       ({1,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket});
+             for(int rho=1; rho<=u3::OuterMultiplicity(u3::SU3(lm_omega_ket,mu_omega_ket),x0.irrep,u3::SU3(lm_omega_bra,mu_omega_bra));
+	         rho++){
+              double TBDRMEp,TBDRMEn,TBDRMEpn;
+              if(Nex_omega_bra-Nex_sigma_bra>=Nex_omega_ket-Nex_sigma_ket){
+               std::array<int,37> key=
+	        {gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                 gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+                 N1,N2,N3,N4,xf.irrep.lambda(),xf.irrep.mu(),2*Sf,xi.irrep.lambda(),xi.irrep.mu(),2*Si,
+		 x0.irrep.lambda(),x0.irrep.mu(),2*S0,rho0,rho};
+               TBDRMEp=proton_TBDRME_by_labels[key];
+	       TBDRMEn=neutron_TBDRME_by_labels[key];
+	       TBDRMEpn=pn_TBDRME_by_labels[key];
+              }else{
+	       TBDRMEp=0.0;
+               TBDRMEn=0.0;
+               TBDRMEpn=0.0;
+	       int sign=1;
+	       for(int rho0p=1; rho0p<=x0.tag; rho0p++){
+		sign=-sign;
+                std::array<int,37> key=
+		{gamma_ket,Nex_sigma_ket,lm_sigma_ket,mu_sigma_ket,SSp_ket,SSn_ket,SS_ket,upsilon_ket,Nex_omega_ket,lm_omega_ket,mu_omega_ket,
+                 gamma_bra,Nex_sigma_bra,lm_sigma_bra,mu_sigma_bra,SSp_bra,SSn_bra,SS_bra,upsilon_bra,Nex_omega_bra,lm_omega_bra,mu_omega_bra,
+                 N4,N3,N2,N1,xi.irrep.mu(),xi.irrep.lambda(),2*Si,xf.irrep.mu(),xf.irrep.lambda(),2*Sf,
+	         x0.irrep.mu(),x0.irrep.lambda(),2*S0,rho0p,rho};
+                 TBDRMEp+=sign*PhiCached(phi_coef_cache,xf.irrep,xi.irrep,x0.irrep,rho0,rho0p)*proton_TBDRME_by_labels[key];
+                 TBDRMEn+=sign*PhiCached(phi_coef_cache,xf.irrep,xi.irrep,x0.irrep,rho0,rho0p)*neutron_TBDRME_by_labels[key];
+                 TBDRMEpn+=sign*PhiCached(phi_coef_cache,xf.irrep,xi.irrep,x0.irrep,rho0,rho0p)*pn_TBDRME_by_labels[key];
+	       }
+               double factor=sqrt(double((SS_ket+1)*u3::dim(u3::SU3(lm_omega_ket,mu_omega_ket)))
+	                          /double((SS_bra+1)*u3::dim(u3::SU3(lm_omega_bra,mu_omega_bra))));
+               int phase=xf.irrep.lambda()+xf.irrep.mu()+xi.irrep.lambda()+xi.irrep.mu()-x0.irrep.lambda()-x0.irrep.mu()+N1+N2+N3+N4
+		         +lm_omega_bra+mu_omega_bra-lm_omega_ket-mu_omega_ket+(SS_ket-SS_bra)/2+x0.tag;
+               if(phase%2!=0)factor=-factor;
+	       TBDRMEp*=factor;
+               TBDRMEn*=factor;
+               TBDRMEpn*=factor;
+              }
+              if(iter==tbrho_by_labels.end()){
+               tbrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][0]
+	         =amplitude_bra*amplitude_ket*TBDRMEp;
+               tbrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][1]
+	         =amplitude_bra*amplitude_ket*TBDRMEn;
+	       tbrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][2]
+                 =amplitude_bra*amplitude_ket*TBDRMEpn;
+              }else{
+               tbrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][0]
+	         +=amplitude_bra*amplitude_ket*TBDRMEp;
+               tbrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][1]
+	         +=amplitude_bra*amplitude_ket*TBDRMEn;
+	       tbrho_by_labels[{rho,lm_omega_bra,mu_omega_bra,kappa_bra,L_bra,SS_bra,lm_omega_ket,mu_omega_ket,kappa_ket,L_ket,SS_ket}][2]
+                 +=amplitude_bra*amplitude_ket*TBDRMEpn;
+              }
+             } // rho
+            } // ket amplitude
+           } // bra amplitude
+           for(std::map<std::array<int,11>,std::array<double,3>>::iterator it=tbrho_by_labels.begin(); it!=tbrho_by_labels.end(); it++){
+            std::cout<<N1<<" "<<N2<<" "<<N3<<" "<<N4<<" "<<xf.irrep.lambda()<<" "<<xf.irrep.mu()<<" "<<Sf<<" "
+		     <<xi.irrep.lambda()<<" "<<xi.irrep.mu()<<" "<<Si<<" "<<x0.irrep.lambda()<<" "<<x0.irrep.mu()<<" "<<S0<<" "<<rho0<<" "
+	             <<it->first[0]<<" "<<it->first[1]<<" "<<it->first[2]<<" "<<it->first[3]<<" "<<it->first[4]<<" "<<it->first[5]<<" "
+	             <<it->first[6]<<" "<<it->first[7]<<" "<<it->first[8]<<" "<<it->first[9]<<" "<<it->first[10]<<" "
+	             <<it->second[0]<<" "<<it->second[1]<<" "<<it->second[2]<<std::endl;
+           } // TB rho labels
+          } // rho0
+         } // S0
+        } //x0
+       } // Si
+      } // xi
+     } // Sf
+    } // xf
+   } // N4
+  } // N3
+ } // N2
+} // N1
+*/
+phi_coef_cache.clear();
+std::cout<<"*******************************************************************"<<std::endl;
+
+//******************************************************************************************************
   }
 
 // timing stop

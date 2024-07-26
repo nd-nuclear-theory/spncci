@@ -735,7 +735,7 @@ std::cout<<i+1<<" "<<(sigmap.N().TwiceValue()-19)/2<<" "<<sigmap.SU3().lambda()<
     }
 
     // Check of symmetries
-    if(true){
+    if(false){
       std::map<spncci::OBUnitTensorRMELabels,double> RME_by_labels;
       if(baby_spncci_hypersectors.size()!=unit_tensor_hyperblocks.size())
 	std::cout<<"ERROR: baby_spncci_hypersectors.size(),unit_tensor_hyperblocks.size(): "
@@ -969,7 +969,11 @@ void ComputeTwoBodyDensityRMEs(
   spncci::OperatorBlocks& lgi_transformations,
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
-  const spncci::LGIPair& lgi_pair
+  const spncci::LGIPair& lgi_pair,
+  basis::OperatorHyperblocks<double>& tbd_hyperblocks,
+  spncci::BabySpNCCITwoBodyDensityHypersectors& baby_spncci_hypersectors,
+  basis::OperatorHyperblocks<double>& tbd_hyperblocks2,
+  spncci::BabySpNCCITwoBodyDensityHypersectors& baby_spncci_hypersectors2
   )
 
   {
@@ -1016,8 +1020,8 @@ void ComputeTwoBodyDensityRMEs(
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     //Compute RMEs with Nnp>=Nn
-    basis::OperatorHyperblocks<double> tbd_hyperblocks;
-    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors;
+//    basis::OperatorHyperblocks<double> tbd_hyperblocks;
+//    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors;
 
     bool files_found=
     spncci::GenerateTwoBodyDensityHyperblocks(
@@ -1027,19 +1031,21 @@ void ComputeTwoBodyDensityRMEs(
       tbd_hyperblocks_seeds,tbd_hyperblocks_seeds_conj,
       u_coef_cache,phi_coef_cache,baby_spncci_hypersectors,tbd_hyperblocks
     );
+
     //Check that file exists 
     assert(files_found);
 
     // Compute RMEs with Nnp<Nn if lgi_bra!=lgi_ket
     spncci::LGIPair lgi_pair2(irrep_family_index_ket,irrep_family_index_bra);
-    basis::OperatorHyperblocks<double> tbd_hyperblocks2;
-    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors2;
+//    basis::OperatorHyperblocks<double> tbd_hyperblocks2;
+//    spncci::BabySpNCCITwoBodyDensityHypersectors baby_spncci_hypersectors2;
 
     // Check if hypersectors are diagonal in irrep family. 
     bool is_diagonal=irrep_family_index_ket==irrep_family_index_bra;
-          
+
     if(not is_diagonal)
-      {  
+      {
+
         spncci::GenerateTwoBodyDensityHyperblocks(
           lgi_pair2, run_parameters.Nmax, N1vp, N1vn, run_parameters.nuclide[0]+run_parameters.nuclide[1],
           spncci_space,baby_spncci_space,two_body_density_space,k_matrix_cache,
@@ -1049,7 +1055,425 @@ void ComputeTwoBodyDensityRMEs(
           u_coef_cache,phi_coef_cache,
           baby_spncci_hypersectors2,tbd_hyperblocks2
         );
+
       }
+
+    // Diagnostic output
+    if(false ){//&& irrep_family_index_bra==2 && irrep_family_index_ket==0){
+//      std::cout<<"*********************************** TWO-BODY DENSITY RMEs *******************************************"<<std::endl;
+//      std::cout<<"irrep_family_index_bra,irrep_family_index_ket: "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
+      if(baby_spncci_hypersectors.size()!=tbd_hyperblocks.size())
+	std::cout<<"ERROR: baby_spncci_hypersectors.size(),tbd_hyperblocks.size(): "
+		 <<baby_spncci_hypersectors.size()<<" "<<tbd_hyperblocks.size()<<std::endl;
+
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
+        int tbd_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,tbd_subspace_index,rho)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::TwoBodyDensitySubspace& tbd_subspace=two_body_density_space.GetSubspace(tbd_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0,xf,xi;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int N1,N2,N3,N4,rho0;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,N1,N2,N3,N4,xf,xi,rho0)=tbd_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+//	std::cout<<"hypersector:"<<std::endl;
+//	std::cout<<"N_sigma' lambda_sigma' mu_sigma' Sp' Sn' S' N_omega' lambda_omega' mu_omega': "<<sigmap.N()<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra<<" "<<Sn_bra<<" "<<S_bra<<" "<<omegap.N()<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<std::endl;
+//        std::cout<<"N_sigma  lambda_sigma  mu_sigma  Sp  Sn  S  N_omega  lambda_omega  mu_omega : "<<sigma.N()<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket<<" "<<Sn_ket<<" "<<S_ket<<" "<<omega.N()<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<std::endl;
+//        std::cout<<"lambda0 mu0 S0 N1 N2 N3 N4 lmf muf lmi mui rho0 rho: "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0<<" "<<N1<<" "<<N2<<" "<<N3<<" "<<N4<<" "<<xf.lambda()<<" "<<xf.mu()<<" "<<xi.lambda()<<" "<<xi.mu()<<" "<<rho0<<" "<<rho<<std::endl;
+	if(tbd_hyperblocks[hypersector_index].size()>12)std::cout<<"ERROR: tbd_hyperblocks["<<hypersector_index<<"].size()="<<tbd_hyperblocks[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<tbd_hyperblocks[hypersector_index].size(); operator_index++){
+//          std::cout<<"Operator index="<<operator_index<<std::endl;
+          if(tbd_hyperblocks[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: tbd_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<tbd_hyperblocks[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(tbd_hyperblocks[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: tbd_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<tbd_hyperblocks[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+          int Sf,Si,Tz;
+          std::tie(Sf,Si,Tz)=tbd_subspace.GetStateLabels(operator_index);
+
+          for(int i=0; i<gamma_maxp; ++i)
+            for(int j=0; j<gamma_max; ++j){
+//	      std::cout<<"gammap,gamma="<<i+1<<" "<<j+1<<std::endl;
+              int it=i*upsilon_maxp;
+              int jt=j*upsilon_max; 
+              // tbd_hyperblocks[hypersector_index][operator_index].block(it,jt,upsilon_maxp,upsilon_max) is block corresponding to given gammap,gamma.
+ 	      // Its elements correspond to different upsilonp,upsilon.
+	      for(int up=0; up<upsilon_maxp; up++)
+		for(int u=0; u<upsilon_max; u++){
+//                  std::cout<<"gamma' upsilon' gamma upsilon RME: "<<i+1<<" "<<up+1<<" "<<j+1<<" "<<u+1<<" "
+//			   <<tbd_hyperblocks[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+std::cout<<i+1<<" "<<(sigmap.N().TwiceValue()-19)/2<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra.TwiceValue()<<" "<<Sn_bra.TwiceValue()<<" "<<S_bra.TwiceValue()
+	 <<" "<<up+1<<" "<<(omegap.N().TwiceValue()-19)/2<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<" "
+	 <<j+1<<" "<<(sigma.N().TwiceValue()-19)/2<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket.TwiceValue()<<" "<<Sn_ket.TwiceValue()<<" "<<S_ket.TwiceValue()<<" "
+	 <<u+1<<" "<<(omega.N().TwiceValue()-19)/2<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<" "
+	 <<N1<<" "<<N2<<" "<<N3<<" "<<N4<<" "<<xf.lambda()<<" "<<xf.mu()<<" "<<Sf<<" "<<xi.lambda()<<" "<<xi.mu()<<" "<<Si<<" "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0.TwiceValue()<<" "<<rho0<<" "<<rho;
+if(Tz==-1){
+  std::cout<<" "<<Tz<<" ";
+}else{
+  std::cout<<"  "<<Tz<<" ";
+}
+std::cout<<tbd_hyperblocks[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+	      }
+          }
+        }
+      }
+
+      if(not is_diagonal){
+//      std::cout<<"irrep_family_index_bra,irrep_family_index_ket: "<<irrep_family_index_ket<<" "<<irrep_family_index_bra<<std::endl;
+      if(baby_spncci_hypersectors2.size()!=tbd_hyperblocks2.size())
+	std::cout<<"ERROR: baby_spncci_hypersectors2.size(),tbd_hyperblocks2.size(): "
+		 <<baby_spncci_hypersectors2.size()<<" "<<tbd_hyperblocks2.size()<<std::endl;
+
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors2.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors2.GetHypersector(hypersector_index).Key();
+        int tbd_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,tbd_subspace_index,rho)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::TwoBodyDensitySubspace& tbd_subspace=two_body_density_space.GetSubspace(tbd_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0,xf,xi;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int N1,N2,N3,N4,rho0;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,N1,N2,N3,N4,xf,xi,rho0)=tbd_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+//	std::cout<<"hypersector:"<<std::endl;
+//	std::cout<<"N_sigma' lambda_sigma' mu_sigma' Sp' Sn' S' N_omega' lambda_omega' mu_omega': "<<sigmap.N()<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra<<" "<<Sn_bra<<" "<<S_bra<<" "<<omegap.N()<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<std::endl;
+//   	std::cout<<"N_sigma  lambda_sigma  mu_sigma  Sp  Sn  S  N_omega  lambda_omega  mu_omega : "<<sigma.N()<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket<<" "<<Sn_ket<<" "<<S_ket<<" "<<omega.N()<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<std::endl;
+//	std::cout<<"lambda0 mu0 S0 N1 N2 N3 N4 lmf muf lmi mui rho0 rho: "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0<<" "<<N1<<" "<<N2<<" "<<N3<<" "<<N4<<" "<<xf.lambda()<<" "<<xf.mu()<<" "<<xi.lambda()<<" "<<xi.mu()<<" "<<rho0<<" "<<rho<<std::endl;
+	if(tbd_hyperblocks2[hypersector_index].size()>12)std::cout<<"ERROR: tbd_hyperblocks2["<<hypersector_index<<"].size()="<<tbd_hyperblocks2[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<tbd_hyperblocks2[hypersector_index].size(); operator_index++){
+//          std::cout<<"Operator index="<<operator_index<<std::endl;
+          if(tbd_hyperblocks2[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: tbd_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<tbd_hyperblocks2[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(tbd_hyperblocks2[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: tbd_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<tbd_hyperblocks2[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+          int Sf,Si,Tz;
+          std::tie(Sf,Si,Tz)=tbd_subspace.GetStateLabels(operator_index);
+
+          for(int i=0; i<gamma_maxp; ++i)
+            for(int j=0; j<gamma_max; ++j){
+//	      std::cout<<"gammap,gamma="<<i+1<<" "<<j+1<<std::endl;
+              int it=i*upsilon_maxp;
+              int jt=j*upsilon_max; 
+              // tbd_hyperblocks2[hypersector_index][operator_index].block(it,jt,upsilon_maxp,upsilon_max) is block corresponding to given gammap,gamma.
+ 	      // Its elements correspond to different upsilonp,upsilon.
+	      for(int up=0; up<upsilon_maxp; up++)
+		for(int u=0; u<upsilon_max; u++){
+//                  std::cout<<"gamma' upsilon' gamma upsilon RME: "<<i+1<<" "<<up+1<<" "<<j+1<<" "<<u+1<<" "
+//			  <<tbd_hyperblocks2[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+std::cout<<i+1<<" "<<(sigmap.N().TwiceValue()-19)/2<<" "<<sigmap.SU3().lambda()<<" "<<sigmap.SU3().mu()<<" "<<Sp_bra.TwiceValue()<<" "<<Sn_bra.TwiceValue()<<" "<<S_bra.TwiceValue()
+         <<" "<<up+1<<" "<<(omegap.N().TwiceValue()-19)/2<<" "<<omegap.SU3().lambda()<<" "<<omegap.SU3().mu()<<" "
+         <<j+1<<" "<<(sigma.N().TwiceValue()-19)/2<<" "<<sigma.SU3().lambda()<<" "<<sigma.SU3().mu()<<" "<<Sp_ket.TwiceValue()<<" "<<Sn_ket.TwiceValue()<<" "<<S_ket.TwiceValue()<<" "
+         <<u+1<<" "<<(omega.N().TwiceValue()-19)/2<<" "<<omega.SU3().lambda()<<" "<<omega.SU3().mu()<<" "
+         <<N1<<" "<<N2<<" "<<N3<<" "<<N4<<" "<<xf.lambda()<<" "<<xf.mu()<<" "<<Sf<<" "<<xi.lambda()<<" "<<xi.mu()<<" "<<Si<<" "<<x0.lambda()<<" "<<x0.mu()<<" "<<S0.TwiceValue()<<" "<<rho0<<" "<<rho;
+if(Tz==-1){
+  std::cout<<" "<<Tz<<" ";
+}else{
+  std::cout<<"  "<<Tz<<" ";
+}
+std::cout<<tbd_hyperblocks2[hypersector_index][operator_index](it+up,jt+u)<<std::endl;
+  		}
+          }
+        }
+      }
+      }
+//      std::cout<<"*********************************************************************************************************"<<std::endl;
+    }
+
+    // Check of symmetries
+    if(false){
+      std::map<spncci::TBDensityRMELabels,std::vector<double>> RME_by_labels;
+      if(baby_spncci_hypersectors.size()!=tbd_hyperblocks.size())
+	std::cout<<"ERROR: baby_spncci_hypersectors.size(),tbd_hyperblocks.size(): "
+		 <<baby_spncci_hypersectors.size()<<" "<<tbd_hyperblocks.size()<<std::endl;
+      int Z=run_parameters.nuclide[0];
+      int N=run_parameters.nuclide[1];
+      int A=Z+N;
+      int N0=0;
+      if(Z>0){
+	Z=Z-2;
+      }
+      if(Z>0){
+	N0=N0+std::min(Z,6);
+	Z=Z-6;
+      }
+      if(Z>0){
+        N0=N0+std::min(Z,12);
+      }
+      if(N>0){
+        N=N-2;
+      }
+      if(N>0){
+        N0=N0+std::min(N,6);
+        N=N-6;
+      }
+      if(N>0){
+        N0=N0+std::min(N,12);
+      }
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors.GetHypersector(hypersector_index).Key();
+        int tbd_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,tbd_subspace_index,rho)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::TwoBodyDensitySubspace& tbd_subspace=two_body_density_space.GetSubspace(tbd_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0,xf,xi;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int N1,N2,N3,N4,rho0;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,N1,N2,N3,N4,xf,xi,rho0)=tbd_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+	int N_ex_sigma_p=(sigmap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_omega_p=(omegap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_sigma=(sigma.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int N_ex_omega=(omega.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int lambda_sigma_p=sigmap.SU3().lambda();
+	int mu_sigma_p=sigmap.SU3().mu();
+	int lambda_sigma=sigma.SU3().lambda();
+	int mu_sigma=sigma.SU3().mu();
+	int twice_Sp_p=Sp_bra.TwiceValue();
+	int twice_Sn_p=Sn_bra.TwiceValue();
+	int twice_S_p=S_bra.TwiceValue();
+	int twice_Sp=Sp_ket.TwiceValue();
+        int twice_Sn=Sn_ket.TwiceValue();
+        int twice_S=S_ket.TwiceValue();
+	int lambda_omega_p=omegap.SU3().lambda();
+	int mu_omega_p=omegap.SU3().mu();
+	int lambda_omega=omega.SU3().lambda();
+        int mu_omega=omega.SU3().mu();
+	int lambda0=x0.lambda();
+	int mu0=x0.mu();
+	int twice_S0=S0.TwiceValue();
+	int lambdaf=xf.lambda();
+        int muf=xf.mu();
+        int lambdai=xi.lambda();
+        int mui=xi.mu();
+       	if(tbd_hyperblocks[hypersector_index].size()>12)std::cout<<"ERROR: tbd_hyperblocks["<<hypersector_index<<"].size()="<<tbd_hyperblocks[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<tbd_hyperblocks[hypersector_index].size(); operator_index++){
+          if(tbd_hyperblocks[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: tbd_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<tbd_hyperblocks[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(tbd_hyperblocks[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: tbd_hyperblocks["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<tbd_hyperblocks[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+          int Sf,Si,Tz;
+          std::tie(Sf,Si,Tz)=tbd_subspace.GetStateLabels(operator_index);
+
+          for(int i=0; i<gamma_maxp; ++i){
+            int gamma_p=i+1;
+	    int it=i*upsilon_maxp;
+            for(int j=0; j<gamma_max; ++j){
+	      int gamma=j+1;
+              int jt=j*upsilon_max; 
+	      for(int up=0; up<upsilon_maxp; up++){
+		int upsilon_p=up+1;
+		for(int u=0; u<upsilon_max; u++){
+	          int upsilon=u+1;
+                  spncci::TBDensityRMELabels labels(N_ex_sigma_p, lambda_sigma_p, mu_sigma_p, twice_Sp_p, twice_Sn_p, twice_S_p, N_ex_omega_p, lambda_omega_p, mu_omega_p, gamma_p, upsilon_p, N_ex_sigma, lambda_sigma, mu_sigma, twice_Sp, twice_Sn, twice_S, N_ex_omega, lambda_omega, mu_omega, gamma, upsilon, lambda0, mu0, twice_S0, N1, N2, N3, N4, lambdaf, muf, 2*Sf, lambdai, mui, 2*Si, rho, Tz);
+                  if(RME_by_labels.find(labels)==RME_by_labels.end()){
+	            int rho0max=u3::OuterMultiplicity(xf,xi,x0);
+		    std::vector<double> rmes(rho0max,0.0);
+		    RME_by_labels[labels]=rmes;
+		  }
+		  RME_by_labels[labels][rho0-1]=tbd_hyperblocks[hypersector_index][operator_index](it+up,jt+u);
+		}
+	      }
+	    }
+          }
+        }
+      }
+      if(not is_diagonal){
+      for (std::size_t hypersector_index=0; hypersector_index<baby_spncci_hypersectors2.size(); ++hypersector_index){
+        auto key=baby_spncci_hypersectors2.GetHypersector(hypersector_index).Key();
+        int tbd_subspace_index, baby_spncci_subspace_indexp, baby_spncci_index, rho;
+        std::tie(baby_spncci_subspace_indexp,baby_spncci_index,tbd_subspace_index,rho)=key;
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_bra=baby_spncci_space.GetSubspace(baby_spncci_subspace_indexp);
+        const spncci::BabySpNCCISubspace& baby_spncci_subspace_ket=baby_spncci_space.GetSubspace(baby_spncci_index);
+        const u3shell::TwoBodyDensitySubspace& tbd_subspace=two_body_density_space.GetSubspace(tbd_subspace_index);
+        int dim=baby_spncci_subspace_ket.dimension();
+        int gamma_max=baby_spncci_subspace_ket.gamma_max();
+        int upsilon_max=baby_spncci_subspace_ket.upsilon_max();
+        if(dim!=gamma_max*upsilon_max)std::cout<<"ERROR: dim,gamma_max,upsilon_max: "<<dim<<" "<<gamma_max<<" "<<upsilon_max<<std::endl;
+        int dimp=baby_spncci_subspace_bra.dimension();
+        int gamma_maxp=baby_spncci_subspace_bra.gamma_max();
+        int upsilon_maxp=baby_spncci_subspace_bra.upsilon_max();
+	if(dimp!=gamma_maxp*upsilon_maxp)std::cout<<"ERROR: dimp,gamma_maxp,upsilon_maxp: "<<dimp<<" "<<gamma_maxp<<" "<<upsilon_maxp<<std::endl;
+        u3::U3 omegap,sigmap,omega,sigma; // p denotes prime. bra has primed quantum numbers
+        u3::SU3 x0,xf,xi;
+        HalfInt S0,Sn_ket,Sp_ket,S_ket,Sn_bra,Sp_bra,S_bra;
+        int N1,N2,N3,N4,rho0;
+        std::tie(sigmap,Sp_bra,Sn_bra,S_bra,omegap)=baby_spncci_subspace_bra.labels();
+        std::tie(sigma,Sp_ket,Sn_ket,S_ket,omega)=baby_spncci_subspace_ket.labels();
+        std::tie(x0,S0,N1,N2,N3,N4,xf,xi,rho0)=tbd_subspace.labels();
+	if(omegap.N()-sigmap.N()<omega.N()-sigma.N())std::cout<<"ERROR: Nnp,Nn: "<<omegap.N()-sigmap.N()<<" "<<omega.N()-sigma.N()<<std::endl;
+	int N_ex_sigma_p=(sigmap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_omega_p=(omegap.N().TwiceValue()-2*N0-3*(A-1))/2;
+	int N_ex_sigma=(sigma.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int N_ex_omega=(omega.N().TwiceValue()-2*N0-3*(A-1))/2;
+        int lambda_sigma_p=sigmap.SU3().lambda();
+	int mu_sigma_p=sigmap.SU3().mu();
+	int lambda_sigma=sigma.SU3().lambda();
+	int mu_sigma=sigma.SU3().mu();
+	int twice_Sp_p=Sp_bra.TwiceValue();
+	int twice_Sn_p=Sn_bra.TwiceValue();
+	int twice_S_p=S_bra.TwiceValue();
+	int twice_Sp=Sp_ket.TwiceValue();
+        int twice_Sn=Sn_ket.TwiceValue();
+        int twice_S=S_ket.TwiceValue();
+	int lambda_omega_p=omegap.SU3().lambda();
+	int mu_omega_p=omegap.SU3().mu();
+	int lambda_omega=omega.SU3().lambda();
+        int mu_omega=omega.SU3().mu();
+	int lambda0=x0.lambda();
+	int mu0=x0.mu();
+	int twice_S0=S0.TwiceValue();
+	int lambdaf=xf.lambda();
+        int muf=xf.mu();
+	int lambdai=xi.lambda();
+        int mui=xi.mu();
+       	if(tbd_hyperblocks2[hypersector_index].size()>12)std::cout<<"ERROR: tbd_hyperblocks2["<<hypersector_index<<"].size()="<<tbd_hyperblocks2[hypersector_index].size()<<std::endl;
+
+	for(int operator_index=0; operator_index<tbd_hyperblocks2[hypersector_index].size(); operator_index++){
+          if(tbd_hyperblocks2[hypersector_index][operator_index].rows()!=dimp)std::cout<<"ERROR: tbd_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].rows(),dimp: "
+		  <<tbd_hyperblocks2[hypersector_index][operator_index].rows()<<" "<<dimp<<std::endl;
+	  if(tbd_hyperblocks2[hypersector_index][operator_index].cols()!=dim)std::cout<<"ERROR: tbd_hyperblocks2["<<hypersector_index<<"]["<<operator_index<<"].cols(),dim: "
+                  <<tbd_hyperblocks2[hypersector_index][operator_index].cols()<<" "<<dim<<std::endl;
+	  int Sf,Si,Tz;
+          std::tie(Sf,Si,Tz)=tbd_subspace.GetStateLabels(operator_index);
+
+          for(int i=0; i<gamma_maxp; ++i){
+            int gamma_p=i+1;
+	    int it=i*upsilon_maxp;
+            for(int j=0; j<gamma_max; ++j){
+	      int gamma=j+1;
+              int jt=j*upsilon_max; 
+	      for(int up=0; up<upsilon_maxp; up++){
+		int upsilon_p=up+1;
+		for(int u=0; u<upsilon_max; u++){
+	          int upsilon=u+1;
+                  spncci::TBDensityRMELabels labels(N_ex_sigma_p, lambda_sigma_p, mu_sigma_p, twice_Sp_p, twice_Sn_p, twice_S_p, N_ex_omega_p, lambda_omega_p, mu_omega_p, gamma_p, upsilon_p, N_ex_sigma, lambda_sigma, mu_sigma, twice_Sp, twice_Sn, twice_S, N_ex_omega, lambda_omega, mu_omega, gamma, upsilon, lambda0, mu0, twice_S0, N1, N2, N3, N4, lambdaf, muf, 2*Sf, lambdai, mui, 2*Si, rho, Tz);
+                  if(RME_by_labels.find(labels)==RME_by_labels.end()){
+                    int rho0max=u3::OuterMultiplicity(xf,xi,x0);
+                    std::vector<double> rmes(rho0max,0.0);
+                    RME_by_labels[labels]=rmes;
+                  }
+                  RME_by_labels[labels][rho0-1]=tbd_hyperblocks2[hypersector_index][operator_index](it+up,jt+u);
+		}
+	      }
+	    }
+          }
+        }
+      }
+      }
+
+      for(std::map<spncci::TBDensityRMELabels,std::vector<double>>::iterator it=RME_by_labels.begin(); it!=RME_by_labels.end(); ++it){
+        spncci::TBDensityRMELabels labels=it->first;
+	int twice_S=labels.twice_S();
+	int twice_S_p=labels.twice_S_p();
+	int lambda_omega=labels.lambda_omega();
+        int mu_omega=labels.mu_omega();
+	int lambda_omega_p=labels.lambda_omega_p();
+        int mu_omega_p=labels.mu_omega_p();
+        int lambda0=labels.lambda0();
+	int mu0=labels.mu0();
+	int Sf=labels.twice_Sf()/2;
+	int Si=labels.twice_Si()/2;
+	int rho0max=it->second.size();
+	u3::SU3 x0(lambda0,mu0);
+	u3::SU3 xf(labels.lambdaf(),labels.muf());
+	u3::SU3 xi(labels.lambdai(),labels.mui());
+	if(rho0max!=u3::OuterMultiplicity(xf,xi,x0)){std::cout<<"ERROR: vector size!=OuterMultiplicity(xf,xi,x0)"<<std::endl;}
+	spncci::TBDensityRMELabels labels_conj(labels.N_ex_sigma(), labels.lambda_sigma(), labels.mu_sigma(), labels.twice_Sp(), labels.twice_Sn(), twice_S, labels.N_ex_omega(), lambda_omega, mu_omega, labels.gamma(), labels.upsilon(), labels.N_ex_sigma_p(), labels.lambda_sigma_p(), labels.mu_sigma_p(), labels.twice_Sp_p(), labels.twice_Sn_p(), twice_S_p, labels.N_ex_omega_p(), lambda_omega_p, mu_omega_p, labels.gamma_p(), labels.upsilon_p(), mu0, lambda0, labels.twice_S0(), labels.N4(), labels.N3(), labels.N2(), labels.N1(), labels.mui(), labels.lambdai(), 2*Si, labels.muf(), labels.lambdaf(), 2*Sf, labels.rho(), labels.Tz());
+	if(labels.Tz()!=0){
+	  spncci::TBDensityRMELabels labels_flip12(labels.N_ex_sigma_p(), labels.lambda_sigma_p(), labels.mu_sigma_p(), labels.twice_Sp_p(), labels.twice_Sn_p(), twice_S_p, labels.N_ex_omega_p(), lambda_omega_p, mu_omega_p, labels.gamma_p(), labels.upsilon_p(), labels.N_ex_sigma(), labels.lambda_sigma(), labels.mu_sigma(), labels.twice_Sp(), labels.twice_Sn(), twice_S, labels.N_ex_omega(), lambda_omega, mu_omega, labels.gamma(), labels.upsilon(), lambda0, mu0, labels.twice_S0(), labels.N2(), labels.N1(), labels.N3(), labels.N4(), labels.lambdaf(), labels.muf(), 2*Sf, labels.lambdai(), labels.mui(), 2*Si, labels.rho(), labels.Tz());
+          spncci::TBDensityRMELabels labels_flip34(labels.N_ex_sigma_p(), labels.lambda_sigma_p(), labels.mu_sigma_p(), labels.twice_Sp_p(), labels.twice_Sn_p(), twice_S_p, labels.N_ex_omega_p(), lambda_omega_p, mu_omega_p, labels.gamma_p(), labels.upsilon_p(), labels.N_ex_sigma(), labels.lambda_sigma(), labels.mu_sigma(), labels.twice_Sp(), labels.twice_Sn(), twice_S, labels.N_ex_omega(), lambda_omega, mu_omega, labels.gamma(), labels.upsilon(), lambda0, mu0, labels.twice_S0(), labels.N1(), labels.N2(), labels.N4(), labels.N3(), labels.lambdaf(), labels.muf(), 2*Sf, labels.lambdai(), labels.mui(), 2*Si, labels.rho(), labels.Tz());
+          spncci::TBDensityRMELabels labels_flip1234(labels.N_ex_sigma_p(), labels.lambda_sigma_p(), labels.mu_sigma_p(), labels.twice_Sp_p(), labels.twice_Sn_p(), twice_S_p, labels.N_ex_omega_p(), lambda_omega_p, mu_omega_p, labels.gamma_p(), labels.upsilon_p(), labels.N_ex_sigma(), labels.lambda_sigma(), labels.mu_sigma(), labels.twice_Sp(), labels.twice_Sn(), twice_S, labels.N_ex_omega(), lambda_omega, mu_omega, labels.gamma(), labels.upsilon(), lambda0, mu0, labels.twice_S0(), labels.N2(), labels.N1(), labels.N4(), labels.N3(), labels.lambdaf(), labels.muf(), 2*Sf, labels.lambdai(), labels.mui(), 2*Si, labels.rho(), labels.Tz());
+          int phaseflip12=labels.N1()+labels.N2()+labels.lambdaf()+labels.muf()+Sf;
+	  if(2*(phaseflip12/2)!=phaseflip12){
+	    phaseflip12=-1;
+	  }else{
+	    phaseflip12=1;
+	  }
+	  int phaseflip34=labels.N3()+labels.N4()+labels.lambdai()+labels.mui()+Si;
+          if(2*(phaseflip34/2)!=phaseflip34){
+            phaseflip34=-1;
+          }else{
+            phaseflip34=1;
+          }
+	  for(int irho0=0; irho0<rho0max; irho0++){
+            if((RME_by_labels.find(labels_flip12)!=RME_by_labels.end())&&
+	       (std::abs(it->second[irho0]-phaseflip12*RME_by_labels[labels_flip12][irho0])>1.0e-5)){
+              std::cout<<"ERROR (flip 12): "<<it->second[irho0]<<" "<<phaseflip12*RME_by_labels[labels_flip12][irho0]<<std::endl;
+            }
+	    if((RME_by_labels.find(labels_flip34)!=RME_by_labels.end())&&
+		(std::abs(it->second[irho0]-phaseflip34*RME_by_labels[labels_flip34][irho0])>1.0e-5)){
+              std::cout<<"ERROR (flip 34): "<<it->second[irho0]<<" "<<phaseflip34*RME_by_labels[labels_flip34][irho0]<<std::endl;
+            }
+	    if((RME_by_labels.find(labels_flip1234)!=RME_by_labels.end())&&
+		(std::abs(it->second[irho0]-phaseflip12*phaseflip34*RME_by_labels[labels_flip1234][irho0])>1.0e-5)){
+           std::cout<<"ERROR (flip 1234): "<<it->second[irho0]<<" "<<phaseflip12*phaseflip34*RME_by_labels[labels_flip1234][irho0]<<std::endl;
+            }
+	  }
+	}
+        if(RME_by_labels.find(labels_conj)==RME_by_labels.end())continue;
+	double factor=sqrt(double((twice_S+1)*(lambda_omega+1)*(mu_omega+1)*(lambda_omega+mu_omega+2))
+			  /double((twice_S_p+1)*(lambda_omega_p+1)*(mu_omega_p+1)*(lambda_omega_p+mu_omega_p+2)));
+	int phase=lambda0+mu0+lambda_omega_p+mu_omega_p-lambda_omega-mu_omega+(twice_S-twice_S_p)/2+rho0max
+		  +labels.lambdaf()+labels.muf()+labels.lambdai()+labels.mui()+labels.N1()+labels.N2()+labels.N3()+labels.N4();
+	if(2*(phase/2)!=phase)factor=-factor;
+	for(int rho0=1; rho0<=rho0max; rho0++){
+          double sum_rho0p=0.0;
+  	  for(int rho0p=1; rho0p<=rho0max; rho0p++){
+	    if(2*(rho0p/2)==rho0p){
+              sum_rho0p+=PhiCached(phi_coef_cache,xf,xi,x0,rho0,rho0p)*RME_by_labels[labels_conj][rho0p-1];
+	    }else{
+	      sum_rho0p-=PhiCached(phi_coef_cache,xf,xi,x0,rho0,rho0p)*RME_by_labels[labels_conj][rho0p-1];
+	    }
+	  }
+	  if(std::abs(it->second[rho0-1]-factor*sum_rho0p)>1.0e-5){
+	    std::cout<<"ERROR: "<<it->second[rho0-1]<<" "<<factor*sum_rho0p<<std::endl;
+	    std::cout<<"irrep_family_index_bra irrep_family_index_ket: "<<irrep_family_index_bra<<" "<<irrep_family_index_ket<<std::endl;
+            std::cout<<"N_ex_sigma' lambda_sigma' mu_sigma' 2*Sp' 2*Sn' 2*S' N_ex_omega' lambda_omega' mu_omega': "<<labels.N_ex_sigma_p()<<" "<<labels.lambda_sigma_p()<<" "<<labels.mu_sigma_p()<<" "<<labels.twice_Sp_p()<<" "<<labels.twice_Sn_p()<<" "<<twice_S_p<<" "<<labels.N_ex_omega_p()<<" "<<lambda_omega_p<<" "<<mu_omega_p<<std::endl;
+            std::cout<<"N_ex_sigma  lambda_sigma  mu_sigma  2*Sp  2*Sn  2*S  N_ex_omega  lambda_omega  mu_omega : "<<labels.N_ex_sigma()<<" "<<labels.lambda_sigma()<<" "<<labels.mu_sigma()<<" "<<labels.twice_Sp()<<" "<<labels.twice_Sn()<<" "<<twice_S<<" "<<labels.N_ex_omega()<<" "<<lambda_omega<<" "<<mu_omega<<std::endl;
+            std::cout<<"lambda0 mu0 2*S0 N1 N2 N3 N4 lambdaf muf Sf lambdai mui Si rho0 rho Tz: "<<lambda0<<" "<<mu0<<" "<<labels.twice_S0()<<" "<<labels.N1()<<" "<<labels.N2()<<" "<<labels.N3()<<" "<<labels.N4()<<" "<<labels.lambdaf()<<" "<<labels.muf()<<" "<<Sf<<" "<<labels.lambdai()<<" "<<labels.mui()<<" "<<Si<<" "<<rho0<<" "<<labels.rho()<<" "<<labels.Tz()<<std::endl;
+          }
+  	}
+      }
+    }
 
     return;
   }

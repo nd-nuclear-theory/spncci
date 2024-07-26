@@ -215,10 +215,10 @@ namespace u3shell {
   }
 
   TwoBodyDensitySubspace::TwoBodyDensitySubspace(
-    u3::SU3 x0, HalfInt S0, unsigned int N1, unsigned int N2, unsigned int N3, unsigned int N4,
+    u3::SU3 x0, HalfInt S0, unsigned int N1, unsigned int N2, unsigned int N3, unsigned int N4, u3::SU3 xf, u3::SU3 xi, int rho0,
     const std::vector<u3shell::TwoBodyDensityLabels>& two_body_density_labels
     )
-      : BaseSubspace{SubspaceLabelsType(x0,S0,N1,N2,N3,N4)}
+      : BaseSubspace{SubspaceLabelsType(x0,S0,N1,N2,N3,N4,xf,xi,rho0)}
   {
     for(auto& tensor : two_body_density_labels)
       {
@@ -229,15 +229,15 @@ namespace u3shell {
             &&(N2==tensor.N2())
 	    &&(N3==tensor.N3())
             &&(N4==tensor.N4())
+	    &&(xf==tensor.xf())
+	    &&(xi==tensor.xi())
+            &&(rho0==tensor.rho0())
           )
           {
-	    u3::SU3 xf(tensor.xf());
 	    int Sf=tensor.Sf();
-	    u3::SU3 xi(tensor.xi());
             int Si=tensor.Si();
-	    int rho0=tensor.rho0();
             int Tz=tensor.Tz();
-            PushStateLabels(StateLabelsType(xf,Sf,xi,Si,rho0,Tz));
+            PushStateLabels(StateLabelsType(Sf,Si,Tz));
           }
       }
   }
@@ -260,15 +260,19 @@ namespace u3shell {
             int N4=N1+N2-N3-N0; // N0=N1+N2-N3-N4
             if((N4<0)||(N4>eta_max))continue;
             for(MultiplicityTagged<u3::SU3>& xf_tagged : u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0))){
+	      u3::SU3 xf(xf_tagged.irrep);
               for(MultiplicityTagged<u3::SU3>& xi_tagged : u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4))){
-                for(MultiplicityTagged<u3::SU3>& x0_tagged : u3::KroneckerProduct(xf_tagged.irrep,xi_tagged.irrep)){
+		u3::SU3 xi(xi_tagged.irrep);
+                for(MultiplicityTagged<u3::SU3>& x0_tagged : u3::KroneckerProduct(xf,xi)){
                   u3::SU3 x0(x0_tagged.irrep);
-                  // for each S0 in 0..2
-                  for(int S0=0; S0<=2; ++S0){
-                    // construct subspace
-                    TwoBodyDensitySubspace subspace(x0,S0,N1,N2,N3,N4,two_body_density_labels);
-                    // push subspace if nonempty
-                    if(subspace.size()!=0)PushSubspace(subspace);
+		  for(int rho0=1; rho0<=x0_tagged.tag; rho0++){
+                    // for each S0 in 0..2
+                    for(int S0=0; S0<=2; ++S0){
+                      // construct subspace
+                      TwoBodyDensitySubspace subspace(x0,S0,N1,N2,N3,N4,xf,xi,rho0,two_body_density_labels);
+                      // push subspace if nonempty
+                      if(subspace.size()!=0)PushSubspace(subspace);
+		    }
                   }
 	        }
 	      }

@@ -139,7 +139,11 @@ void ComputeTwoBodyDensityRMEs(
   spncci::OperatorBlocks& lgi_transformations,
   u3::UCoefCache& u_coef_cache,
   u3::PhiCoefCache& phi_coef_cache,
-  const spncci::LGIPair& lgi_pair
+  const spncci::LGIPair& lgi_pair,
+  basis::OperatorHyperblocks<double>& tbd_hyperblocks,
+  spncci::BabySpNCCITwoBodyDensityHypersectors& baby_spncci_hypersectors,
+  basis::OperatorHyperblocks<double>& tbd_hyperblocks2,
+  spncci::BabySpNCCITwoBodyDensityHypersectors& baby_spncci_hypersectors2
   );
   // Calculates many-body RMEs of two-body densities.  
   // Calculates tbd hyperblocks for given lgi pair and it's conjugate.
@@ -251,6 +255,139 @@ class OBUnitTensorRMELabels {
   }
   private:
   int N_ex_sigma_p_, lambda_sigma_p_, mu_sigma_p_, twice_Sp_p_, twice_Sn_p_, twice_S_p_, N_ex_omega_p_, lambda_omega_p_, mu_omega_p_, gamma_p_, upsilon_p_, N_ex_sigma_, lambda_sigma_, mu_sigma_, twice_Sp_, twice_Sn_, twice_S_, N_ex_omega_, lambda_omega_, mu_omega_, gamma_, upsilon_, lambda0_, mu0_, twice_S0_, eta_p_, eta_, rho0_, Tz_;
+};
+
+class TBDensityRMELabels {
+  public:
+  // default constructor
+  inline TBDensityRMELabels() : N_ex_sigma_p_(0), lambda_sigma_p_(0), mu_sigma_p_(0), twice_Sp_p_(0), twice_Sn_p_(0), twice_S_p_(0), N_ex_omega_p_(0), lambda_omega_p_(0), mu_omega_p_(0), gamma_p_(0), upsilon_p_(0), N_ex_sigma_(0), lambda_sigma_(0), mu_sigma_(0), twice_Sp_(0), twice_Sn_(0), twice_S_(0), N_ex_omega_(0), lambda_omega_(0), mu_omega_(0), gamma_(0), upsilon_(0), lambda0_(0), mu0_(0), twice_S0_(0), N1_(0), N2_(0), N3_(0), N4_(0), lambdaf_(0), muf_(0), twice_Sf_(0), lambdai_(0), mui_(0), twice_Si_(0), rho_(0), Tz_(0) {}
+  // constructor
+  inline TBDensityRMELabels(int N_ex_sigma_p, int lambda_sigma_p, int mu_sigma_p, int twice_Sp_p, int twice_Sn_p, int twice_S_p, int N_ex_omega_p, int lambda_omega_p, int mu_omega_p, int gamma_p, int upsilon_p, int N_ex_sigma, int lambda_sigma, int mu_sigma, int twice_Sp, int twice_Sn, int twice_S, int N_ex_omega, int lambda_omega, int mu_omega, int gamma, int upsilon, int lambda0, int mu0, int twice_S0, int N1, int N2, int N3, int N4, int lambdaf, int muf, int twice_Sf, int lambdai, int mui, int twice_Si, int rho, int Tz) : N_ex_sigma_p_(N_ex_sigma_p), lambda_sigma_p_(lambda_sigma_p), mu_sigma_p_(mu_sigma_p), twice_Sp_p_(twice_Sp_p), twice_Sn_p_(twice_Sn_p), twice_S_p_(twice_S_p), N_ex_omega_p_(N_ex_omega_p), lambda_omega_p_(lambda_omega_p), mu_omega_p_(mu_omega_p), gamma_p_(gamma_p), upsilon_p_(upsilon_p), N_ex_sigma_(N_ex_sigma), lambda_sigma_(lambda_sigma), mu_sigma_(mu_sigma), twice_Sp_(twice_Sp), twice_Sn_(twice_Sn), twice_S_(twice_S), N_ex_omega_(N_ex_omega), lambda_omega_(lambda_omega), mu_omega_(mu_omega), gamma_(gamma), upsilon_(upsilon), lambda0_(lambda0), mu0_(mu0), twice_S0_(twice_S0), N1_(N1), N2_(N2), N3_(N3), N4_(N4), lambdaf_(lambdaf), muf_(muf), twice_Sf_(twice_Sf), lambdai_(lambdai), mui_(mui), twice_Si_(twice_Si), rho_(rho), Tz_(Tz) {}
+  // accessors
+  inline int N_ex_sigma_p() const {
+    return N_ex_sigma_p_;
+  }
+  inline int lambda_sigma_p() const {
+    return lambda_sigma_p_;
+  }
+  inline int mu_sigma_p() const {
+    return mu_sigma_p_;
+  }
+  inline int twice_Sp_p() const {
+    return twice_Sp_p_;
+  }
+  inline int twice_Sn_p() const {
+    return twice_Sn_p_;
+  }
+  inline int twice_S_p() const {
+    return twice_S_p_;
+  }
+  inline int N_ex_omega_p() const {
+    return N_ex_omega_p_;
+  }
+  inline int lambda_omega_p() const {
+    return lambda_omega_p_;
+  }
+  inline int mu_omega_p() const {
+    return mu_omega_p_;
+  }
+  inline int gamma_p() const {
+    return gamma_p_;
+  }
+  inline int upsilon_p() const {
+    return upsilon_p_;
+  }
+  inline int N_ex_sigma() const {
+    return N_ex_sigma_;
+  }
+  inline int lambda_sigma() const {
+    return lambda_sigma_;
+  }
+  inline int mu_sigma() const {
+    return mu_sigma_;
+  }
+  inline int twice_Sp() const {
+    return twice_Sp_;
+  }
+  inline int twice_Sn() const {
+    return twice_Sn_;
+  }
+  inline int twice_S() const {
+    return twice_S_;
+  }
+  inline int N_ex_omega() const {
+    return N_ex_omega_;
+  }
+  inline int lambda_omega() const {
+    return lambda_omega_;
+  }
+  inline int mu_omega() const {
+    return mu_omega_;
+  }
+  inline int gamma() const {
+    return gamma_;
+  }
+  inline int upsilon() const {
+    return upsilon_;
+  }
+  inline int lambda0() const {
+    return lambda0_;
+  }
+  inline int mu0() const {
+    return mu0_;
+  }
+  inline int twice_S0() const {
+    return twice_S0_;
+  }
+  inline int N1() const {
+    return N1_;
+  }
+  inline int N2() const {
+    return N2_;
+  }
+  inline int N3() const {
+    return N3_;
+  }
+  inline int N4() const {
+    return N4_;
+  }
+  inline int lambdaf() const {
+    return lambdaf_;
+  }
+  inline int muf() const {
+    return muf_;
+  }
+  inline int twice_Sf() const {
+    return twice_Sf_;
+  }
+  inline int lambdai() const {
+    return lambdai_;
+  }
+  inline int mui() const {
+    return mui_;
+  }
+  inline int twice_Si() const {
+    return twice_Si_;
+  }
+  inline int rho() const {
+    return rho_;
+  }
+  inline int Tz() const {
+    return Tz_;
+  }
+  // key tuple, comparisons
+  typedef std::tuple<int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int> KeyType;
+  inline KeyType Key() const{
+    return KeyType(N_ex_sigma_p(), lambda_sigma_p(), mu_sigma_p(), twice_Sp_p(), twice_Sn_p(), twice_S_p(), N_ex_omega_p(), lambda_omega_p(), mu_omega_p(), gamma_p(), upsilon_p(), N_ex_sigma(), lambda_sigma(), mu_sigma(), twice_Sp(), twice_Sn(), twice_S(), N_ex_omega(), lambda_omega(), mu_omega(), gamma(), upsilon(), lambda0(), mu0(), twice_S0(), N1(), N2(), N3(), N4(), lambdaf(), muf(), twice_Sf(), lambdai(), mui(), twice_Si(), rho(), Tz());
+  }
+  inline friend bool operator == (const TBDensityRMELabels& l1, const TBDensityRMELabels& l2){
+    return l1.Key() == l2.Key();
+  }
+  inline friend bool operator < (const TBDensityRMELabels& l1, const TBDensityRMELabels& l2){
+    return l1.Key() < l2.Key();
+  }
+  private:
+  int N_ex_sigma_p_, lambda_sigma_p_, mu_sigma_p_, twice_Sp_p_, twice_Sn_p_, twice_S_p_, N_ex_omega_p_, lambda_omega_p_, mu_omega_p_, gamma_p_, upsilon_p_, N_ex_sigma_, lambda_sigma_, mu_sigma_, twice_Sp_, twice_Sn_, twice_S_, N_ex_omega_, lambda_omega_, mu_omega_, gamma_, upsilon_, lambda0_, mu0_, twice_S0_, N1_, N2_, N3_, N4_, lambdaf_, muf_, twice_Sf_, lambdai_, mui_, twice_Si_, rho_, Tz_;
 };
 //***************************************************************************************
 }//namespace

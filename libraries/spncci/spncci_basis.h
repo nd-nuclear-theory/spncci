@@ -756,7 +756,7 @@ namespace spncci
       //
       // Arguments:
       //    space : full baby spncci space
-      //    operator_space : TBD space.  Subspaces by x0,S0,N1,N2,N3,N4
+      //    operator_space : TBD space.  Subspaces by x0,S0,N1,N2,N3,N4,xf,xi,rho0
       //
       //    operator_subset : map of tbd_subspace indices which
       //      may have non-zero rmes between the given irrep family pair.

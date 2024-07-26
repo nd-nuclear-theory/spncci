@@ -199,7 +199,7 @@ namespace u3shell {
         )
   {
     // Generate proton two body density labels
-    int eta_max=Nmax+N1vp;
+    int eta_max_p=Nmax+N1vp;
     int N0_min=-Nmax;
     if(N0_min%2 != 0)
       {
@@ -207,13 +207,13 @@ namespace u3shell {
       }
 
     for(int N0=N0_min; N0<=Nmax; N0+=2){
-      for(int N1=0; N1<=eta_max; ++N1){
-	for(int N2=0; N2<=eta_max; ++N2){
+      for(int N1=0; N1<=eta_max_p; ++N1){
+	for(int N2=0; N2<=eta_max_p; ++N2){ // Upper bound used to be N1
 	  // Get allowed xf values
           MultiplicityTagged<u3::SU3>::vector xf_set=u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0));
-          for(int N3=0; N3<=eta_max; ++N3){
+          for(int N3=0; N3<=eta_max_p; ++N3){
             int N4=N1+N2-N3-N0; // N0=N1+N2-N3-N4
-            if((N4<0)||(N4>eta_max))continue;
+            if((N4<0)||(N4>eta_max_p))continue; // Additional condition ||(N4>N3) used to be here
             // Get allowed xi values
             MultiplicityTagged<u3::SU3>::vector xi_set=u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4));
 	    for(MultiplicityTagged<u3::SU3> xf : xf_set){
@@ -237,16 +237,16 @@ namespace u3shell {
     }
 
     // Generate neutron two body density labels
-    eta_max=Nmax+N1vn;
+    int eta_max_n=Nmax+N1vn;
 
     for(int N0=N0_min; N0<=Nmax; N0+=2){
-      for(int N1=0; N1<=eta_max; ++N1){
-        for(int N2=0; N2<=eta_max; ++N2){
+      for(int N1=0; N1<=eta_max_n; ++N1){
+        for(int N2=0; N2<=eta_max_n; ++N2){ // Upper bound used to be N1
           // Get allowed xf values
           MultiplicityTagged<u3::SU3>::vector xf_set=u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0));
-          for(int N3=0; N3<=eta_max; ++N3){
+          for(int N3=0; N3<=eta_max_n; ++N3){
             int N4=N1+N2-N3-N0; // N0=N1+N2-N3-N4
-            if((N4<0)||(N4>eta_max))continue;
+            if((N4<0)||(N4>eta_max_n))continue; // Additional condition ||(N4>N3) used to be here
             // Get allowed xi values
             MultiplicityTagged<u3::SU3>::vector xi_set=u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4));
             for(MultiplicityTagged<u3::SU3> xf : xf_set){
@@ -258,6 +258,37 @@ namespace u3shell {
 			for(int rho0=1; rho0<=x0.tag; rho0++){
                           two_body_density_labels.emplace_back(x0.irrep,S0,N1,N2,N3,N4,xf.irrep,Sf,xi.irrep,Si,rho0,-1);
 			}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Generate proton-neutron two body density labels
+    for(int N0=N0_min; N0<=Nmax; N0+=2){
+      for(int N1=0; N1<=eta_max_p; ++N1){
+        for(int N2=0; N2<=eta_max_n; ++N2){
+          // Get allowed xf values
+          MultiplicityTagged<u3::SU3>::vector xf_set=u3::KroneckerProduct(u3::SU3(N1,0),u3::SU3(N2,0));
+          for(int N3=0; N3<=eta_max_n; ++N3){
+            int N4=N1+N2-N3-N0; // N0=N1+N2-N3-N4
+            if((N4<0)||(N4>eta_max_p))continue;
+            // Get allowed xi values
+            MultiplicityTagged<u3::SU3>::vector xi_set=u3::KroneckerProduct(u3::SU3(0,N3),u3::SU3(0,N4));
+            for(MultiplicityTagged<u3::SU3> xf : xf_set){
+              for(MultiplicityTagged<u3::SU3> xi : xi_set){
+                for(MultiplicityTagged<u3::SU3> x0 : u3::KroneckerProduct(xf.irrep,xi.irrep)){
+                  for(int Sf=0; Sf<=1; Sf++){
+                    for(int Si=0; Si<=1; Si++){
+                      for(int S0=std::abs(Sf-Si); S0<=Sf+Si; S0++){
+                        for(int rho0=1; rho0<=x0.tag; rho0++){
+                          two_body_density_labels.emplace_back(x0.irrep,S0,N1,N2,N3,N4,xf.irrep,Sf,xi.irrep,Si,rho0,0);
+                        }
                       }
                     }
                   }

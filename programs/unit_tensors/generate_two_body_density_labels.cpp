@@ -24,15 +24,15 @@ int main(int argc, char **argv)
   std::vector<u3shell::TwoBodyDensityLabels> tbd_labels;
   u3shell::GenerateTwoBodyDensityLabels(Nmax, N1vp, N1vn, tbd_labels);
 
-  int skip;
-  if (N1vn>N1vp) {
-    skip = 1;
+  int want;
+  if (N1vp>=N1vn) {
+    want = 1;
   } else {
-    skip = -1;
+    want = -1;
   }
   std::vector<std::array<int,13>> tensors;
   for (u3shell::TwoBodyDensityLabels labels : tbd_labels) {
-    if (labels.Tz() == skip) continue;
+    if (labels.Tz() != want) continue;
     std::array<int,13> tensor={labels.N1(),labels.N2(),labels.N3(),labels.N4(),
                                labels.xf().lambda(),labels.xf().mu(),2*labels.Sf(),
                                labels.xi().lambda(),labels.xi().mu(),2*labels.Si(),
