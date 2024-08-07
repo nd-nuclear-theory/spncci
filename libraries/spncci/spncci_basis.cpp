@@ -427,9 +427,12 @@ namespace spncci
               if (allowed)
                 for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                   {
-                    PushHypersector(HypersectorType(
-                      bra_subspace_index,ket_subspace_index,operator_subspace_index,
-                      bra_subspace,ket_subspace,operator_subspace,multiplicity_index));
+                    PushHypersector(
+                      bra_subspace_index,
+                      ket_subspace_index,
+                      operator_subspace_index,
+                      multiplicity_index
+                    );
                   }
             }
         }
@@ -528,11 +531,8 @@ namespace spncci
               for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                 {
                   PushHypersector(
-                    HypersectorType(
                       bra_subspace_index,ket_subspace_index,operator_subspace_index,
-                      bra_subspace, ket_subspace,operator_subspace,
                       multiplicity_index
-                      )
                     );
                   unit_tensor_hypersector_subsets[Nsum/2].push_back(hypersector_index);
                   ++hypersector_index;
@@ -613,11 +613,8 @@ namespace spncci
         for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
           {
             PushHypersector(
-              HypersectorType(
                 bra_subspace_index,ket_subspace_index,operator_subspace_index,
-                bra_subspace, ket_subspace,operator_subspace,
                 multiplicity_index
-                )
               );
             // unit_tensor_hypersector_subset.push_back(hypersector_index);
             // ++hypersector_index;
@@ -743,13 +740,13 @@ namespace spncci
               // push sectors (tagged by multiplicity)
               for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                 {
-                  PushHypersector(
-                    HypersectorType(
-                      bra_subspace_index,ket_subspace_index,observable_subspace_index,
-                      bra_subspace, ket_subspace,observable_subspace,
-                      multiplicity_index
-                      )
-                    );
+                  PushHypersector(bra_subspace_index,ket_subspace_index,observable_subspace_index,multiplicity_index);
+                    // HypersectorType(
+                    //   bra_subspace_index,ket_subspace_index,observable_subspace_index,
+                    //   bra_subspace, ket_subspace,observable_subspace,
+                    //   multiplicity_index
+                    //   )
+                    // );
                 }
             }
         }
