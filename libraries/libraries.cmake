@@ -6,7 +6,7 @@ option(USE_SYSTEM_FMT "Use system-provided fmtlib" FALSE)
 # external dependencies
 # ##############################################################################
 
-find_package(Boost REQUIRED COMPONENTS headers)
+find_package(Boost REQUIRED COMPONENTS)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(GSL REQUIRED)
 find_package(OpenMP REQUIRED)
