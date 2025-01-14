@@ -49,6 +49,8 @@ SpatialRecurrenceMatrix::SpatialRecurrenceMatrix(
   }
 }
 
+// Functions only defined for this file.  Avoids possible overlaps in names
+// in other libraries.
 inline namespace
 {
 
@@ -157,6 +159,9 @@ inline basis::OperatorBlock<double> ChiMatrix(
          * u3_subspace_ket.K_matrix().transpose();
 }
 
+};  // namespace
+
+
 basis::OperatorBlock<double> UMatrix1(
     const u3::U3& target_omega_bra,
     const u3::U3& target_omega_ket,
@@ -194,14 +199,14 @@ basis::OperatorBlock<double> UMatrix1(
               target_offset + target_op_index, source_offset + source_op_index
             ) =
               u3::U(
-                  u3::SU3{2, 0},
+                  u3::SU3{2u, 0u},
                   source_omega_ket,
                   target_omega_bra,
                   target_x0_subspace.x0(),
                   target_omega_ket,
                   1,
                   target_r0,
-                  source_x0_subspace.x0(),
+                  source_x0_subspace.x0(),// Querry PJF: should this be source_ket?
                   source_r0,
                   1
                 );
@@ -211,6 +216,8 @@ basis::OperatorBlock<double> UMatrix1(
 
   return u_matrix;
 }
+
+
 basis::OperatorBlock<double> UMatrix2(
     const u3::U3& target_omega_bra,
     const u3::U3& target_omega_ket,
@@ -230,7 +237,7 @@ basis::OperatorBlock<double> UMatrix2(
          iter::enumerate(source_U3_space))
     {
       if (!u3::OuterMultiplicity(
-              {2, 0}, target_x0_subspace.x0(), source_x0_subspace.x0()
+              {2u, 0u}, target_x0_subspace.x0(), source_x0_subspace.x0()
             ))
         continue;
       auto target_r0_max = target_U3_space.GetSubspaceDegeneracy(target_x0_index);
