@@ -13,14 +13,13 @@
   2/16/22 (aem): Created.
   
 ****************************************************************/
-#include "lgi/lgi.h"
-
 #include "LookUpContainers/CWig9lmLookUpTable.h"
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "SU3ME/CInteractionPN.h"
 #include "SU3ME/InteractionPPNN.h"
 #include "UNU3SU3/UNU3SU3Basics.h"
 
+#include "lgi/lgi.h"
 #include "u3ncsm/lgi_gen.h"
 #include "u3ncsm/dimensions.h"
 #include "utilities/nuclide.h"
