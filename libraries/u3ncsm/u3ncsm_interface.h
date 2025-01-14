@@ -27,21 +27,22 @@
 namespace spncci::seeds
 {
 
+
 inline std::string seed_filename(
     const int Z,
     const int N,
     const HalfInt& Nsigma0,
     const u3::U3& sigma_bra,
     const u3::U3& sigma_ket,
-    const int parity_bar
+    const int parity_bar,
+    const std::string& seed_filename_template
   )
 {
   int Nex_bra(sigma_bra.N() - Nsigma0);
   int Nex_ket(sigma_ket.N() - Nsigma0);
 
   std::string filename = fmt::format(
-      "seeds_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_Nex{:02d}_lm{:02d}_mu{"
-      ":02d}_gbar{:1d}.dat",
+      seed_filename_template,
       Z,
       N,
       Nex_bra,
@@ -56,6 +57,22 @@ inline std::string seed_filename(
   return filename;
 }
 
+
+inline std::string seed_filename(
+    const int Z,
+    const int N,
+    const HalfInt& Nsigma0,
+    const u3::U3& sigma_bra,
+    const u3::U3& sigma_ket,
+    const int parity_bar
+  )
+{
+    // file labeled first by bra, then by ket Nex(lambda,mu) then by gbar
+  std::string seed_filename_template
+  = "seeds_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_gbar{:1d}.dat";
+
+  return seed_filename(Z,N,Nsigma0,sigma_bra,sigma_ket,parity_bar,seed_filename_template);
+}
 
 }  // namespace spncci::seeds
 

@@ -25,7 +25,6 @@ target_link_libraries(
          spncci::u3shell
          spncci::spncci_basis
          spncci::lgi
-         spncci::u3ncsm
 )
 
 # ##############################################################################
