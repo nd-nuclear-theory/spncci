@@ -51,7 +51,6 @@ class SpatialRecurrenceMatrix
  public:
   inline auto recurrence_space_ptr() const { return recurrence_space_ptr_; }
   inline const auto& recurrence_space() const { return *recurrence_space_ptr_; }
-
   inline const basis::OperatorBlocks<double>& GetRecurrenceBlock(unsigned int Nnsum) const
   {
 #ifndef NDEBUG
@@ -70,6 +69,7 @@ class SpatialRecurrenceMatrix
   // private accessors
   ////////////////////////////////////////////////////////////////
  private:
+  // For internal use in Generating Recurrence block.
   inline basis::OperatorBlocks<double>& GetRecurrenceBlock(unsigned int Nnsum)
   {
 #ifndef NDEBUG

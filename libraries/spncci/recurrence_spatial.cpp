@@ -443,74 +443,111 @@ void ComputeNnSum4RecurrenceTerm(
 
 void SpatialRecurrenceMatrix::GenerateRecurrenceBlock(unsigned int Nnsum)
 {
-  auto& recurrence_block = GetRecurrenceBlock(Nnsum);
+
   const auto& lgi_recurrence_subspace =
       recurrence_space().GetSubspace(/*Nnsum=*/0).GetSubspace(0);
+
   const auto& bra_lgi = lgi_recurrence_subspace.omega_bra();
   const auto& ket_lgi = lgi_recurrence_subspace.omega_ket();
-  const auto& recurrence_Nnsum_space = recurrence_space().GetSubspace(Nnsum / 2);
-  // initialize Nnsum=0 block to identity
+
+
+  // Set Nnsum=0 block to identity
   if (Nnsum == 0)
   {
-    recurrence_block[0] = basis::OperatorBlock<double>::Identity(
+    basis::OperatorBlocks<double>& recurrence_blocks = GetRecurrenceBlock(0);
+    recurrence_blocks[0] = basis::OperatorBlock<double>::Identity(
         lgi_recurrence_dimension_, lgi_recurrence_dimension_
       );
     return;
   }
 
+  const auto& recurrence_Nnsum_space = recurrence_space().GetSubspace(Nnsum / 2);
+  // This is an OperatorBlocks.  Index corresponds to u3subspaces within Nnsum space, I think.
+  // Ket is LGI.  Is zero initialized already?
+  auto& recurrence_blocks_Nnsum_target = GetRecurrenceBlock(Nnsum);
+
+
+  // TODO:
+  // for delta_Nnsum in [2,4]:
+  //    if (Nnsum<4 and delta_Nnsum==4)
+  //      continue;
+  //
+  //    On function for delta_Nnsum=4 and on for delta_Nnsum=2
+  //    functions take flag for bra<ket which will determine which version of the recurrence to
+  //    calculate.
+
+
+  // If Nnsum>4 calculate first term in the recurrence relating unit tensor rmes with
+  // Nnsum_source = Nnsum_target-4
+  int delta_Nnsum=4;
   if (Nnsum >= 4)
   {
+
+    int delta_Nnsum=4;
+
+    // Get RecurrenceBlock for Nnsum-delta_Nnsum, which should already be computed.
+    const auto& recurrence_blocks_Nnsum_source = GetRecurrenceBlock(Nnsum-delta_Nnsum);
+
+    // Constructing recurrence sectors
     auto recurrence_u3_sectors =
-        spncci::spatial::RecurrenceU3Sectors(recurrence_space(), Nnsum, Nnsum - 4);
+        spncci::spatial::RecurrenceU3Sectors(recurrence_space(), Nnsum, Nnsum - delta_Nnsum);
+
+
     for (const auto& recurrence_u3_sector : recurrence_u3_sectors)
     {
-      const auto& source_u3_space = recurrence_u3_sector.source_subspace();
-      const auto source_u3_offset =
-          recurrence_space()
-              .GetSubspace(Nnsum / 2 - 2)
-              .GetSubspaceOffset(recurrence_u3_sector.source_subspace_index());
-      const auto& target_u3_space = recurrence_u3_sector.target_subspace();
-      const auto target_u3_offset =
-          recurrence_space().GetSubspace(Nnsum).GetSubspaceOffset(
-              recurrence_u3_sector.target_subspace_index()
-            );
+      const auto& source_recurrence_u3_space = recurrence_u3_sector.source_subspace();
+      const auto& target_recurrence_u3_space = recurrence_u3_sector.target_subspace();
 
-      const auto& omega1 = source_u3_space.omega_ket();
-      const auto& omega2 = source_u3_space.omega_bra();
-      const auto& omega = target_u3_space.omega_ket();
-      const auto& omegap = target_u3_space.omega_bra();
+      // Row index in Nsum block of recurrence_u3_sector??
+      const auto target_block_index = recurrence_u3_sector.target_subspace_index();
+      const auto source_block_index = recurrence_u3_sector.source_subspace_index();
 
-      const auto& chi_matrix =
-          ChiMatrix(
-              ket_lgi,
-              recurrence_space().ket_space().LookUpSubspace(omega),
-              recurrence_space().ket_space().LookUpSubspace(omega1)
-            )
-              .eval();
-      const auto& A_matrix =
-          AMatrix(
-              ket_lgi,
-              recurrence_space().ket_space().LookUpSubspace(omega),
-              recurrence_space().ket_space().LookUpSubspace(omega1)
+      // Get corresponding RecurrenceU3Space tile from Nnsum-delta_Nnsum blocks
+      // resulting block is dim(source u3 subspace) x dim(lgi)
+      const basis::OperatorBlock<double>& source_recurrence_u3_tile
+        = recurrence_blocks_Nnsum_source[source_block_index];
 
-            )
-              .eval();
-      const auto& u1_matrix = UMatrix1(
-          omegap, omega, omega2, omega1, target_u3_space, source_u3_space
+      // resulting block is dim(target u3 subspace) x dim(lgi)
+      basis::OperatorBlock<double>& target_recurrence_u3_tile
+        = recurrence_blocks_Nnsum_target[target_block_index];
+
+      // const auto& omega1 = source_u3_space.omega_ket();
+      // const auto& omega2 = source_u3_space.omega_bra();
+      // const auto& omega = target_u3_space.omega_ket();
+      // const auto& omegap = target_u3_space.omega_bra();
+
+      auto recurrence_operator_sectors
+        = spncci::spatial::RecurrenceOperatorSectors(
+          target_recurrence_u3_space,
+          source_recurrence_u3_space,
+          delta_Nnsum
         );
 
-      assert(
-          chi_matrix.rows() * A_matrix.rows() * u1_matrix.rows()
-          == target_u3_space.dimension()
-        );
-      assert(
-          chi_matrix.cols() * A_matrix.cols() * u1_matrix.cols()
-          == source_u3_space.dimension()
-        );
 
-      basis::OperatorBlock<double> recurrence_tile{
-          target_u3_space.dimension(), source_u3_space.dimension()
-        };
+
+      // Function need to get passed:
+      /*
+      recurrence space
+      omegap,omega, omega2, omega1,
+      recurrence_operator_sectors,
+      target_recurrence_u3_tile
+      source_recurrence_u3_tile
+      */
+
+      if (delta_Nnsum==4)
+      {
+        ComputeNnSum4RecurrenceTerm(
+          recurrence_space().bra_space(),
+          recurrence_space().ket_space(),
+          target_recurrence_u3_space,
+          source_recurrence_u3_space,
+          recurrence_operator_sectors,
+          source_recurrence_u3_tile,
+          target_recurrence_u3_tile
+        );
+      }
+
+
     }
   }
 
@@ -520,7 +557,9 @@ void SpatialRecurrenceMatrix::GenerateRecurrenceBlock(unsigned int Nnsum)
         spncci::spatial::RecurrenceU3Sectors(recurrence_space(), Nnsum, Nnsum - 2);
     for (const auto& [i, recurrence_u3_sector] :
          iter::enumerate(recurrence_u3_sectors))
-    {}
+    {
+
+    }
   }
 
 #ifndef NDEBUG
