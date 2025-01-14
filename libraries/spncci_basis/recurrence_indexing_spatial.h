@@ -577,6 +577,106 @@ class RecurrenceU3Sectors
   }
 };
 
+////////////////////////////////////////////////////////////////
+// Defining sectors for u3shell::spatial::OperatorU3Subspace for a given
+// pair of RecurrenceU3Spaces.
+////////////////////////////////////////////////////////////////
+template<typename tOperatorStateLabelType>
+class RecurrenceOperatorSector
+    : public basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<tOperatorStateLabelType>>
+{
+ private:
+  using OperatorStateLabelType = tOperatorStateLabelType;
+
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+  using BaseSectorType =
+      basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>>;
+
+  using BaseSectorType::BaseDegenerateSector;
+
+  std::size_t source_subspace_index() const
+  {
+    return BaseSectorType::ket_subspace_index();
+  }
+  std::size_t target_subspace_index() const
+  {
+    return BaseSectorType::bra_subspace_index();
+  }
+  const auto& source_subspace() const { return BaseSectorType::ket_subspace(); }
+  const auto& target_subspace() const { return BaseSectorType::bra_subspace(); }
+};
+
+// ////////////////////////////////////////////////////////////////
+template<typename tOperatorStateLabelType>
+class RecurrenceOperatorSectors
+    : public basis::BaseSectors<
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceOperatorSector<tOperatorStateLabelType>
+        >
+{
+ private:
+  using OperatorStateLabelType = tOperatorStateLabelType;
+  using BaseSectorsType = basis::BaseSectors<
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceOperatorSector<tOperatorStateLabelType>
+        >;
+
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+
+  RecurrenceOperatorSectors() = default;
+
+  RecurrenceOperatorSectors(
+      const RecurrenceU3Space<OperatorStateLabelType>& target_u3_space,
+      const RecurrenceU3Space<OperatorStateLabelType>& source_u3_space,
+      const int delta_Nnsum
+    )
+      : BaseSectorsType{
+          target_u3_space,
+          source_u3_space
+        }
+  {
+    for(auto&& [target_operator_index, target_operator_subspace] : iter::enumerate(target_u3_space))
+    {
+      for(auto&& [source_operator_index, source_operator_subspace] : iter::enumerate(source_u3_space))
+      {
+        if (delta_Nnsum==4)
+          if((target_operator_subspace.x0()!= target_operator_subspace.x0()) and (target_operator_subspace.N0()!= target_operator_subspace.N0()))
+            continue;
+
+        if(delta_Nnsum==2)
+          if(u3::OuterMultiplicity(target_operator_subspace.x0(),u3::SU3(2u,0u),target_operator_subspace.x0())==0)
+            continue;
+
+        // Get rho0_max
+        auto target_rho0_max = target_u3_space.GetSubspaceDegeneracy(target_operator_index);
+        auto source_rho0_max = source_u3_space.GetSubspaceDegeneracy(source_operator_index);
+        BaseSectorsType::PushSector(
+          RecurrenceOperatorSector<OperatorStateLabelType>(
+            target_operator_index,
+            source_operator_index,
+            target_u3_space.GetSubspaceDegeneracy(target_operator_index),
+            source_u3_space.GetSubspaceDegeneracy(source_operator_index),
+            target_u3_space.GetSubspacePtr(target_operator_index),
+            source_u3_space.GetSubspacePtr(source_operator_index),
+            1 // outer multiplicity
+            )
+        );
+      }
+
+    }
+  }
+
+};
+
+/////////////
 }  // namespace spncci::spatial
 
 #endif  // RECURRENCE_INDEXING_H_
