@@ -354,6 +354,91 @@ basis::OperatorBlock<double> GetKronProd(const basis::OperatorBlock<double>& Mat
 
 
 
+void ComputeNnSum4RecurrenceTerm(
+      const spncci::spatial::Sp3RSpace& sp3r_space_bra,
+      const spncci::spatial::Sp3RSpace& sp3r_space_ket,
+      const spncci::spatial::RecurrenceU3Space<SpatialRecurrenceMatrix::OperatorStateLabelType>&
+        target_recurrence_u3_space,
+      const spncci::spatial::RecurrenceU3Space<SpatialRecurrenceMatrix::OperatorStateLabelType>&
+        source_recurrence_u3_space,
+      const spncci::spatial::RecurrenceOperatorSectors<SpatialRecurrenceMatrix::OperatorStateLabelType>&
+        recurrence_operator_sectors,
+      const basis::OperatorBlock<double>& source_recurrence_u3_tile,
+      basis::OperatorBlock<double>& target_recurrence_u3_tile
+  )
+{
+      const auto& sigmap = sp3r_space_bra.sigma();
+      const auto& sigma = sp3r_space_ket.sigma();
+      const auto& omega1 = source_recurrence_u3_space.omega_ket();
+      const auto& omega2 = source_recurrence_u3_space.omega_bra();
+      const auto& omega =  target_recurrence_u3_space.omega_ket();
+      const auto& omegap = target_recurrence_u3_space.omega_bra();
+
+
+  // Case 1: Nn>Nn'
+  if((omega.N()-sigma.N())>=(omegap.N()-sigmap.N()))
+  {
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // If Nn >= Nn'
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// This is where recurrence terms change depending on Nnsum-4 or Nnsum-2
+    basis::OperatorBlock<double>
+      chi_matrix =
+        ChiMatrix(
+            sigma,
+            sp3r_space_bra.LookUpSubspace(omega),
+            sp3r_space_ket.LookUpSubspace(omega1)
+          );
+
+    basis::OperatorBlock<double>
+      A_matrix =
+        AMatrix(
+            sigmap,
+            sp3r_space_bra.LookUpSubspace(omegap),
+            sp3r_space_ket.LookUpSubspace(omega2)
+
+          );
+
+    // Kronecker product of ChiMatrix x AMatrix
+    basis::OperatorBlock<double> chiA_matrix = GetKronProd(chi_matrix,A_matrix);
+
+
+    // Vector of matrice indexed by operator sector index (correpsonds to omega0).  Each operator block is indexed by
+    // (columns) r0_source, Nbar_source,  and (rows) r0_target, Nbar_target.
+    const auto& UNbar_matrices
+      = UNbarMatrix(
+        omegap,
+        omega,
+        omega2,
+        omega1,
+        recurrence_operator_sectors
+      );
+
+    // Appy delta_Nsum=4 reccurence terms to Nsum-4 recurrence matrix
+    for(auto target_upsilon_index=0; target_upsilon_index<chiA_matrix.rows(); target_upsilon_index++)
+      for(auto source_upsilon_index=0; source_upsilon_index<chiA_matrix.rows(); source_upsilon_index++)
+        for(std::size_t i=0; i<recurrence_operator_sectors.size(); ++i)
+        {
+          const auto& sector = recurrence_operator_sectors.GetSector(i);
+
+          std::size_t target_operator_offset=target_recurrence_u3_space.GetSubspaceOffset(sector.target_subspace_index(),target_upsilon_index);
+          std::size_t source_operator_offset=source_recurrence_u3_space.GetSubspaceOffset(sector.source_subspace_index(),source_upsilon_index);
+
+          const basis::OperatorBlock<double>& UNbar_matrix = UNbar_matrices[i];
+          target_recurrence_u3_tile.block(target_operator_offset,0,UNbar_matrix.rows(),target_recurrence_u3_tile.cols())
+            += chiA_matrix(target_upsilon_index,source_upsilon_index)
+                *UNbar_matrix
+                *source_recurrence_u3_tile.block(source_upsilon_index,0,UNbar_matrix.cols(),source_recurrence_u3_tile.cols());
+
+        }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  }
+  // Term 2 Nn'>Nn
+  else
+  {
+
+  }
+}
 
 
 void SpatialRecurrenceMatrix::GenerateRecurrenceBlock(unsigned int Nnsum)
