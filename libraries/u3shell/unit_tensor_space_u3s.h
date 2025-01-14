@@ -21,7 +21,8 @@
 #define UNIT_TENSOR_SPACE_U3ST_H_
 
 #include <string>
-
+#include <set>
+#include <map>
 #include "basis/basis.h"
 #include "basis/hypersector.h"
 #include "sp3rlib/u3.h"

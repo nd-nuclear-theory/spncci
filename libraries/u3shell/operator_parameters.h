@@ -15,6 +15,7 @@
 #define OPERATOR_PARAMETERS_H_
 
 #include <unordered_set>
+#include <set>
 #include <fstream>
 #include <string>
 #include "sp3rlib/u3.h"
