@@ -12,8 +12,8 @@ recurrence_indexing_spatial.h
     ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
       ->spatial::RecurrenceNnsumSpace() [Nnsum]
         ->spatial::RecurrenceU3Space() [omega,omega'] (upsilon,upsilon')
-          ->spatial::RecurrenceOperatorSubspace() [x0] (rho0)
-            ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
+          ->u3shell::spatial::OperatorU3Subspace [x0] (rho0)
+            -> spatial::RecurrenceOperatorState() [Nbar,Nbar']
 
     spatial::ContractionSpace() [J0]
     ->spatial::ContractionSp3RSpace() [sigma,sigma',parity_bar]
@@ -90,7 +90,7 @@ class Space
       const unsigned int& Nmax
     )
   {
-    for (int i = 0; i < spin_space.size(); ++i)
+    for (std::size_t i = 0; i < spin_space.size(); ++i)
     {
       const u3::U3& sigma = spin_space.GetSubspace(i).sigma();
       // Only those sigma for which Nmax is >= sigma.N()-Nsigma0
@@ -458,16 +458,12 @@ class RecurrenceU3Sector
   using BaseSectorType =
       basis::BaseSector<RecurrenceU3Space<OperatorStateLabelType>>;
 
-  using BaseSectorType::BaseSector;  // Querry Patrick: What does this do?
+  using BaseSectorType::BaseSector;
+      // Inheriting constructor, so that all constructors of
+      //BaseSector become constructors of currenct class.
 
-  std::size_t source_subspace_index() const
-  {
-    return BaseSectorType::ket_subspace_index();
-  }
-  std::size_t target_subspace_index() const
-  {
-    return BaseSectorType::bra_subspace_index();
-  }
+  std::size_t source_subspace_index() const {return BaseSectorType::ket_subspace_index();}
+  std::size_t target_subspace_index() const {return BaseSectorType::bra_subspace_index();}
   const auto& source_subspace() const { return BaseSectorType::ket_subspace(); }
   const auto& target_subspace() const { return BaseSectorType::bra_subspace(); }
 };
