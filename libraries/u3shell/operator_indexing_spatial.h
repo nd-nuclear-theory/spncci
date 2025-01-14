@@ -17,6 +17,7 @@
 #define OPERATOR_INDEXING_SPATIAL_H_
 
 #include <unordered_set>
+#include <map>
 
 #include "basis/basis.h"
 #include "basis/degenerate.h"
