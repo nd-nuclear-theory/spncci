@@ -336,6 +336,24 @@ basis::OperatorBlocks<double> UNbarMatrix(
     }
 }
 
+basis::OperatorBlock<double> GetKronProd(const basis::OperatorBlock<double>& Matrix1, const basis::OperatorBlock<double>& Matrix2)
+{
+    // Kronecker product of ChiMatrix x AMatrix
+  auto rows1=Matrix1.rows();
+  auto cols1=Matrix1.cols();
+  auto rows2=Matrix2.rows();
+  auto cols2=Matrix2.cols();
+  basis::OperatorBlock<double> ProductMatrix{rows1+rows2,cols1+cols2};
+  for(auto i1=0; i1<rows1; i1++)
+    for(auto j1=0; j1<cols1; j1++)
+    {
+      ProductMatrix.block(i1*rows2,j1*cols2,rows2,cols2)=Matrix1(i1,j1)*Matrix2;
+    }
+  return ProductMatrix;
+}
+
+
+
 
 
 void SpatialRecurrenceMatrix::GenerateRecurrenceBlock(unsigned int Nnsum)
