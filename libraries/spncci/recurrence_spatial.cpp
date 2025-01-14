@@ -280,7 +280,63 @@ basis::OperatorBlock<double> UMatrix2(
 
   return u_matrix;
 }
-};  // namespace
+
+basis::OperatorBlocks<double> UNbarMatrix(
+    const u3::U3& target_omega_bra,
+    const u3::U3& target_omega_ket,
+    const u3::U3& source_omega_bra,
+    const u3::U3& source_omega_ket,
+    const spncci::spatial::RecurrenceOperatorSectors<SpatialRecurrenceMatrix::OperatorStateLabelType>&
+      recurrence_operator_sectors
+  )
+{
+  basis::OperatorBlocks<double>UNbar_matrices;
+  basis::SetOperatorToZero(recurrence_operator_sectors,UNbar_matrices);
+
+  for(const auto&& [sector_index,sector] : iter::enumerate(recurrence_operator_sectors))
+  {
+    basis::OperatorBlock<double> block = UNbar_matrices[sector_index];
+    auto target_r0_max = sector.bra_subspace_degeneracy();
+    auto source_r0_max = sector.ket_subspace_degeneracy();
+    const auto& source_subspace = sector.source_subspace();
+    const auto& target_subspace = sector.target_subspace();
+
+    for(int source_r0=1; source_r0<=source_r0_max; ++source_r0)
+    {
+      for(int target_r0=1; target_r0<=target_r0_max; ++target_r0)
+      {
+        auto ucoef = u3::U(
+              u3::SU3{2u, 0u},
+              source_omega_ket,
+              target_omega_bra,
+              target_subspace.x0(),
+              target_omega_ket,
+              1,
+              target_r0,
+              source_omega_ket,
+              source_r0,
+              1
+            );
+
+        for(std::size_t source_state_index=0; source_state_index<source_subspace.size(); source_state_index++)
+          for(std::size_t target_state_index=0; target_state_index<target_subspace.size(); target_state_index++)
+          {
+            auto target_offset = (target_r0-1)*target_subspace.size()+target_state_index;
+            auto source_offset = (source_r0-1)*source_subspace.size()+source_state_index;
+            const auto target_Nbar = target_subspace.GetState(target_state_index).Nbar();
+            const auto source_Nbar = source_subspace.GetState(source_state_index).Nbar();
+            if(target_Nbar==source_Nbar)
+            {
+              block(target_offset,source_offset)=ucoef;
+            }
+          }
+        }
+
+      }
+    }
+}
+
+
 
 void SpatialRecurrenceMatrix::GenerateRecurrenceBlock(unsigned int Nnsum)
 {
