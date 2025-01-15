@@ -57,18 +57,20 @@ int main()
 
           // define eigensolver and compute
           Spectra::DenseSymMatProd<FloatType> matvec(M);
-          Spectra::SymEigsSolver<FloatType,Spectra::SMALLEST_ALGE,Spectra::DenseSymMatProd<FloatType>> eigensolver(&matvec,num_eigenvalues,num_convergence);
+          Spectra::SymEigsSolver<Spectra::DenseSymMatProd<FloatType>> eigensolver(matvec,num_eigenvalues,num_convergence);
           eigensolver.init();
-          int nconv = eigensolver.compute(max_iterations,tolerance,Spectra::SMALLEST_ALGE);  // int maxit=1000, Scalar tol=1e-10, int sort_rule=LARGEST_ALGE
+          int nconv = eigensolver.compute(
+          Spectra::SortRule::SmallestAlge,max_iterations,tolerance,Spectra::SortRule::SmallestAlge
+          );  // sort_rule=SortRule::SmallestAlge, int maxit=1000, Scalar tol=1e-10,
 
           // end timing
           test_time.Stop();
           std::cout << "(Elapsed time: " << test_time.ElapsedTime() << ")" << std::endl;
 
           // retrieve results
-          std::cout << "Status: " << eigensolver.info() << std::endl;
+          // std::cout << "Status: " << eigensolver.info() << std::endl;
           Eigen::VectorXf evalues;
-          if(eigensolver.info() == Spectra::SUCCESSFUL)
+          if(eigensolver.info() == Spectra::CompInfo::Successful)
             evalues = eigensolver.eigenvalues();
           std::cout << "Eigenvalues:\n" << evalues << std::endl;
 
