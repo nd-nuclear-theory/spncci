@@ -538,7 +538,7 @@ RelativeOperator::RelativeOperator(const std::string& filename, const std::strin
                 {
                   const auto spin_label_index =
                       u3shell::spin::twobody::LookUpIndex(
-                          {S0, T0, Sbar, Sbarp, Tbar, Tbarp}
+                          {S0, T0, static_cast<int>(Sbar), static_cast<int>(Sbarp), static_cast<int>(Tbar), static_cast<int>(Tbarp)}
                         );
                   const auto spin_index = spin_space.GetSubspace(S0_subspace_index).LookUpStateIndex(spin_label_index);
                   const auto sector_index = sectors().LookUpSectorIndex({parity_space_index,N0_space_index,L0_subspace_index,S0_subspace_index});
