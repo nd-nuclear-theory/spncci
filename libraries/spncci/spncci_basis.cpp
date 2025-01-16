@@ -387,14 +387,14 @@ namespace spncci
         const u3shell::RelativeUnitTensorSpaceU3S& operator_space
       )
   {
-    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
-      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+    for (std::size_t bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (std::size_t ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
         {
           // retrieve subspaces
           const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
           const BabySpNCCISubspace& ket_subspace = space.GetSubspace(ket_subspace_index);
 
-          for(int operator_subspace_index=0; operator_subspace_index<operator_space.size(); ++operator_subspace_index)
+          for(std::size_t operator_subspace_index=0; operator_subspace_index<operator_space.size(); ++operator_subspace_index)
             {
               // verify selection rules
               bool allowed = true;
@@ -416,7 +416,7 @@ namespace spncci
                 continue;
 
               // find SU(3) multiplicity and check SU(3) selection
-              int multiplicity = u3::OuterMultiplicity(
+              auto multiplicity = u3::OuterMultiplicity(
                   ket_subspace.omega().SU3(),
                   operator_subspace.x0(),
                   bra_subspace.omega().SU3()
@@ -425,13 +425,17 @@ namespace spncci
 
               // push sectors (tagged by multiplicity)
               if (allowed)
-                for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+                for (std::size_t multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                   {
-                    PushHypersector(
+                    PushHypersector({
                       bra_subspace_index,
                       ket_subspace_index,
                       operator_subspace_index,
+                      bra_subspace,
+                      ket_subspace,
+                      operator_subspace,
                       multiplicity_index
+                    }
                     );
                   }
             }
@@ -460,8 +464,8 @@ namespace spncci
     unit_tensor_hypersector_subsets.resize(Nmax+1);
 
     int hypersector_index=0;
-    for (int bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
-      for (int ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
+    for (std::size_t bra_subspace_index=0; bra_subspace_index<space.size(); ++bra_subspace_index)
+      for (std::size_t ket_subspace_index=0; ket_subspace_index<space.size(); ++ket_subspace_index)
         {
           // retrieve subspaces
           const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
@@ -499,7 +503,7 @@ namespace spncci
           const std::set<int>& operator_subset=operator_subsets_NnpNn.at(spncci::NnPair(Nnp,Nn));
           // For each operator subspace, check if its an allowed operator subspace determined
           // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
-          for(int operator_subspace_index : operator_subset)
+          for(std::size_t operator_subspace_index : operator_subset)
             {
               bool allowed_subspace = true;
               const u3shell::RelativeUnitTensorSubspaceU3S&
@@ -521,18 +525,22 @@ namespace spncci
                 continue;
 
               // find SU(3) multiplicity and check SU(3) selection
-              int multiplicity = u3::OuterMultiplicity(
+              auto multiplicity = u3::OuterMultiplicity(
                   ket_subspace.omega().SU3(),operator_subspace.x0(),
                   bra_subspace.omega().SU3()
                 );
 
               // push sectors (tagged by multiplicity)
               // std::cout<<"multiplicity "<<multiplicity<<std::endl;
-              for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+              for (std::size_t multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                 {
                   PushHypersector(
-                      bra_subspace_index,ket_subspace_index,operator_subspace_index,
-                      multiplicity_index
+                      HypersectorType{
+                        bra_subspace_index,
+                        ket_subspace_index,
+                        operator_subspace_index,
+                        bra_subspace,ket_subspace,operator_subspace,
+                      multiplicity_index}
                     );
                   unit_tensor_hypersector_subsets[Nsum/2].push_back(hypersector_index);
                   ++hypersector_index;
@@ -570,8 +578,8 @@ namespace spncci
     std::tie(std::ignore,sigma2,Sp2,Sn2,S2)=lgi_2.Key();
 
     // Get baby spncci subspace indices for lgi
-    int bra_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma1,Sp1,Sn1,S1,sigma1));
-    int ket_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma2,Sp2,Sn2,S2,sigma2));
+    std::size_t bra_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma1,Sp1,Sn1,S1,sigma1));
+    std::size_t ket_subspace_index=space.LookUpSubspaceIndex(BabySpNCCISubspaceLabels(sigma2,Sp2,Sn2,S2,sigma2));
 
     // retrieve subspaces for lgi
     const BabySpNCCISubspace& bra_subspace = space.GetSubspace(bra_subspace_index);
@@ -582,7 +590,7 @@ namespace spncci
 
     // For each operator subspace, check if its an allowed operator subspace determined
     // by SU(2) and U(3) constraints.  If allowed, push multiplicity tagged hypersectors
-    for(int operator_subspace_index : operator_subset)
+    for(std::size_t operator_subspace_index : operator_subset)
       {
         bool allowed_subspace = true;
         const u3shell::RelativeUnitTensorSubspaceU3S&
@@ -610,11 +618,17 @@ namespace spncci
           );
 
         // push sectors (tagged by multiplicity)
-        for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
+        for (std::size_t multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
           {
-            PushHypersector(
-                bra_subspace_index,ket_subspace_index,operator_subspace_index,
+            PushHypersector({
+                bra_subspace_index,
+                ket_subspace_index,
+                operator_subspace_index,
+                bra_subspace,
+                ket_subspace,
+                operator_subspace,
                 multiplicity_index
+              }
               );
             // unit_tensor_hypersector_subset.push_back(hypersector_index);
             // ++hypersector_index;
@@ -740,13 +754,19 @@ namespace spncci
               // push sectors (tagged by multiplicity)
               for (int multiplicity_index = 1; multiplicity_index <= multiplicity; ++multiplicity_index)
                 {
-                  PushHypersector(bra_subspace_index,ket_subspace_index,observable_subspace_index,multiplicity_index);
-                    // HypersectorType(
-                    //   bra_subspace_index,ket_subspace_index,observable_subspace_index,
-                    //   bra_subspace, ket_subspace,observable_subspace,
-                    //   multiplicity_index
-                    //   )
-                    // );
+                  auto hypersector = HypersectorType(
+                      bra_subspace_index,ket_subspace_index,observable_subspace_index,
+                      bra_subspace, ket_subspace,observable_subspace,
+                      multiplicity_index
+                      );
+                  PushHypersector(hypersector);
+                  // PushHypersector(//bra_subspace_index,ket_subspace_index,observable_subspace_index,multiplicity_index);
+                  //   HypersectorType(
+                  //     bra_subspace_index,ket_subspace_index,observable_subspace_index,
+                  //     bra_subspace, ket_subspace,observable_subspace,
+                  //     multiplicity_index
+                  //     )
+                  //   );
                 }
             }
         }
