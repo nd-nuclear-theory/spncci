@@ -455,12 +455,14 @@ class RecurrenceU3Sector
   ////////////////////////////////////////////////////////////////
   // constructors
   ////////////////////////////////////////////////////////////////
-  using BaseSectorType =
+  using  BaseSectorType =
       basis::BaseSector<RecurrenceU3Space<OperatorStateLabelType>>;
 
-  using BaseSectorType::BaseSector;
-      // Inheriting constructor, so that all constructors of
-      //BaseSector become constructors of currenct class.
+  // Workaround for clang compile error not recongizing using declaration. 
+  // using BaseSectorType::BaseSector;
+  using basis::BaseSector<RecurrenceU3Space<OperatorStateLabelType>>::BaseSector;
+  // Inheriting constructor, so that all constructors of
+  //BaseSector become constructors of currenct class.
 
   std::size_t source_subspace_index() const {return BaseSectorType::ket_subspace_index();}
   std::size_t target_subspace_index() const {return BaseSectorType::bra_subspace_index();}
@@ -592,10 +594,11 @@ class RecurrenceOperatorSector
   ////////////////////////////////////////////////////////////////
   // constructors
   ////////////////////////////////////////////////////////////////
-  using BaseSectorType =
-      basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>>;
+  using BaseSectorType = basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>>;
 
-  using BaseSectorType::BaseDegenerateSector;
+  // Workaround for clang compile error not recongizing using declaration. 
+  // using BaseSectorType::BaseDegenerateSector; 
+  using basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>>::BaseDegenerateSector; 
 
   std::size_t source_subspace_index() const
   {
