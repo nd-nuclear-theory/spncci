@@ -110,6 +110,7 @@ add_subdirectory(libraries/basis)
 add_subdirectory(libraries/utilities)
 
 add_subdirectory(libraries/sp3rlib)
+add_subdirectory(libraries/su4lib)
 add_subdirectory(libraries/u3shell)
 add_subdirectory(libraries/moshinsky)
 add_subdirectory(libraries/lsu3shell)
