@@ -17,8 +17,9 @@
 #include <vector>
 #include <tuple>
 #include "am/halfint.h"
+#include "su4lib/u4.h"
 
-namespace su4lib
+namespace u4
 {
   inline constexpr unsigned int RacahPhi(int z)
   {
@@ -49,18 +50,21 @@ namespace su4lib
   }
 
   inline constexpr unsigned int U4toSU2SU2Multiplicity(
-      int f1, int f2, int f3, int f4, HalfInt S, HalfInt T
+      const u4::U4& f, HalfInt S, HalfInt T
     )
   // Evaluate inner multiplicity for U(4) -> SU(2)_S x SU(2)_T branching.
   {
+    const auto&[f1,f2,f3,f4] = f.labels();
     // Racah, Rev. Mod. Phys. 21, 494 (1949) -- eq. 31
     return RacahOmega(f1-f3, f2-f4, S, T)
       - (RacahOmega(f1-f4+1, f2-f3-1, S, T) + RacahOmega(f1-f2-1, f3-f4-1, S, T));
   }
 
+
   inline std::vector<std::tuple<HalfInt,HalfInt,unsigned int>>
-  GenerateU4toSU2SU2Weights(int f1, int f2, int f3, int f4)
+  GenerateU4toSU2SU2Weights(const u4::U4& f)
   {
+    const auto&[f1,f2,f3,f4] = f.labels();
     // Wigner's P is the max S0 or T0, therefore max S and max T
     HalfInt P = HalfInt((f1-f3)+(f2-f4),2);
     std::vector<std::tuple<HalfInt,HalfInt,unsigned int>> weights;
@@ -68,7 +72,7 @@ namespace su4lib
     {
       for (HalfInt T = P; T >= 0 ; --T)
       {
-        auto multiplicity = U4toSU2SU2Multiplicity(f1, f2, f3, f4, S, T);
+        auto multiplicity = U4toSU2SU2Multiplicity({f1, f2, f3, f4}, S, T);
         if (multiplicity > 0) weights.push_back({S,T,multiplicity});
       }
     }
@@ -76,6 +80,6 @@ namespace su4lib
     return weights;
   }
 
-}  // end namespace su4lib
+}  // end namespace su4
 
 #endif  // SU4LIB_U4_BRANCHING_
