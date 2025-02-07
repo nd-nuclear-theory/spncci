@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
-set(su4lib_headers u4_branching.h 
+set(su4lib_headers u4_branching.h u4.h u4_test_data
 )
-# set(su4lib_sources )
+set(su4lib_sources u4.cpp)
 
 # define am library and add source files
-add_library(su4lib INTERFACE)
+add_library(su4lib ${su4lib_sources})
 add_library(su4lib::su4lib ALIAS su4lib)
 
 # ##############################################################################
@@ -25,8 +25,10 @@ target_include_directories(
 )
 
 target_link_libraries(
-  su4lib INTERFACE am::am
-         # fmt::fmt
+  su4lib PUBLIC
+    am::am
+    basis::basis
+    fmt::fmt
 )
 # ##############################################################################
 # define installed targets
@@ -45,6 +47,7 @@ install(FILES ${su4lib_headers} DESTINATION include/spncci/su4lib)
 # ##############################################################################
 
 set(su4lib_TEST
+    u4_test
     u4_branching_test
 )
 
