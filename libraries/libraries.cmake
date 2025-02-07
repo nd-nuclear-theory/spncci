@@ -14,6 +14,10 @@ find_package(OpenMP REQUIRED)
 find_package(MPI) ## REQUIRED?
 find_package(Spectra REQUIRED)
 
+### 
+
+find_package(UNtoU3 REQUIRED)
+
 set(SPNCCI_SU3_LIBRARY_OPTIONS "su3wrc" "ndsu3lib" "SU3lib")
 set(SPNCCI_SU3_LIBRARY "SU3lib" CACHE STRING "SU(3) coefficient library to use")
 set_property(CACHE SPNCCI_SU3_LIBRARY PROPERTY STRINGS ${SPNCCI_SU3_LIBRARY_OPTIONS})
