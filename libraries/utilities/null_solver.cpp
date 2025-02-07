@@ -9,6 +9,7 @@
 
 #include "null_solver.h"
 
+#include <cassert>
 #include <iostream>
 
 #include "fmt/format.h"
