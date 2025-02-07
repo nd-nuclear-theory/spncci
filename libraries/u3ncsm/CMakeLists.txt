@@ -5,7 +5,10 @@ set(u3ncsm_UNITS_H
   )
 
 set(u3ncsm_UNITS_H_CPP
-  u3ncsm_interface
+  u3ncsm_interface 
+  u3u4_basis
+  u3st_basis
+  configurations
   )
 
 set(u3ncsm_lsu3shell_UNITS_H_CPP
@@ -13,6 +16,7 @@ set(u3ncsm_lsu3shell_UNITS_H_CPP
     lgi_gen
     dimensions
     seed_gen
+
   )
 
 
@@ -46,6 +50,7 @@ target_link_libraries(
   spncci::sp3rlib
   spncci::spncci_basis
   spncci::lgi
+  UNtoU3::UNtoU3
 )
 
 if(BUILD_LSU3SHELL)
@@ -110,7 +115,14 @@ target_link_libraries(
   spncci::u3ncsm
 )
 
-
+add_executable(u3u4_basis_test EXCLUDE_FROM_ALL u3u4_basis_test.cpp)
+target_link_libraries(
+  u3u4_basis_test PRIVATE
+  basis::basis
+  # fmt::fmt
+  spncci::u3ncsm
+  su4lib::su4lib
+)
 # if(SPNCCI_MASTER_PROJECT)
 #   add_dependencies(tests u3ncsm_tests)
 # endif()
