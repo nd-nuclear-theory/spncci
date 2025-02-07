@@ -565,7 +565,7 @@ template<> struct formatter<u3::SU3>
   FMT_CONSTEXPR auto format(const u3::SU3& x, FormatContext& ctx)
       -> decltype(ctx.out())
   {
-    return format_to(ctx.out(), "({:d},{:d})", x.lambda(), x.mu());
+    return fmt::format_to(ctx.out(), "({:d},{:d})", x.lambda(), x.mu());
   }
 };
 
@@ -593,9 +593,9 @@ template<> struct formatter<u3::U3>
       -> decltype(ctx.out())
   {
     if (presentation == 'f')
-      return format_to(ctx.out(), "{:f}{:d}", w.N(), w.SU3());
+      return fmt::format_to(ctx.out(), "{:f}{:d}", w.N(), w.SU3());
     else
-      return format_to(ctx.out(), "{:g}{:d}", w.N(), w.SU3());
+      return fmt::format_to(ctx.out(), "{:g}{:d}", w.N(), w.SU3());
   }
 };
 }  // namespace fmt
