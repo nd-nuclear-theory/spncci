@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.23)
 
 # optionally use system-installed fmtlib
 option(USE_SYSTEM_FMT "Use system-provided fmtlib" FALSE)
+option(USE_SYSTEM_AM "Use system-provided amlib" FALSE)
 # ##############################################################################
 # external dependencies
 # ##############################################################################
@@ -101,14 +102,18 @@ else()
   add_subdirectory(libraries/fmt)
 endif()
 
-add_subdirectory(libraries/am)
+if(USE_SYSTEM_AM)
+  find_package(am REQUIRED)
+else()
+  add_subdirectory(libraries/am)
+endif()
+
 add_subdirectory(libraries/mcutils)
 add_subdirectory(libraries/cppitertools)
 add_subdirectory(libraries/basis)
 
 # add_subdirectory(libraries/su3lib)
 add_subdirectory(libraries/utilities)
-
 add_subdirectory(libraries/sp3rlib)
 add_subdirectory(libraries/su4lib)
 add_subdirectory(libraries/u3shell)
