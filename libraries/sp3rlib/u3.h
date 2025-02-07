@@ -512,6 +512,29 @@ template<> struct hash<u3::U3>
 {
   inline std::size_t operator()(const u3::U3& h) const { return hash_value(h); }
 };
+
+
+ template <>
+    struct hash<std::vector<u3::SU3>> {
+        inline size_t operator()(const std::vector<u3::SU3>& vec) const {
+            size_t result = 0;
+            for (const auto& obj : vec) {
+                result ^= std::hash<u3::SU3>{}(obj); 
+            }
+            return result;
+        }
+    };
+
+ template <>
+    struct hash<std::vector<u3::U3>> {
+        inline size_t operator()(const std::vector<u3::U3>& vec) const {
+            size_t result = 0;
+            for (const auto& obj : vec) {
+                result ^= std::hash<u3::U3>{}(obj); 
+            }
+            return result;
+        }
+    };
 }  // namespace std
 
 
