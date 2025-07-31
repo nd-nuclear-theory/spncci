@@ -25,6 +25,7 @@ if(BUILD_LSU3SHELL)
     spncci::spncci_basis
     spncci::lgi
     spncci::u3ncsm
+    spncci::seeds
     spncci::spncci
   )
 endif()

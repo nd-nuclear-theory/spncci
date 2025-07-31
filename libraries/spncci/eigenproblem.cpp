@@ -98,8 +98,9 @@ namespace spncci
 
         // define eigensolver and compute
         Spectra::DenseSymMatProd<spncci::MatrixFloatType> matvec(matrix);
-        Spectra::SymEigsSolver<Spectra::DenseSymMatProd<spncci::MatrixFloatType> >
+        Spectra::SymEigsSolver<Spectra::DenseSymMatProd<spncci::MatrixFloatType>>
           eigensolver(
+              // &matvec,
               matvec,
               num_eigenvalues,
               eigensolver_num_convergence
@@ -109,6 +110,7 @@ namespace spncci
             Spectra::SortRule::SmallestAlge,
             eigensolver_max_iterations,
             eigensolver_tolerance
+            // Spectra::SortRule::SmallestAlge // sorting rule
           );
 
         // verify status

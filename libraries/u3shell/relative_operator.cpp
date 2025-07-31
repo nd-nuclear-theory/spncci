@@ -44,7 +44,10 @@ namespace u3shell {
 
     bool restrict_J0 = (J0!=-1);
     int eta_max=Nmax+2*N1v;
-    int N0_min=restrict_positive_N0?0:-1*eta_max;
+    int N0_min=restrict_positive_N0?0:-Nmax;
+    // 05/11/23 (jh): Change eta_max to Nmax to make get_spncci_seed_blocks work.
+    //                This would not work if bra and ket have different numbers of quanta in the lowest Pauli allowed configuration,
+    //                such as for some Tz-changing operators.
 
 
     for(int N0=N0_min; N0<=Nmax; N0+=2)
@@ -535,7 +538,7 @@ RelativeOperator::RelativeOperator(const std::string& filename, const std::strin
                 {
                   const auto spin_label_index =
                       u3shell::spin::twobody::LookUpIndex(
-                          {S0, T0, Sbar, Sbarp, Tbar, Tbarp}
+                          {S0, T0, static_cast<int>(Sbar), static_cast<int>(Sbarp), static_cast<int>(Tbar), static_cast<int>(Tbarp)}
                         );
                   const auto spin_index = spin_space.GetSubspace(S0_subspace_index).LookUpStateIndex(spin_label_index);
                   const auto sector_index = sectors().LookUpSectorIndex({parity_space_index,N0_space_index,L0_subspace_index,S0_subspace_index});

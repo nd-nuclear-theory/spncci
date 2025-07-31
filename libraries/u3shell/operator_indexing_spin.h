@@ -168,7 +168,7 @@ public:
         if(OperatorLabelsST::ALLOWED_LABELS[index].S0()==S0)
           return index;
       }
-    fmt::print("S0 = {} is not an allowed two-body spin");
+    fmt::print("S0 = {} is not an allowed two-body spin",S0);
     exit(EXIT_FAILURE);
   }
 

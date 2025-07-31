@@ -9,7 +9,8 @@
   filename format:
     lgi_expansion_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_2Sp{:02}_2Sn{:02}_2S{:02}.dat
 
-  Writes seeds for each sigma,sigma',partiy_bar subspace to file.
+  Writes seeds for each sigma,sigma',partiy_bar subspace to file with filename format:
+    "seeds_Z{:02d}_N{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_Nex{:02d}_lm{:02d}_mu{:02d}_gbar{:1d}.dat"
 
   Anna E. McCoy
   Institute for Nuclear Theory
@@ -19,16 +20,19 @@
   2/18/22 (aem): Created.
 ****************************************************************/
 #include <fstream>
-// #include <iostream>
+
+// Lsu3shell
 #include "LookUpContainers/CWig9lmLookUpTable.h"
 #include "LSU3/ncsmSU3xSU2Basis.h"
 #include "SU3ME/CInteractionPN.h"
 #include "SU3ME/InteractionPPNN.h"
 #include "UNU3SU3/UNU3SU3Basics.h"
 
+// spncci
 #include "lgi/lgi.h"
 #include "lgi/recurrence_lgi.h"
 #include "spncci_basis/recurrence_indexing.h"
+#include "seeds/recurrence_seeds.h"
 #include "u3ncsm/dimensions.h"
 #include "u3ncsm/seed_gen.h"
 #include "u3shell/relative_operator.h"

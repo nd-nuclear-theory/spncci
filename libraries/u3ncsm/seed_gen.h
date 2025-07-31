@@ -42,6 +42,9 @@ basis::OperatorBlock<double> GenerateRecurrenceSeedBlock(
     const int recurrence_sp3r_space_index
   );
 
+/// For a given recurrence_sp3r_space_index, which selects spatial/spin subspaces for a give
+/// sigma, sigma' and parity_bar/exchange_bar, calculate the seeds for a
+/// intrinsic two-body operator recurrence.
 
 }  // namespace spncci::seeds
 #endif

@@ -12,8 +12,8 @@ recurrence_indexing_spatial.h
     ->spatial::RecurrenceSp3RSpace() [sigma,sigma',parity_bar]
       ->spatial::RecurrenceNnsumSpace() [Nnsum]
         ->spatial::RecurrenceU3Space() [omega,omega'] (upsilon,upsilon')
-          ->spatial::RecurrenceOperatorSubspace() [x0] (rho0)
-            ->spatial::RecurrenceOperatorState() [Nbar,Nbar']
+          ->u3shell::spatial::OperatorU3Subspace [x0] (rho0)
+            -> spatial::RecurrenceOperatorState() [Nbar,Nbar']
 
     spatial::ContractionSpace() [J0]
     ->spatial::ContractionSp3RSpace() [sigma,sigma',parity_bar]
@@ -90,7 +90,7 @@ class Space
       const unsigned int& Nmax
     )
   {
-    for (int i = 0; i < spin_space.size(); ++i)
+    for (std::size_t i = 0; i < spin_space.size(); ++i)
     {
       const u3::U3& sigma = spin_space.GetSubspace(i).sigma();
       // Only those sigma for which Nmax is >= sigma.N()-Nsigma0
@@ -455,19 +455,17 @@ class RecurrenceU3Sector
   ////////////////////////////////////////////////////////////////
   // constructors
   ////////////////////////////////////////////////////////////////
-  using BaseSectorType =
+  using  BaseSectorType =
       basis::BaseSector<RecurrenceU3Space<OperatorStateLabelType>>;
 
-  using BaseSectorType::BaseSector;  // Querry Patrick: What does this do?
+  // Workaround for clang compile error not recongizing using declaration. 
+  // using BaseSectorType::BaseSector;
+  using basis::BaseSector<RecurrenceU3Space<OperatorStateLabelType>>::BaseSector;
+  // Inheriting constructor, so that all constructors of
+  //BaseSector become constructors of currenct class.
 
-  std::size_t source_subspace_index() const
-  {
-    return BaseSectorType::ket_subspace_index();
-  }
-  std::size_t target_subspace_index() const
-  {
-    return BaseSectorType::bra_subspace_index();
-  }
+  std::size_t source_subspace_index() const {return BaseSectorType::ket_subspace_index();}
+  std::size_t target_subspace_index() const {return BaseSectorType::bra_subspace_index();}
   const auto& source_subspace() const { return BaseSectorType::ket_subspace(); }
   const auto& target_subspace() const { return BaseSectorType::bra_subspace(); }
 };
@@ -581,6 +579,107 @@ class RecurrenceU3Sectors
   }
 };
 
+////////////////////////////////////////////////////////////////
+// Defining sectors for u3shell::spatial::OperatorU3Subspace for a given
+// pair of RecurrenceU3Spaces.
+////////////////////////////////////////////////////////////////
+template<typename tOperatorStateLabelType>
+class RecurrenceOperatorSector
+    : public basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<tOperatorStateLabelType>>
+{
+ private:
+  using OperatorStateLabelType = tOperatorStateLabelType;
+
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+  using BaseSectorType = basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>>;
+
+  // Workaround for clang compile error not recongizing using declaration. 
+  // using BaseSectorType::BaseDegenerateSector; 
+  using basis::BaseDegenerateSector<u3shell::spatial::OperatorU3Subspace<OperatorStateLabelType>>::BaseDegenerateSector; 
+
+  std::size_t source_subspace_index() const
+  {
+    return BaseSectorType::ket_subspace_index();
+  }
+  std::size_t target_subspace_index() const
+  {
+    return BaseSectorType::bra_subspace_index();
+  }
+  const auto& source_subspace() const { return BaseSectorType::ket_subspace(); }
+  const auto& target_subspace() const { return BaseSectorType::bra_subspace(); }
+};
+
+// ////////////////////////////////////////////////////////////////
+template<typename tOperatorStateLabelType>
+class RecurrenceOperatorSectors
+    : public basis::BaseSectors<
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceOperatorSector<tOperatorStateLabelType>
+        >
+{
+ private:
+  using OperatorStateLabelType = tOperatorStateLabelType;
+  using BaseSectorsType = basis::BaseSectors<
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceU3Space<tOperatorStateLabelType>,
+          RecurrenceOperatorSector<tOperatorStateLabelType>
+        >;
+
+ public:
+  ////////////////////////////////////////////////////////////////
+  // constructors
+  ////////////////////////////////////////////////////////////////
+
+  RecurrenceOperatorSectors() = default;
+
+  RecurrenceOperatorSectors(
+      const RecurrenceU3Space<OperatorStateLabelType>& target_u3_space,
+      const RecurrenceU3Space<OperatorStateLabelType>& source_u3_space,
+      const int delta_Nnsum
+    )
+      : BaseSectorsType{
+          target_u3_space,
+          source_u3_space
+        }
+  {
+    for(auto&& [target_operator_index, target_operator_subspace] : iter::enumerate(target_u3_space))
+    {
+      for(auto&& [source_operator_index, source_operator_subspace] : iter::enumerate(source_u3_space))
+      {
+        if (delta_Nnsum==4)
+          if((target_operator_subspace.x0()!= target_operator_subspace.x0()) and (target_operator_subspace.N0()!= target_operator_subspace.N0()))
+            continue;
+
+        if(delta_Nnsum==2)
+          if(u3::OuterMultiplicity(target_operator_subspace.x0(),u3::SU3(2u,0u),target_operator_subspace.x0())==0)
+            continue;
+
+        // Get rho0_max
+        auto target_rho0_max = target_u3_space.GetSubspaceDegeneracy(target_operator_index);
+        auto source_rho0_max = source_u3_space.GetSubspaceDegeneracy(source_operator_index);
+        BaseSectorsType::PushSector(
+          RecurrenceOperatorSector<OperatorStateLabelType>(
+            target_operator_index,
+            source_operator_index,
+            target_u3_space.GetSubspaceDegeneracy(target_operator_index),
+            source_u3_space.GetSubspaceDegeneracy(source_operator_index),
+            target_u3_space.GetSubspacePtr(target_operator_index),
+            source_u3_space.GetSubspacePtr(source_operator_index),
+            1 // outer multiplicity
+            )
+        );
+      }
+
+    }
+  }
+
+};
+
+/////////////
 }  // namespace spncci::spatial
 
 #endif  // RECURRENCE_INDEXING_H_

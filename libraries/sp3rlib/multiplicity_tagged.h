@@ -59,6 +59,7 @@ template<typename tIrrep> struct MultiplicityTagged
   // key tuple, comparisons, and hashing
   ////////////////////////////////////////////////////////////////
 
+  // accessor
   typedef std::pair<tIrrep, unsigned int> KeyType;
 
   inline KeyType Key() const { return KeyType(irrep, tag); }
@@ -135,5 +136,15 @@ template<> inline std::string MultiplicityTagged<unsigned int>::Str() const
   return ss.str();
 }
 
+namespace std{
+      template <typename tIrrep>
+    struct hash<MultiplicityTagged<tIrrep>> {
+        std::size_t operator()(const MultiplicityTagged<tIrrep>& obj) const {
+            return obj.hashvalue();
+        }
+    };
+
+
+}
 
 #endif

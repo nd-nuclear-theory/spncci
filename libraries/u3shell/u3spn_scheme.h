@@ -25,7 +25,7 @@
 #define U3SPN_SCHEME_H_
 
 #include <string>
-
+#include <map>
 #include "basis/basis.h"
 #include "basis/degenerate.h"
 #include "sp3rlib/u3.h"

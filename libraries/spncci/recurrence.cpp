@@ -654,8 +654,9 @@ void AddNn0BlocksToHyperblocks(
             for(int rho=1; rho<=rho_max; ++rho)
               for(int rho1=1; rho1<=rho1_max; ++rho1)
                 {
-                  int col=nonorthogonal_basis1.GetStateOffset(u3_state_index1,rho1);
-                  int row=nonorthogonal_basis.GetStateOffset(u3_state_index,rho);
+		  // 05/11/23 (jh): Swap row and col
+                  int row=nonorthogonal_basis1.GetStateOffset(u3_state_index1,rho1);
+                  int col=nonorthogonal_basis.GetStateOffset(u3_state_index,rho);
                   // BU(u3_state_index1,u3_state_index)
                   //   =2./Nn*u3boson::BosonCreationRME(n,n1)
                   //    *u3::UCached(u_coef_cache,u3::SU3(2,0),n1.SU3(),omega.SU3(),sigma.SU3(),
@@ -672,7 +673,9 @@ void AddNn0BlocksToHyperblocks(
       }
 
     // Eigen::MatrixXd KBUK(upsilon_max1,upsilon_max);
-    KBUK.noalias()=K1.transpose()*BU*K_inv.transpose();
+//    KBUK.noalias()=K1.transpose()*BU*K_inv.transpose();
+    KBUK.noalias()=K1*BU*K_inv;
+    // 05/11/23 (jh): Untranspose K-matrices (they already are transposed)
   }
 
 

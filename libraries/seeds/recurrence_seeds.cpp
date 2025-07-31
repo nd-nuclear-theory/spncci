@@ -168,7 +168,7 @@ basis::OperatorBlock<double> ReadSeedBlockFromFile(
             lgi_spatial_space.GetSubspace(spatial_operator_index);
 
         int spatial_state_index =
-            spatial_operator_subspace.LookUpStateIndex({{Nbar}});
+            spatial_operator_subspace.LookUpStateIndex({{static_cast<unsigned int>(Nbar)}});
 
         // Calculate target row index
         int target_index_row =

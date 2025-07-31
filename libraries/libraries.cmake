@@ -1,17 +1,22 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.23)
 
 # optionally use system-installed fmtlib
 option(USE_SYSTEM_FMT "Use system-provided fmtlib" FALSE)
+option(USE_SYSTEM_AM "Use system-provided amlib" FALSE)
 # ##############################################################################
 # external dependencies
 # ##############################################################################
 
-find_package(Boost REQUIRED COMPONENTS headers)
+find_package(Boost REQUIRED COMPONENTS)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(GSL REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(MPI) ## REQUIRED?
 find_package(Spectra REQUIRED)
+
+### 
+
+find_package(UNtoU3 REQUIRED)
 
 set(SPNCCI_SU3_LIBRARY_OPTIONS "su3wrc" "ndsu3lib" "SU3lib")
 set(SPNCCI_SU3_LIBRARY "SU3lib" CACHE STRING "SU(3) coefficient library to use")
@@ -101,15 +106,20 @@ else()
   add_subdirectory(libraries/fmt)
 endif()
 
-add_subdirectory(libraries/am)
+if(USE_SYSTEM_AM)
+  find_package(am REQUIRED)
+else()
+  add_subdirectory(libraries/am)
+endif()
+
 add_subdirectory(libraries/mcutils)
 add_subdirectory(libraries/cppitertools)
 add_subdirectory(libraries/basis)
 
 # add_subdirectory(libraries/su3lib)
 add_subdirectory(libraries/utilities)
-
 add_subdirectory(libraries/sp3rlib)
+add_subdirectory(libraries/su4lib)
 add_subdirectory(libraries/u3shell)
 add_subdirectory(libraries/moshinsky)
 add_subdirectory(libraries/lsu3shell)

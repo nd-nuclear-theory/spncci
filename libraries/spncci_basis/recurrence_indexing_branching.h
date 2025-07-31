@@ -30,7 +30,7 @@ recurrence_indexing_spatial.h
 
     Final indexing of branched J space
     -> J
-      -> sigma S Sp Sn gamma omega upsilon L kappa
+      -> sigma omega S Sp Sn gamma upsilon L kappa
 
   Anna E. McCoy
   Institute for Nuclear Theory

@@ -11,11 +11,10 @@
 
   2/14/17 (mac): Create, based on example from spectra/README.md.
     + Update coding conventions (for includes and namespaces).
-  7/3/22 (aem): Updated to be consistent with Spectra v1.0
 ****************************************************************/
 
 #include <iostream>
-#include "fmt/format.h"
+
 #include <Eigen/Dense>
 #include "Spectra/SymEigsSolver.h"  // from spectra
 
@@ -58,24 +57,23 @@ int main()
 
           // define eigensolver and compute
           Spectra::DenseSymMatProd<FloatType> matvec(M);
-          Spectra::SymEigsSolver<Spectra::DenseSymMatProd<FloatType>>
-            eigensolver(matvec,num_eigenvalues,num_convergence);
-
+          Spectra::SymEigsSolver<Spectra::DenseSymMatProd<FloatType>> eigensolver(matvec,num_eigenvalues,num_convergence);
           eigensolver.init();
-          int nconv = eigensolver.compute(Spectra::SortRule::SmallestAlge,max_iterations,tolerance);
+          int nconv = eigensolver.compute(
+          Spectra::SortRule::SmallestAlge,max_iterations,tolerance,Spectra::SortRule::SmallestAlge
+          );  // sort_rule=SortRule::SmallestAlge, int maxit=1000, Scalar tol=1e-10,
 
           // end timing
           test_time.Stop();
           std::cout << "(Elapsed time: " << test_time.ElapsedTime() << ")" << std::endl;
 
           // retrieve results
-          fmt::print("Status: {}\n",eigensolver.info());
           // std::cout << "Status: " << eigensolver.info() << std::endl;
           Eigen::VectorXf evalues;
           if(eigensolver.info() == Spectra::CompInfo::Successful)
             evalues = eigensolver.eigenvalues();
-
           std::cout << "Eigenvalues:\n" << evalues << std::endl;
+
           std::cout << std::endl;
           std::cout << std::endl;
         }

@@ -10,7 +10,7 @@
 
 #include <Eigen/Eigenvalues>
 #include <numeric>
-
+#include <map>
 #include "cppitertools/itertools.hpp"
 #include "fmt/format.h"
 #include "mcutils/eigen.h"

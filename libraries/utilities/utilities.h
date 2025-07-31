@@ -49,6 +49,21 @@ std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
 
 namespace utils
 {
+
+template <typename T>
+void print_vector(const std::vector<T>&vector)
+  {
+    std::string print_string="[";
+    for(const auto& v : vector)
+      print_string+=fmt::format("{}, ",v);
+    
+    print_string.erase (print_string.end()-2, print_string.end());
+    print_string+="]";
+    std::cout<<print_string<<std::endl;
+  }
+
+
+
 inline bool FileExists(std::string filename, bool verbose)
   {
     int res = access(filename.c_str(), R_OK);

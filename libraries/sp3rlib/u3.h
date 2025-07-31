@@ -512,6 +512,29 @@ template<> struct hash<u3::U3>
 {
   inline std::size_t operator()(const u3::U3& h) const { return hash_value(h); }
 };
+
+
+ template <>
+    struct hash<std::vector<u3::SU3>> {
+        inline size_t operator()(const std::vector<u3::SU3>& vec) const {
+            size_t result = 0;
+            for (const auto& obj : vec) {
+                result ^= std::hash<u3::SU3>{}(obj); 
+            }
+            return result;
+        }
+    };
+
+ template <>
+    struct hash<std::vector<u3::U3>> {
+        inline size_t operator()(const std::vector<u3::U3>& vec) const {
+            size_t result = 0;
+            for (const auto& obj : vec) {
+                result ^= std::hash<u3::U3>{}(obj); 
+            }
+            return result;
+        }
+    };
 }  // namespace std
 
 
@@ -542,7 +565,7 @@ template<> struct formatter<u3::SU3>
   FMT_CONSTEXPR auto format(const u3::SU3& x, FormatContext& ctx)
       -> decltype(ctx.out())
   {
-    return format_to(ctx.out(), "({:d},{:d})", x.lambda(), x.mu());
+    return fmt::format_to(ctx.out(), "({:d},{:d})", x.lambda(), x.mu());
   }
 };
 
@@ -570,9 +593,9 @@ template<> struct formatter<u3::U3>
       -> decltype(ctx.out())
   {
     if (presentation == 'f')
-      return format_to(ctx.out(), "{:f}{:d}", w.N(), w.SU3());
+      return fmt::format_to(ctx.out(), "{:f}{:d}", w.N(), w.SU3());
     else
-      return format_to(ctx.out(), "{:g}{:d}", w.N(), w.SU3());
+      return fmt::format_to(ctx.out(), "{:g}{:d}", w.N(), w.SU3());
   }
 };
 }  // namespace fmt

@@ -156,7 +156,8 @@ PhiCoefBlock::PhiCoefBlock(const u3::PhiCoefLabels& labels)
   std::tie(x1, x2, x3) = labels.Key();
   rho_max_ = u3::OuterMultiplicity(x1, x2, x3);
   // zero initialize array
-  su3::wru3(
+  su3::wzu3(
+  // 05/11/23 (jh): Change wru3 to wzu3
       x1.lambda(),
       x1.mu(),
       0,

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.23)
 
 # Determine if basis is built as a subproject (using add_subdirectory) or if it
 # is the master project.
@@ -39,6 +39,8 @@ add_compile_options(
 add_compile_definitions(
   EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
   )
+## UNtoU4 directive.  Required for su4 version.
+add_compile_definitions(UNTOU3_DISABLE_PRECALC)
 
 if(SPNCCI_U_COEFF_CACHE)
   add_compile_definitions(USE_U_COEF_CACHE)
