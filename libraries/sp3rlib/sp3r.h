@@ -216,6 +216,9 @@ class U3Subspace
   }
   std::string DebugStr() const;
 
+  // Get total number of states in subspace for a single upsilon
+  std::size_t total_states() const;
+
  private:
   unsigned int upsilon_max_;
   basis::OperatorBlock<double> K_matrix_, Kinv_matrix_;

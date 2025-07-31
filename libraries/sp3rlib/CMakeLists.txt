@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.20)
 
 # add headers and sources
 set(sp3rlib_headers multiplicity_tagged.h u3.h u3s.h u3st.h u3boson.h vcs.h sp3r.h u3coef.h
-                    sp3r_operator.h
+                    sp3r_operator.h sp3rl.h sp3rsj.h u3_racah_product.h u3boson_racah_product.h
+                    sp3rsj_tiling.h u3_tensor.h sp3rsj_tensor.h
 )
 set(sp3rlib_sources u3.cpp u3s.cpp u3st.cpp u3boson.cpp vcs.cpp sp3r.cpp sp3r_operator.cpp u3coef.cpp
-                    u3coef_${SPNCCI_SU3_LIBRARY}.cpp
+                    u3coef_${SPNCCI_SU3_LIBRARY}.cpp sp3rl.cpp sp3rsj.cpp u3_racah_product.cpp
+                    u3boson_racah_product.cpp sp3rsj_tiling.cpp u3_tensor.cpp sp3rsj_tensor.cpp
 )
 
 # define am library and add source files
@@ -61,6 +63,8 @@ set(sp3rlib_UNITS_TEST
     u3coef_test
     vcs_test
     sp3r_operator_test
+    sp3rl_test
+    sp3rsj_test
 )
 
 set(sp3rlib_GTEST
@@ -68,6 +72,12 @@ set(sp3rlib_GTEST
   su3coupling_gtest
   vcs_gtest
   u3boson_gtest
+)
+
+set(sp3rlib_racah_reduction_TEST
+  u3boson_racah_product_test
+  u3_racah_product_test
+  sp3rsj_tiling_test
 )
 
 add_custom_target(sp3rlib_tests)
@@ -86,6 +96,12 @@ foreach(test_name IN LISTS sp3rlib_GTEST)
   add_dependencies(sp3rlib_gtests ${test_name})
 endforeach()
 
+add_custom_target(racah_product_test)
+foreach(test_name IN LISTS sp3rlib_racah_reduction_TEST)
+  add_executable(${test_name} EXCLUDE_FROM_ALL ${test_name}.cpp)
+  target_link_libraries(${test_name} spncci::sp3rlib)
+  add_dependencies(racah_product_test ${test_name})
+endforeach()
 
 if(SPNCCI_MASTER_PROJECT)
   add_dependencies(tests sp3rlib_tests)

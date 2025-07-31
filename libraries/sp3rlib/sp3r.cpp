@@ -131,6 +131,20 @@ Sp3RSpace::Sp3RSpace(
   }
 }
 
+// Get total number of states in subspace for a single upsilon
+std::size_t U3Subspace::total_states() const 
+{
+  // Get tile dimensions
+  int subspace_dimension = 0;
+  // Loop over bra subspace
+  for (int i_state = 0; i_state < size(); i_state++)
+  {
+    subspace_dimension += GetState(i_state).kappa_max();
+  }
+  // Return dimension of subspace
+  return subspace_dimension;
+};
+
 ////////////////////////////////////////////////////////////////////////
 std::string U3Subspace::DebugStr() const
 {
